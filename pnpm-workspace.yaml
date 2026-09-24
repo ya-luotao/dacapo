@@ -1,0 +1,2 @@
+# Only resolve package versions that have been public for at least 3 days (in minutes).
+minimumReleaseAge: 4320

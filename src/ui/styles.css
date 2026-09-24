@@ -1,0 +1,255 @@
+:root {
+  color-scheme: light;
+  --bg: #f7f5f0;
+  --surface: #ffffff;
+  --text: #1c2229;
+  --text-muted: #5b6570;
+  --border: #dcd8cf;
+  --accent: #2f5d8a;
+  --accent-contrast: #ffffff;
+  --accent-soft: #e3ebf3;
+  --focus: #2f5d8a;
+
+  --font-sans:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+  --radius: 10px;
+  --gutter: 16px;
+  --content-width: 64rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #15191e;
+    --surface: #1d2229;
+    --text: #e6e3dc;
+    --text-muted: #9aa3ad;
+    --border: #323941;
+    --accent: #8db4dc;
+    --accent-contrast: #10151a;
+    --accent-soft: #24313f;
+    --focus: #8db4dc;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #15191e;
+  --surface: #1d2229;
+  --text: #e6e3dc;
+  --text-muted: #9aa3ad;
+  --border: #323941;
+  --accent: #8db4dc;
+  --accent-contrast: #10151a;
+  --accent-soft: #24313f;
+  --focus: #8db4dc;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+a {
+  color: var(--accent);
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+h1 {
+  margin: 0 0 0.75rem;
+  font-size: 1.75rem;
+  line-height: 1.25;
+  font-weight: 650;
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+/* Header */
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 0.75rem var(--gutter);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+}
+
+.brand-mark {
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.6;
+}
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nav-link {
+  display: inline-block;
+  padding: 0.5rem 0.875rem;
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-weight: 550;
+  text-decoration: none;
+}
+
+.nav-link:hover {
+  color: var(--text);
+  background: var(--accent-soft);
+}
+
+.nav-link.is-active {
+  color: var(--accent-contrast);
+  background: var(--accent);
+}
+
+/* Content */
+
+.main {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 2rem var(--gutter) 3rem;
+}
+
+.page {
+  max-width: 40rem;
+}
+
+/* Forms */
+
+.field {
+  margin: 1.75rem 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.field > label,
+.field > legend {
+  display: block;
+  margin-bottom: 0.5rem;
+  padding: 0;
+  font-weight: 600;
+}
+
+.help {
+  margin: 0.5rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+
+select {
+  min-width: 14rem;
+  max-width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.segmented label {
+  position: relative;
+  cursor: pointer;
+}
+
+.segmented input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.segmented span {
+  display: block;
+  padding: 0.5rem 1.125rem;
+  color: var(--text-muted);
+}
+
+.segmented label + label span {
+  border-left: 1px solid var(--border);
+}
+
+.segmented input:checked + span {
+  color: var(--accent-contrast);
+  background: var(--accent);
+  font-weight: 600;
+}
+
+.segmented input:focus-visible + span {
+  outline: 3px solid var(--focus);
+  outline-offset: -3px;
+}
+
+@media (max-width: 30rem) {
+  .header nav {
+    width: 100%;
+  }
+
+  .nav {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+  }
+
+  .nav-link {
+    padding: 0.4rem 0.5rem;
+    font-size: 1rem;
+  }
+}

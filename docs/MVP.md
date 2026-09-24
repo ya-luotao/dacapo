@@ -22,8 +22,8 @@ with a MIDI keyboard. The MVP focuses on the first real bottleneck for beginners
 | Tests | Vitest (+ `fake-indexeddb` for storage tests), Testing Library only where it pays off |
 | Quality | ESLint (flat config) + Prettier + `.editorconfig`; GitHub Actions CI: typecheck, lint, test, build |
 | Audio | **None** in the MVP — the piano makes the sound |
-| Browsers | Chrome / Edge (Web MIDI). Other browsers get a clear notice and can still use the fallback input |
-| Pitch naming | Letter names, scientific pitch notation: C4 = middle C = MIDI 60 |
+| Browsers | Chrome / Edge recommended. Support is decided by feature detection (`navigator.requestMIDIAccess`), never by browser name; without it the app shows a clear notice and still works with the fallback input |
+| Pitch naming | Letter names in every UI language (no solfège or numbered notation in the MVP), scientific pitch notation: C4 = middle C = MIDI 60 |
 | i18n | English (`en`, source of truth) and Simplified Chinese (`zh-CN`). Tiny typed dictionary, no i18n library. Missing keys must be a compile error. Auto-detect from `navigator.language`, user toggle persisted in `localStorage` (wrapped in try/catch) |
 | License | MIT |
 | Language of record | English for all code, comments, commits, docs and issues |
@@ -46,6 +46,7 @@ src/
     hub.ts         merges sources, tracks held notes + sustain pedal
   storage/     IndexedDB schema, migrations, repositories, export/import
   i18n/        dictionaries + useT() hook + locale switcher
+  lib/         small shared utilities (e.g. the guarded localStorage wrapper for preferences)
   ui/          React components and screens
 ```
 
@@ -140,7 +141,8 @@ staff (e.g. `C4@treble`, `C4@bass` are separate — reading them is a different 
 - Today's total minutes, current streak (days with ≥ 5 min, local date), 30-day history
   view.
 - Export all data to a JSON file (versioned schema) and import it back
-  (validate; merge by id; never silently drop data).
+  (validate; merge by id; never silently drop data). The export includes user
+  preferences (locale, theme, input options) alongside the IndexedDB data.
 
 ### Storage
 
