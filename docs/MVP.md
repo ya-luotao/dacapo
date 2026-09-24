@@ -60,8 +60,9 @@ functions so tests are deterministic.
   cares where a note came from.
 - Web MIDI: request access without sysex; subscribe to every input; re-subscribe on
   `onstatechange` (hot-plug); treat `0x90` with velocity 0 as note-off; track CC64
-  (sustain) state. Expose device status: `unsupported` / `no-permission` /
-  `no-device` / `connected(names[])`.
+  (sustain) state. Expose device status: `pending` / `unsupported` / `no-permission` /
+  `no-device` / `connected(names[])`. Sources emit an `InputEvent` union (note, sustain,
+  reset) tagged with a port, so the hub can merge holders across devices and pointers.
 - Keyboard fallback: two rows mapped like a piano (`A W S E D F T G Y H U J K` =
   C..C, black keys on the upper row), `Z`/`X` shift octave down/up, default octave 4.
   Ignore `event.repeat`. Disabled while focus is in a text input.
@@ -136,8 +137,8 @@ staff (e.g. `C4@treble`, `C4@bass` are separate — reading them is a different 
 
 - Every flashcard session is saved: start, end, active duration, level, cards,
   accuracy, median reaction.
-- "Free play" time on the live keyboard also counts (a session starts on the first
-  note and ends after 60 s of inactivity).
+- "Free play" time on the Play route also counts (a session starts on the first
+  note played while Play is open and ends after 60 s of inactivity or on leaving Play).
 - Today's total minutes, current streak (days with ≥ 5 min, local date), 30-day history
   view.
 - Export all data to a JSON file (versioned schema) and import it back

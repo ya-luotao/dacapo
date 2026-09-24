@@ -9,7 +9,39 @@ export const en = {
   'nav.settings': 'Settings',
 
   'play.title': 'Play',
-  'play.placeholder': 'The live keyboard will appear here. Connect a MIDI keyboard and play.',
+  'play.readout.label': 'Notes',
+  'play.readout.empty': 'Play a note',
+  'play.readout.last': 'Last played',
+  'play.sustain': 'Sustain pedal',
+  'play.sustain.down': 'Pedal down',
+  'play.sustain.up': 'Pedal up',
+
+  'piano.label': 'Piano keyboard, A0 to C8',
+  'piano.key.black': '{sharp} / {flat}',
+  'piano.key.middleC': '{name}, middle C',
+
+  'midi.status.pending': 'Looking for MIDI devices…',
+  'midi.status.unsupported': 'MIDI is not available in this browser',
+  'midi.status.noPermission': 'MIDI access is blocked',
+  'midi.status.noDevice': 'No MIDI keyboard connected',
+  'midi.status.connected': 'Connected: {names}',
+  'midi.unnamedDevice': 'MIDI device',
+  'midi.help.unsupported':
+    'This browser cannot talk to MIDI keyboards. Use Chrome or Edge on a computer — or play with your computer keyboard for now.',
+  'midi.help.noPermission':
+    'dacapo needs permission to use MIDI devices. Allow MIDI for this site in the browser’s site settings, then try again.',
+  'midi.help.noDevice':
+    'Connect your keyboard with a USB cable and switch it on. It will appear here automatically.',
+  'midi.retry': 'Try again',
+
+  'keys.title': 'No MIDI keyboard? Use your computer keyboard',
+  'keys.body': 'The home row plays the white keys, the row above plays the black keys.',
+  'keys.octave': 'Octave',
+  'keys.octaveDown': 'lower',
+  'keys.octaveUp': 'higher',
+  'keys.range': 'Now playing {low} to {high}',
+  'keys.offPiano': 'not on the piano',
+
   'read.title': 'Read',
   'read.placeholder':
     'Sight-reading flashcards will appear here: one note on the grand staff, you press the key.',
