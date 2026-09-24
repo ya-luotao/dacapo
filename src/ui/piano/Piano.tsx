@@ -30,6 +30,13 @@ function scrollToKeys(el: HTMLElement, low: number, high: number, onlyIfHidden: 
   });
 }
 
+/** Scrolls `keys` into view if any of them is hidden. */
+function revealKeys(el: HTMLElement | null, keys: Iterable<number>) {
+  const onPiano = [...keys].filter((midi) => GEOMETRY.has(midi));
+  if (!el || onPiano.length === 0) return;
+  scrollToKeys(el, Math.min(...onPiano), Math.max(...onPiano), true);
+}
+
 function keyAt(target: EventTarget): number | null {
   const el = (target as Element).closest?.('[data-midi]');
   return el instanceof HTMLElement ? Number(el.dataset.midi) : null;
@@ -39,9 +46,13 @@ interface PianoProps {
   held: ReadonlyMap<number, number>;
   sustained: ReadonlySet<number>;
   pointer: PointerInput;
+  /** Keys to point out, e.g. the answer after a wrong press: outlined and marked with a triangle. */
+  marked?: ReadonlySet<number>;
 }
 
-export function Piano({ held, sustained, pointer }: PianoProps) {
+const NONE: ReadonlySet<number> = new Set();
+
+export function Piano({ held, sustained, pointer, marked = NONE }: PianoProps) {
   const t = useT();
   const scroller = useRef<HTMLDivElement>(null);
 
@@ -62,12 +73,8 @@ export function Piano({ held, sustained, pointer }: PianoProps) {
     if (scroller.current) scrollToKeys(scroller.current, MIDDLE_C, MIDDLE_C, false);
   }, []);
 
-  useEffect(() => {
-    if (!scroller.current || held.size === 0) return;
-    const keys = [...held.keys()].filter((midi) => GEOMETRY.has(midi));
-    if (keys.length === 0) return;
-    scrollToKeys(scroller.current, Math.min(...keys), Math.max(...keys), true);
-  }, [held]);
+  useEffect(() => revealKeys(scroller.current, held.keys()), [held]);
+  useEffect(() => revealKeys(scroller.current, marked), [marked]);
 
   function onPointerDown(e: PointerEvent) {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
@@ -110,7 +117,8 @@ export function Piano({ held, sustained, pointer }: PianoProps) {
         {LAYOUT.keys.map(({ midi, black, left, width }) => {
           const velocity = held.get(midi);
           const state =
-            velocity !== undefined ? ' is-held' : sustained.has(midi) ? ' is-sustained' : '';
+            (velocity !== undefined ? ' is-held' : sustained.has(midi) ? ' is-sustained' : '') +
+            (marked.has(midi) ? ' is-marked' : '');
           return (
             <button
               key={midi}
@@ -123,17 +131,29 @@ export function Piano({ held, sustained, pointer }: PianoProps) {
                 height: black ? `${BLACK_LENGTH * 100}%` : undefined,
               }}
               data-midi={midi}
-              aria-label={labels.get(midi)}
+              aria-label={
+                marked.has(midi)
+                  ? t('piano.key.marked', { name: labels.get(midi)! })
+                  : labels.get(midi)
+              }
               aria-pressed={velocity !== undefined}
               onClick={(e) => onKeyActivate(midi, e.detail, e.timeStamp)}
             >
               {velocity !== undefined && (
                 <span className="key-fill" style={{ opacity: velocityOpacity(velocity) }} />
               )}
-              {midi === MIDDLE_C && (
-                <span className="key-mark" aria-hidden="true">
-                  C4
+              {marked.has(midi) ? (
+                <span className="key-target" aria-hidden="true">
+                  <svg viewBox="0 0 10 8">
+                    <path d="M5 0l5 8H0z" />
+                  </svg>
                 </span>
+              ) : (
+                midi === MIDDLE_C && (
+                  <span className="key-mark" aria-hidden="true">
+                    C4
+                  </span>
+                )
               )}
             </button>
           );

@@ -113,7 +113,12 @@ export function pitchId(pitch: Pitch): string {
 
 /** Display form with musical symbols, e.g. `C♯4`, `D♭4`. */
 export function formatPitch(pitch: Pitch): string {
-  return `${pitch.letter}${ACCIDENTAL_SYMBOL[pitch.accidental]}${pitch.octave}`;
+  return `${letterName(pitch)}${pitch.octave}`;
+}
+
+/** The name without the octave, e.g. `C♯`. */
+export function letterName(pitch: Pick<Pitch, 'letter' | 'accidental'>): string {
+  return `${pitch.letter}${ACCIDENTAL_SYMBOL[pitch.accidental]}`;
 }
 
 export function midiName(midi: number, spelling: Spelling = 'sharp'): string {

@@ -21,8 +21,10 @@
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"
   },
   "dependencies": {
+    "@vexflow-fonts/bravura": "^1.0.2",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
+    "vexflow": "^5.0.0",
     "wouter": "^3.11.0"
   },
   "devDependencies": {

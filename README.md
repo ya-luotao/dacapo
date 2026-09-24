@@ -63,3 +63,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 ## License
 
 [MIT](LICENSE)
+
+Notation is drawn with [VexFlow](https://github.com/vexflow/vexflow) (MIT) and the
+[Bravura](https://github.com/steinbergmedia/bravura) music font (SIL Open Font License 1.1).
+Both are bundled into the build, so the app never loads them from a CDN.

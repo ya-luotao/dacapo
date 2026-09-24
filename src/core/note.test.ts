@@ -5,6 +5,7 @@ import {
   isMidiNote,
   isOnLine,
   isPianoKey,
+  letterName,
   ledgerLineCount,
   MIDDLE_C,
   midiName,
@@ -172,6 +173,8 @@ describe('names', () => {
   it('formats with musical symbols and ids with ASCII', () => {
     expect(formatPitch(p('C#4'))).toBe('C♯4');
     expect(formatPitch(p('Db4'))).toBe('D♭4');
+    expect(letterName(p('Db4'))).toBe('D♭');
+    expect(letterName(p('E2'))).toBe('E');
     expect(pitchId(p('C♯4'))).toBe('C#4');
     expect(midiName(60)).toBe('C4');
     expect(midiName(61)).toBe('C♯4');

@@ -107,6 +107,13 @@ functions so tests are deterministic.
 | L6 | Ledger lines | C2–C6 including ledger lines |
 | L7 | Sharps & flats | L5 range with ♯/♭ (both spellings of the same key are correct presses) |
 
+- Clarifications (decided during M3): "never the same note twice in a row" means never the
+  same **key** (so not `C4@treble` then `C4@bass`, nor C♯4 then D♭4). L5 puts notes that need
+  at most one ledger line on either staff (B3–D4 on both); L6 allows up to two (G3–F4 on both);
+  L7 uses black keys only, spelled both ways, no E♯/B♯/C♭/F♭. The hint shows the letter and
+  accidental without the octave. A stopped session is recorded if at least one card was answered.
+- Mastery: the 40-card window counts un-hinted cards only; the median is over correct,
+  un-hinted, timely (≤ 30 s) answers. `errorRate` in the weight formula uses the last 10 answers.
 - A level shows as "mastered" at ≥ 90 % accuracy and median reaction < 2 s over the
   last 40 cards of that level; the next level is suggested, never forced.
 
