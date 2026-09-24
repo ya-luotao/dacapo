@@ -1,9 +1,13 @@
 import bravuraUrl from '@vexflow-fonts/bravura/bravura.woff2?url';
-import { Font, VexFlow } from 'vexflow/core';
 
 // VexFlow 5 draws every glyph as text in the music font and measures it on a canvas, so nothing
 // may be drawn before Bravura has loaded. The font file is part of our build (never the CDN
-// VexFlow falls back to when `Font.load` gets no URL), which keeps the app working offline.
+// VexFlow falls back to), which keeps the app working offline. This module does what VexFlow's
+// `Font.load` does without importing VexFlow, so pages that only need the glyphs (the heatmap)
+// do not download it.
+
+/** CSS font family of the music font, for SVG text as well as VexFlow. */
+export const MUSIC_FONT = 'Bravura';
 
 export type FontState = 'loading' | 'ready' | 'failed';
 
@@ -15,8 +19,13 @@ const listeners = new Set<() => void>();
 export function loadMusicFont(): void {
   if (started) return;
   started = true;
-  VexFlow.setFonts('Bravura');
-  Font.load('Bravura', bravuraUrl, { display: 'block' }).then(
+  if (typeof FontFace === 'undefined') {
+    settle('failed');
+    return;
+  }
+  const face = new FontFace(MUSIC_FONT, `url(${bravuraUrl})`, { display: 'block' });
+  document.fonts.add(face);
+  face.load().then(
     () => settle('ready'),
     () => settle('failed'),
   );

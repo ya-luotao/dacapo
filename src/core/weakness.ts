@@ -33,8 +33,9 @@ export const RECENT_LENGTH = 10;
 /** Weight factor of a note that has never been answered; seen notes get 1. */
 export const UNSEEN_NOVELTY = 4;
 const ERROR_FACTOR = 3;
-const SPEED_MIN = 0.5;
-const SPEED_MAX = 3;
+/** Bounds of the speed factor `ewmaMs / TARGET_MS` in the weight: faster or slower counts the same. */
+export const SPEED_MIN = 0.5;
+export const SPEED_MAX = 3;
 
 export function emptyStats(key: string): NoteStats {
   return { key, attempts: 0, correct: 0, errors: 0, ewmaMs: null, lastSeen: null, recent: [] };

@@ -1,7 +1,7 @@
 {
   "name": "dacapo",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Learn to read the grand staff and find the key fast with a MIDI keyboard.",
   "license": "MIT",
   "type": "module",

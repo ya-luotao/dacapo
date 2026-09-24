@@ -5,9 +5,13 @@ import {
   Stave,
   StaveConnector,
   StaveNote,
+  VexFlow,
   Voice,
 } from 'vexflow/core';
 import type { Clef, Pitch } from '../../core/note.ts';
+import { MUSIC_FONT } from './font.ts';
+
+VexFlow.setFonts(MUSIC_FONT);
 
 // Fixed geometry in VexFlow units (10 per staff space), shared by every card so the staff never
 // moves: room for two ledger lines above the treble staff (C6) and below the bass staff (C2),

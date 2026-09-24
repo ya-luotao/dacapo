@@ -37,7 +37,13 @@ src/
     levels.ts      sight-reading level definitions
     weakness.ts    per-note stats update + weighted next-card sampling
     session.ts     session state machine and summary stats
+    mastery.ts     level mastery over the last 40 cards
+    freePlay.ts    free-play session tracking
+    activity.ts    active time of a session (pauses capped)
+    log.ts         stored session records and their ordering
+    random.ts      the injected `Rng` type and a seeded generator
     streak.ts      daily totals and streak computation (local-date aware)
+    heatmap.ts     heatmap data: speed buckets, per-key aggregation, weakest notes, sorting
   input/       NoteInput abstraction
     types.ts       NoteInput interface, NoteEvent {type:'on'|'off', midi, velocity, time}
     webmidi.ts     Web MIDI implementation
@@ -136,9 +142,17 @@ staff (e.g. `C4@treble`, `C4@bass` are separate — reading them is a different 
 ### F3 — Weakness heatmap
 
 - Per-note visualization for all notes ever practised: laid out on the grand staff
-  (primary) and on the keyboard (secondary), colour = mean reaction time,
-  marker = error rate. Tooltip / tap shows attempts, accuracy, ms.
+  (primary) and on the keyboard (secondary), colour = typical reaction time (the `ewmaMs` of
+  the weakness model), marker = error rate. Tooltip / tap shows attempts, accuracy, ms.
 - Legend with units; works in light and dark themes; readable in both languages.
+- Clarifications (decided during M5): the colour scale has seven fixed steps with edges at
+  0.75, 1, 1.5, 2, 3 and 4.5 s (0.5×–3× the 1500 ms target, the clamp of the weight). A note
+  with fewer than 3 answers, or without a correct, un-hinted, timely answer yet, is drawn as
+  "not enough data" instead of being coloured. The marker is a bar under each note: the share
+  of wrong answers among its last 10. The keyboard view adds up both staves and both spellings
+  of a key; its time is the mean of the notes' times weighted by their attempts. "Weakest
+  notes" are the top 3 by the sampler's weight among notes with at least 3 answers. A level
+  filter shows only the notes of that level's pool; a table view lists the same figures.
 
 ### F4 — Practice log
 
@@ -150,7 +164,8 @@ staff (e.g. `C4@treble`, `C4@bass` are separate — reading them is a different 
   view.
 - Export all data to a JSON file (versioned schema) and import it back
   (validate; merge by id; never silently drop data). The export includes user
-  preferences (locale, theme, input options) alongside the IndexedDB data.
+  preferences (locale and theme; the MVP persists no input options) alongside the IndexedDB
+  data.
 
 ### Storage
 
@@ -171,7 +186,8 @@ staff (e.g. `C4@treble`, `C4@bass` are separate — reading them is a different 
 ## UI
 
 - Screens: **Play** (live keyboard), **Read** (flashcards), **Progress** (heatmap +
-  log), **Settings** (language, input options, data export/import).
+  log), **Settings** (language, theme, data export/import; the MVP needs no
+  input options).
 - Light/dark via `prefers-color-scheme` plus a manual override. Accessible: keyboard
   navigable, visible focus, colour is never the only signal (icons/text too).
 - Designed so it can sit on a laptop or tablet next to the piano: large staff, large
@@ -180,15 +196,16 @@ staff (e.g. `C4@treble`, `C4@bass` are separate — reading them is a different 
 ## Milestones
 
 Each milestone ends green (typecheck, lint, test, build) and is committed separately.
+All five are done; together they are release 0.1.0 (see `CHANGELOG.md`).
 
-1. **M1 Scaffold** — Vite/React/TS/pnpm, ESLint/Prettier/editorconfig, Vitest, CI
+1. ✓ **M1 Scaffold** — Vite/React/TS/pnpm, ESLint/Prettier/editorconfig, Vitest, CI
    workflow, i18n skeleton (en + zh-CN) with locale switcher, app shell with the four
    routes (placeholders), README (what/why, requirements, dev setup), CONTRIBUTING.
-2. **M2 Input + live keyboard** — `core/note.ts`, `input/*`, F1.
-3. **M3 Flashcards** — VexFlow grand staff, `core/levels.ts`, `core/weakness.ts`,
+2. ✓ **M2 Input + live keyboard** — `core/note.ts`, `input/*`, F1.
+3. ✓ **M3 Flashcards** — VexFlow grand staff, `core/levels.ts`, `core/weakness.ts`,
    `core/session.ts`, F2 (in-memory first).
-4. **M4 Persistence + log** — `storage/*`, F4, export/import, free-play tracking.
-5. **M5 Heatmap** — F3.
+4. ✓ **M4 Persistence + log** — `storage/*`, F4, export/import, free-play tracking.
+5. ✓ **M5 Heatmap** — F3.
 
 ## Out of scope for the MVP
 

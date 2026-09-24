@@ -6,7 +6,12 @@ An open-source web app for learning the piano with a MIDI keyboard: sight-readin
 on a real grand staff, reaction-time tracking, a per-note weakness heatmap, and a practice log.
 All data stays in your browser.
 
-**Status:** early development. See [docs/MVP.md](docs/MVP.md) for the MVP specification.
+**Status:** the MVP (version 0.1.0) is complete: all five milestones of
+[docs/MVP.md](docs/MVP.md) are built and tested. It has not been used day to day for long yet,
+so expect rough edges; bug reports are welcome. See [CHANGELOG.md](CHANGELOG.md) for what is in
+each release.
+
+![A flashcard on the grand staff: one note in the bass clef, with the piano keyboard below](docs/images/read.webp)
 
 ## Why
 
@@ -15,6 +20,33 @@ and finding the key without counting lines. dacapo drills exactly that on real n
 (no falling notes), measures every answer — right or wrong, and how fast — and keeps
 practising the notes you are slowest at. Progress is visible day by day, and the app works
 in English and Simplified Chinese.
+
+## Features
+
+- **Live keyboard.** An 88-key on-screen piano lights up as you play, with velocity, the sustain
+  pedal and the notes you just played. Works with a MIDI keyboard, your computer keyboard or
+  the mouse / touch.
+- **Sight-reading flashcards.** One note at a time on a real grand staff, in seven levels from
+  middle C position to ledger lines and sharps and flats. You press the key in the right
+  octave; every answer records whether it was right and how fast. The next card favours the
+  notes you are slow or unsure on.
+- **Practice log.** Flashcard sessions and free play are saved: minutes today, a daily streak
+  (5 minutes a day), a 30-day chart and the list of sessions.
+- **Weakness heatmap.** Every note you have practised, on the grand staff or on the keyboard,
+  coloured by how fast you usually find it and marked with how often you missed it lately,
+  with the three weakest notes named and a table view.
+- **Your data stays yours.** Everything is stored in your browser (IndexedDB). Export it as a
+  JSON file and import it on another computer.
+- English and Simplified Chinese, light and dark themes. Everything works from the keyboard,
+  and charts have a table view and labels for screen readers.
+
+![Progress: today's minutes, the streak and a 30-day chart](docs/images/progress.webp)
+
+![The weakness heatmap on the grand staff, with the details of one note](docs/images/heatmap-staff.webp)
+
+![The same data on the keyboard, in the dark theme](docs/images/heatmap-keyboard-dark.webp)
+
+The screenshots use generated practice data.
 
 ## Requirements
 
@@ -56,6 +88,18 @@ Then open the URL Vite prints (usually http://localhost:5173).
 
 The app uses hash-based routes (`/#/read`), so the `dist/` folder can be served by any
 static file host without rewrite rules.
+
+## Roadmap (after the MVP)
+
+These are deliberately out of scope for the MVP and are the candidates once it is used daily:
+
+- Audio output (the app is silent today — the piano makes the sound)
+- Rhythm and a metronome
+- Analysis of scale evenness
+- Practising pieces, with a wait mode
+- Theory and ear training
+- Accounts and sync between devices
+- AI coaching
 
 ## Contributing
 

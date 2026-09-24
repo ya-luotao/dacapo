@@ -24,6 +24,22 @@
   --key-sustained: #d3e0ee;
   --key-sustained-black: #3b4d62;
 
+  /* Heatmap: one warm hue, pale (fast) to deep (slow); validated as an ordinal ramp. */
+  --heat-0: #e1a862;
+  --heat-1: #d08e4e;
+  --heat-2: #bd753b;
+  --heat-3: #ab5d2a;
+  --heat-4: #97451a;
+  --heat-5: #832c0c;
+  --heat-6: #6f1002;
+  --heat-ink: #1c2229;
+  --heat-none: #5b6570;
+  --heat-error: #3d4650;
+  --heat-track: #ebe7df;
+  --heat-key-white: #fffefb;
+  --heat-key-white-edge: #c9c3b8;
+  --heat-key-label: #5b6570;
+
   --font-sans:
     system-ui, -apple-system, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB',
     'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
@@ -58,6 +74,22 @@
     --key-held-black: #7fb0e3;
     --key-sustained: #b0c1d3;
     --key-sustained-black: #2b3b4d;
+
+    /* On dark surfaces the slow end is the bright one: stronger contrast still means slower. */
+    --heat-0: #744b20;
+    --heat-1: #8a5c34;
+    --heat-2: #a16c48;
+    --heat-3: #b97e5c;
+    --heat-4: #d19072;
+    --heat-5: #e9a289;
+    --heat-6: #ffb5a1;
+    --heat-ink: #e6e3dc;
+    --heat-none: #9aa3ad;
+    --heat-error: #c9ced4;
+    --heat-track: #2c333b;
+    --heat-key-white: #20262d;
+    --heat-key-white-edge: #3a424c;
+    --heat-key-label: #9aa3ad;
   }
 }
 
@@ -86,6 +118,23 @@
   --key-held-black: #7fb0e3;
   --key-sustained: #b0c1d3;
   --key-sustained-black: #2b3b4d;
+
+  /* On dark surfaces the slow end is the bright one: stronger contrast still means slower. */
+  --heat-0: #744b20;
+  --heat-1: #8a5c34;
+  --heat-2: #a16c48;
+  --heat-3: #b97e5c;
+  --heat-4: #d19072;
+  --heat-5: #e9a289;
+  --heat-6: #ffb5a1;
+  --heat-ink: #e6e3dc;
+  --heat-none: #9aa3ad;
+  --heat-error: #c9ced4;
+  --heat-track: #2c333b;
+  /* The heatmap keyboard is a chart: its white keys stay dark, so the scale reads as on the staff. */
+  --heat-key-white: #20262d;
+  --heat-key-white-edge: #3a424c;
+  --heat-key-label: #9aa3ad;
 }
 
 *,
@@ -1451,4 +1500,444 @@ kbd {
 
 .import-prefs input {
   margin-top: 0.3rem;
+}
+
+/* Progress: weakness heatmap */
+
+.hm-intro {
+  max-width: 40rem;
+  margin-top: 0;
+}
+
+.hm-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1.5rem;
+  margin: 1rem 0;
+}
+
+.hm-control {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.hm-control > label,
+.hm-control > legend {
+  display: block;
+  margin-bottom: 0.375rem;
+  padding: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.hm-control select {
+  width: 100%;
+  max-width: 22rem;
+}
+
+.hm-weakest {
+  margin: 0 0 1rem;
+}
+
+.hm-weak-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  white-space: nowrap;
+}
+
+.hm-swatch {
+  display: inline-block;
+  flex: none;
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.2);
+}
+
+.hm-swatch.is-none {
+  border: 1.5px dashed var(--heat-none);
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Legend */
+
+.hm-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem 2.5rem;
+  font-size: 0.875rem;
+}
+
+.hm-scale {
+  flex: 0 1 22rem;
+  min-width: 0;
+  margin: 0;
+}
+
+.hm-scale figcaption {
+  margin-bottom: 0.375rem;
+  font-weight: 600;
+}
+
+.hm-scale-bar {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+  height: 0.875rem;
+}
+
+.hm-scale-bar > span:not(.hm-scale-target) {
+  border-radius: 2px;
+}
+
+.hm-scale-target {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--text);
+}
+
+.hm-scale-ticks,
+.hm-scale-ends {
+  position: relative;
+  height: 1.25rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.hm-scale-ticks span,
+.hm-scale-target-label {
+  position: absolute;
+  top: 0.125rem;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.hm-scale-ends {
+  display: flex;
+  justify-content: space-between;
+}
+
+.hm-scale-target-label {
+  top: 0;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.hm-keys {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hm-keys li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hm-errors-icon {
+  flex: none;
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.hm-track {
+  fill: var(--heat-track);
+}
+
+.hm-bar {
+  fill: var(--heat-error);
+}
+
+/* Views */
+
+.hm-view {
+  position: relative;
+  margin-top: 1rem;
+  padding: 0.75rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.hm-systems {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.hm-system {
+  display: block;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.hm-staff-line,
+.hm-barline,
+.hm-ledger {
+  stroke: var(--text);
+}
+
+.hm-staff-line {
+  stroke-width: 0.11;
+}
+
+.hm-barline {
+  stroke-width: 0.14;
+}
+
+.hm-ledger {
+  stroke-width: 0.16;
+}
+
+.hm-glyph {
+  fill: var(--text);
+  font-family: Bravura;
+}
+
+.hm-accidental-text {
+  fill: var(--text);
+}
+
+.hm-strip-base {
+  stroke: var(--text-muted);
+  stroke-width: 0.08;
+}
+
+.hm-head {
+  stroke: var(--heat-ink);
+  stroke-width: 0.12;
+}
+
+.hm-head.is-none {
+  fill: var(--surface);
+  stroke: var(--heat-none);
+  stroke-width: 0.16;
+  stroke-dasharray: 0.32 0.22;
+}
+
+.hm-note {
+  outline: none;
+}
+
+.hm-hit {
+  fill: transparent;
+}
+
+.hm-note.is-active .hm-hit {
+  fill: var(--accent-soft);
+}
+
+.hm-note:focus-visible .hm-hit {
+  stroke: var(--focus);
+  stroke-width: 0.25;
+}
+
+.hm-scroller {
+  --white-min: 22px;
+}
+
+.hm-keyboard {
+  min-width: calc(var(--whites) * var(--white-min));
+  max-width: calc(var(--whites) * 2.75rem);
+}
+
+.hm-piano {
+  min-width: 0;
+  min-height: 9rem;
+  aspect-ratio: var(--whites) / 5.6;
+}
+
+.hm-piano .key {
+  cursor: default;
+}
+
+.hm-piano .key-white {
+  border-right-color: var(--heat-key-white-edge);
+  background: var(--heat-key-white);
+}
+
+/* White keys: the swatch fills the part the black keys leave free, above the octave label. */
+.hm-key-swatch {
+  position: absolute;
+  right: 12%;
+  bottom: 1.25rem;
+  left: 12%;
+  height: calc(37% - 1.25rem - 6px);
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px var(--heat-ink);
+}
+
+.key-black .hm-key-swatch {
+  right: 14%;
+  bottom: 7px;
+  left: 14%;
+  height: 40%;
+  box-shadow: 0 0 0 1px var(--key-white);
+}
+
+.hm-key-swatch.is-none {
+  border: 2px dashed var(--heat-none);
+  box-shadow: none;
+}
+
+.key-black .hm-key-swatch.is-none {
+  border-color: var(--key-white-edge);
+}
+
+.hm-key-label {
+  position: absolute;
+  right: 0;
+  bottom: 0.375rem;
+  left: 0;
+  color: var(--heat-key-label);
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1;
+  text-align: center;
+  pointer-events: none;
+}
+
+.hm-piano .key.is-active {
+  z-index: 2;
+  box-shadow: inset 0 0 0 3px var(--focus);
+}
+
+.hm-key-strip {
+  position: relative;
+  height: 2rem;
+  margin-top: 0.375rem;
+}
+
+.hm-key-errors {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: flex-end;
+  border-radius: 2px 2px 0 0;
+  background: var(--heat-track);
+}
+
+.hm-key-bar {
+  width: 100%;
+  background: var(--heat-error);
+}
+
+/* Tooltip */
+
+.hm-tooltip {
+  position: absolute;
+  z-index: 5;
+  width: max-content;
+  max-width: min(18rem, 100%);
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.18);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  pointer-events: none;
+}
+
+.hm-tooltip p {
+  margin: 0;
+}
+
+.hm-tooltip-title {
+  font-weight: 700;
+}
+
+.hm-tooltip .hm-tooltip-speed,
+.hm-tooltip .hm-tooltip-nodata {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.125rem 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.hm-tooltip-speed strong {
+  font-size: 1.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.hm-tooltip-speed span:last-child,
+.hm-tooltip-nodata {
+  color: var(--text-muted);
+}
+
+.hm-tooltip-figures {
+  display: grid;
+  gap: 0.125rem;
+  margin: 0.5rem 0 0;
+}
+
+.hm-tooltip-figures div {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.hm-tooltip-figures dd {
+  margin: 0;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.hm-tooltip-figures dt {
+  color: var(--text-muted);
+}
+
+.hm-tooltip .hm-tooltip-note {
+  margin-top: 0.375rem;
+  color: var(--text-muted);
+}
+
+/* Table */
+
+.hm-table-order {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin: 0.75rem 0 0.25rem;
+}
+
+.hm-table-order label {
+  font-weight: 600;
+}
+
+.hm-table-order select {
+  min-width: 0;
+}
+
+.hm-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.hm-table th,
+.hm-table td {
+  white-space: nowrap;
+}
+
+.hm-band {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  white-space: nowrap;
 }

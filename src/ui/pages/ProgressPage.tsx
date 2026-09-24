@@ -3,6 +3,7 @@ import { practiceLog } from '../../core/streak.ts';
 import { useT } from '../../i18n/index.ts';
 import { usePractice, useStorageStatus } from '../practice/context.ts';
 import { DayHistory } from '../progress/DayHistory.tsx';
+import { WeaknessHeatmap } from '../progress/heatmap/WeaknessHeatmap.tsx';
 import { PracticeFigures } from '../progress/PracticeFigures.tsx';
 import { SessionList } from '../progress/SessionList.tsx';
 import { useNow } from '../progress/useNow.ts';
@@ -10,7 +11,7 @@ import { useNow } from '../progress/useNow.ts';
 export function ProgressPage() {
   const t = useT();
   const { loaded } = useStorageStatus();
-  const { sessions } = usePractice();
+  const { sessions, stats } = usePractice();
   const now = useNow();
   const log = useMemo(() => practiceLog(sessions, { now }), [sessions, now]);
 
@@ -27,7 +28,7 @@ export function ProgressPage() {
         <>
           <PracticeFigures log={log} />
           <DayHistory history={log.history} today={log.today} />
-          {/* M5: the per-note weakness heatmap (F3) goes here. */}
+          <WeaknessHeatmap stats={stats} />
           <SessionList sessions={sessions} />
         </>
       )}
