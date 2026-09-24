@@ -161,6 +161,12 @@ staff (e.g. `C4@treble`, `C4@bass` are separate — reading them is a different 
 - Raw attempts are kept so stats can be recomputed if the model changes.
 - If IndexedDB is unavailable (private mode, blocked), the app still works with an
   in-memory store and shows a non-blocking warning.
+- Clarifications (decided during M4): attempts and sessions are keyed by a stable string id
+  (`crypto.randomUUID()`), not an auto-increment key, so imports can merge by id. A session's
+  minutes are its active time: free play runs from the first note to the last activity; a
+  flashcard session runs from start to end with every pause capped at 60 s. Free-play sessions
+  under 10 s are not recorded. The streak goal (5 min) counts flashcards and free play together,
+  and a session belongs to the local date it started on.
 
 ## UI
 

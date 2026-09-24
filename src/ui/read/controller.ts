@@ -75,7 +75,7 @@ export function createReadController({
       }
       if (prev.phase === 'running' && next.phase === 'done') {
         cancelTimer();
-        if (next.attempts.length > 0) practice.recordSession(summarize(next));
+        if (next.attempts.length > 0) practice.recordSession({ kind: 'read', ...summarize(next) });
       } else if (next.card.status === 'correct' && prev.card.status !== 'correct') {
         timer = setTimer(onAdvance, ADVANCE_DELAY_MS);
       }
@@ -112,7 +112,7 @@ export function createReadController({
       if (state) update(markPainted(state, cardIndex, time));
     },
     press(midi, time) {
-      if (state) update(pressKey(state, midi, time, now()));
+      if (state) update(pressKey(state, midi, time, now(), newId));
     },
     setHint(hint) {
       if (state) update(setHint(state, hint));

@@ -23,7 +23,8 @@ in English and Simplified Chinese.
   read your keyboard. Other browsers can still use the fallback input.
 - **MIDI keyboard:** recommended, but optional. You can also play with your computer
   keyboard or by clicking the on-screen piano.
-- No account, no server. Everything is stored locally in your browser.
+- No account, no server. Everything is stored locally in your browser; Settings can export it
+  as a JSON file for a backup or to move to another computer.
 
 ## Development
 

@@ -4,7 +4,7 @@ import { levelProgress, suggestedLevel } from '../../core/mastery.ts';
 import { DEFAULT_SESSION_LENGTH, summarize, type SessionLength } from '../../core/session.ts';
 import { useT } from '../../i18n/index.ts';
 import { useInput } from '../input/context.ts';
-import { usePractice, usePracticeStore } from '../practice/context.ts';
+import { usePractice, usePracticeStore, useStorageStatus } from '../practice/context.ts';
 import { createReadController } from '../read/controller.ts';
 import { ReadSession } from '../read/ReadSession.tsx';
 import { ReadSetup } from '../read/ReadSetup.tsx';
@@ -15,6 +15,7 @@ export function ReadPage() {
   const t = useT();
   const practice = usePracticeStore();
   const { attempts } = usePractice();
+  const { loaded } = useStorageStatus();
   const { hub } = useInput();
   const [controller] = useState(() => createReadController({ practice }));
   const session = useSyncExternalStore(controller.subscribe, controller.getState);
@@ -66,7 +67,12 @@ export function ReadPage() {
   return (
     <section className="read">
       <h1>{t('read.title')}</h1>
-      {summary ? (
+      {!loaded ? (
+        // Until stored progress is in, every level would look "not practised yet".
+        <p className="muted" role="status">
+          {t('storage.loading')}
+        </p>
+      ) : summary ? (
         <ReadSummary
           summary={summary}
           progress={progress.get(summary.level)!}

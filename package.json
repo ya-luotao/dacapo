@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@vexflow-fonts/bravura": "^1.0.2",
+    "idb": "^8.0.3",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "vexflow": "^5.0.0",
@@ -37,6 +38,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
+    "fake-indexeddb": "^6.2.5",
     "globals": "^17.12.0",
     "prettier": "^3.9.8",
     "typescript": "~6.0.3",

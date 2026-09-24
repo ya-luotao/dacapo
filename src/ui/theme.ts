@@ -1,13 +1,9 @@
 import { readPref, writePref } from '../lib/localPrefs.ts';
+import { isThemePreference, type ThemePreference } from '../lib/themePreference.ts';
 
-export const THEME_PREFERENCES = ['system', 'light', 'dark'] as const;
-export type ThemePreference = (typeof THEME_PREFERENCES)[number];
+export { THEME_PREFERENCES, type ThemePreference } from '../lib/themePreference.ts';
 
 const STORAGE_KEY = 'dacapo.theme';
-
-function isThemePreference(value: unknown): value is ThemePreference {
-  return typeof value === 'string' && (THEME_PREFERENCES as readonly string[]).includes(value);
-}
 
 export function readStoredTheme(): ThemePreference {
   const stored = readPref(STORAGE_KEY);

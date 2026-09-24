@@ -1,3 +1,4 @@
+import { activeTime } from './activity.ts';
 import type { Level, LevelId, StaffNote } from './levels.ts';
 import type { Rng } from './random.ts';
 import { pickNext, type StatsByKey } from './weakness.ts';
@@ -14,6 +15,8 @@ export const TIMEOUT_MS = 30_000;
 
 /** The scored first answer to one card. Plain data, so it can be stored as is. */
 export interface Attempt {
+  /** Stable and unique, so imports can merge by id. */
+  id: string;
   sessionId: string;
   level: LevelId;
   /** `StaffNote.key` of the card, e.g. `C4@treble`. */
@@ -112,12 +115,14 @@ export function setHint(state: SessionState, hint: boolean): SessionState {
  * A note-on. The first one after the card was painted is scored; a key pressed before that
  * (or still held from the previous card, which sends no new note-on) does not count.
  * After a wrong answer the card stays until the right key is pressed.
+ * `newId` is only called for the scored attempt.
  */
 export function pressKey(
   state: SessionState,
   midi: number,
   time: number,
   at: number,
+  newId: () => string,
 ): SessionState {
   const { card } = state;
   if (state.phase !== 'running' || card.shownAt === null || time < card.shownAt) return state;
@@ -137,6 +142,7 @@ export function pressKey(
     case 'waiting': {
       const ms = time - card.shownAt;
       const attempt: Attempt = {
+        id: newId(),
         sessionId: state.id,
         level: state.level,
         note: card.note.key,
@@ -204,6 +210,8 @@ export interface SessionSummary {
   level: LevelId;
   startedAt: number;
   endedAt: number;
+  /** Time spent on the cards; pauses longer than `IDLE_MS` count as `IDLE_MS`. */
+  activeMs: number;
   /** Cards planned. */
   length: number;
   /** Cards answered. */
@@ -221,8 +229,14 @@ export interface SessionSummary {
 
 export const SLOWEST_COUNT = 3;
 
-export function summarize(state: SessionState): SessionSummary {
+export type SummaryInput = Pick<
+  SessionState,
+  'id' | 'level' | 'length' | 'startedAt' | 'endedAt' | 'attempts'
+>;
+
+export function summarize(state: SummaryInput): SessionSummary {
   const { attempts } = state;
+  const endedAt = state.endedAt ?? attempts.at(-1)?.at ?? state.startedAt;
   const correct = attempts.filter((a) => a.correct).length;
   const timed = attempts.filter(isTimed);
   const slowestByNote = new Map<string, number>();
@@ -232,7 +246,8 @@ export function summarize(state: SessionState): SessionSummary {
     id: state.id,
     level: state.level,
     startedAt: state.startedAt,
-    endedAt: state.endedAt ?? attempts.at(-1)?.at ?? state.startedAt,
+    endedAt,
+    activeMs: activeTime([state.startedAt, ...attempts.map((a) => a.at), endedAt]),
     length: state.length,
     cards: attempts.length,
     correct,
@@ -244,4 +259,22 @@ export function summarize(state: SessionState): SessionSummary {
       .slice(0, SLOWEST_COUNT),
     missed: [...new Set(attempts.filter((a) => !a.correct).map((a) => a.note))],
   };
+}
+
+/**
+ * The summary of a session whose attempts were stored but whose end was not (the tab was closed
+ * mid-session). `attempts` must belong to one session, in the order they happened.
+ */
+export function recoverSummary(attempts: readonly Attempt[]): SessionSummary | null {
+  const first = attempts[0];
+  const last = attempts.at(-1);
+  if (!first || !last) return null;
+  return summarize({
+    id: first.sessionId,
+    level: first.level,
+    length: attempts.length,
+    startedAt: Math.round(first.at - first.ms),
+    endedAt: last.at,
+    attempts,
+  });
 }

@@ -5,6 +5,7 @@ import { LEVEL_IDS, type LevelId } from './levels.ts';
 
 let clock = 0;
 const attempt = (patch: Partial<Attempt> = {}): Attempt => ({
+  id: `a${clock}`,
   sessionId: 's',
   level: 'L1',
   note: 'C4@treble',

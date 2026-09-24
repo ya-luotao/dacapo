@@ -1,5 +1,7 @@
 import { useId, useState } from 'react';
 import { isLocale, LOCALE_NAMES, LOCALES, useI18n } from '../../i18n/index.ts';
+import type { Preferences } from '../../storage/exchange.ts';
+import { DataSection } from '../settings/DataSection.tsx';
 import { currentTheme, setTheme, THEME_PREFERENCES, type ThemePreference } from '../theme.ts';
 
 const SYSTEM = 'system';
@@ -17,6 +19,11 @@ export function SettingsPage() {
   function onThemeChange(value: ThemePreference) {
     setThemeState(value);
     setTheme(value);
+  }
+
+  function onApplyPreferences(preferences: Preferences) {
+    setOverride(preferences.locale);
+    onThemeChange(preferences.theme);
   }
 
   return (
@@ -63,6 +70,11 @@ export function SettingsPage() {
           {t('settings.theme.help')}
         </p>
       </fieldset>
+
+      <DataSection
+        preferences={{ locale: override, theme }}
+        onApplyPreferences={onApplyPreferences}
+      />
     </section>
   );
 }

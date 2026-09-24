@@ -7,6 +7,7 @@ import {
   markPainted,
   median,
   pressKey,
+  recoverSummary,
   setHint,
   startSession,
   summarize,
@@ -16,6 +17,10 @@ import {
 import { emptyStats, updateStats, type NoteStats } from './weakness.ts';
 
 const AT = 1_700_000_000_000;
+
+let attemptIds = 0;
+const press = (state: SessionState, midi: number, time: number, at: number) =>
+  pressKey(state, midi, time, at, () => `a${++attemptIds}`);
 
 function start(options: { level?: LevelId; length?: number; hint?: boolean; seed?: number } = {}) {
   const level = getLevel(options.level ?? 'L2');
@@ -38,7 +43,7 @@ const wrongKey = (state: SessionState) => (target(state) === 60 ? 62 : 60);
 /** Paints the current card at `time` and presses the right key `ms` later. */
 function answerCorrectly(state: SessionState, time: number, ms = 800): SessionState {
   const painted = markPainted(state, state.card.index, time);
-  return pressKey(painted, target(state), time + ms, AT + time + ms);
+  return press(painted, target(state), time + ms, AT + time + ms);
 }
 
 describe('startSession', () => {
@@ -69,17 +74,17 @@ describe('scoring', () => {
     let state = first;
     state = markPainted(state, 0, 1000);
     const miss = wrongKey(state);
-    state = pressKey(state, miss, 1900, AT + 1);
+    state = press(state, miss, 1900, AT + 1);
     expect(state.card).toMatchObject({ status: 'wrong', wrongKey: miss });
     expect(state.attempts).toHaveLength(1);
     expect(state.attempts[0]).toMatchObject({ correct: false, played: miss, ms: 900 });
 
     // Still on the same card; another wrong key only updates the feedback.
-    state = pressKey(state, miss + 1 === target(state) ? miss + 2 : miss + 1, 2100, AT + 2);
+    state = press(state, miss + 1 === target(state) ? miss + 2 : miss + 1, 2100, AT + 2);
     expect(state.card.status).toBe('wrong');
     expect(state.attempts).toHaveLength(1);
 
-    state = pressKey(state, target(state), 2500, AT + 3);
+    state = press(state, target(state), 2500, AT + 3);
     expect(state.card.status).toBe('correct');
     expect(state.attempts).toHaveLength(1);
     expect(state.attempts[0]!.correct).toBe(false);
@@ -110,7 +115,7 @@ describe('scoring', () => {
 
   it('ignores presses before the card is painted', () => {
     let { state } = start();
-    state = pressKey(state, target(state), 500, AT);
+    state = press(state, target(state), 500, AT);
     expect(state.attempts).toHaveLength(0);
     expect(state.card.status).toBe('waiting');
   });
@@ -118,9 +123,9 @@ describe('scoring', () => {
   it('ignores presses stamped before the paint, even if they arrive after it', () => {
     let { state } = start();
     state = markPainted(state, 0, 1000);
-    state = pressKey(state, target(state), 999.9, AT);
+    state = press(state, target(state), 999.9, AT);
     expect(state.attempts).toHaveLength(0);
-    state = pressKey(state, target(state), 1000, AT);
+    state = press(state, target(state), 1000, AT);
     expect(state.attempts).toHaveLength(1);
     expect(state.attempts[0]!.ms).toBe(0);
   });
@@ -132,7 +137,7 @@ describe('scoring', () => {
     const previousTarget = state.card.note.midi;
     state = advance(state, { level, at: AT, stats: {}, rng });
     // The key of the old card pressed again during the transition, before the new card is painted.
-    state = pressKey(state, previousTarget, 2200, AT);
+    state = press(state, previousTarget, 2200, AT);
     state = markPainted(state, state.card.index, 2300);
     expect(state.attempts).toHaveLength(1);
     expect(state.card.status).toBe('waiting');
@@ -141,7 +146,7 @@ describe('scoring', () => {
   it('ignores key presses after a correct answer until the next card', () => {
     let { state } = start();
     state = answerCorrectly(state, 1000);
-    const after = pressKey(state, wrongKey(state), 2000, AT);
+    const after = press(state, wrongKey(state), 2000, AT);
     expect(after).toBe(state);
   });
 
@@ -149,8 +154,8 @@ describe('scoring', () => {
     let { state } = start();
     state = markPainted(state, 0, 1000);
     const miss = wrongKey(state);
-    state = pressKey(state, miss, 1500, AT);
-    state = pressKey(state, target(state), 1500, AT);
+    state = press(state, miss, 1500, AT);
+    state = press(state, target(state), 1500, AT);
     expect(state.attempts).toHaveLength(1);
     expect(state.attempts[0]).toMatchObject({ played: miss, correct: false });
   });
@@ -165,7 +170,7 @@ describe('scoring', () => {
   it('requires the exact octave', () => {
     let { state } = start();
     state = markPainted(state, 0, 0);
-    state = pressKey(state, target(state) + 12, 900, AT);
+    state = press(state, target(state) + 12, 900, AT);
     expect(state.attempts[0]!.correct).toBe(false);
   });
 
@@ -174,7 +179,7 @@ describe('scoring', () => {
     state = markPainted(state, 0, 0);
     const note = state.card.note;
     expect(note.pitch.accidental).not.toBe(0);
-    state = pressKey(state, note.midi, 900, AT);
+    state = press(state, note.midi, 900, AT);
     expect(state.attempts[0]!.correct).toBe(true);
   });
 
@@ -183,7 +188,7 @@ describe('scoring', () => {
     let state = first;
     state = markPainted(state, 0, 0);
     expect(advance(state, { level, at: AT, stats: {}, rng })).toBe(state);
-    state = pressKey(state, wrongKey(state), 500, AT);
+    state = press(state, wrongKey(state), 500, AT);
     expect(advance(state, { level, at: AT, stats: {}, rng })).toBe(state);
   });
 });
@@ -200,7 +205,7 @@ describe('hint', () => {
     state = markPainted(state, 0, 0);
     state = setHint(state, true);
     state = setHint(state, false);
-    state = pressKey(state, target(state), 900, AT);
+    state = press(state, target(state), 900, AT);
     expect(state.attempts[0]!.hinted).toBe(true);
   });
 
@@ -208,10 +213,10 @@ describe('hint', () => {
     const { level, rng, state: first } = start();
     let state = first;
     state = markPainted(state, 0, 0);
-    state = pressKey(state, wrongKey(state), 900, AT);
+    state = press(state, wrongKey(state), 900, AT);
     state = setHint(state, true);
     expect(state.attempts[0]!.hinted).toBe(false);
-    state = pressKey(state, target(state), 1200, AT);
+    state = press(state, target(state), 1200, AT);
     state = advance(state, { level, at: AT, stats: {}, rng });
     expect(state.card.hinted).toBe(true);
   });
@@ -260,7 +265,7 @@ describe('ending', () => {
     state = answerCorrectly(state, 0);
     state = endSession(state, AT + 50);
     expect(state).toMatchObject({ phase: 'done', endedAt: AT + 50 });
-    expect(pressKey(state, 60, 99_999, AT)).toBe(state);
+    expect(press(state, 60, 99_999, AT)).toBe(state);
     expect(summarize(state)).toMatchObject({ length: 20, cards: 1, correct: 1 });
     expect(endSession(state, AT + 99).endedAt).toBe(AT + 50);
   });
@@ -311,7 +316,7 @@ describe('summary', () => {
     }
     state = markPainted(state, state.card.index, 40_000);
     const missed = state.card.note.key;
-    state = pressKey(state, wrongKey(state), 41_000, AT);
+    state = press(state, wrongKey(state), 41_000, AT);
     const summary = summarize(state);
     expect(summary.slowest.map((s) => s.ms)).toEqual([2500, 1800, 900]);
     expect(summary.missed).toEqual([missed]);
@@ -325,5 +330,72 @@ describe('median', () => {
     expect(median([3, 1, 2])).toBe(2);
     expect(median([4, 1, 3, 2])).toBe(2.5);
     expect(median([])).toBeNull();
+  });
+});
+
+describe('attempt ids', () => {
+  it('gives each scored attempt an id from the injected generator, and only those', () => {
+    const { level, rng, state: first } = start({ length: 3 });
+    const ids: string[] = [];
+    const newId = () => {
+      ids.push(`id${ids.length + 1}`);
+      return ids.at(-1)!;
+    };
+    let state = markPainted(first, 0, 0);
+    state = pressKey(state, wrongKey(state), 500, AT, newId);
+    state = pressKey(state, target(state), 900, AT, newId);
+    state = advance(state, { level, at: AT, stats: {}, rng });
+    state = pressKey(state, target(state), 1000, AT, newId); // not painted: ignored
+    expect(state.attempts.map((a) => a.id)).toEqual(['id1']);
+    expect(ids).toEqual(['id1']);
+  });
+});
+
+describe('active time', () => {
+  it('runs from the start to the end and caps pauses at 60 s', () => {
+    const { level, rng, state: first } = start({ length: 3 });
+    let state = first;
+    const answerAt = (at: number) => {
+      state = markPainted(state, state.card.index, 0);
+      state = pressKey(state, target(state), 800, at, () => `x${at}`);
+      state = advance(state, { level, at, stats: {}, rng });
+    };
+    answerAt(AT + 5_000);
+    answerAt(AT + 10_000);
+    answerAt(AT + 10_000 + 5 * 60_000); // walked away for five minutes
+    expect(summarize(state)).toMatchObject({
+      endedAt: AT + 10_000 + 5 * 60_000,
+      activeMs: 10_000 + 60_000,
+    });
+  });
+
+  it('covers a session stopped before any answer from start to stop', () => {
+    const { state } = start();
+    expect(summarize(endSession(state, AT + 10_000)).activeMs).toBe(10_000);
+    expect(summarize(endSession(state, AT)).activeMs).toBe(0);
+  });
+});
+
+describe('recoverSummary', () => {
+  it('rebuilds the summary of a session whose end was never stored', () => {
+    const { level, rng, state: first } = start({ length: 20 });
+    let state = first;
+    state = answerCorrectly(state, 1000, 700);
+    state = advance(state, { level, at: AT, stats: {}, rng });
+    state = markPainted(state, 1, 5000);
+    state = press(state, wrongKey(state), 6000, AT + 6000);
+    const recovered = recoverSummary(state.attempts)!;
+    expect(recovered).toMatchObject({
+      id: 's1',
+      level: 'L2',
+      length: 2,
+      cards: 2,
+      correct: 1,
+      accuracy: 0.5,
+      medianMs: 700,
+      endedAt: AT + 6000,
+    });
+    expect(recovered.startedAt).toBe(Math.round(state.attempts[0]!.at - 700));
+    expect(recoverSummary([])).toBeNull();
   });
 });

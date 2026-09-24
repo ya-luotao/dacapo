@@ -95,3 +95,17 @@ export function pickNext(
   }
   return pool.at(-1)!;
 }
+
+/**
+ * Stats rebuilt from raw attempts, as if they had been recorded one by one in order of `at`
+ * (ties keep their input order). Used after an import, and whenever the model changes.
+ */
+export function statsFromAttempts(
+  attempts: readonly (ScoredAnswer & { note: string })[],
+): Record<string, NoteStats> {
+  const stats: Record<string, NoteStats> = {};
+  for (const attempt of [...attempts].sort((a, b) => a.at - b.at)) {
+    stats[attempt.note] = updateStats(stats[attempt.note] ?? emptyStats(attempt.note), attempt);
+  }
+  return stats;
+}

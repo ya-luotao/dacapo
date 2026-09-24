@@ -6,6 +6,7 @@ import { NotFoundPage } from './pages/NotFoundPage.tsx';
 import { PlayPage } from './pages/PlayPage.tsx';
 import { ProgressPage } from './pages/ProgressPage.tsx';
 import { SettingsPage } from './pages/SettingsPage.tsx';
+import { StorageNotice } from './StorageNotice.tsx';
 
 // Notation (VexFlow and its font) is only downloaded when the Read route is opened.
 const ReadPage = lazy(() => import('./pages/ReadPage.tsx').then((m) => ({ default: m.ReadPage })));
@@ -15,6 +16,7 @@ export function App() {
     <Router hook={useHashLocation}>
       <Header />
       <main className="main" id="main">
+        <StorageNotice />
         <Suspense fallback={null}>
           <Switch>
             <Route path="/" component={PlayPage} />

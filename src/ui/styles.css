@@ -1071,3 +1071,384 @@ kbd {
     padding: 0.5rem 0.625rem;
   }
 }
+
+/* Storage notice */
+
+.storage-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin: 0 0 1.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--warn);
+  border-left-width: 4px;
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.storage-notice svg {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: var(--warn);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.storage-notice p {
+  flex: 1 1 16rem;
+  margin: 0;
+}
+
+.storage-notice .button {
+  min-height: 2.25rem;
+  padding: 0.25rem 0.875rem;
+}
+
+/* Progress */
+
+.progress h2 {
+  margin: 2.5rem 0 0.75rem;
+  font-size: 1.25rem;
+}
+
+.practice-figures .figures {
+  margin: 1rem 0 0.75rem;
+}
+
+.goal {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+.goal svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.goal.is-reached {
+  color: var(--ok);
+}
+
+.practice-figures .help {
+  max-width: 40rem;
+}
+
+.history {
+  max-width: 44rem;
+}
+
+.history-chart {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 9rem;
+  padding-top: 0.25rem;
+  border-bottom: 1px solid var(--text-muted);
+}
+
+.history-goal {
+  position: absolute;
+  inset-inline: 0;
+  border-top: 1px dashed var(--text-muted);
+  pointer-events: none;
+}
+
+.history-day {
+  flex: 1 1 0;
+  display: flex;
+  align-items: flex-end;
+  min-width: 0;
+  height: 100%;
+}
+
+.history-day[data-today] {
+  background: var(--accent-soft);
+  border-radius: 3px 3px 0 0;
+}
+
+.history-bar {
+  width: 100%;
+  border-radius: 3px 3px 0 0;
+}
+
+.history-bar.is-some {
+  min-height: 2px;
+  background: var(--text-muted);
+  opacity: 0.6;
+}
+
+.history-bar.is-reached {
+  background: var(--accent);
+}
+
+.history-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.history-details {
+  margin-top: 0.75rem;
+}
+
+.history-details summary {
+  width: fit-content;
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.history-table,
+.import-counts {
+  margin-top: 0.5rem;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.history-table th,
+.history-table td,
+.import-counts th,
+.import-counts td {
+  padding: 0.25rem 1rem 0.25rem 0;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+}
+
+.history-table thead th,
+.import-counts thead th {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.history-table tbody th,
+.import-counts tbody th {
+  font-weight: 500;
+}
+
+/* Progress: sessions */
+
+.session-table {
+  display: grid;
+  grid-template-columns: minmax(9rem, 1.6fr) minmax(6rem, 1fr) repeat(5, auto);
+  column-gap: 1.25rem;
+}
+
+.session-head,
+.session-list,
+.session,
+.session dl {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+}
+
+.session-head {
+  padding-bottom: 0.375rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.session-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.session {
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.session dl {
+  margin: 0;
+}
+
+.session dt {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.session dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.session abbr {
+  text-decoration: none;
+}
+
+.session.is-free dd {
+  color: var(--text-muted);
+}
+
+.session.is-free dl > div:nth-child(-n + 2) dd,
+.session.is-free dl > div:nth-child(4) dd,
+.session.is-free dl > div:nth-child(5) dd {
+  color: var(--text);
+}
+
+.session-more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-top: 1rem;
+}
+
+.session-more p {
+  margin: 0;
+}
+
+@media (max-width: 47.99rem) {
+  .session-table,
+  .session-list,
+  .session {
+    display: block;
+  }
+
+  .session-head {
+    display: none;
+  }
+
+  .session dl {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.125rem 1rem;
+  }
+
+  .session dl > div {
+    display: flex;
+    align-items: baseline;
+    gap: 0.375rem;
+  }
+
+  .session dl > div:first-child {
+    flex-basis: 100%;
+    font-weight: 600;
+  }
+
+  .session dl > div:nth-child(n + 4) dt {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+  }
+
+  /* Free play has no level, accuracy or reaction time. */
+  .session.is-free dl > div:nth-child(3),
+  .session.is-free dl > div:nth-child(n + 6) {
+    display: none;
+  }
+}
+
+/* Settings: data */
+
+.data h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.25rem;
+}
+
+.data-status {
+  margin: 0.75rem 0 0;
+}
+
+.data-status.is-warning {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.data-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem 1.5rem;
+  margin-top: 1rem;
+}
+
+.button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.data-message {
+  margin: 1rem 0 0;
+  font-weight: 600;
+}
+
+.data-message.is-ok {
+  color: var(--ok);
+}
+
+.data-message.is-error {
+  color: var(--bad);
+}
+
+.import-preview {
+  margin-top: 1.25rem;
+  padding: 1rem 1.25rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.import-preview h3 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.import-preview > .muted {
+  margin: 0.25rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.import-counts td,
+.import-counts thead th + th {
+  text-align: end;
+}
+
+.import-counts td.is-invalid {
+  color: var(--bad);
+  font-weight: 700;
+}
+
+.import-invalid p {
+  margin: 1rem 0 0.25rem;
+  font-weight: 600;
+}
+
+.import-invalid ul {
+  margin: 0;
+  padding-inline-start: 1.25rem;
+  overflow-wrap: anywhere;
+}
+
+.import-prefs {
+  margin-top: 1rem;
+  align-items: flex-start;
+}
+
+.import-prefs input {
+  margin-top: 0.3rem;
+}

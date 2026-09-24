@@ -6,12 +6,14 @@ import { DeviceHelp, DeviceStatus } from '../play/DeviceStatus.tsx';
 import { KeyboardHint } from '../play/KeyboardHint.tsx';
 import { NoteReadout } from '../play/NoteReadout.tsx';
 import { SustainIndicator } from '../play/SustainIndicator.tsx';
+import { useFreePlay } from '../play/useFreePlay.ts';
 
 export function PlayPage() {
   const t = useT();
   const { pointer } = useInput();
   const { held, sustained, sustain, lastChord } = useHubState();
   const keyboardFallback = useKeyboardFallback();
+  useFreePlay();
 
   return (
     <section className="play">

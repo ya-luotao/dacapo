@@ -8,6 +8,7 @@ import {
   noteWeight,
   pickNext,
   RECENT_LENGTH,
+  statsFromAttempts,
   UNSEEN_NOVELTY,
   updateStats,
   type NoteStats,
@@ -197,5 +198,32 @@ describe('pickNext', () => {
   it('throws when nothing but the previous note is left', () => {
     const one = pool.slice(0, 1);
     expect(() => pickNext(one, {}, one[0]!, seededRng(1))).toThrow(RangeError);
+  });
+});
+
+describe('statsFromAttempts', () => {
+  it('equals recording the attempts one by one, in order of time', () => {
+    const rng = seededRng(3);
+    const notes = ['C4@treble', 'D4@treble', 'C4@bass'];
+    const attempts = Array.from({ length: 200 }, (_, i) => ({
+      note: notes[Math.floor(rng() * notes.length)]!,
+      ...answer({
+        correct: rng() > 0.3,
+        ms: 300 + Math.floor(rng() * 4000),
+        hinted: rng() > 0.9,
+        timedOut: false,
+        at: 1_700_000_000_000 + i * 1000,
+      }),
+    }));
+    const incremental: Record<string, NoteStats> = {};
+    for (const a of attempts) {
+      incremental[a.note] = updateStats(incremental[a.note] ?? emptyStats(a.note), a);
+    }
+    const shuffled = [...attempts].sort(() => rng() - 0.5);
+    expect(statsFromAttempts(shuffled)).toEqual(incremental);
+  });
+
+  it('is empty without attempts', () => {
+    expect(statsFromAttempts([])).toEqual({});
   });
 });

@@ -1,9 +1,14 @@
-import { useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { PracticeContext } from './context.ts';
-import { createPracticeStore } from './store.ts';
+import type { PracticeStore } from './store.ts';
 
-/** Owns the practice data for the lifetime of the tab (in memory until storage lands). */
-export function PracticeProvider({ children }: { children: ReactNode }) {
-  const [store] = useState(() => createPracticeStore());
+/** Provides the app's practice store, which is created and started once, outside React. */
+export function PracticeProvider({
+  store,
+  children,
+}: {
+  store: PracticeStore;
+  children: ReactNode;
+}) {
   return <PracticeContext value={store}>{children}</PracticeContext>;
 }
