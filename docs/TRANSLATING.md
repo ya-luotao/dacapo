@@ -25,8 +25,7 @@ and no Simplified-only characters in zh-TW.
 
 - **Placeholders stay exactly as they are.** `{names}` stays `{names}`: never rename, drop or
   translate one. Move it wherever the sentence needs it.
-- **Some strings are pieces of others.** `pieces.rhythm.bars` goes into `pieces.rhythm.faster`,
-  `{stats}` into `read.summary.progress`, `{level}` is a level name, `{time}` is already a formatted
+- **Some strings are pieces of others.** A bar span goes into `pieces.rhythm.faster`, `{stats}` into `read.summary.progress`, `{level}` is a level name, `{time}` is already a formatted
   duration with its unit. Search `src/ui` for the key to see how it is used, then read the whole
   sentence.
 - **Note names are letter names in every language**: C4, F♯3, B♭ — scientific pitch notation, C4 =
@@ -41,6 +40,17 @@ and no Simplified-only characters in zh-TW.
   without plurals still fill both (`1日` / `{n}日`).
 - **Lists and sentences**: `app.listSeparator` joins short lists (`, ` or `、`). Whether two
   sentences are joined with a space is set per language in `SENTENCE_GAP` in `locale.ts`.
+- **Bar labels are whole templates.** A bar is never "a number inside another string's bar word":
+  `pieces.bar.label` is the bar with its word (`bar {bar}`, `{bar}小節目`, `第 {bar} 小節`), and
+  `pieces.bar.label.ending`, `.nth` and `.nthEnding` add the volta (`{ending}`, e.g. `1` or `1, 2`)
+  and the position in the piece (`{n}`, when a printed number repeats) in your language's order —
+  `1番カッコの12小節目`, `第 12 小節（1 房）`. Strings that take `{bar}` from one of them
+  (`pieces.done.bar`, `pieces.done.loopBar`, `pieces.status.barRepeat`) must not add a bar word.
+  `pieces.bar.number.*` are the same without the word, for pickers and table cells under a "Bar"
+  header. `pieces.bar.span` is a plain range (`bars 8–12`); `pieces.bar.span.labels` joins two
+  full labels when an end has a volta. English labels are lower case (`bar 12`); the app capitalises
+  the first letter where a label starts a line. `src/ui/pieces/format.test.ts` shows the composed
+  results in every language.
 - **Numbers, dates and lists of devices** are formatted by `Intl` in the active locale; do not
   write them into strings.
 
@@ -89,7 +99,9 @@ terms throughout. Address the learner as 你, as zh-CN does.
 - Ellipsis: `⋯` at the end of a button or loading state (匯入檔案⋯), `⋯⋯` in running text.
 - A space between Chinese and Latin letters, digits and placeholders, as in zh-CN.
 - 紀錄 for the noun (練習紀錄), 記錄 for the verb.
-- Counters: 張 cards, 首 pieces, 遍 runs, 次 answers, 個 notes, 筆 records.
+- Counters: 張 cards, 首 pieces, 遍 runs, 輪 laps of a loop and rounds within a run, 次 answers,
+  個 notes, 筆 records.
+- Enharmonic spellings are 同音異名; the Schumann collection is 《青少年曲集》.
 
 | English                                 | zh-TW                        | zh-CN, where different    |
 | --------------------------------------- | ---------------------------- | ------------------------- |
@@ -152,22 +164,24 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 - Latin punctuation; quotes “ ”; 「 」 for books and collections; `, ` for lists; ranges with `–`.
 - Bars as `마디 {n}` in labels, `{m}마디 중 {n}마디` in counts.
 
-| English                              | ko                                          |
-| ------------------------------------ | ------------------------------------------- |
-| Read (the feature and its page)      | 악보 읽기                                   |
-| grand staff / staff                  | 큰보표 / 보표 (오선보 for the heatmap view) |
-| treble staff / bass staff            | 높은음자리표 / 낮은음자리표                 |
-| ledger lines / sharps and flats      | 덧줄 / 올림표와 내림표                      |
-| bar / right, left, both hands        | 마디 / 오른손·왼손·양손                     |
-| sustain pedal / metronome / count-in | 댐퍼 페달 / 메트로놈 / 예비 박              |
-| flashcards / level / mastered        | 플래시 카드 / 레벨 / 마스터 완료            |
-| middle C                             | 가운데 C                                    |
-| wait mode / rhythm mode              | 기다리기 모드 / 리듬 모드                   |
-| loop / repeats / volta               | 구간 반복 / 도돌이표 / {n}번 괄호           |
-| run / step                           | 연주 ({n}회) / 스텝                         |
-| weak bars / hesitation / timing      | 약한 마디 / 망설임 / 타이밍                 |
-| latency calibration / demo           | 지연 보정 / 들어 보기                       |
-| import / export                      | 가져오기 / 내보내기                         |
+| English                              | ko                                            |
+| ------------------------------------ | --------------------------------------------- |
+| Read (the feature and its page)      | 악보 읽기                                     |
+| grand staff / staff                  | 큰보표 / 보표 (오선보 for the heatmap view)   |
+| treble staff / bass staff            | 높은음자리표 / 낮은음자리표                   |
+| ledger lines / sharps and flats      | 덧줄 / 올림표와 내림표                        |
+| bar / right, left, both hands        | 마디 / 오른손·왼손·양손                       |
+| sustain pedal / metronome / count-in | 댐퍼 페달 / 메트로놈 / 예비 박                |
+| flashcards / level / mastered        | 플래시 카드 / 레벨 / 마스터 완료              |
+| middle C                             | 가운데 C                                      |
+| wait mode / rhythm mode              | 기다리기 모드 / 리듬 모드                     |
+| loop / repeats / volta               | 구간 반복 / 도돌이표 / {n}번 괄호             |
+| run / step                           | 연주 ({n}회) / 스텝                           |
+| weak bars / hesitation / timing      | 약한 마디 / 망설임 / 타이밍                   |
+| latency calibration / demo           | 지연 보정 / 들어 보기                         |
+| import / export                      | 가져오기 / 내보내기                           |
+| session list / answers (records)     | 연습 내역 / 응답 (연습 기록 is the whole log) |
+| library (built-in pieces)            | 기본 곡                                       |
 
 Keys in titles use letters: G장조, C장조, matching the letter names in the app. Composer names
 follow the National Institute of Korean Language: 루트비히 판 베토벤, 요한 제바스티안 바흐.
