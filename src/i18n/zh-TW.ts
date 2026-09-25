@@ -669,4 +669,40 @@ export const zhTW: Dictionary = {
     '未儲存：dacapo 目前無法在這台裝置上儲存資料。關閉 dacapo 前請先匯出。',
   'settings.export.help.app':
     '儲存 {file}，內含你的練習紀錄、作答紀錄、匯入的樂曲、樂曲練習明細和偏好設定。',
+
+  'about.title': '關於 dacapo',
+  'about.intro':
+    'dacapo 內含下列軟體、字型和樂曲，各自採用自己的授權。這些全都內建在 dacapo 裡，不會從其他地方取得。',
+  'about.software': '軟體',
+  'about.fonts': '字型',
+  'about.music': '樂曲',
+  'about.licenceText': '授權全文：{name}',
+  'about.loading': '讀取中⋯',
+  'about.loadFailed': '無法讀取這份文字。',
+  'about.website': '網站：{url}',
+  'about.source': '原始碼：{url}',
+  'about.verovio.role': '{name}，樂譜排版函式庫',
+  'about.verovio.copyright': '© Laurent Pugin and others (the Verovio contributors)',
+  'about.verovio.licence':
+    '授權：GNU Lesser General Public License v3.0 or later（全文見下：COPYING.LESSER、COPYING）',
+  'about.verovio.included': '取自 npm 套件 verovio@6.3.0，未經修改（{url}）',
+  'about.verovio.contains':
+    'Verovio 內含 pugixml（MIT）、Hong Jiang 的 JSON 函式庫（MIT）、tuning-library（MIT）、zip_file（MIT）、midifile（BSD-2-Clause）和一個屬於公有領域的 CRC 模組；它們的聲明見下。',
+  'about.verovio.use': '「樂曲」頁面上的樂譜由 Verovio 排版。',
+  'about.vexflow':
+    'VexFlow 5 繪製「識譜」頁面上的音符閃卡。© Mohit Muthanna Cheppudira and the VexFlow contributors. MIT License.',
+  'about.react':
+    'React 19（react、react-dom）。© Meta Platforms, Inc. and affiliates. MIT License.',
+  'about.wouter': 'wouter，用於頁面之間的切換。The Unlicense（公有領域）。',
+  'about.idb': 'idb，用於儲存練習紀錄。© Jake Archibald. ISC License.',
+  'about.fflate': 'fflate，用於讀取 .mxl 檔案。© Arjun Barrett. MIT License.',
+  'about.bravura':
+    'Bravura，「識譜」頁面使用的音樂字型。© 2019 Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
+  'about.sourceFonts':
+    'Source Serif 4 和 Source Sans 3，內文字型。© Adobe, with Reserved Font Name "Source". SIL Open Font License 1.1.',
+  'about.music.intro': '六首內建樂曲都屬於公有領域。',
+  'about.music.ours':
+    '〈G 大調小步舞曲〉（佩佐爾德）、〈給愛麗絲〉（貝多芬）和〈快樂頌〉的改編由 dacapo 專案編碼，以 MIT 授權釋出；前兩首依據 Mutopia 專案的公有領域版本。',
+  'about.music.pdmx':
+    '〈阿拉貝斯克〉（布爾格彌勒）、〈士兵進行曲〉（舒曼）和〈C 大調前奏曲〉（巴哈）是 MuseScore 上的樂譜，上傳者 PianoXML、jadr 和 OpenGoldberg 已將它們貢獻到公有領域（CC0）；dacapo 專案刪去了其中的指法。它們來自 Phillip Long、Zachary Novack、Julian McAuley 和 Taylor Berg-Kirkpatrick 的 PDMX 資料集，該資料集以 CC BY 4.0 授權釋出。',
 };

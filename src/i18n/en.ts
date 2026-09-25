@@ -706,6 +706,41 @@ export const en = {
     'Not saved: dacapo cannot store data on this device right now. Export before you close dacapo.',
   'settings.export.help.app':
     'Saves {file} with your sessions, answers, imported pieces, piece practice records and preferences.',
+
+  'about.title': 'About dacapo',
+  'about.intro':
+    'dacapo includes the software, fonts and music below, each under its own licence. All of it is part of dacapo itself: nothing is fetched from elsewhere.',
+  'about.software': 'Software',
+  'about.fonts': 'Fonts',
+  'about.music': 'Music',
+  'about.licenceText': 'Licence text: {name}',
+  'about.loading': 'Loading…',
+  'about.loadFailed': 'The text could not be read.',
+  'about.website': 'Website: {url}',
+  'about.source': 'Source: {url}',
+  'about.verovio.role': '{name}, music engraving library',
+  'about.verovio.copyright': '© Laurent Pugin and others (the Verovio contributors)',
+  'about.verovio.licence':
+    'Licence: GNU Lesser General Public License v3.0 or later (full text below: COPYING.LESSER, COPYING)',
+  'about.verovio.included': 'Included unmodified from the npm package verovio@6.3.0 ({url})',
+  'about.verovio.contains':
+    'Verovio contains pugixml (MIT), a JSON library by Hong Jiang (MIT), tuning-library (MIT), zip_file (MIT), midifile (BSD-2-Clause) and a public-domain CRC module; see their notices below.',
+  'about.verovio.use': 'Verovio engraves the scores on the Pieces pages.',
+  'about.vexflow':
+    'VexFlow 5 draws the flashcards on the Read page. © Mohit Muthanna Cheppudira and the VexFlow contributors. MIT License.',
+  'about.react': 'React 19 (react, react-dom). © Meta Platforms, Inc. and affiliates. MIT License.',
+  'about.wouter': 'wouter, for moving between pages. The Unlicense (public domain).',
+  'about.idb': 'idb, for storing your progress. © Jake Archibald. ISC License.',
+  'about.fflate': 'fflate, for reading .mxl files. © Arjun Barrett. MIT License.',
+  'about.bravura':
+    'Bravura, the music font of the Read page. © 2019 Steinberg Media Technologies GmbH, with Reserved Font Name “Bravura”. SIL Open Font License 1.1.',
+  'about.sourceFonts':
+    'Source Serif 4 and Source Sans 3, the text fonts. © Adobe, with Reserved Font Name “Source”. SIL Open Font License 1.1.',
+  'about.music.intro': 'All six built-in works are in the public domain.',
+  'about.music.ours':
+    'Minuet in G major (Petzold), Für Elise (Beethoven) and the Ode to Joy arrangement are encoded by the dacapo project under the MIT licence; the first two from public-domain editions of the Mutopia Project.',
+  'about.music.pdmx':
+    'Arabesque (Burgmüller), Soldiers’ March (Schumann) and the Prelude in C major (Bach) are encodings from MuseScore that their uploaders PianoXML, jadr and OpenGoldberg dedicated to the public domain (CC0); the dacapo project removed the fingering. They come from the PDMX dataset by Phillip Long, Zachary Novack, Julian McAuley and Taylor Berg-Kirkpatrick, licensed under CC BY 4.0.',
 };
 
 export type MessageKey = keyof typeof en;

@@ -665,4 +665,40 @@ export const zhCN: Dictionary = {
     '未保存：dacapo 暂时无法在这台设备上存储数据。关闭 dacapo 之前请先导出。',
   'settings.export.help.app':
     '保存 {file}，包含你的练习记录、答题记录、导入的曲目、曲目练习明细和偏好设置。',
+
+  'about.title': '关于 dacapo',
+  'about.intro':
+    'dacapo 包含下列软件、字体和乐谱，它们各自遵循自己的许可。这些全部内置在 dacapo 中，不会从别处获取。',
+  'about.software': '软件',
+  'about.fonts': '字体',
+  'about.music': '乐谱',
+  'about.licenceText': '许可全文：{name}',
+  'about.loading': '正在读取…',
+  'about.loadFailed': '无法读取这份文本。',
+  'about.website': '网站：{url}',
+  'about.source': '源代码：{url}',
+  'about.verovio.role': '{name}，乐谱刻印库',
+  'about.verovio.copyright': '© Laurent Pugin and others (the Verovio contributors)',
+  'about.verovio.licence':
+    '许可：GNU Lesser General Public License v3.0 or later（全文见下：COPYING.LESSER、COPYING）',
+  'about.verovio.included': '取自 npm 包 verovio@6.3.0，未经修改（{url}）',
+  'about.verovio.contains':
+    'Verovio 包含 pugixml（MIT）、Hong Jiang 的 JSON 库（MIT）、tuning-library（MIT）、zip_file（MIT）、midifile（BSD-2-Clause）和一个属于公有领域的 CRC 模块；它们的声明见下。',
+  'about.verovio.use': '“曲目”页面上的乐谱由 Verovio 刻印。',
+  'about.vexflow':
+    'VexFlow 5 绘制“识谱”页面上的卡片。© Mohit Muthanna Cheppudira and the VexFlow contributors. MIT License.',
+  'about.react':
+    'React 19（react、react-dom）。© Meta Platforms, Inc. and affiliates. MIT License.',
+  'about.wouter': 'wouter，用于页面之间的切换。The Unlicense（公有领域）。',
+  'about.idb': 'idb，用于保存练习记录。© Jake Archibald. ISC License.',
+  'about.fflate': 'fflate，用于读取 .mxl 文件。© Arjun Barrett. MIT License.',
+  'about.bravura':
+    'Bravura，“识谱”页面使用的音乐字体。© 2019 Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
+  'about.sourceFonts':
+    'Source Serif 4 和 Source Sans 3，正文字体。© Adobe, with Reserved Font Name "Source". SIL Open Font License 1.1.',
+  'about.music.intro': '六首内置作品都属于公有领域。',
+  'about.music.ours':
+    '《G 大调小步舞曲》（佩措尔德）、《致爱丽丝》（贝多芬）和《欢乐颂》的改编由 dacapo 项目编码，以 MIT 许可证发布；前两首依据 Mutopia 项目的公有领域版本。',
+  'about.music.pdmx':
+    '《阿拉伯风格曲》（布格缪勒）、《士兵进行曲》（舒曼）和《C 大调前奏曲》（巴赫）是 MuseScore 上的编码，上传者 PianoXML、jadr 和 OpenGoldberg 已将其贡献到公有领域（CC0）；dacapo 项目删去了其中的指法。它们来自 Phillip Long、Zachary Novack、Julian McAuley 和 Taylor Berg-Kirkpatrick 的 PDMX 数据集，该数据集以 CC BY 4.0 许可发布。',
 };

@@ -2109,6 +2109,43 @@ kbd {
   font-weight: 600;
 }
 
+/* About: one credit per entry, its licence texts behind disclosures. */
+.credits {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.credit {
+  padding-block: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.credit + .credit {
+  border-top: 1px solid var(--border);
+}
+
+.credit p {
+  margin: 0.25rem 0 0;
+}
+
+.licence-text {
+  margin-top: 0.25rem;
+}
+
+.licence-text pre {
+  max-height: 24rem;
+  margin: 0.25rem 0 0;
+  padding: 0.75rem 1rem;
+  overflow: auto;
+  border-radius: var(--radius);
+  background: var(--sunk);
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
 .data-status {
   margin: 0.75rem 0 0;
 }

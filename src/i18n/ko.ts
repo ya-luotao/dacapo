@@ -699,4 +699,39 @@ export const ko: Dictionary = {
     '저장 안 됨: 지금은 dacapo가 이 기기에 데이터를 저장할 수 없어요. dacapo를 닫기 전에 내보내세요.',
   'settings.export.help.app':
     '연습 내역, 응답, 가져온 곡, 곡 연습 상세 기록, 환경설정을 담은 {file} 파일을 저장해요.',
+
+  'about.title': 'dacapo 정보',
+  'about.intro':
+    'dacapo에는 아래의 소프트웨어, 글꼴, 악보가 들어 있고, 각각 고유한 라이선스를 따라요. 모두 dacapo 안에 포함되어 있어서 외부에서 가져오는 것은 없어요.',
+  'about.software': '소프트웨어',
+  'about.fonts': '글꼴',
+  'about.music': '악보',
+  'about.licenceText': '라이선스 전문: {name}',
+  'about.loading': '불러오는 중…',
+  'about.loadFailed': '텍스트를 읽지 못했어요.',
+  'about.website': '웹사이트: {url}',
+  'about.source': '소스 코드: {url}',
+  'about.verovio.role': '{name}, 악보 조판 라이브러리',
+  'about.verovio.copyright': '© Laurent Pugin and others (the Verovio contributors)',
+  'about.verovio.licence':
+    '라이선스: GNU Lesser General Public License v3.0 or later (전문은 아래: COPYING.LESSER, COPYING)',
+  'about.verovio.included': 'npm 패키지 verovio@6.3.0에서 수정 없이 포함 ({url})',
+  'about.verovio.contains':
+    'Verovio에는 pugixml(MIT), Hong Jiang의 JSON 라이브러리(MIT), tuning-library(MIT), zip_file(MIT), midifile(BSD-2-Clause), 퍼블릭 도메인 CRC 모듈이 들어 있어요. 각각의 고지는 아래에 있어요.',
+  'about.verovio.use': '“곡” 페이지의 악보는 Verovio로 조판해요.',
+  'about.vexflow':
+    'VexFlow 5는 “악보 읽기” 페이지의 플래시 카드를 그려요. © Mohit Muthanna Cheppudira and the VexFlow contributors. MIT License.',
+  'about.react': 'React 19 (react, react-dom). © Meta Platforms, Inc. and affiliates. MIT License.',
+  'about.wouter': 'wouter: 페이지를 이동할 때 써요. The Unlicense(퍼블릭 도메인).',
+  'about.idb': 'idb: 연습 기록을 저장할 때 써요. © Jake Archibald. ISC License.',
+  'about.fflate': 'fflate: .mxl 파일을 읽을 때 써요. © Arjun Barrett. MIT License.',
+  'about.bravura':
+    'Bravura: “악보 읽기” 페이지의 음악 글꼴이에요. © 2019 Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
+  'about.sourceFonts':
+    'Source Serif 4와 Source Sans 3: 본문 글꼴이에요. © Adobe, with Reserved Font Name "Source". SIL Open Font License 1.1.',
+  'about.music.intro': '기본 곡 6곡은 모두 퍼블릭 도메인 작품이에요.',
+  'about.music.ours':
+    '미뉴에트 G장조(페촐트), 엘리제를 위하여(베토벤), 환희의 송가 편곡은 dacapo 프로젝트가 MIT 라이선스로 입력했어요. 앞의 두 곡은 Mutopia Project의 퍼블릭 도메인 판을 바탕으로 했어요.',
+  'about.music.pdmx':
+    '아라베스크(부르크뮐러), 병사의 행진(슈만), 전주곡 C장조(바흐)는 MuseScore에 악보를 올린 PianoXML, jadr, OpenGoldberg가 퍼블릭 도메인(CC0)으로 공개한 악보이고, dacapo 프로젝트가 운지 번호를 지웠어요. 모두 Phillip Long, Zachary Novack, Julian McAuley, Taylor Berg-Kirkpatrick의 PDMX 데이터셋에서 가져왔으며, 이 데이터셋은 CC BY 4.0 라이선스를 따라요.',
 };

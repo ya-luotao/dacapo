@@ -1,4 +1,5 @@
 import { useId, useState } from 'react';
+import { Link } from 'wouter';
 import { isLocale, LOCALE_NAMES, LOCALES, useI18n } from '../../i18n/index.ts';
 import type { Preferences } from '../../storage/exchange.ts';
 import { DataSection } from '../settings/DataSection.tsx';
@@ -88,9 +89,7 @@ export function SettingsPage() {
             <a href={REPO_URL}>{t('settings.about.source')}</a>
           </li>
           <li>
-            <a href={`${REPO_URL}/blob/main/THIRD_PARTY_NOTICES.md`}>
-              {t('settings.about.notices')}
-            </a>
+            <Link href="/about">{t('settings.about.notices')}</Link>
           </li>
         </ul>
       </section>

@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Route, Router, Switch } from 'wouter';
 import { useHashLocation } from 'wouter/use-hash-location';
 import { Header } from './Header.tsx';
+import { AboutPage } from './pages/AboutPage.tsx';
 import { NotFoundPage } from './pages/NotFoundPage.tsx';
 import { PlayPage } from './pages/PlayPage.tsx';
 import { ProgressPage } from './pages/ProgressPage.tsx';
@@ -32,6 +33,7 @@ export function App() {
             <Route path="/pieces/:id">{({ id }) => <PiecePage key={id} id={id} />}</Route>
             <Route path="/progress" component={ProgressPage} />
             <Route path="/settings" component={SettingsPage} />
+            <Route path="/about" component={AboutPage} />
             <Route component={NotFoundPage} />
           </Switch>
         </Suspense>

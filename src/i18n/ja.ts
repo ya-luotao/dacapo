@@ -716,4 +716,40 @@ export const ja: Dictionary = {
     '保存されていません：いまはこの端末にdacapoのデータを保存できません。dacapoを閉じる前にエクスポートしてください。',
   'settings.export.help.app':
     'セッション、解答、インポートした曲、曲の練習記録、設定を含む{file}を保存します。',
+
+  'about.title': 'dacapoについて',
+  'about.intro':
+    'dacapoには以下のソフトウェア、フォント、楽曲が含まれていて、それぞれのライセンスに従います。どれもdacapo本体に含まれており、外部から取得するものはありません。',
+  'about.software': 'ソフトウェア',
+  'about.fonts': 'フォント',
+  'about.music': '楽曲',
+  'about.licenceText': 'ライセンス全文：{name}',
+  'about.loading': '読み込み中…',
+  'about.loadFailed': 'テキストを読み込めませんでした。',
+  'about.website': 'Webサイト：{url}',
+  'about.source': 'ソースコード：{url}',
+  'about.verovio.role': '{name}（楽譜浄書ライブラリ）',
+  'about.verovio.copyright': '© Laurent Pugin and others (the Verovio contributors)',
+  'about.verovio.licence':
+    'ライセンス：GNU Lesser General Public License v3.0 or later（全文は下記：COPYING.LESSER、COPYING）',
+  'about.verovio.included': 'npmパッケージverovio@6.3.0から改変せずに収録（{url}）',
+  'about.verovio.contains':
+    'Verovioには、pugixml（MIT）、Hong JiangによるJSONライブラリ（MIT）、tuning-library（MIT）、zip_file（MIT）、midifile（BSD-2-Clause）、パブリックドメインのCRCモジュールが含まれています。それぞれの告知は下記のとおりです。',
+  'about.verovio.use': '「曲」ページの楽譜はVerovioで浄書しています。',
+  'about.vexflow':
+    'VexFlow 5は「譜読み」ページのフラッシュカードを描画します。© Mohit Muthanna Cheppudira and the VexFlow contributors. MIT License.',
+  'about.react':
+    'React 19（react、react-dom）。© Meta Platforms, Inc. and affiliates. MIT License.',
+  'about.wouter': 'wouter：ページ間の移動に使います。The Unlicense（パブリックドメイン）。',
+  'about.idb': 'idb：練習記録の保存に使います。© Jake Archibald. ISC License.',
+  'about.fflate': 'fflate：.mxlファイルの読み込みに使います。© Arjun Barrett. MIT License.',
+  'about.bravura':
+    'Bravura：「譜読み」ページの音楽フォントです。© 2019 Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
+  'about.sourceFonts':
+    'Source Serif 4とSource Sans 3：本文のフォントです。© Adobe, with Reserved Font Name "Source". SIL Open Font License 1.1.',
+  'about.music.intro': '内蔵の6曲はすべてパブリックドメインの作品です。',
+  'about.music.ours':
+    '「メヌエット ト長調」（ペツォールト）、「エリーゼのために」（ベートーヴェン）、「歓喜の歌」の編曲は、dacapoプロジェクトがMITライセンスで入力したものです。前の2曲はMutopia Projectのパブリックドメイン版にもとづいています。',
+  'about.music.pdmx':
+    '「アラベスク」（ブルグミュラー）、「兵士の行進」（シューマン）、「前奏曲 ハ長調」（J.S.バッハ）は、MuseScoreに投稿したPianoXML、jadr、OpenGoldbergの各氏がパブリックドメイン（CC0）として公開した楽譜で、dacapoプロジェクトが運指を削除しました。いずれもPhillip Long、Zachary Novack、Julian McAuley、Taylor Berg-KirkpatrickによるPDMXデータセットに収録されており、このデータセットはCC BY 4.0で公開されています。',
 };

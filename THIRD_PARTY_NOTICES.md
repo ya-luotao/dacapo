@@ -4,6 +4,11 @@ dacapo itself is released under the [MIT License](LICENSE). It ships the softwar
 listed here, each under its own licence. Nothing is loaded from a CDN: everything below is part of
 the build or of this repository.
 
+The app shows these credits on its About page (`#/about`, linked from Settings), with the licence
+texts it ships in [`public/licenses/`](public/licenses/): copies of each package's own licence
+file (a test keeps them equal), Verovio's texts, and the notices of the libraries Verovio contains
+(`public/licenses/verovio/THIRD-PARTY.txt`).
+
 ## Software shipped in the app
 
 ### Verovio 6.3.0: LGPL-3.0-or-later
@@ -29,6 +34,11 @@ and the Verovio contributors, RISM Digital Center.
 - **Using your own build.** Replace those two files in `dist/assets/` with a build of Verovio 6.3.0
   (or a compatible modified version), keeping the file names. Or change the `verovio` dependency in
   `package.json` and run `pnpm build`.
+- **Libraries inside the engine.** Verovio contains pugixml (MIT), a JSON library by Hong Jiang
+  (MIT), tuning-library (MIT), zip_file (MIT), midifile (BSD-2-Clause) and a public-domain CRC
+  module. Their notices, taken from the tag `version-6.3.0` (midifile's from its own repository,
+  since the vendored copy has no licence file), are in
+  [`public/licenses/verovio/THIRD-PARTY.txt`](public/licenses/verovio/THIRD-PARTY.txt).
 - **Fonts inside the engine.** The module embeds the music fonts Verovio ships (Leipzig, Bravura,
   Gootville, Petaluma, Leland) and the Liberation text font. All of them are under the SIL Open
   Font License 1.1 (see Verovio's
