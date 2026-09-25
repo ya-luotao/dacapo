@@ -18,6 +18,9 @@ const PiecesPage = lazy(() =>
 const PiecePage = lazy(() =>
   import('./pieces/PiecePage.tsx').then((m) => ({ default: m.PiecePage })),
 );
+const MetronomePage = lazy(() =>
+  import('./metronome/MetronomePage.tsx').then((m) => ({ default: m.MetronomePage })),
+);
 
 export function App() {
   return (
@@ -31,6 +34,7 @@ export function App() {
             <Route path="/read" component={ReadPage} />
             <Route path="/pieces" component={PiecesPage} />
             <Route path="/pieces/:id">{({ id }) => <PiecePage key={id} id={id} />}</Route>
+            <Route path="/metronome" component={MetronomePage} />
             <Route path="/progress" component={ProgressPage} />
             <Route path="/settings" component={SettingsPage} />
             <Route path="/about" component={AboutPage} />

@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'wouter';
 import { useT } from '../i18n/index.ts';
 import { BrandMark } from './BrandMark.tsx';
+import { MetronomeChip } from './metronome/MetronomeChip.tsx';
 import { NAV_ITEMS } from './routes.ts';
 
 export function Header() {
@@ -32,6 +33,7 @@ export function Header() {
           })}
         </ul>
       </nav>
+      <MetronomeChip />
     </header>
   );
 }

@@ -12,6 +12,7 @@ import {
 import { flushSync } from 'react-dom';
 import { Link } from 'wouter';
 import { barHeatmap, weakestLoop, type BarMetric } from '../../core/barHeatmap.ts';
+import { parseMeter, tempoForMeter } from '../../core/metronomeSettings.ts';
 import { isBlack, midiName, PIANO_HIGHEST, PIANO_LOWEST } from '../../core/note.ts';
 import type { PracticeMode } from '../../core/pieceRecords.ts';
 import { summarizeRun } from '../../core/pieceRun.ts';
@@ -34,6 +35,7 @@ import { createDemoPlayer, type DemoState } from '../../output/demo.ts';
 import { browserClock } from '../../output/scheduler.ts';
 import { useHubState, useInput, useKeyboardOctave } from '../input/context.ts';
 import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
+import { useMetronome, useOfferTempo } from '../metronome/context.ts';
 import { ScoreView, type ScoreStatus } from '../notation/ScoreView.tsx';
 import { useOutputState } from '../output/context.ts';
 import { ACCOMPANIMENT_LEVELS, readAccompanimentLevel } from '../output/prefs.ts';
@@ -126,9 +128,11 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
   const demo = useSyncExternalStore(player.subscribe, player.getState);
   const demoStep = useSyncExternalStore(player.subscribe, player.currentStep);
   const listening = demo !== 'stopped';
+  const metronome = useMetronome();
   const { player: rhythmPlayer, snapshot: beat } = useRhythmPlayer(
     output.scheduler,
     output.onInterrupt,
+    () => metronome.block('rhythm'),
   );
   const [rhythm, dispatchRhythm] = useReducer(rhythmReducer, newRunId(), idleRhythm);
   const inTime = beat.state !== 'stopped';
@@ -492,6 +496,18 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
     </option>
   ));
   const bpm = Math.round(baseTempo(score) * scale);
+  // In wait mode the metronome can take the piece's tempo, in the start bar's meter (one it can
+  // count; otherwise in quarter notes, keeping its own).
+  const startMeasure = score.measures[startBar] ?? score.measures[0];
+  const meter = startMeasure ? parseMeter(`${startMeasure.beats}/${startMeasure.beatType}`) : null;
+  useOfferTempo(
+    rhythmMode
+      ? null
+      : {
+          bpm: tempoForMeter(baseTempo(score) * scale, meter ?? { numerator: 4, denominator: 4 }),
+          meter,
+        },
+  );
 
   return (
     <section

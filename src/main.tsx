@@ -4,6 +4,8 @@ import { I18nProvider, loadLocale, preferredLocale } from './i18n/index.ts';
 import { openRepository } from './storage/repository.ts';
 import { App } from './ui/App.tsx';
 import { InputProvider } from './ui/input/InputProvider.tsx';
+import { MetronomeProvider } from './ui/metronome/MetronomeProvider.tsx';
+import { createAppMetronome } from './ui/metronome/prefs.ts';
 import { PracticeProvider } from './ui/practice/PracticeProvider.tsx';
 import { broadcastChannel, createPracticeStore } from './ui/practice/store.ts';
 import { applyTheme, readStoredTheme } from './ui/theme.ts';
@@ -20,6 +22,9 @@ const practice = createPracticeStore({
 });
 practice.start();
 
+// One metronome for the page; it makes no sound (and no AudioContext) until it is started.
+const metronome = createAppMetronome();
+
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element');
 
@@ -31,7 +36,9 @@ void loadLocale(preferredLocale()).then((initial) => {
       <I18nProvider initial={initial}>
         <InputProvider>
           <PracticeProvider store={practice}>
-            <App />
+            <MetronomeProvider handle={metronome}>
+              <App />
+            </MetronomeProvider>
           </PracticeProvider>
         </InputProvider>
       </I18nProvider>

@@ -28,7 +28,8 @@ and no account.
 so expect rough edges; bug reports are welcome. See [CHANGELOG.md](CHANGELOG.md) for what is in
 each release. Practising pieces ([docs/PIECES.md](docs/PIECES.md)) is built too, not yet in a
 release: the library, MusicXML import, wait mode, MIDI playback, practice records with a measure
-heatmap, and a rhythm mode with a metronome and timing analysis.
+heatmap, a rhythm mode with a metronome and timing analysis, and a metronome of its own for any
+practice.
 
 ## Why
 
@@ -60,6 +61,11 @@ practising the notes you are slowest at. Progress is visible day by day.
   afterwards you see how many came in time, whether you tend to play early or late, and where you
   sped up or slowed down. "Weak bars" tints each bar by how long you hesitated there, or how far
   off the beat you were, in your last runs, and one click loops the weakest ones.
+- **Metronome.** A Maelzel-style pendulum that swings through the centre on the beat you hear,
+  with a sliding weight for the tempo; 20–300 BPM, tap tempo, time signatures, accented and muted
+  beats, subdivisions, three sounds, a visual-only mode, and a tempo trainer that speeds up every
+  few bars or drops bars to silence. A chip in the header starts it while you play, read or practise
+  a piece (and sets it to the piece's tempo); rhythm mode pauses it for its own click.
 - **Your data stays yours.** Everything is stored in your browser (IndexedDB). Export it as a
   JSON file and import it on another computer.
 - **Five languages**: English, 简体中文, 繁體中文 (Taiwan), 日本語 and 한국어, each with its own
@@ -84,7 +90,7 @@ The screenshots use generated practice data.
 - **MIDI keyboard:** recommended, but optional. You can also play with your computer
   keyboard or by clicking the on-screen piano.
 - **Sound:** the notes of demos and of the other hand are played by your instrument over MIDI.
-  Rhythm mode's metronome click comes from the computer; to hear it in a digital piano's
+  The clicks of rhythm mode and the metronome come from the computer; to hear them in a digital piano's
   headphones, connect the computer's audio output to the piano's line input, and avoid Bluetooth
   headphones (their delay varies too much to calibrate).
 - No account, no server. Everything is stored locally in your browser; Settings can export it
@@ -126,7 +132,7 @@ example `BASE_PATH=/dacapo/ pnpm build` for the GitHub Pages demo.
 
 These are deliberately out of scope for the MVP and are the candidates once it is used daily:
 
-- Audio output (the app makes no sound of its own apart from the metronome click — the piano
+- Audio output (the app makes no sound of its own apart from the metronome's clicks — the piano
   plays the notes, also for demos over MIDI)
 - Analysis of scale evenness
 - Theory and ear training

@@ -53,12 +53,14 @@ export interface RhythmPlayer {
   subscribe: (onChange: () => void) => () => void;
 }
 
-function createRhythmPlayer(
+export function createRhythmPlayer(
   scheduler: Scheduler,
   onInterrupt: MidiOutput['onInterrupt'],
+  hold: () => () => void,
 ): RhythmPlayer {
   let run: RhythmRun | null = null;
   let unsubscribe: (() => void) | null = null;
+  let release: (() => void) | null = null;
   let snapshot = STOPPED;
   const listeners = new Set<() => void>();
 
@@ -82,7 +84,20 @@ function createRhythmPlayer(
       unsubscribe?.();
       const clicks = options.clickMode === 'off' ? null : sharedClickTrack();
       clicks?.setVolume(options.volume / 100);
-      run = createRhythmRun({ ...options, scheduler, clock: browserClock, clicks, onInterrupt });
+      release?.();
+      release = hold();
+      run = createRhythmRun({
+        ...options,
+        scheduler,
+        clock: browserClock,
+        clicks,
+        onInterrupt,
+        onEnd: (reason) => {
+          release?.();
+          release = null;
+          options.onEnd(reason);
+        },
+      });
       unsubscribe = run.subscribe(update);
       const origin = run.start();
       update();
@@ -98,9 +113,16 @@ function createRhythmPlayer(
   };
 }
 
-/** One rhythm player for the practice view; stopped when the view goes away. */
-export function useRhythmPlayer(scheduler: Scheduler, onInterrupt: MidiOutput['onInterrupt']) {
-  const [player] = useState(() => createRhythmPlayer(scheduler, onInterrupt));
+/**
+ * One rhythm player for the practice view; stopped when the view goes away. `hold` keeps the
+ * metronome paused while a run lasts: rhythm mode's click comes first.
+ */
+export function useRhythmPlayer(
+  scheduler: Scheduler,
+  onInterrupt: MidiOutput['onInterrupt'],
+  hold: () => () => void,
+) {
+  const [player] = useState(() => createRhythmPlayer(scheduler, onInterrupt, hold));
   const snapshot = useSyncExternalStore(player.subscribe, player.getSnapshot);
   useEffect(() => () => player.stop(), [player]);
   return { player, snapshot };

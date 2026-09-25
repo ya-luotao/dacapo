@@ -8,6 +8,7 @@ import {
 } from '../../core/calibration.ts';
 import { useI18n } from '../../i18n/index.ts';
 import { useInput } from '../input/context.ts';
+import { useMetronome } from '../metronome/context.ts';
 import { readClickVolume, readLatency, writeLatency, type Latency } from './rhythmPrefs.ts';
 import { sharedClickTrack } from './useRhythmPlayer.ts';
 
@@ -40,6 +41,7 @@ export function Calibration({
   const { t, locale } = useI18n();
   const id = useId();
   const { hub } = useInput();
+  const metronome = useMetronome();
   const [latency, setLatency] = useState(readLatency);
   const [state, setState] = useState<State>({ kind: 'idle' });
   const [noAudio, setNoAudio] = useState(false);
@@ -50,6 +52,8 @@ export function Calibration({
   useEffect(() => {
     if (!clicks) return;
     onRunning?.(true);
+    // Two clicks at once would spoil the taps.
+    const release = metronome.block('calibration');
     const off = hub.onEvent((event) => {
       if (event.type === 'on') taps.current.push(event.time);
     });
@@ -73,10 +77,11 @@ export function Calibration({
       off();
       clearInterval(timer);
       sharedClickTrack()?.stop();
+      release();
       onRunning?.(false);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once per calibration
-  }, [clicks, hub]);
+  }, [clicks, hub, metronome]);
 
   function start() {
     const track = sharedClickTrack();

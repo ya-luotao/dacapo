@@ -82,6 +82,26 @@ Version 1, 2 and 3 files still import.
   **Options**, and Listen, Start and Restart under the score. The weak-bar details now always show
   in full, also for a bar on the first line of the score.
 
+### Metronome
+
+- A **Metronome** page: a Maelzel-style pendulum in ink that crosses the centre on the beat you
+  hear (the output latency the browser reports, and the latency calibration where it makes the
+  sound later), with a weight that slides higher for slower tempos and a flash on accented beats.
+  20–300 BPM with − / +, a slider, the arrow keys and tap tempo (the median of the last taps); the
+  Italian tempo mark with its range; time signatures from 2/4 to 12/8 (compound meters click the
+  dotted beat); each beat accented, plain or muted; subdivisions in 2, 3 or 4; three synthesized
+  sounds (wood, click, beep), volume and a visual-only mode; a **tempo trainer** that speeds up by a
+  few BPM every few bars, or plays some bars and leaves some silent. With reduced motion the
+  pendulum stays still and the beat dots keep time. Keys: Space, ← / → or − / + (Shift: by 10) and
+  T; the computer keyboard does not play notes on this page.
+- The clicks are scheduled on the audio clock, every one computed from the start of its tempo (never
+  by adding up intervals), so the metronome does not drift, tempo changes land on the next beat, and
+  it keeps time in a background tab.
+- A **metronome chip in the header** on Play, Read and Pieces: start and stop, the beats, the tempo;
+  its panel has − / +, tap tempo, "Piece tempo" in wait mode (the piece's tempo at the chosen
+  percentage, in its meter) and a link to the page. A rhythm run or a latency calibration pauses
+  the metronome, and the chip says so. Settings are kept in this browser.
+
 ## 0.1.0 — 2026-09-25
 
 The first release: the MVP described in [docs/MVP.md](docs/MVP.md). Export format version 1.
