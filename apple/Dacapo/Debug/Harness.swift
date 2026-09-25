@@ -104,7 +104,7 @@ final class Harness {
                 let sink = ports?.takeSinkLog().map(\.bytes) ?? []
                 var report = environment()
                 report["received"] = sink.map { $0.map(String.init).joined(separator: " ") }
-                report["resetMessages"] = sink.filter { $0.count == 3 && $0[0] & 0xF0 == 0xB0 }.count
+                report["resetMessages"] = sink.filter(Self.isControlChange).count
                 report["scheduledNoteReleased"] = sink.contains([0x80, 74, 64])
                 report["systemReset"] = sink.contains([0xFF])
                 report["events"] = host.events
@@ -342,7 +342,7 @@ final class Harness {
             try? await Task.sleep(for: .milliseconds(800))
             let sink = ports!.takeSinkLog().map(\.bytes)
             report["silenced"] = silenced
-            report["panicMessages"] = sink.filter { $0.count == 3 && $0[0] & 0xF0 == 0xB0 }.count
+            report["panicMessages"] = sink.filter(Self.isControlChange).count
             report["scheduledNoteReleased"] = sink.contains([0x80, 74, 64])
             report["systemReset"] = sink.contains([0xFF])
             report["firstNote"] = sink.first ?? []
@@ -475,14 +475,15 @@ final class Harness {
     private func inputRun(busy: Bool) async -> [String: Any] {
         var messages: [(offsetMs: Double, bytes: [UInt8])] = []
         for i in 0..<80 {
-            let t = Double(i) * 20
+            let t: Double = Double(i) * 20
+            let later: Double = t + 10
             if i % 10 == 9 {
                 for key: UInt8 in [104, 105, 106] { messages.append((t, [0x90, key, 90])) }
-                for key: UInt8 in [104, 105, 106] { messages.append((t + 10, [0x80, key, 0])) }
+                for key: UInt8 in [104, 105, 106] { messages.append((later, [0x80, key, 0])) }
             } else {
                 let key: UInt8 = i % 2 == 0 ? 108 : 107
                 messages.append((t, [0x90, key, 80]))
-                messages.append((t + 10, [0x90, key, 0]))
+                messages.append((later, [0x90, key, 0]))
             }
         }
         _ = await js("""
@@ -512,34 +513,34 @@ final class Harness {
               let offset = object["offset"] as? Double
         else { return ["error": "no data"] }
 
-        let sent = stamps.map { HostClock.milliseconds($0) - offset } // page ms
+        let sent: [Double] = stamps.map { (stamp: UInt64) -> Double in HostClock.milliseconds(stamp) - offset } // page ms
         var result: [String: Any] = ["sent": sent.count, "receivedByListener": got.count, "traced": trace.count]
         guard got.count == sent.count, trace.count == sent.count else { return result }
-        let stampError = zip(got, sent).map { $0[0] - $1 }
-        let received = trace.map { $0["received"] as! Double }
-        let flushed = trace.map { $0["flushed"] as! Double }
-        let arrived = trace.map { $0["arrived"] as! Double }
-        let dispatched = got.map { $0[1] }
-        result["timeStampMinusSent"] = Stats(stampError).json
-        result["coreMidiRouting"] = Stats(zip(received, sent).map { $0 - $1 }).json
-        result["mainThreadHop"] = Stats(zip(flushed, received).map { $0 - $1 }).json
-        result["evaluateJavaScript"] = Stats(zip(arrived, flushed).map { $0 - $1 }).json
-        result["nativeReceiptToListener"] = Stats(zip(dispatched, received).map { $0 - $1 }).json
-        result["sentToListener"] = Stats(zip(dispatched, sent).map { $0 - $1 }).json
+        // Written out with explicit types: Xcode 26's type checker gave up on the one-line forms.
+        let stamped: [Double] = got.map { (row: [Double]) -> Double in row[0] }
+        let dispatched: [Double] = got.map { (row: [Double]) -> Double in row[1] }
+        let received: [Double] = trace.map { (entry: [String: Any]) -> Double in entry["received"] as? Double ?? .nan }
+        let flushed: [Double] = trace.map { (entry: [String: Any]) -> Double in entry["flushed"] as? Double ?? .nan }
+        let arrived: [Double] = trace.map { (entry: [String: Any]) -> Double in entry["arrived"] as? Double ?? .nan }
+        result["timeStampMinusSent"] = Stats(Self.differences(stamped, sent)).json
+        result["coreMidiRouting"] = Stats(Self.differences(received, sent)).json
+        result["mainThreadHop"] = Stats(Self.differences(flushed, received)).json
+        result["evaluateJavaScript"] = Stats(Self.differences(arrived, flushed)).json
+        result["nativeReceiptToListener"] = Stats(Self.differences(dispatched, received)).json
+        result["sentToListener"] = Stats(Self.differences(dispatched, sent)).json
         // Intervals between messages as the page sees them, against the intervals at which the
         // source really sent them: with the bridge's timeStamp, and if the page stamped messages
         // on arrival instead (what a bridge without native timestamps would give).
-        func intervalError(_ times: [Double]) -> [Double] {
-            (1..<times.count).map { (times[$0] - times[$0 - 1]) - (sent[$0] - sent[$0 - 1]) }
-        }
-        result["intervalErrorWithTimeStamp"] = Stats(intervalError(got.map { $0[0] })).json
-        result["intervalErrorIfStampedOnArrival"] = Stats(intervalError(dispatched)).json
+        result["intervalErrorWithTimeStamp"] = Stats(Self.intervalErrors(stamped, against: sent)).json
+        result["intervalErrorIfStampedOnArrival"] = Stats(Self.intervalErrors(dispatched, against: sent)).json
         // How precisely the test source itself kept to its script (mach_wait_until on a thread).
-        let intended = messages.map(\.offsetMs)
-        result["senderJitter"] = Stats((1..<sent.count).map {
-            (sent[$0] - sent[$0 - 1]) - (intended[$0] - intended[$0 - 1])
-        }).json
-        let bytesOK = zip(got, messages).allSatisfy { g, m in g.dropFirst(2).map { UInt8($0) } == m.bytes }
+        let intended: [Double] = messages.map { (message: (offsetMs: Double, bytes: [UInt8])) -> Double in message.offsetMs }
+        result["senderJitter"] = Stats(Self.intervalErrors(sent, against: intended)).json
+        var bytesOK = true
+        for (row, message) in zip(got, messages) {
+            let bytes: [UInt8] = row.dropFirst(2).map { (value: Double) -> UInt8 in UInt8(value) }
+            if bytes != message.bytes { bytesOK = false }
+        }
         result["bytesIdentical"] = bytesOK
         return result
     }
@@ -572,14 +573,16 @@ final class Harness {
         else { return ["error": "no data"] }
         // Only the test's notes: the app itself also sends to this output (it is named like the
         // input, so "auto" picks it) and silences it when a piece page closes.
-        let sink = ports!.takeSinkLog().filter { $0.bytes.count == 3 && $0.bytes[1] == 100 && $0.bytes[0] & 0xe0 == 0x80 }
+        let sink = ports!.takeSinkLog().filter { (entry: SinkLog.Entry) -> Bool in Self.isTestNote(entry.bytes) }
         var result: [String: Any] = ["planned": plan.count, "arrived": sink.count]
         guard sink.count == plan.count else { return result }
-        let stamps = sink.map { HostClock.milliseconds($0.stamp) - offset }
-        let arrivals = sink.map { HostClock.milliseconds($0.received) - offset }
-        result["stampMinusPlanned"] = Stats(zip(stamps, plan).map { $0 - $1 }).json
-        result["raw"] = (0..<min(12, plan.count)).map { [plan[$0], stamps[$0], arrivals[$0]] }
-        result["arrivalMinusPlanned"] = Stats(zip(arrivals, plan).map { $0 - $1 }).json
+        let stamps: [Double] = sink.map { (entry: SinkLog.Entry) -> Double in HostClock.milliseconds(entry.stamp) - offset }
+        let arrivals: [Double] = sink.map { (entry: SinkLog.Entry) -> Double in HostClock.milliseconds(entry.received) - offset }
+        result["stampMinusPlanned"] = Stats(Self.differences(stamps, plan)).json
+        var firstNotes: [[Double]] = []
+        for i in 0..<min(12, plan.count) { firstNotes.append([plan[i], stamps[i], arrivals[i]]) }
+        result["raw"] = firstNotes
+        result["arrivalMinusPlanned"] = Stats(Self.differences(arrivals, plan)).json
         return result
     }
 
@@ -712,8 +715,10 @@ final class Harness {
         let melody: [UInt8] = [64, 64, 65, 67, 67, 65, 64, 62]
         var messages: [(offsetMs: Double, bytes: [UInt8])] = []
         for (i, key) in melody.enumerated() {
-            messages.append((Double(i) * beat, [0x90, key, 80]))
-            messages.append((Double(i) * beat + beat * 0.6, [0x80, key, 0]))
+            let on: Double = Double(i) * beat
+            let off: Double = on + beat * 0.6
+            messages.append((on, [0x90, key, 80]))
+            messages.append((off, [0x80, key, 0]))
         }
         _ = await ports!.play(messages, startingIn: 4 * beat)
         try? await Task.sleep(for: .milliseconds(300))
@@ -763,6 +768,49 @@ final class Harness {
         }
         try? await Task.sleep(for: .seconds(2))
         #endif
+    }
+
+    // MARK: Arithmetic helpers
+    //
+    // Plain loops with explicit types: Xcode 26's type checker timed out on the same arithmetic
+    // written as closures over index ranges.
+
+    /// `a[i] - b[i]` for each i.
+    static func differences(_ a: [Double], _ b: [Double]) -> [Double] {
+        var out: [Double] = []
+        out.reserveCapacity(min(a.count, b.count))
+        for i in 0..<min(a.count, b.count) {
+            let difference: Double = a[i] - b[i]
+            out.append(difference)
+        }
+        return out
+    }
+
+    /// How much each step of `times` differs from the same step of `reference`.
+    static func intervalErrors(_ times: [Double], against reference: [Double]) -> [Double] {
+        var out: [Double] = []
+        let count = min(times.count, reference.count)
+        guard count > 1 else { return out }
+        for i in 1..<count {
+            let step: Double = times[i] - times[i - 1]
+            let expected: Double = reference[i] - reference[i - 1]
+            out.append(step - expected)
+        }
+        return out
+    }
+
+    /// A three-byte control change on any channel.
+    static func isControlChange(_ bytes: [UInt8]) -> Bool {
+        guard bytes.count == 3 else { return false }
+        let kind: UInt8 = bytes[0] & 0xF0
+        return kind == 0xB0
+    }
+
+    /// A note-on or note-off of key 100, the output test's notes.
+    static func isTestNote(_ bytes: [UInt8]) -> Bool {
+        guard bytes.count == 3, bytes[1] == 100 else { return false }
+        let kind: UInt8 = bytes[0] & 0xE0
+        return kind == 0x80
     }
 
     // MARK: Verovio in the app

@@ -135,7 +135,8 @@ final class MIDIEngine: @unchecked Sendable {
     /// The source's unique id travels as the connection's refCon (never dereferenced). Bit 32 is
     /// set so that a unique id of 0 still gives a non-null pointer.
     static func refCon(_ uid: MIDIUniqueID) -> UnsafeMutableRawPointer? {
-        UnsafeMutableRawPointer(bitPattern: Int(UInt32(bitPattern: uid)) | 1 << 32)
+        let bits: Int = Int(UInt32(bitPattern: uid)) | (1 << 32)
+        return UnsafeMutableRawPointer(bitPattern: bits)
     }
 
     static func uniqueID(_ refCon: UnsafeMutableRawPointer?) -> MIDIUniqueID {
@@ -218,9 +219,12 @@ final class MIDIEngine: @unchecked Sendable {
     func send(_ bytes: [UInt8], to id: String, at time: UInt64) {
         guard let endpoint = destination(id), let word = UMP.word(for: bytes) else { return }
         played.insert(id)
-        if bytes[0] & 0xF0 == 0x90, bytes[2] > 0, time > HostClock.now() {
-            let key = UInt16(bytes[0] & 0x0F) << 8 | UInt16(bytes[1])
-            scheduledOns[id, default: [:]][key] = max(scheduledOns[id]?[key] ?? 0, time)
+        let kind: UInt8 = bytes[0] & 0xF0
+        if kind == 0x90, bytes[2] > 0, time > HostClock.now() {
+            let channel: UInt16 = UInt16(bytes[0] & 0x0F)
+            let key: UInt16 = (channel << 8) | UInt16(bytes[1])
+            let latest: UInt64 = scheduledOns[id]?[key] ?? 0
+            scheduledOns[id, default: [:]][key] = max(latest, time)
         }
         Self.send(word, time: time) { MIDISendEventList(outputPort, endpoint.ref, $0) }
     }
@@ -259,7 +263,9 @@ final class MIDIEngine: @unchecked Sendable {
             // A millisecond later, so no port has to keep equal timestamps in order.
             let off = latest + HostClock.ticks(milliseconds: 1)
             for key in late.keys.sorted() {
-                let message: [UInt8] = [0x80 | UInt8(key >> 8), UInt8(key & 0xFF), 64]
+                let status: UInt8 = 0x80 | UInt8(truncatingIfNeeded: key >> 8)
+                let note: UInt8 = UInt8(truncatingIfNeeded: key)
+                let message: [UInt8] = [status, note, 64]
                 if let word = UMP.word(for: message) { Self.send(word, time: off, deliver) }
             }
         }

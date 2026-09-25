@@ -38,8 +38,10 @@ struct MIDIEngineTests {
         #expect(onMain)
         #expect(bursts.count == 1)
         let batch = try #require(bursts.first)
-        #expect(batch.map(\.bytes) == [[0x90, 60, 100], [0x90, 60, 0], [0xF8]])
-        #expect(batch.map(\.port) == ["-1234", "-1234", "-1234"])
+        let bytes: [[UInt8]] = [[0x90, 60, 100], [0x90, 60, 0], [0xF8]]
+        let ports: [String] = ["-1234", "-1234", "-1234"]
+        #expect(batch.map(\.bytes) == bytes)
+        #expect(batch.map(\.port) == ports)
         #expect(batch[0].stamp == 1000 && batch[1].stamp == 1000)
         // A packet without a timestamp is stamped when it arrived.
         #expect(batch[2].stamp == batch[2].received && batch[2].received > 0)
@@ -123,10 +125,15 @@ struct MIDIPanicTests {
 
         let received = log.all
         #expect(!received.contains { $0.bytes == [0xFF] })
-        #expect(received.filter { $0.bytes[0] & 0xF0 == 0xB0 }.map(\.bytes) == UMP.resetAllChannels)
+        let controlChanges: [[UInt8]] = received.map(\.bytes).filter { (bytes: [UInt8]) -> Bool in
+            (bytes[0] & 0xF0) == 0xB0
+        }
+        #expect(controlChanges == UMP.resetAllChannels)
         // The scheduled note still arrives at its time, then its note-off right after it.
-        let on = try #require(received.first { $0.bytes == [0x91, 62, 90] })
-        let off = try #require(received.first { $0.bytes == [0x81, 62, 64] })
+        let noteOn: [UInt8] = [0x91, 62, 90]
+        let noteOff: [UInt8] = [0x81, 62, 64]
+        let on = try #require(received.first { $0.bytes == noteOn })
+        let off = try #require(received.first { $0.bytes == noteOff })
         #expect(on.stamp == later)
         #expect(off.stamp > on.stamp)
         // A second panic has nothing left to silence.

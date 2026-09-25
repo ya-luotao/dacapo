@@ -22,12 +22,14 @@ struct SchemeHandlerTests {
         #expect(!SchemeHandler.isAppURL(nil))
     }
 
-    @Test(arguments: [
+    nonisolated static let mimeCases: [(String, String)] = [
         ("js", "text/javascript; charset=utf-8"), ("mjs", "text/javascript; charset=utf-8"),
         ("wasm", "application/wasm"), ("woff2", "font/woff2"), ("css", "text/css; charset=utf-8"),
         ("html", "text/html; charset=utf-8"), ("svg", "image/svg+xml"), ("json", "application/json"),
         ("", "text/plain; charset=utf-8"),
-    ])
+    ]
+
+    @Test(arguments: SchemeHandlerTests.mimeCases)
     func mimeTypes(ext: String, type: String) {
         #expect(SchemeHandler.mimeType(ext) == type)
     }

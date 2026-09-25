@@ -3,7 +3,9 @@ import Testing
 
 /// MIDI 1.0 bytes ↔ UMP words (MIDI/UMP.swift).
 struct UMPTests {
-    @Test(arguments: [
+    /// One message and its word. Typed constants rather than literals in the attribute: long
+    /// literal lists are slow for older Swift type checkers.
+    static let wordCases: [([UInt8], UInt32)] = [
         ([0x90, 60, 100], 0x2090_3C64),
         ([0x9F, 21, 1], 0x209F_1501),
         // Note-on with velocity 0 stays a note-on: the page reads it as a note-off itself.
@@ -17,12 +19,9 @@ struct UMPTests {
         ([0xFE], 0x10FE_0000),
         ([0xF2, 0x10, 0x20], 0x10F2_1020),
         ([0xF1, 0x33], 0x10F1_3300),
-    ] as [([UInt8], UInt32)])
-    func bytesToWord(bytes: [UInt8], word: UInt32) {
-        #expect(UMP.word(for: bytes) == word)
-    }
+    ]
 
-    @Test(arguments: [
+    static let refusedCases: [[UInt8]] = [
         [],
         [60, 100, 0], // running status: no status byte
         [0x90, 60], // partial
@@ -32,7 +31,14 @@ struct UMPTests {
         [0xF0, 0x7E, 0x7F, 0xF7], // SysEx
         [0xF7],
         [0xF4], [0xF5], [0xF9], [0xFD], // undefined system messages
-    ] as [[UInt8]])
+    ]
+
+    @Test(arguments: UMPTests.wordCases)
+    func bytesToWord(bytes: [UInt8], word: UInt32) {
+        #expect(UMP.word(for: bytes) == word)
+    }
+
+    @Test(arguments: UMPTests.refusedCases)
     func refusesAnythingElse(bytes: [UInt8]) {
         #expect(UMP.word(for: bytes) == nil)
     }
@@ -56,27 +62,34 @@ struct UMPTests {
             0x5000_0000, 0, 0, 0, // 8-bit data, 4 words
             0x10F8_0000,
         ]
-        #expect(UMP.messages(in: words) == [[0x90, 60, 100], [0xF8]])
+        let expected: [[UInt8]] = [[0x90, 60, 100], [0xF8]]
+        #expect(UMP.messages(in: words) == expected)
     }
 
     @Test func stopsAtAPacketCutShort() {
-        #expect(UMP.messages(in: [0x2090_3C64, 0x4090_3C00]) == [[0x90, 60, 100]])
+        let words: [UInt32] = [0x2090_3C64, 0x4090_3C00]
+        let expected: [[UInt8]] = [[0x90, 60, 100]]
+        #expect(UMP.messages(in: words) == expected)
     }
 
     @Test func dropsUndefinedStatusesInWords() {
-        #expect(UMP.messages(in: [0x10F4_0000, 0x10F0_0000, 0x2070_3C64]).isEmpty)
+        let words: [UInt32] = [0x10F4_0000, 0x10F0_0000, 0x2070_3C64]
+        #expect(UMP.messages(in: words).isEmpty)
     }
 
     @Test func masksDataBytesToSevenBits() {
-        #expect(UMP.messages(in: [0x2090_BCE4]) == [[0x90, 0x3C, 0x64]])
+        let expected: [[UInt8]] = [[0x90, 0x3C, 0x64]]
+        #expect(UMP.messages(in: [0x2090_BCE4]) == expected)
     }
 
     @Test func resetAllChannelsMatchesThePage() {
         // src/output/messages.ts resetAllChannels(): per channel, sustain off, all notes off,
         // all sound off.
         #expect(UMP.resetAllChannels.count == 48)
-        #expect(Array(UMP.resetAllChannels.prefix(3)) == [[0xB0, 64, 0], [0xB0, 123, 0], [0xB0, 120, 0]])
-        #expect(UMP.resetAllChannels.last == [0xBF, 120, 0])
+        let first: [[UInt8]] = [[0xB0, 64, 0], [0xB0, 123, 0], [0xB0, 120, 0]]
+        let last: [UInt8] = [0xBF, 120, 0]
+        #expect(Array(UMP.resetAllChannels.prefix(3)) == first)
+        #expect(UMP.resetAllChannels.last == last)
         #expect(UMP.resetAllChannels.allSatisfy { UMP.word(for: $0) != nil })
     }
 }

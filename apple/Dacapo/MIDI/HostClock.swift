@@ -13,12 +13,15 @@ enum HostClock {
     static func now() -> UInt64 { mach_absolute_time() }
 
     static func milliseconds(_ ticks: UInt64) -> Double {
-        Double(ticks) * Double(timebase.numer) / Double(timebase.denom) / 1_000_000
+        let nanoseconds: Double = Double(ticks) * Double(timebase.numer) / Double(timebase.denom)
+        return nanoseconds / 1_000_000
     }
 
     static func ticks(milliseconds ms: Double) -> UInt64 {
         guard ms > 0 else { return 0 }
-        return UInt64((ms * 1_000_000 * Double(timebase.denom) / Double(timebase.numer)).rounded())
+        let nanoseconds: Double = ms * 1_000_000
+        let ticks: Double = nanoseconds * Double(timebase.denom) / Double(timebase.numer)
+        return UInt64(ticks.rounded())
     }
 
     static func nowMilliseconds() -> Double { milliseconds(now()) }

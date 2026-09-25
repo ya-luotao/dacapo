@@ -107,7 +107,7 @@ final class MIDIBridge: NSObject, WKScriptMessageHandlerWithReply {
         for (i, m) in batch.enumerated() {
             if i > 0 { script += "," }
             script += "[\"\(m.port)\",\(HostClock.milliseconds(m.stamp)),["
-            script += m.bytes.map(String.init).joined(separator: ",")
+            script += m.bytes.map { (byte: UInt8) -> String in String(byte) }.joined(separator: ",")
             script += "],\(HostClock.milliseconds(m.received))]"
         }
         script += "],\(flushed))"

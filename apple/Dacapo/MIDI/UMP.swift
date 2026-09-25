@@ -24,10 +24,16 @@ enum UMP {
         guard let status = bytes.first, let length = messageLength(status: status),
               bytes.count == length, bytes.dropFirst().allSatisfy({ $0 < 0x80 })
         else { return nil }
-        let data1 = UInt32(length > 1 ? bytes[1] : 0)
-        let data2 = UInt32(length > 2 ? bytes[2] : 0)
+        // One step at a time with explicit types: long literal and operator chains are slow for
+        // older Swift type checkers (Xcode 26 gave up on similar code in the harness).
+        let data1: UInt32 = length > 1 ? UInt32(bytes[1]) : 0
+        let data2: UInt32 = length > 2 ? UInt32(bytes[2]) : 0
         let type: UInt32 = status >= 0xF0 ? 0x1 : 0x2
-        return type << 28 | UInt32(status) << 16 | data1 << 8 | data2
+        var word: UInt32 = type << 28
+        word |= UInt32(status) << 16
+        word |= data1 << 8
+        word |= data2
+        return word
     }
 
     /// The MIDI 1.0 messages in a run of UMP words, in order. Other message types (utility,
@@ -41,9 +47,9 @@ enum UMP {
             let size = wordCounts[type]
             guard i + size <= words.count else { return }
             i += size
-            let status = UInt8(truncatingIfNeeded: word >> 16)
-            let data1 = UInt8(truncatingIfNeeded: word >> 8) & 0x7F
-            let data2 = UInt8(truncatingIfNeeded: word) & 0x7F
+            let status: UInt8 = UInt8(truncatingIfNeeded: word >> 16)
+            let data1: UInt8 = UInt8(truncatingIfNeeded: word >> 8) & 0x7F
+            let data2: UInt8 = UInt8(truncatingIfNeeded: word) & 0x7F
             switch type {
             case 0x2 where status >= 0x80 && status < 0xF0, 0x1 where status >= 0xF0:
                 guard let length = messageLength(status: status) else { continue }
@@ -62,7 +68,14 @@ enum UMP {
 
     /// Sustain up, all notes off and all sound off on every channel: the same panic sequence as
     /// the page's `resetAllChannels()` (src/output/messages.ts).
-    static let resetAllChannels: [[UInt8]] = (0..<16).flatMap { (channel: UInt8) -> [[UInt8]] in
-        [[0xB0 | channel, 64, 0], [0xB0 | channel, 123, 0], [0xB0 | channel, 120, 0]]
-    }
+    static let resetAllChannels: [[UInt8]] = {
+        var messages: [[UInt8]] = []
+        for channel: UInt8 in 0..<16 {
+            let status: UInt8 = 0xB0 | channel
+            messages.append([status, 64, 0])
+            messages.append([status, 123, 0])
+            messages.append([status, 120, 0])
+        }
+        return messages
+    }()
 }
