@@ -15,7 +15,7 @@ import { TEMPO_NAMES, tempoName, tempoRange, tempoWord } from '../../core/tempoN
 import { useT } from '../../i18n/index.ts';
 import { useInput } from '../input/context.ts';
 import { BeatDots } from './BeatDots.tsx';
-import { paintDots, paintPendulum } from './paint.ts';
+import { createPendulumPainter, paintDots, SETTLE_MS } from './paint.ts';
 import { useMetronome, useMetronomeState } from './context.ts';
 import { NoteValue } from './NoteValue.tsx';
 import { Pendulum } from './Pendulum.tsx';
@@ -29,7 +29,8 @@ export function MetronomePage() {
   const state = useMetronomeState();
   const { keyboard } = useInput();
   const reduced = useReducedMotion();
-  const pendulum = useRef<SVGSVGElement>(null);
+  const pendulum = useRef<HTMLDivElement>(null);
+  const [paintPendulum] = useState(createPendulumPainter);
   const dots = useRef<HTMLDivElement>(null);
   const tapButton = useRef<HTMLButtonElement>(null);
   const { settings } = state;
@@ -40,10 +41,14 @@ export function MetronomePage() {
   // This page has no piano: the letter keys are its own (see shortcuts.ts).
   useEffect(() => keyboard.suspend(), [keyboard]);
 
-  useBeatFrame(running, (position) => {
-    if (pendulum.current) paintPendulum(pendulum.current, position, reduced);
-    if (dots.current) paintDots(dots.current, position);
-  });
+  useBeatFrame(
+    running,
+    (position, now) => {
+      if (pendulum.current) paintPendulum(pendulum.current, position, now, reduced);
+      if (dots.current) paintDots(dots.current, position);
+    },
+    SETTLE_MS,
+  );
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

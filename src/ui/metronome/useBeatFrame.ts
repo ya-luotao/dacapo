@@ -10,23 +10,33 @@ export const DISPLAY_LEAD_MS = 0;
 
 /**
  * Calls `onFrame` on every animation frame while `active`, with where the beat is for what is
- * heard then, and once with null when it stops. Drawing goes straight to the DOM: no React
- * render per frame.
+ * heard then, and with null when it stops: once, or on every frame for `linger` ms more (for a
+ * pendulum that settles). Drawing goes straight to the DOM: no React render per frame.
  */
 export function useBeatFrame(
   active: boolean,
   onFrame: (position: PulsePosition | null, now: number) => void,
+  linger = 0,
 ): void {
   const metronome = useMetronome();
   const callback = useRef(onFrame);
+  const wasActive = useRef(false);
   useLayoutEffect(() => {
     callback.current = onFrame;
   });
   useEffect(() => {
     if (!active) {
-      callback.current(null, performance.now());
-      return;
+      const stoppedAt = performance.now();
+      callback.current(null, stoppedAt);
+      if (!wasActive.current || linger <= 0) return;
+      wasActive.current = false;
+      let id = requestAnimationFrame(function frame(now) {
+        callback.current(null, now);
+        if (now - stoppedAt < linger) id = requestAnimationFrame(frame);
+      });
+      return () => cancelAnimationFrame(id);
     }
+    wasActive.current = true;
     let id = requestAnimationFrame(function frame(now) {
       callback.current(metronome.position(now + DISPLAY_LEAD_MS), now);
       id = requestAnimationFrame(frame);
@@ -35,7 +45,7 @@ export function useBeatFrame(
       cancelAnimationFrame(id);
       callback.current(null, performance.now());
     };
-  }, [active, metronome]);
+  }, [active, linger, metronome]);
 }
 
 const REDUCED = '(prefers-reduced-motion: reduce)';
