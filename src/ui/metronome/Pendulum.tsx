@@ -1,6 +1,11 @@
 import type { Ref } from 'react';
 import { LABEL_SIDE, PIVOT_X, PIVOT_Y, ROD_TOP, SCALE_MARKS, weightY } from './paint.ts';
 
+/** Half-lengths of the scale's ticks, and where a number sits: well clear of its tick. */
+const TICK_MAJOR = 6;
+const TICK_MINOR = 3.5;
+const LABEL_OFFSET = 24;
+
 // A Maelzel metronome in ink: a pyramid case, the tempo scale on its face, and a pendulum on a
 // pivot near the foot with a weight that slides up the rod for slower tempos. The drawing is
 // static; paint.ts moves it, from the animation frame.
@@ -8,8 +13,8 @@ import { LABEL_SIDE, PIVOT_X, PIVOT_Y, ROD_TOP, SCALE_MARKS, weightY } from './p
 export function Pendulum({ bpm, ref }: { bpm: number; ref?: Ref<SVGSVGElement> }) {
   return (
     <svg className="pendulum" viewBox="0 0 240 340" ref={ref} aria-hidden="true">
-      <path className="pendulum-case" d="M26 324 88 30q32-14 64 0l62 294z" />
-      <path className="pendulum-face" d="M56 304 98 46h44l42 258z" />
+      <path className="pendulum-case" d="M20 324 82 30q38-15 76 0l62 294z" />
+      <path className="pendulum-face" d="M48 304 90 46h60l42 258z" />
       <g className="pendulum-scale">
         {SCALE_MARKS.map((mark) => {
           const y = weightY(mark);
@@ -18,15 +23,15 @@ export function Pendulum({ bpm, ref }: { bpm: number; ref?: Ref<SVGSVGElement> }
           return (
             <g key={mark}>
               <line
-                x1={PIVOT_X - (labelled ? 7 : 4)}
-                x2={PIVOT_X + (labelled ? 7 : 4)}
+                x1={PIVOT_X - (labelled ? TICK_MAJOR : TICK_MINOR)}
+                x2={PIVOT_X + (labelled ? TICK_MAJOR : TICK_MINOR)}
                 y1={y}
                 y2={y}
                 className={labelled ? 'is-major' : undefined}
               />
               {side !== undefined && (
                 <text
-                  x={PIVOT_X + side * 21}
+                  x={PIVOT_X + side * LABEL_OFFSET}
                   y={y}
                   textAnchor={side < 0 ? 'end' : 'start'}
                   dominantBaseline="central"
