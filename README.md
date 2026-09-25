@@ -1,10 +1,27 @@
 # dacapo
 
+[简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) ·
+[한국어](README.ko.md)
+
+[![CI](https://github.com/ya-luotao/dacapo/actions/workflows/ci.yml/badge.svg)](https://github.com/ya-luotao/dacapo/actions/workflows/ci.yml)
+[![Licence: MIT](https://img.shields.io/badge/licence-MIT-25497b)](LICENSE)
+[![Live demo](https://img.shields.io/badge/demo-live-25497b)](https://ya-luotao.github.io/dacapo/)
+
 _Da capo_ — "from the beginning."
 
 An open-source web app for learning the piano with a MIDI keyboard: sight-reading drills
-on a real grand staff, reaction-time tracking, a per-note weakness heatmap, and a practice log.
-All data stays in your browser.
+on a real grand staff, reaction-time tracking, a per-note weakness heatmap, real pieces in wait
+and rhythm mode, and a practice log. All data stays in your browser.
+
+**Try it:** [ya-luotao.github.io/dacapo](https://ya-luotao.github.io/dacapo/) — in Chrome or Edge
+on a computer, with a MIDI keyboard over USB, or with your computer keyboard. Nothing to install
+and no account.
+
+<p>
+  <img src="docs/images/read.webp" alt="A flashcard on the grand staff: one note in the bass clef, with the piano keyboard below" width="32%">
+  <img src="docs/images/pieces-rhythm-sheet.webp" alt="Ode to Joy after a run in rhythm mode, with how many notes came in time and a chart of every note" width="32%">
+  <img src="docs/images/heatmap-staff.webp" alt="The weakness heatmap on the grand staff, with the details of one note" width="32%">
+</p>
 
 **Status:** the MVP (version 0.1.0) is complete: all five milestones of
 [docs/MVP.md](docs/MVP.md) are built and tested. It has not been used day to day for long yet,
@@ -13,15 +30,12 @@ each release. Practising pieces ([docs/PIECES.md](docs/PIECES.md)) is built too,
 release: the library, MusicXML import, wait mode, MIDI playback, practice records with a measure
 heatmap, and a rhythm mode with a metronome and timing analysis.
 
-![A flashcard on the grand staff: one note in the bass clef, with the piano keyboard below](docs/images/read.webp)
-
 ## Why
 
 The first real wall for a self-taught pianist is reading: seeing a note on the grand staff
 and finding the key without counting lines. dacapo drills exactly that on real notation
 (no falling notes), measures every answer — right or wrong, and how fast — and keeps
-practising the notes you are slowest at. Progress is visible day by day, and the app works
-in English and Simplified Chinese.
+practising the notes you are slowest at. Progress is visible day by day.
 
 ## Features
 
@@ -48,16 +62,15 @@ in English and Simplified Chinese.
   off the beat you were, in your last runs, and one click loops the weakest ones.
 - **Your data stays yours.** Everything is stored in your browser (IndexedDB). Export it as a
   JSON file and import it on another computer.
-- English and Simplified Chinese, light and dark themes. Everything works from the keyboard,
-  and charts have a table view and labels for screen readers.
+- **Five languages**: English, 简体中文, 繁體中文 (Taiwan), 日本語 and 한국어, each with its own
+  terms for the staff and the keyboard, and its own fonts. Note names stay letter names (C4, F♯)
+  in every language.
+- Light and dark themes. Everything works from the keyboard, and charts have a table view and
+  labels for screen readers. Chrome can install it as an app.
 
 ![Progress: today's minutes, the streak and a 30-day chart](docs/images/progress.webp)
 
-![The weakness heatmap on the grand staff, with the details of one note](docs/images/heatmap-staff.webp)
-
-![The same data on the keyboard, in the dark theme](docs/images/heatmap-keyboard-dark.webp)
-
-![Ode to Joy after a run in rhythm mode: 95% of the notes within ±50 ms, "You speed up in bars 9–12", and a chart of every note, early or late](docs/images/pieces-rhythm-sheet.webp)
+![The weakness heatmap on the keyboard, in the dark theme](docs/images/heatmap-keyboard-dark.webp)
 
 ![Weak bars by timing on the score: each bar tinted by its distance from the beat, with the details of bar 11](docs/images/pieces-timing-heatmap.webp)
 
@@ -106,7 +119,8 @@ Then open the URL Vite prints (usually http://localhost:5173).
 | `pnpm check`        | Typecheck, lint, test and build — run this before a PR |
 
 The app uses hash-based routes (`/#/read`), so the `dist/` folder can be served by any
-static file host without rewrite rules.
+static file host without rewrite rules. To serve it below the site root, build with the path in `BASE_PATH`, for
+example `BASE_PATH=/dacapo/ pnpm build` for the GitHub Pages demo.
 
 ## Roadmap (after the MVP)
 
@@ -121,7 +135,22 @@ These are deliberately out of scope for the MVP and are the candidates once it i
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+Contributions of every size are welcome, and several need no programming:
+
+- **Encode a public-domain piece** for the library (Beyer, Czerny, Gurlitt, Burgmüller …): the
+  tools in `scripts/pieces/` check every note against an independent source. Open a
+  [piece request](https://github.com/ya-luotao/dacapo/issues/new?template=piece_request.yml)
+  first.
+- **Proofread a built-in piece** against its public-domain scan.
+- **Review a translation** in a language you speak natively, or add a new one — see
+  [docs/TRANSLATING.md](docs/TRANSLATING.md) and open a
+  [translation issue](https://github.com/ya-luotao/dacapo/issues/new?template=translation.yml).
+- **Report what breaks** with your browser and MIDI keyboard.
+
+Issues labelled
+[good first issue](https://github.com/ya-luotao/dacapo/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+are a good place to start. [CONTRIBUTING.md](CONTRIBUTING.md) has the setup and the rules, and
+everyone takes part under the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## License
 

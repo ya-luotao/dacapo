@@ -1,0 +1,39 @@
+# dacapo
+
+[English](README.md) · [简体中文](README.zh-CN.md) · 繁體中文 · [日本語](README.ja.md) ·
+[한국어](README.ko.md)
+
+_Da capo_——「從頭開始」。
+
+dacapo 是一個開放原始碼的鋼琴練習網頁應用程式，搭配 MIDI 鍵盤使用：在真正的大譜表上練習識譜，記錄你找到每個音的反應時間，用熱度圖標出最弱的音，還能在真正的樂譜上練樂曲（等待模式和節奏模式）。所有資料都只儲存在你的瀏覽器裡。
+
+**線上試用：** [ya-luotao.github.io/dacapo](https://ya-luotao.github.io/dacapo/)——不用安裝，也不用註冊。
+
+## 功能
+
+- **音符閃卡**：大譜表上出現一個音，在琴上彈出它，八度也要對。共七個等級，從中央 C 位置到加線和升降記號；每次作答都會記錄對錯和用時，下一張會優先出你較慢或還不熟的音。
+- **弱點熱度圖**：在五線譜或鍵盤上，依你找到每個音的速度上色。
+- **樂曲練習**：內建六首公共領域的樂曲，也可以匯入自己的 MusicXML。等待模式下游標會等你彈對；節奏模式有節拍器，彈完會告訴你偏早還是偏晚、在哪幾個小節越彈越快。
+- **練習紀錄**：今天的分鐘數、連續練習天數和最近 30 天的圖表。
+- 介面支援 English、简体中文、繁體中文、日本語 和 한국어。所有語言的音名都用字母（C4、F♯）。
+
+## 使用需求
+
+- 電腦上的 Chrome 或 Edge（支援 Web MIDI）。其他瀏覽器可以用電腦鍵盤或滑鼠彈奏。
+- 建議使用 MIDI 鍵盤，但不是必要的，用 USB 線連接即可。
+- 沒有帳號，也沒有伺服器。資料可以在「設定」中匯出成 JSON 檔案，用來備份或搬到另一台電腦。
+
+## 開發
+
+需要 Node.js 22.13 以上和 pnpm（版本見 `package.json` 的 `packageManager`）：
+
+```sh
+pnpm install
+pnpm dev
+```
+
+完整說明以英文 [README](README.md) 為準；參與貢獻請看 [CONTRIBUTING.md](CONTRIBUTING.md)（英文），翻譯相關請看 [docs/TRANSLATING.md](docs/TRANSLATING.md)。
+
+## 授權
+
+[MIT](LICENSE)。第三方軟體、字型和樂譜的授權見 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
