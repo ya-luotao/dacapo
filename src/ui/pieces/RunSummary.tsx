@@ -49,7 +49,7 @@ export function RunSummary({ summary, looped, format, onAgain, onLoopBar }: RunS
             {summary.slowest.map((bar) => (
               <li key={bar.measure}>
                 {t('pieces.done.bar', {
-                  bar: format.bar(bar.measure),
+                  bar: format.barTitle(bar.measure),
                   time: format.seconds(bar.meanMs),
                   wrong: bar.wrong,
                 })}
@@ -65,7 +65,7 @@ export function RunSummary({ summary, looped, format, onAgain, onLoopBar }: RunS
         </button>
         {slowest && (
           <button type="button" className="button" onClick={() => onLoopBar(slowest.measure)}>
-            {t('pieces.done.loopBar', { bar: format.bar(slowest.measure) })}
+            {t('pieces.done.loopBar', { bar: format.barLabel(slowest.measure) })}
           </button>
         )}
       </div>

@@ -43,12 +43,16 @@ export function RhythmSummary({
     });
 
   const bars = (s: RhythmStretch) => {
-    const from = format.bar(s.from.measure);
-    const to = format.bar(s.to.measure);
-    if (summary.rounds === 1) return t('pieces.rhythm.bars', { from, to });
+    const span = format.barSpan(s.from.measure, s.to.measure);
+    if (summary.rounds === 1) return span;
     if (s.from.round === s.to.round)
-      return t('pieces.rhythm.barsRound', { from, to, n: s.from.round + 1 });
-    return t('pieces.rhythm.barsAcross', { from, to, n: s.from.round + 1, m: s.to.round + 1 });
+      return t('pieces.rhythm.barsRound', { bars: span, n: s.from.round + 1 });
+    return t('pieces.rhythm.barsAcross', {
+      from: format.barLabel(s.from.measure),
+      to: format.barLabel(s.to.measure),
+      n: s.from.round + 1,
+      m: s.to.round + 1,
+    });
   };
   // A stretch within one time round and in written order can be looped.
   const loopable = summary.drift.find(
@@ -82,10 +86,9 @@ export function RhythmSummary({
               onClick={() => onLoopBars(loopable.from.measure, loopable.to.measure)}
             >
               {loopable.from.measure === loopable.to.measure
-                ? t('pieces.done.loopBar', { bar: format.bar(loopable.from.measure) })
+                ? t('pieces.done.loopBar', { bar: format.barLabel(loopable.from.measure) })
                 : t('pieces.rhythm.loopBars', {
-                    from: format.bar(loopable.from.measure),
-                    to: format.bar(loopable.to.measure),
+                    bars: format.barSpan(loopable.from.measure, loopable.to.measure),
                   })}
             </button>
           )}

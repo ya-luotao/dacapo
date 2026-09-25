@@ -787,12 +787,7 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
           format={barFormat}
           loading={records === null}
           staleRuns={heat.staleRuns}
-          loopLabel={
-            weakest &&
-            (weakest.from === weakest.to
-              ? format.barNumber(weakest.from)
-              : `${format.barNumber(weakest.from)}–${format.barNumber(weakest.to)}`)
-          }
+          loopLabel={weakest && format.barRange(weakest.from, weakest.to)}
           onLoop={loopWeakest}
           onTable={() => setTable(true)}
           onMetric={setMetric}
@@ -895,8 +890,7 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
             nothing={!range || !timed}
             click={clickMode}
             bpm={bpm}
-            step={step}
-            bar={step ? format.bar(step.measure) : ''}
+            bar={step ? format.barStatus(step.measure, step.pass) : ''}
             beatLabel={step ? format.beat(step.beat) : ''}
           />
         ) : (
@@ -909,7 +903,7 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
             nothing={!range}
             showKeys={showKeys}
             total={range ? range.last - range.first + 1 : 0}
-            bar={step ? format.bar(step.measure) : ''}
+            bar={step ? format.barStatus(step.measure, step.pass) : ''}
             beat={step ? format.beat(step.beat) : ''}
           />
         )}
@@ -1055,10 +1049,7 @@ function StatusLine({
   if (demo !== 'stopped') {
     const parts = [t(demo === 'paused' ? 'pieces.status.demoPaused' : 'pieces.status.demo')];
     if (step) {
-      parts.push(
-        `${t('pieces.status.bar', { bar })}${step.pass > 1 ? ` (${t('pieces.status.repeat')})` : ''}`,
-        t('pieces.status.beat', { beat }),
-      );
+      parts.push(bar, t('pieces.status.beat', { beat }));
     }
     parts.push(t('pieces.tempo.bpm', { bpm }));
     return (
@@ -1069,7 +1060,7 @@ function StatusLine({
   }
   if (!wait || !step) return <p className="piece-status-main" />;
   const parts = [
-    `${t('pieces.status.bar', { bar })}${step.pass > 1 ? ` (${t('pieces.status.repeat')})` : ''}`,
+    bar,
     t('pieces.status.beat', { beat }),
     t('pieces.status.step', { n: wait.current - wait.first + 1, total }),
   ];

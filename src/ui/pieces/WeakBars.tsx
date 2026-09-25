@@ -358,7 +358,7 @@ export function WeakBarsTable({
           <tbody>
             {rows.map((cell) => (
               <tr key={cell.measure}>
-                <th scope="row">{format.bar(cell)}</th>
+                <th scope="row">{format.short(cell)}</th>
                 <td>
                   <span className="hm-band">
                     <Swatch bucket={cell.bucket} />

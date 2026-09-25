@@ -56,7 +56,7 @@ export function DeviationChart({
 
   const label = (note: RunNote) =>
     t('pieces.rhythm.chart.note', {
-      bar: t('pieces.status.bar', { bar: format.bar(note.measure) }),
+      bar: format.barTitle(note.measure),
       key: midiName(note.midi),
       timing: words(note.deviation),
     });
@@ -164,10 +164,10 @@ export function DeviationChart({
                   <th scope="row">
                     {summary.rounds > 1
                       ? t('pieces.rhythm.table.round', {
-                          bar: format.bar(note.measure),
+                          bar: format.barShort(note.measure),
                           n: note.round + 1,
                         })
-                      : format.bar(note.measure)}
+                      : format.barShort(note.measure)}
                   </th>
                   <td>{midiName(note.midi)}</td>
                   <td>{words(note.deviation)}</td>

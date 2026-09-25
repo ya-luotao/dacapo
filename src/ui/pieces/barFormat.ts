@@ -30,7 +30,10 @@ export function useBarFormat(format: PieceFormat, metric: BarMetric = 'hesitatio
     };
     /** Wrong (timing: missed and extra) notes per step or note, as marked on the bar: `×0.4`. */
     const rate = (cell: BarCell) => `×${oneDecimal.format(cell.wrongPerStep)}`;
-    const bar = (cell: BarCell) => t('pieces.status.bar', { bar: format.bar(cell.measure) });
+    /** The bar as a title, for the tooltip and the accessible name. */
+    const bar = (cell: BarCell) => format.barTitle(cell.measure);
+    /** The bar's number with its volta, for the table under a "Bar" header. */
+    const short = (cell: BarCell) => format.barShort(cell.measure);
     /** The bar's median: time per step, or distance from the beat. */
     const value = (ms: number) =>
       timing ? t('pieces.ms', { value: whole.format(ms) }) : format.seconds(ms);
@@ -46,6 +49,7 @@ export function useBarFormat(format: PieceFormat, metric: BarMetric = 'hesitatio
       band,
       rate,
       bar,
+      short,
       value,
       median,
       aria: (cell: BarCell) =>

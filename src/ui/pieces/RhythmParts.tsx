@@ -89,7 +89,6 @@ export function RhythmStatus({
   nothing,
   click,
   bpm,
-  step,
   bar,
   beatLabel,
 }: {
@@ -100,7 +99,7 @@ export function RhythmStatus({
   nothing: boolean;
   click: ClickMode;
   bpm: number;
-  step: { pass: number } | null;
+  /** The bar, already marked when it is a repeat's second pass. */
   bar: string;
   beatLabel: string;
 }) {
@@ -131,11 +130,7 @@ export function RhythmStatus({
       </p>
     );
   }
-  const parts = [
-    `${t('pieces.status.bar', { bar })}${step && step.pass > 1 ? ` (${t('pieces.status.repeat')})` : ''}`,
-    t('pieces.status.beat', { beat: beatLabel }),
-    tempo,
-  ];
+  const parts = [bar, t('pieces.status.beat', { beat: beatLabel }), tempo];
   return (
     <p className="piece-status-main">
       <span>{parts.join(' · ')}</span>
