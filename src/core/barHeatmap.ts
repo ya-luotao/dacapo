@@ -1,9 +1,10 @@
-// Data for the measure heatmap: one cell per written bar of a piece, for one hand selection,
-// coloured by hesitation (the median time per step in wait mode) and marked by wrong notes per
-// step. Only recent runs count, so practice shows.
+// Data for the measure heatmap: one cell per written bar of a piece, for one hand selection. In
+// wait mode it is coloured by hesitation (the median time per step) and marked by wrong notes
+// per step; in rhythm mode by timing (the median distance from the beat per note) and marked by
+// missed and extra notes per note. Only recent runs count, so practice shows.
 
 import { IDLE_MS } from './activity.ts';
-import type { PieceStep } from './pieceRecords.ts';
+import { stepMode, type PieceStep, type PracticeMode } from './pieceRecords.ts';
 import type { PlayedMeasure } from './repeats.ts';
 import type { HandSelection } from './score.ts';
 import { median } from './session.ts';
@@ -24,6 +25,26 @@ export const BAR_BUCKETS = BAR_EDGES_MS.length + 1;
 /** The first bucket at or over the anchor. */
 export const ANCHOR_BUCKET = BAR_EDGES_MS.indexOf(ANCHOR_MS) + 1;
 
+/**
+ * In time: a median of 30 ms from the beat, about where a listener starts to hear notes as early
+ * or late against a click. Anything under 10 ms is as tight as a player gets.
+ */
+export const TIMING_ANCHOR_MS = 30;
+/** Upper edges of the timing buckets in ms; the anchor sits where the hesitation anchor does. */
+export const TIMING_EDGES_MS: readonly number[] = [10, 20, 30, 50, 75, 100];
+
+/** What the heatmap shows: hesitation (wait mode's records) or timing (rhythm mode's). */
+export type BarMetric = 'hesitation' | 'timing';
+
+export const metricMode = (metric: BarMetric): PracticeMode =>
+  metric === 'timing' ? 'rhythm' : 'wait';
+
+export function metricScale(metric: BarMetric): { edges: readonly number[]; anchor: number } {
+  return metric === 'timing'
+    ? { edges: TIMING_EDGES_MS, anchor: TIMING_ANCHOR_MS }
+    : { edges: BAR_EDGES_MS, anchor: ANCHOR_MS };
+}
+
 /** Each bar is judged on the latest runs that played it. */
 export const WINDOW_RUNS = 5;
 /** Less than this is "not enough data": one run can be a warm-up or a fluke. */
@@ -32,26 +53,32 @@ export const MIN_STEPS = 3;
 /** A bar is steady when its last `STEADY_RUNS` runs were at ease and without a wrong note. */
 export const STEADY_RUNS = 3;
 
-/** 0 (faster than `BAR_EDGES_MS[0]`) … `BAR_BUCKETS - 1`; an edge value belongs to the slower one. */
-export function barBucket(ms: number): number {
-  const index = BAR_EDGES_MS.findIndex((edge) => ms < edge);
-  return index === -1 ? BAR_EDGES_MS.length : index;
+/** 0 (under `edges[0]`) … `BAR_BUCKETS - 1`; an edge value belongs to the higher bucket. */
+export function barBucket(ms: number, edges: readonly number[] = BAR_EDGES_MS): number {
+  const index = edges.findIndex((edge) => ms < edge);
+  return index === -1 ? edges.length : index;
 }
 
 export interface BarCell {
   /** Written measure index. */
   measure: number;
-  /** Runs counted (at most `WINDOW_RUNS`), and their steps in this bar. */
+  /** Runs counted (at most `WINDOW_RUNS`), and their steps in this bar (timing: their notes). */
   runs: number;
   steps: number;
   /** The most passes through the bar within one run (2 for a repeated bar, both counted). */
   passes: number;
-  /** Median time per step, each capped at `IDLE_MS`; null without steps. */
+  /**
+   * Hesitation: median time per step, each capped at `IDLE_MS`. Timing: median distance from the
+   * beat of the notes played. Null without any.
+   */
   medianMs: number | null;
+  /** Wrong notes; timing: missed and extra notes. */
   wrong: number;
-  /** 0 without steps. */
+  /** Per step (timing: per note); 0 without any. */
   wrongPerStep: number;
-  /** Hesitation bucket, or null when there is not enough data. */
+  /** Timing only: of `wrong`, the notes missed. */
+  missed: number;
+  /** The metric's bucket, or null when there is not enough data. */
   bucket: number | null;
   steady: boolean;
 }
@@ -69,6 +96,8 @@ export interface BarHeatmapOptions {
   hands: HandSelection;
   /** The written bars the hand selection plays. */
   bars: readonly number[];
+  /** Default: hesitation. */
+  metric?: BarMetric;
 }
 
 interface RunInBar {
@@ -78,23 +107,44 @@ interface RunInBar {
   steps: PieceStep[];
 }
 
-const figures = (steps: readonly PieceStep[]) => {
-  const wrong = steps.reduce((n, s) => n + s.wrong, 0);
+interface Figures {
+  /** Steps, or notes due for timing. */
+  count: number;
+  medianMs: number | null;
+  wrong: number;
+  missed: number;
+}
+
+function figures(steps: readonly PieceStep[], metric: BarMetric): Figures {
+  if (metric === 'hesitation') {
+    return {
+      count: steps.length,
+      medianMs: median(steps.map((s) => Math.min(s.ms, IDLE_MS))),
+      wrong: steps.reduce((n, s) => n + s.wrong, 0),
+      missed: 0,
+    };
+  }
+  const notes = steps.flatMap((s) => s.notes ?? []);
+  const played = notes.flatMap((n) => (n.deviation === null ? [] : [Math.abs(n.deviation)]));
+  const missed = notes.length - played.length;
   return {
-    medianMs: median(steps.map((s) => Math.min(s.ms, IDLE_MS))),
-    wrong,
-    wrongPerStep: steps.length === 0 ? 0 : wrong / steps.length,
+    count: notes.length,
+    medianMs: median(played),
+    wrong: missed + steps.reduce((n, s) => n + s.wrong, 0),
+    missed,
   };
-};
+}
 
 export function barHeatmap(
   records: readonly PieceStep[],
-  { checksum, hands, bars }: BarHeatmapOptions,
+  { checksum, hands, bars, metric = 'hesitation' }: BarHeatmapOptions,
 ): BarHeatmap {
+  const mode = metricMode(metric);
+  const { edges, anchor } = metricScale(metric);
   const stale = new Set<string>();
   const byBar = new Map<number, Map<string, RunInBar>>();
   for (const record of records) {
-    if (record.hands !== hands) continue;
+    if (record.hands !== hands || stepMode(record) !== mode) continue;
     if (record.checksum !== checksum) {
       stale.add(record.sessionId);
       continue;
@@ -115,21 +165,33 @@ export function barHeatmap(
       (a, b) => b.last - a.last || (a.sessionId < b.sessionId ? 1 : -1),
     );
     const window = latest.slice(0, WINDOW_RUNS);
-    const steps = window.flatMap((r) => r.steps);
-    const { medianMs, wrong, wrongPerStep } = figures(steps);
-    const enough = window.length >= MIN_RUNS && steps.length >= MIN_STEPS;
+    const { count, medianMs, wrong, missed } = figures(
+      window.flatMap((r) => r.steps),
+      metric,
+    );
+    const enough = window.length >= MIN_RUNS && count >= MIN_STEPS;
     const recent = latest.slice(0, STEADY_RUNS);
-    const settled = figures(recent.flatMap((r) => r.steps));
+    const settled = figures(
+      recent.flatMap((r) => r.steps),
+      metric,
+    );
+    // Every note missed: as far from the beat as it gets.
+    const bucket = !enough ? null : medianMs === null ? edges.length : barBucket(medianMs, edges);
     return {
       measure,
       runs: window.length,
-      steps: steps.length,
+      steps: count,
       passes: Math.max(0, ...window.map((r) => new Set(r.steps.map((s) => s.pass)).size)),
       medianMs,
       wrong,
-      wrongPerStep,
-      bucket: enough && medianMs !== null ? barBucket(medianMs) : null,
-      steady: recent.length === STEADY_RUNS && settled.medianMs! < ANCHOR_MS && settled.wrong === 0,
+      wrongPerStep: count === 0 ? 0 : wrong / count,
+      missed,
+      bucket,
+      steady:
+        recent.length === STEADY_RUNS &&
+        settled.medianMs !== null &&
+        settled.medianMs < anchor &&
+        settled.wrong === 0,
     };
   });
   return { cells, staleRuns: stale.size };

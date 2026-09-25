@@ -67,3 +67,56 @@ export class FakePort implements OutPort {
     });
   }
 }
+
+/** An AudioContext stand-in that records the clicks it is asked to play. */
+export class FakeAudioContext {
+  currentTime = 0;
+  outputLatency = 0;
+  baseLatency = 0;
+  readonly destination = {};
+  /** Every oscillator started: when, its pitch and the gain's peak. */
+  started: { when: number; frequency: number; peak: number }[] = [];
+  /** Oscillators stopped at once (a stop of the click track). */
+  cancelled = 0;
+  private peak = 0;
+
+  /** performance.now() at context time 0. */
+  origin: number;
+
+  constructor(origin = 0) {
+    this.origin = origin;
+  }
+
+  getOutputTimestamp() {
+    return {
+      contextTime: this.currentTime,
+      performanceTime: this.origin + this.currentTime * 1000,
+    };
+  }
+
+  createOscillator() {
+    const osc = {
+      frequency: { value: 0 },
+      connect: () => undefined,
+      start: (when: number) =>
+        void this.started.push({ when, frequency: osc.frequency.value, peak: this.peak }),
+      stop: (when?: number) => {
+        if (when === 0) this.cancelled++;
+      },
+      disconnect: () => undefined,
+    };
+    return osc;
+  }
+
+  createGain() {
+    return {
+      gain: {
+        setValueAtTime: () => undefined,
+        linearRampToValueAtTime: (value: number) => void (this.peak = value),
+        exponentialRampToValueAtTime: () => undefined,
+      },
+      connect: () => undefined,
+      disconnect: () => undefined,
+    };
+  }
+}

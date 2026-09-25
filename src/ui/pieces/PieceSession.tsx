@@ -1,6 +1,7 @@
 import {
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useReducer,
   useRef,
@@ -8,11 +9,21 @@ import {
   useSyncExternalStore,
   type CSSProperties,
 } from 'react';
+import { flushSync } from 'react-dom';
 import { Link } from 'wouter';
-import { barHeatmap, weakestLoop } from '../../core/barHeatmap.ts';
+import { barHeatmap, weakestLoop, type BarMetric } from '../../core/barHeatmap.ts';
 import { isBlack, midiName, PIANO_HIGHEST, PIANO_LOWEST } from '../../core/note.ts';
+import type { PracticeMode } from '../../core/pieceRecords.ts';
 import { summarizeRun } from '../../core/pieceRun.ts';
-import { accompanimentPlan, baseTempo, DEMO_VELOCITY, demoPlan } from '../../core/playback.ts';
+import {
+  accompanimentPlan,
+  baseTempo,
+  DEMO_VELOCITY,
+  demoPlan,
+  otherHand,
+} from '../../core/playback.ts';
+import { rhythmPlan } from '../../core/rhythm.ts';
+import { summarizeRhythm } from '../../core/rhythmRun.ts';
 import { playOrder, type RepeatMode } from '../../core/repeats.ts';
 import { buildSteps, keyRange, type HandSelection } from '../../core/score.ts';
 import { waitRange, type BarLoop, type WaitState } from '../../core/wait.ts';
@@ -30,9 +41,21 @@ import { Piano } from '../piano/Piano.tsx';
 import { usePieceSteps, usePracticeStore } from '../practice/context.ts';
 import { usePieceFormat } from './format.ts';
 import { readPiecePrefs, TEMPOS, writePiecePrefs } from './prefs.ts';
-import { useRunRecorder } from './record.ts';
+import { useRunRecorder, waitRecording, type RecordableRun, type RecordInput } from './record.ts';
 import { RunSummary } from './RunSummary.tsx';
 import { runReducer, startRun } from './run.ts';
+import { idleRhythm, rhythmReducer } from './rhythm.ts';
+import { CalibrationSheet, RhythmStatus } from './RhythmParts.tsx';
+import {
+  CLICK_MODES,
+  readClickMode,
+  readClickVolume,
+  readLatency,
+  writeClickMode,
+  writeClickVolume,
+} from './rhythmPrefs.ts';
+import { RhythmSummary } from './RhythmSummary.tsx';
+import { useRhythmPlayer } from './useRhythmPlayer.ts';
 import type { OpenPiece } from './usePiece.ts';
 import { useBarFormat } from './barFormat.ts';
 import { BarTargets, BarTints, WeakBarsBar, WeakBarsTable } from './WeakBars.tsx';
@@ -40,6 +63,10 @@ import { BarTargets, BarTints, WeakBarsBar, WeakBarsTable } from './WeakBars.tsx
 const SHOW_KEYS_PREF = 'dacapo.pieces.showKeys';
 const ACCOMPANY_PREF = 'dacapo.pieces.accompany';
 const WEAK_BARS_PREF = 'dacapo.pieces.weakBars';
+/** Offered once per browser: the calibration before the first rhythm run. */
+const CALIBRATION_OFFERED_PREF = 'dacapo.latency.offered';
+const MODES: readonly PracticeMode[] = ['wait', 'rhythm'];
+const metricOf = (mode: PracticeMode): BarMetric => (mode === 'rhythm' ? 'timing' : 'hesitation');
 const WRONG_FLASH_MS = 350;
 const HAND_CHOICES = ['right', 'left', 'both'] as const;
 const NO_KEYS: readonly number[] = [];
@@ -68,10 +95,12 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
   const hasOutput = useOutputState().selected !== null;
   const { held, sustained } = useHubState();
   const region = useRef<HTMLElement>(null);
+  const options = useRef<HTMLDetailsElement>(null);
   const showKeysId = useId();
 
   const store = usePracticeStore();
   const [prefs] = useState(() => readPiecePrefs(piece.id));
+  const [mode, setModeState] = useState<PracticeMode>(prefs.mode);
   const [hands, setHandsState] = useState<HandSelection>(prefs.hands);
   const [repeats, setRepeats] = useState<RepeatMode>('play');
   const [loop, setLoop] = useState<BarLoop | null>(null);
@@ -80,8 +109,15 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
   const [scoreStatus, setScoreStatus] = useState<ScoreStatus>({ state: 'loading' });
   const [tempo, setTempo] = useState(prefs.tempo);
   const [weakBars, setWeakBarsState] = useState(() => readPref(WEAK_BARS_PREF) === '1');
+  const [metric, setMetric] = useState<BarMetric>(metricOf(prefs.mode));
   const [table, setTable] = useState(false);
   const [accompany, setAccompanyState] = useState(() => readPref(ACCOMPANY_PREF) !== '0');
+  const [clickMode, setClickModeState] = useState(readClickMode);
+  const [volume, setVolumeState] = useState(readClickVolume);
+  const [latency, setLatency] = useState(readLatency);
+  /** The sheet offering (or running) the calibration before a rhythm run. */
+  const [calibration, setCalibration] = useState<'offer' | 'open' | null>(null);
+  const [calibrating, setCalibrating] = useState(false);
   const [player] = useState(() =>
     createDemoPlayer(output.scheduler, browserClock, output.onInterrupt),
   );
@@ -89,6 +125,13 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
   const demo = useSyncExternalStore(player.subscribe, player.getState);
   const demoStep = useSyncExternalStore(player.subscribe, player.currentStep);
   const listening = demo !== 'stopped';
+  const { player: rhythmPlayer, snapshot: beat } = useRhythmPlayer(
+    output.scheduler,
+    output.onInterrupt,
+  );
+  const [rhythm, dispatchRhythm] = useReducer(rhythmReducer, newRunId(), idleRhythm);
+  const inTime = beat.state !== 'stopped';
+  const rhythmMode = mode === 'rhythm';
 
   const hasRepeats = score.measures.some(
     (m) => m.repeat.backwardTimes !== null || m.repeat.ending.length > 0,
@@ -117,6 +160,18 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
     [score, order, steps, hands, loop, scale],
   );
   const accompanying = accompany && hasOutput && backing !== null && !listening;
+  const timed = useMemo(
+    () => (rhythmMode ? rhythmPlan({ score, order, steps, loop, startBar, scale }) : null),
+    [rhythmMode, score, order, steps, loop, startBar, scale],
+  );
+  // In rhythm mode the other hand plays in time, from the same timeline.
+  const timedBacking = useMemo(
+    () =>
+      rhythmMode && hands !== 'both' && accompany && hasOutput
+        ? demoPlan({ score, order, steps, hands, loop, startBar, scale, include: otherHand(hands) })
+        : null,
+    [rhythmMode, hands, accompany, hasOutput, score, order, steps, loop, startBar, scale],
+  );
 
   const [run, dispatch] = useReducer(runReducer, { id: newRunId(), steps, range }, startRun);
   // Any change of hands, bars or repeats starts over (React's pattern for state derived from
@@ -124,8 +179,27 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
   if (run.steps !== steps || run.range !== range)
     dispatch({ type: 'restart', id: newRunId(), steps, range });
 
+  const recorded = useMemo<RecordableRun>(
+    () =>
+      rhythmMode
+        ? {
+            id: rhythm.id,
+            // A run is practice once a key was played: a Start left to run alone is not.
+            records: rhythm.last ? rhythm.records : NO_RECORDS,
+            startedEpoch: rhythm.startedEpoch,
+            // Played to the end, or a loop ended with Stop (a loop only ends that way).
+            ended:
+              rhythm.status === 'ended'
+                ? {
+                    completed: rhythm.end === 'done' || (rhythm.end === 'stopped' && loop !== null),
+                  }
+                : null,
+          }
+        : waitRecording(run),
+    [rhythmMode, rhythm, run, loop],
+  );
   useRunRecorder(
-    run,
+    recorded,
     {
       pieceId: piece.id,
       checksum: piece.facts.checksum,
@@ -138,6 +212,7 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
       },
       repeats,
       tempo,
+      ...(rhythmMode && { mode: 'rhythm' as const }),
     },
     store,
   );
@@ -149,14 +224,25 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
     [steps],
   );
   const heat = useMemo(
-    () => barHeatmap(records ?? [], { checksum: piece.facts.checksum, hands, bars: handBars }),
-    [records, piece.facts.checksum, hands, handBars],
+    () =>
+      barHeatmap(records ?? [], {
+        checksum: piece.facts.checksum,
+        hands,
+        bars: handBars,
+        metric,
+      }),
+    [records, piece.facts.checksum, hands, handBars, metric],
   );
   const weakest = useMemo(() => weakestLoop(heat.cells, order), [heat, order]);
-  const barFormat = useBarFormat(format);
+  const barFormat = useBarFormat(format, metric);
 
-  /** Stops whatever the instrument is playing for us: the demo and the other hand. */
+  /** Stops whatever the instrument is playing for us: the demo, the other hand, a rhythm run. */
   function silence() {
+    if (rhythmPlayer.getSnapshot().state !== 'stopped') {
+      rhythmPlayer.stop();
+      // Not a result to look at: the settings changed under it.
+      dispatchRhythm({ type: 'hide' });
+    }
     if (player.getState() !== 'stopped') player.stop();
     else output.scheduler.panic();
     accompanist.reset();
@@ -168,16 +254,21 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
     region.current?.focus({ preventScroll: true });
   };
 
-  // A new run (other hands, bars or repeats) or a finished loop: silence. Not on mount.
-  const runKey = useRef({ steps, range, ended: run.ended });
+  // A new run (other hands, bars, repeats, mode or tempo) or a finished loop: silence. Not on mount.
+  const runKey = useRef({ steps, range, ended: run.ended, timed });
   useEffect(() => {
     const previous = runKey.current;
-    if (previous.steps === steps && previous.range === range && previous.ended === run.ended)
+    if (
+      previous.steps === steps &&
+      previous.range === range &&
+      previous.ended === run.ended &&
+      previous.timed === timed
+    )
       return;
-    runKey.current = { steps, range, ended: run.ended };
+    runKey.current = { steps, range, ended: run.ended, timed };
     silence();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- silence only uses stable objects
-  }, [steps, range, run.ended]);
+  }, [steps, range, run.ended, timed]);
   useEffect(
     () => () => {
       player.stop();
@@ -186,14 +277,24 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
     [player, output],
   );
 
-  // Keys play the wait mode, except while the demo is playing.
+  // Keys play the wait mode (except while the demo plays), or are timed in a rhythm run.
+  const keysTo = useRef({ rhythmMode, calibrating });
+  useLayoutEffect(() => {
+    keysTo.current = { rhythmMode, calibrating };
+  });
   useEffect(
     () =>
       hub.onEvent((event) => {
-        if (event.type === 'on' && player.getState() === 'stopped')
+        if (event.type !== 'on' || keysTo.current.calibrating) return;
+        if (keysTo.current.rhythmMode) {
+          const result = rhythmPlayer.press(event.midi, event.time);
+          if (result.kind !== 'ignored') dispatchRhythm({ type: 'played', result });
+          return;
+        }
+        if (player.getState() === 'stopped')
           dispatch({ type: 'press', midi: event.midi, time: event.time, at: Date.now() });
       }),
-    [hub, player],
+    [hub, player, rhythmPlayer],
   );
 
   // Each completed step sets off the other hand's notes that belong to it.
@@ -222,10 +323,59 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
     else if (state === 'paused') player.resume();
     else if (plan) {
       accompanist.reset();
+      if (rhythmPlayer.getSnapshot().state !== 'stopped') {
+        rhythmPlayer.stop();
+        dispatchRhythm({ type: 'hide' });
+      }
       // Listening is not hesitation: the step's clock starts again at the next key.
       dispatch({ type: 'pauseClock' });
       player.play(plan, DEMO_VELOCITY);
     }
+  }
+
+  /** Starts a rhythm run (from a click: the click needs a user gesture to sound). */
+  function startRhythm() {
+    if (!timed) return;
+    setCalibration(null);
+    if (player.getState() !== 'stopped') player.stop();
+    accompanist.reset();
+    const id = newRunId();
+    const origin = rhythmPlayer.start({
+      plan: timed,
+      backing: timedBacking,
+      velocity: ACCOMPANIMENT_LEVELS[readAccompanimentLevel()],
+      clickMode,
+      volume,
+      latency: readLatency()?.offset ?? 0,
+      onSettled: (timings) => dispatchRhythm({ type: 'settled', timings }),
+      onEnd: (reason) => dispatchRhythm({ type: 'end', reason }),
+    });
+    dispatchRhythm({ type: 'start', id, epochOrigin: Date.now() - performance.now() + origin });
+    region.current?.focus({ preventScroll: true });
+  }
+
+  function onStart() {
+    if (rhythmPlayer.getSnapshot().state !== 'stopped') {
+      rhythmPlayer.stop();
+      return;
+    }
+    if (!readLatency() && readPref(CALIBRATION_OFFERED_PREF) !== '1') {
+      writePref(CALIBRATION_OFFERED_PREF, '1');
+      setCalibration('offer');
+      return;
+    }
+    startRhythm();
+  }
+
+  function setMode(next: PracticeMode) {
+    // The run's last steps are recorded before the mode (and the recorded run) changes.
+    if (rhythmPlayer.getSnapshot().state !== 'stopped') flushSync(silence);
+    else silence();
+    setModeState(next);
+    setMetric(metricOf(next));
+    writePiecePrefs(piece.id, { mode: next });
+    dispatch({ type: 'restart', id: newRunId(), steps, range });
+    dispatchRhythm({ type: 'reset', id: newRunId() });
   }
 
   function changeTempo(next: number) {
@@ -259,6 +409,16 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
   // Selects take keyboard input; after a choice, the keys play notes again.
   const settle = () => region.current?.focus({ preventScroll: true });
 
+  // The options panel closes on Escape and on a click elsewhere.
+  useEffect(() => {
+    const onDown = (e: PointerEvent) => {
+      const el = options.current;
+      if (el?.open && !el.contains(e.target as Node)) el.open = false;
+    };
+    document.addEventListener('pointerdown', onDown);
+    return () => document.removeEventListener('pointerdown', onDown);
+  }, []);
+
   function setHands(next: HandSelection) {
     setHandsState(next);
     writePiecePrefs(piece.id, { hands: next });
@@ -284,9 +444,24 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
 
   const wait = run.wait;
   const waitStep = wait && !wait.finished ? (steps[wait.current] ?? null) : null;
-  const step = listening ? (demoStep === null ? null : (steps[demoStep] ?? null)) : waitStep;
-  const done = Boolean(wait?.finished || run.ended);
+  const step = inTime
+    ? beat.step === null
+      ? null
+      : (steps[beat.step] ?? null)
+    : listening
+      ? demoStep === null
+        ? null
+        : (steps[demoStep] ?? null)
+      : waitStep;
+  const done = !rhythmMode && Boolean(wait?.finished || run.ended);
   const summary = useMemo(() => (done ? summarizeRun(run.records) : null), [done, run.records]);
+  const rhythmSummary = useMemo(
+    () =>
+      rhythmMode && rhythm.status === 'ended' && !rhythm.hidden && rhythm.timings.length > 0
+        ? summarizeRhythm(rhythm.timings)
+        : null,
+    [rhythmMode, rhythm],
+  );
 
   const keys = useMemo(() => {
     const span = keyRange(score, 'both') ?? [60, 72];
@@ -300,16 +475,18 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
   const marked = useMemo(() => {
     // While listening the keyboard shows what sounds; otherwise, with Show keys, what to play.
     if (listening) return new Set(step?.midis ?? []);
+    if (rhythmMode) return showKeys && step ? new Set(step.midis) : new Set<number>();
     return showKeys && step
       ? new Set(step.midis.filter((m) => !wait?.pressed.includes(m)))
       : new Set<number>();
-  }, [listening, showKeys, step, wait?.pressed]);
+  }, [listening, rhythmMode, showKeys, step, wait?.pressed]);
 
   const barOptions = playedBars.map((index) => (
     <option key={index} value={index}>
       {format.barNumber(index)}
     </option>
   ));
+  const bpm = Math.round(baseTempo(score) * scale);
 
   return (
     <section
@@ -329,6 +506,27 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
       </header>
 
       <div className="piece-controls" role="group" aria-label={t('pieces.controls')}>
+        <fieldset className="piece-control piece-mode" aria-describedby={`${showKeysId}-mode`}>
+          <legend className="visually-hidden">{t('pieces.mode')}</legend>
+          <div className="segmented is-compact">
+            {MODES.map((choice) => (
+              <label key={choice}>
+                <input
+                  type="radio"
+                  name={`${showKeysId}-mode`}
+                  value={choice}
+                  checked={mode === choice}
+                  onChange={() => setMode(choice)}
+                />
+                <span>{t(`pieces.mode.${choice}`)}</span>
+              </label>
+            ))}
+          </div>
+          <span id={`${showKeysId}-mode`} className="visually-hidden">
+            {t('pieces.mode.help')}
+          </span>
+        </fieldset>
+
         <fieldset className="piece-control">
           <legend className="visually-hidden">{t('pieces.hand')}</legend>
           <div className="segmented is-compact">
@@ -403,99 +601,334 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
         </div>
 
         <label className="piece-control">
-          <span className="piece-control-label">{t('pieces.start')}</span>
+          <span className="piece-control-label">{t('pieces.tempo')}</span>
           <select
             className="is-compact"
-            aria-label={t('pieces.start.label')}
-            value={startBar}
+            aria-label={t('pieces.tempo.label')}
+            aria-describedby={`${showKeysId}-bpm`}
+            value={tempo}
             onChange={(e) => {
-              setStartBar(Number(e.target.value));
+              changeTempo(Number(e.target.value));
               settle();
             }}
           >
-            {barOptions}
+            {TEMPOS.map((percent) => (
+              <option key={percent} value={percent}>
+                {t('pieces.tempo.percent', { percent })}
+              </option>
+            ))}
           </select>
+          <span id={`${showKeysId}-bpm`} className="piece-bpm">
+            {t('pieces.tempo.bpm', { bpm })}
+          </span>
         </label>
 
-        {hasRepeats && (
-          <fieldset className="piece-control">
-            <legend className="visually-hidden">{t('pieces.repeats')}</legend>
-            <span className="piece-control-label" aria-hidden="true">
-              {t('pieces.repeats')}
-            </span>
-            <div className="segmented is-compact">
-              {(['play', 'skip'] as const).map((mode) => (
-                <label key={mode}>
+        <details
+          className="piece-options"
+          ref={options}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape' && options.current?.open) {
+              options.current.open = false;
+              options.current.querySelector('summary')?.focus();
+            }
+          }}
+        >
+          <summary className="button is-compact">{t('pieces.options')}</summary>
+          <div className="piece-options-panel">
+            <label className="piece-option">
+              <span className="piece-control-label">{t('pieces.start')}</span>
+              <select
+                className="is-compact"
+                aria-label={t('pieces.start.label')}
+                value={startBar}
+                onChange={(e) => setStartBar(Number(e.target.value))}
+              >
+                {barOptions}
+              </select>
+            </label>
+
+            {hasRepeats && (
+              <fieldset className="piece-option">
+                <legend className="visually-hidden">{t('pieces.repeats')}</legend>
+                <span className="piece-control-label" aria-hidden="true">
+                  {t('pieces.repeats')}
+                </span>
+                <div className="segmented is-compact">
+                  {(['play', 'skip'] as const).map((choice) => (
+                    <label key={choice}>
+                      <input
+                        type="radio"
+                        name={`${showKeysId}-repeats`}
+                        value={choice}
+                        checked={repeats === choice}
+                        onChange={() => {
+                          setRepeats(choice);
+                          setLoop(null);
+                        }}
+                      />
+                      <span>{t(`pieces.repeats.${choice}`)}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            )}
+
+            {rhythmMode && (
+              <fieldset className="piece-option">
+                <legend className="visually-hidden">{t('pieces.click')}</legend>
+                <span className="piece-control-label" aria-hidden="true">
+                  {t('pieces.click')}
+                </span>
+                <div className="segmented is-compact">
+                  {CLICK_MODES.map((choice) => (
+                    <label key={choice}>
+                      <input
+                        type="radio"
+                        name={`${showKeysId}-click`}
+                        value={choice}
+                        checked={clickMode === choice}
+                        onChange={() => {
+                          setClickModeState(choice);
+                          writeClickMode(choice);
+                        }}
+                      />
+                      <span>{t(`pieces.click.${choice}`)}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            )}
+
+            {rhythmMode && (
+              <label className="piece-option">
+                <span className="piece-control-label">{t('pieces.click.volume')}</span>
+                <input
+                  type="range"
+                  className="piece-volume"
+                  min={0}
+                  max={100}
+                  step={5}
+                  value={volume}
+                  disabled={clickMode === 'off'}
+                  onChange={(e) => {
+                    setVolumeState(Number(e.target.value));
+                    writeClickVolume(Number(e.target.value));
+                  }}
+                />
+              </label>
+            )}
+
+            <div className="piece-option-checks">
+              {hands !== 'both' && (
+                <label className="check">
                   <input
-                    type="radio"
-                    name={`${showKeysId}-repeats`}
-                    value={mode}
-                    checked={repeats === mode}
-                    onChange={() => {
-                      setRepeats(mode);
-                      setLoop(null);
-                    }}
+                    type="checkbox"
+                    checked={accompany && hasOutput}
+                    disabled={!hasOutput}
+                    onChange={(e) => setAccompany(e.target.checked)}
+                    aria-describedby={`${showKeysId}-accompany`}
                   />
-                  <span>{t(`pieces.repeats.${mode}`)}</span>
+                  <span>{t('pieces.accompany')}</span>
                 </label>
-              ))}
+              )}
+              <span id={`${showKeysId}-accompany`} className="visually-hidden">
+                {t('pieces.accompany.help')}
+              </span>
+              <label className="check">
+                <input
+                  type="checkbox"
+                  checked={showKeys}
+                  onChange={(e) => setShowKeys(e.target.checked)}
+                  aria-describedby={`${showKeysId}-keys`}
+                />
+                <span>{t('pieces.showKeys')}</span>
+              </label>
+              <span id={`${showKeysId}-keys`} className="visually-hidden">
+                {t('pieces.showKeys.help')}
+              </span>
+              <label className="check">
+                <input
+                  type="checkbox"
+                  checked={weakBars}
+                  onChange={(e) => setWeakBars(e.target.checked)}
+                  aria-describedby={`${showKeysId}-weak`}
+                />
+                <span>{t('pieces.weak')}</span>
+              </label>
+              <span id={`${showKeysId}-weak`} className="visually-hidden">
+                {t('pieces.weak.help')}
+              </span>
             </div>
-          </fieldset>
+
+            {rhythmMode && (
+              <p className="piece-option piece-latency">
+                <span>
+                  {latency ? t('pieces.latency', { ms: latency.offset }) : t('pieces.latency.none')}
+                </span>
+                <button
+                  type="button"
+                  className="button is-compact"
+                  disabled={inTime}
+                  onClick={() => {
+                    if (options.current) options.current.open = false;
+                    setCalibration('open');
+                  }}
+                >
+                  {t('pieces.latency.calibrate')}
+                </button>
+              </p>
+            )}
+          </div>
+        </details>
+      </div>
+
+      {weakBars && (
+        <WeakBarsBar
+          format={barFormat}
+          loading={records === null}
+          staleRuns={heat.staleRuns}
+          loopLabel={
+            weakest &&
+            (weakest.from === weakest.to
+              ? format.barNumber(weakest.from)
+              : `${format.barNumber(weakest.from)}–${format.barNumber(weakest.to)}`)
+          }
+          onLoop={loopWeakest}
+          onTable={() => setTable(true)}
+          onMetric={setMetric}
+        />
+      )}
+
+      <div className="piece-stage">
+        <ScoreView
+          xml={piece.xml}
+          score={score}
+          title={piece.title}
+          step={step}
+          pressed={listening || rhythmMode ? NO_KEYS : (wait?.pressed ?? NO_KEYS)}
+          hands={hands}
+          onStatus={setScoreStatus}
+          behind={
+            weakBars
+              ? (boxes) => <BarTints cells={heat.cells} boxes={boxes} format={barFormat} />
+              : undefined
+          }
+          above={
+            weakBars
+              ? (boxes) => <BarTargets cells={heat.cells} boxes={boxes} format={barFormat} />
+              : undefined
+          }
+        />
+        {scoreStatus.state !== 'ready' && (
+          <div className="piece-overlay" role="status">
+            <p className={scoreStatus.state === 'failed' ? 'piece-error' : 'muted'}>
+              {scoreStatus.state === 'loading'
+                ? t('pieces.preparing')
+                : scoreStatus.reason === 'engine'
+                  ? t('pieces.engineFailed')
+                  : t('pieces.renderFailed')}
+            </p>
+          </div>
         )}
-
-        <label className="check piece-control">
-          <input
-            type="checkbox"
-            checked={showKeys}
-            onChange={(e) => setShowKeys(e.target.checked)}
-            aria-describedby={`${showKeysId}-keys`}
+        {table && weakBars && !summary && !rhythmSummary && (
+          <WeakBarsTable
+            cells={heat.cells}
+            format={barFormat}
+            onClose={() => {
+              setTable(false);
+              settle();
+            }}
           />
-          <span>{t('pieces.showKeys')}</span>
-        </label>
-        <span id={`${showKeysId}-keys`} className="visually-hidden">
-          {t('pieces.showKeys.help')}
-        </span>
-
-        <label className="check piece-control">
-          <input
-            type="checkbox"
-            checked={weakBars}
-            onChange={(e) => setWeakBars(e.target.checked)}
-            aria-describedby={`${showKeysId}-weak`}
+        )}
+        {summary && (
+          <RunSummary
+            summary={summary}
+            looped={run.ended}
+            format={format}
+            onAgain={restart}
+            onLoopBar={(bar) => {
+              setLoop({ from: bar, to: bar });
+              settle();
+            }}
           />
-          <span>{t('pieces.weak')}</span>
-        </label>
-        <span id={`${showKeysId}-weak`} className="visually-hidden">
-          {t('pieces.weak.help')}
-        </span>
+        )}
+        {rhythmSummary && !calibration && (
+          <RhythmSummary
+            summary={rhythmSummary}
+            done={rhythm.end === 'done'}
+            looped={loop !== null}
+            format={format}
+            onAgain={startRhythm}
+            onLoopBars={(from, to) => {
+              setLoop({ from, to });
+              setStartBar(from);
+              dispatchRhythm({ type: 'reset', id: newRunId() });
+              settle();
+            }}
+            onClose={() => {
+              dispatchRhythm({ type: 'hide' });
+              settle();
+            }}
+          />
+        )}
+        {calibration && (
+          <CalibrationSheet
+            offer={calibration === 'offer'}
+            onCalibrate={() => setCalibration('open')}
+            onStart={startRhythm}
+            onRunning={setCalibrating}
+            onChange={setLatency}
+            onClose={() => {
+              setCalibration(null);
+              settle();
+            }}
+          />
+        )}
+      </div>
 
-        <div className="piece-control piece-transport">
-          <label className="piece-control">
-            <span className="piece-control-label">{t('pieces.tempo')}</span>
-            <select
-              className="is-compact"
-              aria-label={t('pieces.tempo.label')}
-              aria-describedby={`${showKeysId}-bpm`}
-              value={tempo}
-              onChange={(e) => {
-                changeTempo(Number(e.target.value));
-                settle();
-              }}
-            >
-              {TEMPOS.map((percent) => (
-                <option key={percent} value={percent}>
-                  {t('pieces.tempo.percent', { percent })}
-                </option>
-              ))}
-            </select>
-            <span id={`${showKeysId}-bpm`} className="piece-bpm">
-              {t('pieces.tempo.bpm', { bpm: Math.round(baseTempo(score) * scale) })}
-            </span>
-          </label>
+      <div className="piece-status">
+        {rhythmMode ? (
+          <RhythmStatus
+            beat={beat}
+            ended={rhythm.status === 'ended' && rhythm.timings.length === 0}
+            last={rhythm.last}
+            nothing={!range || !timed}
+            click={clickMode}
+            bpm={bpm}
+            step={step}
+            bar={step ? format.bar(step.measure) : ''}
+            beatLabel={step ? format.beat(step.beat) : ''}
+          />
+        ) : (
+          <StatusLine
+            demo={demo}
+            bpm={bpm}
+            wait={wait}
+            step={step}
+            started={run.startedAt !== null}
+            nothing={!range}
+            showKeys={showKeys}
+            total={range ? range.last - range.first + 1 : 0}
+            bar={step ? format.bar(step.measure) : ''}
+            beat={step ? format.beat(step.beat) : ''}
+          />
+        )}
+        <div className="piece-notes">
+          {scoreStatus.state === 'ready' && scoreStatus.unplaced > 0 && (
+            <p className="muted">{t('pieces.unplaced', { n: scoreStatus.unplaced })}</p>
+          )}
+          <KeyboardLine />
+          {!hasOutput && (
+            <p className="muted">
+              <Link href="/settings">{t('pieces.output.needed')}</Link>
+            </p>
+          )}
+        </div>
+        <div className="piece-actions">
           <button
             type="button"
             className="button is-compact piece-listen"
-            disabled={!hasOutput || !plan}
+            disabled={!hasOutput || !plan || inTime}
             aria-describedby={`${showKeysId}-listen`}
             onClick={onListen}
           >
@@ -533,139 +966,46 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
               </svg>
             </button>
           )}
-          {hands !== 'both' && (
-            <label className="check piece-control">
-              <input
-                type="checkbox"
-                checked={accompany && hasOutput}
-                disabled={!hasOutput}
-                onChange={(e) => setAccompany(e.target.checked)}
-                aria-describedby={`${showKeysId}-accompany`}
-              />
-              <span>{t('pieces.accompany')}</span>
-            </label>
-          )}
-          <span id={`${showKeysId}-accompany`} className="visually-hidden">
-            {t('pieces.accompany.help')}
-          </span>
-        </div>
-      </div>
-
-      {weakBars && (
-        <WeakBarsBar
-          format={barFormat}
-          loading={records === null}
-          staleRuns={heat.staleRuns}
-          loopLabel={
-            weakest &&
-            (weakest.from === weakest.to
-              ? format.barNumber(weakest.from)
-              : `${format.barNumber(weakest.from)}–${format.barNumber(weakest.to)}`)
-          }
-          onLoop={loopWeakest}
-          onTable={() => setTable(true)}
-        />
-      )}
-
-      <div className="piece-stage">
-        <ScoreView
-          xml={piece.xml}
-          score={score}
-          title={piece.title}
-          step={step}
-          pressed={listening ? NO_KEYS : (wait?.pressed ?? NO_KEYS)}
-          hands={hands}
-          onStatus={setScoreStatus}
-          behind={
-            weakBars
-              ? (boxes) => <BarTints cells={heat.cells} boxes={boxes} format={barFormat} />
-              : undefined
-          }
-          above={
-            weakBars
-              ? (boxes) => (
-                  <BarTargets
-                    cells={heat.cells}
-                    boxes={boxes}
-                    format={barFormat}
-                    pieceFormat={format}
-                  />
-                )
-              : undefined
-          }
-        />
-        {scoreStatus.state !== 'ready' && (
-          <div className="piece-overlay" role="status">
-            <p className={scoreStatus.state === 'failed' ? 'piece-error' : 'muted'}>
-              {scoreStatus.state === 'loading'
-                ? t('pieces.preparing')
-                : scoreStatus.reason === 'engine'
-                  ? t('pieces.engineFailed')
-                  : t('pieces.renderFailed')}
-            </p>
-          </div>
-        )}
-        {table && weakBars && !summary && (
-          <WeakBarsTable
-            cells={heat.cells}
-            format={barFormat}
-            onClose={() => {
-              setTable(false);
-              settle();
-            }}
-          />
-        )}
-        {summary && (
-          <RunSummary
-            summary={summary}
-            looped={run.ended}
-            format={format}
-            onAgain={restart}
-            onLoopBar={(bar) => {
-              setLoop({ from: bar, to: bar });
-              settle();
-            }}
-          />
-        )}
-      </div>
-
-      <div className="piece-status">
-        <StatusLine
-          demo={demo}
-          bpm={Math.round(baseTempo(score) * scale)}
-          wait={wait}
-          step={step}
-          started={run.startedAt !== null}
-          nothing={!range}
-          showKeys={showKeys}
-          total={range ? range.last - range.first + 1 : 0}
-          bar={step ? format.bar(step.measure) : ''}
-          beat={step ? format.beat(step.beat) : ''}
-        />
-        <div className="piece-notes">
-          {scoreStatus.state === 'ready' && scoreStatus.unplaced > 0 && (
-            <p className="muted">{t('pieces.unplaced', { n: scoreStatus.unplaced })}</p>
-          )}
-          <KeyboardLine />
-          {!hasOutput && (
-            <p className="muted">
-              <Link href="/settings">{t('pieces.output.needed')}</Link>
-            </p>
-          )}
-        </div>
-        <div className="piece-actions">
-          {loop && run.startedAt !== null && !done && (
+          {rhythmMode ? (
             <button
               type="button"
-              className="button is-compact"
-              onClick={() => dispatch({ type: 'end' })}
+              className={
+                inTime ? 'button is-compact piece-go' : 'button button-primary is-compact piece-go'
+              }
+              disabled={!timed || calibrating}
+              aria-describedby={`${showKeysId}-go`}
+              onClick={onStart}
             >
-              {t('pieces.finish')}
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                {inTime ? (
+                  <rect x="4" y="4" width="8" height="8" rx="1" className="is-filled" />
+                ) : (
+                  <circle cx="8" cy="8" r="4.5" className="is-filled" />
+                )}
+              </svg>
+              <span>{inTime ? t('pieces.rhythm.stop') : t('pieces.rhythm.start')}</span>
             </button>
+          ) : (
+            <>
+              {loop && run.startedAt !== null && !done && (
+                <button
+                  type="button"
+                  className="button is-compact"
+                  onClick={() => dispatch({ type: 'end' })}
+                >
+                  {t('pieces.finish')}
+                </button>
+              )}
+              <button type="button" className="button is-compact" onClick={restart}>
+                {t('pieces.restart')}
+              </button>
+            </>
           )}
-          <button type="button" className="button is-compact" onClick={restart}>
-            {t('pieces.restart')}
-          </button>
+          {rhythmMode && (
+            <span id={`${showKeysId}-go`} className="visually-hidden">
+              {t('pieces.rhythm.help')}
+            </span>
+          )}
         </div>
       </div>
 
@@ -675,7 +1015,7 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
           sustained={sustained}
           pointer={pointer}
           marked={marked}
-          wrong={wrong}
+          wrong={rhythmMode ? NO_WRONG : wrong}
           range={keys}
           className="piece-piano"
         />
@@ -683,6 +1023,9 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
     </section>
   );
 }
+
+const NO_WRONG: ReadonlySet<number> = new Set();
+const NO_RECORDS: readonly RecordInput[] = [];
 
 function StatusLine({
   demo,

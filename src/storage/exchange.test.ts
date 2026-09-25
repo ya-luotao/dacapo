@@ -11,7 +11,7 @@ import {
   type ParsedImport,
   type Preferences,
 } from './exchange.ts';
-import { resetIndexedDB, sampleData, samplePiece, sampleRun } from './fixtures.ts';
+import { resetIndexedDB, sampleData, samplePiece, sampleRhythmRun, sampleRun } from './fixtures.ts';
 import { createIndexedDbRepository, type PracticeRepository } from './repository.ts';
 
 const PREFS: Preferences = { locale: 'zh-CN', theme: 'dark' };
@@ -104,7 +104,11 @@ describe('export → import', () => {
     for (const session of sessions) await source.putSession(session);
     await source.putPiece(samplePiece(2, { hands: { '0.1': 'left' }, warnings: ['ornaments'] }));
     await source.putPiece(samplePiece(1));
-    const runs = [sampleRun('r1', 6), sampleRun('r2', 4, { pieceId: 'p1', hands: 'both' })];
+    const runs = [
+      sampleRun('r1', 6),
+      sampleRun('r2', 4, { pieceId: 'p1', hands: 'both' }),
+      sampleRhythmRun('r3', 5),
+    ];
     for (const { steps, session } of runs) {
       for (const step of steps) await source.addPieceStep(step, null);
       await source.putSession({
@@ -114,18 +118,19 @@ describe('export → import', () => {
     }
     const exported = await exportOf(source);
     expect(exported.pieces.map((p) => p.id)).toEqual(['p1', 'p2']);
-    expect(exported.pieceSteps).toHaveLength(10);
-    expect(exported.sessions.filter((s) => s.kind === 'piece')).toHaveLength(2);
+    expect(exported.pieceSteps).toHaveLength(15);
+    expect(exported.pieceSteps.filter((s) => s.mode === 'rhythm')).toHaveLength(5);
+    expect(exported.sessions.filter((s) => s.kind === 'piece')).toHaveLength(3);
 
     const target = await freshRepository();
     const file = parsed(JSON.stringify(exported));
     expect(file.invalid).toEqual([]);
     expect(file.preferences).toEqual(PREFS);
     expect(await target.merge(file)).toEqual({
-      sessions: 5,
+      sessions: 6,
       attempts: attempts.length,
       pieces: 2,
-      pieceSteps: 10,
+      pieceSteps: 15,
     });
     expect(await exportOf(target)).toEqual(exported);
     expect(await target.load()).toEqual(await source.load());
@@ -407,14 +412,67 @@ describe('versions', () => {
     ]);
   });
 
-  it('writes version 3 with pieces, piece sessions and step records', async () => {
+  it('imports a version 3 file: its steps and sessions are wait mode’s', () => {
+    const { steps, session } = sampleRun('r1', 3);
+    const file = parsed(
+      fileWith({ version: 3, pieces: [], sessions: [session], pieceSteps: steps }),
+    );
+    expect(file.invalid).toEqual([]);
+    expect(file.pieceSteps).toEqual(steps);
+    expect(file.pieceSteps.every((s) => s.mode === undefined && s.notes === undefined)).toBe(true);
+    expect(file.sessions).toEqual([session]);
+  });
+
+  it('imports rhythm steps and sessions of a version 4 file and reports bad ones', () => {
+    const { steps, session } = sampleRhythmRun('r1', 3);
+    const file = parsed(
+      fileWith({
+        version: 4,
+        pieces: [],
+        sessions: [
+          session,
+          { ...session, id: 'x1', rhythm: undefined },
+          { ...session, id: 'x2', rhythm: { notes: 2, hits: 3, inTime: 1 } },
+          { ...session, id: 'x3', mode: 'swing' },
+          { ...sampleRun('w1', 1).session, id: 'x4', rhythm: { notes: 1, hits: 1, inTime: 1 } },
+        ],
+        pieceSteps: [
+          ...steps,
+          { ...steps[0]!, id: 'y1', notes: undefined },
+          { ...steps[0]!, id: 'y2', notes: [] },
+          { ...steps[0]!, id: 'y3', notes: [{ midi: 200, deviation: 3 }] },
+          { ...steps[0]!, id: 'y4', notes: [{ midi: 60, deviation: 5000 }] },
+          { ...steps[0]!, id: 'y5', mode: undefined },
+          { ...steps[0]!, id: 'y6', notes: [{ midi: 60, deviation: null, extra: 1 }] },
+        ],
+      }),
+    );
+    expect(file.sessions).toEqual([session]);
+    expect(file.pieceSteps).toEqual([
+      ...steps,
+      { ...steps[0]!, id: 'y6', notes: [{ midi: 60, deviation: null }] },
+    ]);
+    expect(file.invalid).toEqual([
+      { collection: 'sessions', index: 1, field: 'rhythm', problem: 'invalid' },
+      { collection: 'sessions', index: 2, field: 'rhythm', problem: 'invalid' },
+      { collection: 'sessions', index: 3, field: 'mode', problem: 'invalid' },
+      { collection: 'sessions', index: 4, field: 'rhythm', problem: 'invalid' },
+      { collection: 'pieceSteps', index: 3, field: 'notes', problem: 'invalid' },
+      { collection: 'pieceSteps', index: 4, field: 'notes', problem: 'invalid' },
+      { collection: 'pieceSteps', index: 5, field: 'notes', problem: 'invalid' },
+      { collection: 'pieceSteps', index: 6, field: 'notes', problem: 'invalid' },
+      { collection: 'pieceSteps', index: 7, field: 'notes', problem: 'invalid' },
+    ]);
+  });
+
+  it('writes version 4 with pieces, piece sessions and step records', async () => {
     const repo = await freshRepository();
     await repo.putPiece(samplePiece(1));
     const { steps, session } = sampleRun('r1', 2);
     for (const step of steps) await repo.addPieceStep(step, null);
     await repo.putSession(session);
     const file = await exportOf(repo);
-    expect(file.version).toBe(3);
+    expect(file.version).toBe(4);
     expect(file.pieces).toEqual([samplePiece(1)]);
     expect(file.pieceSteps).toEqual(steps);
     const back = parsed(JSON.stringify(file));

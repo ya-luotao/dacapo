@@ -7,7 +7,10 @@ import {
   barBucket,
   barHeatmap,
   byBarWeakness,
+  isWeak,
   steadyBars,
+  TIMING_ANCHOR_MS,
+  TIMING_EDGES_MS,
   weakestLoop,
   type BarCell,
 } from './barHeatmap.ts';
@@ -168,6 +171,7 @@ describe('weakest bars', () => {
       medianMs,
       wrong: wrongPerStep * 6,
       wrongPerStep,
+      missed: 0,
       bucket,
       steady: false,
     }) satisfies BarCell;
@@ -215,5 +219,89 @@ describe('weakest bars', () => {
     const fine = [figures(0, 2, 0, 900), figures(1, 2, 0, 950)];
     expect(weakestLoop(fine, straight)).toEqual({ from: 1, to: 1 });
     expect(weakestLoop([figures(0, null)], straight)).toBeNull();
+  });
+});
+
+/** Rhythm run `r`: in each bar, notes with these deviations (null: missed), `extra` extras. */
+function rhythmRun(
+  r: number,
+  bars: Record<number, { devs: (number | null)[]; extra?: number }>,
+): PieceStep[] {
+  return Object.entries(bars).map(([measure, { devs, extra = 0 }], i) =>
+    sampleStep(`rhythm${r}`, i, {
+      measure: Number(measure),
+      ms: 667,
+      wrong: extra,
+      at: T + r * 600_000 + i * 1000,
+      mode: 'rhythm',
+      notes: devs.map((deviation, k) => ({ midi: 60 + k, deviation })),
+    }),
+  );
+}
+
+const timing = (records: PieceStep[], bars = [0, 1, 2, 3]) =>
+  barHeatmap(records, { checksum: CHECKSUM, hands: 'right', bars, metric: 'timing' });
+
+describe('the timing metric', () => {
+  it('has round edges around a 30 ms anchor, at the place of the hesitation anchor', () => {
+    expect(TIMING_EDGES_MS).toEqual([10, 20, 30, 50, 75, 100]);
+    expect(TIMING_EDGES_MS.indexOf(TIMING_ANCHOR_MS)).toBe(BAR_EDGES_MS.indexOf(ANCHOR_MS));
+    expect(barBucket(29, TIMING_EDGES_MS)).toBe(ANCHOR_BUCKET - 1);
+    expect(barBucket(30, TIMING_EDGES_MS)).toBe(ANCHOR_BUCKET);
+  });
+
+  it('is the median distance from the beat per note, with missed and extra notes per note', () => {
+    const records = [
+      ...rhythmRun(1, { 0: { devs: [-40, 10, null] }, 1: { devs: [5, 5], extra: 1 } }),
+      ...rhythmRun(2, { 0: { devs: [20, -60, 15] }, 1: { devs: [-5, 0] } }),
+    ];
+    const [bar0, bar1] = timing(records).cells;
+    // |−40| 10 20 |−60| 15 → median 20; one missed of six notes.
+    expect(bar0).toMatchObject({ runs: 2, steps: 6, medianMs: 20, wrong: 1, missed: 1 });
+    expect(bar0!.wrongPerStep).toBeCloseTo(1 / 6, 9);
+    expect(bar0!.bucket).toBe(barBucket(20, TIMING_EDGES_MS));
+    expect(bar1).toMatchObject({ steps: 4, medianMs: 5, wrong: 1, missed: 0, wrongPerStep: 0.25 });
+  });
+
+  it('keeps the modes apart and uses the same window and data rules', () => {
+    const waiting = [1, 2, 3].flatMap((r) => run(r, { 0: [{ ms: 3000, steps: 2 }] }));
+    const rhythm = [4, 5].flatMap((r) => rhythmRun(r, { 0: { devs: [8, 8] } }));
+    expect(heat([...waiting, ...rhythm]).cells[0]).toMatchObject({ runs: 3, medianMs: 3000 });
+    expect(timing([...waiting, ...rhythm]).cells[0]).toMatchObject({
+      runs: 2,
+      medianMs: 8,
+      bucket: 0,
+    });
+    // One run, or fewer than three notes: not enough data.
+    expect(timing(rhythmRun(1, { 0: { devs: [8, 8, 8] } })).cells[0]!.bucket).toBeNull();
+    expect(
+      timing([...rhythmRun(1, { 0: { devs: [8] } }), ...rhythmRun(2, { 0: { devs: [8] } })])
+        .cells[0]!.bucket,
+    ).toBeNull();
+    // Only the last five runs count.
+    const old = [1, 2, 3].flatMap((r) => rhythmRun(r, { 0: { devs: [90, 90] } }));
+    const recent = [4, 5, 6, 7, 8].flatMap((r) => rhythmRun(r, { 0: { devs: [12, 12] } }));
+    expect(timing([...old, ...recent]).cells[0]).toMatchObject({ runs: 5, medianMs: 12 });
+  });
+
+  it('a bar whose every note was missed is as far off as the scale goes', () => {
+    const missed = [1, 2].flatMap((r) => rhythmRun(r, { 0: { devs: [null, null] } }));
+    expect(timing(missed).cells[0]).toMatchObject({
+      medianMs: null,
+      bucket: TIMING_EDGES_MS.length,
+      missed: 4,
+    });
+  });
+
+  it('a bar is steady in time when its last three runs were within the anchor, nothing missed', () => {
+    const tight = [1, 2, 3].flatMap((r) =>
+      rhythmRun(r, { 0: { devs: [10, -12] }, 1: { devs: [10, null] } }),
+    );
+    expect(timing(tight).cells.map((c) => c.steady)).toEqual([true, false, false, false]);
+    // Weak: over the anchor, or with missed or extra notes.
+    const loose = [1, 2].flatMap((r) =>
+      rhythmRun(r, { 0: { devs: [40, 45] }, 1: { devs: [10, 12], extra: 1 } }),
+    );
+    expect(timing(loose).cells.slice(0, 2).map(isWeak)).toEqual([true, true]);
   });
 });

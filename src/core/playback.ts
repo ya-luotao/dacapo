@@ -212,6 +212,8 @@ export function demoPlan(options: {
   startBar: number;
   /** Tempo as a fraction of the score's (1 = as written). */
   scale: number;
+  /** The notes to play, if not those of `hands` (the other hand, in rhythm mode). */
+  include?: (note: ScoreNote) => boolean;
 }): DemoPlan | null {
   const { score, order, steps, hands, loop, startBar, scale } = options;
   const span = playSpan(score, order, loop, startBar);
@@ -219,9 +221,12 @@ export function demoPlan(options: {
   const ms = timeline(score, order, scale);
   const zero = ms(span.from);
   const length = ms(span.to) - zero;
-  const notes = performedNotes(score, order, demoIncludes(hands), span.first, span.last).map(
-    (n) => ({ midi: n.midi, on: ms(n.on) - zero, off: Math.min(ms(n.off), ms(span.to)) - zero }),
-  );
+  const include = options.include ?? demoIncludes(hands);
+  const notes = performedNotes(score, order, include, span.first, span.last).map((n) => ({
+    midi: n.midi,
+    on: ms(n.on) - zero,
+    off: Math.min(ms(n.off), ms(span.to)) - zero,
+  }));
   separateRepeatedKeys(notes, loop ? length : null);
   const inSpan = steps.filter((s) => s.played >= span.first && s.played <= span.last);
   if (inSpan.length === 0) return null;
@@ -289,13 +294,10 @@ export function accompanimentPlan(options: {
   if (inSpan.length === 0) return null;
   const ms = timeline(score, order, scale);
   const lapTicks = span.to - span.from;
-  const others = performedNotes(
-    score,
-    order,
-    (note) => !inHands(note.hand, hand),
-    span.first,
-    span.last,
-  ).map((n) => ({ ...n, off: Math.min(n.off, span.to) }));
+  const others = performedNotes(score, order, otherHand(hand), span.first, span.last).map((n) => ({
+    ...n,
+    off: Math.min(n.off, span.to),
+  }));
 
   const plan: AccompanimentPlan = { lapTicks, steps: new Map() };
   let k = 0;
@@ -329,4 +331,9 @@ export function accompanimentPlan(options: {
     plan.steps.set(step.index, { pos: step.tick - span.from, notes });
   });
   return plan;
+}
+
+/** What accompanies a hand: the other hand and every part nobody practises. */
+export function otherHand(hand: Hand): (note: ScoreNote) => boolean {
+  return (note) => !inHands(note.hand, hand);
 }

@@ -6,8 +6,9 @@ which is noted when it changes.
 
 ## Unreleased
 
-Export format version 3: the file now includes imported pieces (from version 2), piece practice
-sessions and their step records. Version 1 and 2 files still import.
+Export format version 4: the file now includes imported pieces (from version 2), piece practice
+sessions and their step records (from version 3), and rhythm-mode steps with their timings.
+Version 1, 2 and 3 files still import.
 
 ### Pieces and wait mode (P1)
 
@@ -54,6 +55,32 @@ sessions and their step records. Version 1 and 2 files still import.
 - Library cards show when a piece was last practised, how many runs, and how many bars are steady.
 - The tempo and the hands are remembered per piece. Deleting an imported piece can also delete its
   practice records; its sessions stay in the log.
+
+### Rhythm mode (P4)
+
+- A **Wait / Rhythm** switch on the practice view. In rhythm mode a metronome gives one bar of
+  count-in and the cursor moves in time over the chosen hands, bars, repeats and tempo; a loop goes
+  round until Stop. The click is a short tick from the computer (the one sound dacapo makes
+  itself), on every beat, the dotted beat in 6/8, 9/8 and 12/8, accented on the first; it can play
+  throughout, only for the count-in, or not at all, at the volume you choose. Practising one hand,
+  the instrument plays the other hand in time.
+- Every note is timed against the beat (each key of a chord on its own): early or late by how many
+  milliseconds, missed, or extra. While you play, a small mark shows how the last note was timed.
+  Afterwards a sheet shows how many notes you hit and how many were within ±50 ms, missed and extra
+  notes, whether you tend to play early or late, where you sped up or slowed down, and every note on
+  a chart (with a table).
+- **Latency calibration** (Settings → Sound, and offered before the first rhythm run): tap along
+  with 16 clicks; the delay of your speakers and keyboard is measured and taken off every note.
+  Settings explains how to hear the click through the MP11SE (LINE IN) and why not to use
+  Bluetooth.
+- Rhythm runs are stored with their timings and appear in the log ("Piece, in rhythm", with the
+  share of notes in time); they count towards the minutes and the streak. **Weak bars** can show
+  hesitation (wait mode) or timing (rhythm mode): the median distance from the beat per bar, with
+  missed and extra notes marked.
+- The practice controls are tidier: the mode, the hands, the loop and the tempo in one row, the
+  settings that change rarely (start bar, repeats, other hand, show keys, weak bars, the click) under
+  **Options**, and Listen, Start and Restart under the score. The weak-bar details now always show
+  in full, also for a bar on the first line of the score.
 
 ## 0.1.0 — 2026-09-25
 

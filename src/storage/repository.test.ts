@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import { openDB, type IDBPDatabase } from 'idb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { byStepTime } from '../core/pieceRecords.ts';
+import { byStepTime, stepMode } from '../core/pieceRecords.ts';
 import { statsFromAttempts } from '../core/weakness.ts';
 import { DB_NAME, DB_VERSION, openDacapoDB, type DacapoDB } from './db.ts';
 import {
@@ -10,6 +10,7 @@ import {
   sampleData,
   sampleHeader,
   samplePiece,
+  sampleRhythmRun,
   sampleRun,
   sampleStep,
   T0,
@@ -151,6 +152,47 @@ describe('schema', () => {
       expect((await repo.load()).sessions).toContainEqual(session);
     },
   );
+
+  /** Version 3 as P3 created it, with wait-mode records and a run still open. */
+  async function seedV3() {
+    const old = await openDB(DB_NAME, 3, {
+      upgrade: (db, oldVersion) => {
+        createV2(db, oldVersion);
+        const steps = db.createObjectStore('pieceSteps', { keyPath: 'id' });
+        steps.createIndex('by-piece', 'pieceId');
+        steps.createIndex('by-session', 'sessionId');
+      },
+    });
+    const done = sampleRun('w1', 6);
+    const openSteps = sampleRun('w2', 2).steps;
+    const tx = old.transaction(['sessions', 'pieceSteps', 'meta'], 'readwrite');
+    void tx.objectStore('sessions').put(done.session);
+    for (const step of [...done.steps, ...openSteps]) void tx.objectStore('pieceSteps').put(step);
+    void tx.objectStore('meta').put(sampleHeader('w2'), 'pieceRun:w2');
+    await tx.done;
+    old.close();
+    return { done, openSteps };
+  }
+
+  it('opens a version 3 database with wait-mode records, which stay wait mode’s', async () => {
+    const old = await seedV3();
+    const db = await openDb();
+    expect(db.version).toBe(DB_VERSION);
+    const repo = createIndexedDbRepository(db);
+    const data = await repo.load();
+    expect(data.sessions).toEqual([old.done.session]);
+    expect(data.openPieceRuns).toEqual([sampleHeader('w2')]);
+    // Rhythm-mode records go into the same store beside them.
+    const rhythm = sampleRhythmRun('r1', 4);
+    await repo.addPieceStep(rhythm.steps[0]!, sampleHeader('r1', { mode: 'rhythm' }));
+    for (const step of rhythm.steps.slice(1)) await repo.addPieceStep(step, null);
+    await repo.finishPieceRun('r1', rhythm.session);
+    const steps = await repo.pieceSteps({ pieceId: 'petzold-minuet-in-g' });
+    expect(steps).toEqual([...old.done.steps, ...old.openSteps, ...rhythm.steps].sort(byStepTime));
+    expect(steps.filter((s) => stepMode(s) === 'wait')).toHaveLength(8);
+    expect(steps.filter((s) => stepMode(s) === 'rhythm')).toEqual(rhythm.steps);
+    expect((await repo.load()).sessions).toContainEqual(rhythm.session);
+  });
 
   it('never reads step records at startup', async () => {
     const db = await openDb();

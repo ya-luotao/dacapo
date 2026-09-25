@@ -81,7 +81,7 @@ for drawing.
   surface fits on one laptop screen, the current step is unmistakable, controls are quiet.
 - Everything follows the engraved-score design system (see `src/ui/styles.css` tokens).
 
-## Clarifications (decided in P0–P3)
+## Clarifications (decided in P0–P4)
 
 - **Renderer: Verovio 6.3.0.** It is loaded only on the Pieces routes, and the library prefetches
   it while idle. Its two npm files ship unmodified as separate assets, with the LGPL and GPL texts
@@ -161,6 +161,49 @@ for drawing.
   them at import and when opened.
 - **Export format 3** adds piece sessions and `pieceSteps`; formats 1 and 2 still import.
 
+- **Rhythm mode (P4).** One origin on the `performance.now()` clock drives everything: the cursor,
+  the other hand (sent over MIDI from the timeline, 80 ms ahead) and the click. The click is a Web
+  Audio blip scheduled on the AudioContext clock by a 25 ms timer with a 100 ms lookahead, mapped
+  with `getOutputTimestamp()` (the median of recent readings; before a new context gives
+  timestamps, `currentTime` plus `baseLatency` and `outputLatency`). It clicks every beat of the
+  time signature, the dotted beat in compound meters (6/8, 9/8, 12/8: the beat that is conducted and
+  counted), accented on the first. The count-in is one full bar in the start bar's meter and tempo,
+  plus the beats before a pickup. Click: on, count-in only, or off; volume in Options and Settings.
+- **Matching.** A note-on goes to the nearest due key of the same pitch whose window holds it,
+  first come first served; each key of a chord separately. The window is half the gap to the nearer
+  neighbouring step of the practised hands (whatever its keys), at most ±150 ms and at least ±40 ms,
+  so it follows the tempo and a note always belongs to the step it is closer to. A key not played
+  in its window is missed; a note-on that matches nothing is extra, counted on the step nearest in
+  time. Notes before the first window (the count-in) are ignored. The latency from calibration is
+  taken off every note.
+- **Calibration.** 16 clicks at ♩ = 90; each tap goes to the nearest click within half a beat; the
+  first four clicks do not count; at least 8 of the other 12 need a tap; the offset is the median
+  of tap − click, refused when the interquartile range is over 60 ms. Stored per browser
+  (`localStorage`), not exported. Offered once before the first rhythm run.
+- **After a run.** Notes hit and within ±50 ms (shares of the notes due), missed, extra; the
+  tendency is the 20 %-trimmed mean deviation (under 10 ms is "on the beat"); rushing and dragging
+  come from Theil–Sen lines through every stretch of 2–8 bars (in the order played, rounds of a
+  loop counted apart): a stretch is reported when its line moves at least 30 ms, the notes of its
+  last bar have moved at least 30 ms from its first, and the change is at least 5 standard errors
+  from noise; the clearest wins, and a shorter one inside it nearly as clear and steeper is
+  preferred. A drift over the whole run is reported as such when it is the clearest.
+- **Rhythm records.** Rhythm steps go into the same `pieceSteps` store with `mode: 'rhythm'` and
+  `notes` (each key's deviation in whole ms, or null when missed); `ms` is the step's share of the
+  run at its tempo and `wrong` its extra notes, so session time and the log work unchanged. No
+  store or index changed, so the database stays at version 3; records without a mode are wait
+  mode's. Rhythm sessions carry `mode` and the counts of notes, hits and notes in time. A rhythm run
+  is recorded once a key has been played. Export format 4; formats 1–3 still import.
+- **Timing heatmap.** Weak bars by Hesitation or Timing. Timing is the median distance from the
+  beat of the notes played in the bar, with missed and extra notes per note as the number, over
+  the same last 5 runs and with the same not-enough-data rule (2 runs, 3 notes); edges at 10, 20,
+  30, 50, 75 and 100 ms around a 30 ms anchor at the hesitation anchor's place in the ramp. A bar
+  whose every note was missed takes the last colour. Steady: the last 3 runs under 30 ms with
+  nothing missed or extra.
+- **Controls.** The mode (Wait / Rhythm), hands, loop and tempo stay in the control row; start bar,
+  repeats, other hand, show keys, weak bars and the click are under Options (a disclosure); Listen,
+  Start/Stop and Restart sit under the score. The weak-bar details are laid over the page, placed
+  against the window.
+
 ## Milestones
 
 1. ✓ **P0 Spike** — choose the renderer (OpenSheetMusicDisplay vs Verovio vs other), prove
@@ -169,4 +212,4 @@ for drawing.
 2. ✓ **P1 Pieces + wait mode** — library, import, score view, wait mode, hands, loop.
 3. ✓ **P2 MIDI output** — output selection, demo playback, accompaniment.
 4. ✓ **P3 Records** — persistence (DB v3), measure heatmap, log and streak integration, export.
-5. **P4 Rhythm mode** — metronome, calibration, timing analysis.
+5. ✓ **P4 Rhythm mode** — metronome, calibration, timing analysis.

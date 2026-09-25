@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useId, useMemo, useRef, type CSSProperties } from 'react';
 import {
   BAR_BUCKETS,
-  BAR_EDGES_MS,
   byBarWeakness,
+  metricScale,
   MIN_RUNS,
   MIN_STEPS,
   WINDOW_RUNS,
   type BarCell,
+  type BarMetric,
 } from '../../core/barHeatmap.ts';
 import { useT } from '../../i18n/index.ts';
 import type { BarBox, BarBoxes } from '../notation/ScoreView.tsx';
@@ -15,11 +16,11 @@ import { Tooltip } from '../progress/heatmap/Details.tsx';
 import { heatColor } from '../progress/heatmap/format.ts';
 import { Swatch } from '../progress/heatmap/Legend.tsx';
 import type { BarFormat } from './barFormat.ts';
-import type { PieceFormat } from './format.ts';
 
 // The measure heatmap on the practice view: a tint behind each bar and a strip above it in the
-// heatmap's colour for the time per step, a mark for wrong notes, details on hover, focus or tap,
-// and the same figures as a table.
+// heatmap's colour for the time per step (or, for timing, the distance from the beat), a mark
+// for wrong (missed and extra) notes, details on hover, focus or tap, and the same figures as a
+// table.
 
 /** Space around the staff lines that the tint covers, and the strip above it. */
 const PAD = 8;
@@ -79,12 +80,10 @@ export function BarTargets({
   cells,
   boxes,
   format,
-  pieceFormat,
 }: {
   cells: readonly BarCell[];
   boxes: BarBoxes;
   format: BarFormat;
-  pieceFormat: PieceFormat;
 }) {
   const t = useT();
   const layer = useRef<HTMLDivElement>(null);
@@ -104,7 +103,7 @@ export function BarTargets({
       className="bar-targets"
       ref={layer}
       role="group"
-      aria-label={t('pieces.weak.group')}
+      aria-label={t(format.metric === 'timing' ? 'pieces.weak.group.timing' : 'pieces.weak.group')}
       onKeyDown={onKeyDown}
     >
       {placed.map((cell) => (
@@ -118,38 +117,40 @@ export function BarTargets({
         />
       ))}
       {shownCell && (
-        <Tooltip container={layer} anchor={anchor} anchorKey={anchorKey} bounds={frameBounds}>
-          <BarDetails cell={shownCell} format={format} pieceFormat={pieceFormat} />
+        <Tooltip
+          container={layer}
+          anchor={anchor}
+          anchorKey={anchorKey}
+          bounds={frameBounds}
+          floating
+        >
+          <BarDetails cell={shownCell} format={format} />
         </Tooltip>
       )}
     </div>
   );
 }
 
-function BarDetails({
-  cell,
-  format,
-  pieceFormat,
-}: {
-  cell: BarCell;
-  format: BarFormat;
-  pieceFormat: PieceFormat;
-}) {
+function BarDetails({ cell, format }: { cell: BarCell; format: BarFormat }) {
   const t = useT();
+  const timing = format.metric === 'timing';
   return (
     <>
       <p className="hm-tooltip-title">{format.bar(cell)}</p>
       {cell.bucket === null ? (
         <p className="hm-tooltip-nodata">
           <Swatch bucket={null} />
-          {t('pieces.weak.noData.details', { runs: MIN_RUNS, steps: MIN_STEPS })}
+          {t(timing ? 'pieces.weak.noData.timing' : 'pieces.weak.noData.details', {
+            runs: MIN_RUNS,
+            steps: MIN_STEPS,
+          })}
         </p>
       ) : (
         <p className="hm-tooltip-speed">
           <Swatch bucket={cell.bucket} />
-          <strong>{pieceFormat.seconds(cell.medianMs!)}</strong>
+          <strong>{format.median(cell)}</strong>
           <span>
-            {t('pieces.weak.perStep')} · {format.band(cell.bucket)}
+            {t(timing ? 'pieces.weak.perNote' : 'pieces.weak.perStep')} · {format.band(cell.bucket)}
           </span>
         </p>
       )}
@@ -159,24 +160,35 @@ function BarDetails({
           <dd>{cell.runs}</dd>
         </div>
         <div>
-          <dt>{t('pieces.weak.steps')}</dt>
+          <dt>{t(timing ? 'pieces.weak.notes' : 'pieces.weak.steps')}</dt>
           <dd>{cell.steps}</dd>
         </div>
         <div>
-          <dt>{t('pieces.weak.wrong')}</dt>
+          <dt>{t(timing ? 'pieces.weak.missed' : 'pieces.weak.wrong')}</dt>
           <dd>
-            {cell.steps === 0
-              ? t('read.none')
-              : cell.wrong === 0
-                ? 0
-                : t('pieces.weak.wrong.value', { n: cell.wrong, rate: format.rate(cell) })}
+            <WrongValue cell={cell} format={format} />
           </dd>
         </div>
       </dl>
       {cell.passes > 1 && <p className="hm-tooltip-note">{t('pieces.weak.passes')}</p>}
-      {cell.steady && <p className="hm-tooltip-note">{t('pieces.weak.steady')}</p>}
+      {cell.steady && (
+        <p className="hm-tooltip-note">
+          {t(timing ? 'pieces.weak.steady.timing' : 'pieces.weak.steady')}
+        </p>
+      )}
     </>
   );
+}
+
+/** Wrong notes (timing: missed and extra) with their rate, or a dash. */
+function WrongValue({ cell, format }: { cell: BarCell; format: BarFormat }) {
+  const t = useT();
+  if (cell.steps === 0) return t('read.none');
+  if (cell.wrong === 0) return 0;
+  return t(format.metric === 'timing' ? 'pieces.weak.missed.value' : 'pieces.weak.wrong.value', {
+    n: cell.wrong,
+    rate: format.rate(cell),
+  });
 }
 
 /** The scale, the other marks, a note on older runs and the two actions. */
@@ -187,6 +199,7 @@ export function WeakBarsBar({
   loopLabel,
   onLoop,
   onTable,
+  onMetric,
 }: {
   format: BarFormat;
   loading: boolean;
@@ -195,14 +208,41 @@ export function WeakBarsBar({
   loopLabel: string | null;
   onLoop: () => void;
   onTable: () => void;
+  onMetric: (metric: BarMetric) => void;
 }) {
   const t = useT();
   const id = useId();
+  const timing = format.metric === 'timing';
+  const { edges } = metricScale(format.metric);
   const percent = (i: number) => `${((i + 1) / BAR_BUCKETS) * 100}%`;
   return (
     <div className="weak-bars" role="region" aria-label={t('pieces.weak')}>
+      <fieldset className="piece-control weak-metric">
+        <legend className="visually-hidden">{t('pieces.weak.metric')}</legend>
+        <div className="segmented is-compact">
+          {(['hesitation', 'timing'] as const).map((metric) => (
+            <label key={metric}>
+              <input
+                type="radio"
+                name={`${id}-metric`}
+                value={metric}
+                checked={format.metric === metric}
+                onChange={() => onMetric(metric)}
+                aria-describedby={`${id}-metric-${metric}`}
+              />
+              <span>{t(`pieces.weak.metric.${metric}`)}</span>
+            </label>
+          ))}
+        </div>
+        <span id={`${id}-metric-hesitation`} className="visually-hidden">
+          {t('pieces.weak.help')}
+        </span>
+        <span id={`${id}-metric-timing`} className="visually-hidden">
+          {t('pieces.weak.help.timing')}
+        </span>
+      </fieldset>
       <figure className="weak-scale">
-        <figcaption>{t('pieces.weak.legend')}</figcaption>
+        <figcaption>{t(timing ? 'pieces.weak.legend.timing' : 'pieces.weak.legend')}</figcaption>
         <div>
           <div className="hm-scale-bar" aria-hidden="true">
             {BUCKETS.map((bucket) => (
@@ -210,7 +250,7 @@ export function WeakBarsBar({
             ))}
           </div>
           <div className="hm-scale-ticks" aria-hidden="true">
-            {BAR_EDGES_MS.map((ms, i) => (
+            {edges.map((ms, i) => (
               <span key={ms} style={{ left: percent(i) }}>
                 {format.edge(ms)}
               </span>
@@ -232,7 +272,7 @@ export function WeakBarsBar({
           <span className="bar-wrong is-key" aria-hidden="true">
             ×0.5
           </span>
-          {t('pieces.weak.wrongKey')}
+          {t(timing ? 'pieces.weak.wrongKey.timing' : 'pieces.weak.wrongKey')}
         </li>
       </ul>
       <div className="weak-actions">
@@ -250,7 +290,7 @@ export function WeakBarsBar({
         </button>
         {!loopLabel && (
           <span id={`${id}-loop`} className="visually-hidden">
-            {t('pieces.weak.loop.none')}
+            {t(timing ? 'pieces.weak.loop.none.timing' : 'pieces.weak.loop.none')}
           </span>
         )}
       </div>
@@ -278,6 +318,7 @@ export function WeakBarsTable({
   onClose: () => void;
 }) {
   const t = useT();
+  const timing = format.metric === 'timing';
   const heading = useRef<HTMLHeadingElement>(null);
   const rows = useMemo(() => [...cells].sort(byBarWeakness), [cells]);
   useEffect(() => heading.current?.focus({ preventScroll: true }), []);
@@ -292,7 +333,7 @@ export function WeakBarsTable({
     >
       <div className="weak-table-head">
         <h2 id="weak-table-title" ref={heading} tabIndex={-1}>
-          {t('pieces.weak.table.title')}
+          {t(timing ? 'pieces.weak.table.title.timing' : 'pieces.weak.table.title')}
         </h2>
         <button type="button" className="button is-compact" onClick={onClose}>
           {t('pieces.weak.table.close')}
@@ -303,9 +344,13 @@ export function WeakBarsTable({
           <thead>
             <tr>
               <th scope="col">{t('pieces.weak.table.bar')}</th>
-              <th scope="col">{t('pieces.weak.table.band')}</th>
+              <th scope="col">
+                {t(timing ? 'pieces.weak.table.band.timing' : 'pieces.weak.table.band')}
+              </th>
               <th scope="col">{t('pieces.weak.table.median')}</th>
-              <th scope="col">{t('pieces.weak.table.wrong')}</th>
+              <th scope="col">
+                {t(timing ? 'pieces.weak.table.wrong.timing' : 'pieces.weak.table.wrong')}
+              </th>
               <th scope="col">{t('pieces.weak.table.runs')}</th>
               <th scope="col">{t('pieces.weak.table.steady')}</th>
             </tr>
@@ -322,11 +367,7 @@ export function WeakBarsTable({
                 </td>
                 <td>{format.median(cell)}</td>
                 <td>
-                  {cell.steps === 0
-                    ? t('read.none')
-                    : cell.wrong === 0
-                      ? 0
-                      : t('pieces.weak.wrong.value', { n: cell.wrong, rate: format.rate(cell) })}
+                  <WrongValue cell={cell} format={format} />
                 </td>
                 <td>{cell.runs}</td>
                 <td>{cell.steady ? t('pieces.weak.table.yes') : t('read.none')}</td>
@@ -335,7 +376,9 @@ export function WeakBarsTable({
           </tbody>
         </table>
       </div>
-      <p className="help">{t('pieces.weak.table.help', { n: WINDOW_RUNS })}</p>
+      <p className="help">
+        {t(timing ? 'pieces.weak.table.help.timing' : 'pieces.weak.table.help', { n: WINDOW_RUNS })}
+      </p>
     </section>
   );
 }

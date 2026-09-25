@@ -1,7 +1,10 @@
-// What wait mode leaves behind: one record per completed step (the raw data every piece figure is
-// recomputed from) and one session per run. All times here are epoch ms.
+// What practising a piece leaves behind: one record per step (the raw data every piece figure is
+// recomputed from) and one session per run, in wait mode or rhythm mode. All times here are epoch
+// ms.
 
 import { IDLE_MS } from './activity.ts';
+import { IN_TIME_MS } from './rhythmRun.ts';
+import type { NoteTiming } from './rhythm.ts';
 import type { RepeatMode } from './repeats.ts';
 import { performanceOrder } from './repeats.ts';
 import { buildSteps, type HandSelection, type Score } from './score.ts';
@@ -13,7 +16,16 @@ export function isHandSelection(value: unknown): value is HandSelection {
   return HAND_SELECTIONS.includes(value as HandSelection);
 }
 
-/** One completed step of a wait-mode run. Plain data, so it can be stored as is. */
+/**
+ * Wait mode waits for each step; rhythm mode moves in time. Records made before rhythm mode have
+ * no mode: they are wait mode's.
+ */
+export type PracticeMode = 'wait' | 'rhythm';
+
+/**
+ * One step of a run. Plain data, so it can be stored as is. In wait mode it is completed when its
+ * keys are pressed; in rhythm mode it is settled when its window closes.
+ */
 export interface PieceStep {
   /** `sessionId:n`, n the step's position in its run: stable, so imports merge by id. */
   id: string;
@@ -25,12 +37,21 @@ export interface PieceStep {
   /** Written measure index, and which pass through it. */
   measure: number;
   pass: number;
-  /** From the step appearing (or the first key after a pause) to its last required key. */
+  /**
+   * Wait mode: from the step appearing (or the first key after a pause) to its last required
+   * key. Rhythm mode: the step's share of the run at its tempo (the time to the next step).
+   */
   ms: number;
+  /** Wrong notes; in rhythm mode, note-ons that matched nothing and were closest to this step. */
   wrong: number;
-  /** When it was completed. */
+  /** When it was completed; in rhythm mode, when it was due. */
   at: number;
+  mode?: 'rhythm';
+  /** Rhythm mode: each key of the step, how early (−) or late (+) in ms, null when missed. */
+  notes?: NoteTiming[];
 }
+
+export const stepMode = (step: Pick<PieceStep, 'mode'>): PracticeMode => step.mode ?? 'wait';
 
 /** The written bars a run looped over, with their printed numbers for the log. */
 export interface LoopRange extends BarLoop {
@@ -50,11 +71,19 @@ export interface PieceRunHeader {
   repeats: RepeatMode;
   /** Percent of the score's tempo marks, for the demo and the other hand. */
   tempo: number;
-  /** The first key of the run. */
+  /** The first key of the run; in rhythm mode, the first step due. */
   startedAt: number;
+  mode?: 'rhythm';
 }
 
-/** A wait-mode run as it appears in the practice log. */
+/** A rhythm run's notes: due, played within their window, and within `IN_TIME_MS`. */
+export interface RhythmCounts {
+  notes: number;
+  hits: number;
+  inTime: number;
+}
+
+/** A run as it appears in the practice log. */
 export interface PieceSession extends PieceRunHeader {
   kind: 'piece';
   /** The last completed step. */
@@ -65,6 +94,8 @@ export interface PieceSession extends PieceRunHeader {
   wrong: number;
   /** Played to the end, or a loop ended with Finish; false when left or restarted. */
   completed: boolean;
+  /** Rhythm mode only. */
+  rhythm?: RhythmCounts;
 }
 
 export function stepId(sessionId: string, n: number): string {
@@ -84,16 +115,32 @@ export function pieceSession(
   steps: readonly PieceStep[],
   completed: boolean,
 ): PieceSession {
+  const last = steps.at(-1);
   return {
     kind: 'piece',
     ...header,
     loop: header.loop ? { ...header.loop } : null,
-    endedAt: Math.max(header.startedAt, steps.at(-1)?.at ?? header.startedAt),
+    endedAt: Math.max(
+      header.startedAt,
+      last ? last.at + (header.mode === 'rhythm' ? Math.min(last.ms, IDLE_MS) : 0) : 0,
+    ),
     activeMs: steps.reduce((sum, s) => sum + Math.min(s.ms, IDLE_MS), 0),
     steps: steps.length,
     wrong: steps.reduce((sum, s) => sum + s.wrong, 0),
     completed,
+    ...(header.mode === 'rhythm' && { rhythm: rhythmCounts(steps) }),
   };
+}
+
+export function rhythmCounts(steps: readonly Pick<PieceStep, 'notes'>[]): RhythmCounts {
+  const counts = { notes: 0, hits: 0, inTime: 0 };
+  for (const note of steps.flatMap((s) => s.notes ?? [])) {
+    counts.notes++;
+    if (note.deviation === null) continue;
+    counts.hits++;
+    if (Math.abs(note.deviation) <= IN_TIME_MS) counts.inTime++;
+  }
+  return counts;
 }
 
 /**

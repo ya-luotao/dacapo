@@ -14,7 +14,9 @@ import {
   type PieceFacts,
   type PieceRunHeader,
   type PieceStep,
+  type RhythmCounts,
 } from '../core/pieceRecords.ts';
+import type { NoteTiming } from '../core/rhythm.ts';
 import type { Attempt } from '../core/session.ts';
 import { isScoreWarning, type StoredPiece } from '../core/storedPiece.ts';
 
@@ -167,6 +169,31 @@ function isLoopRange(v: unknown): v is LoopRange | null {
   );
 }
 
+const isMode = (v: unknown) => v === undefined || v === 'rhythm';
+/** A deviation is inside its window, which is never wider than this. */
+const isDeviation = (v: unknown) =>
+  v === null || (typeof v === 'number' && Number.isFinite(v) && Math.abs(v) <= 1000);
+
+function isNoteTimings(v: unknown): v is NoteTiming[] {
+  return (
+    Array.isArray(v) &&
+    v.length > 0 &&
+    v.length <= 88 &&
+    v.every((n) => isObject(n) && isMidi(n.midi) && isDeviation(n.deviation))
+  );
+}
+
+function isRhythmCounts(v: unknown): v is RhythmCounts {
+  return (
+    isObject(v) &&
+    isCount(v.notes) &&
+    isCount(v.hits) &&
+    isCount(v.inTime) &&
+    v.hits <= v.notes &&
+    v.inTime <= v.hits
+  );
+}
+
 const HEADER_CHECKS: Record<string, (v: unknown) => boolean> = {
   id: isId,
   pieceId: isId,
@@ -176,6 +203,7 @@ const HEADER_CHECKS: Record<string, (v: unknown) => boolean> = {
   repeats: (v) => v === 'play' || v === 'skip',
   tempo: (v) => isCount(v) && v > 0 && v <= 1000,
   startedAt: isTime,
+  mode: isMode,
 };
 
 function cleanHeader(h: PieceRunHeader): PieceRunHeader {
@@ -191,6 +219,7 @@ function cleanHeader(h: PieceRunHeader): PieceRunHeader {
     repeats: h.repeats,
     tempo: h.tempo,
     startedAt: h.startedAt,
+    ...(h.mode === 'rhythm' && { mode: h.mode }),
   };
 }
 
@@ -210,6 +239,8 @@ function validatePieceSession(value: Fields): Validation<PieceSessionRecord> {
     steps: isCount,
     wrong: isCount,
     completed: isBool,
+    // Counted in rhythm mode only.
+    rhythm: (v) => (value.mode === 'rhythm' ? isRhythmCounts(v) : v === undefined),
   });
   if (field) return fail(field);
   const s = value as unknown as PieceSessionRecord;
@@ -224,6 +255,9 @@ function validatePieceSession(value: Fields): Validation<PieceSessionRecord> {
       steps: s.steps,
       wrong: s.wrong,
       completed: s.completed,
+      ...(s.rhythm && {
+        rhythm: { notes: s.rhythm.notes, hits: s.rhythm.hits, inTime: s.rhythm.inTime },
+      }),
     },
   };
 }
@@ -251,6 +285,9 @@ export function validatePieceStep(value: unknown): Validation<PieceStep> {
     ms: isTime,
     wrong: isCount,
     at: isTime,
+    mode: isMode,
+    // Rhythm mode's timings, and nothing in wait mode.
+    notes: (v) => (value.mode === 'rhythm' ? isNoteTimings(v) : v === undefined),
   });
   if (field) return fail(field);
   const r = value as unknown as PieceStep;
@@ -267,6 +304,10 @@ export function validatePieceStep(value: unknown): Validation<PieceStep> {
       ms: r.ms,
       wrong: r.wrong,
       at: r.at,
+      ...(r.mode === 'rhythm' && {
+        mode: r.mode,
+        notes: r.notes!.map((n) => ({ midi: n.midi, deviation: n.deviation })),
+      }),
     },
   };
 }

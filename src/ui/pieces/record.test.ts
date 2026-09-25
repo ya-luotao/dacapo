@@ -7,7 +7,7 @@ import { performanceOrder } from '../../core/repeats.ts';
 import { buildSteps, type Score, type ScoreNote } from '../../core/score.ts';
 import { waitRange } from '../../core/wait.ts';
 import { createPracticeStore, type PracticeStore } from '../practice/store.ts';
-import { useRunRecorder, type RunContext } from './record.ts';
+import { useRunRecorder, waitRecording, type RecordableRun, type RunContext } from './record.ts';
 import { runReducer, startRun, type Run } from './run.ts';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -74,7 +74,12 @@ const CONTEXT: RunContext = {
 };
 
 function Recorder({ run, store }: { run: Run; store: PracticeStore }) {
-  useRunRecorder(run, CONTEXT, store);
+  useRunRecorder(waitRecording(run), CONTEXT, store);
+  return null;
+}
+
+function RhythmRecorder({ run, store }: { run: RecordableRun; store: PracticeStore }) {
+  useRunRecorder(run, { ...CONTEXT, mode: 'rhythm' }, store);
   return null;
 }
 
@@ -180,5 +185,51 @@ describe('recording runs', () => {
     render(run);
     expect(run.records.map((r) => r.ms)).toEqual([0, 0, 700, 300]);
     expect(pieceSessions()[0]).toMatchObject({ activeMs: 1_000, completed: true });
+  });
+
+  it('stores rhythm steps with their timings, and the session with its counts', async () => {
+    const notes = (...devs: (number | null)[]) =>
+      devs.map((deviation, i) => ({ midi: 72 + i, deviation }));
+    const records = [
+      { measure: 0, pass: 1, ms: 667, wrong: 0, epoch: EPOCH, notes: notes(12.4, -60.6) },
+      { measure: 0, pass: 1, ms: 667, wrong: 1, epoch: EPOCH + 667, notes: notes(null) },
+    ];
+    const rhythm = (count: number, ended: RecordableRun['ended']): RecordableRun => ({
+      id: 'r9',
+      records: records.slice(0, count),
+      startedEpoch: count > 0 ? EPOCH : null,
+      ended,
+    });
+    const show = (run: RecordableRun) =>
+      act(() => root.render(createElement(RhythmRecorder, { run, store })));
+    show(rhythm(1, null));
+    show(rhythm(2, { completed: true }));
+    store.loadPieceSteps('two-bars');
+    await store.settled();
+    await new Promise((resolve) => setTimeout(resolve));
+    expect(store.getPieceSteps('two-bars')).toEqual([
+      expect.objectContaining({
+        id: 'r9:00000',
+        ms: 667,
+        mode: 'rhythm',
+        notes: [
+          { midi: 72, deviation: 12 },
+          { midi: 73, deviation: -61 },
+        ],
+      }),
+      expect.objectContaining({ id: 'r9:00001', wrong: 1, notes: [{ midi: 72, deviation: null }] }),
+    ]);
+    expect(pieceSessions()).toEqual([
+      expect.objectContaining({
+        id: 'r9',
+        mode: 'rhythm',
+        activeMs: 1_334,
+        endedAt: EPOCH + 1_334,
+        steps: 2,
+        wrong: 1,
+        completed: true,
+        rhythm: { notes: 3, hits: 2, inTime: 1 },
+      }),
+    ]);
   });
 });

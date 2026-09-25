@@ -108,7 +108,10 @@ function SessionRow({ session }: { session: SessionRecord }) {
     case 'piece':
       cells = [
         when,
-        ['progress.session.kind', t('progress.kind.piece')],
+        [
+          'progress.session.kind',
+          t(session.mode === 'rhythm' ? 'progress.kind.pieceRhythm' : 'progress.kind.piece'),
+        ],
         ['progress.session.piece', <PieceTitle session={session} />],
         duration,
         [
@@ -122,7 +125,18 @@ function SessionRow({ session }: { session: SessionRecord }) {
                 })
             : t('progress.session.wholePiece'),
         ],
-        ['progress.session.wrong', t('progress.session.wrongNotes', { n: session.wrong })],
+        session.rhythm
+          ? [
+              'progress.session.timing',
+              t('progress.session.inTime', {
+                percent: Math.round(
+                  session.rhythm.notes === 0
+                    ? 0
+                    : (100 * session.rhythm.inTime) / session.rhythm.notes,
+                ),
+              }),
+            ]
+          : ['progress.session.wrong', t('progress.session.wrongNotes', { n: session.wrong })],
         ['progress.session.hands', t(`progress.session.hands.${session.hands}`)],
       ];
       break;

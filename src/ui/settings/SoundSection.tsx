@@ -10,6 +10,9 @@ import {
   writeAccompanimentLevel,
   type AccompanimentLevel,
 } from '../output/prefs.ts';
+import { Calibration } from '../pieces/Calibration.tsx';
+import { readClickVolume, writeClickVolume } from '../pieces/rhythmPrefs.ts';
+import { sharedClickTrack } from '../pieces/useRhythmPlayer.ts';
 
 const AUTO = 'auto';
 const NONE = 'none';
@@ -25,6 +28,16 @@ export function SoundSection() {
   const { output } = useInput();
   const { ports, choice, selected } = useOutputState();
   const [level, setLevel] = useState<AccompanimentLevel>(readAccompanimentLevel);
+  const [volume, setVolume] = useState(readClickVolume);
+
+  function testClick() {
+    const track = sharedClickTrack();
+    if (!track) return;
+    track.setVolume(volume / 100);
+    const at = performance.now() + 150;
+    const clicks = [0, 1, 2, 3].map((i) => ({ time: at + i * 500, accent: i === 0 }));
+    track.start((from, to) => clicks.filter((c) => c.time >= from && c.time < to));
+  }
   const midi = useMidiStatus().state;
   // Without access to MIDI at all, the input's explanation (with its retry) says why.
   const blocked = midi === 'no-permission' || midi === 'unsupported';
@@ -105,6 +118,31 @@ export function SoundSection() {
           {t('settings.accompaniment.help')}
         </p>
       </fieldset>
+
+      <div className="field sound-click">
+        <label htmlFor={`${id}-click`}>{t('settings.click')}</label>
+        <p className="help">{t('settings.click.help')}</p>
+        <div className="sound-row">
+          <input
+            id={`${id}-click`}
+            type="range"
+            min={0}
+            max={100}
+            step={5}
+            value={volume}
+            aria-label={t('settings.click.volume')}
+            onChange={(e) => {
+              setVolume(Number(e.target.value));
+              writeClickVolume(Number(e.target.value));
+            }}
+          />
+          <button type="button" className="button" onClick={testClick}>
+            {t('settings.click.test')}
+          </button>
+        </div>
+      </div>
+
+      <Calibration />
     </section>
   );
 }

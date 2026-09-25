@@ -10,8 +10,8 @@ All data stays in your browser.
 [docs/MVP.md](docs/MVP.md) are built and tested. It has not been used day to day for long yet,
 so expect rough edges; bug reports are welcome. See [CHANGELOG.md](CHANGELOG.md) for what is in
 each release. Practising pieces ([docs/PIECES.md](docs/PIECES.md)) is under way: the library,
-import, wait mode, MIDI playback and practice records with a measure heatmap are in; a rhythm
-mode comes next.
+import, wait mode, MIDI playback, practice records with a measure heatmap and a rhythm mode with a
+metronome are in.
 
 ![A flashcard on the grand staff: one note in the bass clef, with the piano keyboard below](docs/images/read.webp)
 
@@ -37,13 +37,15 @@ in English and Simplified Chinese.
 - **Weakness heatmap.** Every note you have practised, on the grand staff or on the keyboard,
   coloured by how fast you usually find it and marked with how often you missed it lately,
   with the three weakest notes named and a table view.
-- **Pieces, in wait mode.** Six public-domain pieces from Initial to about grade 5, plus your
+- **Pieces, in wait mode and in rhythm.** Six public-domain pieces from Initial to about grade 5, plus your
   own MusicXML (`.musicxml`, `.xml` or `.mxl`, for example from MuseScore). The cursor waits on
   the real score until you have played the right keys. You can practise one hand or both, loop a
   few bars, start anywhere, and play or skip the repeats. With the keyboard connected over USB,
   the instrument can play the passage to you at any tempo, or play the other hand as you go.
-  "Weak bars" tints each bar by how long you hesitated there in your last runs, and one click
-  loops the weakest ones.
+  In rhythm mode a metronome counts you in and the score moves in time: every note is timed, and
+  afterwards you see how many came in time, whether you tend to play early or late, and where you
+  sped up or slowed down. "Weak bars" tints each bar by how long you hesitated there, or how far
+  off the beat you were, in your last runs, and one click loops the weakest ones.
 - **Your data stays yours.** Everything is stored in your browser (IndexedDB). Export it as a
   JSON file and import it on another computer.
 - English and Simplified Chinese, light and dark themes. Everything works from the keyboard,
@@ -102,8 +104,8 @@ static file host without rewrite rules.
 
 These are deliberately out of scope for the MVP and are the candidates once it is used daily:
 
-- Audio output (the app itself is silent — the piano makes the sound, also for demos over MIDI)
-- Pieces, continued ([docs/PIECES.md](docs/PIECES.md)): a rhythm mode with a metronome
+- Audio output (the app makes no sound of its own apart from the metronome click — the piano
+  plays the notes, also for demos over MIDI)
 - Analysis of scale evenness
 - Theory and ear training
 - Accounts and sync between devices

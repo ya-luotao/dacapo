@@ -23,14 +23,14 @@ afterEach(() => {
 });
 
 describe('per-piece preferences', () => {
-  it('remember the hands and the tempo of each piece', () => {
+  it('remember the hands, the tempo and the mode of each piece', () => {
     writePiecePrefs('minuet', { hands: 'left' });
-    writePiecePrefs('minuet', { tempo: 70 });
+    writePiecePrefs('minuet', { tempo: 70, mode: 'rhythm' });
     writePiecePrefs('ode', { tempo: 50 });
-    expect(readPiecePrefs('minuet')).toEqual({ hands: 'left', tempo: 70 });
-    // A piece not practised yet starts with the hands chosen last anywhere, at 100 %.
-    expect(readPiecePrefs('prelude')).toEqual({ hands: 'left', tempo: 100 });
-    expect(readPiecePrefs('ode')).toEqual({ hands: 'left', tempo: 50 });
+    expect(readPiecePrefs('minuet')).toEqual({ hands: 'left', tempo: 70, mode: 'rhythm' });
+    // A piece not practised yet starts with the hands chosen last anywhere, at 100 %, waiting.
+    expect(readPiecePrefs('prelude')).toEqual({ hands: 'left', tempo: 100, mode: 'wait' });
+    expect(readPiecePrefs('ode')).toEqual({ hands: 'left', tempo: 50, mode: 'wait' });
     writePiecePrefs('ode', { hands: 'both' });
     expect(readPiecePrefs('minuet').hands).toBe('left');
     expect(localStorage.getItem(HANDS_PREF)).toBe('both');
@@ -47,9 +47,13 @@ describe('per-piece preferences', () => {
     expect(parsePiecePrefs('[1]')).toEqual({});
     expect(
       parsePiecePrefs(
-        JSON.stringify({ a: { hands: 'feet', tempo: 55 }, b: 3, c: { hands: 'right', tempo: 80 } }),
+        JSON.stringify({
+          a: { hands: 'feet', tempo: 55, mode: 'jazz' },
+          b: 3,
+          c: { hands: 'right', tempo: 80, mode: 'rhythm' },
+        }),
       ),
-    ).toEqual({ c: { hands: 'right', tempo: 80 } });
+    ).toEqual({ c: { hands: 'right', tempo: 80, mode: 'rhythm' } });
   });
 
   it('fall back to defaults without storage', () => {
@@ -62,6 +66,6 @@ describe('per-piece preferences', () => {
       },
     });
     writePiecePrefs('x', { hands: 'both' });
-    expect(readPiecePrefs('x')).toEqual({ hands: 'right', tempo: 100 });
+    expect(readPiecePrefs('x')).toEqual({ hands: 'right', tempo: 100, mode: 'wait' });
   });
 });

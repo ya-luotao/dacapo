@@ -2534,6 +2534,12 @@ kbd {
   pointer-events: none;
 }
 
+.hm-tooltip.is-floating {
+  position: fixed;
+  z-index: 20;
+  max-width: min(18rem, calc(100vw - 1rem));
+}
+
 .hm-tooltip p {
   margin: 0;
 }
@@ -3297,9 +3303,8 @@ select.is-compact {
 
 .weak-scale {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 0.25rem 0.75rem;
+  flex-direction: column;
+  gap: 0.125rem;
   min-width: 0;
   margin: 0;
 }
@@ -3312,8 +3317,8 @@ select.is-compact {
 }
 
 .weak-scale > div {
-  flex: 0 1 13rem;
-  min-width: 10rem;
+  width: 13rem;
+  max-width: 100%;
 }
 
 .weak-scale .hm-scale-bar {
@@ -3326,8 +3331,8 @@ select.is-compact {
 
 .weak-keys {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 1rem;
+  flex-direction: column;
+  gap: 0.125rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -3350,6 +3355,12 @@ select.is-compact {
 .weak-note {
   flex-basis: 100%;
   margin: 0;
+}
+
+.weak-metric .segmented.is-compact span {
+  min-height: 2.25rem;
+  padding-inline: 0.75rem;
+  font-size: 0.875rem;
 }
 
 .weak-table {
@@ -3490,6 +3501,396 @@ select.is-compact {
   }
 }
 
+/* Practice: the mode, the options disclosure and rhythm mode. */
+.piece-mode .segmented span {
+  font-weight: 600;
+}
+
+.piece-options {
+  position: relative;
+  margin-inline-start: auto;
+}
+
+.piece-options > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  list-style: none;
+  cursor: pointer;
+}
+
+.piece-options > summary::-webkit-details-marker {
+  display: none;
+}
+
+.piece-options > summary::after {
+  content: '';
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform var(--dur) ease-out;
+}
+
+.piece-options[open] > summary::after {
+  transform: translateY(1px) rotate(-135deg);
+}
+
+.piece-options-panel {
+  position: absolute;
+  z-index: 6;
+  top: calc(100% + 0.375rem);
+  right: 0;
+  display: grid;
+  gap: 0.625rem;
+  width: max-content;
+  max-width: min(24rem, calc(100vw - 2 * var(--gutter)));
+  padding: 0.875rem 1rem 1rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+  animation: ink-in var(--dur) ease-out;
+}
+
+.piece-option {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.piece-option .piece-control-label {
+  min-width: 5.5rem;
+}
+
+.piece-option-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.25rem;
+  padding-top: 0.375rem;
+  border-top: 1px solid var(--border);
+}
+
+.piece-option-checks .check {
+  min-height: 2.5rem;
+  font-size: 0.9375rem;
+}
+
+.piece-latency {
+  padding-top: 0.625rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.piece-volume {
+  width: 10rem;
+  accent-color: var(--accent);
+}
+
+.piece-actions > * {
+  flex: none;
+  white-space: nowrap;
+}
+
+.piece-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 6.5rem;
+  justify-content: center;
+}
+
+.piece-go svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.piece-go svg .is-filled {
+  fill: currentColor;
+}
+
+.piece-count {
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+.timing-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+}
+
+.timing-mark svg {
+  width: 3.75rem;
+  height: 0.75rem;
+  overflow: visible;
+}
+
+.timing-track {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.timing-zero {
+  stroke: var(--text-muted);
+  stroke-width: 1;
+}
+
+.timing-tick {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.timing-words {
+  min-width: 8ch;
+  color: var(--text);
+}
+
+.timing-words.is-extra {
+  color: var(--text-muted);
+}
+
+/* After a rhythm run. */
+.rhythm-summary {
+  max-width: 44rem;
+}
+
+.rhythm-summary {
+  padding-top: 1rem;
+}
+
+.rhythm-summary-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.rhythm-summary-head .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.rhythm-summary h2 {
+  font-size: clamp(1.375rem, 1.25rem + 0.5vw, 1.625rem);
+}
+
+.rhythm-summary .figures {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  max-width: none;
+  margin: 0.75rem 0;
+}
+
+.rhythm-summary .figures div {
+  padding-block: 0.375rem 0.5rem;
+}
+
+.rhythm-summary .figures dt {
+  font-size: 0.75rem;
+}
+
+.rhythm-summary .figures dd {
+  margin-top: 0.125rem;
+  font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem);
+}
+
+.rhythm-summary .history-details {
+  margin-top: 0.25rem;
+}
+
+.rhythm-summary > .help {
+  margin: 0.5rem 0 0;
+}
+
+.rhythm-verdict {
+  max-width: 40rem;
+  margin: 0 0 0.5rem;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+}
+
+.deviation {
+  margin: 0;
+}
+
+.deviation figcaption {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.deviation figcaption:lang(zh) {
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+}
+
+.deviation-frame {
+  position: relative;
+  margin-top: 0.375rem;
+}
+
+.deviation-frame svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  font-family: var(--font-sans);
+  touch-action: pan-y;
+}
+
+.deviation-band {
+  fill: color-mix(in oklab, var(--text) 7%, var(--surface));
+}
+
+.deviation-grid text,
+.deviation-zero text,
+.deviation-word,
+.deviation-stretch text {
+  fill: var(--text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.deviation-zero line {
+  stroke: var(--text);
+  stroke-width: 1;
+}
+
+.deviation-stretch line {
+  stroke: var(--text);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.deviation-dot {
+  fill: var(--accent);
+  stroke: var(--surface);
+  stroke-width: 2;
+  paint-order: stroke;
+}
+
+.deviation-dot.is-hover {
+  fill: var(--text);
+}
+
+.deviation-missed {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.deviation-tip {
+  position: absolute;
+  top: -0.25rem;
+  margin: 0;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+}
+
+.deviation .help {
+  margin: 0.25rem 0 0;
+}
+
+.deviation-table {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Latency calibration (Settings and before the first rhythm run). */
+.calibration-title.eyebrow {
+  margin-bottom: 0.25rem;
+}
+
+.calibration-tips {
+  margin: 0.5rem 0;
+  padding-inline-start: 1.125rem;
+}
+
+.calibration-tips li + li {
+  margin-top: 0.25rem;
+}
+
+.calibration-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-top: 0.75rem;
+}
+
+.calibration-row p {
+  margin: 0;
+}
+
+.calibration-progress {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.calibration-sheet {
+  max-width: 36rem;
+}
+
+.sound-click {
+  margin-top: 1.5rem;
+}
+
+.sound-click .sound-row input[type='range'] {
+  width: 12rem;
+  accent-color: var(--accent);
+}
+
+.sound .calibration {
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 47.99rem) {
+  .rhythm-summary .figures {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rhythm-summary .figures div:nth-child(3) {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+  }
+
+  .piece-options {
+    margin-inline-start: 0;
+  }
+
+  /* On a phone the options open in place, under the controls. */
+  .piece-options[open] {
+    flex-basis: 100%;
+  }
+
+  .piece-options-panel {
+    position: static;
+    width: auto;
+    max-width: none;
+    margin-top: 0.5rem;
+  }
+}
+
 /* Last, so it wins over every transition and animation above. */
 @media (prefers-reduced-motion: reduce) {
   .nav-link::after,
@@ -3510,7 +3911,8 @@ select.is-compact {
   .library-piece-title,
   .pieces-drop,
   .score-cursor,
-  .score-svg g.note {
+  .score-svg g.note,
+  .piece-options > summary::after {
     transition: none;
   }
 
@@ -3519,7 +3921,8 @@ select.is-compact {
   .data-message,
   .import-preview,
   .your-piece-panel,
-  .piece-summary {
+  .piece-summary,
+  .piece-options-panel {
     animation: none;
   }
 }
@@ -3546,19 +3949,7 @@ select.is-compact {
   margin-top: 0.5rem;
 }
 
-/* Practice: listening and the other hand (quiet, like the other controls). */
-.piece-transport {
-  flex-wrap: wrap;
-  gap: 0.5rem 0.75rem;
-  margin-inline-start: auto;
-}
-
-.piece-transport > *,
-.piece-transport .piece-control > * {
-  flex: none;
-  white-space: nowrap;
-}
-
+/* Practice: the tempo's metronome mark and the transport under the score. */
 .piece-bpm {
   color: var(--text-muted);
   font-size: 0.875rem;

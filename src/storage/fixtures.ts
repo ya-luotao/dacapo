@@ -140,3 +140,39 @@ export function sampleRun(
     ),
   };
 }
+
+/** Step `n` of rhythm run `sessionId`: bar n % 4, a two-key chord every 667 ms, the high key missed on every fifth. */
+export function sampleRhythmStep(
+  sessionId: string,
+  n: number,
+  patch: Partial<PieceStep> = {},
+): PieceStep {
+  return {
+    ...sampleStep(sessionId, n),
+    ms: 667,
+    wrong: n % 7 === 6 ? 1 : 0,
+    at: T0 + n * 667,
+    mode: 'rhythm',
+    notes: [
+      { midi: 60, deviation: ((n * 37) % 61) - 30 },
+      { midi: 64, deviation: n % 5 === 4 ? null : ((n * 23) % 41) - 10 },
+    ],
+    ...patch,
+  };
+}
+
+/** A rhythm run of `count` steps with its session. */
+export function sampleRhythmRun(
+  sessionId: string,
+  count: number,
+): { steps: PieceStep[]; session: PieceSession } {
+  const steps = Array.from({ length: count }, (_, n) => sampleRhythmStep(sessionId, n));
+  return {
+    steps,
+    session: pieceSession(
+      sampleHeader(sessionId, { mode: 'rhythm', startedAt: steps[0]!.at }),
+      steps,
+      true,
+    ),
+  };
+}

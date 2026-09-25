@@ -15,9 +15,10 @@ import { validateAttempt, validatePiece, validatePieceStep, validateSession } fr
 export const EXPORT_FORMAT = 'dacapo';
 /**
  * Bump when the file shape changes; older files must keep importing. Version 2 adds pieces,
- * version 3 piece sessions and step records.
+ * version 3 piece sessions and step records, version 4 rhythm-mode steps and sessions (a `mode`
+ * and their timings; records without a mode are wait mode's, as in version 3).
  */
-export const EXPORT_VERSION = 3;
+export const EXPORT_VERSION = 4;
 
 export interface Preferences {
   /** null follows the browser language. */
@@ -40,7 +41,7 @@ export interface ExportFile {
   noteStats: NoteStats[];
   /** Imported pieces, oldest first, with their MusicXML. */
   pieces: StoredPiece[];
-  /** Wait-mode step records, oldest first. */
+  /** Step records of wait and rhythm mode, oldest first. */
   pieceSteps: PieceStep[];
 }
 

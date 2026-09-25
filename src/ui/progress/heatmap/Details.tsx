@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
+import { createPortal } from 'react-dom';
 import { MIN_ATTEMPTS, type Figures } from '../../../core/heatmap.ts';
 import { useT } from '../../../i18n/index.ts';
 import { useReadFormat } from '../../read/format.ts';
@@ -16,20 +17,60 @@ interface TooltipProps {
   anchorKey: string;
   /** The visible area when the container scrolls inside it (default: the window). */
   bounds?: () => DOMRect | null;
+  /**
+   * Laid over the page instead of inside the container, placed against the window: always shown
+   * whole, even when the container is too short for it (a bar on the first line of a score).
+   * Hidden while the anchor is scrolled out of `bounds`.
+   */
+  floating?: boolean;
   children: ReactNode;
 }
 
 /** Floats above the anchor (below it when there is no room), inside the container's width. */
-export function Tooltip({ container, anchor, anchorKey, bounds, children }: TooltipProps) {
+export function Tooltip({
+  container,
+  anchor,
+  anchorKey,
+  bounds,
+  floating = false,
+  children,
+}: TooltipProps) {
   const tip = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState<{ left: number; top: number } | null>(null);
 
   useLayoutEffect(() => {
+    function placeInWindow(target: Element, el: HTMLElement) {
+      const a = target.getBoundingClientRect();
+      const visible = bounds?.();
+      if (visible && (a.bottom < visible.top || a.top > visible.bottom)) {
+        setPosition(null);
+        return;
+      }
+      const w = el.offsetWidth;
+      const h = el.offsetHeight;
+      const room = document.documentElement.clientWidth;
+      const left = Math.min(
+        Math.max(GAP, a.left + a.width / 2 - w / 2),
+        Math.max(GAP, room - w - GAP),
+      );
+      // Above if it fits in the window, else below; never off either edge.
+      const above = a.top - h - GAP;
+      const below = a.bottom + GAP;
+      let top = above >= GAP ? above : below;
+      top = Math.max(GAP, Math.min(top, window.innerHeight - h - GAP));
+      setPosition((p) => (p && p.left === left && p.top === top ? p : { left, top }));
+    }
+
     function place() {
       const box = container.current;
       const target = anchor();
       const el = tip.current;
-      if (!box || !target || !el) return;
+      if (!target || !el) return;
+      if (floating) {
+        placeInWindow(target, el);
+        return;
+      }
+      if (!box) return;
       const b = box.getBoundingClientRect();
       const a = target.getBoundingClientRect();
       const w = el.offsetWidth;
@@ -54,12 +95,12 @@ export function Tooltip({ container, anchor, anchorKey, bounds, children }: Tool
       window.removeEventListener('resize', place);
       window.removeEventListener('scroll', place, true);
     };
-  }, [container, anchor, anchorKey, bounds]);
+  }, [container, anchor, anchorKey, bounds, floating]);
 
-  return (
+  const tooltip = (
     <div
       ref={tip}
-      className="hm-tooltip"
+      className={floating ? 'hm-tooltip is-floating' : 'hm-tooltip'}
       // Screen readers get the same details from the cell's own label.
       aria-hidden="true"
       style={position ? { left: position.left, top: position.top } : { visibility: 'hidden' }}
@@ -67,6 +108,7 @@ export function Tooltip({ container, anchor, anchorKey, bounds, children }: Tool
       {children}
     </div>
   );
+  return floating ? createPortal(tooltip, document.body) : tooltip;
 }
 
 interface CellDetailsProps {
