@@ -4740,9 +4740,13 @@ select.is-compact {
   font-size: 0.875rem;
 }
 
+.metronome-trainer-body .segmented {
+  justify-self: start;
+}
+
 .metronome-fields {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(5.25rem, 1fr));
   gap: 0.5rem 0.75rem;
 }
 
