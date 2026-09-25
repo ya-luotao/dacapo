@@ -7,6 +7,8 @@ const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 
 };
 
 export default defineConfig({
+  // A sub-path such as `/dacapo/` when the app is served below the site root; `/` by default.
+  base: process.env.BASE_PATH ?? '/',
   plugins: [react()],
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
