@@ -262,6 +262,15 @@ describe('parseImport', () => {
     expect(parsed(fileWith({ preferences: undefined })).preferences).toBeNull();
   });
 
+  it.each(['en', 'zh-CN', 'zh-TW', 'ja', 'ko'])(
+    'accepts the %s locale in preferences',
+    (locale) => {
+      const file = parsed(fileWith({ preferences: { locale, theme: 'light' } }));
+      expect(file.preferences).toEqual({ locale, theme: 'light' });
+      expect(file.invalid).toEqual([]);
+    },
+  );
+
   it('reads the export date and app version when present', () => {
     const file = parsed(fileWith({ app: 'x', exportedAt: 5 }));
     expect(file).toMatchObject({ exportedAt: null, appVersion: null, version: 1 });

@@ -27,7 +27,7 @@ export function usePieceFormat(measures: readonly Measure[] = []) {
         const m = measures[index];
         const bar = barNumber(index);
         return m && m.repeat.ending.length > 0
-          ? t('pieces.bar.ending', { bar, n: m.repeat.ending.join(', ') })
+          ? t('pieces.bar.ending', { bar, n: m.repeat.ending.join(t('app.listSeparator')) })
           : bar;
       },
       level: (level: PieceLevel) =>

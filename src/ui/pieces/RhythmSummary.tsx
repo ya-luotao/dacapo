@@ -5,7 +5,7 @@ import {
   type RhythmStretch,
   type RhythmSummary as Summary,
 } from '../../core/rhythmRun.ts';
-import { useI18n } from '../../i18n/index.ts';
+import { SENTENCE_GAP, useI18n } from '../../i18n/index.ts';
 import { DeviationChart } from './DeviationChart.tsx';
 import type { PieceFormat } from './format.ts';
 
@@ -36,8 +36,7 @@ export function RhythmSummary({
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => heading.current?.focus({ preventScroll: true }), []);
   const percent = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
-  // Sentences run on without a space in Chinese.
-  const gap = locale.startsWith('zh') ? '' : ' ';
+  const gap = SENTENCE_GAP[locale];
   const share = (n: number) =>
     t('pieces.rhythm.percent', {
       percent: percent.format(summary.notes === 0 ? 0 : (100 * n) / summary.notes),

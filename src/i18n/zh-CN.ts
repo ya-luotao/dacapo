@@ -3,6 +3,7 @@ import type { Dictionary } from './en.ts';
 export const zhCN: Dictionary = {
   'app.name': 'dacapo',
   'app.tagline': '看谱，找键。',
+  'app.listSeparator': '、',
   'nav.label': '主导航',
   'nav.play': '弹奏',
   'nav.read': '识谱',
@@ -167,7 +168,6 @@ export const zhCN: Dictionary = {
   'heatmap.view.staff': '五线谱',
   'heatmap.view.keyboard': '键盘',
   'heatmap.weakest': '最薄弱的音：',
-  'heatmap.listSeparator': '、',
   'heatmap.weakest.none': '暂时没有。一个音作答满 {n} 次后才会参与排名。',
   'heatmap.empty': '还没有作答过的音。做一次识谱练习，答过的每个音都会显示在这里。',
   'heatmap.emptyLevel': '这个级别的音还没有作答过。',

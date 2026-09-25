@@ -82,7 +82,7 @@ export function WeaknessHeatmap({ stats }: { stats: StatsByKey }) {
                   ? t('heatmap.weakest.none', { n: MIN_ATTEMPTS })
                   : weakest.map((cell, i) => (
                       <Fragment key={cell.key}>
-                        {i > 0 && t('heatmap.listSeparator')}
+                        {i > 0 && t('app.listSeparator')}
                         <span className="hm-weak-note">
                           <Swatch bucket={cell.bucket} />
                           {read.note(cell.key)}

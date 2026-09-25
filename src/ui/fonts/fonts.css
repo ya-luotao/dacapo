@@ -1,5 +1,5 @@
 /*
- * Self-hosted Latin subsets (see OFL.txt). Chinese falls back to system fonts through the stacks
+ * Self-hosted Latin subsets (see OFL.txt). CJK text falls back to system fonts through the stacks
  * in styles.css, so no CJK font is downloaded.
  */
 

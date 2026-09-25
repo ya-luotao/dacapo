@@ -1,7 +1,7 @@
 /*
  * "Engraved score": warm paper and ink, hairline rules instead of boxes, one urtext-blue accent.
- * Source Serif 4 (display, figures) and Source Sans 3 (text); Chinese uses the system Song and
- * sans faces. Colours were chosen in OKLCH; contrast ratios are in the design notes.
+ * Source Serif 4 (display, figures) and Source Sans 3 (text); Chinese, Japanese and Korean use
+ * the system serif and sans faces of their own language, so each gets its own glyph forms. Colours were chosen in OKLCH; contrast ratios are in the design notes.
  */
 
 :root {
@@ -80,6 +80,34 @@
   --dur: 180ms;
   --gutter: 16px;
   --content-width: 64rem;
+}
+
+/* The same Han character is drawn differently in Japan, Korea, Taiwan and mainland China. */
+:root:lang(zh-TW) {
+  --font-serif:
+    'Source Serif 4', 'Songti TC', 'Noto Serif CJK TC', 'Source Han Serif TC', 'PMingLiU', Georgia,
+    serif;
+  --font-sans:
+    'Source Sans 3', 'PingFang TC', 'Noto Sans CJK TC', 'Source Han Sans TC', 'Microsoft JhengHei',
+    system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+:root:lang(ja) {
+  --font-serif:
+    'Source Serif 4', 'Hiragino Mincho ProN', 'Yu Mincho', 'YuMincho', 'Noto Serif CJK JP',
+    'Noto Serif JP', 'Source Han Serif JP', Georgia, serif;
+  --font-sans:
+    'Source Sans 3', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'YuGothic',
+    'Noto Sans CJK JP', 'Noto Sans JP', 'Meiryo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+:root:lang(ko) {
+  --font-serif:
+    'Source Serif 4', 'AppleMyungjo', 'Nanum Myeongjo', 'Noto Serif CJK KR', 'Noto Serif KR',
+    'Source Han Serif K', 'Batang', Georgia, serif;
+  --font-sans:
+    'Source Sans 3', 'Apple SD Gothic Neo', 'Noto Sans CJK KR', 'Noto Sans KR', 'Source Han Sans K',
+    'Malgun Gothic', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -237,8 +265,19 @@ body {
   overflow-x: hidden;
 }
 
-body:lang(zh) {
+body:is(:lang(zh), :lang(ja), :lang(ko)) {
   line-height: 1.75;
+}
+
+/* Japanese headings break between phrases where the browser can find them. */
+:is(h1, h2, h3):lang(ja) {
+  word-break: auto-phrase;
+}
+
+/* Korean wraps between words, not inside them. */
+body:lang(ko) {
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 a {
@@ -263,7 +302,7 @@ h1 {
   text-wrap: balance;
 }
 
-h1:lang(zh) {
+h1:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-weight: 600;
   letter-spacing: 0.02em;
   line-height: 1.25;
@@ -288,9 +327,9 @@ h1:lang(zh) {
   text-transform: uppercase;
 }
 
-.field > label:lang(zh),
-.field > legend:lang(zh),
-.eyebrow:lang(zh) {
+.field > label:is(:lang(zh), :lang(ja), :lang(ko)),
+.field > legend:is(:lang(zh), :lang(ja), :lang(ko)),
+.eyebrow:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
   letter-spacing: 0.04em;
 }
@@ -673,7 +712,7 @@ kbd {
   text-transform: uppercase;
 }
 
-.readout-label:lang(zh) {
+.readout-label:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
   letter-spacing: 0.04em;
 }
@@ -690,7 +729,7 @@ kbd {
   overflow-wrap: anywhere;
 }
 
-.readout-notes:lang(zh) {
+.readout-notes:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-weight: 600;
   letter-spacing: 0;
 }
@@ -906,7 +945,7 @@ kbd {
   text-wrap: balance;
 }
 
-.keys-hint h2:lang(zh) {
+.keys-hint h2:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-weight: 600;
 }
 
@@ -1153,7 +1192,7 @@ kbd {
   text-transform: uppercase;
 }
 
-.badge:lang(zh) {
+.badge:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.8125rem;
   letter-spacing: 0.04em;
 }
@@ -1414,7 +1453,7 @@ kbd {
   animation: ink-in var(--dur) ease-out;
 }
 
-.read-result:lang(zh) {
+.read-result:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-weight: 600;
 }
 
@@ -1468,7 +1507,7 @@ kbd {
   letter-spacing: -0.015em;
 }
 
-.read-summary h2:lang(zh) {
+.read-summary h2:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -1506,7 +1545,7 @@ kbd {
   text-transform: uppercase;
 }
 
-.figures dt:lang(zh) {
+.figures dt:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
   letter-spacing: 0.04em;
 }
@@ -1536,7 +1575,7 @@ kbd {
   text-transform: uppercase;
 }
 
-.note-list h3:lang(zh) {
+.note-list h3:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
   letter-spacing: 0.04em;
 }
@@ -1694,8 +1733,8 @@ kbd {
   text-wrap: balance;
 }
 
-.progress h2:lang(zh),
-.data h2:lang(zh) {
+.progress h2:is(:lang(zh), :lang(ja), :lang(ko)),
+.data h2:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -1891,8 +1930,8 @@ kbd {
   vertical-align: bottom;
 }
 
-.history-table thead th:lang(zh),
-.import-counts thead th:lang(zh) {
+.history-table thead th:is(:lang(zh), :lang(ja), :lang(ko)),
+.import-counts thead th:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.8125rem;
   letter-spacing: 0.04em;
 }
@@ -1933,7 +1972,7 @@ kbd {
   text-transform: uppercase;
 }
 
-.session-head:lang(zh) {
+.session-head:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.8125rem;
   letter-spacing: 0.04em;
 }
@@ -2123,7 +2162,7 @@ kbd {
   line-height: 1.3;
 }
 
-.import-preview h3:lang(zh) {
+.import-preview h3:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-weight: 600;
 }
 
@@ -2202,8 +2241,8 @@ kbd {
   text-transform: uppercase;
 }
 
-.hm-control > label:lang(zh),
-.hm-control > legend:lang(zh) {
+.hm-control > label:is(:lang(zh), :lang(ja), :lang(ko)),
+.hm-control > legend:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
   letter-spacing: 0.04em;
 }
@@ -2662,7 +2701,7 @@ kbd {
   text-transform: uppercase;
 }
 
-.library-level-name:lang(zh) {
+.library-level-name:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
   letter-spacing: 0.04em;
 }
@@ -2707,7 +2746,7 @@ kbd {
   transition: color var(--dur-fast) ease-out;
 }
 
-.library-piece-title:lang(zh) {
+.library-piece-title:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -2768,7 +2807,7 @@ kbd {
   letter-spacing: -0.012em;
 }
 
-.your-pieces h2:lang(zh) {
+.your-pieces h2:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -3056,7 +3095,7 @@ kbd {
   text-transform: uppercase;
 }
 
-.piece-control-label:lang(zh) {
+.piece-control-label:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.8125rem;
   letter-spacing: 0.04em;
 }
@@ -3409,7 +3448,7 @@ select.is-compact {
   letter-spacing: -0.012em;
 }
 
-.piece-summary h2:lang(zh) {
+.piece-summary h2:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -3733,7 +3772,7 @@ select.is-compact {
   text-transform: uppercase;
 }
 
-.deviation figcaption:lang(zh) {
+.deviation figcaption:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
   letter-spacing: 0.04em;
 }

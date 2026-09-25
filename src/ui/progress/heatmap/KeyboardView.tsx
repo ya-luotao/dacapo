@@ -126,9 +126,7 @@ export function KeyboardView({ cells }: { cells: readonly NoteCell[] }) {
             note={
               shown.notes.length > 1
                 ? t('heatmap.details.combined', {
-                    notes: shown.notes
-                      .map((n) => read.note(n.key))
-                      .join(t('heatmap.listSeparator')),
+                    notes: shown.notes.map((n) => read.note(n.key)).join(t('app.listSeparator')),
                   })
                 : read.note(shown.notes[0]!.key)
             }

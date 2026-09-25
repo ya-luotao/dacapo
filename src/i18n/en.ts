@@ -1,7 +1,9 @@
-// Source of truth for UI strings. Every key here must also exist in zh-CN.ts.
+// Source of truth for UI strings. Every other dictionary has exactly these keys; see
+// docs/TRANSLATING.md.
 export const en = {
   'app.name': 'dacapo',
   'app.tagline': 'Read the staff. Find the key.',
+  'app.listSeparator': ', ',
   'nav.label': 'Main',
   'nav.play': 'Play',
   'nav.read': 'Read',
@@ -170,7 +172,6 @@ export const en = {
   'heatmap.view.staff': 'Staff',
   'heatmap.view.keyboard': 'Keyboard',
   'heatmap.weakest': 'Weakest notes:',
-  'heatmap.listSeparator': ', ',
   'heatmap.weakest.none': 'None yet. A note is ranked once you have answered it {n} times.',
   'heatmap.empty':
     'No notes answered yet. Run a Read session, and every note you answer shows up here.',
