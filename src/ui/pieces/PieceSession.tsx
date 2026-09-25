@@ -59,6 +59,7 @@ import { useRhythmPlayer } from './useRhythmPlayer.ts';
 import type { OpenPiece } from './usePiece.ts';
 import { useBarFormat } from './barFormat.ts';
 import { BarTargets, BarTints, WeakBarsBar, WeakBarsTable } from './WeakBars.tsx';
+import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
 
 const SHOW_KEYS_PREF = 'dacapo.pieces.showKeys';
 const ACCOMPANY_PREF = 'dacapo.pieces.accompany';
@@ -454,6 +455,10 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
         : (steps[demoStep] ?? null)
       : waitStep;
   const done = !rhythmMode && Boolean(wait?.finished || run.ended);
+  // The screen stays on while the instrument plays (a demo, a rhythm run) and during a wait-mode
+  // run, which waits for the player. A paused demo lets it sleep.
+  useKeepAwake(demo === 'playing' || inTime);
+  useKeepAwake(!rhythmMode && run.startedAt !== null && !done, KEEP_AWAKE_IDLE_MS);
   const summary = useMemo(() => (done ? summarizeRun(run.records) : null), [done, run.records]);
   const rhythmSummary = useMemo(
     () =>

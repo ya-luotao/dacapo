@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
+import { currentShell } from '../lib/shell.ts';
 import { I18nContext, type I18nContextValue, type Translate } from './context.ts';
 import {
   formatMessage,
@@ -9,6 +10,7 @@ import {
   type LoadedLocale,
   type Locale,
 } from './locale.ts';
+import { messageFor } from './shellWording.ts';
 
 interface Current extends LoadedLocale {
   /** The locale this state was loaded for; `locale` differs only when loading it failed. */
@@ -51,7 +53,8 @@ export function I18nProvider({
   }, [locale]);
 
   const value = useMemo<I18nContextValue>(() => {
-    const t: Translate = (key, vars) => formatMessage(dictionary[key], vars);
+    const t: Translate = (key, vars) =>
+      formatMessage(messageFor(dictionary, key, currentShell()), vars);
     return { locale, override, setOverride, t };
   }, [locale, dictionary, override, setOverride]);
 

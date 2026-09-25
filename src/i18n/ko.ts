@@ -658,4 +658,45 @@ export const ko: Dictionary = {
 
   'notFound.title': '페이지를 찾을 수 없어요',
   'notFound.back': '연주로 가기',
+
+  // In the Apple app (apple/), a key ending in `.app` replaces the key without it (see
+  // i18n/shellWording.ts).
+  'midi.status.unsupported.app': 'MIDI를 쓸 수 없어요',
+  'midi.help.unsupported.app':
+    '이 기기에서 MIDI를 시작하지 못했어요. dacapo를 닫았다가 다시 여세요. 그동안은 화면의 건반이나 컴퓨터 키보드로 칠 수 있어요.',
+  'midi.status.noPermission.app': 'MIDI를 쓸 수 없어요',
+  'midi.help.noPermission.app': '이 기기에서 MIDI를 열지 못했어요.',
+  'staff.fontFailed.app': '악보 글꼴을 불러오지 못했어요. dacapo를 닫았다가 다시 여세요.',
+  'pieces.yours.help.app':
+    'MuseScore 등에서 내보낸 MusicXML(.musicxml, .xml, 압축된 .mxl)을 가져올 수 있어요. 가져온 곡은 이 기기에만 저장되고, 데이터를 내보낼 때 함께 포함돼요.',
+  'pieces.notFound.app': '이 곡을 찾을 수 없어요. 삭제됐거나 다른 기기에서 가져온 곡일 수 있어요.',
+  'pieces.engineFailed.app': '악보 엔진을 불러오지 못했어요. dacapo를 닫았다가 다시 여세요.',
+  'storage.blocked.app':
+    '예전 버전의 dacapo가 연습 기록을 쓰고 있어요. dacapo를 닫았다가 다시 열면 기록을 불러올 수 있어요.',
+  'storage.unavailable.app':
+    '지금은 dacapo가 이 기기에 데이터를 저장할 수 없어요(저장 공간이 가득 찼나요?). 연습은 할 수 있지만 dacapo를 닫으면 기록이 사라져요.',
+  'storage.failed.app':
+    '연습 기록 일부를 저장하지 못했어요. 저장 공간이 부족할 수 있어요. dacapo를 닫기 전까지는 화면에 남아 있어요.',
+  'storage.outdated.app':
+    'dacapo의 저장소가 외부에서 바뀌었어요. 계속 기록을 저장하려면 새로 고치세요.',
+  'settings.language.help.app': '여기서 고르지 않으면 기기 언어를 따라요.',
+  'settings.language.system.app': '시스템 기본값',
+  'settings.click.help.app':
+    '리듬 모드의 클릭은 dacapo가 직접 내는 유일한 소리로, 이 기기에서 나는 짧은 “틱” 소리예요.',
+  'calibration.lineIn.app':
+    '클릭은 이 기기에서 나와요. MP11SE의 헤드폰으로 들으려면 이 기기의 헤드폰 출력을 MP11SE 뒷면의 LINE IN 단자에 연결하고, 그 상태로 보정하세요.',
+  'calibration.none.app': '이 기기에서는 아직 보정하지 않았어요. 리듬 모드는 0ms로 계산해요.',
+  'calibration.noAudio.app': '이 기기에서는 클릭을 재생할 수 없어요.',
+  'settings.data.help.app':
+    '모든 데이터는 이 기기의 dacapo 안에만 저장돼요. 백업용으로, 또는 다른 기기로 옮길 때 가끔 파일로 내보내 두세요.',
+  'settings.storage.persisted.app':
+    '이 기기에 저장됨. dacapo를 삭제하면 데이터도 함께 지워지니 내보낸 파일을 백업으로 보관하세요.',
+  'settings.storage.notPersisted.app':
+    '이 기기에 저장됨. dacapo를 삭제하면 데이터도 함께 지워지니 내보낸 파일을 백업으로 보관하세요.',
+  'settings.storage.unknown.app':
+    '이 기기에 저장됨. dacapo를 삭제하면 데이터도 함께 지워지니 내보낸 파일을 백업으로 보관하세요.',
+  'settings.storage.memory.app':
+    '저장 안 됨: 지금은 dacapo가 이 기기에 데이터를 저장할 수 없어요. dacapo를 닫기 전에 내보내세요.',
+  'settings.export.help.app':
+    '연습 내역, 응답, 가져온 곡, 곡 연습 상세 기록, 환경설정을 담은 {file} 파일을 저장해요.',
 };

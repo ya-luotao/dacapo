@@ -672,4 +672,48 @@ export const ja: Dictionary = {
 
   'notFound.title': 'ページが見つかりません',
   'notFound.back': '「演奏」へ戻る',
+
+  // In the Apple app (apple/), a key ending in `.app` replaces the key without it (see
+  // i18n/shellWording.ts).
+  'midi.status.unsupported.app': 'MIDIを使えません',
+  'midi.help.unsupported.app':
+    'この端末でMIDIを開始できませんでした。dacapoを閉じて、もう一度開いてください。それまでは、画面の鍵盤かパソコンのキーボードで弾けます。',
+  'midi.status.noPermission.app': 'MIDIを使えません',
+  'midi.help.noPermission.app': 'この端末でMIDIを開けませんでした。',
+  'staff.fontFailed.app':
+    '楽譜用フォントを読み込めませんでした。dacapoを閉じて、もう一度開いてください。',
+  'pieces.yours.help.app':
+    'MusicXML（.musicxml、.xml、圧縮された.mxl）をインポートできます。MuseScoreからエクスポートしたファイルなどです。インポートした曲はこの端末にだけ保存され、データのエクスポートにも含まれます。',
+  'pieces.notFound.app':
+    'この曲は見つかりません。削除されたか、別の端末でインポートされた可能性があります。',
+  'pieces.engineFailed.app':
+    '楽譜エンジンを読み込めませんでした。dacapoを閉じて、もう一度開いてください。',
+  'storage.blocked.app':
+    '古いバージョンのdacapoが練習記録を使用しています。dacapoを閉じてもう一度開くと、練習記録を読み込めます。',
+  'storage.unavailable.app':
+    'いまはこの端末にdacapoのデータを保存できません（ストレージがいっぱいではありませんか？）。練習はできますが、dacapoを閉じると記録は消えます。',
+  'storage.failed.app':
+    '一部の練習記録を保存できませんでした。ストレージの空き容量が足りない可能性があります。dacapoを閉じるまでは画面に表示されたままです。',
+  'storage.outdated.app':
+    'dacapoの保存データが外部から変更されました。練習記録の保存を続けるには、再読み込みしてください。',
+  'settings.language.help.app': 'ここで選ばない場合は、端末の言語に合わせます。',
+  'settings.language.system.app': 'システムの設定に従う',
+  'settings.click.help.app':
+    'リズムモードのクリック音は、dacapo自体が鳴らす唯一の音です。この端末から短い「カチッ」という音が出ます。',
+  'calibration.lineIn.app':
+    'クリック音はこの端末から鳴ります。MP11SEのヘッドホンで聞くには、この端末のヘッドホン出力をMP11SE背面のLINE IN端子につなぎ、その状態で補正してください。',
+  'calibration.none.app': 'この端末ではまだ補正していません。リズムモードは0ミリ秒として扱います。',
+  'calibration.noAudio.app': 'この端末ではクリック音を鳴らせません。',
+  'settings.data.help.app':
+    'データはすべてこの端末のdacapoの中に保存されます。バックアップのため、または別の端末に移すために、ときどきエクスポートしてください。',
+  'settings.storage.persisted.app':
+    'この端末に保存されています。dacapoを削除するとデータも消えるため、エクスポートしたファイルをバックアップとして残しておいてください。',
+  'settings.storage.notPersisted.app':
+    'この端末に保存されています。dacapoを削除するとデータも消えるため、エクスポートしたファイルをバックアップとして残しておいてください。',
+  'settings.storage.unknown.app':
+    'この端末に保存されています。dacapoを削除するとデータも消えるため、エクスポートしたファイルをバックアップとして残しておいてください。',
+  'settings.storage.memory.app':
+    '保存されていません：いまはこの端末にdacapoのデータを保存できません。dacapoを閉じる前にエクスポートしてください。',
+  'settings.export.help.app':
+    'セッション、解答、インポートした曲、曲の練習記録、設定を含む{file}を保存します。',
 };

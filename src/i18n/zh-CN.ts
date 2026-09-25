@@ -625,4 +625,44 @@ export const zhCN: Dictionary = {
 
   'notFound.title': '页面不存在',
   'notFound.back': '返回弹奏',
+
+  // In the Apple app (apple/), a key ending in `.app` replaces the key without it (see
+  // i18n/shellWording.ts).
+  'midi.status.unsupported.app': 'MIDI 不可用',
+  'midi.help.unsupported.app':
+    'dacapo 无法在这台设备上启动 MIDI。请关闭 dacapo 再重新打开；在此之前，可以用屏幕上的键盘或电脑键盘弹奏。',
+  'midi.status.noPermission.app': 'MIDI 不可用',
+  'midi.help.noPermission.app': 'dacapo 无法在这台设备上打开 MIDI。',
+  'staff.fontFailed.app': '乐谱字体加载失败。请关闭 dacapo 再重新打开。',
+  'pieces.yours.help.app':
+    '导入 MusicXML 文件（.musicxml、.xml 或压缩的 .mxl），例如从 MuseScore 导出的文件。导入的曲目只保存在这台设备上，导出数据时也会一并导出。',
+  'pieces.notFound.app': '找不到这首曲子。它可能已被删除，或者是在另一台设备上导入的。',
+  'pieces.engineFailed.app': '记谱引擎加载失败。请关闭 dacapo 再重新打开。',
+  'storage.blocked.app':
+    '旧版本的 dacapo 仍在使用你的练习记录。请关闭 dacapo 再重新打开，以便读取记录。',
+  'storage.unavailable.app':
+    'dacapo 暂时无法在这台设备上保存数据（存储空间是否已满？）。你仍然可以练习，但关闭 dacapo 后记录会丢失。',
+  'storage.failed.app':
+    '有些练习记录没能保存，可能是存储空间不足。在关闭 dacapo 之前，它们仍会显示在这里。',
+  'storage.outdated.app': 'dacapo 的存储被外部更改了。请刷新，以便继续保存练习记录。',
+  'settings.language.help.app': '默认跟随设备语言，也可以在这里手动选择。',
+  'settings.language.system.app': '跟随系统',
+  'settings.click.help.app':
+    '节奏模式的节拍器是 dacapo 唯一自己发出的声音：这台设备上一声短促的“嗒”。',
+  'calibration.lineIn.app':
+    '点击声从这台设备发出。想在 MP11SE 的耳机里听到它，请把这台设备的耳机输出接到 MP11SE 背面的 LINE IN 插孔，然后在这样的连接下校准。',
+  'calibration.none.app': '这台设备上还没有校准过：节奏模式按 0 毫秒计算。',
+  'calibration.noAudio.app': '这台设备无法播放点击声。',
+  'settings.data.help.app':
+    '所有数据都只保存在这台设备上的 dacapo 里。建议不时导出一份作为备份，换设备时也可以用它迁移。',
+  'settings.storage.persisted.app':
+    '已保存在本设备上。删除 dacapo 会一并删除这些数据，请保留一份导出文件作为备份。',
+  'settings.storage.notPersisted.app':
+    '已保存在本设备上。删除 dacapo 会一并删除这些数据，请保留一份导出文件作为备份。',
+  'settings.storage.unknown.app':
+    '已保存在本设备上。删除 dacapo 会一并删除这些数据，请保留一份导出文件作为备份。',
+  'settings.storage.memory.app':
+    '未保存：dacapo 暂时无法在这台设备上存储数据。关闭 dacapo 之前请先导出。',
+  'settings.export.help.app':
+    '保存 {file}，包含你的练习记录、答题记录、导入的曲目、曲目练习明细和偏好设置。',
 };

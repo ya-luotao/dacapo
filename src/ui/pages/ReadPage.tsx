@@ -10,6 +10,7 @@ import { ReadSession } from '../read/ReadSession.tsx';
 import { ReadSetup } from '../read/ReadSetup.tsx';
 import { ReadSummary } from '../read/ReadSummary.tsx';
 import { loadMusicFont } from '../staff/font.ts';
+import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
 
 export function ReadPage() {
   const t = useT();
@@ -19,6 +20,7 @@ export function ReadPage() {
   const { hub } = useInput();
   const [controller] = useState(() => createReadController({ practice }));
   const session = useSyncExternalStore(controller.subscribe, controller.getState);
+  useKeepAwake(session?.phase === 'running', KEEP_AWAKE_IDLE_MS);
 
   const progress = useMemo(
     () => new Map(LEVEL_IDS.map((id) => [id, levelProgress(attempts, id)] as const)),

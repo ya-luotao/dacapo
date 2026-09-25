@@ -663,6 +663,49 @@ export const en = {
 
   'notFound.title': 'Page not found',
   'notFound.back': 'Go to Play',
+
+  // In the Apple app (apple/), a key ending in `.app` replaces the key without it (see
+  // i18n/shellWording.ts): the app has no browser, tabs, site data or downloads to speak of.
+  'midi.status.unsupported.app': 'MIDI is not available',
+  'midi.help.unsupported.app':
+    'dacapo could not start MIDI on this device. Close dacapo and open it again — until then, play on the keyboard on screen or a computer keyboard.',
+  'midi.status.noPermission.app': 'MIDI is not available',
+  'midi.help.noPermission.app': 'dacapo could not open MIDI on this device.',
+  'staff.fontFailed.app': 'The music font could not be loaded. Close dacapo and open it again.',
+  'pieces.yours.help.app':
+    'Import MusicXML (.musicxml, .xml or compressed .mxl), for example exported from MuseScore. Imported pieces stay on this device and are included when you export your data.',
+  'pieces.notFound.app':
+    'This piece is not here. It may have been deleted, or it was imported on another device.',
+  'pieces.engineFailed.app':
+    'The notation engine could not be loaded. Close dacapo and open it again.',
+  'storage.blocked.app':
+    'An older version of dacapo is still using your progress. Close dacapo and open it again to load it.',
+  'storage.unavailable.app':
+    'dacapo cannot save data on this device right now (is the storage full?). You can practise, but your progress will be gone when you close dacapo.',
+  'storage.failed.app':
+    'Some progress could not be saved — the storage may be full. It stays on screen until you close dacapo.',
+  'storage.outdated.app':
+    'dacapo’s storage was changed from outside. Reload to keep saving your progress.',
+  'settings.language.help.app': 'Follows your device’s language unless you choose one here.',
+  'settings.language.system.app': 'System default',
+  'settings.click.help.app':
+    'Rhythm mode’s click is the one sound dacapo makes itself: a short tick from this device.',
+  'calibration.lineIn.app':
+    'The click plays from this device. To hear it in the MP11SE’s headphones, connect this device’s headphone output to the MP11SE’s LINE IN jacks (at the back), then calibrate with that set-up.',
+  'calibration.none.app': 'Not calibrated on this device yet: rhythm mode assumes 0 ms.',
+  'calibration.noAudio.app': 'The click cannot play on this device.',
+  'settings.data.help.app':
+    'Everything stays on this device, inside dacapo. Export a file now and then as a backup, or to move to another device.',
+  'settings.storage.persisted.app':
+    'Stored on this device. Deleting dacapo deletes it too, so keep an export as a backup.',
+  'settings.storage.notPersisted.app':
+    'Stored on this device. Deleting dacapo deletes it too, so keep an export as a backup.',
+  'settings.storage.unknown.app':
+    'Stored on this device. Deleting dacapo deletes it too, so keep an export as a backup.',
+  'settings.storage.memory.app':
+    'Not saved: dacapo cannot store data on this device right now. Export before you close dacapo.',
+  'settings.export.help.app':
+    'Saves {file} with your sessions, answers, imported pieces, piece practice records and preferences.',
 };
 
 export type MessageKey = keyof typeof en;
