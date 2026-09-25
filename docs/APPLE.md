@@ -82,8 +82,9 @@ Decided while building A1; the reasons are in the code comments and `apple/READM
   browser-only message has no app variant. The About page (`#/about`) with the Verovio credit and
   every licence text is part of the web build too.
 - **Languages.** WebKit reports the app's own language to the page, so the app bundle must be
-  localised into every language the web app offers (`Resources/Localizable.xcstrings`; English
-  and Simplified Chinese today). A new web locale needs its app localisation as well.
+  localised into every language the web app offers (`Resources/Localizable.xcstrings` and the
+  project's `knownRegions`: en, zh-Hans, zh-Hant, ja, ko). A new web locale needs its app
+  localisation as well; the page maps `zh-Hant` to zh-TW.
 - **Layout.** The page uses the whole screen (`viewport-fit=cover`) and pads itself with the safe
   areas. Where the practice page is one screen and its sheet is tall for its width (an iPad in
   portrait), the score is drawn up to 40 % larger instead of leaving the sheet half empty.

@@ -45,7 +45,7 @@ apple/
                       app-shell.js (marks the page as running in the app)
     MIDI/             CoreMIDI engine, UMP ↔ MIDI 1.0 bytes, the bridge and midi-bridge.js (the
                       Web MIDI shim injected into the page)
-    Resources/        asset catalog (paper colour, accent), native strings (en, zh-Hans)
+    Resources/        asset catalog (paper colour, accent), native strings (en, zh-Hans, zh-Hant, ja, ko)
     Debug/            the test harness; Debug builds only
   DacapoTests/        unit tests of the native layer (Swift Testing)
   scripts/            build phase and CI helpers

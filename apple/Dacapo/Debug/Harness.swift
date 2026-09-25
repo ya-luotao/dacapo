@@ -406,7 +406,7 @@ final class Harness {
             try? await Task.sleep(for: .seconds(hash.contains("ode") ? 3 : 1.2))
             let hits = await js("""
                 const text = document.querySelector('main')?.innerText ?? '';
-                const words = /\\b(browser|Chrome|Edge|Safari|Firefox|tab|tabs|download|downloads|site data|site settings|reload the page)\\b|浏览器|标签页|网站数据/gi;
+                const words = /\\b(browser|Chrome|Edge|Safari|Firefox|tab|tabs|download|downloads|site data|site settings|reload the page)\\b|浏览器|标签页|网站数据|瀏覽器|分頁|網站資料|下載|ブラウザ|タブ|サイトデータ|ダウンロード|브라우저|탭(?!하)|사이트 데이터|내려받/gi;
                 return JSON.stringify({ chars: text.length, hits: [...new Set(text.match(words) ?? [])] });
                 """)
             pages[hash] = hits ?? NSNull()
