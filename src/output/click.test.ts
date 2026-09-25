@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { CLICK_LOOKAHEAD_MS, createClickTrack, type ClickEvent } from './click.ts';
+import { CLICK_LOOKAHEAD_MS, createClickTrack, playClick, type ClickEvent } from './click.ts';
 import { fakeClock, FakeAudioContext } from './testing.ts';
 
 beforeEach(() => vi.useFakeTimers());
@@ -109,5 +109,56 @@ describe('click track', () => {
     track.start(every500(10_100));
     advance(10);
     expect(context.started.at(-1)!.peak).toBe(1);
+  });
+});
+
+describe('the mechanical sound', () => {
+  /** What one click starts: its oscillators' pitches and peaks. */
+  function play(level: 'accent' | 'normal' | 'sub', beat: number) {
+    const context = new FakeAudioContext();
+    const node = playClick(context, context.destination, 1, 'mechanical', level, 1, beat);
+    return { context, node, hz: context.started.map((s) => s.frequency) };
+  }
+  const BELL = 2150;
+
+  it('ticks and tocks: every other beat a little lower', () => {
+    const tick = play('normal', 0).hz;
+    const tock = play('normal', 1).hz;
+    expect(play('normal', 2).hz).toEqual(tick);
+    expect(play('normal', 7).hz).toEqual(tock);
+    expect(tock).toHaveLength(tick.length);
+    tock.forEach((hz, i) => expect(hz).toBeLessThan(tick[i]!));
+    // A dry transient over the case's low resonance, nothing sustained.
+    expect(Math.min(...tick)).toBeLessThan(1000);
+    expect(Math.max(...tick)).toBeGreaterThan(5000);
+  });
+
+  it('rings a bell on an accent only', () => {
+    const plain = play('normal', 4).hz;
+    const bell = play('accent', 4).hz.filter((hz) => !plain.includes(hz));
+    expect(bell).toContain(BELL);
+    // Inharmonic, as a bell's modes are: not whole multiples of the lowest.
+    const overtones = bell.filter((hz) => hz > BELL * 1.5);
+    expect(overtones.length).toBeGreaterThanOrEqual(3);
+    for (const hz of overtones)
+      expect(Math.abs(hz / BELL - Math.round(hz / BELL))).toBeGreaterThan(0.1);
+    for (const beat of [0, 1]) {
+      expect(play('normal', beat).hz).not.toContain(BELL);
+      expect(play('sub', beat).hz).not.toContain(BELL);
+    }
+  });
+
+  it('gives a subdivision the tick alone, quieter', () => {
+    const sub = play('sub', 0).context.started;
+    const beat = play('normal', 0).context.started;
+    expect(sub.length).toBeLessThan(beat.length);
+    expect(Math.min(...sub.map((s) => s.frequency))).toBeGreaterThan(3000);
+    expect(Math.max(...sub.map((s) => s.peak))).toBeLessThan(Math.max(...beat.map((s) => s.peak)));
+  });
+
+  it('is silenced by a stop before it sounds, bell and all', () => {
+    const { context, node } = play('accent', 0);
+    node.stop(0);
+    expect(context.cancelled).toBe(context.started.length);
   });
 });

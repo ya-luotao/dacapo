@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  CLICK_SOUNDS,
   DEFAULT_SETTINGS,
   meterBeats,
   METERS,
@@ -86,6 +87,14 @@ describe('stored settings', () => {
       trainer: { kind: 'ramp', from: 80, to: 140, step: 5, every: 2, play: 4, mute: 2 },
     };
     expect(parseSettings(JSON.stringify(settings))).toEqual(settings);
+  });
+
+  it('keep every sound, the mechanical one included; wood stays the default', () => {
+    for (const sound of CLICK_SOUNDS)
+      expect(parseSettings(JSON.stringify({ ...DEFAULT_SETTINGS, sound })).sound).toBe(sound);
+    expect(CLICK_SOUNDS).toContain('mechanical');
+    expect(DEFAULT_SETTINGS.sound).toBe('wood');
+    expect(parseSettings(JSON.stringify({ bpm: 90 })).sound).toBe('wood');
   });
 
   it('fall back to the defaults for anything missing, broken or out of range', () => {

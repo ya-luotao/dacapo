@@ -58,7 +58,9 @@ export interface SoundingClick {
 /**
  * One click, synthesized (no audio files): `click` is rhythm mode's short blip; `wood` a dry,
  * woody tock (a falling sine with an inharmonic overtone, as a wood block rings); `beep` a soft
- * sine with a gentler attack. Accents are higher and louder, subdivisions lower and quieter.
+ * sine with a gentler attack; `mechanical` a clockwork metronome (see playMechanical), which
+ * tells beats apart by `beat` (its count from the start). Accents are higher and louder,
+ * subdivisions lower and quieter.
  */
 export function playClick(
   context: ClickContext,
@@ -67,8 +69,10 @@ export function playClick(
   sound: ClickSound,
   level: ClickLevel,
   volume: number,
+  beat = 0,
 ): SoundingClick {
   const peak = Math.max(0.0001, volume * LEVEL_GAIN[level]);
+  if (sound === 'mechanical') return playMechanical(context, destination, when, level, peak, beat);
   const gain = context.createGain();
   gain.connect(destination as never);
   const oscs: ReturnType<ClickContext['createOscillator']>[] = [];
@@ -220,6 +224,92 @@ export function createClickTrack(
     stop,
     setVolume(next) {
       volume = Math.min(1, Math.max(0, next));
+    },
+  };
+}
+
+/** A partial: its frequency (Hz), its share of the peak, and how long it rings (s, to −80 dB). */
+type Partial = readonly [hz: number, share: number, ring: number];
+
+/** The escapement's tick: metal on metal, bright partials gone in a few ms. */
+const ESCAPEMENT: readonly Partial[] = [
+  [3150, 0.34, 0.022],
+  [4730, 0.24, 0.016],
+  [6210, 0.17, 0.012],
+  [7880, 0.12, 0.009],
+];
+/** The wooden case answering it: a few low, damped modes. */
+const CASE_MODES: readonly Partial[] = [
+  [610, 0.3, 0.07],
+  [1470, 0.2, 0.045],
+  [2380, 0.12, 0.03],
+];
+/**
+ * The bell some Maelzel metronomes ring on the downbeat: a small bell's inharmonic modes (as
+ * multiples of its lowest), the lowest doubled a hair apart so it shimmers as a real one beats.
+ */
+const BELL_HZ = 2150;
+const BELL: readonly Partial[] = [
+  [1, 0.3, 1.2],
+  [1.0027, 0.18, 1.1],
+  [2.32, 0.14, 0.6],
+  [4.25, 0.08, 0.35],
+  [6.63, 0.04, 0.2],
+];
+/** Every other beat is the tock: a little lower, and more case than metal. */
+const TOCK = 0.89;
+/** A subdivision: the escapement alone, higher. */
+const SUB = 1.12;
+
+/**
+ * A clockwork metronome: the escapement's dry tick and the case's short resonance, tick and tock
+ * alternating from beat to beat; a small bell as well on an accent; the tick alone, quieter, on a
+ * subdivision.
+ */
+function playMechanical(
+  context: ClickContext,
+  destination: unknown,
+  when: number,
+  level: ClickLevel,
+  peak: number,
+  beat: number,
+): SoundingClick {
+  const out = context.createGain();
+  out.connect(destination as never);
+  const oscs: ReturnType<ClickContext['createOscillator']>[] = [];
+  const gains: { disconnect: () => void }[] = [out];
+  const tock = beat % 2 === 1;
+  const ring = (partials: readonly Partial[], pitch: number, share: number, attack: number) => {
+    for (const [hz, part, length] of partials) {
+      const gain = context.createGain();
+      gain.gain.setValueAtTime(0.0001, when);
+      gain.gain.linearRampToValueAtTime(Math.max(0.0001, peak * part * share), when + attack);
+      gain.gain.exponentialRampToValueAtTime(0.0001, when + attack + length);
+      gain.connect(out as never);
+      gains.push(gain);
+      const osc = context.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = hz * pitch;
+      osc.connect(gain as never);
+      osc.start(when);
+      osc.stop(when + attack + length + 0.005);
+      oscs.push(osc);
+    }
+  };
+  if (level === 'sub') {
+    ring(ESCAPEMENT, SUB, 1, 0.0005);
+  } else {
+    ring(ESCAPEMENT, tock ? TOCK : 1, tock ? 0.8 : 1, 0.0005);
+    ring(CASE_MODES, tock ? TOCK : 1, tock ? 1.15 : 1, 0.001);
+    if (level === 'accent') ring(BELL, BELL_HZ, 1, 0.002);
+  }
+  return {
+    stop: (at) => {
+      for (const osc of oscs) osc.stop(at);
+    },
+    disconnect: () => {
+      for (const osc of oscs) osc.disconnect();
+      for (const gain of gains) gain.disconnect();
     },
   };
 }

@@ -627,6 +627,7 @@ export const en = {
   'metronome.sound.wood': 'Wood',
   'metronome.sound.click': 'Click',
   'metronome.sound.beep': 'Beep',
+  'metronome.sound.mechanical': 'Mechanical',
   'metronome.volume': 'Volume',
   'metronome.silent': 'Visual only',
   'metronome.silent.help':

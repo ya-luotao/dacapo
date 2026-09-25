@@ -595,6 +595,7 @@ export const zhTW: Dictionary = {
   'metronome.sound.wood': '木魚',
   'metronome.sound.click': '喀嗒',
   'metronome.sound.beep': '嗶聲',
+  'metronome.sound.mechanical': '機械',
   'metronome.volume': '音量',
   'metronome.silent': '只看不響',
   'metronome.silent.help': '不發出聲音：擺錘和拍點照常進行，適合安靜練習。',

@@ -13,8 +13,8 @@ import {
   type Trainer,
 } from './pulse.ts';
 
-export type ClickSound = 'wood' | 'click' | 'beep';
-export const CLICK_SOUNDS: readonly ClickSound[] = ['wood', 'click', 'beep'];
+export type ClickSound = 'wood' | 'click' | 'beep' | 'mechanical';
+export const CLICK_SOUNDS: readonly ClickSound[] = ['wood', 'click', 'beep', 'mechanical'];
 
 export interface Meter {
   numerator: number;

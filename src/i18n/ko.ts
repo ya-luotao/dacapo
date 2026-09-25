@@ -623,6 +623,7 @@ export const ko: Dictionary = {
   'metronome.sound.wood': '우드',
   'metronome.sound.click': '클릭',
   'metronome.sound.beep': '비프',
+  'metronome.sound.mechanical': '기계식',
   'metronome.volume': '음량',
   'metronome.silent': '화면만',
   'metronome.silent.help': '소리 없이 진자와 박 표시만으로 박자를 짚어요. 조용히 연습할 때 쓰세요.',

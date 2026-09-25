@@ -92,8 +92,9 @@ Version 1, 2 and 3 files still import.
   crosses the weight on accented beats. The beats are studs inlaid in a walnut rail.
   20–300 BPM with − / +, a slider, the arrow keys and tap tempo (the median of the last taps); the
   Italian tempo mark with its range; time signatures from 2/4 to 12/8 (compound meters click the
-  dotted beat); each beat accented, plain or muted; subdivisions in 2, 3 or 4; three synthesized
-  sounds (wood, click, beep), volume and a visual-only mode; a **tempo trainer** that speeds up by a
+  dotted beat); each beat accented, plain or muted; subdivisions in 2, 3 or 4; four synthesized
+  sounds (wood, click, beep, and a mechanical one: an escapement's tick and tock, with a small
+  bell on the accent), volume and a visual-only mode; a **tempo trainer** that speeds up by a
   few BPM every few bars, or plays some bars and leaves some silent. With reduced motion the
   pendulum stays in its clip and the studs keep time. Keys: Space, ← / → or − / + (Shift: by 10) and
   T; the computer keyboard does not play notes on this page.

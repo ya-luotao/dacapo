@@ -233,6 +233,34 @@ describe('settings while it plays', () => {
     expect(context.started.map((s) => s.frequency)).toEqual([1760, 990, 1320, 990, 1320, 990]);
   });
 
+  it('with the mechanical sound: tick, tock, a bell on the accent, nothing on a muted beat', () => {
+    const { metronome, context, scheduled, advance } = setup({
+      bpm: 60,
+      sound: 'mechanical',
+      accents: ['accent', 'mute', 'normal', 'normal'],
+    });
+    metronome.start();
+    // To just before beat 7 (bar 2, beat 3), which is already on its way.
+    advance(METRONOME_LEAD_MS + 5950);
+    // One click on each beat but the muted ones; each is several partials at one time.
+    expect(scheduled.map((s) => s.click.inBar)).toEqual([0, 2, 3, 0, 2]);
+    const at = (i: number) =>
+      context.started.filter((s) => s.when === scheduled[i]!.when).map((s) => s.frequency);
+    const [downbeat, third, fourth, next, waiting] = [0, 1, 2, 3, 4].map(at);
+    expect(downbeat).toContain(2150);
+    expect(third).not.toContain(2150);
+    // Beats 2 and 3 of the count: a tick, then a tock.
+    expect(Math.max(...fourth!)).toBeLessThan(Math.max(...third!));
+    // Beat 4 (even, as beat 0 was): the tick again, and the bell with it.
+    expect(next).toEqual(downbeat);
+    const started = context.started.length;
+    metronome.stop();
+    // The click on its way is cancelled, every partial of it; nothing more comes.
+    expect(context.cancelled).toBe(waiting!.length);
+    advance(3000);
+    expect(context.started).toHaveLength(started);
+  });
+
   it('plays nothing in visual-only mode, while the beat goes on', () => {
     const { metronome, scheduled, clock, advance } = setup({ bpm: 120, silent: true });
     metronome.start();

@@ -634,6 +634,7 @@ export const ja: Dictionary = {
   'metronome.sound.wood': 'ウッド',
   'metronome.sound.click': 'クリック',
   'metronome.sound.beep': 'ビープ',
+  'metronome.sound.mechanical': '機械式',
   'metronome.volume': '音量',
   'metronome.silent': '音なし（表示のみ）',
   'metronome.silent.help':

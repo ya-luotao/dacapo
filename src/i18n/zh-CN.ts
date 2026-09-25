@@ -592,6 +592,7 @@ export const zhCN: Dictionary = {
   'metronome.sound.wood': '木鱼',
   'metronome.sound.click': '咔嗒',
   'metronome.sound.beep': '哔声',
+  'metronome.sound.mechanical': '机械',
   'metronome.volume': '音量',
   'metronome.silent': '只看不响',
   'metronome.silent.help': '不发声：摆锤和拍点照常走，适合安静练习。',

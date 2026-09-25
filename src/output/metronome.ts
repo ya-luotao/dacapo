@@ -210,7 +210,7 @@ export function createMetronome(options: MetronomeOptions): Metronome {
       if (now - at > LATE_MS) return;
       at = now;
     }
-    const node = playClick(context, master, at / 1000, settings.sound, click.level, 1);
+    const node = playClick(context, master, at / 1000, settings.sound, click.level, 1, click.beat);
     pending.push({ at: click.at, node });
     options.onScheduled?.(click, at / 1000);
   }
