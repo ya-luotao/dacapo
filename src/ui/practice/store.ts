@@ -6,10 +6,12 @@ import {
   type SessionRecord,
 } from '../../core/log.ts';
 import type { Attempt } from '../../core/session.ts';
+import { byImportedDescending, type StoredPiece } from '../../core/storedPiece.ts';
 import { emptyStats, updateStats, type NoteStats, type StatsByKey } from '../../core/weakness.ts';
 import type { OpenHandlers } from '../../storage/db.ts';
 import {
   createMemoryRepository,
+  type MergeInput,
   type MergeResult,
   type OpenResult,
   type PracticeRepository,
@@ -23,6 +25,8 @@ export interface PracticeData {
   stats: StatsByKey;
   /** Most recent first. */
   sessions: readonly SessionRecord[];
+  /** Imported pieces, newest first. */
+  pieces: readonly StoredPiece[];
 }
 
 /**
@@ -57,11 +61,11 @@ export interface PracticeStore {
   saveOpenFreePlay: (open: OpenFreePlay) => void;
   /** A free-play session ended: records it (null when too short) and drops its saved progress. */
   finishFreePlay: (id: string, session: FreePlaySession | null) => void;
+  /** Adds or replaces an imported piece (a new import, a rename, other hands). */
+  savePiece: (piece: StoredPiece) => void;
+  deletePiece: (id: string) => void;
   /** Merges by id, rebuilds note stats from all attempts and reloads. */
-  importData: (
-    sessions: readonly SessionRecord[],
-    attempts: readonly Attempt[],
-  ) => Promise<MergeResult>;
+  importData: (input: MergeInput) => Promise<MergeResult>;
   /** Resolves once every write requested so far has finished (or failed). */
   settled: () => Promise<void>;
   /** Opens storage and loads. Call once; returns a function that closes everything. */
@@ -78,6 +82,8 @@ export interface SyncChannel {
 export type SyncMessage =
   | { type: 'attempt'; attempt: Attempt; stats: NoteStats }
   | { type: 'session'; session: SessionRecord }
+  | { type: 'piece'; piece: StoredPiece }
+  | { type: 'pieceDeleted'; id: string }
   | { type: 'reload' };
 
 /** What the store needs from `navigator.storage`. */
@@ -95,7 +101,7 @@ export interface PracticeStoreOptions {
 
 export const SYNC_CHANNEL = 'dacapo';
 
-export const EMPTY_PRACTICE: PracticeData = { attempts: [], stats: {}, sessions: [] };
+export const EMPTY_PRACTICE: PracticeData = { attempts: [], stats: {}, sessions: [], pieces: [] };
 
 const openInMemory = (): Promise<OpenResult> =>
   Promise.resolve({ repository: createMemoryRepository(), failure: null });
@@ -108,6 +114,10 @@ function insertAttempt(attempts: readonly Attempt[], attempt: Attempt): Attempt[
 
 function upsertSession(sessions: readonly SessionRecord[], session: SessionRecord) {
   return [...sessions.filter((s) => s.id !== session.id), session].sort(byStartDescending);
+}
+
+function upsertPiece(pieces: readonly StoredPiece[], piece: StoredPiece) {
+  return [...pieces.filter((p) => p.id !== piece.id), piece].sort(byImportedDescending);
 }
 
 /**
@@ -177,7 +187,9 @@ export function createPracticeStore({
     }
     let sessions: SessionRecord[] = stored.sessions;
     for (const session of early.sessions) sessions = upsertSession(sessions, session);
-    return { attempts, stats, sessions };
+    let pieces: StoredPiece[] = stored.pieces;
+    for (const piece of early.pieces) pieces = upsertPiece(pieces, piece);
+    return { attempts, stats, sessions, pieces };
   }
 
   /**
@@ -206,7 +218,12 @@ export function createPracticeStore({
   function reload() {
     return enqueue(async (repo) => {
       const stored = await load(repo);
-      set({ attempts: stored.attempts, stats: stored.stats, sessions: stored.sessions });
+      set({
+        attempts: stored.attempts,
+        stats: stored.stats,
+        sessions: stored.sessions,
+        pieces: stored.pieces,
+      });
     });
   }
 
@@ -231,6 +248,12 @@ export function createPracticeStore({
         return;
       case 'session':
         set({ ...data, sessions: upsertSession(data.sessions, m.session) });
+        return;
+      case 'piece':
+        set({ ...data, pieces: upsertPiece(data.pieces, m.piece) });
+        return;
+      case 'pieceDeleted':
+        set({ ...data, pieces: data.pieces.filter((p) => p.id !== m.id) });
         return;
       case 'reload':
         void reload();
@@ -294,8 +317,23 @@ export function createPracticeStore({
         requestPersistence();
       });
     },
-    async importData(sessions, attempts) {
-      const added = await enqueue((repo) => repo.merge(sessions, attempts));
+    savePiece(piece) {
+      set({ ...data, pieces: upsertPiece(data.pieces, piece) });
+      void enqueue(async (repo) => {
+        await repo.putPiece(piece);
+        broadcast({ type: 'piece', piece });
+        requestPersistence();
+      });
+    },
+    deletePiece(id) {
+      set({ ...data, pieces: data.pieces.filter((p) => p.id !== id) });
+      void enqueue(async (repo) => {
+        await repo.deletePiece(id);
+        broadcast({ type: 'pieceDeleted', id });
+      });
+    },
+    async importData(input) {
+      const added = await enqueue((repo) => repo.merge(input));
       if (!added) throw new Error('Import could not be saved');
       await reload();
       broadcast({ type: 'reload' });

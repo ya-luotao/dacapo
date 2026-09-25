@@ -5,6 +5,7 @@ import { useLogFormat } from '../progress/format.ts';
 
 /** Invalid records listed by name; the rest are counted. */
 const INVALID_LISTED = 10;
+const COLLECTIONS = ['sessions', 'attempts', 'pieces'] as const;
 
 interface ImportPreviewProps {
   fileName: string;
@@ -29,7 +30,9 @@ export function ImportPreview({
   const heading = useRef<HTMLHeadingElement>(null);
   const [applyPreferences, setApplyPreferences] = useState(false);
   const exportedAt = parsed.exportedAt ? Date.parse(parsed.exportedAt) : NaN;
-  const nothingNew = plan.sessions.new === 0 && plan.attempts.new === 0;
+  const nothingNew = plan.sessions.new === 0 && plan.attempts.new === 0 && plan.pieces.new === 0;
+  // Files from before version 2 cannot hold pieces, so they get no row for them.
+  const collections = parsed.version >= 2 ? COLLECTIONS : COLLECTIONS.slice(0, 2);
   const { preferences } = parsed;
 
   // Keyboard and screen-reader users land on the preview once the file has been read.
@@ -76,7 +79,7 @@ export function ImportPreview({
           </tr>
         </thead>
         <tbody>
-          {(['sessions', 'attempts'] as const).map((kind) => (
+          {collections.map((kind) => (
             <tr key={kind}>
               <th scope="row">{t(`settings.import.${kind}`)}</th>
               <td>{plan[kind].new}</td>

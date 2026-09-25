@@ -3,7 +3,7 @@ import { openDB } from 'idb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { statsFromAttempts } from '../core/weakness.ts';
 import { DB_NAME, DB_VERSION, openDacapoDB, type DacapoDB } from './db.ts';
-import { resetIndexedDB, sampleAttempt, sampleData, T0 } from './fixtures.ts';
+import { resetIndexedDB, sampleAttempt, sampleData, samplePiece, T0 } from './fixtures.ts';
 import {
   createIndexedDbRepository,
   createMemoryRepository,
@@ -30,11 +30,17 @@ afterEach(() => {
 });
 
 describe('schema', () => {
-  it('creates the four stores with their keys and indexes', async () => {
+  it('creates the five stores with their keys and indexes', async () => {
     const db = await openDb();
     expect(db.version).toBe(DB_VERSION);
-    expect([...db.objectStoreNames].sort()).toEqual(['attempts', 'meta', 'noteStats', 'sessions']);
-    const tx = db.transaction(['attempts', 'noteStats', 'sessions', 'meta']);
+    expect([...db.objectStoreNames].sort()).toEqual([
+      'attempts',
+      'meta',
+      'noteStats',
+      'pieces',
+      'sessions',
+    ]);
+    const tx = db.transaction(['attempts', 'noteStats', 'sessions', 'meta', 'pieces']);
     expect(tx.objectStore('noteStats').keyPath).toBe('key');
     expect(tx.objectStore('sessions').keyPath).toBe('id');
     expect(tx.objectStore('attempts').keyPath).toBe('id');
@@ -46,7 +52,47 @@ describe('schema', () => {
     expect(tx.objectStore('attempts').index('by-session').keyPath).toBe('sessionId');
     expect(tx.objectStore('attempts').index('by-note').keyPath).toBe('note');
     expect(tx.objectStore('sessions').index('by-start').keyPath).toBe('startedAt');
+    expect(tx.objectStore('pieces').keyPath).toBe('id');
+    expect(tx.objectStore('pieces').index('by-imported').keyPath).toBe('importedAt');
     await tx.done;
+  });
+
+  it('migrates a version 1 database with data to version 2 and keeps everything', async () => {
+    // Version 1 exactly as release 0.1.0 created it.
+    const v1 = await openDB(DB_NAME, 1, {
+      upgrade(db) {
+        db.createObjectStore('noteStats', { keyPath: 'key' });
+        const sessions = db.createObjectStore('sessions', { keyPath: 'id' });
+        sessions.createIndex('by-start', 'startedAt');
+        const attempts = db.createObjectStore('attempts', { keyPath: 'id' });
+        attempts.createIndex('by-session', 'sessionId');
+        attempts.createIndex('by-note', 'note');
+        db.createObjectStore('meta');
+      },
+    });
+    const { sessions, attempts } = sampleData();
+    const stats = statsFromAttempts(attempts);
+    const open = { id: 'open', startedAt: T0, lastActivityAt: T0 + 5_000, notes: 3 };
+    const tx = v1.transaction(['sessions', 'attempts', 'noteStats', 'meta'], 'readwrite');
+    for (const session of sessions) void tx.objectStore('sessions').put(session);
+    for (const attempt of attempts) void tx.objectStore('attempts').put(attempt);
+    for (const s of Object.values(stats)) void tx.objectStore('noteStats').put(s);
+    void tx.objectStore('meta').put(open, 'freePlay:open');
+    await tx.done;
+    v1.close();
+
+    const db = await openDb();
+    expect(db.version).toBe(2);
+    const data = await createIndexedDbRepository(db).load();
+    expect(data.attempts).toEqual(attempts);
+    expect(data.sessions.map((s) => s.id).sort()).toEqual(sessions.map((s) => s.id).sort());
+    expect(data.stats).toEqual(stats);
+    expect(data.openFreePlay).toEqual([open]);
+    expect(data.pieces).toEqual([]);
+    expect(await db.countFromIndex('attempts', 'by-session', 's2')).toBe(8);
+    // The new store works right away.
+    await createIndexedDbRepository(db).putPiece(samplePiece(1));
+    expect(await db.count('pieces')).toBe(1);
   });
 
   it('keeps the data when an existing database is opened again', async () => {
@@ -146,8 +192,12 @@ describe.each([
     await repo.putSession(sessions[0]!);
     const changed = { ...attempts[0]!, ms: 99_999 }; // same id, different content: stored wins
 
-    const added = await repo.merge(sessions, [changed, ...attempts.slice(1)]);
-    expect(added).toEqual({ sessions: 2, attempts: attempts.length - 5 });
+    const added = await repo.merge({
+      sessions,
+      attempts: [changed, ...attempts.slice(1)],
+      pieces: [],
+    });
+    expect(added).toEqual({ sessions: 2, attempts: attempts.length - 5, pieces: 0 });
     const data = await repo.load();
     expect(data.attempts).toEqual(attempts);
     expect(data.sessions).toHaveLength(3);
@@ -157,10 +207,47 @@ describe.each([
   it('merging the same records again changes nothing', async () => {
     const repo = await create();
     const { sessions, attempts } = sampleData();
-    await repo.merge(sessions, attempts);
+    await repo.merge({ sessions, attempts, pieces: [] });
     const before = await repo.load();
-    expect(await repo.merge(sessions, attempts)).toEqual({ sessions: 0, attempts: 0 });
+    expect(await repo.merge({ sessions, attempts, pieces: [] })).toEqual({
+      sessions: 0,
+      attempts: 0,
+      pieces: 0,
+    });
     expect(await repo.load()).toEqual(before);
+  });
+
+  it('stores, replaces and deletes pieces, newest first', async () => {
+    const repo = await create();
+    await repo.putPiece(samplePiece(1));
+    await repo.putPiece(samplePiece(2));
+    await repo.putPiece({ ...samplePiece(1), title: 'Renamed', hands: { '0.1': 'left' } });
+    let { pieces } = await repo.load();
+    expect(pieces.map((p) => [p.id, p.title])).toEqual([
+      ['p2', 'Piece 2'],
+      ['p1', 'Renamed'],
+    ]);
+    expect(pieces[1]!.hands).toEqual({ '0.1': 'left' });
+    await repo.deletePiece('p2');
+    await repo.deletePiece('missing');
+    ({ pieces } = await repo.load());
+    expect(pieces.map((p) => p.id)).toEqual(['p1']);
+  });
+
+  it('merges pieces by id and keeps a stored piece as it is', async () => {
+    const repo = await create();
+    await repo.putPiece({ ...samplePiece(1), title: 'Mine' });
+    const added = await repo.merge({
+      sessions: [],
+      attempts: [],
+      pieces: [samplePiece(1), samplePiece(2)],
+    });
+    expect(added).toEqual({ sessions: 0, attempts: 0, pieces: 1 });
+    const { pieces } = await repo.load();
+    expect(pieces.map((p) => [p.id, p.title])).toEqual([
+      ['p2', 'Piece 2'],
+      ['p1', 'Mine'],
+    ]);
   });
 
   it('rebuilt stats equal the stats recorded attempt by attempt', async () => {
@@ -168,7 +255,7 @@ describe.each([
     const { attempts } = sampleData();
     for (const attempt of attempts) await incremental.addAttempt(attempt);
     const rebuilt = createMemoryRepository();
-    await rebuilt.merge([], [...attempts].reverse());
+    await rebuilt.merge({ sessions: [], attempts: [...attempts].reverse(), pieces: [] });
     expect((await rebuilt.load()).stats).toEqual((await incremental.load()).stats);
   });
 });
@@ -192,7 +279,9 @@ describe('transactions', () => {
     await repo.addAttempt(sampleAttempt(0));
     const { sessions, attempts } = sampleData();
     const broken = { ...attempts[3]!, extra: () => {} };
-    await expect(repo.merge(sessions, [...attempts.slice(1, 3), broken])).rejects.toThrow();
+    await expect(
+      repo.merge({ sessions, attempts: [...attempts.slice(1, 3), broken], pieces: [] }),
+    ).rejects.toThrow();
     const data = await repo.load();
     expect(data.attempts.map((a) => a.id)).toEqual(['a0']);
     expect(data.sessions).toEqual([]);

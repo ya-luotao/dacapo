@@ -1,6 +1,7 @@
 import type { FreePlaySession, OpenFreePlay } from '../core/freePlay.ts';
 import { byStartDescending, byTime, type SessionRecord } from '../core/log.ts';
 import type { Attempt } from '../core/session.ts';
+import { byImportedDescending, type StoredPiece } from '../core/storedPiece.ts';
 import { emptyStats, statsFromAttempts, updateStats, type NoteStats } from '../core/weakness.ts';
 import { openDacapoDB, type DacapoDB, type OpenHandlers } from './db.ts';
 import { isOpenFreePlay } from './validate.ts';
@@ -13,11 +14,21 @@ export interface StoredData {
   sessions: SessionRecord[];
   /** Free-play sessions that were still running when their tab went away. */
   openFreePlay: OpenFreePlay[];
+  /** Imported pieces, newest first. */
+  pieces: StoredPiece[];
 }
 
 export interface MergeResult {
   sessions: number;
   attempts: number;
+  pieces: number;
+}
+
+/** What an import adds; records whose id is stored already are kept as they are. */
+export interface MergeInput {
+  sessions: readonly SessionRecord[];
+  attempts: readonly Attempt[];
+  pieces: readonly StoredPiece[];
 }
 
 export interface PracticeRepository {
@@ -36,11 +47,14 @@ export interface PracticeRepository {
    * too short) in one transaction, so a stale save can never outlive the finished session.
    */
   finishOpenFreePlay: (id: string, session: FreePlaySession | null) => Promise<void>;
+  /** Adds or replaces the piece with the same id. */
+  putPiece: (piece: StoredPiece) => Promise<void>;
+  deletePiece: (id: string) => Promise<void>;
   /**
    * Adds the records whose id is not stored yet (stored ones are kept as they are), then rebuilds
    * every note's stats from all attempts, in one transaction. Returns how many were added.
    */
-  merge: (sessions: readonly SessionRecord[], attempts: readonly Attempt[]) => Promise<MergeResult>;
+  merge: (input: MergeInput) => Promise<MergeResult>;
   close: () => void;
 }
 
@@ -81,6 +95,7 @@ function sorted(data: StoredData): StoredData {
     ...data,
     attempts: data.attempts.sort(byTime),
     sessions: data.sessions.sort(byStartDescending),
+    pieces: data.pieces.sort(byImportedDescending),
   };
 }
 
@@ -88,12 +103,13 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
   return {
     kind: 'indexeddb',
     async load() {
-      const tx = db.transaction(['attempts', 'noteStats', 'sessions', 'meta']);
-      const [attempts, stats, sessions, meta] = await Promise.all([
+      const tx = db.transaction(['attempts', 'noteStats', 'sessions', 'meta', 'pieces']);
+      const [attempts, stats, sessions, meta, pieces] = await Promise.all([
         tx.objectStore('attempts').getAll(),
         tx.objectStore('noteStats').getAll(),
         tx.objectStore('sessions').getAll(),
         tx.objectStore('meta').getAll(openFreePlayRange()),
+        tx.objectStore('pieces').getAll(),
         tx.done,
       ]);
       return sorted({
@@ -101,6 +117,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         stats: Object.fromEntries(stats.map((s) => [s.key, s])),
         sessions,
         openFreePlay: meta.filter(isOpenFreePlay),
+        pieces,
       });
     },
     async addAttempt(attempt) {
@@ -132,28 +149,42 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         () => tx.objectStore('meta').delete(openFreePlayKey(id)),
       ]);
     },
-    async merge(newSessions, newAttempts) {
-      const tx = db.transaction(['sessions', 'attempts', 'noteStats'], 'readwrite');
+    async putPiece(piece) {
+      await db.put('pieces', piece);
+    },
+    async deletePiece(id) {
+      await db.delete('pieces', id);
+    },
+    async merge(input) {
+      const tx = db.transaction(['sessions', 'attempts', 'noteStats', 'pieces'], 'readwrite');
       const sessions = tx.objectStore('sessions');
       const attempts = tx.objectStore('attempts');
       const noteStats = tx.objectStore('noteStats');
-      const [sessionIds, storedAttempts] = await Promise.all([
+      const pieces = tx.objectStore('pieces');
+      const [sessionIds, storedAttempts, pieceIds] = await Promise.all([
         sessions.getAllKeys(),
         attempts.getAll(),
+        pieces.getAllKeys(),
       ]);
-      const addedSessions = notStored(newSessions, sessionIds);
+      const addedSessions = notStored(input.sessions, sessionIds);
       const addedAttempts = notStored(
-        newAttempts,
+        input.attempts,
         storedAttempts.map((a) => a.id),
       );
+      const addedPieces = notStored(input.pieces, pieceIds);
       const stats = statsFromAttempts([...storedAttempts, ...addedAttempts]);
       await writeAll(tx, [
         ...addedSessions.map((session) => () => sessions.add(session)),
         ...addedAttempts.map((attempt) => () => attempts.add(attempt)),
+        ...addedPieces.map((piece) => () => pieces.add(piece)),
         () => noteStats.clear(),
         ...Object.values(stats).map((s) => () => noteStats.put(s)),
       ]);
-      return { sessions: addedSessions.length, attempts: addedAttempts.length };
+      return {
+        sessions: addedSessions.length,
+        attempts: addedAttempts.length,
+        pieces: addedPieces.length,
+      };
     },
     close: () => db.close(),
   };
@@ -164,6 +195,7 @@ export function createMemoryRepository(): PracticeRepository {
   const attempts = new Map<string, Attempt>();
   const sessions = new Map<string, SessionRecord>();
   const openFreePlay = new Map<string, OpenFreePlay>();
+  const pieces = new Map<string, StoredPiece>();
   let stats: Record<string, NoteStats> = {};
   const copy = <T>(value: T): T => structuredClone(value);
 
@@ -176,6 +208,7 @@ export function createMemoryRepository(): PracticeRepository {
           stats: copy(stats),
           sessions: [...sessions.values()].map(copy),
           openFreePlay: [...openFreePlay.values()].map(copy),
+          pieces: [...pieces.values()].map(copy),
         }),
       ),
     addAttempt(attempt) {
@@ -198,13 +231,27 @@ export function createMemoryRepository(): PracticeRepository {
       openFreePlay.delete(id);
       return Promise.resolve();
     },
-    merge(newSessions, newAttempts) {
-      const addedSessions = notStored(newSessions, sessions.keys());
-      const addedAttempts = notStored(newAttempts, attempts.keys());
+    putPiece(piece) {
+      pieces.set(piece.id, copy(piece));
+      return Promise.resolve();
+    },
+    deletePiece(id) {
+      pieces.delete(id);
+      return Promise.resolve();
+    },
+    merge(input) {
+      const addedSessions = notStored(input.sessions, sessions.keys());
+      const addedAttempts = notStored(input.attempts, attempts.keys());
+      const addedPieces = notStored(input.pieces, pieces.keys());
       for (const session of addedSessions) sessions.set(session.id, copy(session));
       for (const attempt of addedAttempts) attempts.set(attempt.id, copy(attempt));
+      for (const piece of addedPieces) pieces.set(piece.id, copy(piece));
       stats = statsFromAttempts([...attempts.values()]);
-      return Promise.resolve({ sessions: addedSessions.length, attempts: addedAttempts.length });
+      return Promise.resolve({
+        sessions: addedSessions.length,
+        attempts: addedAttempts.length,
+        pieces: addedPieces.length,
+      });
     },
     close() {},
   };

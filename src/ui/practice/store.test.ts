@@ -3,7 +3,13 @@ import { openDB } from 'idb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SessionRecord } from '../../core/log.ts';
 import { DB_NAME, DB_VERSION, openDacapoDB } from '../../storage/db.ts';
-import { resetIndexedDB, sampleAttempt, sampleData, T0 } from '../../storage/fixtures.ts';
+import {
+  resetIndexedDB,
+  sampleAttempt,
+  sampleData,
+  samplePiece,
+  T0,
+} from '../../storage/fixtures.ts';
 import {
   createIndexedDbRepository,
   createMemoryRepository,
@@ -76,7 +82,7 @@ afterEach(() => {
 describe('loading', () => {
   it('reports loading, then the stored data', async () => {
     const { sessions, attempts } = sampleData();
-    await seed((repo) => repo.merge(sessions, attempts));
+    await seed((repo) => repo.merge({ sessions, attempts, pieces: [] }));
     const store = startStore();
     expect(store.getStatus()).toEqual({ state: 'loading', loaded: false, persisted: null });
     expect(store.getSnapshot().attempts).toEqual([]);
@@ -254,8 +260,30 @@ describe('several tabs', () => {
     expect(tabB.getSnapshot().stats['C4@treble']!.attempts).toBe(2);
 
     const { sessions, attempts } = sampleData();
-    await tabA.importData(sessions, attempts);
+    await tabA.importData({ sessions, attempts, pieces: [samplePiece(3)] });
     await vi.waitFor(() => expect(tabB.getSnapshot()).toEqual(tabA.getSnapshot()));
+    expect(tabB.getSnapshot().pieces.map((p) => p.id)).toEqual(['p3']);
+  });
+
+  it('saves, renames and deletes pieces, and tells the other tab', async () => {
+    const tabA = startStore();
+    const tabB = startStore();
+    await loaded(tabA);
+    await loaded(tabB);
+    tabA.savePiece(samplePiece(1));
+    tabA.savePiece(samplePiece(2));
+    expect(tabA.getSnapshot().pieces.map((p) => p.id)).toEqual(['p2', 'p1']);
+    await vi.waitFor(() =>
+      expect(tabB.getSnapshot().pieces.map((p) => p.id)).toEqual(['p2', 'p1']),
+    );
+    tabB.savePiece({ ...samplePiece(1), title: 'Renamed' });
+    tabB.deletePiece('p2');
+    await vi.waitFor(() =>
+      expect(tabA.getSnapshot().pieces.map((p) => p.title)).toEqual(['Renamed']),
+    );
+    await tabA.settled();
+    await tabB.settled();
+    expect((await onDisk()).pieces.map((p) => p.title)).toEqual(['Renamed']);
   });
 
   it('stops saving and asks for a reload when another tab upgrades the database', async () => {

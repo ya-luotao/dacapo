@@ -4,6 +4,30 @@ All notable changes to dacapo are listed here. Versions follow
 [Semantic Versioning](https://semver.org/); the export file format has its own version number,
 which is noted when it changes.
 
+## Unreleased
+
+Export format version 2: the file now includes imported pieces. Version 1 files still import.
+
+### Pieces and wait mode (P1)
+
+- A **Pieces** page. The built-in library has six public-domain pieces, by level from Initial to
+  grade 5: Beethoven's Ode to Joy and Für Elise (A section), Petzold's Minuet in G, Burgmüller's
+  Arabesque, Schumann's Soldiers' March and Bach's Prelude in C. Each is checked note for note
+  against an independent source where one exists, has no fingering, and records its provenance.
+- **Import** MusicXML (`.musicxml`, `.xml`, compressed `.mxl`) with a button or by drag and drop.
+  The report lists what was left out (grace notes, ornaments, D.C./D.S.) and how many notes could
+  not be placed on the drawn score. Imported pieces can be renamed or deleted, and their hands
+  reassigned staff by staff. In a score with a voice or other instruments, only the piano part is
+  practised.
+- **Wait mode** on the real score, drawn by Verovio. The current step is marked on the score and
+  its notes turn green as you play them; a wrong key flashes on a keyboard of the piece's range.
+  You can practise the right hand, the left or both, loop bars A–B, start from any bar, and play
+  or skip the repeats; the score scrolls with you. A "Show keys" hint marks the keys to play.
+  When you finish you get the time, the wrong notes and the slowest bars.
+- Imported pieces are stored in the browser (IndexedDB version 2) and included in the export.
+- Settings has an About section with the licences of the third-party software, fonts and music
+  ([THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)).
+
 ## 0.1.0 — 2026-09-25
 
 The first release: the MVP described in [docs/MVP.md](docs/MVP.md). Export format version 1.

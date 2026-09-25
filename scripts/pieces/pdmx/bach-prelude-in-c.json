@@ -1,0 +1,13 @@
+{
+  "pdmx": 719631,
+  "zenodoPath": "mxl/17/28/QmZkzoT5d8K6ccxJsPEQCxG9DaUEnQsdRBP2iPB2aDpBG4.mxl",
+  "sha256": "1d7b5d81143ba8ba03d99ba95250b28195c382a2834e72a444ef2cba78cf8f48",
+  "title": "Prelude in C major",
+  "workNumber": "The Well-Tempered Clavier, Book I, BWV 846",
+  "composer": "Johann Sebastian Bach",
+  "uploader": "OpenGoldberg (the Open Well-Tempered Clavier score)",
+  "url": "https://musescore.com/user/9836/scores/719631",
+  "checkedAgainst": "the Mutopia Project's public-domain edition (piece 5): https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=5",
+  "cutAfterMeasure": 34,
+  "removeDirections": ["Krekler"]
+}

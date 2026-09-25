@@ -1,8 +1,10 @@
 import type { OpenFreePlay } from '../core/freePlay.ts';
+import { isStaffHands } from '../core/hands.ts';
 import { isLevelId, parseNoteKey } from '../core/levels.ts';
 import type { FreePlaySessionRecord, ReadSessionRecord, SessionRecord } from '../core/log.ts';
 import { isMidiNote } from '../core/note.ts';
 import type { Attempt } from '../core/session.ts';
+import { isScoreWarning, type StoredPiece } from '../core/storedPiece.ts';
 
 // Hand-written validators for records read from outside the app (an import file, or storage
 // written by another version). They return a clean copy with only the known fields, or the name
@@ -158,4 +160,38 @@ export function isOpenFreePlay(value: unknown): value is OpenFreePlay {
       notes: isCount,
     }) === null
   );
+}
+
+/** Longest MusicXML text accepted from a file: far above any real piano score. */
+export const MAX_PIECE_XML = 20_000_000;
+
+const isText = (max: number) => (v: unknown) => typeof v === 'string' && v.length <= max;
+
+export function validatePiece(value: unknown): Validation<StoredPiece> {
+  if (!isObject(value)) return fail('record');
+  const field = firstInvalid(value, {
+    id: isId,
+    title: isText(500),
+    composer: isText(500),
+    fileName: isText(500),
+    xml: (v) => typeof v === 'string' && v.length > 0 && v.length <= MAX_PIECE_XML,
+    importedAt: isTime,
+    hands: (v) => v === null || isStaffHands(v),
+    warnings: (v) => Array.isArray(v) && v.every(isScoreWarning),
+  });
+  if (field) return fail(field);
+  const p = value as unknown as StoredPiece;
+  return {
+    ok: true,
+    value: {
+      id: p.id,
+      title: p.title,
+      composer: p.composer,
+      fileName: p.fileName,
+      xml: p.xml,
+      importedAt: p.importedAt,
+      hands: p.hands === null ? null : { ...p.hands },
+      warnings: [...new Set(p.warnings)],
+    },
+  };
 }

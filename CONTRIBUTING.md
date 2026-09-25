@@ -55,6 +55,38 @@ const t = useT();
 return <h1>{t('settings.title')}</h1>;
 ```
 
+## Adding a built-in piece
+
+The built-in pieces live in `src/pieces/library/`, one MusicXML file each. Only encodings we may
+redistribute go there: our own encodings of public-domain editions (MIT, like the code) or
+encodings dedicated to the public domain (CC0). Never a copyrighted arrangement, and never an
+encoding under CC BY-SA or a non-commercial licence. The tools are in `scripts/pieces/`; its
+[README](scripts/pieces/README.md) has every option.
+
+1. **Choose one public-domain edition**: a Mutopia source edition, or an IMSLP scan marked public
+   domain. Find an independent oracle if one exists, usually the MIDI file of a public-domain
+   Mutopia edition.
+2. **Encode it.**
+   - Our own encoding: token lists in `scripts/pieces/sources/<id>.py`, then
+     `python3 scripts/pieces/generate.py`.
+   - A CC0 MuseScore file from [PDMX](https://zenodo.org/records/15571083): a manifest
+     `scripts/pieces/pdmx/<id>.json`, then
+     `node --experimental-strip-types scripts/pieces/prepare-pdmx.ts <id> <file.mxl>`.
+     This removes all fingering and writes the provenance.
+3. **Check it.** Run `node --experimental-strip-types scripts/pieces/verify.ts <file> <oracle.mid>`
+   until every key press matches. Settle each difference against the edition, and note editorial
+   decisions in the file's comment. Without an oracle, a second person proofreads the file
+   against the scan.
+4. **Record where it comes from.** `<identification>` in the file names the composer, the
+   licence, the encoder and the source edition with a URL. Repeat these in
+   `src/pieces/library/index.ts`, with a level, and add its title, composer and one-sentence note
+   to both dictionaries in `src/i18n/`.
+5. **Lock it.** Add a checksum line and a structure test to `src/pieces/library/library.test.ts`.
+   Add the oracle to `scripts/pieces/verify-library.sh`, and a line to
+   [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) if the encoding is not ours.
+
+Fingering stays out unless it has been checked against a public-domain edition.
+
 ## License
 
 By contributing, you agree that your contributions are licensed under the [MIT License](LICENSE).

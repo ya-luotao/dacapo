@@ -10,6 +10,13 @@ import { StorageNotice } from './StorageNotice.tsx';
 
 // Notation (VexFlow and its font) is only downloaded when the Read route is opened.
 const ReadPage = lazy(() => import('./pages/ReadPage.tsx').then((m) => ({ default: m.ReadPage })));
+// Pieces load Verovio on their own, later still (ui/notation/verovio.ts).
+const PiecesPage = lazy(() =>
+  import('./pieces/PiecesPage.tsx').then((m) => ({ default: m.PiecesPage })),
+);
+const PiecePage = lazy(() =>
+  import('./pieces/PiecePage.tsx').then((m) => ({ default: m.PiecePage })),
+);
 
 export function App() {
   return (
@@ -21,6 +28,8 @@ export function App() {
           <Switch>
             <Route path="/" component={PlayPage} />
             <Route path="/read" component={ReadPage} />
+            <Route path="/pieces" component={PiecesPage} />
+            <Route path="/pieces/:id">{({ id }) => <PiecePage key={id} id={id} />}</Route>
             <Route path="/progress" component={ProgressPage} />
             <Route path="/settings" component={SettingsPage} />
             <Route component={NotFoundPage} />

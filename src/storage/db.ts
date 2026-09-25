@@ -1,11 +1,12 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { SessionRecord } from '../core/log.ts';
 import type { Attempt } from '../core/session.ts';
+import type { StoredPiece } from '../core/storedPiece.ts';
 import type { NoteStats } from '../core/weakness.ts';
 
 export const DB_NAME = 'dacapo';
 /** Bump when the schema changes and add a `case` to `upgrade`. */
-export const DB_VERSION = 1;
+export const DB_VERSION = 2;
 
 export interface DacapoSchema extends DBSchema {
   noteStats: { key: string; value: NoteStats };
@@ -17,6 +18,8 @@ export interface DacapoSchema extends DBSchema {
   };
   /** Small values under string keys, e.g. a free-play session still in progress. */
   meta: { key: string; value: unknown };
+  /** Imported pieces (version 2). */
+  pieces: { key: string; value: StoredPiece; indexes: { 'by-imported': number } };
 }
 
 export type DacapoDB = IDBPDatabase<DacapoSchema>;
@@ -37,6 +40,11 @@ export function upgrade(db: DacapoDB, oldVersion: number): void {
         attempts.createIndex('by-session', 'sessionId');
         attempts.createIndex('by-note', 'note');
         db.createObjectStore('meta');
+        break;
+      }
+      case 1: {
+        const pieces = db.createObjectStore('pieces', { keyPath: 'id' });
+        pieces.createIndex('by-imported', 'importedAt');
         break;
       }
     }

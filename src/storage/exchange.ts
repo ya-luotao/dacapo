@@ -1,17 +1,18 @@
 import { byStartDescending, byTime, type SessionRecord } from '../core/log.ts';
 import type { Attempt } from '../core/session.ts';
+import { byImportedDescending, type StoredPiece } from '../core/storedPiece.ts';
 import { dayKey } from '../core/streak.ts';
 import type { NoteStats } from '../core/weakness.ts';
 import { isLocale, type Locale } from '../i18n/locale.ts';
 import { isThemePreference, type ThemePreference } from '../lib/themePreference.ts';
-import { validateAttempt, validateSession } from './validate.ts';
+import { validateAttempt, validatePiece, validateSession } from './validate.ts';
 
 // The export file: everything the user owns, as one versioned JSON document. Importing merges by
 // id and never trusts the file's note stats; they are rebuilt from the attempts.
 
 export const EXPORT_FORMAT = 'dacapo';
-/** Bump when the file shape changes; older files must keep importing. */
-export const EXPORT_VERSION = 1;
+/** Bump when the file shape changes; older files must keep importing. Version 2 adds pieces. */
+export const EXPORT_VERSION = 2;
 
 export interface Preferences {
   /** null follows the browser language. */
@@ -32,12 +33,15 @@ export interface ExportFile {
   attempts: Attempt[];
   /** Derived from `attempts`; included for reading, ignored on import. */
   noteStats: NoteStats[];
+  /** Imported pieces, oldest first, with their MusicXML. */
+  pieces: StoredPiece[];
 }
 
 export interface ExportInput {
   sessions: readonly SessionRecord[];
   attempts: readonly Attempt[];
   stats: Readonly<Record<string, NoteStats>>;
+  pieces: readonly StoredPiece[];
 }
 
 export function buildExport(
@@ -54,6 +58,7 @@ export function buildExport(
     sessions: [...data.sessions].sort((a, b) => byStartDescending(b, a)),
     attempts: [...data.attempts].sort(byTime),
     noteStats: Object.values(data.stats).sort((a, b) => (a.key < b.key ? -1 : 1)),
+    pieces: [...data.pieces].sort((a, b) => byImportedDescending(b, a)),
   };
 }
 
@@ -65,8 +70,10 @@ export function exportFileName(now: number, timeZone?: string): string {
 export type ImportError =
   { kind: 'malformed' } | { kind: 'wrong-format' } | { kind: 'future-version'; version: number };
 
+export type Collection = 'sessions' | 'attempts' | 'pieces';
+
 export interface InvalidRecord {
-  collection: 'sessions' | 'attempts' | 'preferences';
+  collection: Collection | 'preferences';
   /** Position in the file's array; 0 for preferences. */
   index: number;
   /** The first field that is missing or wrong, or `record` when it is not an object at all. */
@@ -80,6 +87,8 @@ export interface ParsedImport {
   appVersion: string | null;
   sessions: SessionRecord[];
   attempts: Attempt[];
+  /** Empty for a version 1 file. */
+  pieces: StoredPiece[];
   /** null when the file has none or they are invalid (then listed in `invalid`). */
   preferences: Preferences | null;
   invalid: InvalidRecord[];
@@ -98,7 +107,7 @@ function validatePreferences(value: unknown): Preferences | string {
 }
 
 function validateAll<T extends { id: string }>(
-  collection: 'sessions' | 'attempts',
+  collection: Collection,
   records: readonly unknown[],
   validate: (value: unknown) => { ok: true; value: T } | { ok: false; field: string },
   invalid: InvalidRecord[],
@@ -138,10 +147,17 @@ export function parseImport(text: string): ParseResult {
   if (!Array.isArray(json.sessions) || !Array.isArray(json.attempts)) {
     return { ok: false, error: { kind: 'wrong-format' } };
   }
+  // Version 1 files have no pieces; from version 2 on the list is required.
+  if (version >= 2 && !Array.isArray(json.pieces)) {
+    return { ok: false, error: { kind: 'wrong-format' } };
+  }
 
   const invalid: InvalidRecord[] = [];
   const sessions = validateAll('sessions', json.sessions, validateSession, invalid);
   const attempts = validateAll('attempts', json.attempts, validateAttempt, invalid);
+  const pieces = Array.isArray(json.pieces)
+    ? validateAll('pieces', json.pieces, validatePiece, invalid)
+    : [];
   let preferences: Preferences | null = null;
   if (json.preferences !== undefined) {
     const result = validatePreferences(json.preferences);
@@ -160,6 +176,7 @@ export function parseImport(text: string): ParseResult {
         isObject(json.app) && typeof json.app.version === 'string' ? json.app.version : null,
       sessions,
       attempts,
+      pieces,
       preferences,
       invalid,
     },
@@ -174,19 +191,20 @@ export interface ImportCounts {
   invalid: number;
 }
 
-export interface ImportPlan {
-  sessions: ImportCounts;
-  attempts: ImportCounts;
-}
+export type ImportPlan = Record<Collection, ImportCounts>;
 
 export function planImport(
   parsed: ParsedImport,
-  existing: { sessionIds: ReadonlySet<string>; attemptIds: ReadonlySet<string> },
+  existing: {
+    sessionIds: ReadonlySet<string>;
+    attemptIds: ReadonlySet<string>;
+    pieceIds: ReadonlySet<string>;
+  },
 ): ImportPlan {
   const count = (
     records: readonly { id: string }[],
     ids: ReadonlySet<string>,
-    collection: InvalidRecord['collection'],
+    collection: Collection,
   ): ImportCounts => {
     const present = records.filter((r) => ids.has(r.id)).length;
     return {
@@ -198,5 +216,6 @@ export function planImport(
   return {
     sessions: count(parsed.sessions, existing.sessionIds, 'sessions'),
     attempts: count(parsed.attempts, existing.attemptIds, 'attempts'),
+    pieces: count(parsed.pieces, existing.pieceIds, 'pieces'),
   };
 }

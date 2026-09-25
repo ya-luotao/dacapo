@@ -3,6 +3,7 @@ import { IDBFactory } from 'fake-indexeddb';
 import type { SessionRecord } from '../core/log.ts';
 import { parseNoteKey } from '../core/levels.ts';
 import { recoverSummary, type Attempt } from '../core/session.ts';
+import type { StoredPiece } from '../core/storedPiece.ts';
 
 export const T0 = Date.UTC(2026, 8, 20, 10);
 
@@ -55,5 +56,20 @@ export function sampleData(): { sessions: SessionRecord[]; attempts: Attempt[] }
       },
     ],
     attempts: [...first, ...second],
+  };
+}
+
+/** An imported piece with a one-bar score. */
+export function samplePiece(i: number, patch: Partial<StoredPiece> = {}): StoredPiece {
+  return {
+    id: `p${i}`,
+    title: `Piece ${i}`,
+    composer: 'Someone',
+    fileName: `piece-${i}.mxl`,
+    xml: `<score-partwise version="4.0"><part-list><score-part id="P1"><part-name>Piano</part-name></score-part></part-list><part id="P1"><measure number="1"><attributes><divisions>1</divisions></attributes><note><pitch><step>C</step><octave>${4 + (i % 2)}</octave></pitch><duration>4</duration></note></measure></part></score-partwise>`,
+    importedAt: T0 + i * 60_000,
+    hands: null,
+    warnings: [],
+    ...patch,
   };
 }

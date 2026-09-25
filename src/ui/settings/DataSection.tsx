@@ -78,7 +78,11 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
   async function onApply(parsed: ParsedImport, fileName: string, applyPreferences: boolean) {
     setState({ step: 'preview', fileName, parsed, working: true });
     try {
-      const added = await practice.importData(parsed.sessions, parsed.attempts);
+      const added = await practice.importData({
+        sessions: parsed.sessions,
+        attempts: parsed.attempts,
+        pieces: parsed.pieces,
+      });
       if (applyPreferences && parsed.preferences) onApplyPreferences(parsed.preferences);
       setState({ step: 'done', added });
     } catch {
@@ -151,6 +155,7 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
           plan={planImport(state.parsed, {
             sessionIds: new Set(data.sessions.map((s) => s.id)),
             attemptIds: new Set(data.attempts.map((a) => a.id)),
+            pieceIds: new Set(data.pieces.map((p) => p.id)),
           })}
           working={state.working}
           onApply={(applyPreferences) =>
@@ -164,6 +169,7 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
           {t('settings.import.done', {
             sessions: state.added.sessions,
             attempts: state.added.attempts,
+            pieces: state.added.pieces,
           })}
         </p>
       )}

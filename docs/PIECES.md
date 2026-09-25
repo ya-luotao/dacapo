@@ -81,12 +81,52 @@ for drawing.
   surface fits on one laptop screen, the current step is unmistakable, controls are quiet.
 - Everything follows the engraved-score design system (see `src/ui/styles.css` tokens).
 
+## Clarifications (decided in P0 and P1)
+
+- **Renderer: Verovio 6.3.0.** It is loaded only on the Pieces routes, and the library prefetches
+  it while idle. Its two npm files ship unmodified as separate assets, with the LGPL and GPL texts
+  in `public/licenses/verovio/` (see `THIRD_PARTY_NOTICES.md`). `smuflTextFont` is never set to
+  `linked`, so nothing is fetched from verovio.org.
+- **Drawing.** Part names are hidden, and a tempo is drawn only if the file has one. Verovio's
+  timemap is taken in written order (`expandNever`). Onsets are measured from the start of their
+  measure, so a bar the engine measures differently cannot shift the rest.
+- **Placing notes on the score.** Our notes are matched to Verovio's by written tick and pitch.
+  Notes left over go to the nearest drawn note of the same key within an eighth. What still has
+  no match is reported as "n notes could not be placed" and is practised all the same.
+- **Hands.** The piano is the first part with two staves (a piano-like name or MIDI program
+  preferred): staff 1 is the right hand, the rest the left. Failing that, two single-staff piano
+  parts are right and left hand; failing both, the first two parts, with a warning. Other parts
+  (a voice, a violin) are drawn lighter and never practised. An imported piece can reassign every
+  staff to right, left or not practised.
+- **Repeats.** Performance order by default (`|: :|` with `times`, numbered voltas, a first ending
+  without its `:|`). "Skip" plays every written bar once and takes the last ending. D.C./D.S. are
+  read as written, with a warning.
+- **Loop A–B** is chosen in written bars. It resolves to the first run from an occurrence of A to
+  the next occurrence of B that stays within bars A–B. So "bars 7–9 (2nd ending)" loops the second
+  pass, while the whole piece keeps both passes. "Start from bar n" is its first occurrence, inside
+  the loop if one is set.
+- **Wait mode.** Only key-downs count, so a key still held from the step before never completes a
+  step: the score must ask for it again and it must be struck again. The clock starts at the first
+  key of a run, not when the page opens. Without a loop the run finishes after its last step; with
+  a loop it goes round until Finish. Each step's time is capped at 60 s in the summary. "Slowest
+  bars" ranks written bars by mean time per step, both passes together.
+- **Records.** Per-step records (step, written bar, pass, ms, wrong, time) are kept in memory in
+  P1, shaped for P3's measure heatmap.
+- **Storage moved forward.** Imported pieces persist from P1 on: IndexedDB version 2 adds a
+  `pieces` store (id, title, composer, file name, MusicXML text, import date, hands, parse
+  warnings). Export format version 2 includes them; version 1 files still import. Piece sessions
+  and measure statistics stay in P3.
+- **Built-in library:** our own encodings of Mutopia public-domain editions, our own _Ode to Joy_
+  (in C, for the right hand's C position), and CC0 MuseScore files from PDMX with fingering
+  removed. Each is checked against an independent MIDI file where one exists
+  (`scripts/pieces/`), and its notes are locked by a checksum test.
+
 ## Milestones
 
-1. **P0 Spike** — choose the renderer (OpenSheetMusicDisplay vs Verovio vs other), prove
+1. ✓ **P0 Spike** — choose the renderer (OpenSheetMusicDisplay vs Verovio vs other), prove
    MusicXML → model → steps → cursor on two real pieces, research redistributable sources for
    the built-in library, decide repeats and the click. Report; no production UI.
-2. **P1 Pieces + wait mode** — library, import, score view, wait mode, hands, loop.
+2. ✓ **P1 Pieces + wait mode** — library, import, score view, wait mode, hands, loop.
 3. **P2 MIDI output** — output selection, demo playback, accompaniment.
 4. **P3 Records** — persistence (DB v2), measure heatmap, log and streak integration, export.
 5. **P4 Rhythm mode** — metronome, calibration, timing analysis.

@@ -16,7 +16,8 @@ export function Header() {
       <nav aria-label={t('nav.label')}>
         <ul className="nav">
           {NAV_ITEMS.map(({ path, label }) => {
-            const active = location === path;
+            // A piece's page belongs to Pieces.
+            const active = location === path || (path !== '/' && location.startsWith(`${path}/`));
             return (
               <li key={path}>
                 <Link

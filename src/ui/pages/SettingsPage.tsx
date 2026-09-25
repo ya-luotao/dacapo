@@ -5,6 +5,7 @@ import { DataSection } from '../settings/DataSection.tsx';
 import { currentTheme, setTheme, THEME_PREFERENCES, type ThemePreference } from '../theme.ts';
 
 const SYSTEM = 'system';
+const REPO_URL = 'https://github.com/ya-luotao/dacapo';
 
 export function SettingsPage() {
   const { t, override, setOverride } = useI18n();
@@ -75,6 +76,21 @@ export function SettingsPage() {
         preferences={{ locale: override, theme }}
         onApplyPreferences={onApplyPreferences}
       />
+
+      <section className="field data about" aria-labelledby={`${themeId}-about`}>
+        <h2 id={`${themeId}-about`}>{t('settings.about')}</h2>
+        <p className="help">{t('settings.about.text', { version: __APP_VERSION__ })}</p>
+        <ul className="about-links">
+          <li>
+            <a href={REPO_URL}>{t('settings.about.source')}</a>
+          </li>
+          <li>
+            <a href={`${REPO_URL}/blob/main/THIRD_PARTY_NOTICES.md`}>
+              {t('settings.about.notices')}
+            </a>
+          </li>
+        </ul>
+      </section>
     </section>
   );
 }

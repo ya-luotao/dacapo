@@ -774,7 +774,7 @@ kbd {
 
 .piano {
   position: relative;
-  min-width: calc(52 * var(--white-min));
+  min-width: calc(var(--whites, 52) * var(--white-min));
   min-height: 7rem;
   max-height: 14rem;
   user-select: none;
@@ -2044,6 +2044,21 @@ kbd {
   border-top: 1px solid var(--border);
 }
 
+.about-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.5rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.about-links a {
+  display: inline-block;
+  padding-block: 0.5rem;
+  font-weight: 600;
+}
+
 .data-status {
   margin: 0.75rem 0 0;
 }
@@ -2599,6 +2614,713 @@ kbd {
   white-space: nowrap;
 }
 
+/* Pieces: the library reads like the contents page of a method book. */
+
+.pieces-intro {
+  max-width: 38rem;
+  margin: 0;
+  font-size: 1.125rem;
+  text-wrap: pretty;
+}
+
+.library {
+  margin-top: 2.25rem;
+}
+
+.library-level {
+  display: grid;
+  grid-template-columns: 8rem minmax(0, 1fr);
+  column-gap: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.library-level-name {
+  margin: 0;
+  padding-top: 1rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.library-level-name:lang(zh) {
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+}
+
+.library-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.library-list > li + li {
+  border-top: 1px solid var(--border);
+}
+
+.library-piece {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.75rem;
+  padding: 0.75rem 0.75rem 0.875rem;
+  color: var(--text);
+  text-decoration: none;
+  transition: background-color var(--dur-fast) ease-out;
+}
+
+@media (hover: hover) {
+  .library-piece:hover {
+    background: var(--sunk);
+  }
+
+  .library-piece:hover .library-piece-title {
+    color: var(--accent);
+  }
+}
+
+.library-piece-title {
+  font-family: var(--font-serif);
+  font-size: 1.3125rem;
+  font-weight: 500;
+  letter-spacing: -0.012em;
+  line-height: 1.3;
+  transition: color var(--dur-fast) ease-out;
+}
+
+.library-piece-title:lang(zh) {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.library-piece-composer {
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+
+.library-piece-note {
+  flex-basis: 100%;
+  max-width: 40rem;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.library-level:last-of-type {
+  border-bottom: 1px solid var(--border);
+}
+
+.library-help {
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 40rem) {
+  .library-level {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .library-level-name {
+    padding-top: 0.875rem;
+    padding-inline: 0.75rem;
+  }
+}
+
+.your-pieces {
+  margin-top: 3.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+
+.your-pieces h2 {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 1.3rem + 0.8vw, 1.75rem);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.012em;
+}
+
+.your-pieces h2:lang(zh) {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* The drop target: a dotted rule, like a blank to be filled in. */
+.pieces-drop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  max-width: 38rem;
+  margin: 1.25rem 0;
+  padding: 0.875rem 1rem;
+  border: 1px dashed var(--control);
+  border-radius: var(--radius);
+  transition:
+    background-color var(--dur-fast) ease-out,
+    border-color var(--dur-fast) ease-out;
+}
+
+.pieces-drop.is-dragging {
+  border-color: var(--accent);
+  border-style: solid;
+  background: var(--accent-soft);
+}
+
+.pieces-progress {
+  margin: 0 0 1rem;
+  color: var(--text-muted);
+}
+
+.pieces-report {
+  max-width: 38rem;
+  margin-bottom: 1.5rem;
+}
+
+.pieces-report > p {
+  margin: 0.75rem 0 0;
+}
+
+.pieces-report .muted {
+  margin-top: 0.25rem;
+}
+
+.pieces-report-warn {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.pieces-warnings p {
+  margin: 1rem 0 0.25rem;
+  font-weight: 600;
+}
+
+.pieces-warnings ul {
+  margin: 0;
+  padding-inline-start: 1.25rem;
+  color: var(--text-muted);
+}
+
+.your-list {
+  max-width: 46rem;
+  border-block: 1px solid var(--border);
+}
+
+.your-piece-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0 1rem;
+}
+
+.your-piece-row .library-piece {
+  flex: 1 1 20rem;
+  min-width: 0;
+}
+
+.your-piece-row .library-piece-note {
+  overflow-wrap: anywhere;
+}
+
+.your-piece-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.25rem;
+  padding: 0.375rem 0.75rem;
+}
+
+.your-piece-actions .button-link,
+.your-piece-panel .button-link {
+  min-height: 2.5rem;
+}
+
+.button-link.is-danger {
+  color: var(--bad);
+}
+
+.your-piece-panel {
+  padding: 0.25rem 0.75rem 1.25rem;
+  animation: ink-in var(--dur) ease-out;
+}
+
+.your-piece-panel > p {
+  margin: 0;
+}
+
+.your-piece-panel .actions {
+  margin-top: 1rem;
+}
+
+.your-piece-panel.rename {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.your-piece-panel.rename label {
+  font-weight: 600;
+}
+
+.text-input {
+  flex: 1 1 14rem;
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--control);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.hands-grid {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 34rem;
+  margin-top: 0.75rem;
+}
+
+.hands-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+}
+
+.hands-row select {
+  min-width: 11rem;
+}
+
+.button-danger {
+  border-color: var(--bad);
+  background: var(--bad);
+  color: var(--accent-contrast);
+}
+
+@media (hover: hover) {
+  .button-danger:hover:not(:disabled) {
+    border-color: var(--bad);
+    background: var(--bad);
+    opacity: 0.88;
+  }
+}
+
+/*
+ * Practice: like a Read session, the whole surface fits one laptop screen (header, the piece's
+ * name, one row of controls, the score, a status line and the keyboard); the score takes the
+ * height the rest leaves and scrolls inside its sheet. On phones the page scrolls instead.
+ */
+.main:has(.piece-session) {
+  padding-block: 0.75rem 1rem;
+}
+
+.piece-back {
+  margin: 0 0 1rem;
+}
+
+.piece-session {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.piece-session:focus {
+  outline: none;
+}
+
+.piece-session > :not(.piece-stage) {
+  flex: none;
+}
+
+/* The page is exactly one screen: the header keeps its own height, the session takes the rest. */
+@media (min-width: 48rem) and (min-height: 36rem) {
+  #root:has(.piece-session) {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+  }
+
+  #root:has(.piece-session) > .header,
+  .main:has(.piece-session) {
+    width: 100%;
+  }
+
+  .main:has(.piece-session) {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .piece-session {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+}
+
+.piece-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 1.25rem;
+}
+
+.piece-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.piece-back-link::before {
+  content: '';
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-bottom: 1.5px solid currentColor;
+  border-left: 1.5px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.piece-title {
+  margin: 0;
+  font-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.625rem);
+  letter-spacing: -0.012em;
+  line-height: 1.25;
+}
+
+.piece-composer {
+  margin-inline-start: 0.75rem;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  font-weight: 400;
+  letter-spacing: normal;
+}
+
+.piece-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.125rem;
+  font-size: 0.9375rem;
+}
+
+.piece-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.piece-control-label {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.piece-control-label:lang(zh) {
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+}
+
+.piece-controls .check {
+  min-height: 2.5rem;
+  font-size: 0.9375rem;
+}
+
+.segmented.is-compact span {
+  min-width: 0;
+  min-height: 2.5rem;
+  padding: 0.3125rem 0.875rem;
+}
+
+select.is-compact {
+  field-sizing: content;
+  min-width: 4.25rem;
+  min-height: 2.5rem;
+  padding: 0.3125rem 2.25rem 0.3125rem 0.625rem;
+}
+
+.button.is-compact {
+  min-height: 2.5rem;
+  padding: 0.25rem 1rem;
+  font-size: 0.9375rem;
+}
+
+.button-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.button-icon svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+@media (hover: hover) {
+  .button-icon:hover {
+    background: var(--sunk);
+    color: var(--text);
+  }
+}
+
+.piece-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-inline-start: auto;
+}
+
+.piece-notes {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The score: a sheet on the stand, scrolling inside itself. */
+.piece-stage {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 14rem;
+}
+
+.score-frame {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-sheet);
+  scrollbar-width: thin;
+}
+
+.score-page {
+  position: relative;
+  padding: 0.25rem 0.5rem 0.5rem;
+}
+
+.score-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* The cursor: a wash of the accent behind the notes to play, gliding from step to step. */
+.score-cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 28%, transparent);
+  transition: transform var(--dur) cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.score-host {
+  position: relative;
+  color: var(--text);
+}
+
+/* Verovio draws in currentColor; the few explicit colours it writes follow the ink too. */
+.score-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  fill: currentColor;
+}
+
+.score-svg [fill]:not([fill='none']) {
+  fill: currentColor;
+}
+
+.score-svg [stroke]:not([stroke='none']) {
+  stroke: currentColor;
+}
+
+.score-svg g.note {
+  transition: color var(--dur-fast) ease-out;
+}
+
+.score-svg .is-other {
+  opacity: 0.4;
+}
+
+.score-svg .is-held {
+  color: var(--text-muted);
+}
+
+.score-svg .is-current {
+  color: var(--accent);
+}
+
+.score-svg .is-pressed {
+  color: var(--ok);
+}
+
+.piece-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  pointer-events: none;
+  text-align: center;
+}
+
+.piece-overlay p {
+  max-width: 28rem;
+  margin: 0;
+}
+
+.piece-error {
+  color: var(--bad);
+  font-weight: 600;
+}
+
+/* The end of a run: a sheet laid over the score. */
+.piece-summary {
+  position: absolute;
+  z-index: 2;
+  inset: 0.75rem;
+  max-width: 38rem;
+  height: fit-content;
+  max-height: calc(100% - 1.5rem);
+  margin: auto;
+  overflow-y: auto;
+  padding: 1.25rem clamp(1rem, 3vw, 1.75rem) 1.5rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+  animation: ink-in var(--dur) ease-out;
+}
+
+.piece-summary h2 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 1.3rem + 0.8vw, 1.875rem);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.012em;
+}
+
+.piece-summary h2:lang(zh) {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.piece-summary h2:focus {
+  outline: none;
+}
+
+.piece-summary .figures {
+  margin: 1rem 0;
+}
+
+.piece-summary .figures dd {
+  font-size: clamp(1.5rem, 1.25rem + 1vw, 2.125rem);
+}
+
+.piece-summary .figures div {
+  padding-block: 0.625rem 0.75rem;
+}
+
+.piece-summary .actions {
+  margin-top: 1.25rem;
+}
+
+.piece-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 1.5rem;
+  min-height: 2.5rem;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+.piece-status .piece-notes {
+  font-size: 0.875rem;
+}
+
+.piece-status p {
+  margin: 0;
+}
+
+.piece-status-main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.piece-status-keys {
+  color: var(--accent);
+}
+
+/* The keyboard: only the piece's range, at a size that leaves the score its room. */
+.piece-keys {
+  width: 100%;
+  max-width: calc(var(--piece-whites, 22) * 1.375rem);
+  margin-inline: auto;
+}
+
+.piece-piano {
+  --white-min: 14px;
+}
+
+.piece-piano .piano {
+  min-height: 0;
+}
+
+.key.is-wrong {
+  box-shadow: inset 0 0 0 3px var(--bad);
+}
+
+.key-white.is-wrong {
+  background: var(--bad-soft);
+}
+
+.key-black.is-wrong {
+  background: var(--bad);
+}
+
+@media (max-width: 47.99rem) {
+  .piece-stage {
+    flex: none;
+    height: 62dvh;
+  }
+
+  .piece-actions {
+    margin-inline-start: 0;
+  }
+}
+
 /* Last, so it wins over every transition and animation above. */
 @media (prefers-reduced-motion: reduce) {
   .nav-link::after,
@@ -2614,14 +3336,21 @@ kbd {
   .grand-staff .vf-stavenote,
   .sustain,
   .history-day,
-  .history-details summary::before {
+  .history-details summary::before,
+  .library-piece,
+  .library-piece-title,
+  .pieces-drop,
+  .score-cursor,
+  .score-svg g.note {
     transition: none;
   }
 
   .read-result,
   .read-feedback .read-target,
   .data-message,
-  .import-preview {
+  .import-preview,
+  .your-piece-panel,
+  .piece-summary {
     animation: none;
   }
 }
