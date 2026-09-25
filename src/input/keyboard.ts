@@ -130,6 +130,11 @@ export interface KeyboardInput extends NoteInput {
   getOctave: () => number;
   /** For `useSyncExternalStore`. */
   subscribeOctave: (onChange: () => void) => () => void;
+  /**
+   * Stops playing notes (held ones are released) until the returned function is called, so a
+   * page can use the letter keys for itself. Suspensions nest.
+   */
+  suspend: () => () => void;
 }
 
 /** `target` receives keydown, keyup and blur; in the app that is `window`. */
@@ -138,12 +143,16 @@ export function createKeyboardInput(
 ): KeyboardInput {
   const mapper = createKeyboardMapper();
   const octaveListeners = new Set<() => void>();
+  let suspended = 0;
+  let current: Emit | null = null;
 
   return {
     id: 'keyboard',
     start(emit: Emit) {
       if (!target) return () => undefined;
+      current = emit;
       const onKeyDown = (e: Event) => {
+        if (suspended > 0) return;
         const action = mapper.keyDown(e as KeyboardEvent);
         if (action?.kind === 'note') emit(action.event);
         if (action?.kind === 'octave') for (const listener of [...octaveListeners]) listener();
@@ -164,6 +173,19 @@ export function createKeyboardInput(
         target.removeEventListener('keyup', onKeyUp);
         target.removeEventListener('blur', onBlur);
         mapper.releaseAll();
+        if (current === emit) current = null;
+      };
+    },
+    suspend() {
+      if (suspended++ === 0) {
+        mapper.releaseAll();
+        current?.({ type: 'reset', time: globalThis.performance?.now() ?? 0 });
+      }
+      let done = false;
+      return () => {
+        if (done) return;
+        done = true;
+        suspended--;
       };
     },
     getOctave: () => mapper.octave,

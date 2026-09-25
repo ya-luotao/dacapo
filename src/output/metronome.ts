@@ -5,8 +5,10 @@
 // (output timestamps, plus the calibrated delay the context cannot see).
 //
 // A background tab keeps ticking: a metronome that stops when you glance at another tab is no use.
-// Browsers slow timers in hidden tabs (to once a second, or less), so while hidden the clicks are
-// scheduled further ahead. `pagehide` stops it.
+// Browsers slow timers in hidden tabs: to once a second, and Chrome to once a minute after five
+// minutes of a hidden tab that has made no sound for 30 s (the gap trainer's silent bars can be that
+// long). So while hidden the clicks are scheduled a minute and more ahead; nothing can change them
+// meanwhile, and anything changed on return cancels what is no longer wanted. `pagehide` stops it.
 
 import {
   pulseConfig,
@@ -28,8 +30,8 @@ import { playClick, type ClickContext, type SoundingClick } from './click.ts';
 import type { Clock } from './scheduler.ts';
 
 export const METRONOME_LOOKAHEAD_MS = 120;
-/** Enough for timers slowed to once a second, with room for one that comes late. */
-export const METRONOME_HIDDEN_LOOKAHEAD_MS = 2500;
+/** Outlasts timers slowed to once a minute, with room for one that comes late. */
+export const METRONOME_HIDDEN_LOOKAHEAD_MS = 65_000;
 export const METRONOME_TICK_MS = 25;
 /** From Start to the first beat, so the first click is not late. */
 export const METRONOME_LEAD_MS = 120;
@@ -58,6 +60,8 @@ export interface MetronomeSnapshot {
   settings: MetronomeSettings;
   /** The tempo heard now (a ramp moves it), or the tempo set. */
   bpm: number;
+  /** The tempo from the next beat on: what a change has asked for, before it is heard. */
+  target: number;
   /** The bar heard now, counted from Start; null when not running. */
   bar: number | null;
   /** A silent bar of the gap trainer is being heard (or rather, not heard). */
@@ -79,7 +83,8 @@ export interface MetronomeOptions {
   save?: (settings: MetronomeSettings) => void;
   /**
    * How much later than the context says a click reaches the ear (ms): the part of the path it
-   * cannot see (the calibration's measure of it). The animation is drawn this much later.
+   * cannot see (the calibration's measure of it). The animation is drawn this much later. Read at
+   * each start (a calibration pauses the metronome, so it cannot change while it runs).
    */
   delay?: () => number;
   page?: MetronomePage | null;
@@ -106,6 +111,8 @@ export interface Metronome {
   block: (reason: PauseReason) => () => void;
   /** Where the beat is for what is heard at performance.now() time `now`; null when not running. */
   position: (now: number) => PulsePosition | null;
+  /** Clicks handed to the context and not yet forgotten. */
+  pending: () => number;
   dispose: () => void;
 }
 
@@ -129,19 +136,32 @@ export function createMetronome(options: MetronomeOptions): Metronome {
   let stopTimer: (() => void) | null = null;
   let hidden = false;
   let listening = false;
+  let delay = 0;
   const pending: { at: number; node: SoundingClick }[] = [];
   const tapper = createTapTempo();
   const listeners = new Set<() => void>();
   let snapshot = makeSnapshot(null);
 
+  /** What the next start begins with: where a pause left off, a ramp's own start, or the tempo set. */
+  function nextStartBpm(): number {
+    return resumeBpm ?? (settings.trainer.kind === 'ramp' ? settings.trainer.from : settings.bpm);
+  }
+
   function makeSnapshot(position: PulsePosition | null): MetronomeSnapshot {
     const blockedBy = [...blocks.values()].at(-1) ?? null;
+    const bpm = position?.bpm ?? (status === 'running' ? startBpm : nextStartBpm());
+    let target = bpm;
+    if (status === 'running' && pulse) {
+      const next = pulse.position(timelineNow() + METRONOME_GUARD_MS);
+      target = next ? pulse.bpmAt(next.to) : pulse.bpmAt(pulse.origin);
+    }
     return {
       status,
       pausedBy,
       blockedBy,
       settings,
-      bpm: position?.bpm ?? (status === 'running' ? startBpm : settings.bpm),
+      bpm,
+      target,
       bar: position?.bar ?? null,
       silentBar: position?.silent ?? false,
       audio: audioAvailable,
@@ -157,6 +177,7 @@ export function createMetronome(options: MetronomeOptions): Metronome {
       next.blockedBy === snapshot.blockedBy &&
       next.settings === snapshot.settings &&
       next.bpm === snapshot.bpm &&
+      next.target === snapshot.target &&
       next.bar === snapshot.bar &&
       next.silentBar === snapshot.silentBar &&
       next.audio === snapshot.audio;
@@ -227,6 +248,10 @@ export function createMetronome(options: MetronomeOptions): Metronome {
       if (!settings.silent) for (const click of pulse.clicks(until, horizon)) schedule(click, t);
       until = horizon;
     }
+    // Forget the clicks that have sounded (pending is in time order).
+    let done = 0;
+    while (done < pending.length && pending[done]!.at < t - 1000) done++;
+    if (done > 0) pending.splice(0, done);
     publish();
   }
 
@@ -274,9 +299,9 @@ export function createMetronome(options: MetronomeOptions): Metronome {
         master.connect(next.destination as never);
       }
     }
-    startBpm =
-      resumeBpm ?? (settings.trainer.kind === 'ramp' ? settings.trainer.from : settings.bpm);
+    startBpm = nextStartBpm();
     resumeBpm = null;
+    delay = options.delay?.() ?? 0;
     status = 'running';
     pausedBy = null;
     listen(true);
@@ -305,7 +330,7 @@ export function createMetronome(options: MetronomeOptions): Metronome {
 
   function position(now: number): PulsePosition | null {
     if (status !== 'running' || !pulse) return null;
-    const heard = now - (options.delay?.() ?? 0);
+    const heard = now - delay;
     if (!context || !audioClock) return pulse.position(heard);
     audioClock.sample(clock.now());
     return pulse.position(audioClock.toContext(heard) * 1000);
@@ -319,6 +344,8 @@ export function createMetronome(options: MetronomeOptions): Metronome {
     const previous = settings;
     settings = next;
     options.save?.(settings);
+    // A tempo or trainer chosen while paused is what the next start begins with.
+    if (patch.bpm !== undefined || patch.trainer) resumeBpm = null;
     if (master && context && next.volume !== previous.volume)
       master.gain.setTargetAtTime(next.volume / 100, context.currentTime, VOLUME_SMOOTHING);
     if (status === 'running' && pulse) {
@@ -328,6 +355,10 @@ export function createMetronome(options: MetronomeOptions): Metronome {
       const old = pulseConfig(previous, pulse.bpmAt(after));
       const change: Partial<PulseConfig> = {};
       if (patch.bpm !== undefined) change.bpm = next.bpm;
+      // A ramp switched on (or given a new start) begins where it says, as it does on Start.
+      const ramp = next.trainer.kind === 'ramp';
+      if (ramp && (previous.trainer.kind !== 'ramp' || previous.trainer.from !== next.trainer.from))
+        change.bpm = next.trainer.from;
       if (config.beats !== old.beats) change.beats = config.beats;
       if (config.subdivision !== old.subdivision) change.subdivision = config.subdivision;
       if (config.accents.join() !== old.accents.join()) change.accents = config.accents;
@@ -356,7 +387,7 @@ export function createMetronome(options: MetronomeOptions): Metronome {
     toggle: () => (status === 'running' ? stop() : start()),
     update,
     setBpm: (bpm) => update({ bpm }),
-    nudge: (delta) => update({ bpm: snapshot.bpm + delta }),
+    nudge: (delta) => update({ bpm: snapshot.target + delta }),
     tap(time) {
       const bpm = tapper.tap(time);
       if (bpm !== null) update({ bpm });
@@ -373,6 +404,7 @@ export function createMetronome(options: MetronomeOptions): Metronome {
       };
     },
     position,
+    pending: () => pending.length,
     dispose() {
       halt();
       status = 'stopped';

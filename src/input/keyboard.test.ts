@@ -196,6 +196,29 @@ describe('createKeyboardInput', () => {
     expect([...hub.getState().held.keys()]).toEqual([60]);
   });
 
+  it('plays nothing while suspended, releases what was held, and nests', () => {
+    const target = new EventTarget();
+    const hub = createInputHub();
+    const keyboard = createKeyboardInput(target);
+    hub.add(keyboard);
+    target.dispatchEvent(keyEvent('keydown', { code: 'KeyA' }));
+    const resume = keyboard.suspend();
+    const resumeToo = keyboard.suspend();
+    expect(hub.getState().held.size).toBe(0);
+    for (const code of ['KeyT', 'KeyA', 'KeyZ', 'KeyX']) {
+      target.dispatchEvent(keyEvent('keydown', { code }));
+    }
+    expect(hub.getState().held.size).toBe(0);
+    expect(keyboard.getOctave()).toBe(DEFAULT_OCTAVE);
+    resume();
+    resume();
+    target.dispatchEvent(keyEvent('keydown', { code: 'KeyT' }));
+    expect(hub.getState().held.size).toBe(0);
+    resumeToo();
+    target.dispatchEvent(keyEvent('keydown', { code: 'KeyT' }));
+    expect([...hub.getState().held.keys()]).toEqual([66]);
+  });
+
   it('notifies octave subscribers', () => {
     const target = new EventTarget();
     const keyboard = createKeyboardInput(target);

@@ -142,6 +142,26 @@ describe('the metronome clicks on the audio clock', () => {
     );
   });
 
+  it('survives timers slowed to once a minute (Chrome, a tab hidden for a while)', () => {
+    const { metronome, scheduled, advance, jump, setHidden } = setup({ bpm: 90 });
+    metronome.start();
+    advance(500);
+    setHidden(true);
+    for (let i = 0; i < 5; i++) jump(60_000);
+    const beats = scheduled.map((s) => s.when);
+    expect(beats.length).toBeGreaterThanOrEqual(90 * 5);
+    beats.forEach((when, k) =>
+      expect(when * 1000).toBeCloseTo(250 + METRONOME_LEAD_MS + (k * 60_000) / 90, 9),
+    );
+  });
+
+  it('forgets the clicks that have sounded', () => {
+    const { metronome, advance } = setup({ bpm: 240, subdivision: 4 });
+    metronome.start();
+    advance(600_000);
+    expect(metronome.pending()).toBeLessThan(30);
+  });
+
   it('stops: what is waiting is cancelled and nothing more is scheduled', () => {
     const { metronome, scheduled, context, advance } = setup({ bpm: 120, sound: 'click' });
     metronome.start();
@@ -228,6 +248,19 @@ describe('settings while it plays', () => {
     expect(saved.at(-1)!.accents).toEqual(['accent', 'normal', 'normal']);
   });
 
+  it('nudges from the tempo asked for, not the one still heard', () => {
+    const { metronome, advance } = setup({ bpm: 60 });
+    metronome.start();
+    advance(METRONOME_LEAD_MS + 200);
+    metronome.nudge(1);
+    metronome.nudge(1);
+    metronome.nudge(1);
+    expect(metronome.getSnapshot()).toMatchObject({ bpm: 60, target: 63 });
+    expect(metronome.getSnapshot().settings.bpm).toBe(63);
+    advance(1000);
+    expect(metronome.getSnapshot()).toMatchObject({ bpm: 63, target: 63 });
+  });
+
   it('taps the tempo', () => {
     const { metronome } = setup({ bpm: 80 });
     expect(metronome.tap(1000)).toBeNull();
@@ -266,6 +299,28 @@ describe('the trainer', () => {
   });
 });
 
+describe('the tempo shown before Start is the tempo Start plays', () => {
+  it('with a ramp: its own start', () => {
+    const { metronome } = setup({
+      bpm: 80,
+      trainer: { ...DEFAULT_SETTINGS.trainer, kind: 'ramp', from: 60, to: 100 },
+    });
+    expect(metronome.getSnapshot()).toMatchObject({ bpm: 60, target: 60 });
+  });
+
+  it('switching a ramp on while it plays starts it from its own tempo, on the next beat', () => {
+    const { metronome, advance } = setup({ bpm: 120 });
+    metronome.start();
+    advance(1000);
+    metronome.update({
+      trainer: { ...DEFAULT_SETTINGS.trainer, kind: 'ramp', from: 60, to: 100, step: 5, every: 1 },
+    });
+    expect(metronome.getSnapshot()).toMatchObject({ bpm: 120, target: 60 });
+    advance(1000);
+    expect(metronome.getSnapshot().bpm).toBe(60);
+  });
+});
+
 describe('rhythm mode comes first', () => {
   it('pauses the metronome, says why, and keeps it from starting until released', () => {
     const { metronome, context, advance } = setup({ bpm: 120 });
@@ -301,6 +356,16 @@ describe('rhythm mode comes first', () => {
     metronome.stop();
     metronome.start();
     expect(metronome.getSnapshot().bpm).toBe(60);
+  });
+
+  it('starts at a tempo set while paused', () => {
+    const { metronome, advance } = setup({ bpm: 100 });
+    metronome.start();
+    advance(1000);
+    metronome.block('rhythm')();
+    metronome.setBpm(72);
+    metronome.start();
+    expect(metronome.getSnapshot()).toMatchObject({ bpm: 72, target: 72 });
   });
 
   it('a block on a stopped metronome only keeps it from starting', () => {
