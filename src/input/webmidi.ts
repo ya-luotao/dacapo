@@ -77,6 +77,27 @@ export function browserMidiAccess(): RequestMidiAccess | null {
   return () => navigator.requestMIDIAccess({ sysex: false });
 }
 
+/**
+ * One `MIDIAccess` for input and output, so the browser asks once. A refused request is
+ * forgotten, so asking again (retry) prompts again.
+ */
+export function shareMidiAccess(request: RequestMidiAccess): RequestMidiAccess {
+  let pending: Promise<MIDIAccess> | null = null;
+  return () => {
+    if (!pending) {
+      const attempt = request();
+      pending = attempt;
+      attempt.catch(() => {
+        if (pending === attempt) pending = null;
+      });
+    }
+    return pending;
+  };
+}
+
+/** Echo protection: tells whether a note-on from a device is one of our own coming back. */
+export type EchoFilter = (deviceName: string, midi: number, time: number) => boolean;
+
 // Development guard: which live listener owns each MIDI port id, across all instances.
 const portOwners = new Map<string, object>();
 
@@ -97,6 +118,7 @@ function sameStatus(a: MidiStatus, b: MidiStatus): boolean {
  */
 export function createWebMidiInput(
   requestAccess: RequestMidiAccess | null = browserMidiAccess(),
+  isEcho: EchoFilter = () => false,
 ): WebMidiInput {
   const owner = {};
   let status: MidiStatus = requestAccess ? { state: 'pending' } : { state: 'unsupported' };
@@ -126,7 +148,10 @@ export function createWebMidiInput(
     const listener = (event: Event) => {
       const { data, timeStamp } = event as MIDIMessageEvent;
       const message = parseMidiMessage(data);
-      if (message && emit) emit(toInputEvent(message, timeStamp), input.id);
+      if (!message || !emit) return;
+      if (message.type === 'on' && isEcho(input.name?.trim() ?? '', message.midi, timeStamp))
+        return;
+      emit(toInputEvent(message, timeStamp), input.id);
     };
     input.addEventListener('midimessage', listener);
     attached.set(input.id, { input, listener });
@@ -166,8 +191,11 @@ export function createWebMidiInput(
     pending.then(
       (granted) => {
         if (run !== generation) return;
-        access = granted;
-        access.onstatechange = sync;
+        if (access !== granted) {
+          access?.removeEventListener('statechange', sync);
+          access = granted;
+          access.addEventListener('statechange', sync);
+        }
         sync();
       },
       (error: unknown) => {
@@ -190,7 +218,8 @@ export function createWebMidiInput(
         generation++;
         const time = performance.now();
         for (const id of [...attached.keys()]) detach(id, time);
-        if (access?.onstatechange === sync) access.onstatechange = null;
+        access?.removeEventListener('statechange', sync);
+        access = null;
         emit = null;
       };
     },

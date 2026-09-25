@@ -1,15 +1,30 @@
-import { useEffect, useId, useMemo, useReducer, useRef, useState, type CSSProperties } from 'react';
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type CSSProperties,
+} from 'react';
 import { Link } from 'wouter';
 import { isBlack, midiName, PIANO_HIGHEST, PIANO_LOWEST } from '../../core/note.ts';
 import { summarizeRun } from '../../core/pieceRun.ts';
+import { accompanimentPlan, baseTempo, DEMO_VELOCITY, demoPlan } from '../../core/playback.ts';
 import { playOrder, type RepeatMode } from '../../core/repeats.ts';
 import { buildSteps, keyRange, type HandSelection } from '../../core/score.ts';
 import { waitRange, type BarLoop, type WaitState } from '../../core/wait.ts';
 import { useT } from '../../i18n/index.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
+import { createAccompanist } from '../../output/accompany.ts';
+import { createDemoPlayer, type DemoState } from '../../output/demo.ts';
+import { browserClock } from '../../output/scheduler.ts';
 import { useHubState, useInput, useKeyboardOctave } from '../input/context.ts';
 import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
 import { ScoreView, type ScoreStatus } from '../notation/ScoreView.tsx';
+import { useOutputState } from '../output/context.ts';
+import { ACCOMPANIMENT_LEVELS, readAccompanimentLevel } from '../output/prefs.ts';
 import { Piano } from '../piano/Piano.tsx';
 import { usePieceFormat } from './format.ts';
 import { RunSummary } from './RunSummary.tsx';
@@ -18,8 +33,12 @@ import type { OpenPiece } from './usePiece.ts';
 
 const HANDS_PREF = 'dacapo.pieces.hands';
 const SHOW_KEYS_PREF = 'dacapo.pieces.showKeys';
+const ACCOMPANY_PREF = 'dacapo.pieces.accompany';
+/** Tempo choices, in percent of the score's tempo marks. */
+const TEMPOS = [40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200];
 const WRONG_FLASH_MS = 350;
 const HAND_CHOICES = ['right', 'left', 'both'] as const;
+const NO_KEYS: readonly number[] = [];
 
 function readHands(): HandSelection {
   const value = readPref(HANDS_PREF);
@@ -45,7 +64,8 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
   const t = useT();
   const { score } = piece;
   const format = usePieceFormat(score.measures);
-  const { hub, pointer } = useInput();
+  const { hub, pointer, output } = useInput();
+  const hasOutput = useOutputState().selected !== null;
   const { held, sustained } = useHubState();
   const region = useRef<HTMLElement>(null);
   const showKeysId = useId();
@@ -56,6 +76,15 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
   const [startBar, setStartBar] = useState(0);
   const [showKeys, setShowKeysState] = useState(() => readPref(SHOW_KEYS_PREF) === '1');
   const [scoreStatus, setScoreStatus] = useState<ScoreStatus>({ state: 'loading' });
+  const [tempo, setTempo] = useState(100);
+  const [accompany, setAccompanyState] = useState(() => readPref(ACCOMPANY_PREF) !== '0');
+  const [player] = useState(() =>
+    createDemoPlayer(output.scheduler, browserClock, output.onInterrupt),
+  );
+  const [accompanist] = useState(() => createAccompanist(output.scheduler, browserClock));
+  const demo = useSyncExternalStore(player.subscribe, player.getState);
+  const demoStep = useSyncExternalStore(player.subscribe, player.currentStep);
+  const listening = demo !== 'stopped';
 
   const hasRepeats = score.measures.some(
     (m) => m.repeat.backwardTimes !== null || m.repeat.ending.length > 0,
@@ -71,23 +100,114 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
     return bars.sort((a, b) => a - b);
   }, [order]);
 
+  const scale = tempo / 100;
+  const plan = useMemo(
+    () => demoPlan({ score, order, steps, hands, loop, startBar, scale }),
+    [score, order, steps, hands, loop, startBar, scale],
+  );
+  const backing = useMemo(
+    () =>
+      hands === 'both'
+        ? null
+        : accompanimentPlan({ score, order, steps, hand: hands, loop, scale }),
+    [score, order, steps, hands, loop, scale],
+  );
+  const accompanying = accompany && hasOutput && backing !== null && !listening;
+
   const [run, dispatch] = useReducer(runReducer, { steps, range }, startRun);
   // Any change of hands, bars or repeats starts over (React's pattern for state derived from
   // props: set during render, before anything is painted).
   if (run.steps !== steps || run.range !== range) dispatch({ type: 'restart', steps, range });
 
+  /** Stops whatever the instrument is playing for us: the demo and the other hand. */
+  function silence() {
+    if (player.getState() !== 'stopped') player.stop();
+    else output.scheduler.panic();
+    accompanist.reset();
+  }
+
   const restart = () => {
+    silence();
     dispatch({ type: 'restart', steps, range });
     region.current?.focus({ preventScroll: true });
   };
 
+  // A new run (other hands, bars or repeats) or a finished loop: silence. Not on mount.
+  const runKey = useRef({ steps, range, ended: run.ended });
+  useEffect(() => {
+    const previous = runKey.current;
+    if (previous.steps === steps && previous.range === range && previous.ended === run.ended)
+      return;
+    runKey.current = { steps, range, ended: run.ended };
+    silence();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- silence only uses stable objects
+  }, [steps, range, run.ended]);
+  useEffect(
+    () => () => {
+      player.stop();
+      output.scheduler.panic();
+    },
+    [player, output],
+  );
+
+  // Keys play the wait mode, except while the demo is playing.
   useEffect(
     () =>
       hub.onEvent((event) => {
-        if (event.type === 'on') dispatch({ type: 'press', midi: event.midi, time: event.time });
+        if (event.type === 'on' && player.getState() === 'stopped')
+          dispatch({ type: 'press', midi: event.midi, time: event.time });
       }),
-    [hub],
+    [hub, player],
   );
+
+  // Each completed step sets off the other hand's notes that belong to it.
+  const handled = useRef(0);
+  useEffect(() => {
+    const records = run.records;
+    // A new run starts with no records.
+    const from = records.length < handled.current ? 0 : handled.current;
+    handled.current = records.length;
+    if (!accompanying || !backing) return;
+    const velocity = ACCOMPANIMENT_LEVELS[readAccompanimentLevel()];
+    for (const record of records.slice(from))
+      accompanist.complete(backing, record.step, record.at, velocity);
+  }, [run.records, accompanying, backing, accompanist]);
+
+  function setAccompany(next: boolean) {
+    setAccompanyState(next);
+    writePref(ACCOMPANY_PREF, next ? null : '0');
+    silence();
+  }
+
+  function onListen() {
+    // The player's own state: a click can come before React has rendered the last change.
+    const state = player.getState();
+    if (state === 'playing') player.pause();
+    else if (state === 'paused') player.resume();
+    else if (plan) {
+      accompanist.reset();
+      player.play(plan, DEMO_VELOCITY);
+    }
+  }
+
+  function changeTempo(next: number) {
+    const state = player.getState();
+    const at = player.position();
+    setTempo(next);
+    if (state === 'stopped' || !at) return;
+    const retimed = demoPlan({ score, order, steps, hands, loop, startBar, scale: next / 100 });
+    if (!retimed) {
+      player.stop();
+      return;
+    }
+    // Milliseconds scale inversely with the tempo; the place in the music stays.
+    player.play(
+      retimed,
+      DEMO_VELOCITY,
+      { round: at.round, ms: (at.ms * tempo) / next },
+      state === 'paused',
+    );
+  }
 
   const wrongKey = run.wrongKey;
   useEffect(() => {
@@ -111,7 +231,8 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
   }
 
   const wait = run.wait;
-  const step = wait && !wait.finished ? (steps[wait.current] ?? null) : null;
+  const waitStep = wait && !wait.finished ? (steps[wait.current] ?? null) : null;
+  const step = listening ? (demoStep === null ? null : (steps[demoStep] ?? null)) : waitStep;
   const done = Boolean(wait?.finished || run.ended);
   const summary = useMemo(
     () => (done ? summarizeRun(run.records, run.startedAt) : null),
@@ -127,13 +248,13 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
     for (let m = keys[0]; m <= keys[1]; m++) if (!isBlack(m)) n++;
     return n;
   }, [keys]);
-  const marked = useMemo(
-    () =>
-      showKeys && step
-        ? new Set(step.midis.filter((m) => !wait?.pressed.includes(m)))
-        : new Set<number>(),
-    [showKeys, step, wait?.pressed],
-  );
+  const marked = useMemo(() => {
+    // While listening the keyboard shows what sounds; otherwise, with Show keys, what to play.
+    if (listening) return new Set(step?.midis ?? []);
+    return showKeys && step
+      ? new Set(step.midis.filter((m) => !wait?.pressed.includes(m)))
+      : new Set<number>();
+  }, [listening, showKeys, step, wait?.pressed]);
 
   const barOptions = playedBars.map((index) => (
     <option key={index} value={index}>
@@ -285,6 +406,87 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
         <span id={`${showKeysId}-keys`} className="visually-hidden">
           {t('pieces.showKeys.help')}
         </span>
+
+        <div className="piece-control piece-transport">
+          <label className="piece-control">
+            <span className="piece-control-label">{t('pieces.tempo')}</span>
+            <select
+              className="is-compact"
+              aria-label={t('pieces.tempo.label')}
+              aria-describedby={`${showKeysId}-bpm`}
+              value={tempo}
+              onChange={(e) => {
+                changeTempo(Number(e.target.value));
+                settle();
+              }}
+            >
+              {TEMPOS.map((percent) => (
+                <option key={percent} value={percent}>
+                  {t('pieces.tempo.percent', { percent })}
+                </option>
+              ))}
+            </select>
+            <span id={`${showKeysId}-bpm`} className="piece-bpm">
+              {t('pieces.tempo.bpm', { bpm: Math.round(baseTempo(score) * scale) })}
+            </span>
+          </label>
+          <button
+            type="button"
+            className="button is-compact piece-listen"
+            disabled={!hasOutput || !plan}
+            aria-describedby={`${showKeysId}-listen`}
+            onClick={onListen}
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              {demo === 'playing' ? (
+                <path d="M5 3.5v9M11 3.5v9" />
+              ) : (
+                <path d="M5 3l8 5-8 5z" className="is-filled" />
+              )}
+            </svg>
+            <span>
+              {demo === 'playing'
+                ? t('pieces.demo.pause')
+                : demo === 'paused'
+                  ? t('pieces.demo.resume')
+                  : t('pieces.demo')}
+            </span>
+          </button>
+          <span id={`${showKeysId}-listen`} className="visually-hidden">
+            {t('pieces.demo.help')}
+          </span>
+          {listening && (
+            <button
+              type="button"
+              className="button-icon"
+              aria-label={t('pieces.demo.stop')}
+              title={t('pieces.demo.stop')}
+              onClick={() => {
+                player.stop();
+                settle();
+              }}
+            >
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <rect x="4" y="4" width="8" height="8" rx="1" className="is-filled" />
+              </svg>
+            </button>
+          )}
+          {hands !== 'both' && (
+            <label className="check piece-control">
+              <input
+                type="checkbox"
+                checked={accompany && hasOutput}
+                disabled={!hasOutput}
+                onChange={(e) => setAccompany(e.target.checked)}
+                aria-describedby={`${showKeysId}-accompany`}
+              />
+              <span>{t('pieces.accompany')}</span>
+            </label>
+          )}
+          <span id={`${showKeysId}-accompany`} className="visually-hidden">
+            {t('pieces.accompany.help')}
+          </span>
+        </div>
       </div>
 
       <div className="piece-stage">
@@ -293,7 +495,7 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
           score={score}
           title={piece.title}
           step={step}
-          pressed={wait?.pressed ?? []}
+          pressed={listening ? NO_KEYS : (wait?.pressed ?? NO_KEYS)}
           hands={hands}
           onStatus={setScoreStatus}
         />
@@ -324,6 +526,8 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
 
       <div className="piece-status">
         <StatusLine
+          demo={demo}
+          bpm={Math.round(baseTempo(score) * scale)}
           wait={wait}
           step={step}
           started={run.startedAt !== null}
@@ -338,6 +542,11 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
             <p className="muted">{t('pieces.unplaced', { n: scoreStatus.unplaced })}</p>
           )}
           <KeyboardLine />
+          {!hasOutput && (
+            <p className="muted">
+              <Link href="/settings">{t('pieces.output.needed')}</Link>
+            </p>
+          )}
         </div>
         <div className="piece-actions">
           {loop && run.startedAt !== null && !done && (
@@ -371,6 +580,8 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
 }
 
 function StatusLine({
+  demo,
+  bpm,
   wait,
   step,
   started,
@@ -380,6 +591,8 @@ function StatusLine({
   bar,
   beat,
 }: {
+  demo: DemoState;
+  bpm: number;
   wait: WaitState | null;
   step: { pass: number; midis: number[] } | null;
   started: boolean;
@@ -391,6 +604,21 @@ function StatusLine({
 }) {
   const t = useT();
   if (nothing) return <p className="piece-status-main">{t('pieces.nothing')}</p>;
+  if (demo !== 'stopped') {
+    const parts = [t(demo === 'paused' ? 'pieces.status.demoPaused' : 'pieces.status.demo')];
+    if (step) {
+      parts.push(
+        `${t('pieces.status.bar', { bar })}${step.pass > 1 ? ` (${t('pieces.status.repeat')})` : ''}`,
+        t('pieces.status.beat', { beat }),
+      );
+    }
+    parts.push(t('pieces.tempo.bpm', { bpm }));
+    return (
+      <p className="piece-status-main">
+        <span>{parts.join(' · ')}</span>
+      </p>
+    );
+  }
   if (!wait || !step) return <p className="piece-status-main" />;
   const parts = [
     `${t('pieces.status.bar', { bar })}${step.pass > 1 ? ` (${t('pieces.status.repeat')})` : ''}`,

@@ -28,6 +28,18 @@ Export format version 2: the file now includes imported pieces. Version 1 files 
 - Settings has an About section with the licences of the third-party software, fonts and music
   ([THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)).
 
+### Sound from the instrument (P2)
+
+- **Listen**: the instrument plays the selected hands and bars over MIDI (the app itself makes no
+  sound), with the cursor and the score following. Tempo from 40 % to 200 % of the score's, with
+  the resulting ♩ = value shown. A loop goes round until stopped; pause and resume keep the place.
+- **Other hand**: practising one hand in wait mode, the instrument plays the other hand (and any
+  other parts) each time you complete a step, in time with the written rhythm at the chosen tempo.
+- Settings has a **Sound** section: the MIDI output (by default the keyboard's own), a test note,
+  and the volume of the other hand. The Play page names the output when it is not the keyboard.
+- The instrument is silenced whenever playback stops, the output changes or goes away, or the page
+  is hidden or left. Notes our own output might echo back are not counted as key presses.
+
 ## 0.1.0 — 2026-09-25
 
 The first release: the MVP described in [docs/MVP.md](docs/MVP.md). Export format version 1.

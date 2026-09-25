@@ -2,6 +2,7 @@ import { useId, useState } from 'react';
 import { isLocale, LOCALE_NAMES, LOCALES, useI18n } from '../../i18n/index.ts';
 import type { Preferences } from '../../storage/exchange.ts';
 import { DataSection } from '../settings/DataSection.tsx';
+import { SoundSection } from '../settings/SoundSection.tsx';
 import { currentTheme, setTheme, THEME_PREFERENCES, type ThemePreference } from '../theme.ts';
 
 const SYSTEM = 'system';
@@ -71,6 +72,8 @@ export function SettingsPage() {
           {t('settings.theme.help')}
         </p>
       </fieldset>
+
+      <SoundSection />
 
       <DataSection
         preferences={{ locale: override, theme }}

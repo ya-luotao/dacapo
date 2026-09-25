@@ -1,6 +1,7 @@
 import { useI18n, useT, type MessageKey } from '../../i18n/index.ts';
 import type { MidiStatus } from '../../input/index.ts';
 import { useInput, useMidiStatus } from '../input/context.ts';
+import { useOutputState } from '../output/context.ts';
 
 const LABELS: Record<Exclude<MidiStatus['state'], 'connected'>, MessageKey> = {
   pending: 'midi.status.pending',
@@ -18,8 +19,9 @@ const HELP: Partial<Record<MidiStatus['state'], MessageKey>> = {
 export function DeviceStatus() {
   const { t, locale } = useI18n();
   const status = useMidiStatus();
+  const { selected } = useOutputState();
 
-  const label =
+  let label =
     status.state === 'connected'
       ? t('midi.status.connected', {
           names: new Intl.ListFormat(locale, { type: 'conjunction' }).format(
@@ -27,6 +29,15 @@ export function DeviceStatus() {
           ),
         })
       : t(LABELS[status.state]);
+  // The output is worth naming only when it is not the keyboard itself.
+  const inputs = status.state === 'connected' ? status.names : [];
+  if (
+    selected &&
+    (status.state === 'connected' || status.state === 'no-device') &&
+    !inputs.includes(selected.name)
+  ) {
+    label += ` · ${t('midi.status.output', { name: selected.name || t('midi.unnamedDevice') })}`;
+  }
 
   return (
     <p className={`device-status is-${status.state}`} role="status">

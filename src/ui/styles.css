@@ -3354,3 +3354,66 @@ select.is-compact {
     animation: none;
   }
 }
+
+/* Settings: sound */
+
+.sound-output {
+  margin-top: 1.5rem;
+}
+
+.sound-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+
+.sound-row select {
+  flex: 0 1 22rem;
+  min-width: 0;
+}
+
+.sound .device-help {
+  margin-top: 0.5rem;
+}
+
+/* Practice: listening and the other hand (quiet, like the other controls). */
+.piece-transport {
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  margin-inline-start: auto;
+}
+
+.piece-transport > *,
+.piece-transport .piece-control > * {
+  flex: none;
+  white-space: nowrap;
+}
+
+.piece-bpm {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.piece-listen {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.piece-listen svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.25;
+  stroke-linecap: round;
+}
+
+.piece-listen svg .is-filled,
+.button-icon svg .is-filled {
+  fill: currentColor;
+  stroke: none;
+}

@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createInputHub, type HubEvent, type InputHub } from './hub.ts';
-import { createWebMidiInput, parseMidiMessage, type RequestMidiAccess } from './webmidi.ts';
+import {
+  createWebMidiInput,
+  parseMidiMessage,
+  shareMidiAccess,
+  type RequestMidiAccess,
+} from './webmidi.ts';
 
 describe('parseMidiMessage', () => {
   it('parses note-on on any channel', () => {
@@ -115,20 +120,31 @@ class FakeInput extends EventTarget {
   }
 }
 
-class FakeAccess {
+class FakeAccess extends EventTarget {
   inputs = new Map<string, FakeInput>();
-  onstatechange: ((event: Event) => void) | null = null;
+  outputs = new Map<string, unknown>();
+  stateListeners = 0;
+
+  override addEventListener(type: string, listener: EventListenerOrEventListenerObject | null) {
+    if (type === 'statechange' && listener) this.stateListeners++;
+    super.addEventListener(type, listener);
+  }
+
+  override removeEventListener(type: string, listener: EventListenerOrEventListenerObject | null) {
+    if (type === 'statechange' && listener) this.stateListeners--;
+    super.removeEventListener(type, listener);
+  }
 
   plug(input: FakeInput) {
     input.state = 'connected';
     this.inputs.set(input.id, input);
-    this.onstatechange?.(new Event('statechange'));
+    this.dispatchEvent(new Event('statechange'));
   }
 
   unplug(input: FakeInput, keepInMap = true) {
     input.state = 'disconnected';
     if (!keepInMap) this.inputs.delete(input.id);
-    this.onstatechange?.(new Event('statechange'));
+    this.dispatchEvent(new Event('statechange'));
   }
 }
 
@@ -323,6 +339,67 @@ describe('createWebMidiInput', () => {
   });
 });
 
+describe('shareMidiAccess', () => {
+  it('asks once for every user of the access, and again after a refusal', async () => {
+    const first = deferredAccess();
+    const second = deferredAccess();
+    const request = vi
+      .fn<RequestMidiAccess>()
+      .mockImplementationOnce(first.request)
+      .mockImplementationOnce(second.request);
+    const shared = shareMidiAccess(request);
+    const a = shared();
+    expect(shared()).toBe(a);
+    first.reject(new DOMException('denied', 'NotAllowedError'));
+    await expect(a).rejects.toThrow('denied');
+    await flush();
+    const b = shared();
+    expect(b).not.toBe(a);
+    second.resolve();
+    await expect(b).resolves.toBe(second.access);
+    expect(shared()).toBe(b);
+    expect(request).toHaveBeenCalledTimes(2);
+  });
+
+  it('input and a second user of the access share one permission prompt', async () => {
+    const { access, request, resolve } = deferredAccess();
+    access.inputs.set('a', new FakeInput('a', 'MP11SE'));
+    const shared = shareMidiAccess(request);
+    const { hub, midi } = hubWithMidi(shared);
+    hub.add(midi);
+    const other = shared();
+    resolve();
+    await expect(other).resolves.toBe(access);
+    expect(midi.getStatus()).toEqual({ state: 'connected', names: ['MP11SE'] });
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('echo filter', () => {
+  it('drops the note-ons the filter recognises, by device name, and nothing else', async () => {
+    const { access, request, resolve } = deferredAccess();
+    const piano = new FakeInput('a', ' MP11SE ');
+    access.inputs.set('a', piano);
+    const hub = track(createInputHub());
+    const isEcho = vi.fn((name: string, midi: number, time: number) => {
+      return name === 'MP11SE' && midi === 60 && time === 1000;
+    });
+    const midi = createWebMidiInput(request, isEcho);
+    const events: HubEvent[] = [];
+    hub.onEvent((e) => events.push(e));
+    hub.add(midi);
+    resolve();
+    await flush();
+
+    piano.send([0x90, 60, 72], 1000); // our own note coming back
+    piano.send([0x90, 62, 80], 1000);
+    piano.send([0x80, 60, 0], 1010);
+    expect(events).toEqual([{ type: 'on', midi: 62, velocity: 80, time: 1000 }]);
+    expect(isEcho).toHaveBeenCalledWith('MP11SE', 60, 1000);
+    expect(isEcho).toHaveBeenCalledTimes(2); // note-ons only
+  });
+});
+
 describe('StrictMode-style remounts', () => {
   // React StrictMode runs effect → cleanup → effect. The provider adds the MIDI source in an
   // effect, so these sequences are exactly what happens on every mount in development.
@@ -363,7 +440,7 @@ describe('StrictMode-style remounts', () => {
 
     stop();
     expect(a.listeners).toBe(0);
-    expect(access.onstatechange).toBeNull();
+    expect(access.stateListeners).toBe(0);
 
     for (let i = 0; i < 3; i++) {
       hub.add(midi)();

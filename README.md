@@ -10,7 +10,7 @@ All data stays in your browser.
 [docs/MVP.md](docs/MVP.md) are built and tested. It has not been used day to day for long yet,
 so expect rough edges; bug reports are welcome. See [CHANGELOG.md](CHANGELOG.md) for what is in
 each release. Practising pieces ([docs/PIECES.md](docs/PIECES.md)) is under way: the library,
-import and wait mode are in; MIDI playback, records and a rhythm mode come next.
+import, wait mode and MIDI playback are in; records and a rhythm mode come next.
 
 ![A flashcard on the grand staff: one note in the bass clef, with the piano keyboard below](docs/images/read.webp)
 
@@ -39,7 +39,8 @@ in English and Simplified Chinese.
 - **Pieces, in wait mode.** Six public-domain pieces from Initial to about grade 5, plus your
   own MusicXML (`.musicxml`, `.xml` or `.mxl`, for example from MuseScore). The cursor waits on
   the real score until you have played the right keys. You can practise one hand or both, loop a
-  few bars, start anywhere, and play or skip the repeats.
+  few bars, start anywhere, and play or skip the repeats. With the keyboard connected over USB,
+  the instrument can play the passage to you at any tempo, or play the other hand as you go.
 - **Your data stays yours.** Everything is stored in your browser (IndexedDB). Export it as a
   JSON file and import it on another computer.
 - English and Simplified Chinese, light and dark themes. Everything works from the keyboard,
@@ -98,9 +99,9 @@ static file host without rewrite rules.
 
 These are deliberately out of scope for the MVP and are the candidates once it is used daily:
 
-- Audio output (the app is silent today — the piano makes the sound)
-- Pieces, continued ([docs/PIECES.md](docs/PIECES.md)): the instrument playing the other hand
-  over MIDI, a measure heatmap and piece sessions in the log, then a rhythm mode with a metronome
+- Audio output (the app itself is silent — the piano makes the sound, also for demos over MIDI)
+- Pieces, continued ([docs/PIECES.md](docs/PIECES.md)): a measure heatmap and piece sessions in
+  the log, then a rhythm mode with a metronome
 - Analysis of scale evenness
 - Theory and ear training
 - Accounts and sync between devices

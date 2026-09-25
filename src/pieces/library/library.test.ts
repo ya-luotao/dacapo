@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { parseMusicXml } from '../../core/musicxml.ts';
 import { isBlack } from '../../core/note.ts';
 import { performanceOrder } from '../../core/repeats.ts';
+import { demoIncludes, performedNotes } from '../../core/playback.ts';
 import { buildSteps, TICKS_PER_QUARTER, type Score } from '../../core/score.ts';
 import bachPreludeInC from './bach-prelude-in-c.musicxml?raw';
 import beethovenFurElise from './beethoven-fur-elise.musicxml?raw';
@@ -174,4 +175,16 @@ describe('built-in pieces', () => {
         .map((s) => s.midis),
     ).toEqual([[60], [64], [67], [72], [76]]);
   });
+
+  it.each(Object.keys(FILES))(
+    '%s: the demo strikes exactly the keys wait mode asks for, for each hand selection',
+    (id) => {
+      const score = parse(id);
+      const order = performanceOrder(score.measures);
+      for (const hands of ['right', 'left', 'both'] as const) {
+        const keys = buildSteps(score, hands, order).reduce((n, s) => n + s.midis.length, 0);
+        expect(performedNotes(score, order, demoIncludes(hands)), hands).toHaveLength(keys);
+      }
+    },
+  );
 });

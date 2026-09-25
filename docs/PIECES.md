@@ -81,7 +81,7 @@ for drawing.
   surface fits on one laptop screen, the current step is unmistakable, controls are quiet.
 - Everything follows the engraved-score design system (see `src/ui/styles.css` tokens).
 
-## Clarifications (decided in P0 and P1)
+## Clarifications (decided in P0–P2)
 
 - **Renderer: Verovio 6.3.0.** It is loaded only on the Pieces routes, and the library prefetches
   it while idle. Its two npm files ship unmodified as separate assets, with the LGPL and GPL texts
@@ -121,12 +121,29 @@ for drawing.
   removed. Each is checked against an independent MIDI file where one exists
   (`scripts/pieces/`), and its notes are locked by a checksum test.
 
+- **MIDI output (P2).** Input and output share one `MIDIAccess` (one permission prompt). The
+  output is the one named like the connected keyboard unless the user picks another, or None; the
+  choice is remembered by name. Notes go out with `send(data, timestamp)` at most 80 ms ahead;
+  everything later can still be cancelled. The instrument is silenced (note-offs for our notes,
+  then CC64 = 0, CC123 and CC120 on 16 channels) on stop, pause, a new run, a route change, output
+  loss, a hidden page and `pagehide`. Note-ons arriving within 30 ms of one we sent to the output of
+  the same name are ignored as echoes.
+- **Demo.** It plays the selected hands (Both: the whole score) from the start bar to the end of
+  the span, round and round for a loop, at 40–200 % of the score's tempo marks (90 ♩/min without
+  one); velocity 72; ties joined; a repeated key released up to 30 ms early. Keys do not count
+  while it plays or is paused.
+- **Accompaniment (wait mode, one hand).** The notes of the other hand and of unpractised parts
+  that start from a step's onset up to the next practised step sound when that step is completed,
+  with their timing at the current tempo. A note ends at its written length, or earlier when the
+  player completes the step where it ends in the score. Notes before the first step of a loop are
+  its lead-in, played after the last step; without a loop they are not played.
+
 ## Milestones
 
 1. ✓ **P0 Spike** — choose the renderer (OpenSheetMusicDisplay vs Verovio vs other), prove
    MusicXML → model → steps → cursor on two real pieces, research redistributable sources for
    the built-in library, decide repeats and the click. Report; no production UI.
 2. ✓ **P1 Pieces + wait mode** — library, import, score view, wait mode, hands, loop.
-3. **P2 MIDI output** — output selection, demo playback, accompaniment.
+3. ✓ **P2 MIDI output** — output selection, demo playback, accompaniment.
 4. **P3 Records** — persistence (DB v2), measure heatmap, log and streak integration, export.
 5. **P4 Rhythm mode** — metronome, calibration, timing analysis.
