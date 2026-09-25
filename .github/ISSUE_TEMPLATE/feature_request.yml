@@ -1,0 +1,25 @@
+name: Feature request
+description: An idea that would make practising with dacapo better.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        dacapo stays small on purpose: staff first, local data, no accounts. [docs/MVP.md](https://github.com/ya-luotao/dacapo/blob/main/docs/MVP.md) and the README's roadmap say what is in and out of scope. Please write in English.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to practise or do?
+      description: Describe the problem or the situation first, then the idea.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What do you do today instead?

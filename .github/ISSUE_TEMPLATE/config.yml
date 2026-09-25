@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and ideas
+    url: https://github.com/ya-luotao/dacapo/discussions
+    about: Ask how something works, share how you practise, or talk through an idea first.
+  - name: Security vulnerability
+    url: https://github.com/ya-luotao/dacapo/security/advisories/new
+    about: Please report security issues privately, not as an issue.

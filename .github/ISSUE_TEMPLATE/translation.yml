@@ -1,0 +1,47 @@
+name: Translation issue
+description: A string that is wrong, unnatural or inconsistent in one of the UI languages.
+labels: [translation]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you — native speakers make the translations good. [docs/TRANSLATING.md](https://github.com/ya-luotao/dacapo/blob/main/docs/TRANSLATING.md) has each language's glossary and rules (note names, for example, stay letter names C D E in every language). You may quote the strings in their own language; please write the rest in English.
+  - type: dropdown
+    id: language
+    attributes:
+      label: Language
+      options:
+        - 简体中文 (zh-CN)
+        - 繁體中文 (zh-TW)
+        - 日本語 (ja)
+        - 한국어 (ko)
+        - English (en)
+        - A new language
+    validations:
+      required: true
+  - type: textarea
+    id: where
+    attributes:
+      label: Where does it appear?
+      description: The page, and the key from `src/i18n/` if you know it (e.g. `pieces.rhythm.ready`). A screenshot works too.
+    validations:
+      required: true
+  - type: textarea
+    id: now
+    attributes:
+      label: What it says now
+    validations:
+      required: true
+  - type: textarea
+    id: better
+    attributes:
+      label: What it should say, and why
+    validations:
+      required: true
+  - type: checkboxes
+    id: native
+    attributes:
+      label: About you
+      options:
+        - label: I am a native speaker of this language.
+        - label: I play or teach the piano in this language.

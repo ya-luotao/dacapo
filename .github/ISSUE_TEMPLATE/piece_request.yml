@@ -1,0 +1,63 @@
+name: Piece request
+description: Suggest a public-domain piece for the built-in library, or offer to encode one.
+labels: [piece]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The library only holds pieces we may redistribute: our own encodings of public-domain editions, or encodings dedicated to the public domain (CC0). [CONTRIBUTING.md](https://github.com/ya-luotao/dacapo/blob/main/CONTRIBUTING.md#adding-a-built-in-piece) describes how a piece is encoded and verified. Pop songs and modern arrangements can't be added, but you can import your own MusicXML under Pieces.
+  - type: input
+    id: piece
+    attributes:
+      label: Piece
+      placeholder: Carl Czerny, Op. 599 No. 11
+    validations:
+      required: true
+  - type: dropdown
+    id: level
+    attributes:
+      label: Rough level
+      options:
+        - Initial
+        - Grade 1
+        - Grade 2
+        - Grade 3
+        - Grade 4
+        - Grade 5
+        - Not sure
+  - type: input
+    id: edition
+    attributes:
+      label: Public-domain edition
+      description: A Mutopia Project page or an IMSLP scan marked public domain.
+      placeholder: https://imslp.org/wiki/…
+    validations:
+      required: true
+  - type: input
+    id: oracle
+    attributes:
+      label: Independent check, if one exists
+      description: Usually the MIDI file of a public-domain Mutopia edition, used by scripts/pieces/verify.ts.
+  - type: checkboxes
+    id: licence
+    attributes:
+      label: Licence checklist
+      options:
+        - label: The composer died more than 70 years ago and the work itself is in the public domain.
+          required: true
+        - label: The edition is public domain (not a modern edition, arrangement or simplification under copyright).
+          required: true
+        - label: Any existing encoding I point to is CC0 or public domain — not CC BY-SA, not non-commercial, not "all rights reserved".
+          required: true
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Can you help?
+      options:
+        - label: I would like to encode it and run the verifier myself.
+        - label: I can proofread the encoding against the scan.
+  - type: textarea
+    id: why
+    attributes:
+      label: Why this piece?
+      description: What does it teach, and where does it sit next to the pieces already in the library?

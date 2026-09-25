@@ -1,0 +1,74 @@
+name: Bug report
+description: Something in dacapo does not work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. Please write in English; a screenshot or a short screen recording helps a lot.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open Pieces → Ode to Joy
+        2. Choose Rhythm mode and press Start
+        3. …
+    validations:
+      required: true
+  - type: dropdown
+    id: page
+    attributes:
+      label: Where in the app?
+      options:
+        - Play
+        - Read (flashcards)
+        - Pieces (library or import)
+        - Pieces (practising a piece)
+        - Progress
+        - Settings (sound, calibration, export/import)
+        - Somewhere else
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+      placeholder: Chrome 140, Edge 140, Safari 19 …
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: macOS 26, Windows 11, iPadOS 26, Android 16 …
+    validations:
+      required: true
+  - type: input
+    id: midi
+    attributes:
+      label: MIDI keyboard or instrument
+      description: Model and how it is connected (USB, Bluetooth MIDI, an interface), or "none" if you use the computer keyboard or the mouse.
+      placeholder: Kawai MP11SE over USB
+  - type: input
+    id: language
+    attributes:
+      label: UI language
+      placeholder: English, 简体中文, 繁體中文, 日本語, 한국어
+  - type: input
+    id: version
+    attributes:
+      label: dacapo version
+      description: Shown under Settings → About, or "live demo".
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Console errors, the MusicXML file that fails (only if you may share it), screenshots.

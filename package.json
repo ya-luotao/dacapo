@@ -2,7 +2,31 @@
   "name": "dacapo",
   "private": true,
   "version": "0.1.0",
-  "description": "Learn to read the grand staff and find the key fast with a MIDI keyboard.",
+  "description": "Learn to read the grand staff and find the key fast with a MIDI keyboard: sight-reading flashcards, a weakness heatmap and real pieces in wait and rhythm mode, all in the browser.",
+  "keywords": [
+    "piano",
+    "sight-reading",
+    "music-education",
+    "grand-staff",
+    "midi",
+    "web-midi",
+    "music-notation",
+    "musicxml",
+    "flashcards",
+    "practice",
+    "metronome",
+    "react",
+    "typescript",
+    "pwa"
+  ],
+  "homepage": "https://ya-luotao.github.io/dacapo/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ya-luotao/dacapo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ya-luotao/dacapo/issues"
+  },
   "license": "MIT",
   "type": "module",
   "packageManager": "pnpm@10.34.5",

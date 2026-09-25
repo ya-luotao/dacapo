@@ -1,0 +1,24 @@
+# Weekly updates, grouped. The 3-day cooldown matches `minimumReleaseAge` in pnpm-workspace.yaml:
+# a version younger than that would not install anyway.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
+    groups:
+      npm-minor-and-patch:
+        update-types: [minor, patch]
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
+    groups:
+      actions-minor-and-patch:
+        update-types: [minor, patch]
