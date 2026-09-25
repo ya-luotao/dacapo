@@ -94,6 +94,11 @@ encoding under CC BY-SA or a non-commercial licence. The tools are in `scripts/p
 
 Fingering stays out unless it has been checked against a public-domain edition.
 
+## The Apple apps
+
+The iPhone, iPad and Mac apps in `apple/` wrap the web app. How to build and run them, sign
+them and use their test harness: [apple/README.md](apple/README.md).
+
 ## License
 
 By contributing, you agree that your contributions are licensed under the [MIT License](LICENSE).
