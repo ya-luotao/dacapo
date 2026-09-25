@@ -24,7 +24,7 @@ with a MIDI keyboard. The MVP focuses on the first real bottleneck for beginners
 | Audio | **None** in the MVP — the piano makes the sound |
 | Browsers | Chrome / Edge recommended. Support is decided by feature detection (`navigator.requestMIDIAccess`), never by browser name; without it the app shows a clear notice and still works with the fallback input |
 | Pitch naming | Letter names in every UI language (no solfège or numbered notation in the MVP), scientific pitch notation: C4 = middle C = MIDI 60 |
-| i18n | English (`en`, source of truth) and Simplified Chinese (`zh-CN`). Tiny typed dictionary, no i18n library. Missing keys must be a compile error. Auto-detect from `navigator.language`, user toggle persisted in `localStorage` (wrapped in try/catch) |
+| i18n | English (`en`, source of truth) and Simplified Chinese (`zh-CN`); since added: Traditional Chinese (`zh-TW`), Japanese (`ja`) and Korean (`ko`), see [TRANSLATING.md](TRANSLATING.md). Tiny typed dictionary, no i18n library. Missing keys must be a compile error. Auto-detect from `navigator.language`, user toggle persisted in `localStorage` (wrapped in try/catch) |
 | License | MIT |
 | Language of record | English for all code, comments, commits, docs and issues |
 

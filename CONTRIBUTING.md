@@ -39,14 +39,17 @@ English for all code, comments, commit messages, pull requests and issues.
 
 ## Translations (i18n)
 
-The UI is available in English and Simplified Chinese. Strings live in `src/i18n/`:
+The UI is available in English, Simplified Chinese, Traditional Chinese (Taiwan), Japanese and
+Korean. Strings live in `src/i18n/`:
 
 - `en.ts` is the source of truth.
-- `zh-CN.ts` must contain exactly the same keys. A missing or extra key is a compile error.
+- `zh-CN.ts`, `zh-TW.ts`, `ja.ts` and `ko.ts` must contain exactly the same keys. A missing or
+  extra key is a compile error.
 
-**Every user-facing string goes into both dictionaries** — never hard-code text in a
-component. When adding a key, write natural Chinese, not a word-for-word translation; if you
-are not comfortable writing Chinese, say so in the pull request and a maintainer will help.
+**Every user-facing string goes into every dictionary** — never hard-code text in a component.
+Write natural text in each language, not a word-for-word translation. If you cannot write one of
+the languages, add the English text there, say so in the pull request, and a maintainer or a
+native speaker will translate it before the release.
 
 Use the `useT()` hook to read strings in components:
 
@@ -54,6 +57,10 @@ Use the `useT()` hook to read strings in components:
 const t = useT();
 return <h1>{t('settings.title')}</h1>;
 ```
+
+[docs/TRANSLATING.md](docs/TRANSLATING.md) has the rules, the glossary and tone of each language,
+and how to add a language. Proofreading a language you speak natively is one of the most useful
+contributions: open a translation issue or a pull request.
 
 ## Adding a built-in piece
 
@@ -80,7 +87,7 @@ encoding under CC BY-SA or a non-commercial licence. The tools are in `scripts/p
 4. **Record where it comes from.** `<identification>` in the file names the composer, the
    licence, the encoder and the source edition with a URL. Repeat these in
    `src/pieces/library/index.ts`, with a level, and add its title, composer and one-sentence note
-   to both dictionaries in `src/i18n/`.
+   to every dictionary in `src/i18n/`.
 5. **Lock it.** Add a checksum line and a structure test to `src/pieces/library/library.test.ts`.
    Add the oracle to `scripts/pieces/verify-library.sh`, and a line to
    [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) if the encoding is not ours.

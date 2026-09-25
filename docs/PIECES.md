@@ -1,7 +1,7 @@
 # dacapo — Pieces specification
 
 Status: planned (after MVP 0.1.0). This extends [MVP.md](MVP.md); its principles and fixed
-decisions still apply (staff first, local data, English of record, i18n en + zh-CN, 3-day
+decisions still apply (staff first, local data, English of record, i18n in every UI language, 3-day
 dependency cooldown, no backend).
 
 Goal: practise real pieces on the real score — first slowly and correctly (wait mode), one hand
