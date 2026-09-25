@@ -339,6 +339,9 @@ export function createMetronome(options: MetronomeOptions): Metronome {
   function update(patch: Partial<MetronomeSettings>) {
     const next: MetronomeSettings = { ...settings, ...patch };
     if (patch.bpm !== undefined) next.bpm = clampBpm(patch.bpm);
+    // With a ramp, a tempo set by hand is where it starts from (now, and at the next Start).
+    if (patch.bpm !== undefined && next.trainer.kind === 'ramp' && !patch.trainer)
+      next.trainer = { ...next.trainer, from: next.bpm };
     if (patch.meter && !patch.accents)
       next.accents = resizeAccents(settings.accents, meterBeats(patch.meter).beats);
     const previous = settings;

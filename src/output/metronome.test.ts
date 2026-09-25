@@ -308,6 +308,20 @@ describe('the tempo shown before Start is the tempo Start plays', () => {
     expect(metronome.getSnapshot()).toMatchObject({ bpm: 60, target: 60 });
   });
 
+  it('with a ramp, a tempo set by hand becomes its start, stopped or playing', () => {
+    const ramp = { ...DEFAULT_SETTINGS.trainer, kind: 'ramp' as const, from: 60, to: 100 };
+    const { metronome, advance } = setup({ bpm: 80, trainer: ramp });
+    metronome.setBpm(72);
+    expect(metronome.getSnapshot()).toMatchObject({ bpm: 72, target: 72 });
+    expect(metronome.getSnapshot().settings.trainer.from).toBe(72);
+    metronome.start();
+    advance(1000);
+    metronome.setBpm(90);
+    metronome.stop();
+    metronome.start();
+    expect(metronome.getSnapshot()).toMatchObject({ bpm: 90, target: 90 });
+  });
+
   it('switching a ramp on while it plays starts it from its own tempo, on the next beat', () => {
     const { metronome, advance } = setup({ bpm: 120 });
     metronome.start();
