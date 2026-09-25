@@ -1,0 +1,100 @@
+name: Apple
+
+# The Apple apps (apple/): build for macOS and the iOS simulator, run the native unit tests, and
+# run the Debug harness on a simulator. Separate from CI so the web checks never wait for it.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apple/**'
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'vite.config.ts'
+      - '.github/workflows/apple.yml'
+  pull_request:
+    paths:
+      - 'apple/**'
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'vite.config.ts'
+      - '.github/workflows/apple.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apple-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PROJECT: apple/Dacapo.xcodeproj
+  DERIVED: apple/build/dd
+
+jobs:
+  apple:
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # The app embeds dist/ (DACAPO_SKIP_WEB_BUILD=YES below).
+      - run: pnpm build
+
+      - name: Build settings live in apple/Config, not in the project file
+        run: apple/scripts/check-pbxproj.sh
+
+      - run: xcodebuild -version
+
+      # Release builds fail if anything of the Debug harness reaches the product
+      # (apple/scripts/embed-web.sh).
+      - name: Build for macOS (Debug, Release), unsigned
+        run: |
+          for configuration in Debug Release; do
+            xcodebuild -project "$PROJECT" -scheme Dacapo -configuration "$configuration" \
+              -destination 'generic/platform=macOS' -derivedDataPath "$DERIVED" \
+              DACAPO_SKIP_WEB_BUILD=YES CODE_SIGNING_ALLOWED=NO build
+          done
+
+      - name: Build for the iOS simulator (Debug, Release)
+        run: |
+          for configuration in Debug Release; do
+            xcodebuild -project "$PROJECT" -scheme Dacapo -configuration "$configuration" \
+              -destination 'generic/platform=iOS Simulator' -derivedDataPath "$DERIVED" \
+              DACAPO_SKIP_WEB_BUILD=YES CODE_SIGNING_ALLOWED=NO build
+          done
+
+      - name: Pick a simulator
+        run: echo "SIMULATOR=$(apple/scripts/pick-simulator.py)" >> "$GITHUB_ENV"
+
+      - name: Native unit tests on the simulator
+        run: |
+          xcodebuild -project "$PROJECT" -scheme Dacapo -destination "platform=iOS Simulator,id=$SIMULATOR" \
+            -derivedDataPath "$DERIVED" DACAPO_SKIP_WEB_BUILD=YES CODE_SIGNING_ALLOWED=NO test
+
+      - name: Harness on the simulator (probe, hot-plugging, MIDI timing)
+        run: |
+          apple/scripts/run-harness.sh "$SIMULATOR" "$DERIVED/Build/Products/Debug-iphonesimulator/Dacapo.app" \
+            probe,hotplug,timing apple/build/harness
+          apple/scripts/check-harness.py apple/build/harness
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: harness-results
+          path: apple/build/harness
+          if-no-files-found: ignore
