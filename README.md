@@ -9,9 +9,9 @@ All data stays in your browser.
 **Status:** the MVP (version 0.1.0) is complete: all five milestones of
 [docs/MVP.md](docs/MVP.md) are built and tested. It has not been used day to day for long yet,
 so expect rough edges; bug reports are welcome. See [CHANGELOG.md](CHANGELOG.md) for what is in
-each release. Practising pieces ([docs/PIECES.md](docs/PIECES.md)) is under way: the library,
-import, wait mode, MIDI playback, practice records with a measure heatmap and a rhythm mode with a
-metronome are in.
+each release. Practising pieces ([docs/PIECES.md](docs/PIECES.md)) is built too, not yet in a
+release: the library, MusicXML import, wait mode, MIDI playback, practice records with a measure
+heatmap, and a rhythm mode with a metronome and timing analysis.
 
 ![A flashcard on the grand staff: one note in the bass clef, with the piano keyboard below](docs/images/read.webp)
 
@@ -37,8 +37,8 @@ in English and Simplified Chinese.
 - **Weakness heatmap.** Every note you have practised, on the grand staff or on the keyboard,
   coloured by how fast you usually find it and marked with how often you missed it lately,
   with the three weakest notes named and a table view.
-- **Pieces, in wait mode and in rhythm.** Six public-domain pieces from Initial to about grade 5, plus your
-  own MusicXML (`.musicxml`, `.xml` or `.mxl`, for example from MuseScore). The cursor waits on
+- **Pieces, in wait mode and in rhythm.** Six public-domain pieces from Initial to about grade 5,
+  plus your own MusicXML (`.musicxml`, `.xml` or `.mxl`, for example from MuseScore). The cursor waits on
   the real score until you have played the right keys. You can practise one hand or both, loop a
   few bars, start anywhere, and play or skip the repeats. With the keyboard connected over USB,
   the instrument can play the passage to you at any tempo, or play the other hand as you go.
@@ -57,6 +57,10 @@ in English and Simplified Chinese.
 
 ![The same data on the keyboard, in the dark theme](docs/images/heatmap-keyboard-dark.webp)
 
+![Ode to Joy after a run in rhythm mode: 95% of the notes within ±50 ms, "You speed up in bars 9–12", and a chart of every note, early or late](docs/images/pieces-rhythm-sheet.webp)
+
+![Weak bars by timing on the score: each bar tinted by its distance from the beat, with the details of bar 11](docs/images/pieces-timing-heatmap.webp)
+
 The screenshots use generated practice data.
 
 ## Requirements
@@ -66,6 +70,10 @@ The screenshots use generated practice data.
   read your keyboard. Other browsers can still use the fallback input.
 - **MIDI keyboard:** recommended, but optional. You can also play with your computer
   keyboard or by clicking the on-screen piano.
+- **Sound:** the notes of demos and of the other hand are played by your instrument over MIDI.
+  Rhythm mode's metronome click comes from the computer; to hear it in a digital piano's
+  headphones, connect the computer's audio output to the piano's line input, and avoid Bluetooth
+  headphones (their delay varies too much to calibrate).
 - No account, no server. Everything is stored locally in your browser; Settings can export it
   as a JSON file for a backup or to move to another computer.
 
