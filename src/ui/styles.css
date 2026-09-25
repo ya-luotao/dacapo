@@ -79,6 +79,12 @@
   --dur-fast: 120ms;
   --dur: 180ms;
   --gutter: 16px;
+  /* Safe areas (index.html sets viewport-fit=cover): the notch and rounded corners of a phone in
+     landscape, the status bar and the home indicator. Zero in a desktop browser. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --gutter-left: max(var(--gutter), env(safe-area-inset-left, 0px));
+  --gutter-right: max(var(--gutter), env(safe-area-inset-right, 0px));
   --content-width: 64rem;
 }
 
@@ -344,7 +350,7 @@ h1:is(:lang(zh), :lang(ja), :lang(ko)) {
   gap: 0.5rem 2rem;
   max-width: var(--content-width);
   margin: 0 auto;
-  padding: 1.125rem var(--gutter) 0.75rem;
+  padding: calc(1.125rem + var(--safe-top)) var(--gutter-right) 0.75rem var(--gutter-left);
   border-bottom: 1px solid var(--border);
 }
 
@@ -415,7 +421,7 @@ h1:is(:lang(zh), :lang(ja), :lang(ko)) {
 .main {
   max-width: var(--content-width);
   margin: 0 auto;
-  padding: 2.5rem var(--gutter) 4rem;
+  padding: 2.5rem var(--gutter-right) calc(4rem + var(--safe-bottom)) var(--gutter-left);
 }
 
 .page {
@@ -1253,7 +1259,10 @@ kbd {
 .read-session {
   --sheet-px: 2rem;
   --read-chrome: 26.5rem;
-  --staff-w: min(59rem, calc((100dvh - var(--read-chrome)) * var(--staff-aspect)));
+  --staff-w: min(
+    59rem,
+    calc((100dvh - var(--read-chrome) - var(--safe-top) - var(--safe-bottom)) * var(--staff-aspect))
+  );
 }
 
 .main:has(.read-session) {
@@ -3018,7 +3027,7 @@ kbd {
  * height the rest leaves and scrolls inside its sheet. On phones the page scrolls instead.
  */
 .main:has(.piece-session) {
-  padding-block: 0.75rem 1rem;
+  padding-block: 0.75rem calc(1rem + var(--safe-bottom));
 }
 
 .piece-back {

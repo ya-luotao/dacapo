@@ -75,13 +75,30 @@ export function drawingXml(xml: string): string {
   );
 }
 
-/** Staff size: Verovio's `scale` is a percentage of its default spacing. */
-export function scaleFor(width: number): number {
-  return width < 480 ? 34 : width < 800 ? 38 : 42;
+/** The most a tall frame enlarges the staff: 40% (on an iPad in portrait, for example). */
+export const MAX_TALL_ZOOM = 1.4;
+/**
+ * Frames up to this tall for their width keep the base staff size: a laptop window (about 0.4)
+ * and an iPad in landscape (0.58–0.62 measured), the layouts the practice page was designed at.
+ * An iPad in portrait measures about 0.95.
+ */
+const TALL_FROM = 0.65;
+
+/**
+ * Staff size: Verovio's `scale` is a percentage of its default spacing. It follows the width;
+ * when the frame's height is given and the frame is taller than 0.65 of its width, the staff grows
+ * with it (up to MAX_TALL_ZOOM), so a tall sheet is filled with larger systems rather than left
+ * half empty. The height is only given where it does not depend on the score itself (the
+ * one-screen layout of the practice page).
+ */
+export function scaleFor(width: number, height: number | null = null): number {
+  const base = width < 480 ? 34 : width < 800 ? 38 : 42;
+  if (height === null || width <= 0) return base;
+  const zoom = Math.min(MAX_TALL_ZOOM, Math.max(1, height / width / TALL_FROM));
+  return Math.round(base * zoom);
 }
 
-export function layoutOptions(width: number): Record<string, unknown> {
-  const scale = scaleFor(width);
+export function layoutOptions(width: number, scale = scaleFor(width)): Record<string, unknown> {
   return {
     // Verovio lays out in its own units; the page is `width` px at our scale.
     pageWidth: Math.round((width * 100) / scale),
@@ -106,30 +123,35 @@ export function layoutOptions(width: number): Record<string, unknown> {
   };
 }
 
-// The toolkit holds one document at a time; remember which, and at what width.
-let loaded: { xml: string; width: number } | null = null;
+// The toolkit holds one document at a time; remember which, and at what width and scale.
+let loaded: { xml: string; width: number; scale: number } | null = null;
 
 /** Loads the piece into the toolkit; throws when Verovio cannot read it. */
-export function loadPiece(tk: Toolkit, xml: string, width: number): void {
+export function loadPiece(tk: Toolkit, xml: string, width: number, scale = scaleFor(width)): void {
   loaded = null;
-  tk.setOptions(layoutOptions(width));
+  tk.setOptions(layoutOptions(width, scale));
   if (!tk.loadData(drawingXml(xml))) throw new Error(`Verovio: ${tk.getLog()}`);
-  loaded = { xml, width };
+  loaded = { xml, width, scale };
 }
 
 /**
- * Lays the piece out for `width`. Returns true when it had to be loaded again because another
- * document took its place: Verovio's element ids are new then.
+ * Lays the piece out for `width` at `scale`. Returns true when it had to be loaded again because
+ * another document took its place: Verovio's element ids are new then.
  */
-export function layoutPiece(tk: Toolkit, xml: string, width: number): boolean {
+export function layoutPiece(
+  tk: Toolkit,
+  xml: string,
+  width: number,
+  scale = scaleFor(width),
+): boolean {
   if (loaded?.xml !== xml) {
-    loadPiece(tk, xml, width);
+    loadPiece(tk, xml, width, scale);
     return true;
   }
-  if (loaded.width !== width) {
-    tk.setOptions(layoutOptions(width));
+  if (loaded.width !== width || loaded.scale !== scale) {
+    tk.setOptions(layoutOptions(width, scale));
     tk.redoLayout();
-    loaded = { xml, width };
+    loaded = { xml, width, scale };
   }
   return false;
 }

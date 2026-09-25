@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { inHands, type HandSelection, type Score, type Step } from '../../core/score.ts';
 import { useT } from '../../i18n/index.ts';
-import { layoutPiece, loadVerovio, mapNotes, type Toolkit } from './verovio.ts';
+import { layoutPiece, loadVerovio, mapNotes, scaleFor, type Toolkit } from './verovio.ts';
 
 export type ScoreStatus =
   | { state: 'loading' }
@@ -46,6 +46,9 @@ interface Drawing {
 }
 
 const RELAYOUT_DEBOUNCE_MS = 150;
+
+/** The practice page's one-screen layout (styles.css, `.piece-session`). */
+const ONE_SCREEN = '(min-width: 48rem) and (min-height: 36rem)';
 
 function prefersReducedMotion(): boolean {
   return globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
@@ -107,24 +110,33 @@ export function ScoreView({
     const outer = frame.current;
     const target = host.current;
     if (!outer || !target) return;
+    const oneScreen = window.matchMedia(ONE_SCREEN);
     let cancelled = false;
     let tk: Toolkit | null = null;
     // Our note id → Verovio's id, kept across relayouts (same document, same ids).
     let ids: Map<string, string> | null = null;
     let width = 0;
+    let scale = 0;
 
     const widthOf = () => Math.max(280, Math.floor(target.clientWidth));
+    // The frame's height counts only where the page is one screen and the frame takes the height
+    // the rest leaves (styles.css, .piece-session); elsewhere it grows with the score.
+    const scaleNow = () =>
+      scaleFor(widthOf(), oneScreen.matches ? Math.floor(outer.clientHeight) : null);
 
     function draw() {
       if (!tk) return;
       width = widthOf();
-      const reloaded = layoutPiece(tk, xml, width);
+      scale = scaleNow();
+      const reloaded = layoutPiece(tk, xml, width, scale);
       target!.innerHTML = tk.renderToSVG(1);
       // Everything is drawn under one color="black"; CSS decides the ink instead.
       for (const el of target!.querySelectorAll('[color]')) el.removeAttribute('color');
       const svg = target!.querySelector('svg');
       svg?.classList.add('score-svg');
       svg?.setAttribute('aria-hidden', 'true');
+      // For inspection: the staff size this drawing uses (verovio.ts, scaleFor).
+      svg?.setAttribute('data-scale', String(scale));
       const measures = [...target!.querySelectorAll('g.measure')];
       if (!ids || reloaded) {
         const mapping = mapNotes(
@@ -170,7 +182,7 @@ export function ScoreView({
     const observer = new ResizeObserver(() => {
       clearTimeout(timer);
       timer = window.setTimeout(() => {
-        if (!cancelled && tk && widthOf() !== width) draw();
+        if (!cancelled && tk && (widthOf() !== width || scaleNow() !== scale)) draw();
       }, RELAYOUT_DEBOUNCE_MS);
     });
     observer.observe(outer);
