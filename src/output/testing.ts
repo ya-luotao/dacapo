@@ -73,11 +73,15 @@ export class FakeAudioContext {
   currentTime = 0;
   outputLatency = 0;
   baseLatency = 0;
+  state: AudioContextState = 'running';
   readonly destination = {};
   /** Every oscillator started: when, its pitch and the gain's peak. */
-  started: { when: number; frequency: number; peak: number }[] = [];
+  started: { when: number; frequency: number; peak: number; type: OscillatorType }[] = [];
   /** Oscillators stopped at once (a stop of the click track). */
   cancelled = 0;
+  /** Gains that were set to a level at once (the metronome's volume). */
+  levels: number[] = [];
+  resumed = 0;
   private peak = 0;
 
   /** performance.now() at context time 0. */
@@ -85,6 +89,11 @@ export class FakeAudioContext {
 
   constructor(origin = 0) {
     this.origin = origin;
+  }
+
+  resume() {
+    this.resumed++;
+    return Promise.resolve();
   }
 
   getOutputTimestamp() {
@@ -95,11 +104,17 @@ export class FakeAudioContext {
   }
 
   createOscillator() {
+    const param = {
+      value: 0,
+      setValueAtTime: () => undefined,
+      exponentialRampToValueAtTime: () => undefined,
+    };
     const osc = {
-      frequency: { value: 0 },
+      type: 'sine' as OscillatorType,
+      frequency: param,
       connect: () => undefined,
       start: (when: number) =>
-        void this.started.push({ when, frequency: osc.frequency.value, peak: this.peak }),
+        void this.started.push({ when, frequency: param.value, peak: this.peak, type: osc.type }),
       stop: (when?: number) => {
         if (when === 0) this.cancelled++;
       },
@@ -111,9 +126,11 @@ export class FakeAudioContext {
   createGain() {
     return {
       gain: {
+        value: 1,
         setValueAtTime: () => undefined,
         linearRampToValueAtTime: (value: number) => void (this.peak = value),
         exponentialRampToValueAtTime: () => undefined,
+        setTargetAtTime: (value: number) => void this.levels.push(value),
       },
       connect: () => undefined,
       disconnect: () => undefined,

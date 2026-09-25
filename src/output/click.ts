@@ -1,8 +1,10 @@
-// The metronome's click: a short Web Audio blip, the one sound dacapo makes itself (the MP11SE has
-// no drum sound over MIDI and cannot start its own metronome). Clicks are scheduled on the
+// The clicks of rhythm mode and the metronome: short Web Audio sounds, the only sounds dacapo makes
+// itself (the MP11SE has no drum sound over MIDI and cannot start its own metronome). Clicks are
+// scheduled on the
 // AudioContext's clock a short lookahead ahead by a timer ("A tale of two clocks"), so a late
 // timer never makes a late click, and a stop cancels everything not yet heard.
 
+import type { ClickSound } from '../core/metronomeSettings.ts';
 import { createAudioClock, type AudioClockSource } from './audioClock.ts';
 import type { Clock } from './scheduler.ts';
 
@@ -18,7 +20,12 @@ const CLICK_SECONDS = 0.035;
 export interface ClickContext extends AudioClockSource {
   readonly destination: unknown;
   createOscillator: () => {
-    frequency: { value: number };
+    type: OscillatorType;
+    frequency: {
+      value: number;
+      setValueAtTime: (value: number, when: number) => unknown;
+      exponentialRampToValueAtTime: (value: number, when: number) => unknown;
+    };
     connect: (node: never) => unknown;
     start: (when: number) => void;
     stop: (when?: number) => void;
@@ -26,12 +33,94 @@ export interface ClickContext extends AudioClockSource {
   };
   createGain: () => {
     gain: {
+      value: number;
       setValueAtTime: (value: number, when: number) => unknown;
       linearRampToValueAtTime: (value: number, when: number) => unknown;
       exponentialRampToValueAtTime: (value: number, when: number) => unknown;
+      setTargetAtTime: (value: number, when: number, constant: number) => unknown;
     };
     connect: (node: never) => unknown;
     disconnect: () => void;
+  };
+}
+
+export type ClickLevel = 'accent' | 'normal' | 'sub';
+
+/** Peak level of each kind of click, times the volume. */
+const LEVEL_GAIN: Record<ClickLevel, number> = { accent: 1, normal: 0.6, sub: 0.32 };
+
+/** A click on its way: `stop(0)` before it starts means it never sounds. */
+export interface SoundingClick {
+  stop: (when?: number) => void;
+  disconnect: () => void;
+}
+
+/**
+ * One click, synthesized (no audio files): `click` is rhythm mode's short blip; `wood` a dry,
+ * woody tock (a falling sine with an inharmonic overtone, as a wood block rings); `beep` a soft
+ * sine with a gentler attack. Accents are higher and louder, subdivisions lower and quieter.
+ */
+export function playClick(
+  context: ClickContext,
+  destination: unknown,
+  when: number,
+  sound: ClickSound,
+  level: ClickLevel,
+  volume: number,
+): SoundingClick {
+  const peak = Math.max(0.0001, volume * LEVEL_GAIN[level]);
+  const gain = context.createGain();
+  gain.connect(destination as never);
+  const oscs: ReturnType<ClickContext['createOscillator']>[] = [];
+  const extra: { disconnect: () => void }[] = [];
+  const tone = (frequency: number) => {
+    const osc = context.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = frequency;
+    oscs.push(osc);
+    return osc;
+  };
+  let end: number;
+  if (sound === 'wood') {
+    const f = level === 'accent' ? 1180 : 880;
+    end = when + 0.07;
+    const body = tone(f);
+    body.frequency.setValueAtTime(f * 1.12, when);
+    body.frequency.exponentialRampToValueAtTime(f, when + 0.018);
+    body.connect(gain as never);
+    const ring = context.createGain();
+    ring.gain.setValueAtTime(0.35, when);
+    ring.gain.exponentialRampToValueAtTime(0.0001, when + 0.03);
+    tone(f * 2.71).connect(ring as never);
+    ring.connect(gain as never);
+    extra.push(ring);
+    gain.gain.setValueAtTime(0.0001, when);
+    gain.gain.linearRampToValueAtTime(peak, when + 0.0015);
+  } else if (sound === 'beep') {
+    tone(level === 'accent' ? 1046.5 : level === 'normal' ? 784 : 659.25).connect(gain as never);
+    end = when + 0.12;
+    gain.gain.setValueAtTime(0.0001, when);
+    gain.gain.linearRampToValueAtTime(peak * 0.8, when + 0.006);
+  } else {
+    tone(level === 'accent' ? 1760 : level === 'normal' ? 1320 : 990).connect(gain as never);
+    end = when + CLICK_SECONDS;
+    gain.gain.setValueAtTime(0.0001, when);
+    gain.gain.linearRampToValueAtTime(peak, when + 0.001);
+  }
+  gain.gain.exponentialRampToValueAtTime(0.0001, end);
+  for (const osc of oscs) {
+    osc.start(when);
+    osc.stop(end + 0.005);
+  }
+  return {
+    stop: (at) => {
+      for (const osc of oscs) osc.stop(at);
+    },
+    disconnect: () => {
+      for (const osc of oscs) osc.disconnect();
+      for (const node of extra) node.disconnect();
+      gain.disconnect();
+    },
   };
 }
 
@@ -70,7 +159,7 @@ export function createClickTrack(
   let until = 0;
   let startedAt = 0;
   let stopTimer: (() => void) | null = null;
-  const sounding = new Set<{ stop: (when?: number) => void; disconnect: () => void }>();
+  const sounding = new Set<SoundingClick>();
 
   function schedule(click: ClickEvent) {
     const now = context.currentTime;
@@ -79,24 +168,14 @@ export function createClickTrack(
       if ((now - when) * 1000 > LATE_MS) return;
       when = now;
     }
-    const osc = context.createOscillator();
-    const gain = context.createGain();
-    osc.frequency.value = click.accent ? 1760 : 1320;
-    const peak = Math.max(0.0001, volume * (click.accent ? 1 : 0.6));
-    gain.gain.setValueAtTime(0.0001, when);
-    gain.gain.linearRampToValueAtTime(peak, when + 0.001);
-    gain.gain.exponentialRampToValueAtTime(0.0001, when + CLICK_SECONDS);
-    osc.connect(gain as never);
-    gain.connect(context.destination as never);
-    osc.start(when);
-    osc.stop(when + CLICK_SECONDS + 0.005);
-    const node = {
-      stop: (at?: number) => osc.stop(at),
-      disconnect: () => {
-        osc.disconnect();
-        gain.disconnect();
-      },
-    };
+    const node = playClick(
+      context,
+      context.destination,
+      when,
+      'click',
+      click.accent ? 'accent' : 'normal',
+      volume,
+    );
     sounding.add(node);
     // Forget it once it has sounded.
     setTimeout(() => sounding.delete(node), (when - now + CLICK_SECONDS) * 1000 + 200);
