@@ -2,6 +2,13 @@
 import { IDBFactory } from 'fake-indexeddb';
 import type { SessionRecord } from '../core/log.ts';
 import { parseNoteKey } from '../core/levels.ts';
+import {
+  pieceSession,
+  stepId,
+  type PieceRunHeader,
+  type PieceSession,
+  type PieceStep,
+} from '../core/pieceRecords.ts';
 import { recoverSummary, type Attempt } from '../core/session.ts';
 import type { StoredPiece } from '../core/storedPiece.ts';
 
@@ -71,5 +78,65 @@ export function samplePiece(i: number, patch: Partial<StoredPiece> = {}): Stored
     hands: null,
     warnings: [],
     ...patch,
+  };
+}
+
+/** The header of a wait-mode run on piece `pieceId`. */
+export function sampleHeader(id: string, patch: Partial<PieceRunHeader> = {}): PieceRunHeader {
+  return {
+    id,
+    pieceId: 'petzold-minuet-in-g',
+    title: 'Minuet in G major',
+    hands: 'right',
+    loop: null,
+    repeats: 'play',
+    tempo: 100,
+    startedAt: T0,
+    ...patch,
+  };
+}
+
+/** Step `n` of run `sessionId`: bar n % 4, a second after the one before. */
+export function sampleStep(
+  sessionId: string,
+  n: number,
+  patch: Partial<PieceStep> = {},
+): PieceStep {
+  return {
+    id: stepId(sessionId, n),
+    sessionId,
+    pieceId: 'petzold-minuet-in-g',
+    checksum: 'b80fe0e1',
+    hands: 'right',
+    measure: n % 4,
+    pass: 1,
+    ms: 800 + ((n * 211) % 900),
+    wrong: n % 5 === 4 ? 1 : 0,
+    at: T0 + (n + 1) * 1000,
+    ...patch,
+  };
+}
+
+/** A run of `count` steps with its session. */
+export function sampleRun(
+  sessionId: string,
+  count: number,
+  patch: Partial<PieceStep> = {},
+  header: Partial<PieceRunHeader> = {},
+): { steps: PieceStep[]; session: PieceSession } {
+  const steps = Array.from({ length: count }, (_, n) => sampleStep(sessionId, n, patch));
+  const first = steps[0]!;
+  return {
+    steps,
+    session: pieceSession(
+      sampleHeader(sessionId, {
+        pieceId: first.pieceId,
+        hands: first.hands,
+        startedAt: first.at - first.ms,
+        ...header,
+      }),
+      steps,
+      true,
+    ),
   };
 }

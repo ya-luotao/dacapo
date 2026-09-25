@@ -7,7 +7,9 @@ import {
   resetIndexedDB,
   sampleAttempt,
   sampleData,
+  sampleHeader,
   samplePiece,
+  sampleRun,
   T0,
 } from '../../storage/fixtures.ts';
 import {
@@ -82,7 +84,7 @@ afterEach(() => {
 describe('loading', () => {
   it('reports loading, then the stored data', async () => {
     const { sessions, attempts } = sampleData();
-    await seed((repo) => repo.merge({ sessions, attempts, pieces: [] }));
+    await seed((repo) => repo.merge({ sessions, attempts, pieces: [], pieceSteps: [] }));
     const store = startStore();
     expect(store.getStatus()).toEqual({ state: 'loading', loaded: false, persisted: null });
     expect(store.getSnapshot().attempts).toEqual([]);
@@ -260,7 +262,7 @@ describe('several tabs', () => {
     expect(tabB.getSnapshot().stats['C4@treble']!.attempts).toBe(2);
 
     const { sessions, attempts } = sampleData();
-    await tabA.importData({ sessions, attempts, pieces: [samplePiece(3)] });
+    await tabA.importData({ sessions, attempts, pieces: [samplePiece(3)], pieceSteps: [] });
     await vi.waitFor(() => expect(tabB.getSnapshot()).toEqual(tabA.getSnapshot()));
     expect(tabB.getSnapshot().pieces.map((p) => p.id)).toEqual(['p3']);
   });
@@ -313,6 +315,124 @@ describe('several tabs', () => {
     release();
     await loaded(store);
     expect(store.getStatus().state).toBe('saved');
+  });
+});
+
+describe('piece runs', () => {
+  it('records the steps as they happen and the session at the end', async () => {
+    const store = startStore();
+    await loaded(store);
+    const { steps, session } = sampleRun('r1', 3);
+    store.recordPieceStep(steps[0]!, sampleHeader('r1'));
+    store.recordPieceStep(steps[1]!, null);
+    await store.settled();
+    // The tab could go away now: the header and the steps are on disk.
+    expect((await onDisk()).openPieceRuns).toEqual([sampleHeader('r1')]);
+    store.recordPieceStep(steps[2]!, null);
+    store.finishPieceRun('r1', session);
+    expect(store.getSnapshot().sessions).toEqual([session]);
+    await store.settled();
+    const disk = await onDisk();
+    expect(disk.openPieceRuns).toEqual([]);
+    expect(disk.sessions).toEqual([session]);
+  });
+
+  it('rebuilds the session of a run whose tab went away, from its header and steps', async () => {
+    const { steps } = sampleRun('r1', 5, {}, {});
+    const header = sampleHeader('r1', {
+      loop: { from: 0, to: 3, fromLabel: '1', toLabel: '4' },
+      tempo: 70,
+      startedAt: steps[0]!.at - steps[0]!.ms,
+    });
+    await seed(async (repo) => {
+      await repo.addPieceStep(steps[0]!, header);
+      for (const step of steps.slice(1)) await repo.addPieceStep(step, null);
+    });
+    const store = startStore();
+    await loaded(store);
+    const [recovered] = store.getSnapshot().sessions;
+    expect(recovered).toEqual({
+      kind: 'piece',
+      ...header,
+      endedAt: steps.at(-1)!.at,
+      activeMs: steps.reduce((n, s) => n + s.ms, 0),
+      steps: 5,
+      wrong: steps.reduce((n, s) => n + s.wrong, 0),
+      completed: false,
+    });
+    const disk = await onDisk();
+    expect(disk.sessions).toEqual([recovered]);
+    expect(disk.openPieceRuns).toEqual([]);
+  });
+
+  it('drops the header of a run that recorded no step, and keeps a session recorded later', async () => {
+    const { steps, session } = sampleRun('r2', 4);
+    await seed(async (repo) => {
+      await repo.finishPieceRun('none', null);
+      await repo.addPieceStep(steps[0]!, sampleHeader('r2'));
+      await repo.putSession(session);
+    });
+    // A header without steps (a run whose first step never reached the disk).
+    const db = await openDacapoDB();
+    await db.put('meta', sampleHeader('empty'), 'pieceRun:empty');
+    db.close();
+    const store = startStore();
+    await loaded(store);
+    expect(store.getSnapshot().sessions).toEqual([session]);
+    expect((await onDisk()).openPieceRuns).toEqual([]);
+  });
+
+  it('reads step records lazily, one piece at a time', async () => {
+    const minuet = sampleRun('r1', 4);
+    const other = sampleRun('r2', 3, { pieceId: 'other' });
+    await seed(async (repo) => {
+      for (const step of [...minuet.steps, ...other.steps]) await repo.addPieceStep(step, null);
+    });
+    const store = startStore();
+    await loaded(store);
+    expect(store.getPieceSteps('petzold-minuet-in-g')).toBeNull();
+    store.loadPieceSteps('petzold-minuet-in-g');
+    // A step recorded while the piece is being read is not lost.
+    const late = { ...minuet.steps[0]!, id: 'late', at: T0 + 99_000 };
+    store.recordPieceStep(late, null);
+    await vi.waitFor(() => expect(store.getPieceSteps('petzold-minuet-in-g')).not.toBeNull());
+    expect(store.getPieceSteps('petzold-minuet-in-g')).toEqual([...minuet.steps, late]);
+    expect(store.getPieceSteps('other')).toBeNull();
+    const before = store.getPieceSteps('petzold-minuet-in-g');
+    store.loadPieceSteps('petzold-minuet-in-g');
+    expect(store.getPieceSteps('petzold-minuet-in-g')).toBe(before);
+  });
+
+  it('keeps two tabs in step: new steps, sessions, deleted records and imports', async () => {
+    const tabA = startStore();
+    const tabB = startStore();
+    await loaded(tabA);
+    await loaded(tabB);
+    tabA.savePiece(samplePiece(1));
+    tabB.loadPieceSteps('p1');
+    await vi.waitFor(() => expect(tabB.getPieceSteps('p1')).toEqual([]));
+
+    const { steps, session } = sampleRun('r1', 3, { pieceId: 'p1' });
+    tabA.recordPieceStep(steps[0]!, sampleHeader('r1', { pieceId: 'p1' }));
+    tabA.recordPieceStep(steps[1]!, null);
+    tabA.recordPieceStep(steps[2]!, null);
+    tabA.finishPieceRun('r1', session);
+    await vi.waitFor(() => expect(tabB.getPieceSteps('p1')).toEqual(steps));
+    await vi.waitFor(() => expect(tabB.getSnapshot().sessions).toEqual([session]));
+
+    tabA.deletePiece('p1', { steps: true });
+    await vi.waitFor(() => expect(tabB.getPieceSteps('p1')).toEqual([]));
+    expect(tabB.getSnapshot().sessions).toEqual([session]);
+    await tabA.settled();
+    expect(await tabA.allPieceSteps()).toEqual([]);
+
+    // An import elsewhere: the cache is read again when next asked for.
+    const more = sampleRun('r2', 2, { pieceId: 'p1' });
+    await tabA.importData({ sessions: [], attempts: [], pieces: [], pieceSteps: more.steps });
+    await vi.waitFor(() => expect(tabB.getPieceSteps('p1')).toBeNull());
+    tabB.loadPieceSteps('p1');
+    await vi.waitFor(() => expect(tabB.getPieceSteps('p1')).toEqual(more.steps));
+    expect(await tabB.pieceStepIds()).toEqual(new Set(more.steps.map((s) => s.id)));
   });
 });
 

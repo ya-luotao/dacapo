@@ -11,7 +11,7 @@ import {
   type ParsedImport,
   type Preferences,
 } from './exchange.ts';
-import { resetIndexedDB, sampleData, samplePiece } from './fixtures.ts';
+import { resetIndexedDB, sampleData, samplePiece, sampleRun } from './fixtures.ts';
 import { createIndexedDbRepository, type PracticeRepository } from './repository.ts';
 
 const PREFS: Preferences = { locale: 'zh-CN', theme: 'dark' };
@@ -27,7 +27,11 @@ async function freshRepository(): Promise<PracticeRepository> {
 }
 
 async function exportOf(repo: PracticeRepository, now = NOW): Promise<ExportFile> {
-  return buildExport(await repo.load(), PREFS, { now, appVersion: '0.0.0' });
+  const data = await repo.load();
+  return buildExport({ ...data, pieceSteps: await repo.allPieceSteps() }, PREFS, {
+    now,
+    appVersion: '0.0.0',
+  });
 }
 
 function parsed(text: string): ParsedImport {
@@ -63,7 +67,7 @@ describe('export', () => {
   it('writes the versioned file with preferences and every record', async () => {
     const repo = await freshRepository();
     const { sessions, attempts } = sampleData();
-    await repo.merge({ sessions, attempts, pieces: [] });
+    await repo.merge({ sessions, attempts, pieces: [], pieceSteps: [] });
     const file = await exportOf(repo);
     expect(file).toMatchObject({
       format: 'dacapo',
@@ -100,20 +104,32 @@ describe('export → import', () => {
     for (const session of sessions) await source.putSession(session);
     await source.putPiece(samplePiece(2, { hands: { '0.1': 'left' }, warnings: ['ornaments'] }));
     await source.putPiece(samplePiece(1));
+    const runs = [sampleRun('r1', 6), sampleRun('r2', 4, { pieceId: 'p1', hands: 'both' })];
+    for (const { steps, session } of runs) {
+      for (const step of steps) await source.addPieceStep(step, null);
+      await source.putSession({
+        ...session,
+        loop: { from: 2, to: 3, fromLabel: '3', toLabel: '4' },
+      });
+    }
     const exported = await exportOf(source);
     expect(exported.pieces.map((p) => p.id)).toEqual(['p1', 'p2']);
+    expect(exported.pieceSteps).toHaveLength(10);
+    expect(exported.sessions.filter((s) => s.kind === 'piece')).toHaveLength(2);
 
     const target = await freshRepository();
     const file = parsed(JSON.stringify(exported));
     expect(file.invalid).toEqual([]);
     expect(file.preferences).toEqual(PREFS);
     expect(await target.merge(file)).toEqual({
-      sessions: 3,
+      sessions: 5,
       attempts: attempts.length,
       pieces: 2,
+      pieceSteps: 10,
     });
     expect(await exportOf(target)).toEqual(exported);
     expect(await target.load()).toEqual(await source.load());
+    expect(await target.allPieceSteps()).toEqual(await source.allPieceSteps());
   });
 
   it('importing the same file twice changes nothing', async () => {
@@ -122,7 +138,12 @@ describe('export → import', () => {
     const file = parsed(text);
     await repo.merge(file);
     const once = await repo.load();
-    expect(await repo.merge(file)).toEqual({ sessions: 0, attempts: 0, pieces: 0 });
+    expect(await repo.merge(file)).toEqual({
+      sessions: 0,
+      attempts: 0,
+      pieces: 0,
+      pieceSteps: 0,
+    });
     expect(await repo.load()).toEqual(once);
   });
 
@@ -256,12 +277,26 @@ describe('planImport', () => {
       sessionIds: new Set(['s1']),
       attemptIds: new Set(attempts.slice(0, 4).map((a) => a.id)),
       pieceIds: new Set(),
+      pieceStepIds: new Set(),
     });
     expect(plan).toEqual({
       sessions: { new: sessions.length - 1, present: 1, invalid: 0 },
       attempts: { new: attempts.length - 4, present: 4, invalid: 1 },
       pieces: { new: 0, present: 0, invalid: 0 },
+      pieceSteps: { new: 0, present: 0, invalid: 0 },
     });
+  });
+
+  it('counts step records too', () => {
+    const { steps } = sampleRun('r1', 4);
+    const file = parsed(fileWith({ version: 3, pieces: [], pieceSteps: steps }));
+    const plan = planImport(file, {
+      sessionIds: new Set(),
+      attemptIds: new Set(),
+      pieceIds: new Set(),
+      pieceStepIds: new Set([steps[0]!.id]),
+    });
+    expect(plan.pieceSteps).toEqual({ new: 3, present: 1, invalid: 0 });
   });
 
   it('counts pieces too', () => {
@@ -272,6 +307,7 @@ describe('planImport', () => {
       sessionIds: new Set(),
       attemptIds: new Set(),
       pieceIds: new Set(['p2']),
+      pieceStepIds: new Set(),
     });
     expect(plan.pieces).toEqual({ new: 1, present: 1, invalid: 1 });
   });
@@ -323,12 +359,84 @@ describe('versions', () => {
     });
   });
 
-  it('writes version 2', async () => {
+  it('imports a version 2 file, which has no step records', () => {
+    const file = parsed(fileWith({ version: 2, pieces: [samplePiece(1)], pieceSteps: 'x' }));
+    expect(file).toMatchObject({ version: 2, pieceSteps: [], invalid: [] });
+    expect(file.pieces).toEqual([samplePiece(1)]);
+  });
+
+  it('refuses a version 3 file without a list of step records', () => {
+    expect(parseImport(fileWith({ version: 3, pieces: [] }))).toEqual({
+      ok: false,
+      error: { kind: 'wrong-format' },
+    });
+  });
+
+  it('imports piece sessions and step records of a version 3 file and reports bad ones', () => {
+    const { steps, session } = sampleRun('r1', 3);
+    const file = parsed(
+      fileWith({
+        version: 3,
+        pieces: [],
+        sessions: [
+          session,
+          { ...session, id: 'x1', hands: 'feet' },
+          { ...session, id: 'x2', loop: { from: 3, to: 1, fromLabel: '4', toLabel: '2' } },
+          { ...session, id: 'x3', endedAt: session.startedAt - 1 },
+        ],
+        pieceSteps: [
+          ...steps,
+          { ...steps[0]!, id: 'y1', checksum: 'nothex!!' },
+          { ...steps[0]!, id: 'y2', pass: 0 },
+          { ...steps[0]!, id: 'y3', ms: Number.NaN },
+          steps[1],
+          { ...steps[2]!, id: 'y4', extra: 1 },
+        ],
+      }),
+    );
+    expect(file.sessions).toEqual([session]);
+    expect(file.pieceSteps).toEqual([...steps, { ...steps[2]!, id: 'y4' }]);
+    expect(file.invalid).toEqual([
+      { collection: 'sessions', index: 1, field: 'hands', problem: 'invalid' },
+      { collection: 'sessions', index: 2, field: 'loop', problem: 'invalid' },
+      { collection: 'sessions', index: 3, field: 'endedAt', problem: 'invalid' },
+      { collection: 'pieceSteps', index: 3, field: 'checksum', problem: 'invalid' },
+      { collection: 'pieceSteps', index: 4, field: 'pass', problem: 'invalid' },
+      { collection: 'pieceSteps', index: 5, field: 'ms', problem: 'invalid' },
+      { collection: 'pieceSteps', index: 6, field: 'id', problem: 'duplicate' },
+    ]);
+  });
+
+  it('writes version 3 with pieces, piece sessions and step records', async () => {
     const repo = await freshRepository();
     await repo.putPiece(samplePiece(1));
+    const { steps, session } = sampleRun('r1', 2);
+    for (const step of steps) await repo.addPieceStep(step, null);
+    await repo.putSession(session);
     const file = await exportOf(repo);
-    expect(file.version).toBe(2);
+    expect(file.version).toBe(3);
     expect(file.pieces).toEqual([samplePiece(1)]);
-    expect(parsed(JSON.stringify(file)).pieces).toEqual([samplePiece(1)]);
+    expect(file.pieceSteps).toEqual(steps);
+    const back = parsed(JSON.stringify(file));
+    expect(back.pieces).toEqual([samplePiece(1)]);
+    expect(back.pieceSteps).toEqual(steps);
+    expect(back.sessions).toEqual([session]);
+  });
+
+  it('keeps the facts of a piece and refuses broken ones', () => {
+    const facts = { checksum: '0123abcd', bars: { right: 3, left: 2, both: 3 } };
+    const file = parsed(
+      fileWith({
+        version: 2,
+        pieces: [
+          samplePiece(1, { facts }),
+          { ...samplePiece(2), facts: { checksum: 'x', bars: facts.bars } },
+        ],
+      }),
+    );
+    expect(file.pieces).toEqual([samplePiece(1, { facts })]);
+    expect(file.invalid).toEqual([
+      { collection: 'pieces', index: 1, field: 'facts', problem: 'invalid' },
+    ]);
   });
 });

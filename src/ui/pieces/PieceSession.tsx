@@ -9,6 +9,7 @@ import {
   type CSSProperties,
 } from 'react';
 import { Link } from 'wouter';
+import { barHeatmap, weakestLoop } from '../../core/barHeatmap.ts';
 import { isBlack, midiName, PIANO_HIGHEST, PIANO_LOWEST } from '../../core/note.ts';
 import { summarizeRun } from '../../core/pieceRun.ts';
 import { accompanimentPlan, baseTempo, DEMO_VELOCITY, demoPlan } from '../../core/playback.ts';
@@ -26,24 +27,23 @@ import { ScoreView, type ScoreStatus } from '../notation/ScoreView.tsx';
 import { useOutputState } from '../output/context.ts';
 import { ACCOMPANIMENT_LEVELS, readAccompanimentLevel } from '../output/prefs.ts';
 import { Piano } from '../piano/Piano.tsx';
+import { usePieceSteps, usePracticeStore } from '../practice/context.ts';
 import { usePieceFormat } from './format.ts';
+import { readPiecePrefs, TEMPOS, writePiecePrefs } from './prefs.ts';
+import { useRunRecorder } from './record.ts';
 import { RunSummary } from './RunSummary.tsx';
 import { runReducer, startRun } from './run.ts';
 import type { OpenPiece } from './usePiece.ts';
+import { useBarFormat } from './barFormat.ts';
+import { BarTargets, BarTints, WeakBarsBar, WeakBarsTable } from './WeakBars.tsx';
 
-const HANDS_PREF = 'dacapo.pieces.hands';
 const SHOW_KEYS_PREF = 'dacapo.pieces.showKeys';
 const ACCOMPANY_PREF = 'dacapo.pieces.accompany';
-/** Tempo choices, in percent of the score's tempo marks. */
-const TEMPOS = [40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200];
+const WEAK_BARS_PREF = 'dacapo.pieces.weakBars';
 const WRONG_FLASH_MS = 350;
 const HAND_CHOICES = ['right', 'left', 'both'] as const;
 const NO_KEYS: readonly number[] = [];
-
-function readHands(): HandSelection {
-  const value = readPref(HANDS_PREF);
-  return value === 'left' || value === 'both' ? value : 'right';
-}
+const newRunId = () => crypto.randomUUID();
 
 /** The piece's range on a short keyboard: at least two octaves, white keys at both ends. */
 function keyboardRange(low: number, high: number): [number, number] {
@@ -70,13 +70,17 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
   const region = useRef<HTMLElement>(null);
   const showKeysId = useId();
 
-  const [hands, setHandsState] = useState<HandSelection>(readHands);
+  const store = usePracticeStore();
+  const [prefs] = useState(() => readPiecePrefs(piece.id));
+  const [hands, setHandsState] = useState<HandSelection>(prefs.hands);
   const [repeats, setRepeats] = useState<RepeatMode>('play');
   const [loop, setLoop] = useState<BarLoop | null>(null);
   const [startBar, setStartBar] = useState(0);
   const [showKeys, setShowKeysState] = useState(() => readPref(SHOW_KEYS_PREF) === '1');
   const [scoreStatus, setScoreStatus] = useState<ScoreStatus>({ state: 'loading' });
-  const [tempo, setTempo] = useState(100);
+  const [tempo, setTempo] = useState(prefs.tempo);
+  const [weakBars, setWeakBarsState] = useState(() => readPref(WEAK_BARS_PREF) === '1');
+  const [table, setTable] = useState(false);
   const [accompany, setAccompanyState] = useState(() => readPref(ACCOMPANY_PREF) !== '0');
   const [player] = useState(() =>
     createDemoPlayer(output.scheduler, browserClock, output.onInterrupt),
@@ -114,10 +118,42 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
   );
   const accompanying = accompany && hasOutput && backing !== null && !listening;
 
-  const [run, dispatch] = useReducer(runReducer, { steps, range }, startRun);
+  const [run, dispatch] = useReducer(runReducer, { id: newRunId(), steps, range }, startRun);
   // Any change of hands, bars or repeats starts over (React's pattern for state derived from
   // props: set during render, before anything is painted).
-  if (run.steps !== steps || run.range !== range) dispatch({ type: 'restart', steps, range });
+  if (run.steps !== steps || run.range !== range)
+    dispatch({ type: 'restart', id: newRunId(), steps, range });
+
+  useRunRecorder(
+    run,
+    {
+      pieceId: piece.id,
+      checksum: piece.facts.checksum,
+      title: piece.title,
+      hands,
+      loop: loop && {
+        ...loop,
+        fromLabel: score.measures[loop.from]?.number ?? String(loop.from + 1),
+        toLabel: score.measures[loop.to]?.number ?? String(loop.to + 1),
+      },
+      repeats,
+      tempo,
+    },
+    store,
+  );
+
+  // The measure heatmap: this piece's step records, read when the page opens.
+  const records = usePieceSteps(piece.id);
+  const handBars = useMemo(
+    () => [...new Set(steps.map((s) => s.measure))].sort((a, b) => a - b),
+    [steps],
+  );
+  const heat = useMemo(
+    () => barHeatmap(records ?? [], { checksum: piece.facts.checksum, hands, bars: handBars }),
+    [records, piece.facts.checksum, hands, handBars],
+  );
+  const weakest = useMemo(() => weakestLoop(heat.cells, order), [heat, order]);
+  const barFormat = useBarFormat(format);
 
   /** Stops whatever the instrument is playing for us: the demo and the other hand. */
   function silence() {
@@ -128,7 +164,7 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
 
   const restart = () => {
     silence();
-    dispatch({ type: 'restart', steps, range });
+    dispatch({ type: 'restart', id: newRunId(), steps, range });
     region.current?.focus({ preventScroll: true });
   };
 
@@ -155,7 +191,7 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
     () =>
       hub.onEvent((event) => {
         if (event.type === 'on' && player.getState() === 'stopped')
-          dispatch({ type: 'press', midi: event.midi, time: event.time });
+          dispatch({ type: 'press', midi: event.midi, time: event.time, at: Date.now() });
       }),
     [hub, player],
   );
@@ -186,6 +222,8 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
     else if (state === 'paused') player.resume();
     else if (plan) {
       accompanist.reset();
+      // Listening is not hesitation: the step's clock starts again at the next key.
+      dispatch({ type: 'pauseClock' });
       player.play(plan, DEMO_VELOCITY);
     }
   }
@@ -194,6 +232,7 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
     const state = player.getState();
     const at = player.position();
     setTempo(next);
+    writePiecePrefs(piece.id, { tempo: next });
     if (state === 'stopped' || !at) return;
     const retimed = demoPlan({ score, order, steps, hands, loop, startBar, scale: next / 100 });
     if (!retimed) {
@@ -222,7 +261,20 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
 
   function setHands(next: HandSelection) {
     setHandsState(next);
-    writePref(HANDS_PREF, next);
+    writePiecePrefs(piece.id, { hands: next });
+  }
+
+  function setWeakBars(next: boolean) {
+    setWeakBarsState(next);
+    writePref(WEAK_BARS_PREF, next ? '1' : null);
+    if (!next) setTable(false);
+  }
+
+  function loopWeakest() {
+    if (!weakest) return;
+    setLoop(weakest);
+    setStartBar(weakest.from);
+    settle();
   }
 
   function setShowKeys(next: boolean) {
@@ -234,10 +286,7 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
   const waitStep = wait && !wait.finished ? (steps[wait.current] ?? null) : null;
   const step = listening ? (demoStep === null ? null : (steps[demoStep] ?? null)) : waitStep;
   const done = Boolean(wait?.finished || run.ended);
-  const summary = useMemo(
-    () => (done ? summarizeRun(run.records, run.startedAt) : null),
-    [done, run.records, run.startedAt],
-  );
+  const summary = useMemo(() => (done ? summarizeRun(run.records) : null), [done, run.records]);
 
   const keys = useMemo(() => {
     const span = keyRange(score, 'both') ?? [60, 72];
@@ -407,6 +456,19 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
           {t('pieces.showKeys.help')}
         </span>
 
+        <label className="check piece-control">
+          <input
+            type="checkbox"
+            checked={weakBars}
+            onChange={(e) => setWeakBars(e.target.checked)}
+            aria-describedby={`${showKeysId}-weak`}
+          />
+          <span>{t('pieces.weak')}</span>
+        </label>
+        <span id={`${showKeysId}-weak`} className="visually-hidden">
+          {t('pieces.weak.help')}
+        </span>
+
         <div className="piece-control piece-transport">
           <label className="piece-control">
             <span className="piece-control-label">{t('pieces.tempo')}</span>
@@ -489,6 +551,22 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
         </div>
       </div>
 
+      {weakBars && (
+        <WeakBarsBar
+          format={barFormat}
+          loading={records === null}
+          staleRuns={heat.staleRuns}
+          loopLabel={
+            weakest &&
+            (weakest.from === weakest.to
+              ? format.barNumber(weakest.from)
+              : `${format.barNumber(weakest.from)}–${format.barNumber(weakest.to)}`)
+          }
+          onLoop={loopWeakest}
+          onTable={() => setTable(true)}
+        />
+      )}
+
       <div className="piece-stage">
         <ScoreView
           xml={piece.xml}
@@ -498,6 +576,23 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
           pressed={listening ? NO_KEYS : (wait?.pressed ?? NO_KEYS)}
           hands={hands}
           onStatus={setScoreStatus}
+          behind={
+            weakBars
+              ? (boxes) => <BarTints cells={heat.cells} boxes={boxes} format={barFormat} />
+              : undefined
+          }
+          above={
+            weakBars
+              ? (boxes) => (
+                  <BarTargets
+                    cells={heat.cells}
+                    boxes={boxes}
+                    format={barFormat}
+                    pieceFormat={format}
+                  />
+                )
+              : undefined
+          }
         />
         {scoreStatus.state !== 'ready' && (
           <div className="piece-overlay" role="status">
@@ -509,6 +604,16 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
                   : t('pieces.renderFailed')}
             </p>
           </div>
+        )}
+        {table && weakBars && !summary && (
+          <WeakBarsTable
+            cells={heat.cells}
+            format={barFormat}
+            onClose={() => {
+              setTable(false);
+              settle();
+            }}
+          />
         )}
         {summary && (
           <RunSummary

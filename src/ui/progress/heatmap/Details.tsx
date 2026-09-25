@@ -14,11 +14,13 @@ interface TooltipProps {
   anchor: () => Element | null;
   /** Changes whenever the anchor may have moved without `anchor` changing, e.g. on resize. */
   anchorKey: string;
+  /** The visible area when the container scrolls inside it (default: the window). */
+  bounds?: () => DOMRect | null;
   children: ReactNode;
 }
 
 /** Floats above the anchor (below it when there is no room), inside the container's width. */
-export function Tooltip({ container, anchor, anchorKey, children }: TooltipProps) {
+export function Tooltip({ container, anchor, anchorKey, bounds, children }: TooltipProps) {
   const tip = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState<{ left: number; top: number } | null>(null);
 
@@ -36,8 +38,13 @@ export function Tooltip({ container, anchor, anchorKey, children }: TooltipProps
         Math.max(0, a.left + a.width / 2 - b.left - w / 2),
         Math.max(0, b.width - w),
       );
-      const above = a.top - h - GAP >= 0;
-      const top = above ? a.top - b.top - h - GAP : a.bottom - b.top + GAP;
+      const visible = bounds?.();
+      const top0 = visible?.top ?? 0;
+      const bottom0 = visible?.bottom ?? window.innerHeight;
+      // Above if it fits, else below if that fits, else kept inside the visible area.
+      let y = a.top - h - GAP >= top0 ? a.top - h - GAP : a.bottom + GAP;
+      if (visible && y + h > bottom0) y = Math.max(top0, bottom0 - h);
+      const top = y - b.top;
       setPosition((p) => (p && p.left === left && p.top === top ? p : { left, top }));
     }
     place();
@@ -47,7 +54,7 @@ export function Tooltip({ container, anchor, anchorKey, children }: TooltipProps
       window.removeEventListener('resize', place);
       window.removeEventListener('scroll', place, true);
     };
-  }, [container, anchor, anchorKey]);
+  }, [container, anchor, anchorKey, bounds]);
 
   return (
     <div

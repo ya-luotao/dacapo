@@ -1,6 +1,8 @@
 // The built-in pieces: public-domain works in encodings we may redistribute, with where each one
 // comes from. The MusicXML is loaded only when a piece is opened.
 
+import type { PieceFacts } from '../../core/pieceRecords.ts';
+
 /** 0 = Initial; 1–5 = the usual graded-exam steps, roughly. */
 export type PieceLevel = 0 | 1 | 2 | 3 | 4 | 5;
 
@@ -26,6 +28,8 @@ export interface BuiltInPiece {
   sourceUrl: string;
   encoder: string;
   licence: string;
+  /** Checksum and bar counts, for the library without loading the file (locked by a test). */
+  facts: PieceFacts;
 }
 
 export const BUILT_IN: readonly BuiltInPiece[] = [
@@ -39,6 +43,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
     sourceUrl: 'https://imslp.org/wiki/Symphony_No.9,_Op.125_(Beethoven,_Ludwig_van)',
     encoder: 'dacapo project',
     licence: 'Public-domain work; arrangement and encoding MIT',
+    facts: { checksum: '7a47ee21', bars: { right: 16, left: 16, both: 16 } },
   },
   {
     id: 'petzold-minuet-in-g',
@@ -49,6 +54,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
     sourceUrl: 'https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=75',
     encoder: 'dacapo project',
     licence: 'Public-domain work; encoding MIT',
+    facts: { checksum: 'b80fe0e1', bars: { right: 32, left: 32, both: 32 } },
   },
   {
     id: 'burgmuller-arabesque',
@@ -59,6 +65,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
     sourceUrl: 'https://musescore.com/user/9292486/scores/5849868',
     encoder: 'PianoXML (fingering removed by the dacapo project)',
     licence: 'CC0 1.0; PDMX dataset CC BY 4.0',
+    facts: { checksum: '7db61cc9', bars: { right: 31, left: 33, both: 33 } },
   },
   {
     id: 'schumann-soldiers-march',
@@ -69,6 +76,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
     sourceUrl: 'https://musescore.com/user/31901603/scores/5860733',
     encoder: 'jadr (fingering removed by the dacapo project)',
     licence: 'CC0 1.0; PDMX dataset CC BY 4.0',
+    facts: { checksum: '3deaa5fc', bars: { right: 32, left: 32, both: 32 } },
   },
   {
     id: 'beethoven-fur-elise',
@@ -79,6 +87,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
     sourceUrl: 'https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=931',
     encoder: 'dacapo project',
     licence: 'Public-domain work; encoding MIT',
+    facts: { checksum: '2718f11a', bars: { right: 25, left: 20, both: 25 } },
   },
   {
     id: 'bach-prelude-in-c',
@@ -89,10 +98,15 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
     sourceUrl: 'https://musescore.com/user/9836/scores/719631',
     encoder: 'OpenGoldberg (Open WTC)',
     licence: 'CC0 1.0; PDMX dataset CC BY 4.0',
+    facts: { checksum: 'aaa8934c', bars: { right: 35, left: 35, both: 35 } },
   },
 ];
 
 const FILES = import.meta.glob<string>('./*.musicxml', { query: '?raw', import: 'default' });
+
+export function isBuiltInId(id: string): id is BuiltInId {
+  return (BUILT_IN_IDS as readonly string[]).includes(id);
+}
 
 export function builtInPiece(id: string): BuiltInPiece | undefined {
   return BUILT_IN.find((p) => p.id === id);

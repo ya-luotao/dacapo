@@ -3,6 +3,7 @@ import { Link } from 'wouter';
 import { useT } from '../../i18n/index.ts';
 import { BUILT_IN, type BuiltInPiece, type PieceLevel } from '../../pieces/library/index.ts';
 import { usePieceFormat } from './format.ts';
+import { PieceProgress } from './PieceProgress.tsx';
 
 /** The built-in pieces, by level, like the contents page of a method book. */
 export function Library() {
@@ -52,6 +53,7 @@ function LevelGroup({
               <span className="library-piece-title">{t(`library.${piece.id}.title`)}</span>
               <span className="library-piece-composer">{t(`library.${piece.id}.composer`)}</span>
               <span className="library-piece-note">{t(`library.${piece.id}.note`)}</span>
+              <PieceProgress pieceId={piece.id} facts={piece.facts} />
             </Link>
           </li>
         ))}

@@ -5,6 +5,13 @@ import {
   recoverReadSessions,
   type SessionRecord,
 } from '../../core/log.ts';
+import {
+  byStepTime,
+  recoverPieceSession,
+  type PieceRunHeader,
+  type PieceSession,
+  type PieceStep,
+} from '../../core/pieceRecords.ts';
 import type { Attempt } from '../../core/session.ts';
 import { byImportedDescending, type StoredPiece } from '../../core/storedPiece.ts';
 import { emptyStats, updateStats, type NoteStats, type StatsByKey } from '../../core/weakness.ts';
@@ -63,7 +70,23 @@ export interface PracticeStore {
   finishFreePlay: (id: string, session: FreePlaySession | null) => void;
   /** Adds or replaces an imported piece (a new import, a rename, other hands). */
   savePiece: (piece: StoredPiece) => void;
-  deletePiece: (id: string) => void;
+  /** Deletes an imported piece, and with `steps` its step records. Its sessions stay. */
+  deletePiece: (id: string, options?: { steps: boolean }) => void;
+  /** Stores a completed wait-mode step; `header` goes with the run's first step. */
+  recordPieceStep: (step: PieceStep, header: PieceRunHeader | null) => void;
+  /** A run ended: records its session (null when it had no step) and drops its header. */
+  finishPieceRun: (id: string, session: PieceSession | null) => void;
+  /**
+   * The step records of a piece, in order, once loaded; null until then. Records are read one
+   * piece at a time and only when asked for (`loadPieceSteps`), never at startup.
+   */
+  getPieceSteps: (pieceId: string) => readonly PieceStep[] | null;
+  /** Starts reading a piece's step records unless they are loaded or loading. */
+  loadPieceSteps: (pieceId: string) => void;
+  subscribePieceSteps: (onChange: () => void) => () => void;
+  /** Every step record, for the export file. */
+  allPieceSteps: () => Promise<PieceStep[]>;
+  pieceStepIds: () => Promise<Set<string>>;
   /** Merges by id, rebuilds note stats from all attempts and reloads. */
   importData: (input: MergeInput) => Promise<MergeResult>;
   /** Resolves once every write requested so far has finished (or failed). */
@@ -83,7 +106,8 @@ export type SyncMessage =
   | { type: 'attempt'; attempt: Attempt; stats: NoteStats }
   | { type: 'session'; session: SessionRecord }
   | { type: 'piece'; piece: StoredPiece }
-  | { type: 'pieceDeleted'; id: string }
+  | { type: 'pieceDeleted'; id: string; steps: boolean }
+  | { type: 'pieceStep'; step: PieceStep }
   | { type: 'reload' };
 
 /** What the store needs from `navigator.storage`. */
@@ -120,6 +144,19 @@ function upsertPiece(pieces: readonly StoredPiece[], piece: StoredPiece) {
   return [...pieces.filter((p) => p.id !== piece.id), piece].sort(byImportedDescending);
 }
 
+function addSteps(steps: readonly PieceStep[], added: readonly PieceStep[]): PieceStep[] {
+  const ids = new Set(steps.map((s) => s.id));
+  const fresh = added.filter((s) => !ids.has(s.id) && Boolean(ids.add(s.id)));
+  if (fresh.length === 0) return steps as PieceStep[];
+  const last = steps.at(-1);
+  const merged = [...steps, ...fresh];
+  return last && fresh.some((s) => byStepTime(last, s) > 0) ? merged.sort(byStepTime) : merged;
+}
+
+/** Step records of one piece: loaded, or loading with the steps recorded meanwhile. */
+type StepCache =
+  { ready: true; steps: readonly PieceStep[] } | { ready: false; extra: PieceStep[] };
+
 /**
  * The practice data of the app: loaded once from storage, updated in memory at once on every
  * change (the UI never waits for storage) and written in the background, in order. Other tabs are
@@ -134,6 +171,8 @@ export function createPracticeStore({
   let status: StorageStatus = { state: 'loading', loaded: false, persisted: null };
   const listeners = new Set<() => void>();
   const statusListeners = new Set<() => void>();
+  const stepListeners = new Set<() => void>();
+  let stepCache = new Map<string, StepCache>();
 
   let repository: PracticeRepository | null = null;
   let channel: SyncChannel | null = null;
@@ -145,6 +184,31 @@ export function createPracticeStore({
   function set(next: PracticeData) {
     data = next;
     for (const listener of [...listeners]) listener();
+  }
+
+  function setStepCache(pieceId: string, entry: StepCache | null) {
+    stepCache = new Map(stepCache);
+    if (entry) stepCache.set(pieceId, entry);
+    else stepCache.delete(pieceId);
+    for (const listener of [...stepListeners]) listener();
+  }
+
+  /** Adds steps to a piece's cache, if it is loaded or loading. */
+  function cacheSteps(added: readonly PieceStep[]) {
+    const byPiece = new Map<string, PieceStep[]>();
+    for (const step of added) {
+      if (!stepCache.has(step.pieceId)) continue;
+      byPiece.set(step.pieceId, [...(byPiece.get(step.pieceId) ?? []), step]);
+    }
+    for (const [pieceId, steps] of byPiece) {
+      const entry = stepCache.get(pieceId)!;
+      if (!entry.ready) {
+        entry.extra.push(...steps);
+        continue;
+      }
+      const next = addSteps(entry.steps, steps);
+      if (next !== entry.steps) setStepCache(pieceId, { ready: true, steps: next });
+    }
   }
 
   function setStatus(next: Partial<StorageStatus>) {
@@ -212,7 +276,17 @@ export function createPracticeStore({
       await repo.putSession(recovered);
       sessions = upsertSession(sessions, recovered);
     }
-    return { ...stored, sessions, openFreePlay: [] };
+    for (const header of stored.openPieceRuns) {
+      const recovered = recoverPieceSession(
+        header,
+        await repo.pieceSteps({ sessionId: header.id }),
+      );
+      const known = sessions.find((s) => s.id === header.id);
+      const keep = recovered && !(known && known.endedAt >= recovered.endedAt) ? recovered : null;
+      await repo.finishPieceRun(header.id, keep);
+      if (keep) sessions = upsertSession(sessions, keep);
+    }
+    return { ...stored, sessions, openFreePlay: [], openPieceRuns: [] };
   }
 
   function reload() {
@@ -224,6 +298,9 @@ export function createPracticeStore({
         sessions: stored.sessions,
         pieces: stored.pieces,
       });
+      // Loaded again when next asked for.
+      stepCache = new Map();
+      for (const listener of [...stepListeners]) listener();
     });
   }
 
@@ -254,6 +331,10 @@ export function createPracticeStore({
         return;
       case 'pieceDeleted':
         set({ ...data, pieces: data.pieces.filter((p) => p.id !== m.id) });
+        if (m.steps && stepCache.has(m.id)) setStepCache(m.id, { ready: true, steps: [] });
+        return;
+      case 'pieceStep':
+        cacheSteps([m.step]);
         return;
       case 'reload':
         void reload();
@@ -325,12 +406,56 @@ export function createPracticeStore({
         requestPersistence();
       });
     },
-    deletePiece(id) {
+    deletePiece(id, options) {
+      const steps = options?.steps ?? false;
       set({ ...data, pieces: data.pieces.filter((p) => p.id !== id) });
+      if (steps && stepCache.has(id)) setStepCache(id, { ready: true, steps: [] });
       void enqueue(async (repo) => {
-        await repo.deletePiece(id);
-        broadcast({ type: 'pieceDeleted', id });
+        await repo.deletePiece(id, { steps });
+        broadcast({ type: 'pieceDeleted', id, steps });
       });
+    },
+    recordPieceStep(step, header) {
+      cacheSteps([step]);
+      void enqueue(async (repo) => {
+        await repo.addPieceStep(step, header);
+        broadcast({ type: 'pieceStep', step });
+      });
+    },
+    finishPieceRun(id, session) {
+      if (session) set({ ...data, sessions: upsertSession(data.sessions, session) });
+      void enqueue(async (repo) => {
+        await repo.finishPieceRun(id, session);
+        if (!session) return;
+        broadcast({ type: 'session', session });
+        requestPersistence();
+      });
+    },
+    getPieceSteps(pieceId) {
+      const entry = stepCache.get(pieceId);
+      return entry?.ready ? entry.steps : null;
+    },
+    loadPieceSteps(pieceId) {
+      if (stepCache.has(pieceId)) return;
+      const loading: StepCache = { ready: false, extra: [] };
+      setStepCache(pieceId, loading);
+      void enqueue((repo) => repo.pieceSteps({ pieceId })).then((steps) => {
+        // Dropped meanwhile (a reload): the next request reads again.
+        if (stepCache.get(pieceId) !== loading) return;
+        setStepCache(pieceId, { ready: true, steps: addSteps(steps ?? [], loading.extra) });
+      });
+    },
+    subscribePieceSteps(onChange) {
+      stepListeners.add(onChange);
+      return () => void stepListeners.delete(onChange);
+    },
+    async allPieceSteps() {
+      const steps = await enqueue((repo) => repo.allPieceSteps());
+      if (!steps) throw new Error('Step records could not be read');
+      return steps;
+    },
+    async pieceStepIds() {
+      return new Set((await enqueue((repo) => repo.pieceStepIds())) ?? []);
     },
     async importData(input) {
       const added = await enqueue((repo) => repo.merge(input));

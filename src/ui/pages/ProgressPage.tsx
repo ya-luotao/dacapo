@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { practiceLog } from '../../core/streak.ts';
+import { dailyTotals, practiceLog } from '../../core/streak.ts';
 import { useT } from '../../i18n/index.ts';
 import { EmptyState } from '../EmptyState.tsx';
 import { usePractice, useStorageStatus } from '../practice/context.ts';
@@ -15,6 +15,10 @@ export function ProgressPage() {
   const { sessions, stats } = usePractice();
   const now = useNow();
   const log = useMemo(() => practiceLog(sessions, { now }), [sessions, now]);
+  const piecesToday = useMemo(() => {
+    const pieces = sessions.filter((s) => s.kind === 'piece');
+    return pieces.length === 0 ? null : (dailyTotals(pieces).get(log.today) ?? 0);
+  }, [sessions, log.today]);
 
   return (
     <section className="progress">
@@ -29,7 +33,7 @@ export function ProgressPage() {
         </EmptyState>
       ) : (
         <>
-          <PracticeFigures log={log} />
+          <PracticeFigures log={log} piecesToday={piecesToday} />
           <DayHistory history={log.history} today={log.today} />
           <WeaknessHeatmap stats={stats} />
           <SessionList sessions={sessions} />

@@ -5,7 +5,9 @@ import { useLogFormat } from '../progress/format.ts';
 
 /** Invalid records listed by name; the rest are counted. */
 const INVALID_LISTED = 10;
-const COLLECTIONS = ['sessions', 'attempts', 'pieces'] as const;
+const COLLECTIONS = ['sessions', 'attempts', 'pieces', 'pieceSteps'] as const;
+/** How many of the collections a file of version 1, 2, 3 can hold: pieces from 2, steps from 3. */
+const COLLECTIONS_BY_VERSION = [2, 3, 4];
 
 interface ImportPreviewProps {
   fileName: string;
@@ -30,9 +32,12 @@ export function ImportPreview({
   const heading = useRef<HTMLHeadingElement>(null);
   const [applyPreferences, setApplyPreferences] = useState(false);
   const exportedAt = parsed.exportedAt ? Date.parse(parsed.exportedAt) : NaN;
-  const nothingNew = plan.sessions.new === 0 && plan.attempts.new === 0 && plan.pieces.new === 0;
-  // Files from before version 2 cannot hold pieces, so they get no row for them.
-  const collections = parsed.version >= 2 ? COLLECTIONS : COLLECTIONS.slice(0, 2);
+  const nothingNew = COLLECTIONS.every((kind) => plan[kind].new === 0);
+  // Older files get no row for what they cannot hold.
+  const collections = COLLECTIONS.slice(
+    0,
+    COLLECTIONS_BY_VERSION[Math.min(parsed.version, COLLECTIONS_BY_VERSION.length) - 1],
+  );
   const { preferences } = parsed;
 
   // Keyboard and screen-reader users land on the preview once the file has been read.

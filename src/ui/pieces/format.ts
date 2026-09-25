@@ -38,3 +38,5 @@ export function usePieceFormat(measures: readonly Measure[] = []) {
     };
   }, [t, locale, measures]);
 }
+
+export type PieceFormat = ReturnType<typeof usePieceFormat>;

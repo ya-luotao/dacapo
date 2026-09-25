@@ -1,14 +1,23 @@
-import { useId, useRef, useState, type DragEvent } from 'react';
+import { useEffect, useId, useRef, useState, type DragEvent } from 'react';
 import { Link } from 'wouter';
 import type { ScoreErrorKind } from '../../core/musicxml.ts';
+import { pieceFacts } from '../../core/pieceRecords.ts';
 import type { ScoreWarning } from '../../core/score.ts';
 import type { StoredPiece } from '../../core/storedPiece.ts';
 import { useT } from '../../i18n/index.ts';
-import { isPieceFileName, PIECE_EXTENSIONS, readPieceFile, ScoreError } from '../../pieces/load.ts';
+import {
+  isPieceFileName,
+  PIECE_EXTENSIONS,
+  readPieceFile,
+  readScore,
+  ScoreError,
+} from '../../pieces/load.ts';
 import { countUnplaced } from '../notation/verovio.ts';
 import { usePractice, usePracticeStore, useStorageStatus } from '../practice/context.ts';
 import { usePieceFormat } from './format.ts';
 import { HandsEditor } from './HandsEditor.tsx';
+import { PieceProgress } from './PieceProgress.tsx';
+import { forgetPiecePrefs } from './prefs.ts';
 
 type ImportState =
   | { step: 'idle' }
@@ -39,6 +48,20 @@ export function YourPieces() {
   const [dragging, setDragging] = useState(false);
   const busy = state.step === 'reading' || state.step === 'checking';
 
+  // Pieces imported before their facts were kept get them now, one at a time.
+  const missing = pieces.find((p) => !p.facts);
+  useEffect(() => {
+    if (!missing) return;
+    const id = setTimeout(() => {
+      try {
+        store.savePiece({ ...missing, facts: pieceFacts(readScore(missing.xml, missing.hands)) });
+      } catch {
+        // Unreadable: the practice page says so; the library line just has no bar count.
+      }
+    }, 0);
+    return () => clearTimeout(id);
+  }, [missing, store]);
+
   async function importFile(file: File) {
     if (!isPieceFileName(file.name)) {
       setState({ step: 'error', error: 'type' });
@@ -62,6 +85,7 @@ export function YourPieces() {
       importedAt: Date.now(),
       hands: null,
       warnings: score.warnings,
+      facts: pieceFacts(score),
     };
     store.savePiece(piece);
     setState({ step: 'checking', name: file.name });
@@ -226,6 +250,7 @@ function ImportedPiece({ piece }: { piece: StoredPiece }) {
   const store = usePracticeStore();
   const [mode, setMode] = useState<RowMode>('view');
   const [title, setTitle] = useState(piece.title);
+  const [deleteRecords, setDeleteRecords] = useState(true);
   const titleId = useId();
   const shown = piece.title || t('pieces.untitled');
 
@@ -238,6 +263,7 @@ function ImportedPiece({ piece }: { piece: StoredPiece }) {
           <span className="library-piece-note">
             {piece.fileName} · {t('pieces.imported', { date: format.date(piece.importedAt) })}
           </span>
+          <PieceProgress pieceId={piece.id} facts={piece.facts} />
         </Link>
         <div className="your-piece-actions">
           <button
@@ -304,7 +330,15 @@ function ImportedPiece({ piece }: { piece: StoredPiece }) {
         <HandsEditor
           piece={piece}
           onDone={(hands) => {
-            if (hands !== undefined) store.savePiece({ ...piece, hands });
+            if (hands !== undefined) {
+              let facts = piece.facts;
+              try {
+                facts = pieceFacts(readScore(piece.xml, hands));
+              } catch {
+                // Kept as they were; the practice page recomputes them.
+              }
+              store.savePiece({ ...piece, hands, ...(facts && { facts }) });
+            }
             setMode('view');
           }}
         />
@@ -312,12 +346,24 @@ function ImportedPiece({ piece }: { piece: StoredPiece }) {
       {mode === 'delete' && (
         <div className="your-piece-panel" role="alertdialog" aria-label={t('pieces.delete')}>
           <p>{t('pieces.delete.confirm', { title: shown })}</p>
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={deleteRecords}
+              onChange={(e) => setDeleteRecords(e.target.checked)}
+            />
+            <span>{t('pieces.delete.records')}</span>
+          </label>
+          <p className="help">{t('pieces.delete.log')}</p>
           <div className="actions">
             <button
               type="button"
               className="button button-danger"
               autoFocus
-              onClick={() => store.deletePiece(piece.id)}
+              onClick={() => {
+                store.deletePiece(piece.id, { steps: deleteRecords });
+                forgetPiecePrefs(piece.id);
+              }}
             >
               {t('pieces.delete')}
             </button>

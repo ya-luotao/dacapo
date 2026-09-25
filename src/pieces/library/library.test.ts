@@ -4,7 +4,9 @@ import { parseMusicXml } from '../../core/musicxml.ts';
 import { isBlack } from '../../core/note.ts';
 import { performanceOrder } from '../../core/repeats.ts';
 import { demoIncludes, performedNotes } from '../../core/playback.ts';
+import { pieceChecksum, pieceFacts } from '../../core/pieceRecords.ts';
 import { buildSteps, TICKS_PER_QUARTER, type Score } from '../../core/score.ts';
+import { builtInPiece } from './index.ts';
 import bachPreludeInC from './bach-prelude-in-c.musicxml?raw';
 import beethovenFurElise from './beethoven-fur-elise.musicxml?raw';
 import beethovenOdeToJoy from './beethoven-ode-to-joy.musicxml?raw';
@@ -25,16 +27,6 @@ const FILES: Record<string, string> = {
 
 function parse(id: string): Score {
   return parseMusicXml(new DOMParser().parseFromString(FILES[id]!, 'application/xml'));
-}
-
-/** FNV-1a, 32 bits: enough to notice any change to the notes. */
-function fnv1a(text: string): string {
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < text.length; i++) {
-    hash ^= text.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193) >>> 0;
-  }
-  return hash.toString(16).padStart(8, '0');
 }
 
 /** The written measure runs of the performance order, e.g. "0-15,0-31". */
@@ -70,10 +62,12 @@ const LOCKED: Record<string, { notes: number; checksum: string }> = {
 describe('built-in pieces', () => {
   it.each(Object.keys(FILES))('%s: notes are locked by checksum', (id) => {
     const score = parse(id);
-    const sequence = score.notes
-      .map((n) => `${n.onset},${n.midi},${n.duration},${n.hand}`)
-      .join(';');
-    expect({ notes: score.notes.length, checksum: fnv1a(sequence) }).toEqual(LOCKED[id]);
+    expect({ notes: score.notes.length, checksum: pieceChecksum(score) }).toEqual(LOCKED[id]);
+  });
+
+  it.each(Object.keys(FILES))('%s: the library facts match the file', (id) => {
+    // Step records made on an older encoding are told apart by this checksum.
+    expect(builtInPiece(id)!.facts).toEqual(pieceFacts(parse(id)));
   });
 
   it.each(Object.keys(FILES))('%s: provenance, no fingering, both hands', (id) => {

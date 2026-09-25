@@ -22,19 +22,19 @@ describe('run summary', () => {
     ]);
   });
 
-  it('adds up time from the first key, wrong notes and the slowest bars', () => {
-    const summary = summarizeRun(records, 1_000, 2);
+  it('adds up the time on the steps, wrong notes and the slowest bars', () => {
+    const summary = summarizeRun(records, 2);
     expect(summary).toMatchObject({ activeMs: 4_400, steps: 5, wrong: 3 });
     expect(summary.slowest.map((b) => b.measure)).toEqual([1, 0]);
   });
 
   it('caps pauses and slow steps', () => {
-    const summary = summarizeRun([record(4, 1, 600_000, 0, 601_000)], 1_000);
+    const summary = summarizeRun([record(4, 1, 600_000, 0, 601_000)]);
     expect(summary.activeMs).toBe(60_000);
     expect(summary.slowest[0]!.meanMs).toBe(60_000);
   });
 
   it('is empty before the first key', () => {
-    expect(summarizeRun([], null)).toEqual({ activeMs: 0, steps: 0, wrong: 0, slowest: [] });
+    expect(summarizeRun([])).toEqual({ activeMs: 0, steps: 0, wrong: 0, slowest: [] });
   });
 });

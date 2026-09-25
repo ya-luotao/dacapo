@@ -118,6 +118,14 @@ export function press(
   };
 }
 
+/**
+ * Stops the current step's clock (while the demo plays): it starts again at the next key, so the
+ * time spent listening is not hesitation.
+ */
+export function pauseClock(state: WaitState): WaitState {
+  return state.since === null ? state : { ...state, since: null };
+}
+
 /** A loop over written bars, `from` ≤ `to`. */
 export interface BarLoop {
   from: number;

@@ -1,3 +1,4 @@
+import type { PieceFacts } from './pieceRecords.ts';
 import type { ScoreWarning, StaffHands } from './score.ts';
 
 /** A piece the user imported, as stored in the browser and in the export file. */
@@ -15,6 +16,11 @@ export interface StoredPiece {
   hands: StaffHands | null;
   /** What the parser reported when the piece was imported. */
   warnings: ScoreWarning[];
+  /**
+   * Checksum and bar counts for the library, from the import on (absent in older records and
+   * files; filled in when the piece is next listed or opened).
+   */
+  facts?: PieceFacts;
 }
 
 export const SCORE_WARNINGS: readonly ScoreWarning[] = [

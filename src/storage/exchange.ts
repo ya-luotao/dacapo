@@ -1,18 +1,23 @@
 import { byStartDescending, byTime, type SessionRecord } from '../core/log.ts';
+import { byStepTime, type PieceStep } from '../core/pieceRecords.ts';
 import type { Attempt } from '../core/session.ts';
 import { byImportedDescending, type StoredPiece } from '../core/storedPiece.ts';
 import { dayKey } from '../core/streak.ts';
 import type { NoteStats } from '../core/weakness.ts';
 import { isLocale, type Locale } from '../i18n/locale.ts';
 import { isThemePreference, type ThemePreference } from '../lib/themePreference.ts';
-import { validateAttempt, validatePiece, validateSession } from './validate.ts';
+import { validateAttempt, validatePiece, validatePieceStep, validateSession } from './validate.ts';
 
 // The export file: everything the user owns, as one versioned JSON document. Importing merges by
-// id and never trusts the file's note stats; they are rebuilt from the attempts.
+// id and never trusts the file's note stats; they are rebuilt from the attempts. Piece figures are
+// never stored at all: they are recomputed from the step records.
 
 export const EXPORT_FORMAT = 'dacapo';
-/** Bump when the file shape changes; older files must keep importing. Version 2 adds pieces. */
-export const EXPORT_VERSION = 2;
+/**
+ * Bump when the file shape changes; older files must keep importing. Version 2 adds pieces,
+ * version 3 piece sessions and step records.
+ */
+export const EXPORT_VERSION = 3;
 
 export interface Preferences {
   /** null follows the browser language. */
@@ -35,6 +40,8 @@ export interface ExportFile {
   noteStats: NoteStats[];
   /** Imported pieces, oldest first, with their MusicXML. */
   pieces: StoredPiece[];
+  /** Wait-mode step records, oldest first. */
+  pieceSteps: PieceStep[];
 }
 
 export interface ExportInput {
@@ -42,6 +49,7 @@ export interface ExportInput {
   attempts: readonly Attempt[];
   stats: Readonly<Record<string, NoteStats>>;
   pieces: readonly StoredPiece[];
+  pieceSteps: readonly PieceStep[];
 }
 
 export function buildExport(
@@ -59,6 +67,7 @@ export function buildExport(
     attempts: [...data.attempts].sort(byTime),
     noteStats: Object.values(data.stats).sort((a, b) => (a.key < b.key ? -1 : 1)),
     pieces: [...data.pieces].sort((a, b) => byImportedDescending(b, a)),
+    pieceSteps: [...data.pieceSteps].sort(byStepTime),
   };
 }
 
@@ -70,7 +79,7 @@ export function exportFileName(now: number, timeZone?: string): string {
 export type ImportError =
   { kind: 'malformed' } | { kind: 'wrong-format' } | { kind: 'future-version'; version: number };
 
-export type Collection = 'sessions' | 'attempts' | 'pieces';
+export type Collection = 'sessions' | 'attempts' | 'pieces' | 'pieceSteps';
 
 export interface InvalidRecord {
   collection: Collection | 'preferences';
@@ -89,6 +98,8 @@ export interface ParsedImport {
   attempts: Attempt[];
   /** Empty for a version 1 file. */
   pieces: StoredPiece[];
+  /** Empty before version 3. */
+  pieceSteps: PieceStep[];
   /** null when the file has none or they are invalid (then listed in `invalid`). */
   preferences: Preferences | null;
   invalid: InvalidRecord[];
@@ -151,12 +162,19 @@ export function parseImport(text: string): ParseResult {
   if (version >= 2 && !Array.isArray(json.pieces)) {
     return { ok: false, error: { kind: 'wrong-format' } };
   }
+  // Step records come with version 3.
+  if (version >= 3 && !Array.isArray(json.pieceSteps)) {
+    return { ok: false, error: { kind: 'wrong-format' } };
+  }
 
   const invalid: InvalidRecord[] = [];
   const sessions = validateAll('sessions', json.sessions, validateSession, invalid);
   const attempts = validateAll('attempts', json.attempts, validateAttempt, invalid);
   const pieces = Array.isArray(json.pieces)
     ? validateAll('pieces', json.pieces, validatePiece, invalid)
+    : [];
+  const pieceSteps = Array.isArray(json.pieceSteps)
+    ? validateAll('pieceSteps', json.pieceSteps, validatePieceStep, invalid)
     : [];
   let preferences: Preferences | null = null;
   if (json.preferences !== undefined) {
@@ -177,6 +195,7 @@ export function parseImport(text: string): ParseResult {
       sessions,
       attempts,
       pieces,
+      pieceSteps,
       preferences,
       invalid,
     },
@@ -199,6 +218,7 @@ export function planImport(
     sessionIds: ReadonlySet<string>;
     attemptIds: ReadonlySet<string>;
     pieceIds: ReadonlySet<string>;
+    pieceStepIds: ReadonlySet<string>;
   },
 ): ImportPlan {
   const count = (
@@ -217,5 +237,6 @@ export function planImport(
     sessions: count(parsed.sessions, existing.sessionIds, 'sessions'),
     attempts: count(parsed.attempts, existing.attemptIds, 'attempts'),
     pieces: count(parsed.pieces, existing.pieceIds, 'pieces'),
+    pieceSteps: count(parsed.pieceSteps, existing.pieceStepIds, 'pieceSteps'),
   };
 }

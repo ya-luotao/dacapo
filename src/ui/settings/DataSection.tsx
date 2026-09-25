@@ -19,9 +19,17 @@ import { ImportPreview } from './ImportPreview.tsx';
 type ImportState =
   | { step: 'idle' }
   | { step: 'error'; error: ImportError | { kind: 'read' } }
-  | { step: 'preview'; fileName: string; parsed: ParsedImport; working: boolean }
+  | {
+      step: 'preview';
+      fileName: string;
+      parsed: ParsedImport;
+      /** Step records stored already, by id. */
+      stepIds: ReadonlySet<string>;
+      working: boolean;
+    }
   | { step: 'done'; added: MergeResult }
-  | { step: 'failed' };
+  | { step: 'failed' }
+  | { step: 'exportFailed' };
 
 const ERRORS: Record<(ImportError | { kind: 'read' })['kind'], MessageKey> = {
   malformed: 'settings.import.error.malformed',
@@ -53,9 +61,19 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
   const fileInput = useRef<HTMLInputElement>(null);
   const [state, setState] = useState<ImportState>({ step: 'idle' });
 
-  function onExport() {
+  async function onExport() {
+    let pieceSteps;
+    try {
+      pieceSteps = await practice.allPieceSteps();
+    } catch {
+      setState({ step: 'exportFailed' });
+      return;
+    }
     const at = Date.now();
-    const file = buildExport(data, preferences, { now: at, appVersion: __APP_VERSION__ });
+    const file = buildExport({ ...data, pieceSteps }, preferences, {
+      now: at,
+      appVersion: __APP_VERSION__,
+    });
     downloadText(`${JSON.stringify(file, null, 2)}\n`, exportFileName(at));
   }
 
@@ -68,20 +86,34 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
       return;
     }
     const result = parseImport(text);
-    setState(
-      result.ok
-        ? { step: 'preview', fileName: file.name, parsed: result.value, working: false }
-        : { step: 'error', error: result.error },
-    );
+    if (!result.ok) {
+      setState({ step: 'error', error: result.error });
+      return;
+    }
+    const stepIds =
+      result.value.pieceSteps.length > 0 ? await practice.pieceStepIds() : new Set<string>();
+    setState({
+      step: 'preview',
+      fileName: file.name,
+      parsed: result.value,
+      stepIds,
+      working: false,
+    });
   }
 
-  async function onApply(parsed: ParsedImport, fileName: string, applyPreferences: boolean) {
-    setState({ step: 'preview', fileName, parsed, working: true });
+  async function onApply(
+    parsed: ParsedImport,
+    fileName: string,
+    stepIds: ReadonlySet<string>,
+    applyPreferences: boolean,
+  ) {
+    setState({ step: 'preview', fileName, parsed, stepIds, working: true });
     try {
       const added = await practice.importData({
         sessions: parsed.sessions,
         attempts: parsed.attempts,
         pieces: parsed.pieces,
+        pieceSteps: parsed.pieceSteps,
       });
       if (applyPreferences && parsed.preferences) onApplyPreferences(parsed.preferences);
       setState({ step: 'done', added });
@@ -103,7 +135,7 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
           <button
             type="button"
             className="button"
-            onClick={onExport}
+            onClick={() => void onExport()}
             disabled={!status.loaded}
             aria-describedby={`${id}-export`}
           >
@@ -156,10 +188,11 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
             sessionIds: new Set(data.sessions.map((s) => s.id)),
             attemptIds: new Set(data.attempts.map((a) => a.id)),
             pieceIds: new Set(data.pieces.map((p) => p.id)),
+            pieceStepIds: state.stepIds,
           })}
           working={state.working}
           onApply={(applyPreferences) =>
-            void onApply(state.parsed, state.fileName, applyPreferences)
+            void onApply(state.parsed, state.fileName, state.stepIds, applyPreferences)
           }
           onCancel={() => setState({ step: 'idle' })}
         />
@@ -170,7 +203,13 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
             sessions: state.added.sessions,
             attempts: state.added.attempts,
             pieces: state.added.pieces,
+            steps: state.added.pieceSteps,
           })}
+        </p>
+      )}
+      {state.step === 'exportFailed' && (
+        <p className="data-message is-error" role="alert">
+          {t('settings.export.failed')}
         </p>
       )}
       {state.step === 'failed' && (

@@ -81,7 +81,7 @@ for drawing.
   surface fits on one laptop screen, the current step is unmistakable, controls are quiet.
 - Everything follows the engraved-score design system (see `src/ui/styles.css` tokens).
 
-## Clarifications (decided in P0–P2)
+## Clarifications (decided in P0–P3)
 
 - **Renderer: Verovio 6.3.0.** It is loaded only on the Pieces routes, and the library prefetches
   it while idle. Its two npm files ship unmodified as separate assets, with the LGPL and GPL texts
@@ -137,6 +137,29 @@ for drawing.
   with their timing at the current tempo. A note ends at its written length, or earlier when the
   player completes the step where it ends in the score. Notes before the first step of a loop are
   its lead-in, played after the last step; without a loop they are not played.
+- **Records (P3).** Raw step records are the source of truth; every figure is recomputed from them.
+  A step record holds a stable id (`session:n`), the session, the piece, the piece's checksum
+  (FNV-1a over each note's written onset, key, length and hand, so another hand assignment is
+  another version), the hands, the written bar and pass, the time, the wrong notes and when.
+  IndexedDB version 3 adds a `pieceSteps` store with indexes by piece and by session; it is never
+  read at startup, only one piece at a time when a page needs it. With a run's first step its
+  header (piece, title, hands, loop, repeats, tempo, start) is saved in `meta`; the session
+  replaces it when the run ends (finished, Finish, restart, other hands or bars, leaving the
+  page). A header still there on the next load is turned into a session from its steps.
+- **Session time** is the sum of the step times, each capped at 60 s. Starting the demo restarts
+  the current step's clock at the next key, so listening is neither practice time nor hesitation.
+- **Measure heatmap.** Per written bar, for the selected hands, from the last 5 runs that played
+  the bar (both passes together): the median time per step, on a fixed scale with edges at 0.5,
+  0.75, 1, 1.5, 2 and 3 s around a 1 s anchor (a comfortable step, quarter notes at ♩ = 60), in the
+  note heatmap's 7-step ramp; and wrong notes per step as a number. Fewer than 2 runs or 3 steps is
+  "not enough data". A bar is steady when its last 3 runs had a median under 1 s and no wrong
+  note. "Loop the weakest bars" loops the weakest bar, with a neighbour played right before or
+  after it when that one is weak too (slower than the anchor or with wrong notes). Records with
+  another checksum are kept, left out and counted in a note.
+- **Per piece in this browser**: the hands and the tempo (`localStorage`). Built-in pieces carry
+  their checksum and bar counts in the library index (locked by a test); imported pieces store
+  them at import and when opened.
+- **Export format 3** adds piece sessions and `pieceSteps`; formats 1 and 2 still import.
 
 ## Milestones
 
@@ -145,5 +168,5 @@ for drawing.
    the built-in library, decide repeats and the click. Report; no production UI.
 2. ✓ **P1 Pieces + wait mode** — library, import, score view, wait mode, hands, loop.
 3. ✓ **P2 MIDI output** — output selection, demo playback, accompaniment.
-4. **P3 Records** — persistence (DB v2), measure heatmap, log and streak integration, export.
+4. ✓ **P3 Records** — persistence (DB v3), measure heatmap, log and streak integration, export.
 5. **P4 Rhythm mode** — metronome, calibration, timing analysis.

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { inHands, type HandSelection, type Score, type Step } from '../../core/score.ts';
 import { useT } from '../../i18n/index.ts';
 import { layoutPiece, loadVerovio, mapNotes, type Toolkit } from './verovio.ts';
@@ -18,7 +18,24 @@ interface ScoreViewProps {
   pressed: readonly number[];
   hands: HandSelection;
   onStatus: (status: ScoreStatus) => void;
+  /** Drawn behind the notes, e.g. tints per bar; placed with the bars' boxes. */
+  behind?: (bars: BarBoxes) => ReactNode;
+  /** Laid over the score, e.g. focusable targets per bar. */
+  above?: (bars: BarBoxes) => ReactNode;
 }
+
+/** The staff lines of a written bar, in px from the top left of the score's page. */
+export interface BarBox {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+/** Written measure index → its box. */
+export type BarBoxes = ReadonlyMap<number, BarBox>;
+
+const NO_BOXES: BarBoxes = new Map();
 
 /** One drawing of the score: our note ids and measures addressed in Verovio's SVG. */
 interface Drawing {
@@ -63,7 +80,17 @@ function measureBox(measure: Element, origin: DOMRect): DOMRect | null {
  * selected hands do not play are drawn lighter. The frame scrolls so the current system sits at
  * the top, with the next one below it.
  */
-export function ScoreView({ xml, score, title, step, pressed, hands, onStatus }: ScoreViewProps) {
+export function ScoreView({
+  xml,
+  score,
+  title,
+  step,
+  pressed,
+  hands,
+  onStatus,
+  behind,
+  above,
+}: ScoreViewProps) {
   const t = useT();
   const frame = useRef<HTMLDivElement>(null);
   const page = useRef<HTMLDivElement>(null);
@@ -193,6 +220,25 @@ export function ScoreView({ xml, score, title, step, pressed, hands, onStatus }:
     };
   }, [drawing, step, pressed, score]);
 
+  // Where each bar is drawn, for what is placed behind or over the bars; again on every relayout.
+  const wantsBoxes = Boolean(behind || above);
+  const [boxes, setBoxes] = useState<BarBoxes>(NO_BOXES);
+  useLayoutEffect(() => {
+    const sheet = page.current;
+    if (!drawing || !sheet || !wantsBoxes) {
+      setBoxes(NO_BOXES);
+      return;
+    }
+    const origin = sheet.getBoundingClientRect();
+    const next = new Map<number, BarBox>();
+    drawing.measures.forEach((measure, index) => {
+      const box = measureBox(measure, origin);
+      if (box)
+        next.set(index, { left: box.left, top: box.top, width: box.width, height: box.height });
+    });
+    setBoxes(next);
+  }, [drawing, wantsBoxes]);
+
   // The band behind the step, and the scroll that keeps its system (and the next) in view.
   const system = useRef<Element | null>(null);
   useLayoutEffect(() => {
@@ -246,6 +292,7 @@ export function ScoreView({ xml, score, title, step, pressed, hands, onStatus }:
     <div className="score-frame" ref={frame}>
       <div className="score-page" ref={page}>
         <div className="score-layer" aria-hidden="true">
+          {behind?.(boxes)}
           <div ref={band} className="score-cursor" hidden />
         </div>
         <div
@@ -254,6 +301,7 @@ export function ScoreView({ xml, score, title, step, pressed, hands, onStatus }:
           role="img"
           aria-label={t('pieces.score', { title })}
         />
+        {above?.(boxes)}
       </div>
     </div>
   );

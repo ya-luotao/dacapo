@@ -6,7 +6,8 @@ which is noted when it changes.
 
 ## Unreleased
 
-Export format version 2: the file now includes imported pieces. Version 1 files still import.
+Export format version 3: the file now includes imported pieces (from version 2), piece practice
+sessions and their step records. Version 1 and 2 files still import.
 
 ### Pieces and wait mode (P1)
 
@@ -39,6 +40,20 @@ Export format version 2: the file now includes imported pieces. Version 1 files 
   and the volume of the other hand. The Play page names the output when it is not the keyboard.
 - The instrument is silenced whenever playback stops, the output changes or goes away, or the page
   is hidden or left. Notes our own output might echo back are not counted as key presses.
+
+### Practice records and the measure heatmap (P3)
+
+- Every completed wait-mode step is stored (IndexedDB version 3, a `pieceSteps` store read one
+  piece at a time), and every run becomes a **piece session** in the log: hands, bars, tempo, time
+  and wrong notes. Piece sessions count towards today's minutes and the streak, and a run cut off
+  by a closed tab is recovered on the next visit. Listening to the demo is not practice time.
+- **Weak bars** on the practice view: each bar is tinted by the median time per step in your last
+  five runs with those hands, with wrong notes per step marked in the corner. Details on hover,
+  focus or tap, a table sorted weakest first, and **Loop the weakest bars**. Runs recorded on an
+  older version of a score are kept but left out, with a note.
+- Library cards show when a piece was last practised, how many runs, and how many bars are steady.
+- The tempo and the hands are remembered per piece. Deleting an imported piece can also delete its
+  practice records; its sessions stay in the log.
 
 ## 0.1.0 — 2026-09-25
 

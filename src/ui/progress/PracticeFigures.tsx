@@ -4,7 +4,14 @@ import { useLogFormat } from './format.ts';
 
 const MINUTE_MS = 60_000;
 
-export function PracticeFigures({ log }: { log: PracticeLog }) {
+/** `piecesToday`: today's time on pieces, or null when no piece was ever practised. */
+export function PracticeFigures({
+  log,
+  piecesToday = null,
+}: {
+  log: PracticeLog;
+  piecesToday?: number | null;
+}) {
   const t = useT();
   const format = useLogFormat();
   const reached = log.todayMs >= STREAK_GOAL_MS;
@@ -35,6 +42,9 @@ export function PracticeFigures({ log }: { log: PracticeLog }) {
               n: Math.ceil((STREAK_GOAL_MS - log.todayMs) / MINUTE_MS),
             })}
       </p>
+      {piecesToday !== null && (
+        <p className="help">{t('progress.pieces', { time: format.minutes(piecesToday) })}</p>
+      )}
       <p className="help">{t('progress.goal', { n: STREAK_GOAL_MS / MINUTE_MS })}</p>
     </div>
   );

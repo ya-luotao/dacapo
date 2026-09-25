@@ -1,6 +1,6 @@
 // The summary of one wait-mode run: time, wrong notes and the bars that held the player up.
 
-import { activeTime, IDLE_MS } from './activity.ts';
+import { IDLE_MS } from './activity.ts';
 import type { StepRecord } from './wait.ts';
 
 export interface BarStat {
@@ -13,7 +13,10 @@ export interface BarStat {
 }
 
 export interface RunSummary {
-  /** Active time from the first key to the last completed step, pauses capped. */
+  /**
+   * Time on the steps, from the first key to the last completed step, each step capped at
+   * `IDLE_MS`. A step's clock restarts after the demo, so listening does not count.
+   */
   activeMs: number;
   steps: number;
   wrong: number;
@@ -39,20 +42,15 @@ export function barStats(records: readonly StepRecord[]): BarStat[] {
 }
 
 /**
- * `startedAt` is the first key of the run. The slowest bars are those whose steps took longest on
- * average, ties broken by wrong notes; at most `count`.
+ * The slowest bars are those whose steps took longest on average, ties broken by wrong notes; at
+ * most `count`.
  */
-export function summarizeRun(
-  records: readonly StepRecord[],
-  startedAt: number | null,
-  count = 3,
-): RunSummary {
-  const times = startedAt === null ? [] : [startedAt, ...records.map((r) => r.at)];
+export function summarizeRun(records: readonly StepRecord[], count = 3): RunSummary {
   const slowest = barStats(records)
     .sort((a, b) => b.meanMs - a.meanMs || b.wrong - a.wrong || a.measure - b.measure)
     .slice(0, count);
   return {
-    activeMs: activeTime(times),
+    activeMs: records.reduce((sum, r) => sum + Math.min(r.ms, IDLE_MS), 0),
     steps: records.length,
     wrong: records.reduce((sum, r) => sum + r.wrong, 0),
     slowest,
