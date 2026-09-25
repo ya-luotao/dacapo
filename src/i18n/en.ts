@@ -673,7 +673,7 @@ export const en = {
   'metronome.noAudio':
     'This browser cannot play the click (it has no Web Audio). The pendulum still keeps time.',
   'metronome.source':
-    'The click plays from this computer (your piano has no drum sound over MIDI). The pendulum swings with what you hear, allowing for the latency calibration if you have made one.',
+    'The click plays from this device; most digital pianos cannot play a click over MIDI. The pendulum swings with what you hear, allowing for the latency calibration if you have made one.',
   'metronome.keys.space': 'Space',
   'metronome.keys.start': 'start or stop',
   'metronome.keys.tempo': 'tempo (with Shift, by 10)',
@@ -771,7 +771,7 @@ export const en = {
   'settings.language.help.app': 'Follows your device’s language unless you choose one here.',
   'settings.language.system.app': 'System default',
   'settings.click.help.app':
-    'Rhythm mode’s click is the one sound dacapo makes itself: a short tick from this device.',
+    'A short tick from this device that rhythm mode plays with the score. The metronome has its own sound and volume.',
   'calibration.lineIn.app':
     'The click plays from this device. To hear it in the MP11SE’s headphones, connect this device’s headphone output to the MP11SE’s LINE IN jacks (at the back), then calibrate with that set-up.',
   'calibration.none.app': 'Not calibrated on this device yet: rhythm mode assumes 0 ms.',
@@ -788,6 +788,7 @@ export const en = {
     'Not saved: dacapo cannot store data on this device right now. Export before you close dacapo.',
   'settings.export.help.app':
     'Saves {file} with your sessions, answers, imported pieces, piece practice records and preferences.',
+  'metronome.noAudio.app': 'The click cannot play on this device. The pendulum still keeps time.',
 
   'about.title': 'About dacapo',
   'about.intro':

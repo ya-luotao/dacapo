@@ -69,8 +69,11 @@ Decided while building A1; the reasons are in the code comments and `apple/READM
   flush to a virtual destination as a System Reset message (0xFF), and a System Reset must not
   reach an instrument. On the Mac, "leaving the screen" is the window being hidden or covered,
   which is when WebKit hides the page.
+- **The metronome stops in the background.** In a browser a hidden tab keeps ticking (the clicks
+  are scheduled far ahead); in the app a hidden page is the app in the background or its window
+  hidden, and the metronome stops there, like everything else that sounds.
 - **Screen awake.** The page asks the app (`src/lib/shell.ts`) while a Read session, a piece run,
-  a demo or a rhythm run is active. Sessions that wait for the player let go after five minutes
+  a demo, a rhythm run or the metronome is active. Sessions that wait for the player let go after five minutes
   without a key played. On the Mac the display may still sleep while the window is hidden.
 - **The click with the silent switch on.** The app's audio session is `.playback` with
   `.mixWithOthers`, and the page's `navigator.audioSession.type` is `playback`.

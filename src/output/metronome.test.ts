@@ -41,7 +41,11 @@ interface Scheduled {
 /** Context time 0 is performance time 10 000; the context runs with the clock. */
 function setup(
   patch: Partial<MetronomeSettings> = {},
-  { audio = true, delay = 0 }: { audio?: boolean; delay?: number } = {},
+  {
+    audio = true,
+    delay = 0,
+    stopWhenHidden = false,
+  }: { audio?: boolean; delay?: number; stopWhenHidden?: boolean } = {},
 ) {
   const clock = fakeClock(10_250);
   const context = new FakeAudioContext(10_000);
@@ -56,6 +60,7 @@ function setup(
     save: (s) => saved.push(s),
     delay: () => delay,
     page,
+    stopWhenHidden,
     onScheduled: (click, when) =>
       scheduled.push({ click, when, ahead: click.at - context.currentTime * 1000 }),
   });
@@ -187,6 +192,23 @@ describe('the metronome clicks on the audio clock', () => {
     const first = scheduled[0]!.when - METRONOME_LEAD_MS / 1000;
     expect(first).toBeGreaterThan(0.45);
     expect(first).toBeLessThanOrEqual(0.45 + METRONOME_TICK_MS / 1000);
+  });
+
+  it('in the app, stops when it goes to the background', () => {
+    const { metronome, scheduled, context, advance, setHidden } = setup(
+      { bpm: 120, sound: 'click' },
+      { stopWhenHidden: true },
+    );
+    metronome.start();
+    advance(METRONOME_LEAD_MS + 450);
+    const count = scheduled.length;
+    setHidden(true);
+    expect(metronome.getSnapshot().status).toBe('stopped');
+    expect(context.cancelled).toBe(1);
+    advance(5000);
+    expect(scheduled).toHaveLength(count);
+    setHidden(false);
+    expect(metronome.getSnapshot().status).toBe('stopped');
   });
 
   it('stops when the page goes away', () => {

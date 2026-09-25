@@ -612,9 +612,9 @@ export const ko: Dictionary = {
   'metronome.unit.eighth': '8분음표',
   'metronome.unit.dottedQuarter': '점4분음표',
   'metronome.unit.dottedHalf': '점2분음표',
-  'metronome.tap': '탭',
+  'metronome.tap': '두드리기',
   'metronome.tap.help':
-    '원하는 빠르기로 두 번 이상 탭하면 빠르기가 맞춰져요. 잠시 쉬었다가 탭하면 새로 세요.',
+    '원하는 빠르기로 두 번 이상 두드리면 빠르기가 맞춰져요. 잠시 쉬었다가 두드리면 새로 세요.',
   'metronome.meter': '박자',
   'metronome.subdivision': '세분',
   'metronome.subdivision.none': '없음',
@@ -668,11 +668,11 @@ export const ko: Dictionary = {
   'metronome.noAudio':
     '이 브라우저는 소리를 낼 수 없어요(Web Audio 미지원). 진자는 그대로 박자를 짚어요.',
   'metronome.source':
-    '소리는 이 컴퓨터에서 나요(피아노는 MIDI로 타악기 소리를 낼 수 없어요). 진자는 들리는 소리에 맞춰 움직이고, 지연 보정을 했다면 그것도 반영해요.',
+    '소리는 이 기기에서 나요. 대부분의 디지털 피아노는 MIDI로 클릭 소리를 낼 수 없어요. 진자는 들리는 소리에 맞춰 움직이고, 지연 보정을 했다면 그것도 반영해요.',
   'metronome.keys.space': '스페이스',
   'metronome.keys.start': '시작·정지',
   'metronome.keys.tempo': '빠르기(Shift를 누르면 10씩)',
-  'metronome.keys.tap': '탭',
+  'metronome.keys.tap': '두드려 맞추기',
   'metronome.chip.start': '메트로놈 시작',
   'metronome.chip.stop': '메트로놈 정지',
   'metronome.chip.paused': '일시정지',
@@ -763,7 +763,7 @@ export const ko: Dictionary = {
   'settings.language.help.app': '여기서 고르지 않으면 기기 언어를 따라요.',
   'settings.language.system.app': '시스템 기본값',
   'settings.click.help.app':
-    '리듬 모드의 클릭은 dacapo가 직접 내는 유일한 소리로, 이 기기에서 나는 짧은 “틱” 소리예요.',
+    '리듬 모드에서 악보에 맞춰 이 기기에서 나는 짧은 “틱” 소리예요. 메트로놈의 음색과 음량은 따로 정해요.',
   'calibration.lineIn.app':
     '클릭은 이 기기에서 나와요. MP11SE의 헤드폰으로 들으려면 이 기기의 헤드폰 출력을 MP11SE 뒷면의 LINE IN 단자에 연결하고, 그 상태로 보정하세요.',
   'calibration.none.app': '이 기기에서는 아직 보정하지 않았어요. 리듬 모드는 0ms로 계산해요.',
@@ -780,6 +780,7 @@ export const ko: Dictionary = {
     '저장 안 됨: 지금은 dacapo가 이 기기에 데이터를 저장할 수 없어요. dacapo를 닫기 전에 내보내세요.',
   'settings.export.help.app':
     '연습 내역, 응답, 가져온 곡, 곡 연습 상세 기록, 환경설정을 담은 {file} 파일을 저장해요.',
+  'metronome.noAudio.app': '이 기기에서는 클릭을 재생할 수 없어요. 진자는 그대로 박자를 짚어요.',
 
   'about.title': 'dacapo 정보',
   'about.intro':

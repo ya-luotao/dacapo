@@ -638,7 +638,7 @@ export const zhTW: Dictionary = {
   'metronome.blocked.calibration': '正在進行延遲校正。',
   'metronome.noAudio': '這個瀏覽器無法發出聲音（不支援 Web Audio），擺錘照樣打拍子。',
   'metronome.source':
-    '聲音由這台電腦發出（你的鋼琴無法透過 MIDI 發出打擊樂音色）。擺錘跟著你聽到的聲音擺動；如果做過延遲校正，也會把它算進去。',
+    '聲音由這台裝置發出；大多數數位鋼琴無法透過 MIDI 播放節拍聲。擺錘跟著你聽到的聲音擺動；如果做過延遲校正，也會把它算進去。',
   'metronome.keys.space': '空白鍵',
   'metronome.keys.start': '開始或停止',
   'metronome.keys.tempo': '調整速度（按住 Shift 一次 10）',
@@ -730,7 +730,7 @@ export const zhTW: Dictionary = {
   'settings.language.help.app': '預設跟隨裝置的語言，也可以在這裡自行選擇。',
   'settings.language.system.app': '跟隨系統',
   'settings.click.help.app':
-    '節奏模式的節拍器是 dacapo 唯一自己發出的聲音：由這台裝置發出一聲短促的「嗒」。',
+    '節奏模式跟著樂譜打拍子時，由這台裝置發出的一聲短促的「嗒」。獨立的節拍器有自己的音色和音量。',
   'calibration.lineIn.app':
     '節拍聲從這台裝置發出。想在 MP11SE 的耳機裡聽到它，請把這台裝置的耳機輸出接到 MP11SE 背面的 LINE IN 插孔，再用這樣的接法校正。',
   'calibration.none.app': '這台裝置還沒校正過：節奏模式以 0 毫秒計算。',
@@ -747,6 +747,7 @@ export const zhTW: Dictionary = {
     '未儲存：dacapo 目前無法在這台裝置上儲存資料。關閉 dacapo 前請先匯出。',
   'settings.export.help.app':
     '儲存 {file}，內含你的練習紀錄、作答紀錄、匯入的樂曲、樂曲練習明細和偏好設定。',
+  'metronome.noAudio.app': '這台裝置無法播放節拍聲，擺錘照樣打拍子。',
 
   'about.title': '關於 dacapo',
   'about.intro':

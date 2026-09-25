@@ -1,5 +1,6 @@
 import { parseSettings, type MetronomeSettings } from '../../core/metronomeSettings.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
+import { currentShell } from '../../lib/shell.ts';
 import { audioContext } from '../../output/audio.ts';
 import { createMetronome } from '../../output/metronome.ts';
 import { browserClock } from '../../output/scheduler.ts';
@@ -27,6 +28,8 @@ export function createAppMetronome(): MetronomeHandle {
     // Only a late arrival says something about the sound's path; playing early is a habit.
     delay: () => Math.max(0, readLatency()?.offset ?? 0),
     page: typeof document === 'undefined' ? null : { document, window },
+    // In a browser a hidden tab keeps ticking; the app stops in the background (see metronome.ts).
+    stopWhenHidden: currentShell() === 'apple',
   });
   return { metronome, offers: createOfferStore() };
 }

@@ -9,6 +9,8 @@
 // minutes of a hidden tab that has made no sound for 30 s (the gap trainer's silent bars can be that
 // long). So while hidden the clicks are scheduled a minute and more ahead; nothing can change them
 // meanwhile, and anything changed on return cancels what is no longer wanted. `pagehide` stops it.
+// The Apple app is different: a hidden page there is the app in the background (or its window
+// hidden), where a click nobody can stop from the screen would be a surprise, so it stops.
 
 import {
   pulseConfig,
@@ -88,6 +90,8 @@ export interface MetronomeOptions {
    */
   delay?: () => number;
   page?: MetronomePage | null;
+  /** Stop when the page is hidden instead of ticking on (the Apple app going to the background). */
+  stopWhenHidden?: boolean;
   interval?: number;
   /** Every click handed to the context, with the context time it was given. */
   onScheduled?: (click: PulseClick, when: number) => void;
@@ -257,6 +261,10 @@ export function createMetronome(options: MetronomeOptions): Metronome {
 
   function onVisibility() {
     hidden = options.page?.document.visibilityState === 'hidden';
+    if (hidden && options.stopWhenHidden) {
+      stop();
+      return;
+    }
     if (!hidden && context && !running()) void context.resume?.().catch(() => {});
     tick();
   }

@@ -635,7 +635,7 @@ export const zhCN: Dictionary = {
   'metronome.blocked.calibration': '正在进行延迟校准。',
   'metronome.noAudio': '这个浏览器不能发出声音（不支持 Web Audio），摆锤照样打拍子。',
   'metronome.source':
-    '声音由这台电脑发出（你的钢琴无法通过 MIDI 发出打击乐音色）。摆锤跟着你听到的声音摆动；如果做过延迟校准，也会把它考虑进去。',
+    '声音由这台设备发出；大多数数码钢琴无法通过 MIDI 播放节拍声。摆锤跟着你听到的声音摆动；如果做过延迟校准，也会把它考虑进去。',
   'metronome.keys.space': '空格',
   'metronome.keys.start': '开始或停止',
   'metronome.keys.tempo': '调速度（按住 Shift 每次 10）',
@@ -727,7 +727,7 @@ export const zhCN: Dictionary = {
   'settings.language.help.app': '默认跟随设备语言，也可以在这里手动选择。',
   'settings.language.system.app': '跟随系统',
   'settings.click.help.app':
-    '节奏模式的节拍器是 dacapo 唯一自己发出的声音：这台设备上一声短促的“嗒”。',
+    '节奏模式跟着乐谱打拍子时，这台设备发出的一声短促的“嗒”。独立的节拍器有自己的音色和音量。',
   'calibration.lineIn.app':
     '点击声从这台设备发出。想在 MP11SE 的耳机里听到它，请把这台设备的耳机输出接到 MP11SE 背面的 LINE IN 插孔，然后在这样的连接下校准。',
   'calibration.none.app': '这台设备上还没有校准过：节奏模式按 0 毫秒计算。',
@@ -744,6 +744,7 @@ export const zhCN: Dictionary = {
     '未保存：dacapo 暂时无法在这台设备上存储数据。关闭 dacapo 之前请先导出。',
   'settings.export.help.app':
     '保存 {file}，包含你的练习记录、答题记录、导入的曲目、曲目练习明细和偏好设置。',
+  'metronome.noAudio.app': '这台设备无法播放节拍声，摆锤照样打拍子。',
 
   'about.title': '关于 dacapo',
   'about.intro':

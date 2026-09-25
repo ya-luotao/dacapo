@@ -170,26 +170,26 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 - Latin punctuation; quotes “ ”; 「 」 for books and collections; `, ` for lists; ranges with `–`.
 - Bars as `마디 {n}` in labels, `{m}마디 중 {n}마디` in counts.
 
-| English                               | ko                                            |
-| ------------------------------------- | --------------------------------------------- |
-| Read (the feature and its page)       | 악보 읽기                                     |
-| grand staff / staff                   | 큰보표 / 보표 (오선보 for the heatmap view)   |
-| treble staff / bass staff             | 높은음자리표 / 낮은음자리표                   |
-| ledger lines / sharps and flats       | 덧줄 / 올림표와 내림표                        |
-| bar / right, left, both hands         | 마디 / 오른손·왼손·양손                       |
-| sustain pedal / metronome / count-in  | 댐퍼 페달 / 메트로놈 / 예비 박                |
-| tap tempo / subdivide / tempo trainer | 탭 / 세분 / 빠르기 트레이너                   |
-| time signature / accent / mute        | 박자 / 강세 (not 셈여림) / 음소거             |
-| flashcards / level / mastered         | 플래시 카드 / 레벨 / 마스터 완료              |
-| middle C                              | 가운데 C                                      |
-| wait mode / rhythm mode               | 기다리기 모드 / 리듬 모드                     |
-| loop / repeats / volta                | 구간 반복 / 도돌이표 / {n}번 괄호             |
-| run / step                            | 연주 ({n}회) / 스텝                           |
-| weak bars / hesitation / timing       | 약한 마디 / 망설임 / 타이밍                   |
-| latency calibration / demo            | 지연 보정 / 들어 보기                         |
-| import / export                       | 가져오기 / 내보내기                           |
-| session list / answers (records)      | 연습 내역 / 응답 (연습 기록 is the whole log) |
-| library (built-in pieces)             | 기본 곡                                       |
+| English                               | ko                                                               |
+| ------------------------------------- | ---------------------------------------------------------------- |
+| Read (the feature and its page)       | 악보 읽기                                                        |
+| grand staff / staff                   | 큰보표 / 보표 (오선보 for the heatmap view)                      |
+| treble staff / bass staff             | 높은음자리표 / 낮은음자리표                                      |
+| ledger lines / sharps and flats       | 덧줄 / 올림표와 내림표                                           |
+| bar / right, left, both hands         | 마디 / 오른손·왼손·양손                                          |
+| sustain pedal / metronome / count-in  | 댐퍼 페달 / 메트로놈 / 예비 박                                   |
+| tap tempo / subdivide / tempo trainer | 두드리기 (not 탭, which reads as “tab”) / 세분 / 빠르기 트레이너 |
+| time signature / accent / mute        | 박자 / 강세 (not 셈여림) / 음소거                                |
+| flashcards / level / mastered         | 플래시 카드 / 레벨 / 마스터 완료                                 |
+| middle C                              | 가운데 C                                                         |
+| wait mode / rhythm mode               | 기다리기 모드 / 리듬 모드                                        |
+| loop / repeats / volta                | 구간 반복 / 도돌이표 / {n}번 괄호                                |
+| run / step                            | 연주 ({n}회) / 스텝                                              |
+| weak bars / hesitation / timing       | 약한 마디 / 망설임 / 타이밍                                      |
+| latency calibration / demo            | 지연 보정 / 들어 보기                                            |
+| import / export                       | 가져오기 / 내보내기                                              |
+| session list / answers (records)      | 연습 내역 / 응답 (연습 기록 is the whole log)                    |
+| library (built-in pieces)             | 기본 곡                                                          |
 
 Keys in titles use letters: G장조, C장조, matching the letter names in the app. Composer names
 follow the National Institute of Korean Language: 루트비히 판 베토벤, 요한 제바스티안 바흐.

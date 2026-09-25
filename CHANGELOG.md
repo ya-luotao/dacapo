@@ -101,6 +101,8 @@ Version 1, 2 and 3 files still import.
   its panel has − / +, tap tempo, "Piece tempo" in wait mode (the piece's tempo at the chosen
   percentage, in its meter) and a link to the page. A rhythm run or a latency calibration pauses
   the metronome, and the chip says so. Settings are kept in this browser.
+- In the Apple app the metronome keeps the screen on while it runs and stops when the app goes to
+  the background; in a browser a hidden tab keeps ticking.
 
 ## 0.1.0 — 2026-09-25
 

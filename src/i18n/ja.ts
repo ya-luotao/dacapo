@@ -680,7 +680,7 @@ export const ja: Dictionary = {
   'metronome.noAudio':
     'このブラウザでは音を鳴らせません（Web Audioがありません）。振り子はそのままテンポを刻みます。',
   'metronome.source':
-    '音はこのパソコンから鳴ります（ピアノはMIDIで打楽器の音を出せません）。振り子は聞こえる音に合わせて振れ、遅延の補正をしてあればそれも考慮します。',
+    '音はこの端末から鳴ります。ほとんどのデジタルピアノはMIDIでクリック音を鳴らせません。振り子は聞こえる音に合わせて振れ、遅延の補正をしてあればそれも考慮します。',
   'metronome.keys.space': 'スペース',
   'metronome.keys.start': '開始・停止',
   'metronome.keys.tempo': 'テンポ（Shiftで10ずつ）',
@@ -781,7 +781,7 @@ export const ja: Dictionary = {
   'settings.language.help.app': 'ここで選ばない場合は、端末の言語に合わせます。',
   'settings.language.system.app': 'システムの設定に従う',
   'settings.click.help.app':
-    'リズムモードのクリック音は、dacapo自体が鳴らす唯一の音です。この端末から短い「カチッ」という音が出ます。',
+    'リズムモードで楽譜に合わせて鳴る、この端末からの短い「カチッ」という音です。メトロノームの音色と音量は別に設定します。',
   'calibration.lineIn.app':
     'クリック音はこの端末から鳴ります。MP11SEのヘッドホンで聞くには、この端末のヘッドホン出力をMP11SE背面のLINE IN端子につなぎ、その状態で補正してください。',
   'calibration.none.app': 'この端末ではまだ補正していません。リズムモードは0ミリ秒として扱います。',
@@ -798,6 +798,8 @@ export const ja: Dictionary = {
     '保存されていません：いまはこの端末にdacapoのデータを保存できません。dacapoを閉じる前にエクスポートしてください。',
   'settings.export.help.app':
     'セッション、解答、インポートした曲、曲の練習記録、設定を含む{file}を保存します。',
+  'metronome.noAudio.app':
+    'この端末ではクリック音を鳴らせません。振り子はそのままテンポを刻みます。',
 
   'about.title': 'dacapoについて',
   'about.intro':
