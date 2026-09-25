@@ -23,7 +23,9 @@ export function DayHistory({ history, today }: { history: readonly DayTotal[]; t
         role="img"
         aria-label={t('progress.history.label', { reached })}
       >
-        <div className="history-goal" style={{ bottom: percent(STREAK_GOAL_MS) }} />
+        <div className="history-goal" style={{ bottom: percent(STREAK_GOAL_MS) }}>
+          <span className="history-goal-label">{format.minutes(STREAK_GOAL_MS)}</span>
+        </div>
         {history.map(({ day, ms }) => (
           <div
             key={day}

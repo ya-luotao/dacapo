@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'wouter';
 import { useT } from '../i18n/index.ts';
+import { BrandMark } from './BrandMark.tsx';
 import { NAV_ITEMS } from './routes.ts';
 
 export function Header() {
@@ -9,10 +10,8 @@ export function Header() {
   return (
     <header className="header">
       <Link href="/" className="brand">
-        <svg className="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
-          <ellipse cx="12" cy="12" rx="7.5" ry="5" transform="rotate(-20 12 12)" />
-        </svg>
-        <span>{t('app.name')}</span>
+        <BrandMark className="brand-mark" />
+        <span className="visually-hidden">{t('app.name')}</span>
       </Link>
       <nav aria-label={t('nav.label')}>
         <ul className="nav">

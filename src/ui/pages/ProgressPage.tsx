@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { practiceLog } from '../../core/streak.ts';
 import { useT } from '../../i18n/index.ts';
+import { EmptyState } from '../EmptyState.tsx';
 import { usePractice, useStorageStatus } from '../practice/context.ts';
 import { DayHistory } from '../progress/DayHistory.tsx';
 import { WeaknessHeatmap } from '../progress/heatmap/WeaknessHeatmap.tsx';
@@ -23,7 +24,9 @@ export function ProgressPage() {
           {t('storage.loading')}
         </p>
       ) : sessions.length === 0 ? (
-        <p className="muted">{t('progress.empty')}</p>
+        <EmptyState action={{ href: '/read', label: t('progress.empty.action') }}>
+          {t('progress.empty')}
+        </EmptyState>
       ) : (
         <>
           <PracticeFigures log={log} />

@@ -108,41 +108,39 @@ function LevelOption({ name, level, checked, suggested, progress, onChange }: Le
   return (
     <label className={checked ? 'level is-checked' : 'level'}>
       <input type="radio" name={name} value={level.id} checked={checked} onChange={onChange} />
+      <span className="level-id">{level.id}</span>
       <span className="level-body">
-        <span className="level-head">
-          <span className="level-id">{level.id}</span>
-          <span className="level-name">{t(`read.level.${level.id}`)}</span>
-        </span>
+        <span className="level-name">{t(`read.level.${level.id}`)}</span>
         <span className="level-range">
           {t('read.level.range', { low: formatPitch(level.low), high: formatPitch(level.high) })} ·{' '}
           {staves}
         </span>
-        <span className="level-status">
-          {progress?.mastered ? (
-            <span className="badge is-mastered">
-              <svg viewBox="0 0 16 16" aria-hidden="true">
-                <path d="M3.5 8.5l3 3 6-7" />
-              </svg>
-              {t('read.level.mastered')}
-            </span>
-          ) : suggested ? (
-            <span className="badge is-suggested">
-              <svg viewBox="0 0 16 16" aria-hidden="true">
-                <path d="M6 3.5l4.5 4.5L6 12.5" />
-              </svg>
-              {t('read.level.suggested')}
-            </span>
-          ) : null}
-          <span className="level-stats">
-            {progress && progress.total > 0
-              ? t('read.level.stats', {
-                  cards: progress.cards,
-                  window: MASTERY_WINDOW,
-                  accuracy: format.percent(progress.accuracy),
-                  median: format.seconds(progress.medianMs),
-                })
-              : t('read.level.new')}
+      </span>
+      <span className="level-status">
+        {progress?.mastered ? (
+          <span className="badge is-mastered">
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M3.5 8.5l3 3 6-7" />
+            </svg>
+            {t('read.level.mastered')}
           </span>
+        ) : suggested ? (
+          <span className="badge is-suggested">
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M6 3.5l4.5 4.5L6 12.5" />
+            </svg>
+            {t('read.level.suggested')}
+          </span>
+        ) : null}
+        <span className="level-stats">
+          {progress && progress.total > 0
+            ? t('read.level.stats', {
+                cards: progress.cards,
+                window: MASTERY_WINDOW,
+                accuracy: format.percent(progress.accuracy),
+                median: format.seconds(progress.medianMs),
+              })
+            : t('read.level.new')}
         </span>
       </span>
     </label>

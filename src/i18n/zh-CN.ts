@@ -102,6 +102,7 @@ export const zhCN: Dictionary = {
   'progress.title': '进度',
   'progress.empty':
     '这里还没有记录。去“弹奏”页随便弹弹，或者做一组识谱练习，练习记录就会出现在这里。',
+  'progress.empty.action': '开始识谱练习',
   'progress.today': '今天',
   'progress.streak': '当前连续',
   'progress.longest': '最长连续',

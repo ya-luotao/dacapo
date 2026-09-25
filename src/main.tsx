@@ -7,6 +7,7 @@ import { InputProvider } from './ui/input/InputProvider.tsx';
 import { PracticeProvider } from './ui/practice/PracticeProvider.tsx';
 import { broadcastChannel, createPracticeStore } from './ui/practice/store.ts';
 import { applyTheme, readStoredTheme } from './ui/theme.ts';
+import './ui/fonts/fonts.css';
 import './ui/styles.css';
 
 applyTheme(readStoredTheme());

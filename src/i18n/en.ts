@@ -102,6 +102,7 @@ export const en = {
   'progress.title': 'Progress',
   'progress.empty':
     'Nothing here yet. Play something on the Play page or run a Read session, and your practice shows up here.',
+  'progress.empty.action': 'Start a Read session',
   'progress.today': 'Today',
   'progress.streak': 'Current streak',
   'progress.longest': 'Longest streak',

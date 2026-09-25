@@ -8,6 +8,16 @@ which is noted when it changes.
 
 The first release: the MVP described in [docs/MVP.md](docs/MVP.md). Export format version 1.
 
+### Visual design
+
+- "Engraved score" look: warm paper and ink, hairline rules, one urtext-blue accent, and a
+  concert-hall dark theme in warm charcoal and ivory.
+- Source Serif 4 and Source Sans 3, self-hosted (Latin subsets, about 78 KB); Chinese uses
+  system Song and PingFang fonts.
+- The flashcard is a sheet on a music stand, sized so a live session always fits on one screen;
+  the on-screen piano is drawn as ivory and ebony keys under a felt strip.
+- Refined Play, Progress, heatmap, Settings, banners and empty states.
+
 ### Scaffold (M1)
 
 - Vite, React and TypeScript (strict) with pnpm; ESLint, Prettier, Vitest and a GitHub Actions

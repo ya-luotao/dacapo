@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, type CSSProperties } from 'react';
 import { formatPitch, letterName, midiName } from '../../core/note.ts';
 import type { SessionState } from '../../core/session.ts';
 import { useT } from '../../i18n/index.ts';
@@ -6,6 +6,7 @@ import { useHubState, useInput, useKeyboardOctave } from '../input/context.ts';
 import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
 import { Piano } from '../piano/Piano.tsx';
 import { GrandStaff, type StaffState } from '../staff/GrandStaff.tsx';
+import { STAFF_HEIGHT, STAFF_WIDTH } from '../staff/draw.ts';
 import type { ReadController } from './controller.ts';
 import { useReadFormat } from './format.ts';
 
@@ -48,7 +49,13 @@ export function ReadSession({ session, controller, onHint }: ReadSessionProps) {
   const scored = attempt && card.status !== 'waiting' ? attempt : null;
 
   return (
-    <section className="read-session" ref={region} tabIndex={-1} aria-label={t('read.session')}>
+    <section
+      className="read-session"
+      ref={region}
+      tabIndex={-1}
+      aria-label={t('read.session')}
+      style={{ '--staff-aspect': STAFF_WIDTH / STAFF_HEIGHT } as CSSProperties}
+    >
       <div className="read-bar">
         <p className="read-level">{format.level(session.level)}</p>
         <p className="read-count">
@@ -69,6 +76,11 @@ export function ReadSession({ session, controller, onHint }: ReadSessionProps) {
         <button type="button" className="button" onClick={controller.stop}>
           {t('read.stop')}
         </button>
+      </div>
+      <div className="read-progress" aria-hidden="true">
+        <span
+          style={{ transform: `scaleX(${Math.min(index, session.length) / session.length})` }}
+        />
       </div>
 
       <div className={`read-card is-${card.status}`}>

@@ -3,6 +3,7 @@ import { MIN_ATTEMPTS, noteCells, weakestNotes, type LevelFilter } from '../../.
 import { isLevelId, LEVEL_IDS } from '../../../core/levels.ts';
 import type { StatsByKey } from '../../../core/weakness.ts';
 import { useT } from '../../../i18n/index.ts';
+import { EmptyState } from '../../EmptyState.tsx';
 import { useReadFormat } from '../../read/format.ts';
 import { HeatTable } from './HeatTable.tsx';
 import { KeyboardView } from './KeyboardView.tsx';
@@ -27,7 +28,9 @@ export function WeaknessHeatmap({ stats }: { stats: StatsByKey }) {
     <section className="heatmap" aria-labelledby={`${id}-title`}>
       <h2 id={`${id}-title`}>{t('heatmap.title')}</h2>
       {!practised ? (
-        <p className="muted">{t('heatmap.empty')}</p>
+        <EmptyState action={{ href: '/read', label: t('progress.empty.action') }}>
+          {t('heatmap.empty')}
+        </EmptyState>
       ) : (
         <>
           <p className="help hm-intro">{t('heatmap.intro')}</p>
