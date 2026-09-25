@@ -1,0 +1,7 @@
+// The app target, Release: no test harness. Its Swift is compiled out by #if DEBUG; its files are
+// excluded here so none of them reaches the bundle. scripts/embed-web.sh checks both.
+
+#include "Dacapo.xcconfig"
+
+INFOPLIST_PREPROCESSOR_DEFINITIONS =
+EXCLUDED_SOURCE_FILE_NAMES = Harness.swift TestPorts.swift probe.js probe.wasm *.musicxml *.mxl

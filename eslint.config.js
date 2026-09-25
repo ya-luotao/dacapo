@@ -7,7 +7,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig(
-  globalIgnores(['dist', 'coverage', '.lane']),
+  globalIgnores(['dist', 'coverage', '.lane', 'apple/build']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -28,6 +28,11 @@ export default defineConfig(
     files: ['**/*.js'],
     extends: [js.configs.recommended],
     languageOptions: { globals: globals.node },
+  },
+  {
+    // Scripts the Apple app injects into the page (apple/Dacapo): plain browser scripts.
+    files: ['apple/Dacapo/**/*.js'],
+    languageOptions: { globals: { ...globals.browser, webkit: 'readonly' } },
   },
   prettier,
 );

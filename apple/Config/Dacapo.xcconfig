@@ -1,0 +1,39 @@
+// The app target, shared by Debug and Release: one multiplatform target for iPhone, iPad and Mac.
+
+PRODUCT_NAME = Dacapo
+// Placeholder; A2 registers the final identifier.
+PRODUCT_BUNDLE_IDENTIFIER = io.github.yaluotao.dacapo
+MARKETING_VERSION = 0.1.0
+CURRENT_PROJECT_VERSION = 1
+TARGETED_DEVICE_FAMILY = 1,2
+
+// No team: "Sign to Run Locally" on the Mac, unsigned for the simulator. A device build or an
+// archive needs DEVELOPMENT_TEAM: set it in the git-ignored Local.xcconfig, never here.
+CODE_SIGN_STYLE = Automatic
+CODE_SIGN_IDENTITY = -
+CODE_SIGN_IDENTITY[sdk=iphoneos*] = Apple Development
+DEVELOPMENT_TEAM =
+#include? "Local.xcconfig"
+CODE_SIGN_ENTITLEMENTS[sdk=macosx*] = Config/Dacapo.entitlements
+ENABLE_HARDENED_RUNTIME[sdk=macosx*] = YES
+
+GENERATE_INFOPLIST_FILE = YES
+INFOPLIST_FILE = Config/Info.plist
+INFOPLIST_PREPROCESS = YES
+INFOPLIST_KEY_CFBundleDisplayName = dacapo
+INFOPLIST_KEY_LSApplicationCategoryType = public.app-category.education
+INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO
+INFOPLIST_KEY_NSHumanReadableCopyright = © 2026 The dacapo authors. MIT licence.
+INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+INFOPLIST_KEY_UIRequiresFullScreen = NO
+INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDefault
+
+ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor
+LD_RUNPATH_SEARCH_PATHS[sdk=iphone*] = $(inherited) @executable_path/Frameworks
+LD_RUNPATH_SEARCH_PATHS[sdk=macosx*] = $(inherited) @executable_path/../Frameworks
+ENABLE_PREVIEWS = NO
+
+// The web app is built into DERIVED_FILE_DIR by scripts/embed-web.sh and copied into the bundle.
+// DACAPO_SKIP_WEB_BUILD = YES copies the repository's existing dist/ instead.
+DACAPO_REPO_ROOT = $(SRCROOT)/..

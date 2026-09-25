@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Merged with the Info.plist Xcode generates from the INFOPLIST_KEY_ settings in
+	     Dacapo.xcconfig. It holds only what has no INFOPLIST_KEY_ setting. The file is run through
+	     the C preprocessor (INFOPLIST_PREPROCESS): DACAPO_DEBUG_HARNESS is defined for Debug
+	     builds only (Dacapo-Debug.xcconfig), and scripts/embed-web.sh fails a Release build whose
+	     Info.plist still has any of the Debug-only keys. -->
+
+	<!-- One window: the app has one web view and one practice state. There is no
+	     INFOPLIST_KEY_ setting that turns scene generation off for a single scene. -->
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+	</dict>
+
+	<!-- Launch screen in the paper colour of the page (light and dark), so launching shows no flash. -->
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>Paper</string>
+	</dict>
+
+	<!-- MusicXML, so the iOS document picker offers .musicxml and .mxl files for the Pieces
+	     import (the accept list of the page names these extensions and the MIME type). -->
+	<key>UTImportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>com.recordare.musicxml</string>
+			<key>UTTypeDescription</key>
+			<string>MusicXML score</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.xml</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>musicxml</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>application/vnd.recordare.musicxml+xml</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>com.recordare.musicxml.compressed</string>
+			<key>UTTypeDescription</key>
+			<string>Compressed MusicXML score</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+				<string>public.archive</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>mxl</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>application/vnd.recordare.musicxml</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
+
+#if DACAPO_DEBUG_HARNESS
+	<!-- Debug only. The test harness (Dacapo/Debug) creates virtual MIDI endpoints, which iOS
+	     refuses (kMIDINotPermitted, -10844) unless the app declares the audio background mode.
+	     Release must never declare it: the app has no background use (guideline 2.5.4). -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
+	<!-- Debug only: the Documents folder of the app (harness results, test scores to import) shows in
+	     the Files app under On My iPhone / iPad. -->
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+#endif
+</dict>
+</plist>

@@ -1,0 +1,333 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		D0A000000000000000000091 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D0A0000000000000000000E0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D0A0000000000000000000E1;
+			remoteInfo = Dacapo;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		D0A0000000000000000000A1 /* Dacapo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dacapo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D0A0000000000000000000A2 /* DacapoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DacapoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D0A0000000000000000000A4 /* Project.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Project.xcconfig; sourceTree = "<group>"; };
+		D0A0000000000000000000A9 /* Project-Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Project-Debug.xcconfig"; sourceTree = "<group>"; };
+		D0A0000000000000000000AA /* Project-Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Project-Release.xcconfig"; sourceTree = "<group>"; };
+		D0A0000000000000000000A5 /* Dacapo.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Dacapo.xcconfig; sourceTree = "<group>"; };
+		D0A0000000000000000000A8 /* Dacapo-Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Dacapo-Debug.xcconfig"; sourceTree = "<group>"; };
+		D0A0000000000000000000AB /* Dacapo-Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Dacapo-Release.xcconfig"; sourceTree = "<group>"; };
+		D0A0000000000000000000AD /* DacapoTests.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = DacapoTests.xcconfig; sourceTree = "<group>"; };
+		D0A0000000000000000000AC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D0A0000000000000000000A6 /* Dacapo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Dacapo.entitlements; sourceTree = "<group>"; };
+		D0A0000000000000000000A7 /* embed-web.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "embed-web.sh"; sourceTree = "<group>"; };
+		D0A0000000000000000000AE /* check-pbxproj.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "check-pbxproj.sh"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		D0A0000000000000000000B1 /* Dacapo */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Dacapo;
+			sourceTree = "<group>";
+		};
+		D0A0000000000000000000B2 /* DacapoTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = DacapoTests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D0A0000000000000000000C2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D0A0000000000000000000C6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		D0A0000000000000000000D1 = {
+			isa = PBXGroup;
+			children = (
+				D0A0000000000000000000B1 /* Dacapo */,
+				D0A0000000000000000000B2 /* DacapoTests */,
+				D0A0000000000000000000D3 /* Config */,
+				D0A0000000000000000000D4 /* scripts */,
+				D0A0000000000000000000D2 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D0A0000000000000000000D3 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				D0A0000000000000000000A4 /* Project.xcconfig */,
+				D0A0000000000000000000A9 /* Project-Debug.xcconfig */,
+				D0A0000000000000000000AA /* Project-Release.xcconfig */,
+				D0A0000000000000000000A5 /* Dacapo.xcconfig */,
+				D0A0000000000000000000A8 /* Dacapo-Debug.xcconfig */,
+				D0A0000000000000000000AB /* Dacapo-Release.xcconfig */,
+				D0A0000000000000000000AD /* DacapoTests.xcconfig */,
+				D0A0000000000000000000AC /* Info.plist */,
+				D0A0000000000000000000A6 /* Dacapo.entitlements */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		D0A0000000000000000000D4 /* scripts */ = {
+			isa = PBXGroup;
+			children = (
+				D0A0000000000000000000A7 /* embed-web.sh */,
+				D0A0000000000000000000AE /* check-pbxproj.sh */,
+			);
+			path = scripts;
+			sourceTree = "<group>";
+		};
+		D0A0000000000000000000D2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D0A0000000000000000000A1 /* Dacapo.app */,
+				D0A0000000000000000000A2 /* DacapoTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		D0A0000000000000000000E1 /* Dacapo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D0A0000000000000000000F2 /* Build configuration list for PBXNativeTarget "Dacapo" */;
+			buildPhases = (
+				D0A0000000000000000000C1 /* Sources */,
+				D0A0000000000000000000C2 /* Frameworks */,
+				D0A0000000000000000000C3 /* Resources */,
+				D0A0000000000000000000C4 /* Embed web app */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D0A0000000000000000000B1 /* Dacapo */,
+			);
+			name = Dacapo;
+			productName = Dacapo;
+			productReference = D0A0000000000000000000A1 /* Dacapo.app */;
+			productType = "com.apple.product-type.application";
+		};
+		D0A0000000000000000000E2 /* DacapoTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D0A0000000000000000000F3 /* Build configuration list for PBXNativeTarget "DacapoTests" */;
+			buildPhases = (
+				D0A0000000000000000000C5 /* Sources */,
+				D0A0000000000000000000C6 /* Frameworks */,
+				D0A0000000000000000000C7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D0A000000000000000000092 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				D0A0000000000000000000B2 /* DacapoTests */,
+			);
+			name = DacapoTests;
+			productName = DacapoTests;
+			productReference = D0A0000000000000000000A2 /* DacapoTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D0A0000000000000000000E0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2700;
+				LastUpgradeCheck = 2700;
+				TargetAttributes = {
+					D0A0000000000000000000E2 = {
+						TestTargetID = D0A0000000000000000000E1;
+					};
+				};
+			};
+			buildConfigurationList = D0A0000000000000000000F1 /* Build configuration list for PBXProject "Dacapo" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				"zh-Hans",
+			);
+			mainGroup = D0A0000000000000000000D1;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = D0A0000000000000000000D2 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D0A0000000000000000000E1 /* Dacapo */,
+				D0A0000000000000000000E2 /* DacapoTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		D0A0000000000000000000C3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D0A0000000000000000000C7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		D0A0000000000000000000C4 /* Embed web app */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Embed web app";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "exec \"${SRCROOT}/scripts/embed-web.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D0A0000000000000000000C1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D0A0000000000000000000C5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D0A000000000000000000092 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D0A0000000000000000000E1 /* Dacapo */;
+			targetProxy = D0A000000000000000000091 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		D0A000000000000000000101 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D0A0000000000000000000A9 /* Project-Debug.xcconfig */;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		D0A000000000000000000102 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D0A0000000000000000000AA /* Project-Release.xcconfig */;
+			buildSettings = {
+			};
+			name = Release;
+		};
+		D0A000000000000000000103 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D0A0000000000000000000A8 /* Dacapo-Debug.xcconfig */;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		D0A000000000000000000104 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D0A0000000000000000000AB /* Dacapo-Release.xcconfig */;
+			buildSettings = {
+			};
+			name = Release;
+		};
+		D0A000000000000000000105 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D0A0000000000000000000AD /* DacapoTests.xcconfig */;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		D0A000000000000000000106 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D0A0000000000000000000AD /* DacapoTests.xcconfig */;
+			buildSettings = {
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		D0A0000000000000000000F1 /* Build configuration list for PBXProject "Dacapo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D0A000000000000000000101 /* Debug */,
+				D0A000000000000000000102 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D0A0000000000000000000F2 /* Build configuration list for PBXNativeTarget "Dacapo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D0A000000000000000000103 /* Debug */,
+				D0A000000000000000000104 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D0A0000000000000000000F3 /* Build configuration list for PBXNativeTarget "DacapoTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D0A000000000000000000105 /* Debug */,
+				D0A000000000000000000106 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D0A0000000000000000000E0 /* Project object */;
+}

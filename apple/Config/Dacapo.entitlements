@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	<!-- WKWebView's web content process does not start in a sandboxed app without it, even when
+	     nothing is loaded from the network (A0: it crashed in a loop). -->
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<!-- Open and save panels: MusicXML import, backup export and import. -->
+	<key>com.apple.security.files.user-selected.read-write</key>
+	<true/>
+</dict>
+</plist>

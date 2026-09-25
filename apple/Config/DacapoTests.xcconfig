@@ -1,0 +1,17 @@
+// Unit tests of the native layer (DacapoTests/), hosted in the app so they can use its types
+// through @testable import.
+
+PRODUCT_NAME = DacapoTests
+PRODUCT_BUNDLE_IDENTIFIER = io.github.yaluotao.dacapo.tests
+TARGETED_DEVICE_FAMILY = 1,2
+GENERATE_INFOPLIST_FILE = YES
+CODE_SIGN_STYLE = Automatic
+CODE_SIGN_IDENTITY = -
+DEVELOPMENT_TEAM =
+#include? "Local.xcconfig"
+
+TEST_HOST[sdk=macosx*] = $(BUILT_PRODUCTS_DIR)/Dacapo.app/Contents/MacOS/Dacapo
+TEST_HOST[sdk=iphone*] = $(BUILT_PRODUCTS_DIR)/Dacapo.app/Dacapo
+BUNDLE_LOADER = $(TEST_HOST)
+LD_RUNPATH_SEARCH_PATHS[sdk=iphone*] = $(inherited) @executable_path/Frameworks @loader_path/Frameworks
+LD_RUNPATH_SEARCH_PATHS[sdk=macosx*] = $(inherited) @executable_path/../Frameworks @loader_path/../Frameworks

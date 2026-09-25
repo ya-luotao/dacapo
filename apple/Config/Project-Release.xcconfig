@@ -1,0 +1,8 @@
+// Project settings for Release builds.
+
+#include "Project.xcconfig"
+
+DEBUG_INFORMATION_FORMAT = dwarf-with-dsym
+ENABLE_NS_ASSERTIONS = NO
+SWIFT_COMPILATION_MODE = wholemodule
+VALIDATE_PRODUCT = YES

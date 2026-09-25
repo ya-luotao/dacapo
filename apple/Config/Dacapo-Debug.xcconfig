@@ -1,0 +1,6 @@
+// The app target, Debug: includes the test harness (Dacapo/Debug) and the Info.plist keys it
+// needs (DACAPO_DEBUG_HARNESS in Config/Info.plist).
+
+#include "Dacapo.xcconfig"
+
+INFOPLIST_PREPROCESSOR_DEFINITIONS = DACAPO_DEBUG_HARNESS=1

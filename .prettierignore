@@ -4,3 +4,4 @@ pnpm-lock.yaml
 .lane
 # The spec is maintained by hand; keep its source tables diff-friendly.
 docs/MVP.md
+apple/build

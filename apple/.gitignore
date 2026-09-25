@@ -1,0 +1,7 @@
+# Xcode per-user state and local builds
+xcuserdata/
+*.xcuserstate
+build/
+DerivedData/
+# A developer's own signing team (DEVELOPMENT_TEAM); never committed
+Config/Local.xcconfig
