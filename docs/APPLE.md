@@ -23,12 +23,11 @@ in a **WKWebView**, with a small native layer:
 
 ## Renderer and licences
 
-- The App Store build uses **OpenSheetMusicDisplay** (BSD-3-Clause) for the Pieces score; the web
-  build keeps **Verovio** (LGPL-3.0). App Store distribution conflicts with LGPL-3's requirement
-  that users can replace the library (and its Installation Information rules for user products);
-  this is not legal advice, but we avoid the risk. Both engines sit behind the same notation
-  adapter, selected at build time. If the Verovio authors grant an App Store exception, the apps
-  can switch back.
+- The apps use **Verovio** like the web build, shipped unmodified. Its lead maintainer stated
+  publicly (rism-digital/verovio#2559, #998) that App Store apps may use Verovio without a
+  re-linking mechanism provided Verovio is credited in the App Store metadata and in the app's
+  About screen, and any modifications are published under the LGPL. We credit it in both places
+  and do not modify it.
 - Everything else is compatible: our code (MIT), Bravura and Source fonts (OFL), VexFlow (MIT),
   PDMX-derived pieces (CC BY 4.0, attributed). The in-app licences screen lists them.
 
@@ -41,11 +40,11 @@ non-exempt encryption.
 ## Milestones
 
 1. **A0 Spike** — project layout, custom-scheme hosting of the web build, the CoreMIDI bridge (in
-   and out) with timestamp accuracy measured, the OSMD adapter at production quality check,
+   and out) with timestamp accuracy measured, Verovio in the app (size, memory, load time, credits),
    sandbox/entitlements on macOS, simulator and device testing strategy, App Store review risks
    (guidelines 2.5.2, 4.2). Report; no polish.
 2. **A1 App** — production shell on iPhone, iPad and Mac; bridge hardened; export/import through
-   native file UI; lifecycle (background, audio session, screen awake); OSMD build variant;
+   native file UI; lifecycle (background, audio session, screen awake);
    layout checks on iPad and iPhone.
 3. **A2 Store** — icons, launch screen, privacy manifest, licences screen, App Store metadata and
    screenshots (en, zh-CN), review notes, TestFlight, submission.
