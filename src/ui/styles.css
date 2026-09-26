@@ -4078,6 +4078,7 @@ select.is-compact {
 .met-chip-dots .beat-dot[data-accent='accent'] .beat-dot-mark {
   width: 0.4375rem;
   height: 0.4375rem;
+  background: var(--accent);
 }
 
 .met-chip-dots .beat-dot[data-accent='mute'] .beat-dot-mark {
