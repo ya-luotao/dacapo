@@ -23,7 +23,9 @@ export function MetronomeChip() {
   const dots = useRef<HTMLDivElement>(null);
   const more = useRef<HTMLDetailsElement>(null);
   const running = state.status === 'running';
-  useBeatFrame(running, (position) => {
+  const hidden = location.startsWith('/metronome');
+  // On the metronome's own page the chip is not shown, so it does not draw either.
+  useBeatFrame(running && !hidden, (position) => {
     if (dots.current) paintDots(dots.current, position);
   });
 
@@ -37,7 +39,7 @@ export function MetronomeChip() {
     return () => document.removeEventListener('pointerdown', onDown);
   }, []);
 
-  if (location.startsWith('/metronome')) return null;
+  if (hidden) return null;
   if (!PRACTICE.test(location) && state.status === 'stopped') return null;
 
   const { settings } = state;
