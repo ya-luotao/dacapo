@@ -88,6 +88,7 @@ Chinese and Latin letters, digits and placeholders (`第 {n} 张`, `MIDI 键盘`
 | wait mode / rhythm mode / weak bars     | 等待 / 节奏 / 薄弱小节       |
 | loop / repeat / run                     | 循环 / 反复 / 遍             |
 | latency calibration                     | 延迟校准                     |
+| built-in piano / sound out through      | 内置钢琴 / 声音输出到        |
 | export / import                         | 导出 / 导入                  |
 
 ## Traditional Chinese, Taiwan (`zh-TW`)
@@ -124,6 +125,7 @@ terms throughout. Address the learner as 你, as zh-CN does.
 | export / import / file / data           | 匯出 / 匯入 / 檔案 / 資料    | 导出 / 导入 / 文件 / 数据  |
 | settings / tab / private window         | 設定 / 分頁 / 無痕視窗       | 设置 / 标签页 / 无痕窗口   |
 | save / reload / font                    | 儲存 / 重新整理 / 字型       | 保存 / 刷新 / 字体         |
+| built-in piano / grand piano            | 內建鋼琴 / 平台鋼琴          | 内置钢琴 / 三角钢琴        |
 
 Keys in titles: `G 大調`, `C 大調`. Composers as Taiwan writes them: 貝多芬, 巴哈 (not 巴赫), 舒曼,
 布爾格彌勒.
@@ -156,6 +158,7 @@ verb phrases for labels and buttons (設定, 開始, もう一度, 補正する)
 | loop / repeat / volta                 | ループ / くり返し / {n}番カッコ                  |
 | weak bars / hesitation / steady       | 苦手な小節 / 迷い / 安定                         |
 | latency calibration / demo            | 遅延の補正 / お手本                              |
+| built-in piano                        | 内蔵ピアノ                                       |
 | import / export                       | インポート / エクスポート                        |
 
 Keys in titles follow Japanese editions: ハ長調, ト長調. Middle C is 中央C.
@@ -187,6 +190,7 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 | run / step                            | 연주 ({n}회) / 스텝                                              |
 | weak bars / hesitation / timing       | 약한 마디 / 망설임 / 타이밍                                      |
 | latency calibration / demo            | 지연 보정 / 들어 보기                                            |
+| built-in piano                        | 내장 피아노                                                      |
 | import / export                       | 가져오기 / 내보내기                                              |
 | session list / answers (records)      | 연습 내역 / 응답 (연습 기록 is the whole log)                    |
 | library (built-in pieces)             | 기본 곡                                                          |

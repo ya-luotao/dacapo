@@ -19,6 +19,8 @@ interface Credit {
   files: readonly LicenceFile[];
 }
 
+const SALAMANDER = 'https://freepats.zenvoid.org/Piano/acoustic-grand-piano.html';
+
 const VEROVIO_NPM = 'https://www.npmjs.com/package/verovio/v/6.3.0';
 const VEROVIO_WEBSITE = 'https://www.verovio.org';
 const VEROVIO_SOURCE = 'https://github.com/rism-digital/verovio/tree/version-6.3.0';
@@ -133,8 +135,8 @@ function CreditItem({ credit }: { credit: Credit }) {
 
 /**
  * About dacapo and the licences of everything it ships: the Verovio credit its maintainers ask
- * App Store apps to show (docs/APPLE.md), the other libraries, the fonts and the music, with the
- * licence texts from public/licenses/. The same page in the browser and in the Apple app.
+ * App Store apps to show (docs/APPLE.md), the other libraries, the fonts, the piano's samples and
+ * the music, with the licence texts from public/licenses/. The same page in the browser and in the Apple app.
  */
 export function AboutPage() {
   const t = useT();
@@ -187,6 +189,20 @@ export function AboutPage() {
           {FONTS.map((credit) => (
             <CreditItem key={credit.id} credit={credit} />
           ))}
+        </ul>
+      </section>
+
+      <section className="field data" aria-labelledby="about-sounds">
+        <h2 id="about-sounds">{t('about.sounds')}</h2>
+        <ul className="credits">
+          <li className="credit">
+            <p>{t('about.salamander')}</p>
+            <p>{withUrl(t('about.source'), SALAMANDER)}</p>
+            <LicenceText
+              file={{ name: 'CC BY 3.0', path: `${LICENCES}salamander/CC-BY-3.0.txt` }}
+            />
+            <LicenceText file={{ name: 'README.txt', path: `${LICENCES}salamander/README.txt` }} />
+          </li>
         </ul>
       </section>
 

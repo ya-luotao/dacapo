@@ -567,21 +567,36 @@ export const ja: Dictionary = {
   'settings.theme.light': 'ライト',
   'settings.theme.dark': 'ダーク',
   'settings.sound': 'サウンド',
-  'settings.sound.help':
-    'お手本ともう片方の手は、MIDIでつないだ楽器が演奏します。dacapo自体が鳴らす音は、リズムモードとメトロノームのクリック音だけです。',
+  'settings.sound.help': 'お手本ともう片方の手は、楽器がMIDIで弾くか、内蔵ピアノが弾きます。',
   'settings.output': '音の出力先',
-  'settings.output.auto': 'キーボードと同じ（{name}）',
-  'settings.output.autoNone': 'キーボードと同じ（見つかりません）',
+  'settings.output.auto': '自動（{name}）',
+  'settings.output.autoNone': '自動（見つかりません）',
   'settings.output.none': 'なし',
   'settings.output.missing': '{name}（未接続）',
   'settings.output.noPorts': 'MIDI出力が見つかりません。楽器をUSBケーブルでつないでください。',
   'settings.output.test': 'テスト音を鳴らす',
+  'settings.output.builtin': '内蔵ピアノ',
+  'settings.output.help':
+    '「自動」では、キーボードにMIDI出力があればキーボードで、なければ内蔵ピアノで鳴らします。',
   'settings.accompaniment': 'もう片方の手の音量',
   'settings.accompaniment.help': '楽器がもう片方の手を弾くときの強さです。',
   'settings.accompaniment.quiet': 'ごく弱め',
   'settings.accompaniment.soft': '弱め',
   'settings.accompaniment.medium': 'ふつう',
   'settings.accompaniment.loud': '強め',
+  'settings.piano': '内蔵ピアノ',
+  'settings.piano.volume': '内蔵ピアノの音量',
+  'settings.piano.help':
+    'Alexander Holmが録音したヤマハC5グランドピアノ（Salamander Grand Piano）です。音は初めて必要になったときに読み込みます。',
+  'settings.piano.test': '和音を鳴らす',
+  'settings.piano.loading': 'ピアノの音を読み込んでいます…',
+  'settings.piano.failed': 'ピアノの音を読み込めませんでした。',
+  'settings.piano.retry': 'もう一度',
+  'settings.piano.keys': '自分で弾く鍵盤',
+  'settings.piano.keys.computer': 'パソコンのキーボードと画面上の鍵盤',
+  'settings.piano.keys.midi': 'MIDIキーボード',
+  'settings.piano.keys.help':
+    '内蔵ピアノで鳴らします。MIDIキーボードは、キーボード自体に音がないときだけオンにしてください。音のあるキーボードでは、すべての音が二重に聞こえます。',
   'settings.click': 'リズムモードのクリック音',
   'settings.click.help':
     'リズムモードで楽譜に合わせて鳴る、このパソコンからの短い「カチッ」という音です。メトロノームの音色と音量は別に設定します。',
@@ -751,7 +766,7 @@ export const ja: Dictionary = {
   'settings.about.text':
     'dacapo {version}は、MITライセンスで公開されているフリーソフトウェアです。',
   'settings.about.source': 'ソースコード',
-  'settings.about.notices': 'サードパーティのソフトウェア、フォント、楽譜のライセンス',
+  'settings.about.notices': 'サードパーティのソフトウェア、フォント、音源、楽譜のライセンス',
 
   'notFound.title': 'ページが見つかりません',
   'notFound.back': '「演奏」へ戻る',
@@ -804,7 +819,7 @@ export const ja: Dictionary = {
 
   'about.title': 'dacapoについて',
   'about.intro':
-    'dacapoには以下のソフトウェア、フォント、楽曲が含まれていて、それぞれのライセンスに従います。どれもdacapo本体に含まれており、外部から取得するものはありません。',
+    'dacapoには以下のソフトウェア、フォント、音源、楽曲が含まれていて、それぞれのライセンスに従います。どれもdacapo本体に含まれており、外部から取得するものはありません。',
   'about.software': 'ソフトウェア',
   'about.fonts': 'フォント',
   'about.music': '楽曲',
@@ -837,4 +852,7 @@ export const ja: Dictionary = {
     '「メヌエット ト長調」（ペツォールト）、「エリーゼのために」（ベートーヴェン）、「歓喜の歌」の編曲は、dacapoプロジェクトがMITライセンスで入力したものです。前の2曲はMutopia Projectのパブリックドメイン版にもとづいています。',
   'about.music.pdmx':
     '「アラベスク」（ブルグミュラー）、「兵士の行進」（シューマン）、「前奏曲 ハ長調」（J.S.バッハ）は、MuseScoreに投稿したPianoXML、jadr、OpenGoldbergの各氏がパブリックドメイン（CC0）として公開した楽譜で、dacapoプロジェクトが運指を削除しました。いずれもPhillip Long、Zachary Novack、Julian McAuley、Taylor Berg-KirkpatrickによるPDMXデータセットに収録されており、このデータセットはCC BY 4.0で公開されています。',
+  'about.sounds': '音源',
+  'about.salamander':
+    'Salamander Grand Piano V3（内蔵ピアノの音）：Alexander Holmが録音したヤマハC5。クリエイティブ・コモンズ 表示 3.0（CC BY 3.0）。16あるベロシティレイヤーのうち3つを、dacapoプロジェクトが切り詰めてMP3にエンコードしました。',
 };

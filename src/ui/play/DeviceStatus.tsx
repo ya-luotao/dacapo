@@ -1,5 +1,6 @@
 import { useI18n, useT, type MessageKey } from '../../i18n/index.ts';
 import type { MidiStatus } from '../../input/index.ts';
+import { isBuiltin } from '../../output/output.ts';
 import { useInput, useMidiStatus } from '../input/context.ts';
 import { useOutputState } from '../output/context.ts';
 
@@ -29,14 +30,20 @@ export function DeviceStatus() {
           ),
         })
       : t(LABELS[status.state]);
-  // The output is worth naming only when it is not the keyboard itself.
+  // The output is worth naming only when it is not the keyboard itself. The built-in piano plays
+  // without MIDI too (no Web MIDI, or none allowed), so it is named then as well.
   const inputs = status.state === 'connected' ? status.names : [];
   if (
     selected &&
-    (status.state === 'connected' || status.state === 'no-device') &&
+    (status.state === 'connected' ||
+      status.state === 'no-device' ||
+      (isBuiltin(selected) && status.state !== 'pending')) &&
     !inputs.includes(selected.name)
   ) {
-    label += ` · ${t('midi.status.output', { name: selected.name || t('midi.unnamedDevice') })}`;
+    const name = isBuiltin(selected)
+      ? t('settings.output.builtin')
+      : selected.name || t('midi.unnamedDevice');
+    label += ` · ${t('midi.status.output', { name })}`;
   }
 
   return (

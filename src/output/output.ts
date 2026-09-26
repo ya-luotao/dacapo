@@ -1,13 +1,21 @@
 // The MIDI output the instrument is played through: which one (chosen in Settings, remembered by
 // name), hot-plugging, and silencing it whenever sound must stop — the route changes, the output
-// goes away, the page is hidden or left.
+// goes away, the page is hidden or left. The built-in piano (piano.ts) is one more output: chosen,
+// or taken by "auto" when no connected keyboard has an output of its own.
 
 import type { RequestMidiAccess } from '../input/webmidi.ts';
 import { readPref, writePref } from '../lib/localPrefs.ts';
 import type { EchoGuard } from './echo.ts';
-import { browserClock, createScheduler, type Clock, type Scheduler } from './scheduler.ts';
+import {
+  browserClock,
+  createScheduler,
+  type Clock,
+  type OutPort,
+  type Scheduler,
+} from './scheduler.ts';
 
-export type OutputChoice = { kind: 'auto' } | { kind: 'none' } | { kind: 'port'; name: string };
+export type OutputChoice =
+  { kind: 'auto' } | { kind: 'builtin' } | { kind: 'none' } | { kind: 'port'; name: string };
 
 export interface OutputPort {
   id: string;
@@ -15,11 +23,16 @@ export interface OutputPort {
   name: string;
 }
 
+/** The built-in piano, as an output. */
+export const BUILTIN_OUTPUT: OutputPort = { id: 'dacapo:builtin', name: '' };
+
+export const isBuiltin = (port: OutputPort | null): boolean => port?.id === BUILTIN_OUTPUT.id;
+
 export interface OutputState {
   /** Connected outputs, in the browser's order. */
   ports: readonly OutputPort[];
   choice: OutputChoice;
-  /** Where notes go now; null: nowhere. */
+  /** Where notes go now (`BUILTIN_OUTPUT` for the built-in piano); null: nowhere. */
   selected: OutputPort | null;
 }
 
@@ -43,29 +56,41 @@ export interface MidiOutput {
 
 export const OUTPUT_PREF = 'dacapo.midiOutput';
 export const TEST_NOTE = { midi: 60, velocity: 72, ms: 400 };
+/**
+ * How long "auto" waits for MIDI before it settles for the built-in piano, as the keyboard help
+ * does: access is usually granted within milliseconds, and a keyboard then takes over.
+ */
+export const SETTLE_MS = 1500;
 
 export function readChoice(value: string | null): OutputChoice {
   if (value === 'none') return { kind: 'none' };
+  if (value === 'builtin') return { kind: 'builtin' };
   if (value?.startsWith('port:')) return { kind: 'port', name: value.slice(5) };
   return { kind: 'auto' };
 }
 
 function writeChoice(choice: OutputChoice): string | null {
   if (choice.kind === 'none') return 'none';
+  if (choice.kind === 'builtin') return 'builtin';
   if (choice.kind === 'port') return `port:${choice.name}`;
   return null;
 }
 
-/** The output to use: the chosen name, or with "auto" the output named like a connected input. */
+/**
+ * The output to use: the chosen name, or with "auto" the output named like a connected input.
+ * `builtin` is the built-in piano where it can play (and "auto" has stopped waiting for MIDI).
+ */
 export function resolveOutput(
   ports: readonly OutputPort[],
   inputNames: readonly string[],
   choice: OutputChoice,
+  builtin: OutputPort | null = null,
 ): OutputPort | null {
   if (choice.kind === 'none') return null;
+  if (choice.kind === 'builtin') return builtin;
   if (choice.kind === 'port') return ports.find((p) => p.name === choice.name) ?? null;
   const names = new Set(inputNames.filter(Boolean).map((n) => n.toLowerCase()));
-  return ports.find((p) => p.name !== '' && names.has(p.name.toLowerCase())) ?? null;
+  return ports.find((p) => p.name !== '' && names.has(p.name.toLowerCase())) ?? builtin;
 }
 
 function sameState(a: OutputState, b: OutputState): boolean {
@@ -82,6 +107,8 @@ export interface MidiOutputOptions {
   /** The access shared with the input (see `shareMidiAccess`); null: no Web MIDI. */
   requestAccess: RequestMidiAccess | null;
   guard?: EchoGuard;
+  /** The built-in piano; `prepare` is called when it becomes the output (to load its sound). */
+  builtin?: { port: OutPort; prepare?: () => void } | null;
   clock?: Clock;
   /** Where visibility and page-hide events come from; the browser's by default. */
   page?: { document: EventTarget & { visibilityState: string }; window: EventTarget } | null;
@@ -93,6 +120,7 @@ export interface MidiOutputOptions {
 
 export function createMidiOutput(options: MidiOutputOptions): MidiOutput {
   const { requestAccess, guard } = options;
+  const builtin = options.builtin ?? null;
   const clock = options.clock ?? browserClock;
   const prefs = options.prefs ?? { read: readPref, write: writePref };
   const page =
@@ -122,6 +150,9 @@ export function createMidiOutput(options: MidiOutputOptions): MidiOutput {
   // Bumped on every start and stop, so a late grant for a stopped run is ignored.
   let running = 0;
   let active = false;
+  /** MIDI access was granted or refused, or took too long: "auto" may take the built-in piano. */
+  let settled = false;
+  let stopSettle: (() => void) | null = null;
   const outputs = new Map<string, MIDIOutput>();
 
   function interrupt(reason: InterruptReason, silenced = false) {
@@ -135,11 +166,14 @@ export function createMidiOutput(options: MidiOutputOptions): MidiOutput {
     if (sameState(state, next)) return;
     state = next;
     if (route) {
-      const port = next.selected ? (outputs.get(next.selected.id) ?? null) : null;
+      const midiPort = next.selected ? (outputs.get(next.selected.id) ?? null) : null;
+      const piano = isBuiltin(next.selected) ? builtin : null;
       // The old port is silenced (setPort panics on it) before the new one takes over.
-      scheduler.setPort(port);
-      portName = next.selected?.name ?? '';
-      port?.open().catch(() => undefined);
+      scheduler.setPort(piano?.port ?? midiPort);
+      // Nothing we send the built-in piano can come back as a key press.
+      portName = piano ? '' : (next.selected?.name ?? '');
+      midiPort?.open().catch(() => undefined);
+      piano?.prepare?.();
       // Nothing can have been playing without an output.
       if (previous) interrupt('route', true);
     }
@@ -160,19 +194,38 @@ export function createMidiOutput(options: MidiOutputOptions): MidiOutput {
         if (input.state === 'connected') inputNames.push(input.name?.trim() ?? '');
       });
     }
-    setState({ ports, choice, selected: resolveOutput(ports, inputNames, choice) });
+    const piano =
+      active && builtin && (settled || choice.kind === 'builtin') ? BUILTIN_OUTPUT : null;
+    setState({ ports, choice, selected: resolveOutput(ports, inputNames, choice, piano) });
+  }
+
+  function settle() {
+    stopSettle?.();
+    stopSettle = null;
+    if (settled) return;
+    settled = true;
+    sync();
   }
 
   function connect(run: number) {
-    requestAccess?.().then(
+    if (!requestAccess) {
+      settle();
+      return;
+    }
+    requestAccess().then(
       (granted) => {
-        if (run !== running || access === granted) return;
-        access?.removeEventListener('statechange', onStateChange);
-        access = granted;
-        access.addEventListener('statechange', onStateChange);
-        sync();
+        if (run !== running) return;
+        if (access !== granted) {
+          access?.removeEventListener('statechange', onStateChange);
+          access = granted;
+          access.addEventListener('statechange', onStateChange);
+          sync();
+        }
+        settle();
       },
-      () => undefined,
+      () => {
+        if (run === running) settle();
+      },
     );
   }
 
@@ -213,11 +266,16 @@ export function createMidiOutput(options: MidiOutputOptions): MidiOutput {
       active = true;
       page?.document.addEventListener('visibilitychange', onVisibility);
       page?.window.addEventListener('pagehide', onPageHide);
+      if (builtin && !settled) stopSettle ??= clock.every(SETTLE_MS, settle);
+      sync();
       connect(run);
       return () => {
         if (run !== running) return;
         running++;
         active = false;
+        settled = false;
+        stopSettle?.();
+        stopSettle = null;
         page?.document.removeEventListener('visibilitychange', onVisibility);
         page?.window.removeEventListener('pagehide', onPageHide);
         access?.removeEventListener('statechange', onStateChange);

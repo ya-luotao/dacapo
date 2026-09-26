@@ -48,7 +48,7 @@ for drawing.
 ### Playback and accompaniment (Web MIDI output)
 
 - Choose a MIDI output (the MP11SE); dacapo sends note on/off so the instrument itself sounds.
-  No audio synthesis in the app for notes.
+  Without one, the built-in piano (sampled; see "Built-in piano" below) plays instead.
 - **Demo**: play the selection (hands, loop range) at a chosen tempo with the cursor following.
 - **Accompaniment**: when practising one hand, the other hand is played by the instrument — in
   wait mode, its notes belonging to the current step sound when the step is completed (with
@@ -62,8 +62,8 @@ for drawing.
   matched to the nearest expected note of the step (pitch + time window); deviation in ms early
   / late, missed and extra notes.
 - Latency calibration (tap along to the click) stored as a preference.
-- The click is the one exception to "no audio": a short Web Audio click, or a MIDI click on the
-  instrument if it supports it — decide in the spike.
+- The click is a short Web Audio click, or a MIDI click on the instrument if it supports it —
+  decide in the spike.
 
 ## Measure heatmap and records
 
@@ -203,6 +203,29 @@ for drawing.
   repeats, other hand, show keys, weak bars and the click are under Options (a disclosure); Listen,
   Start/Stop and Restart sit under the score. The weak-bar details are laid over the page, placed
   against the window.
+
+## Built-in piano (after P4)
+
+- **Samples.** The Salamander Grand Piano V3 (Yamaha C5, Alexander Holm, CC BY 3.0): layers
+  4, 9 and 13 of 16 (standing for velocities 40, 68 and 100), every minor third from A0 to C8,
+  trimmed to 1 ms before their first sound, cut from 8 s (A0) to 2.5 s (C8), faded and encoded as
+  VBR MP3 by `scripts/piano/build.ts` (90 files, 3.8 MB in `public/piano/`). A key plays the
+  nearest sample (as the SFZ maps them) at its pitch and the retuned SFZ's cents; the nearest
+  layer, or another while it loads; gain = velocity / layer velocity × √(velocity / 127). Key up
+  damps with a time constant from 0.2 s (A0) to 0.08 s (C8), except from F♯6 up; the pedal holds
+  the strings; a key struck again damps its ringing string; at most 64 voices; a limiter on the
+  master. Samples are fetched only when the piano becomes the output or a key is to sound (the
+  middle layer first, 6 at a time) and decoded on an OfflineAudioContext.
+- **As an output** it is an `OutPort` to the scheduler: timestamps map to the AudioContext with the
+  click's mapping, note-off and sustain are kept, CC120 stops everything at once (a note already
+  handed over but not started never sounds), CC123 lets the keys up. "Auto" takes it when no
+  output is named like a connected input, once MIDI access was granted or refused or 1.5 s have
+  passed; notes sent to it are never recorded for the echo guard. The AudioContext is made or
+  resumed on the first click, tap or key press while the piano is in use.
+- **The player's keys** go to the piano through a second input hub fed by taps on the sources: the
+  computer keyboard and the on-screen piano unless turned off, a MIDI keyboard when turned on (both
+  remembered in `localStorage`). They are a part of their own, with their own pedal: the
+  scheduler's panic does not stop them; a hidden page does.
 
 ## Milestones
 

@@ -528,21 +528,35 @@ export const zhCN: Dictionary = {
   'settings.theme.light': '浅色',
   'settings.theme.dark': '深色',
   'settings.sound': '声音',
-  'settings.sound.help':
-    '示范和另一只手都通过 MIDI 由你的乐器弹出。dacapo 自己发出的声音只有节奏模式和节拍器的“嗒”声。',
+  'settings.sound.help': '示范和另一只手由你的乐器通过 MIDI 弹奏，或者由内置钢琴弹奏。',
   'settings.output': '声音输出到',
-  'settings.output.auto': '与键盘相同（{name}）',
-  'settings.output.autoNone': '与键盘相同（未找到）',
+  'settings.output.auto': '自动（{name}）',
+  'settings.output.autoNone': '自动（未找到）',
   'settings.output.none': '无',
   'settings.output.missing': '{name}（未连接）',
   'settings.output.noPorts': '没有找到 MIDI 输出。请用 USB 线连接乐器。',
   'settings.output.test': '试听一个音',
+  'settings.output.builtin': '内置钢琴',
+  'settings.output.help': '选“自动”时，键盘有 MIDI 输出就由键盘发声，没有就用内置钢琴。',
   'settings.accompaniment': '另一只手的音量',
   'settings.accompaniment.help': '乐器弹另一只手的力度。',
   'settings.accompaniment.quiet': '很轻',
   'settings.accompaniment.soft': '轻',
   'settings.accompaniment.medium': '适中',
   'settings.accompaniment.loud': '响',
+  'settings.piano': '内置钢琴',
+  'settings.piano.volume': '内置钢琴的音量',
+  'settings.piano.help':
+    '一台雅马哈 C5 三角钢琴，由 Alexander Holm 录制（Salamander Grand Piano）。第一次用到时才加载它的音色。',
+  'settings.piano.test': '试听一个和弦',
+  'settings.piano.loading': '正在加载钢琴音色…',
+  'settings.piano.failed': '钢琴音色加载失败。',
+  'settings.piano.retry': '重试',
+  'settings.piano.keys': '你弹的键',
+  'settings.piano.keys.computer': '电脑键盘和屏幕上的琴键',
+  'settings.piano.keys.midi': 'MIDI 键盘',
+  'settings.piano.keys.help':
+    '由内置钢琴发声。只有 MIDI 键盘本身不能发声时才打开它，否则每个音都会听到两遍。',
   'settings.click': '节奏模式的节拍器',
   'settings.click.help':
     '节奏模式跟着乐谱打拍子时，电脑上发出的一声短促的“嗒”。独立的节拍器有自己的音色和音量。',
@@ -701,7 +715,7 @@ export const zhCN: Dictionary = {
   'settings.about': '关于',
   'settings.about.text': 'dacapo {version} 是以 MIT 许可证发布的自由软件。',
   'settings.about.source': '源代码',
-  'settings.about.notices': '第三方软件、字体和乐谱的许可与来源',
+  'settings.about.notices': '第三方软件、字体、音色和乐谱的许可与来源',
 
   'notFound.title': '页面不存在',
   'notFound.back': '返回弹奏',
@@ -749,7 +763,7 @@ export const zhCN: Dictionary = {
 
   'about.title': '关于 dacapo',
   'about.intro':
-    'dacapo 包含下列软件、字体和乐谱，它们各自遵循自己的许可。这些全部内置在 dacapo 中，不会从别处获取。',
+    'dacapo 包含下列软件、字体、音色和乐谱，它们各自遵循自己的许可。这些全部内置在 dacapo 中，不会从别处获取。',
   'about.software': '软件',
   'about.fonts': '字体',
   'about.music': '乐谱',
@@ -782,4 +796,7 @@ export const zhCN: Dictionary = {
     '《G 大调小步舞曲》（佩措尔德）、《致爱丽丝》（贝多芬）和《欢乐颂》的改编由 dacapo 项目编码，以 MIT 许可证发布；前两首依据 Mutopia 项目的公有领域版本。',
   'about.music.pdmx':
     '《阿拉伯风格曲》（布格缪勒）、《士兵进行曲》（舒曼）和《C 大调前奏曲》（巴赫）是 MuseScore 上的编码，上传者 PianoXML、jadr 和 OpenGoldberg 已将其贡献到公有领域（CC0）；dacapo 项目删去了其中的指法。它们来自 Phillip Long、Zachary Novack、Julian McAuley 和 Taylor Berg-Kirkpatrick 的 PDMX 数据集，该数据集以 CC BY 4.0 许可发布。',
+  'about.sounds': '音色',
+  'about.salamander':
+    'Salamander Grand Piano V3，内置钢琴的音色：Alexander Holm 录制的雅马哈 C5。知识共享署名 3.0（CC BY 3.0）。dacapo 项目从它的 16 个力度层中选取 3 层，剪裁后编码为 MP3。',
 };

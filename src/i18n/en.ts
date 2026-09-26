@@ -562,20 +562,36 @@ export const en = {
   'settings.theme.dark': 'Dark',
   'settings.sound': 'Sound',
   'settings.sound.help':
-    'Demos and the other hand are played by your instrument over MIDI. The only sounds dacapo makes itself are the clicks of rhythm mode and the metronome.',
+    'Demos and the other hand are played by your instrument over MIDI, or by the built-in piano.',
   'settings.output': 'Sound out through',
-  'settings.output.auto': 'Same as the keyboard ({name})',
-  'settings.output.autoNone': 'Same as the keyboard (none found)',
+  'settings.output.auto': 'Automatic ({name})',
+  'settings.output.autoNone': 'Automatic (none found)',
   'settings.output.none': 'None',
   'settings.output.missing': '{name} (not connected)',
   'settings.output.noPorts': 'No MIDI output found. Connect your instrument with a USB cable.',
   'settings.output.test': 'Play a test note',
+  'settings.output.builtin': 'Built-in piano',
+  'settings.output.help':
+    'Automatic plays through your keyboard if it has a MIDI output, and through the built-in piano if not.',
   'settings.accompaniment': 'Other hand’s volume',
   'settings.accompaniment.help': 'How hard the instrument plays the other hand.',
   'settings.accompaniment.quiet': 'Quiet',
   'settings.accompaniment.soft': 'Soft',
   'settings.accompaniment.medium': 'Medium',
   'settings.accompaniment.loud': 'Loud',
+  'settings.piano': 'Built-in piano',
+  'settings.piano.volume': 'Built-in piano’s volume',
+  'settings.piano.help':
+    'A Yamaha C5 grand, recorded by Alexander Holm (the Salamander Grand Piano). Its sound is loaded the first time it is needed.',
+  'settings.piano.test': 'Play a chord',
+  'settings.piano.loading': 'Loading the piano’s sound…',
+  'settings.piano.failed': 'The piano’s sound could not be loaded.',
+  'settings.piano.retry': 'Try again',
+  'settings.piano.keys': 'The keys you play',
+  'settings.piano.keys.computer': 'Computer keyboard and on-screen keys',
+  'settings.piano.keys.midi': 'MIDI keyboard',
+  'settings.piano.keys.help':
+    'They sound on the built-in piano. Turn the MIDI keyboard on only if it has no sound of its own, or you will hear every note twice.',
   'settings.click': 'Rhythm mode’s click',
   'settings.click.help':
     'A short tick from this computer that rhythm mode plays with the score. The metronome has its own sound and volume.',
@@ -742,7 +758,7 @@ export const en = {
   'settings.about': 'About',
   'settings.about.text': 'dacapo {version} is free software under the MIT licence.',
   'settings.about.source': 'Source code',
-  'settings.about.notices': 'Licences of the third-party software, fonts and music',
+  'settings.about.notices': 'Licences of the third-party software, fonts, sounds and music',
 
   'notFound.title': 'Page not found',
   'notFound.back': 'Go to Play',
@@ -793,7 +809,7 @@ export const en = {
 
   'about.title': 'About dacapo',
   'about.intro':
-    'dacapo includes the software, fonts and music below, each under its own licence. All of it is part of dacapo itself: nothing is fetched from elsewhere.',
+    'dacapo includes the software, fonts, sounds and music below, each under its own licence. All of it is part of dacapo itself: nothing is fetched from elsewhere.',
   'about.software': 'Software',
   'about.fonts': 'Fonts',
   'about.music': 'Music',
@@ -825,6 +841,9 @@ export const en = {
     'Minuet in G major (Petzold), Für Elise (Beethoven) and the Ode to Joy arrangement are encoded by the dacapo project under the MIT licence; the first two from public-domain editions of the Mutopia Project.',
   'about.music.pdmx':
     'Arabesque (Burgmüller), Soldiers’ March (Schumann) and the Prelude in C major (Bach) are encodings from MuseScore that their uploaders PianoXML, jadr and OpenGoldberg dedicated to the public domain (CC0); the dacapo project removed the fingering. They come from the PDMX dataset by Phillip Long, Zachary Novack, Julian McAuley and Taylor Berg-Kirkpatrick, licensed under CC BY 4.0.',
+  'about.sounds': 'Sounds',
+  'about.salamander':
+    'Salamander Grand Piano V3, the built-in piano’s sound: a Yamaha C5 recorded by Alexander Holm. Creative Commons Attribution 3.0 (CC BY 3.0). The dacapo project took three of its sixteen velocity layers, trimmed them and encoded them as MP3.',
 };
 
 export type MessageKey = keyof typeof en;

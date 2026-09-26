@@ -1,7 +1,7 @@
 # Third-party notices
 
-dacapo itself is released under the [MIT License](LICENSE). It ships the software, fonts and music
-listed here, each under its own licence. Nothing is loaded from a CDN: everything below is part of
+dacapo itself is released under the [MIT License](LICENSE). It ships the software, fonts, sounds and
+music listed here, each under its own licence. Nothing is loaded from a CDN: everything below is part of
 the build or of this repository.
 
 The app shows these credits on its About page (`#/about`, linked from Settings), with the licence
@@ -64,6 +64,18 @@ Mohit Muthanna Cheppudira and the VexFlow contributors. MIT License.
 - **Source Serif 4** and **Source Sans 3**, Latin subsets in `src/ui/fonts/`. Copyright © Adobe,
   with Reserved Font Name "Source". SIL Open Font License 1.1; the licence text is in
   [`src/ui/fonts/OFL.txt`](src/ui/fonts/OFL.txt).
+
+## Sounds (the built-in piano)
+
+- **Salamander Grand Piano V3** (the FreePats edition of 2020-06-02), a Yamaha C5 recorded by
+  Alexander Holm. [Creative Commons Attribution 3.0](https://creativecommons.org/licenses/by/3.0/);
+  the legal code and the sound bank's own README ship in
+  [`public/licenses/salamander/`](public/licenses/salamander/). Source:
+  <https://freepats.zenvoid.org/Piano/acoustic-grand-piano.html>.
+- **Changes:** the dacapo project took three of its sixteen velocity layers (4, 9 and 13), trimmed
+  each sample to its start, shortened it with a fade-out and encoded it as MP3
+  (`public/piano/`); the tuning comes from the bank's retuned SFZ. `scripts/piano/build.ts` makes
+  them from the original files (see `scripts/piano/README.md`).
 
 ## Music (built-in pieces)
 

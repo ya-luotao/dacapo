@@ -28,8 +28,8 @@ and no account.
 so expect rough edges; bug reports are welcome. See [CHANGELOG.md](CHANGELOG.md) for what is in
 each release. Practising pieces ([docs/PIECES.md](docs/PIECES.md)) is built too, not yet in a
 release: the library, MusicXML import, wait mode, MIDI playback, practice records with a measure
-heatmap, a rhythm mode with a metronome and timing analysis, and a metronome of its own for any
-practice.
+heatmap, a rhythm mode with a metronome and timing analysis, a metronome of its own for any
+practice, and a built-in piano for keyboards without a sound of their own.
 
 ## Why
 
@@ -55,12 +55,16 @@ practising the notes you are slowest at. Progress is visible day by day.
 - **Pieces, in wait mode and in rhythm.** Six public-domain pieces from Initial to about grade 5,
   plus your own MusicXML (`.musicxml`, `.xml` or `.mxl`, for example from MuseScore). The cursor waits on
   the real score until you have played the right keys. You can practise one hand or both, loop a
-  few bars, start anywhere, and play or skip the repeats. With the keyboard connected over USB,
-  the instrument can play the passage to you at any tempo, or play the other hand as you go.
+  few bars, start anywhere, and play or skip the repeats. Your instrument (over USB MIDI) or the
+  built-in piano can play the passage to you at any tempo, or play the other hand as you go.
   In rhythm mode a metronome counts you in and the score moves in time: every note is timed, and
   afterwards you see how many came in time, whether you tend to play early or late, and where you
   sped up or slowed down. "Weak bars" tints each bar by how long you hesitated there, or how far
   off the beat you were, in your last runs, and one click loops the weakest ones.
+- **Built-in piano.** A sampled Yamaha C5 grand (the Salamander Grand Piano by Alexander Holm)
+  plays demos and the other hand when your keyboard has no MIDI output, and sounds the computer
+  keyboard and the on-screen keys. A MIDI keyboard without a sound of its own can play through it
+  too. Its samples (about 4 MB) are loaded only once it is needed.
 - **Metronome.** A Maelzel-style pendulum that swings through the centre on the beat you hear,
   with a sliding weight for the tempo; 20–300 BPM, tap tempo, time signatures, accented and muted
   beats, subdivisions, three sounds, a visual-only mode, and a tempo trainer that speeds up every
@@ -89,8 +93,9 @@ The screenshots use generated practice data.
   read your keyboard. Other browsers can still use the fallback input.
 - **MIDI keyboard:** recommended, but optional. You can also play with your computer
   keyboard or by clicking the on-screen piano.
-- **Sound:** the notes of demos and of the other hand are played by your instrument over MIDI.
-  The clicks of rhythm mode and the metronome come from the computer; to hear them in a digital piano's
+- **Sound:** the notes of demos and of the other hand are played by your instrument over MIDI,
+  or by the built-in piano from the computer when the instrument has no MIDI output. The clicks
+  of rhythm mode and the metronome come from the computer too; to hear them in a digital piano's
   headphones, connect the computer's audio output to the piano's line input, and avoid Bluetooth
   headphones (their delay varies too much to calibrate).
 - No account, no server. Everything is stored locally in your browser; Settings can export it
@@ -132,8 +137,6 @@ example `BASE_PATH=/dacapo/ pnpm build` for the GitHub Pages demo.
 
 These are deliberately out of scope for the MVP and are the candidates once it is used daily:
 
-- Audio output (the app makes no sound of its own apart from the metronome's clicks — the piano
-  plays the notes, also for demos over MIDI)
 - Analysis of scale evenness
 - Theory and ear training
 - Accounts and sync between devices

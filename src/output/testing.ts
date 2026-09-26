@@ -1,5 +1,6 @@
 // Fakes for the output tests: a clock moved by hand and a port that records what it is sent.
 
+import type { SampleBuffer } from './pianoSamples.ts';
 import type { Clock, OutPort } from './scheduler.ts';
 
 export interface FakeClock extends Clock {
@@ -135,5 +136,110 @@ export class FakeAudioContext {
       connect: () => undefined,
       disconnect: () => undefined,
     };
+  }
+}
+
+/** A buffer of `seconds` of silence and then a note at `onset` seconds (for the piano's tests). */
+export function fakeSampleBuffer(seconds = 2, onset = 0, sampleRate = 1000) {
+  const data = new Float32Array(Math.round(seconds * sampleRate));
+  data.fill(0.5, Math.round(onset * sampleRate));
+  return { sampleRate, length: data.length, numberOfChannels: 1, getChannelData: () => data };
+}
+
+/** One voice of the fake piano context: what it was told, in context seconds. */
+export interface FakeVoice {
+  buffer: unknown;
+  rate: number;
+  gain: number;
+  start: number | null;
+  offset: number | null;
+  /** The last stop time asked for. */
+  stop: number | null;
+  /** setTargetAtTime calls on its gain: [target, when, time constant]. */
+  ramps: [number, number, number][];
+  /** Plays the sample to its end. */
+  end: () => void;
+}
+
+/** An AudioContext stand-in for the piano: its voices (buffer source → gain) are recorded. */
+export class FakePianoContext {
+  currentTime = 0;
+  outputLatency = 0;
+  baseLatency = 0;
+  readonly destination = {};
+  voices: FakeVoice[] = [];
+  /** The master gain's level changes. */
+  levels: number[] = [];
+
+  /** performance.now() at context time 0. */
+  origin: number;
+
+  constructor(origin = 0) {
+    this.origin = origin;
+  }
+
+  getOutputTimestamp() {
+    return {
+      contextTime: this.currentTime,
+      performanceTime: this.origin + this.currentTime * 1000,
+    };
+  }
+
+  createBufferSource() {
+    const voice: FakeVoice = {
+      buffer: null,
+      rate: 1,
+      gain: 1,
+      start: null,
+      offset: null,
+      stop: null,
+      ramps: [],
+      end: () => source.onended?.(new Event('ended')),
+    };
+    const source = {
+      voice,
+      buffer: null as SampleBuffer | null,
+      playbackRate: { value: 1 },
+      onended: null as ((event: Event) => unknown) | null,
+      connect: (gain: { voice?: FakeVoice; gain: { value: number } }) => {
+        voice.gain = gain.gain.value;
+        gain.voice = voice;
+        return gain;
+      },
+      disconnect: () => undefined,
+      start: (when: number, offset?: number) => {
+        voice.buffer = source.buffer;
+        voice.rate = source.playbackRate.value;
+        voice.start = when;
+        voice.offset = offset ?? 0;
+        this.voices.push(voice);
+      },
+      stop: (when?: number) => void (voice.stop = when ?? this.currentTime),
+    };
+    return source;
+  }
+
+  createGain() {
+    const node: { voice?: FakeVoice } & Record<string, unknown> = {};
+    const gain = {
+      get value() {
+        return node.voice ? node.voice.gain : level;
+      },
+      set value(next: number) {
+        if (node.voice) node.voice.gain = next;
+        else level = next;
+      },
+      setValueAtTime: () => undefined,
+      setTargetAtTime: (target: number, when: number, constant: number) => {
+        if (node.voice) node.voice.ramps.push([target, when, constant]);
+        else this.levels.push(target);
+      },
+    };
+    let level = 1;
+    return Object.assign(node, {
+      gain,
+      connect: (next: unknown) => next,
+      disconnect: () => undefined,
+    });
   }
 }

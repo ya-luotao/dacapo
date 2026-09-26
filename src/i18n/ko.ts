@@ -558,21 +558,36 @@ export const ko: Dictionary = {
   'settings.theme.light': '라이트',
   'settings.theme.dark': '다크',
   'settings.sound': '소리',
-  'settings.sound.help':
-    '들어 보기와 반대 손은 MIDI로 연결한 악기가 연주해요. dacapo가 직접 내는 소리는 리듬 모드와 메트로놈의 클릭뿐이에요.',
+  'settings.sound.help': '들어 보기와 반대 손은 악기가 MIDI로 연주하거나 내장 피아노가 연주해요.',
   'settings.output': '소리 출력',
-  'settings.output.auto': '키보드와 같게 ({name})',
-  'settings.output.autoNone': '키보드와 같게 (찾지 못함)',
+  'settings.output.auto': '자동 ({name})',
+  'settings.output.autoNone': '자동 (찾지 못함)',
   'settings.output.none': '없음',
   'settings.output.missing': '{name} (연결 안 됨)',
   'settings.output.noPorts': 'MIDI 출력을 찾지 못했어요. 악기를 USB 케이블로 연결하세요.',
   'settings.output.test': '테스트 음 내기',
+  'settings.output.builtin': '내장 피아노',
+  'settings.output.help':
+    '자동으로 두면 키보드에 MIDI 출력이 있을 때는 키보드로, 없을 때는 내장 피아노로 소리를 내요.',
   'settings.accompaniment': '반대 손 음량',
   'settings.accompaniment.help': '악기가 반대 손을 얼마나 세게 칠지 정해요.',
   'settings.accompaniment.quiet': '아주 작게',
   'settings.accompaniment.soft': '작게',
   'settings.accompaniment.medium': '보통',
   'settings.accompaniment.loud': '크게',
+  'settings.piano': '내장 피아노',
+  'settings.piano.volume': '내장 피아노 음량',
+  'settings.piano.help':
+    'Alexander Holm이 녹음한 야마하 C5 그랜드 피아노(Salamander Grand Piano)예요. 소리는 처음 필요할 때 불러와요.',
+  'settings.piano.test': '화음 내기',
+  'settings.piano.loading': '피아노 소리를 불러오는 중…',
+  'settings.piano.failed': '피아노 소리를 불러오지 못했어요.',
+  'settings.piano.retry': '다시 시도',
+  'settings.piano.keys': '직접 치는 건반',
+  'settings.piano.keys.computer': '컴퓨터 키보드와 화면 건반',
+  'settings.piano.keys.midi': 'MIDI 키보드',
+  'settings.piano.keys.help':
+    '내장 피아노로 소리를 내요. MIDI 키보드는 자체 소리가 없을 때만 켜세요. 그렇지 않으면 모든 음이 두 번 들려요.',
   'settings.click': '리듬 모드 클릭',
   'settings.click.help':
     '리듬 모드에서 악보에 맞춰 이 컴퓨터에서 나는 짧은 “틱” 소리예요. 메트로놈의 음색과 음량은 따로 정해요.',
@@ -736,7 +751,7 @@ export const ko: Dictionary = {
   'settings.about': '정보',
   'settings.about.text': 'dacapo는 MIT 라이선스로 배포되는 자유 소프트웨어예요. 버전 {version}.',
   'settings.about.source': '소스 코드',
-  'settings.about.notices': '서드파티 소프트웨어, 글꼴, 악보의 라이선스',
+  'settings.about.notices': '서드파티 소프트웨어, 글꼴, 음원, 악보의 라이선스',
 
   'notFound.title': '페이지를 찾을 수 없어요',
   'notFound.back': '연주로 가기',
@@ -785,7 +800,7 @@ export const ko: Dictionary = {
 
   'about.title': 'dacapo 정보',
   'about.intro':
-    'dacapo에는 아래의 소프트웨어, 글꼴, 악보가 들어 있고, 각각 고유한 라이선스를 따라요. 모두 dacapo 안에 포함되어 있어서 외부에서 가져오는 것은 없어요.',
+    'dacapo에는 아래의 소프트웨어, 글꼴, 음원, 악보가 들어 있고, 각각 고유한 라이선스를 따라요. 모두 dacapo 안에 포함되어 있어서 외부에서 가져오는 것은 없어요.',
   'about.software': '소프트웨어',
   'about.fonts': '글꼴',
   'about.music': '악보',
@@ -817,4 +832,7 @@ export const ko: Dictionary = {
     '미뉴에트 G장조(페촐트), 엘리제를 위하여(베토벤), 환희의 송가 편곡은 dacapo 프로젝트가 MIT 라이선스로 입력했어요. 앞의 두 곡은 Mutopia Project의 퍼블릭 도메인 판을 바탕으로 했어요.',
   'about.music.pdmx':
     '아라베스크(부르크뮐러), 병사의 행진(슈만), 전주곡 C장조(바흐)는 MuseScore에 악보를 올린 PianoXML, jadr, OpenGoldberg가 퍼블릭 도메인(CC0)으로 공개한 악보이고, dacapo 프로젝트가 운지 번호를 지웠어요. 모두 Phillip Long, Zachary Novack, Julian McAuley, Taylor Berg-Kirkpatrick의 PDMX 데이터셋에서 가져왔으며, 이 데이터셋은 CC BY 4.0 라이선스를 따라요.',
+  'about.sounds': '음원',
+  'about.salamander':
+    'Salamander Grand Piano V3, 내장 피아노의 소리: Alexander Holm이 녹음한 야마하 C5. 크리에이티브 커먼즈 저작자표시 3.0(CC BY 3.0). 16개 벨로시티 레이어 중 3개를 dacapo 프로젝트가 다듬어 MP3로 인코딩했어요.',
 };

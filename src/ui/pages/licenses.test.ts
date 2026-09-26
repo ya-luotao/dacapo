@@ -4,6 +4,8 @@ import dacapoShipped from '../../../public/licenses/dacapo/LICENSE.txt?raw';
 import fflateShipped from '../../../public/licenses/fflate/LICENSE.txt?raw';
 import idbShipped from '../../../public/licenses/idb/LICENSE.txt?raw';
 import reactShipped from '../../../public/licenses/react/LICENSE.txt?raw';
+import ccBy3 from '../../../public/licenses/salamander/CC-BY-3.0.txt?raw';
+import salamanderReadme from '../../../public/licenses/salamander/README.txt?raw';
 import sourceFontsShipped from '../../../public/licenses/source-fonts/OFL.txt?raw';
 import vexflowShipped from '../../../public/licenses/vexflow/LICENSE.txt?raw';
 import verovioNotices from '../../../public/licenses/verovio/THIRD-PARTY.txt?raw';
@@ -30,6 +32,12 @@ describe('shipped licence texts', () => {
     ['fflate', fflateShipped, fflate],
   ])('%s matches its source', (_name, shipped, source) => {
     expect(shipped).toBe(source);
+  });
+
+  it('credits the piano’s samples as their licence asks', () => {
+    expect(salamanderReadme).toContain('Alexander Holm');
+    expect(salamanderReadme).toContain('http://creativecommons.org/licenses/by/3.0/');
+    expect(ccBy3).toContain('Attribution 3.0 Unported');
   });
 
   it('has the notices of every library Verovio contains', () => {

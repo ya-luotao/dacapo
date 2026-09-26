@@ -3945,13 +3945,26 @@ select.is-compact {
   max-width: 36rem;
 }
 
-.sound-click {
+.sound-click,
+.sound-piano,
+.sound-keys {
   margin-top: 1.5rem;
 }
 
-.sound-click .sound-row input[type='range'] {
+.sound-click .sound-row input[type='range'],
+.sound-piano .sound-row input[type='range'] {
   width: 12rem;
   accent-color: var(--accent);
+}
+
+/* One option per line: each names a kind of keyboard. */
+.sound-keys .check {
+  display: flex;
+}
+
+.sound-piano .help[role='status'],
+.sound-failed {
+  margin-top: 0.5rem;
 }
 
 .sound .calibration {

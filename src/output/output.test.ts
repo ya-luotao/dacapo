@@ -3,10 +3,12 @@ import { createInputHub } from '../input/hub.ts';
 import { createWebMidiInput, shareMidiAccess } from '../input/webmidi.ts';
 import { createEchoGuard } from './echo.ts';
 import {
+  BUILTIN_OUTPUT,
   createMidiOutput,
   OUTPUT_PREF,
   readChoice,
   resolveOutput,
+  SETTLE_MS,
   type InterruptReason,
   type MidiOutputOptions,
 } from './output.ts';
@@ -148,9 +150,20 @@ describe('resolveOutput', () => {
     expect(resolveOutput(ports, ['MP11SE'], { kind: 'none' })).toBeNull();
   });
 
+  it('the built-in piano: chosen, or for auto when no keyboard has an output', () => {
+    const piano = BUILTIN_OUTPUT;
+    expect(resolveOutput(ports, [], { kind: 'builtin' }, piano)).toBe(piano);
+    expect(resolveOutput(ports, [], { kind: 'builtin' }, null)).toBeNull();
+    expect(resolveOutput(ports, ['Mini keys'], { kind: 'auto' }, piano)).toBe(piano);
+    expect(resolveOutput(ports, ['MP11SE'], { kind: 'auto' }, piano)).toEqual(ports[1]);
+    expect(resolveOutput(ports, [], { kind: 'none' }, piano)).toBeNull();
+    expect(resolveOutput(ports, [], { kind: 'port', name: 'Gone' }, piano)).toBeNull();
+  });
+
   it('reads the stored choice', () => {
     expect(readChoice(null)).toEqual({ kind: 'auto' });
     expect(readChoice('none')).toEqual({ kind: 'none' });
+    expect(readChoice('builtin')).toEqual({ kind: 'builtin' });
     expect(readChoice('port:MP11SE')).toEqual({ kind: 'port', name: 'MP11SE' });
     expect(readChoice('garbage')).toEqual({ kind: 'auto' });
   });
@@ -318,6 +331,99 @@ describe('createMidiOutput', () => {
     await flush();
     expect(request).toHaveBeenCalledTimes(2);
     expect(output.getState().selected?.name).toBe('MP11SE');
+  });
+});
+
+describe('the built-in piano as the output', () => {
+  function withPiano(stored: string | null = null, options: Partial<MidiOutputOptions> = {}) {
+    const piano = new FakePort();
+    const prepare = vi.fn();
+    const sent = vi.fn();
+    const result = setup(stored, {
+      builtin: { port: piano, prepare },
+      guard: { sent, isEcho: () => false },
+      ...options,
+    });
+    return { ...result, piano, prepare, sent };
+  }
+
+  it('auto: once MIDI is granted and no keyboard has an output, the piano plays', async () => {
+    const { access, output, piano, prepare, sent } = withPiano();
+    access.inputs.set('in', new FakeInput('in', 'Mini keys'));
+    output.start();
+    // Still waiting for MIDI: a keyboard may yet take it.
+    expect(output.getState().selected).toBeNull();
+    await flush();
+    expect(output.getState().selected).toEqual(BUILTIN_OUTPUT);
+    expect(prepare).toHaveBeenCalledTimes(1);
+    output.testNote();
+    expect(piano.log()).toEqual(['on 60 v72@1000']);
+    // Nothing sent to it can come back as an echo.
+    expect(sent.mock.calls.every(([name]) => name === '')).toBe(true);
+  });
+
+  it('auto: a keyboard with an output takes over from the piano, which is silenced', async () => {
+    const { access, output, piano, interrupts } = withPiano();
+    output.start();
+    await flush();
+    output.testNote();
+    mp11(access);
+    access.change();
+    expect(output.getState().selected?.name).toBe('MP11SE');
+    expect(piano.log()[1]).toBe('off 60');
+    expect(interrupts).toEqual(['route']);
+  });
+
+  it(`auto: waits for MIDI at most ${SETTLE_MS} ms, and at once without Web MIDI`, () => {
+    const { output, clock } = withPiano(null, {
+      requestAccess: () => new Promise(() => undefined),
+    });
+    output.start();
+    clock.advance(SETTLE_MS - 1);
+    expect(output.getState().selected).toBeNull();
+    clock.advance(1);
+    expect(output.getState().selected).toEqual(BUILTIN_OUTPUT);
+    expect(clock.timers()).toBe(0);
+
+    const without = withPiano(null, { requestAccess: null });
+    without.output.start();
+    expect(without.output.getState().selected).toEqual(BUILTIN_OUTPUT);
+  });
+
+  it('auto: MIDI refused, the piano plays', async () => {
+    const { output } = withPiano(null, {
+      requestAccess: () => Promise.reject(new DOMException('no', 'NotAllowedError')),
+    });
+    output.start();
+    await flush();
+    expect(output.getState().selected).toEqual(BUILTIN_OUTPUT);
+  });
+
+  it('chosen, it plays straight away and is remembered', async () => {
+    const { access, output, prefs } = withPiano('builtin');
+    mp11(access);
+    output.start();
+    expect(output.getState()).toMatchObject({
+      choice: { kind: 'builtin' },
+      selected: BUILTIN_OUTPUT,
+    });
+    await flush();
+    expect(output.getState().selected).toEqual(BUILTIN_OUTPUT);
+    output.choose({ kind: 'auto' });
+    expect(output.getState().selected?.name).toBe('MP11SE');
+    output.choose({ kind: 'builtin' });
+    expect(prefs.get(OUTPUT_PREF)).toBe('builtin');
+  });
+
+  it('is silenced like any output when the page is hidden, and let go when stopped', async () => {
+    const { output, piano, page, clock } = withPiano();
+    const stop = output.start();
+    await flush();
+    output.scheduler.play({ midi: 60, velocity: 72, on: clock.now(), off: clock.now() + 5000 });
+    page.hide();
+    expect(piano.log()[1]).toBe('off 60');
+    stop();
+    expect(output.getState().selected).toBeNull();
   });
 });
 

@@ -1,7 +1,6 @@
-// The clicks of rhythm mode and the metronome: short Web Audio sounds, the only sounds dacapo makes
-// itself (the MP11SE has no drum sound over MIDI and cannot start its own metronome). Clicks are
-// scheduled on the
-// AudioContext's clock a short lookahead ahead by a timer ("A tale of two clocks"), so a late
+// The clicks of rhythm mode and the metronome: short Web Audio sounds, made by dacapo itself (the
+// MP11SE has no drum sound over MIDI and cannot start its own metronome). Clicks are scheduled on
+// the AudioContext's clock a short lookahead ahead by a timer ("A tale of two clocks"), so a late
 // timer never makes a late click, and a stop cancels everything not yet heard.
 
 import type { ClickSound } from '../core/metronomeSettings.ts';

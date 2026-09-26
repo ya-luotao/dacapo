@@ -531,21 +531,35 @@ export const zhTW: Dictionary = {
   'settings.theme.light': '淺色',
   'settings.theme.dark': '深色',
   'settings.sound': '聲音',
-  'settings.sound.help':
-    '示範和另一隻手都透過 MIDI 由你的樂器彈出。dacapo 自己發出的聲音只有節奏模式和節拍器的「嗒」聲。',
+  'settings.sound.help': '示範和另一隻手由你的樂器透過 MIDI 彈奏，或是由內建鋼琴彈奏。',
   'settings.output': '聲音輸出到',
-  'settings.output.auto': '與鍵盤相同（{name}）',
-  'settings.output.autoNone': '與鍵盤相同（找不到）',
+  'settings.output.auto': '自動（{name}）',
+  'settings.output.autoNone': '自動（找不到）',
   'settings.output.none': '無',
   'settings.output.missing': '{name}（未連接）',
   'settings.output.noPorts': '找不到 MIDI 輸出。請用 USB 線連接樂器。',
   'settings.output.test': '試聽一個音',
+  'settings.output.builtin': '內建鋼琴',
+  'settings.output.help': '選「自動」時，鍵盤有 MIDI 輸出就由鍵盤發聲，沒有就用內建鋼琴。',
   'settings.accompaniment': '另一隻手的音量',
   'settings.accompaniment.help': '樂器彈另一隻手時的力度。',
   'settings.accompaniment.quiet': '很小聲',
   'settings.accompaniment.soft': '小聲',
   'settings.accompaniment.medium': '中等',
   'settings.accompaniment.loud': '大聲',
+  'settings.piano': '內建鋼琴',
+  'settings.piano.volume': '內建鋼琴的音量',
+  'settings.piano.help':
+    '一台山葉 C5 平台鋼琴，由 Alexander Holm 錄製（Salamander Grand Piano）。第一次用到時才載入它的音色。',
+  'settings.piano.test': '試聽一個和弦',
+  'settings.piano.loading': '正在載入鋼琴音色⋯',
+  'settings.piano.failed': '無法載入鋼琴音色。',
+  'settings.piano.retry': '再試一次',
+  'settings.piano.keys': '你彈的鍵',
+  'settings.piano.keys.computer': '電腦鍵盤和螢幕上的琴鍵',
+  'settings.piano.keys.midi': 'MIDI 鍵盤',
+  'settings.piano.keys.help':
+    '由內建鋼琴發聲。只有在 MIDI 鍵盤本身不會發聲時才打開，否則每個音都會聽到兩次。',
   'settings.click': '節奏模式的節拍器',
   'settings.click.help':
     '節奏模式跟著樂譜打拍子時，由這台電腦發出的一聲短促的「嗒」。獨立的節拍器有自己的音色和音量。',
@@ -704,7 +718,7 @@ export const zhTW: Dictionary = {
   'settings.about': '關於',
   'settings.about.text': 'dacapo {version} 是以 MIT 授權條款發布的自由軟體。',
   'settings.about.source': '原始碼',
-  'settings.about.notices': '第三方軟體、字型和樂譜的授權與來源',
+  'settings.about.notices': '第三方軟體、字型、音色和樂譜的授權與來源',
 
   'notFound.title': '找不到頁面',
   'notFound.back': '回到彈奏',
@@ -752,7 +766,7 @@ export const zhTW: Dictionary = {
 
   'about.title': '關於 dacapo',
   'about.intro':
-    'dacapo 內含下列軟體、字型和樂曲，各自採用自己的授權。這些全都內建在 dacapo 裡，不會從其他地方取得。',
+    'dacapo 內含下列軟體、字型、音色和樂曲，各自採用自己的授權。這些全都內建在 dacapo 裡，不會從其他地方取得。',
   'about.software': '軟體',
   'about.fonts': '字型',
   'about.music': '樂曲',
@@ -785,4 +799,7 @@ export const zhTW: Dictionary = {
     '〈G 大調小步舞曲〉（佩佐爾德）、〈給愛麗絲〉（貝多芬）和〈快樂頌〉的改編由 dacapo 專案編碼，以 MIT 授權釋出；前兩首依據 Mutopia 專案的公有領域版本。',
   'about.music.pdmx':
     '〈阿拉貝斯克〉（布爾格彌勒）、〈士兵進行曲〉（舒曼）和〈C 大調前奏曲〉（巴哈）是 MuseScore 上的樂譜，上傳者 PianoXML、jadr 和 OpenGoldberg 已將它們貢獻到公有領域（CC0）；dacapo 專案刪去了其中的指法。它們來自 Phillip Long、Zachary Novack、Julian McAuley 和 Taylor Berg-Kirkpatrick 的 PDMX 資料集，該資料集以 CC BY 4.0 授權釋出。',
+  'about.sounds': '音色',
+  'about.salamander':
+    'Salamander Grand Piano V3，內建鋼琴的音色：Alexander Holm 錄製的山葉 C5。創用 CC 姓名標示 3.0（CC BY 3.0）。dacapo 專案從它的 16 個力度層中選用 3 層，裁剪後編碼為 MP3。',
 };

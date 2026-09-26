@@ -60,8 +60,7 @@ Version 1, 2 and 3 files still import.
 
 - A **Wait / Rhythm** switch on the practice view. In rhythm mode a metronome gives one bar of
   count-in and the cursor moves in time over the chosen hands, bars, repeats and tempo; a loop goes
-  round until Stop. The click is a short tick from the computer (the one sound dacapo makes
-  itself), on every beat, the dotted beat in 6/8, 9/8 and 12/8, accented on the first; it can play
+  round until Stop. The click is a short tick from the computer, on every beat, the dotted beat in 6/8, 9/8 and 12/8, accented on the first; it can play
   throughout, only for the count-in, or not at all, at the volume you choose. Practising one hand,
   the instrument plays the other hand in time.
 - Every note is timed against the beat (each key of a chord on its own): early or late by how many
@@ -81,6 +80,23 @@ Version 1, 2 and 3 files still import.
   settings that change rarely (start bar, repeats, other hand, show keys, weak bars, the click) under
   **Options**, and Listen, Start and Restart under the score. The weak-bar details now always show
   in full, also for a bar on the first line of the score.
+
+### Built-in piano
+
+- dacapo can play the piano itself: a Yamaha C5 grand sampled by Alexander Holm (the Salamander
+  Grand Piano V3, CC BY 3.0), three of its velocity layers every minor third, retuned as its
+  retuned SFZ does, with dampers that stop a string when its key comes up (none from F♯6 up, as
+  on a real piano). Its samples (about 4 MB of MP3) are loaded only once it is needed.
+- **Built-in piano** is a new choice under Settings → Sound → Sound out through, and "Automatic"
+  (formerly "Same as the keyboard") takes it when no connected keyboard has a MIDI output, after
+  waiting a moment for MIDI access. Demos, the other hand in wait and rhythm mode and the test note
+  play through it exactly as through an instrument, in time with the click, and it is silenced in
+  the same cases.
+- **The keys you play** sound on the built-in piano: the computer keyboard and the on-screen keys
+  by default, and a MIDI keyboard when you turn that on (for one without a sound of its own),
+  with the sustain pedal. Stopping a demo does not cut the notes you are holding.
+- Settings has the built-in piano's volume and a test chord; the About page credits the samples
+  with their licence.
 
 ### Metronome
 
