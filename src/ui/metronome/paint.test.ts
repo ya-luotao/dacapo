@@ -109,10 +109,12 @@ describe('start and stop', () => {
   it('paints the swing, then the settle, then rest in the clip; still with reduced motion', () => {
     const root = document.createElement('div');
     root.innerHTML =
-      '<svg class="pendulum-shadow"></svg><svg class="pendulum-rod"><path class="pendulum-glint"/></svg>';
+      '<svg class="pendulum-shadow"></svg><svg class="pendulum-rod"><path class="pendulum-sheen"/>' +
+      '<path class="pendulum-glint"/></svg>';
     const rod = root.querySelector<SVGSVGElement>('.pendulum-rod')!;
     const shadow = root.querySelector<SVGSVGElement>('.pendulum-shadow')!;
     const glint = root.querySelector<SVGElement>('.pendulum-glint')!;
+    const sheen = root.querySelector<SVGElement>('.pendulum-sheen')!;
     const angle = () => Number(/rotate\((-?[\d.]+)deg\)/.exec(rod.style.transform)?.[1]);
     const paint = createPendulumPainter();
     paint(root, null, 0, false);
@@ -122,8 +124,14 @@ describe('start and stop', () => {
     expect(angle()).toBeCloseTo(AMPLITUDE * Math.sin(Math.PI * 0.1), 3);
     expect(shadow.style.transform).toContain(rod.style.transform);
     expect(glint.style.opacity).toBe('1');
+    // The weight brightens as the glint crosses it, most at the middle.
+    const bright = Number(sheen.style.opacity);
+    expect(bright).toBeGreaterThan(0);
+    paint(root, at({ beat: 4, phase: 0.12, accent: 'accent', to: 1000 }), 1100, false);
+    expect(Number(sheen.style.opacity)).toBeGreaterThan(bright);
     paint(root, at({ beat: 5, phase: 0.1 }), 1500, false);
     expect(glint.style.opacity).toBe('0');
+    expect(sheen.style.opacity).toBe('0');
     // A muted beat swings, and nothing glints; a silent bar dims.
     paint(root, at({ beat: 8, phase: 0.1, accent: 'accent', silent: true }), 3000, false);
     expect(glint.style.opacity).toBe('0');

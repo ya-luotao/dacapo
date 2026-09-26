@@ -89,7 +89,8 @@ Version 1, 2 and 3 files still import.
   makes the sound later). The weight slides to where it sits on a real one (the scale is spaced by
   the physics of the pendulum, Maelzel's marks carried from 20 to 300, with the Italian tempo marks
   engraved beside them); the rod is released on the first beat, settles when stopped, and a glint
-  crosses the weight on accented beats. The beats are studs inlaid in a walnut rail.
+  crosses the weight on accented beats. The beats are studs inlaid in the walnut stand it
+  stands on.
   20–300 BPM with − / +, a slider, the arrow keys and tap tempo (the median of the last taps); the
   Italian tempo mark with its range; time signatures from 2/4 to 12/8 (compound meters click the
   dotted beat); each beat accented, plain or muted; subdivisions in 2, 3 or 4; four synthesized

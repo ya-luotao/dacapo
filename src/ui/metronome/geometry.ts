@@ -11,21 +11,26 @@ import { MAX_BPM, MIN_BPM } from '../../core/pulse.ts';
 import { TEMPO_FROM, TEMPO_NAMES, tempoWord } from '../../core/tempoNames.ts';
 
 export const VIEW_W = 320;
-export const VIEW_H = 344;
+/** The drawing ends at the plinth: the metronome stands on the beat rail below it. */
+export const VIEW_H = 334;
 export const CX = VIEW_W / 2;
 
 /** The case: a truncated pyramid on a moulded plinth. */
 export const CASE_TOP = 22;
 export const CASE_BOTTOM = 318;
-export const CASE_TOP_HALF = 28;
+export const CASE_TOP_HALF = 30;
 export const CASE_BOTTOM_HALF = 76;
-export const PLINTH_BOTTOM = 334;
+export const PLINTH_BOTTOM = VIEW_H;
+/** The moulded cap on the case's top: a slab overhanging it, and a thinner step on that. */
+export const CAP_TOP = 15.5;
+export const CAP_STEP = 18.5;
+export const CAP_OVERHANG = 2.6;
 
 /** The recess in the front, and the ivory plate in it. */
 export const RECESS_TOP = 48;
 export const RECESS_BOTTOM = 292;
 /** How far in from the case's edge the recess starts (measured across). */
-export const RECESS_INSET = 10;
+export const RECESS_INSET = 6;
 
 /** The pendulum: its pivot low in the recess, the rod's top held in the clip when stopped. */
 export const PIVOT_Y = 278;
@@ -40,6 +45,8 @@ const TOP_SLOW = 58;
 
 /** Half the plate's width at height `y` (inside the recess's walls). */
 export const PLATE_MARGIN = 1.8;
+/** The engraved frame line, this far inside the plate's edge. */
+export const FRAME_INSET = 1.2;
 export function plateHalf(y: number): number {
   return caseHalf(y) - RECESS_INSET - PLATE_MARGIN;
 }
@@ -123,7 +130,7 @@ export const SCALE_LABELS: readonly number[] = [
 ];
 /** The labels kept on a narrow screen. */
 export const SCALE_LABELS_NARROW: readonly number[] = [20, 40, 60, 84, 120, 160, 208, 300];
-export const LABEL_SIZE = 6.2;
+export const LABEL_SIZE = 6.8;
 /** On a phone (styles.css sets it): fewer numbers, larger. */
 export const LABEL_SIZE_NARROW = 7.4;
 
@@ -134,10 +141,19 @@ export const TEMPO_BANDS = TEMPO_NAMES.map((name, i) => {
   const bottom = weightY(next ? TEMPO_FROM[next] : MAX_BPM);
   return { name, word: tempoWord(name), top, bottom, y: (top + bottom) / 2 };
 });
-export const BAND_SIZE = 4;
-/** Each word is set to this width a letter (text layout at such sizes varies with the scale). */
-export const BAND_ADVANCE = 0.52 * BAND_SIZE;
-export const BAND_X = CX + 4.6;
+/**
+ * The marks are set in capitals as large as LARGHETTO allows: nine letters where the plate is
+ * still narrow. A capital is 0.67 of the size high.
+ */
+export const BAND_SIZE = 4.2;
+export const CAP_HEIGHT = 0.67;
+/**
+ * Each word is set to this width a letter, the face's own advance for capitals with the tracking
+ * in styles.css (text layout at such sizes varies with the scale, so the width is fixed).
+ */
+export const BAND_ADVANCE = 0.72 * BAND_SIZE;
+/** Right of the rod: the ticks reach only left of it. */
+export const BAND_X = CX + 2.8;
 /** The number's right edge. */
 export const LABEL_X = CX - 12.5;
 
@@ -148,8 +164,8 @@ export const LABEL_X = CX - 12.5;
 export const AMPLITUDE = 32;
 
 /** The rod's shadow falls below and right of it (the light is upper left). */
-const SHADOW_DX = 3.2;
-const SHADOW_DY = 2.4;
+const SHADOW_DX = 1.7;
+const SHADOW_DY = 1.3;
 
 /** `value` as a percentage of `of`: the layers share one box, so they line up at any size. */
 export const pct = (value: number, of: number) => `${((value / of) * 100).toFixed(4)}%`;

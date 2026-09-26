@@ -5,8 +5,11 @@
 import type { PulsePosition } from '../../core/pulse.ts';
 import { AMPLITUDE, SHADOW_OFFSET } from './geometry.ts';
 
-/** How long the accent's glint takes to cross the weight (ms). */
+/** How long the accent's glint takes to cross the weight (ms), how far it goes, and how much the
+    whole weight brightens as it passes. */
 const GLINT_MS = 240;
+const GLINT_TRAVEL = 44;
+const SHEEN = 0.32;
 /** A stopped pendulum is still again within this (ms)… */
 export const SETTLE_MS = 700;
 /** …its swing dying away this fast (the time constant, ms). */
@@ -73,13 +76,15 @@ interface Layers {
   rod: SVGSVGElement;
   shadow: SVGSVGElement;
   glint: SVGElement;
+  sheen: SVGElement;
 }
 
 function layersOf(root: HTMLElement): Layers | null {
   const rod = root.querySelector<SVGSVGElement>('.pendulum-rod');
   const shadow = root.querySelector<SVGSVGElement>('.pendulum-shadow');
   const glint = root.querySelector<SVGElement>('.pendulum-glint');
-  return rod && shadow && glint ? { root, rod, shadow, glint } : null;
+  const sheen = root.querySelector<SVGElement>('.pendulum-sheen');
+  return rod && shadow && glint && sheen ? { root, rod, shadow, glint, sheen } : null;
 }
 
 /**
@@ -102,11 +107,16 @@ export function createPendulumPainter() {
     layers.shadow.style.transform = `${SHADOW_OFFSET} ${rotate}`;
   }
 
-  function writeGlint(value: string) {
+  /** `progress`: how far the glint has crossed (0–1), or null for none. */
+  function writeGlint(progress: number | null) {
+    const value = progress === null ? '' : progress.toFixed(3);
     if (!layers || value === glint) return;
     glint = value;
-    layers.glint.style.transform = value ? `translateX(${value}px)` : '';
-    layers.glint.style.opacity = value ? '1' : '0';
+    layers.glint.style.transform =
+      progress === null ? '' : `translateX(${(progress * GLINT_TRAVEL).toFixed(2)}px)`;
+    layers.glint.style.opacity = progress === null ? '0' : '1';
+    layers.sheen.style.opacity =
+      progress === null ? '0' : (SHEEN * Math.sin(Math.PI * progress)).toFixed(3);
   }
 
   return function paint(
@@ -123,7 +133,7 @@ export function createPendulumPainter() {
     if (still) {
       last = settling = null;
       write(0);
-      writeGlint('');
+      writeGlint(null);
       setSilent(root, false);
       return;
     }
@@ -133,7 +143,7 @@ export function createPendulumPainter() {
       const t = settling ? now - settling.at : Infinity;
       if (t >= SETTLE_MS) settling = null;
       write(settling ? settleAngle(settling, t) : 0);
-      writeGlint('');
+      writeGlint(null);
       setSilent(root, false);
       return;
     }
@@ -150,7 +160,7 @@ export function createPendulumPainter() {
     write(angle);
     const since = position.phase * period;
     const accent = position.accent === 'accent' && !position.silent;
-    writeGlint(accent && since < GLINT_MS ? ((since / GLINT_MS) * 36).toFixed(2) : '');
+    writeGlint(accent && since < GLINT_MS ? since / GLINT_MS : null);
     setSilent(root, position.silent);
   };
 }

@@ -5,8 +5,10 @@ import {
   BAND_ADVANCE,
   BAND_SIZE,
   BAND_X,
+  CAP_HEIGHT,
   caseHalf,
   CX,
+  FRAME_INSET,
   LABEL_SIZE,
   LABEL_SIZE_NARROW,
   PIVOT_Y,
@@ -65,11 +67,13 @@ describe('the scale', () => {
 
   it('engraves the Italian marks on the plate, apart, and clear of the rod', () => {
     for (let i = 1; i < TEMPO_BANDS.length; i++)
-      expect(TEMPO_BANDS[i]!.y - TEMPO_BANDS[i - 1]!.y).toBeGreaterThan(BAND_SIZE * 1.2);
+      expect(TEMPO_BANDS[i]!.y - TEMPO_BANDS[i - 1]!.y).toBeGreaterThan(
+        CAP_HEIGHT * BAND_SIZE + 1.5,
+      );
     for (const band of TEMPO_BANDS) {
       const right = BAND_X + band.word.length * BAND_ADVANCE;
-      // Clear of the engraved frame line (2 inside the plate's edge).
-      expect(right).toBeLessThan(CX + plateHalf(band.y - BAND_SIZE / 2) - 2.5);
+      // Clear of the engraved frame line, with room to spare.
+      expect(right).toBeLessThan(CX + plateHalf(band.y - BAND_SIZE / 2) - FRAME_INSET - 0.5);
       expect(band.top).toBeLessThan(band.bottom);
     }
     expect(TEMPO_BANDS[0]!.top).toBe(weightY(MIN_BPM));

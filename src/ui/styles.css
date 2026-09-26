@@ -4279,9 +4279,7 @@ select.is-compact {
 
 .metronome-stage {
   display: grid;
-  grid-template:
-    'instrument panel' auto
-    'notes panel' 1fr / minmax(0, 1fr) minmax(0, 25rem);
+  grid-template: 'instrument panel' / minmax(0, 1fr) minmax(0, 27rem);
   align-items: start;
   gap: 1.25rem 3.5rem;
   margin-top: 0.5rem;
@@ -4311,14 +4309,15 @@ select.is-compact {
   --brass: #a8884c;
   --brass-lo: #5e4922;
   --met-shadow: rgb(var(--shadow-rgb));
-  --met-height: min(29rem, calc(100dvh - 21rem));
+  --met-height: min(36rem, calc(100dvh - 15rem));
+  --met-box: calc(var(--met-height) * 320 / 334);
 
   grid-area: instrument;
   position: relative;
   isolation: isolate;
+  container-type: inline-size;
   display: grid;
   justify-items: center;
-  gap: 0.25rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -4386,8 +4385,10 @@ select.is-compact {
 /* The instrument: layers in one box, the box exactly the drawing's shape (see Pendulum.tsx). */
 .pendulum {
   position: relative;
-  width: min(100%, calc(var(--met-height) * 320 / 344));
-  /* The swinging layers' empty corners must not widen the page. */
+  z-index: 1;
+  width: min(100%, var(--met-box));
+  /* The swinging layers' empty corners must not widen the page, or reach over the rail and the
+     panel (Chrome would then layerize what they cover, every swing). */
   overflow: clip;
 }
 
@@ -4493,8 +4494,21 @@ select.is-compact {
 
 .pendulum-bands {
   font-weight: 560;
-  font-variant-caps: all-small-caps;
-  letter-spacing: 0.05em;
+  /* Capitals, tracked a little (BAND_ADVANCE in geometry.ts is their width). */
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.pendulum-cap-shade {
+  fill: none;
+  stroke: #000;
+  stroke-opacity: 0.35;
+  stroke-width: 1.4;
+}
+
+.pendulum-sheen {
+  fill: #fff4d6;
+  opacity: 0;
 }
 
 .pendulum-screw {
@@ -4503,9 +4517,9 @@ select.is-compact {
 
 .pendulum-soft {
   fill: var(--met-shadow);
-  fill-opacity: 0.075;
+  fill-opacity: 0.05;
   stroke: var(--met-shadow);
-  stroke-opacity: 0.075;
+  stroke-opacity: 0.05;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
@@ -4554,34 +4568,78 @@ select.is-compact {
 /* The beats of the bar: studs inlaid in a walnut rail, ivory (brass for an accent, an empty
    socket for a muted beat), with brass pins for the subdivisions between. */
 .beat-dots {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 0 0.125rem;
-  min-width: min(100%, calc(var(--met-height) * 200 / 344));
+  /* The metronome stands on it: its foot rests on the top face, a little in from the back edge. */
+  min-width: min(100%, calc(var(--met-box) * 0.68));
   max-width: 100%;
-  padding: 0 0.75rem;
-  border-radius: 3px;
+  margin-top: -5px;
+  padding: 0.625rem 0.875rem 0.3125rem;
+  border-radius: 2px 2px 3px 3px;
   background:
+    /* The top face, lit from above; the arris; the front's lower edge in shade. */
     linear-gradient(
       to bottom,
-      rgb(255 233 207 / 0.16),
-      rgb(255 233 207 / 0.04) 2px,
-      transparent 3px,
-      transparent calc(100% - 2px),
-      rgb(0 0 0 / 0.35)
+      rgb(255 233 207 / 0.24),
+      rgb(255 233 207 / 0.1) 6px,
+      rgb(0 0 0 / 0.35) 7px,
+      rgb(255 233 207 / 0.06) 8px,
+      transparent 10px,
+      transparent calc(100% - 3px),
+      rgb(0 0 0 / 0.4)
     ),
+    /* Grain along the rail, as along the plinth. */
+    repeating-linear-gradient(
+        to bottom,
+        transparent 0 3px,
+        rgb(20 10 3 / 0.1) 3px 4px,
+        transparent 4px 7px
+      ),
     repeating-linear-gradient(
       to bottom,
-      transparent 0 3px,
-      rgb(20 10 3 / 0.12) 3px 4px,
-      transparent 4px 7px
+      transparent 0 5px,
+      rgb(168 118 76 / 0.08) 5px 6px,
+      transparent 6px 11px
     ),
     linear-gradient(100deg, var(--walnut-hi), var(--walnut) 45%, var(--walnut-lo));
   box-shadow:
     0 0 0 0.5px rgb(0 0 0 / 0.35),
-    0 6px 10px -6px rgb(var(--shadow-rgb) / 0.7);
+    0 2px 3px rgb(var(--shadow-rgb) / 0.3),
+    0 12px 18px -8px rgb(var(--shadow-rgb) / 0.6);
+}
+
+/* Where the plinth stands on the rail: a soft dark line under its foot, which is 55% of the
+   drawing's width (the drawing is as wide as the column allows, up to --met-box). */
+.beat-dots::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  width: calc(min(100cqw, var(--met-box)) * 0.57);
+  height: 5px;
+  translate: -50% 0;
+  background: radial-gradient(closest-side, rgb(0 0 0 / 0.5), rgb(0 0 0 / 0));
+  pointer-events: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .beat-dots {
+    box-shadow:
+      0 0 0 0.5px rgb(0 0 0 / 0.6),
+      0 2px 3px rgb(0 0 0 / 0.5),
+      0 12px 18px -8px rgb(0 0 0 / 0.8);
+  }
+}
+
+:root[data-theme='dark'] .beat-dots {
+  box-shadow:
+    0 0 0 0.5px rgb(0 0 0 / 0.6),
+    0 2px 3px rgb(0 0 0 / 0.5),
+    0 12px 18px -8px rgb(0 0 0 / 0.8);
 }
 
 .beat-dots .beat-slot {
@@ -4716,7 +4774,7 @@ select.is-compact {
 .metronome-panel {
   grid-area: panel;
   display: grid;
-  gap: 0.875rem;
+  gap: 0.625rem;
   min-width: 0;
 }
 
@@ -4874,8 +4932,8 @@ select.is-compact {
 
 .metronome-settings {
   display: grid;
-  gap: 0.5rem;
-  padding-top: 0.875rem;
+  gap: 0.375rem;
+  padding-top: 0.625rem;
   border-top: 1px solid var(--border);
 }
 
@@ -4902,8 +4960,13 @@ select.is-compact {
 }
 
 .metronome-label:is(:lang(zh), :lang(ja), :lang(ko)) {
+  width: 5rem;
   font-size: 0.875rem;
   letter-spacing: 0.04em;
+}
+
+.metronome-setting .segmented.is-compact span {
+  padding-inline: 0.625rem;
 }
 
 .metronome-setting .metronome-volume {
@@ -4918,12 +4981,18 @@ select.is-compact {
   font-size: 0.9375rem;
 }
 
+.metronome-silent:is(:lang(zh), :lang(ja), :lang(ko)) {
+  margin-inline-start: 6rem;
+}
+
 @media (max-width: 30rem) {
-  .metronome-label {
+  .metronome-label,
+  .metronome-label:is(:lang(zh), :lang(ja), :lang(ko)) {
     width: 100%;
   }
 
-  .metronome-silent {
+  .metronome-silent,
+  .metronome-silent:is(:lang(zh), :lang(ja), :lang(ko)) {
     margin-inline-start: 0;
   }
 }
@@ -5009,11 +5078,11 @@ select.is-compact {
 }
 
 .metronome-notes {
-  grid-area: notes;
   display: grid;
-  gap: 0.25rem;
+  gap: 0.125rem;
   max-width: none;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
 }
 
 .metronome-notes p {
@@ -5032,7 +5101,7 @@ select.is-compact {
 
 @media (max-width: 47.99rem) {
   .metronome-stage {
-    grid-template: 'instrument' 'panel' 'notes' / minmax(0, 1fr);
+    grid-template: 'instrument' 'panel' / minmax(0, 1fr);
   }
 
   .metronome-instrument {

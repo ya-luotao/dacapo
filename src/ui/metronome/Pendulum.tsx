@@ -3,10 +3,14 @@ import {
   BAND_ADVANCE,
   BAND_SIZE,
   BAND_X,
+  CAP_OVERHANG,
+  CAP_STEP,
+  CAP_TOP,
   CASE_BOTTOM,
   CASE_TOP,
   caseHalf,
   CX,
+  FRAME_INSET,
   LABEL_SIZE,
   LABEL_X,
   pct,
@@ -39,21 +43,33 @@ import {
 // lines.
 
 const VIEW_BOX = `0 0 ${VIEW_W} ${VIEW_H}`;
-/** Ticks reach further towards the numbers (left) than towards the Italian marks. */
-const TICK: [number, number] = [3.2, 2.2];
-const TICK_MAJOR: [number, number] = [5.4, 2.8];
+/** Ticks reach left, towards the numbers, and stop under the rod: the marks start right of it. */
+const TICK = 3.4;
+const TICK_MAJOR = 5.6;
 const ROD_HALF = 1.3;
 const HUB_R = 5.5;
 
-/** The case's outline, for the shadow's clip: the shadow falls only on the case. */
-const CASE_CLIP = `polygon(${[
-  [CX - caseHalf(CASE_TOP), CASE_TOP],
-  [CX + caseHalf(CASE_TOP), CASE_TOP],
-  [CX + caseHalf(CASE_BOTTOM), CASE_BOTTOM],
-  [CX - caseHalf(CASE_BOTTOM), CASE_BOTTOM],
-]
-  .map(([x, y]) => `${pct(x!, VIEW_W)} ${pct(y!, VIEW_H)}`)
-  .join(', ')})`;
+/**
+ * The plate's outline, arch and all, for the shadow's clip: the rod is close to the plate, and
+ * its shadow falls only there.
+ */
+const PLATE_CLIP = (() => {
+  const inset = PLATE_MARGIN;
+  const top = RECESS_TOP + inset;
+  const shoulder = top + 7;
+  const bottom = RECESS_BOTTOM - inset;
+  const half = (y: number) => recessHalf(y, inset);
+  const arch = Array.from({ length: 13 }, (_, i) => {
+    // The quadratic curve of recessEdge, from the left shoulder to the right.
+    const t = i / 12;
+    const x =
+      (1 - t) ** 2 * (CX - half(shoulder)) + t * t * (CX + half(shoulder)) + 2 * t * (1 - t) * CX;
+    const y = (1 - t) ** 2 * shoulder + t * t * shoulder + 2 * t * (1 - t) * (top - 7);
+    return [x, y];
+  });
+  const points = [[CX - half(bottom), bottom], ...arch, [CX + half(bottom), bottom]];
+  return `polygon(${points.map(([x, y]) => `${pct(x!, VIEW_W)} ${pct(y!, VIEW_H)}`).join(', ')})`;
+})();
 
 const f = (n: number) => Number(n.toFixed(2));
 
@@ -79,29 +95,57 @@ function recessEdge(inset: number): string {
   ].join('');
 }
 
-const recessHalf = (y: number, inset: number) => caseHalf(y) - RECESS_INSET - inset;
+function recessHalf(y: number, inset: number): number {
+  return caseHalf(y) - RECESS_INSET - inset;
+}
 
 const CASE = trapezoid(CASE_TOP, CASE_BOTTOM, caseHalf(CASE_TOP), caseHalf(CASE_BOTTOM));
 const WEIGHT = trapezoid(0, WEIGHT_H, WEIGHT_TOP_HALF, WEIGHT_BOTTOM_HALF);
 
-/** Fine vertical grain: thin wandering lines, seeded so the drawing is the same every time. */
-const GRAIN = (() => {
-  let seed = 0x5eed;
-  const random = () => {
-    seed = (seed * 1_103_515_245 + 12_345) % 2_147_483_648;
-    return seed / 2_147_483_648;
+type GrainLine = { d: string; width: number; opacity: number; light: boolean };
+
+/** Seeded, so the drawing is the same every time. */
+let seed = 0x5eed;
+function random(): number {
+  seed = (seed * 1_103_515_245 + 12_345) % 2_147_483_648;
+  return seed / 2_147_483_648;
+}
+
+function grainLine(d: string): GrainLine {
+  return {
+    d,
+    width: f(0.25 + random() * random() * 1.4),
+    opacity: f(0.08 + random() * 0.22),
+    light: random() < 0.22,
   };
+}
+
+/** Fine vertical grain up the case: thin wandering lines. */
+const GRAIN = (() => {
   const half = caseHalf(CASE_BOTTOM);
-  const lines: { d: string; width: number; opacity: number; light: boolean }[] = [];
+  const lines: GrainLine[] = [];
   for (let x = CX - half; x < CX + half; x += 1.2 + random() * 2.6) {
     const wander = () => f(x + (random() - 0.5) * 2.2);
-    const d = `M${wander()} ${CASE_TOP}C${wander()} 90 ${wander()} 150 ${wander()} 190S${wander()} 280 ${wander()} ${CASE_BOTTOM}`;
-    lines.push({
-      d,
-      width: f(0.25 + random() * random() * 1.4),
-      opacity: f(0.08 + random() * 0.22),
-      light: random() < 0.22,
-    });
+    lines.push(
+      grainLine(
+        `M${wander()} ${CASE_TOP}C${wander()} 90 ${wander()} 150 ${wander()} 190S${wander()} 280 ${wander()} ${CASE_BOTTOM}`,
+      ),
+    );
+  }
+  return lines;
+})();
+
+/** The plinth's grain runs along it, as the rail's does. */
+const PLINTH_GRAIN = (() => {
+  const half = caseHalf(CASE_BOTTOM) + 12;
+  const lines: GrainLine[] = [];
+  for (let y = CASE_BOTTOM + 5; y < PLINTH_BOTTOM - 0.5; y += 0.9 + random() * 1.6) {
+    const wander = () => f(y + (random() - 0.5) * 0.9);
+    lines.push(
+      grainLine(
+        `M${f(CX - half)} ${wander()}C${CX - 40} ${wander()} ${CX + 20} ${wander()} ${f(CX + half)} ${wander()}`,
+      ),
+    );
   }
   return lines;
 })();
@@ -153,11 +197,6 @@ const Case = memo(function Case() {
           {stop(0.5, 'var(--brass)')}
           {stop(1, 'var(--brass-lo)')}
         </linearGradient>
-        <radialGradient id="met-contact" cx="0.5" cy="0.5" r="0.5">
-          {stop(0, 'var(--met-shadow)', 0.55)}
-          {stop(0.6, 'var(--met-shadow)', 0.18)}
-          {stop(1, 'var(--met-shadow)', 0)}
-        </radialGradient>
         <clipPath id="met-case-clip">
           <path d={CASE} />
         </clipPath>
@@ -165,14 +204,6 @@ const Case = memo(function Case() {
           <path d={recessPath(PLATE_MARGIN)} />
         </clipPath>
       </defs>
-
-      <ellipse
-        cx={CX}
-        cy={PLINTH_BOTTOM}
-        rx={caseHalf(CASE_BOTTOM) + 34}
-        ry={7}
-        fill="url(#met-contact)"
-      />
 
       {/* The plinth: a moulded foot, its own grain running across. */}
       <path
@@ -193,6 +224,15 @@ const Case = memo(function Case() {
         )}
         fill="url(#met-plinth)"
       />
+      {PLINTH_GRAIN.map((line, i) => (
+        <path
+          key={i}
+          d={line.d}
+          className={line.light ? 'pendulum-grain is-light' : 'pendulum-grain'}
+          strokeWidth={line.width}
+          strokeOpacity={line.opacity}
+        />
+      ))}
       <path
         className="pendulum-bevel-light"
         d={`M${f(CX - caseHalf(CASE_BOTTOM) - 12)} ${CASE_BOTTOM + 4.4}H${f(CX + caseHalf(CASE_BOTTOM) + 12)}`}
@@ -246,6 +286,37 @@ const Case = memo(function Case() {
         d={`M${f(CX + caseHalf(CASE_TOP) - 0.5)} ${CASE_TOP + 0.5}L${f(CX + caseHalf(CASE_BOTTOM) - 0.6)} ${CASE_BOTTOM}`}
       />
 
+      {/* The cap: a slab overhanging the case's top, a thinner step on it, bevelled as the plinth. */}
+      <path
+        className="pendulum-cap-shade"
+        d={`M${f(CX - caseHalf(CASE_TOP))} ${CASE_TOP + 1}H${f(CX + caseHalf(CASE_TOP))}`}
+      />
+      <path
+        d={trapezoid(
+          CAP_STEP,
+          CASE_TOP + 0.4,
+          caseHalf(CASE_TOP) + CAP_OVERHANG - 0.7,
+          caseHalf(CASE_TOP) + CAP_OVERHANG,
+        )}
+        fill="url(#met-plinth)"
+      />
+      <path
+        d={trapezoid(CAP_TOP, CAP_STEP, caseHalf(CASE_TOP) - 3, caseHalf(CASE_TOP) - 1.6)}
+        fill="url(#met-plinth)"
+      />
+      <path
+        className="pendulum-bevel-light"
+        d={`M${f(CX - caseHalf(CASE_TOP) - CAP_OVERHANG + 0.9)} ${CAP_STEP + 0.4}H${f(CX + caseHalf(CASE_TOP) + CAP_OVERHANG - 0.9)}`}
+      />
+      <path
+        className="pendulum-bevel-light"
+        d={`M${f(CX - caseHalf(CASE_TOP) + 3.4)} ${CAP_TOP + 0.4}H${f(CX + caseHalf(CASE_TOP) - 3.4)}`}
+      />
+      <path
+        className="pendulum-bevel-dark"
+        d={`M${f(CX - caseHalf(CASE_TOP) - CAP_OVERHANG + 0.4)} ${CASE_TOP + 0.1}H${f(CX + caseHalf(CASE_TOP) + CAP_OVERHANG - 0.4)}`}
+      />
+
       {/* The recess: its walls, then the plate set in it. */}
       <path d={recessPath(0)} fill="url(#met-recess)" />
       <path
@@ -262,18 +333,17 @@ const Case = memo(function Case() {
           <path key={width} d={recessEdge(PLATE_MARGIN)} strokeWidth={width} />
         ))}
       </g>
-      <path d={recessPath(PLATE_MARGIN + 2)} className="pendulum-frame" />
+      <path d={recessPath(PLATE_MARGIN + FRAME_INSET)} className="pendulum-frame" />
 
       {/* The scale: a tick for every mark, numbers left, the Italian marks right. */}
       <g className="pendulum-ticks">
         {SCALE_MARKS.map((mark) => {
           const y = f(weightY(mark));
           const major = labels.has(mark);
-          const [left, right] = major ? TICK_MAJOR : TICK;
           return (
             <path
               key={mark}
-              d={`M${f(CX - left)} ${y}H${f(CX + right)}`}
+              d={`M${f(CX - (major ? TICK_MAJOR : TICK))} ${y}H${CX}`}
               className={major ? 'is-major' : undefined}
             />
           );
@@ -321,7 +391,7 @@ const Case = memo(function Case() {
 function Soft({ d, stroke }: { d: string; stroke?: boolean }) {
   return (
     <>
-      {[7, 5, 3.2, 1.6, 0].map((spread) => (
+      {[9, 6.5, 4.4, 2.6, 1.2].map((spread) => (
         <path
           key={spread}
           d={d}
@@ -344,7 +414,7 @@ export function Pendulum({ bpm, ref }: { bpm: number; ref?: Ref<HTMLDivElement> 
       style={{ aspectRatio: `${VIEW_W} / ${VIEW_H}` }}
     >
       <Case />
-      <div className="pendulum-shade" style={{ clipPath: CASE_CLIP }}>
+      <div className="pendulum-shade" style={{ clipPath: PLATE_CLIP }}>
         <svg
           className="pendulum-shadow"
           viewBox={VIEW_BOX}
@@ -419,10 +489,11 @@ export function Pendulum({ bpm, ref }: { bpm: number; ref?: Ref<HTMLDivElement> 
             className="pendulum-index"
             d={`M${f(CX - WEIGHT_TOP_HALF + 0.3)} 0.35H${f(CX + WEIGHT_TOP_HALF - 0.3)}`}
           />
+          <path className="pendulum-sheen" d={WEIGHT} />
           <g clipPath="url(#met-weight-clip)">
             <path
               className="pendulum-glint"
-              d={`M${f(CX - WEIGHT_BOTTOM_HALF - 12)} ${WEIGHT_H + 2}l6-${WEIGHT_H + 4}h7l-6 ${WEIGHT_H + 4}z`}
+              d={`M${f(CX - WEIGHT_BOTTOM_HALF - 16)} ${WEIGHT_H + 2}l6-${WEIGHT_H + 4}h10l-6 ${WEIGHT_H + 4}z`}
               fill="url(#met-glint)"
             />
           </g>

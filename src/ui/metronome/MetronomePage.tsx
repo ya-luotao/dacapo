@@ -271,14 +271,13 @@ export function MetronomePage() {
             trainer={settings.trainer}
             onChange={(patch) => metronome.update({ trainer: { ...settings.trainer, ...patch } })}
           />
-        </div>
-
-        <div className="metronome-notes help">
-          <p className="metronome-keys">
-            <kbd>{t('metronome.keys.space')}</kbd> {t('metronome.keys.start')} · <kbd>←</kbd>{' '}
-            <kbd>→</kbd> {t('metronome.keys.tempo')} · <kbd>T</kbd> {t('metronome.keys.tap')}
-          </p>
-          <p>{t('metronome.source')}</p>
+          <div className="metronome-notes help">
+            <p className="metronome-keys">
+              <kbd>{t('metronome.keys.space')}</kbd> {t('metronome.keys.start')} · <kbd>←</kbd>{' '}
+              <kbd>→</kbd> {t('metronome.keys.tempo')} · <kbd>T</kbd> {t('metronome.keys.tap')}
+            </p>
+            <p>{t('metronome.source')}</p>
+          </div>
         </div>
       </div>
     </section>
