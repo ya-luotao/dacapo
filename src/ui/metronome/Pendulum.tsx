@@ -310,9 +310,9 @@ const Case = memo(function Case() {
       </g>
 
       {/* The clip's plate, screwed to the case above the recess. */}
-      <rect x={CX - 6.5} y={31.5} width={13} height={9} rx={1.8} fill="url(#met-brass)" />
-      <circle cx={CX - 4.2} cy={38.4} r={0.8} className="pendulum-screw" />
-      <circle cx={CX + 4.2} cy={38.4} r={0.8} className="pendulum-screw" />
+      <rect x={CX - 7} y={31} width={14} height={5.6} rx={2.8} fill="url(#met-brass)" />
+      <circle cx={CX - 4.6} cy={33.8} r={0.75} className="pendulum-screw" />
+      <circle cx={CX + 4.6} cy={33.8} r={0.75} className="pendulum-screw" />
     </svg>
   );
 });
@@ -321,7 +321,7 @@ const Case = memo(function Case() {
 function Soft({ d, stroke }: { d: string; stroke?: boolean }) {
   return (
     <>
-      {[4.2, 2.8, 1.4, 0].map((spread) => (
+      {[7, 5, 3.2, 1.6, 0].map((spread) => (
         <path
           key={spread}
           d={d}
@@ -434,8 +434,8 @@ export function Pendulum({ bpm, ref }: { bpm: number; ref?: Ref<HTMLDivElement> 
         />
       </svg>
       <svg className="pendulum-front" viewBox={VIEW_BOX}>
-        <path className="pendulum-jaw-shade" d={`M${CX - 4.6} 36.4q4.6 3 9.2 0`} />
-        <path className="pendulum-jaw" d={`M${CX - 4.6} 35.8q4.6 3 9.2 0`} />
+        <path className="pendulum-jaw-shade" d={`M${CX - 2.9} 34.4c0 5 5.8 5 5.8 0`} />
+        <path className="pendulum-jaw" d={`M${CX - 2.9} 33.8c0 5 5.8 5 5.8 0`} />
       </svg>
     </div>
   );
