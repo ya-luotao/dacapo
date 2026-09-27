@@ -11,7 +11,16 @@ import {
   type ParsedImport,
   type Preferences,
 } from './exchange.ts';
-import { resetIndexedDB, sampleData, samplePiece, sampleRhythmRun, sampleRun } from './fixtures.ts';
+import {
+  resetIndexedDB,
+  sampleData,
+  sampleHeadline,
+  samplePiece,
+  sampleRhythmRun,
+  sampleRun,
+  sampleScaleSession,
+  T0,
+} from './fixtures.ts';
 import { createIndexedDbRepository, type PracticeRepository } from './repository.ts';
 
 const PREFS: Preferences = { locale: 'zh-CN', theme: 'dark' };
@@ -28,10 +37,8 @@ async function freshRepository(): Promise<PracticeRepository> {
 
 async function exportOf(repo: PracticeRepository, now = NOW): Promise<ExportFile> {
   const data = await repo.load();
-  return buildExport({ ...data, pieceSteps: await repo.allPieceSteps() }, PREFS, {
-    now,
-    appVersion: '0.0.0',
-  });
+  const [pieceSteps, scaleRuns] = await Promise.all([repo.allPieceSteps(), repo.allScaleRuns()]);
+  return buildExport({ ...data, pieceSteps, scaleRuns }, PREFS, { now, appVersion: '0.0.0' });
 }
 
 function parsed(text: string): ParsedImport {
@@ -67,7 +74,7 @@ describe('export', () => {
   it('writes the versioned file with preferences and every record', async () => {
     const repo = await freshRepository();
     const { sessions, attempts } = sampleData();
-    await repo.merge({ sessions, attempts, pieces: [], pieceSteps: [] });
+    await repo.merge({ sessions, attempts, pieces: [], pieceSteps: [], scaleRuns: [] });
     const file = await exportOf(repo);
     expect(file).toMatchObject({
       format: 'dacapo',
@@ -116,25 +123,36 @@ describe('export → import', () => {
         loop: { from: 2, to: 3, fromLabel: '3', toLabel: '4' },
       });
     }
+    const scales = [
+      sampleScaleSession('k1', 3),
+      sampleScaleSession('k2', 2, { exercise: 'harmonicMinor:G#:2:left', startedAt: T0 - 90_000 }),
+    ];
+    for (const { runs, session } of scales) {
+      for (const run of runs) await source.addScaleRun(run, session);
+    }
     const exported = await exportOf(source);
     expect(exported.pieces.map((p) => p.id)).toEqual(['p1', 'p2']);
     expect(exported.pieceSteps).toHaveLength(15);
     expect(exported.pieceSteps.filter((s) => s.mode === 'rhythm')).toHaveLength(5);
     expect(exported.sessions.filter((s) => s.kind === 'piece')).toHaveLength(3);
+    expect(exported.sessions.filter((s) => s.kind === 'scale')).toHaveLength(2);
+    expect(exported.scaleRuns.map((r) => r.id)).toEqual(['k2:0', 'k2:1', 'k1:0', 'k1:1', 'k1:2']);
 
     const target = await freshRepository();
     const file = parsed(JSON.stringify(exported));
     expect(file.invalid).toEqual([]);
     expect(file.preferences).toEqual(PREFS);
     expect(await target.merge(file)).toEqual({
-      sessions: 6,
+      sessions: 8,
       attempts: attempts.length,
       pieces: 2,
       pieceSteps: 15,
+      scaleRuns: 5,
     });
     expect(await exportOf(target)).toEqual(exported);
     expect(await target.load()).toEqual(await source.load());
     expect(await target.allPieceSteps()).toEqual(await source.allPieceSteps());
+    expect(await target.allScaleRuns()).toEqual(await source.allScaleRuns());
   });
 
   it('importing the same file twice changes nothing', async () => {
@@ -148,6 +166,7 @@ describe('export → import', () => {
       attempts: 0,
       pieces: 0,
       pieceSteps: 0,
+      scaleRuns: 0,
     });
     expect(await repo.load()).toEqual(once);
   });
@@ -292,12 +311,14 @@ describe('planImport', () => {
       attemptIds: new Set(attempts.slice(0, 4).map((a) => a.id)),
       pieceIds: new Set(),
       pieceStepIds: new Set(),
+      scaleRunIds: new Set(),
     });
     expect(plan).toEqual({
       sessions: { new: sessions.length - 1, present: 1, invalid: 0 },
       attempts: { new: attempts.length - 4, present: 4, invalid: 1 },
       pieces: { new: 0, present: 0, invalid: 0 },
       pieceSteps: { new: 0, present: 0, invalid: 0 },
+      scaleRuns: { new: 0, present: 0, invalid: 0 },
     });
   });
 
@@ -309,8 +330,31 @@ describe('planImport', () => {
       attemptIds: new Set(),
       pieceIds: new Set(),
       pieceStepIds: new Set([steps[0]!.id]),
+      scaleRunIds: new Set(),
     });
     expect(plan.pieceSteps).toEqual({ new: 3, present: 1, invalid: 0 });
+  });
+
+  it('counts scale runs too', () => {
+    const { runs, session } = sampleScaleSession('k1', 3);
+    const file = parsed(
+      fileWith({
+        version: 5,
+        pieces: [],
+        pieceSteps: [],
+        sessions: [session],
+        scaleRuns: [...runs, { ...runs[0]!, id: 'bad', keys: [] }],
+      }),
+    );
+    const plan = planImport(file, {
+      sessionIds: new Set(),
+      attemptIds: new Set(),
+      pieceIds: new Set(),
+      pieceStepIds: new Set(),
+      scaleRunIds: new Set([runs[2]!.id]),
+    });
+    expect(plan.sessions).toEqual({ new: 1, present: 0, invalid: 0 });
+    expect(plan.scaleRuns).toEqual({ new: 2, present: 1, invalid: 1 });
   });
 
   it('counts pieces too', () => {
@@ -322,6 +366,7 @@ describe('planImport', () => {
       attemptIds: new Set(),
       pieceIds: new Set(['p2']),
       pieceStepIds: new Set(),
+      scaleRunIds: new Set(),
     });
     expect(plan.pieces).toEqual({ new: 1, present: 1, invalid: 1 });
   });
@@ -474,20 +519,131 @@ describe('versions', () => {
     ]);
   });
 
-  it('writes version 4 with pieces, piece sessions and step records', async () => {
+  it('imports a version 4 file, which has no scale runs', () => {
+    const { steps, session } = sampleRhythmRun('r1', 3);
+    const file = parsed(
+      fileWith({
+        version: 4,
+        pieces: [],
+        sessions: [session],
+        pieceSteps: steps,
+        scaleRuns: 'x',
+      }),
+    );
+    expect(file).toMatchObject({ version: 4, scaleRuns: [], invalid: [] });
+    expect(file.sessions).toEqual([session]);
+    expect(file.pieceSteps).toEqual(steps);
+  });
+
+  it('refuses a version 5 file without a list of scale runs', () => {
+    expect(parseImport(fileWith({ version: 5, pieces: [], pieceSteps: [] }))).toEqual({
+      ok: false,
+      error: { kind: 'wrong-format' },
+    });
+  });
+
+  it('imports scale sessions and runs of a version 5 file and reports bad ones', () => {
+    const { runs, session } = sampleScaleSession('k1', 2);
+    const [run] = runs;
+    const summary = session.runs[0]!;
+    const withSummary = (id: string, patch: Record<string, unknown>) => ({
+      ...session,
+      id,
+      runs: [{ ...summary, ...patch }],
+    });
+    const key = run!.keys[0]!;
+    const file = parsed(
+      fileWith({
+        version: 5,
+        pieces: [],
+        pieceSteps: [],
+        sessions: [
+          { ...session, extra: 1, runs: session.runs.map((r) => ({ ...r, extra: 1 })) },
+          { ...session, id: 'x1', runs: [] },
+          { ...session, id: 'x2', endedAt: session.startedAt - 1 },
+          withSummary('x3', { exercise: 'major:H:1:right' }),
+          withSummary('x4', { headline: sampleHeadline({ version: 0 }) }),
+          withSummary('x5', { headline: { ...sampleHeadline(), counts: { matched: 3 } } }),
+          withSummary('x6', { endedAt: summary.startedAt - 1 }),
+          withSummary('x7', {
+            headline: sampleHeadline({
+              hands: [{ ...sampleHeadline().hands[0]!, spread: '2' as unknown as number }],
+            }),
+          }),
+          withSummary('x8', {
+            headline: sampleHeadline({
+              hands: [{ ...sampleHeadline().hands[0]!, spread: null, medianInterval: null }],
+            }),
+          }),
+        ],
+        scaleRuns: [
+          { ...run, secret: true },
+          runs[1],
+          { ...run, id: 'y1', exercise: 'major:C:5:right' },
+          { ...run, id: 'y2', keys: [{ ...key, midi: 128 }] },
+          { ...run, id: 'y3', keys: [{ ...key, velocity: 128 }] },
+          { ...run, id: 'y4', keys: [{ ...key, on: -1 }] },
+          { ...run, id: 'y5', keys: [{ ...key, on: 100, off: 99 }] },
+          { ...run, id: 'y6', end: 'crashed' },
+          { ...run, id: 'y7', pedal: [{ down: 'yes', time: 1 }] },
+          { ...run, id: 'y8', inputs: [5] },
+          { ...run, id: 'y9', startedAt: Number.NaN },
+          { ...run, id: 'y10', keys: [{ ...key, extra: 1 }], pedal: [{ down: true, time: -0.5 }] },
+          runs[1],
+        ],
+      }),
+    );
+    const x8 = withSummary('x8', {
+      headline: sampleHeadline({
+        hands: [{ ...sampleHeadline().hands[0]!, spread: null, medianInterval: null }],
+      }),
+    });
+    expect(file.sessions).toEqual([session, x8]);
+    expect(file.scaleRuns).toEqual([
+      run,
+      runs[1],
+      { ...run, id: 'y10', keys: [key], pedal: [{ down: true, time: -0.5 }] },
+    ]);
+    expect(file.invalid).toEqual([
+      { collection: 'sessions', index: 1, field: 'runs', problem: 'invalid' },
+      { collection: 'sessions', index: 2, field: 'endedAt', problem: 'invalid' },
+      { collection: 'sessions', index: 3, field: 'runs', problem: 'invalid' },
+      { collection: 'sessions', index: 4, field: 'runs', problem: 'invalid' },
+      { collection: 'sessions', index: 5, field: 'runs', problem: 'invalid' },
+      { collection: 'sessions', index: 6, field: 'runs', problem: 'invalid' },
+      { collection: 'sessions', index: 7, field: 'runs', problem: 'invalid' },
+      { collection: 'scaleRuns', index: 2, field: 'exercise', problem: 'invalid' },
+      { collection: 'scaleRuns', index: 3, field: 'keys', problem: 'invalid' },
+      { collection: 'scaleRuns', index: 4, field: 'keys', problem: 'invalid' },
+      { collection: 'scaleRuns', index: 5, field: 'keys', problem: 'invalid' },
+      { collection: 'scaleRuns', index: 6, field: 'keys', problem: 'invalid' },
+      { collection: 'scaleRuns', index: 7, field: 'end', problem: 'invalid' },
+      { collection: 'scaleRuns', index: 8, field: 'pedal', problem: 'invalid' },
+      { collection: 'scaleRuns', index: 9, field: 'inputs', problem: 'invalid' },
+      { collection: 'scaleRuns', index: 10, field: 'startedAt', problem: 'invalid' },
+      { collection: 'scaleRuns', index: 12, field: 'id', problem: 'duplicate' },
+    ]);
+  });
+
+  it('writes version 5 with pieces, piece sessions, step records and scale runs', async () => {
     const repo = await freshRepository();
     await repo.putPiece(samplePiece(1));
     const { steps, session } = sampleRun('r1', 2);
     for (const step of steps) await repo.addPieceStep(step, null);
     await repo.putSession(session);
+    const scales = sampleScaleSession('k1', 2);
+    for (const run of scales.runs) await repo.addScaleRun(run, scales.session);
     const file = await exportOf(repo);
-    expect(file.version).toBe(4);
+    expect(file.version).toBe(5);
     expect(file.pieces).toEqual([samplePiece(1)]);
     expect(file.pieceSteps).toEqual(steps);
+    expect(file.scaleRuns).toEqual(scales.runs);
     const back = parsed(JSON.stringify(file));
+    expect(back.invalid).toEqual([]);
     expect(back.pieces).toEqual([samplePiece(1)]);
     expect(back.pieceSteps).toEqual(steps);
-    expect(back.sessions).toEqual([session]);
+    expect(back.scaleRuns).toEqual(scales.runs);
+    expect(back.sessions).toEqual([scales.session, session]);
   });
 
   it('keeps the facts of a piece and refuses broken ones', () => {

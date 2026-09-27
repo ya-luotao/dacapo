@@ -6,6 +6,7 @@ import {
   type PieceSession,
   type PieceStep,
 } from '../core/pieceRecords.ts';
+import { byRunTime, type ScaleSession, type StoredScaleRun } from '../core/scaleRecords.ts';
 import type { Attempt } from '../core/session.ts';
 import { byImportedDescending, type StoredPiece } from '../core/storedPiece.ts';
 import { emptyStats, statsFromAttempts, updateStats, type NoteStats } from '../core/weakness.ts';
@@ -27,10 +28,12 @@ export interface StoredData {
 }
 
 export interface MergeResult {
+  /** Added, and scale sessions replaced by a longer copy. */
   sessions: number;
   attempts: number;
   pieces: number;
   pieceSteps: number;
+  scaleRuns: number;
 }
 
 /** What an import adds; records whose id is stored already are kept as they are. */
@@ -39,10 +42,14 @@ export interface MergeInput {
   attempts: readonly Attempt[];
   pieces: readonly StoredPiece[];
   pieceSteps: readonly PieceStep[];
+  scaleRuns: readonly StoredScaleRun[];
 }
 
 /** Which step records to read: those of a piece or of one session. */
 export type StepQuery = { pieceId: string } | { sessionId: string };
+
+/** Which scale runs to read: those of an exercise (its `exerciseKey`) or of one session. */
+export type ScaleRunQuery = { exercise: string } | { sessionId: string };
 
 export interface PracticeRepository {
   readonly kind: 'indexeddb' | 'memory';
@@ -77,8 +84,19 @@ export interface PracticeRepository {
   allPieceSteps: () => Promise<PieceStep[]>;
   pieceStepIds: () => Promise<string[]>;
   /**
-   * Adds the records whose id is not stored yet (stored ones are kept as they are), then rebuilds
-   * every note's stats from all attempts, in one transaction. Returns how many were added.
+   * Stores a scale run (one whose id is stored already changes nothing) and adds or replaces its
+   * session, brought up to date with the run, in one transaction.
+   */
+  addScaleRun: (run: StoredScaleRun, session: ScaleSession) => Promise<void>;
+  /** Scale runs by index, in the order played. Never read at startup. */
+  scaleRuns: (query: ScaleRunQuery) => Promise<StoredScaleRun[]>;
+  /** Every scale run, in order: for the export file. */
+  allScaleRuns: () => Promise<StoredScaleRun[]>;
+  scaleRunIds: () => Promise<string[]>;
+  /**
+   * Adds the records whose id is not stored yet (stored ones are kept as they are, except a scale
+   * session, which gives way to a copy with more runs), then rebuilds every note's stats from all
+   * attempts, in one transaction. Returns how many were added (or replaced).
    */
   merge: (input: MergeInput) => Promise<MergeResult>;
   close: () => void;
@@ -95,6 +113,23 @@ function validHeaders(values: readonly unknown[]): PieceRunHeader[] {
   return values.flatMap((value) => {
     const result = validatePieceRunHeader(value);
     return result.ok ? [result.value] : [];
+  });
+}
+
+/**
+ * The scale sessions of `records` that are stored with fewer runs, first occurrence only. A scale
+ * session grows while it is played, so a longer copy (from another device, say) is the later one.
+ */
+function longerScaleSessions(
+  records: readonly SessionRecord[],
+  stored: (id: string) => SessionRecord | undefined,
+): ScaleSession[] {
+  const seen = new Set<string>();
+  return records.filter((record): record is ScaleSession => {
+    if (record.kind !== 'scale' || seen.has(record.id)) return false;
+    seen.add(record.id);
+    const known = stored(record.id);
+    return known?.kind === 'scale' && record.runs.length > known.runs.length;
   });
 }
 
@@ -230,9 +265,29 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
       return (await db.getAll('pieceSteps')).sort(byStepTime);
     },
     pieceStepIds: () => db.getAllKeys('pieceSteps'),
+    async addScaleRun(run, session) {
+      const tx = db.transaction(['scaleRuns', 'sessions'], 'readwrite');
+      const runs = tx.objectStore('scaleRuns');
+      const known = await runs.getKey(run.id);
+      await writeAll(tx, [
+        ...(known === undefined ? [() => runs.add(run)] : []),
+        () => tx.objectStore('sessions').put(session),
+      ]);
+    },
+    async scaleRuns(query) {
+      const runs =
+        'exercise' in query
+          ? await db.getAllFromIndex('scaleRuns', 'by-exercise', query.exercise)
+          : await db.getAllFromIndex('scaleRuns', 'by-session', query.sessionId);
+      return runs.sort(byRunTime);
+    },
+    async allScaleRuns() {
+      return (await db.getAll('scaleRuns')).sort(byRunTime);
+    },
+    scaleRunIds: () => db.getAllKeys('scaleRuns'),
     async merge(input) {
       const tx = db.transaction(
-        ['sessions', 'attempts', 'noteStats', 'pieces', 'pieceSteps'],
+        ['sessions', 'attempts', 'noteStats', 'pieces', 'pieceSteps', 'scaleRuns'],
         'readwrite',
       );
       const sessions = tx.objectStore('sessions');
@@ -240,33 +295,41 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
       const noteStats = tx.objectStore('noteStats');
       const pieces = tx.objectStore('pieces');
       const pieceSteps = tx.objectStore('pieceSteps');
-      const [sessionIds, storedAttempts, pieceIds, stepIds] = await Promise.all([
-        sessions.getAllKeys(),
+      const scaleRuns = tx.objectStore('scaleRuns');
+      const [storedSessions, storedAttempts, pieceIds, stepIds, runIds] = await Promise.all([
+        sessions.getAll(),
         attempts.getAll(),
         pieces.getAllKeys(),
         pieceSteps.getAllKeys(),
+        scaleRuns.getAllKeys(),
       ]);
-      const addedSessions = notStored(input.sessions, sessionIds);
+      const byId = new Map(storedSessions.map((s) => [s.id, s]));
+      const addedSessions = notStored(input.sessions, byId.keys());
+      const longerSessions = longerScaleSessions(input.sessions, (id) => byId.get(id));
       const addedAttempts = notStored(
         input.attempts,
         storedAttempts.map((a) => a.id),
       );
       const addedPieces = notStored(input.pieces, pieceIds);
       const addedSteps = notStored(input.pieceSteps, stepIds);
+      const addedRuns = notStored(input.scaleRuns, runIds);
       const stats = statsFromAttempts([...storedAttempts, ...addedAttempts]);
       await writeAll(tx, [
         ...addedSessions.map((session) => () => sessions.add(session)),
+        ...longerSessions.map((session) => () => sessions.put(session)),
         ...addedAttempts.map((attempt) => () => attempts.add(attempt)),
         ...addedPieces.map((piece) => () => pieces.add(piece)),
         ...addedSteps.map((step) => () => pieceSteps.add(step)),
+        ...addedRuns.map((run) => () => scaleRuns.add(run)),
         () => noteStats.clear(),
         ...Object.values(stats).map((s) => () => noteStats.put(s)),
       ]);
       return {
-        sessions: addedSessions.length,
+        sessions: addedSessions.length + longerSessions.length,
         attempts: addedAttempts.length,
         pieces: addedPieces.length,
         pieceSteps: addedSteps.length,
+        scaleRuns: addedRuns.length,
       };
     },
     close: () => db.close(),
@@ -281,6 +344,7 @@ export function createMemoryRepository(): PracticeRepository {
   const pieces = new Map<string, StoredPiece>();
   const steps = new Map<string, PieceStep>();
   const openRuns = new Map<string, PieceRunHeader>();
+  const scaleRuns = new Map<string, StoredScaleRun>();
   let stats: Record<string, NoteStats> = {};
   const copy = <T>(value: T): T => structuredClone(value);
 
@@ -345,21 +409,39 @@ export function createMemoryRepository(): PracticeRepository {
     },
     allPieceSteps: () => Promise.resolve([...steps.values()].map(copy).sort(byStepTime)),
     pieceStepIds: () => Promise.resolve([...steps.keys()]),
+    addScaleRun(run, session) {
+      if (!scaleRuns.has(run.id)) scaleRuns.set(run.id, copy(run));
+      sessions.set(session.id, copy(session));
+      return Promise.resolve();
+    },
+    scaleRuns(query) {
+      const match = (r: StoredScaleRun) =>
+        'exercise' in query ? r.exercise === query.exercise : r.sessionId === query.sessionId;
+      return Promise.resolve([...scaleRuns.values()].filter(match).map(copy).sort(byRunTime));
+    },
+    allScaleRuns: () => Promise.resolve([...scaleRuns.values()].map(copy).sort(byRunTime)),
+    scaleRunIds: () => Promise.resolve([...scaleRuns.keys()]),
     merge(input) {
       const addedSessions = notStored(input.sessions, sessions.keys());
+      const longerSessions = longerScaleSessions(input.sessions, (id) => sessions.get(id));
       const addedAttempts = notStored(input.attempts, attempts.keys());
       const addedPieces = notStored(input.pieces, pieces.keys());
       const addedSteps = notStored(input.pieceSteps, steps.keys());
-      for (const session of addedSessions) sessions.set(session.id, copy(session));
+      const addedRuns = notStored(input.scaleRuns, scaleRuns.keys());
+      for (const session of [...addedSessions, ...longerSessions]) {
+        sessions.set(session.id, copy(session));
+      }
       for (const attempt of addedAttempts) attempts.set(attempt.id, copy(attempt));
       for (const piece of addedPieces) pieces.set(piece.id, copy(piece));
       for (const step of addedSteps) steps.set(step.id, copy(step));
+      for (const run of addedRuns) scaleRuns.set(run.id, copy(run));
       stats = statsFromAttempts([...attempts.values()]);
       return Promise.resolve({
-        sessions: addedSessions.length,
+        sessions: addedSessions.length + longerSessions.length,
         attempts: addedAttempts.length,
         pieces: addedPieces.length,
         pieceSteps: addedSteps.length,
+        scaleRuns: addedRuns.length,
       });
     },
     close() {},

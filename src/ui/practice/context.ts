@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useSyncExternalStore } from 'react';
 import type { PieceStep } from '../../core/pieceRecords.ts';
+import type { StoredScaleRun } from '../../core/scaleRecords.ts';
 import type { PracticeData, PracticeStore, StorageStatus } from './store.ts';
 
 export const PracticeContext = createContext<PracticeStore | null>(null);
@@ -28,4 +29,14 @@ export function usePieceSteps(pieceId: string): readonly PieceStep[] | null {
     if (steps === null) store.loadPieceSteps(pieceId);
   }, [store, pieceId, steps]);
   return steps;
+}
+
+/** An exercise's scale runs (by `exerciseKey`), read from storage on first use; null while loading. */
+export function useScaleRuns(exercise: string): readonly StoredScaleRun[] | null {
+  const store = usePracticeStore();
+  const runs = useSyncExternalStore(store.subscribeScaleRuns, () => store.getScaleRuns(exercise));
+  useEffect(() => {
+    if (runs === null) store.loadScaleRuns(exercise);
+  }, [store, exercise, runs]);
+  return runs;
 }

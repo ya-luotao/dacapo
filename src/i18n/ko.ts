@@ -160,6 +160,13 @@ export const ko: Dictionary = {
   'progress.session.hands.right': '오른손',
   'progress.session.hands.left': '왼손',
   'progress.session.hands.both': '양손',
+  'progress.kind.scales': '스케일',
+  'progress.session.scale': '스케일',
+  'progress.session.scaleOne': '{scale}, {octaves}옥타브',
+  'progress.session.scaleCount': '스케일 {n}개',
+  'progress.session.runs': '횟수',
+  'progress.session.runs.one': '1회',
+  'progress.session.runs.other': '{n}회',
   'progress.pieces': '오늘 곡 연습: {time}.',
   'progress.duration.seconds': '{s}초',
   'progress.duration.minutes': '{m}분 {s}초',
@@ -691,6 +698,35 @@ export const ko: Dictionary = {
     '점 하나가 한 음이에요. 앞뒤 음을 잇는 선과 비교하므로 기준은 자신의 빠르기예요. ×는 놓치거나 틀린 음이고, 음 사이의 세로선은 망설임이에요.',
   'scales.chart.desc.loud':
     '점 하나가 한 음이에요. 앞뒤 음을 잇는 선과 비교하므로 기준은 자신의 빠르기예요. ×는 놓치거나 틀린 음이고, 음 사이의 세로선은 망설임이에요. 아래 줄은 각 음이 앞뒤 음보다 센지 여린지 보여 줘요.',
+  'scales.trend': '시간 편차, 최근 30일',
+  'scales.trend.point': '{day}: {ms}ms ({runs})',
+  'scales.trend.reference': '전문 피아니스트 ≈ {ms}ms',
+  'scales.trend.desc':
+    '점 하나는 이 스케일을 친 날의 시간 편차 중앙값이에요. 낮을수록 고르게 친 거예요.',
+  'scales.progress': '이 스케일의 기록',
+  'scales.progress.none': '칠 때마다 기록돼요. 한 번 치고 나면 여기에 기록이 보여요.',
+  'scales.progress.latest': '최근',
+  'scales.progress.best': '최고',
+  'scales.progress.last': '마지막 연습',
+  'scales.places.notYet': '{min}번 치고 나면 매번 늦거나 빠른 곳이 여기에 보여요.',
+  'scales.places.none': '최근 {runs}번 동안 매번 늦거나 빠른 곳은 없어요.',
+  'scales.places.thumbUnder.up':
+    '올라갈 때마다 엄지를 밑으로 넘기는 음이 {timing} 나와요({keys}, 최근 {runs}번).',
+  'scales.places.thumbUnder.down':
+    '내려갈 때마다 엄지를 밑으로 넘기는 음이 {timing} 나와요({keys}, 최근 {runs}번).',
+  'scales.places.fingerOver.up':
+    '올라갈 때마다 손가락이 엄지를 넘어가는 음이 {timing} 나와요({keys}, 최근 {runs}번).',
+  'scales.places.fingerOver.down':
+    '내려갈 때마다 손가락이 엄지를 넘어가는 음이 {timing} 나와요({keys}, 최근 {runs}번).',
+  'scales.places.notes.up': '올라갈 때마다 {keys} 음이 {timing} 나와요(최근 {runs}번).',
+  'scales.places.notes.down': '내려갈 때마다 {keys} 음이 {timing} 나와요(최근 {runs}번).',
+  'scales.list': '내 스케일',
+  'scales.list.scale': '스케일',
+  'scales.list.recent': '편차(음 길이 대비)',
+  'scales.list.suggestion': '다음 추천: {scale}. 최근에 친 스케일 중 가장 고르지 않아요.',
+  'scales.list.play': '치기',
+  'scales.list.help':
+    '가장 고르지 않은 것부터 보여요. 스케일마다 최근 5번의 시간 편차가 음 길이에서 차지하는 비율 기준이에요.',
   'scales.table': '표로 보기',
   'scales.table.note': '번호',
   'scales.table.key': '음',
@@ -790,8 +826,9 @@ export const ko: Dictionary = {
   'settings.storage.loading': '연습 기록을 불러오는 중…',
   'settings.export': '데이터 내보내기',
   'settings.export.help':
-    '연습 내역, 응답, 가져온 곡, 곡 연습 상세 기록, 환경설정을 담은 {file} 파일을 내려받아요.',
-  'settings.export.failed': '곡 연습 상세 기록을 읽지 못해서 아무것도 내보내지 않았어요.',
+    '연습 내역, 응답, 가져온 곡, 곡과 스케일의 연습 상세 기록, 환경설정을 담은 {file} 파일을 내려받아요.',
+  'settings.export.failed':
+    '곡이나 스케일의 연습 상세 기록을 읽지 못해서 아무것도 내보내지 않았어요.',
   'settings.import': '데이터 가져오기…',
   'settings.import.help':
     '내보낸 파일의 연습 내역, 응답, 곡을 추가해요. 이미 있는 데이터는 바뀌거나 지워지지 않아요.',
@@ -812,6 +849,7 @@ export const ko: Dictionary = {
   'settings.import.attempts': '응답',
   'settings.import.pieces': '가져온 곡',
   'settings.import.pieceSteps': '곡 연습 상세 기록',
+  'settings.import.scaleRuns': '스케일 연습 상세 기록',
   'settings.import.stats': '음별 통계는 가져온 뒤 모든 응답을 바탕으로 다시 계산해요.',
   'settings.import.nothingNew': '이 파일의 내용은 모두 이미 있어요.',
   'settings.import.invalidTitle': '다음 항목은 잘못돼서 가져오지 않아요:',
@@ -822,13 +860,14 @@ export const ko: Dictionary = {
   'settings.import.record.attempts': '응답',
   'settings.import.record.pieces': '곡',
   'settings.import.record.pieceSteps': '곡 연습 상세 기록',
+  'settings.import.record.scaleRuns': '스케일 연습 상세 기록',
   'settings.import.more': '…외 {n}개',
   'settings.import.prefs': '파일의 환경설정도 적용: {language}, {theme}',
   'settings.import.apply': '가져오기',
   'settings.import.cancel': '취소',
   'settings.import.working': '가져오는 중…',
   'settings.import.done':
-    '가져오기 완료: 새 연습 내역 {sessions}개, 새 응답 {attempts}개, 새 곡 {pieces}개, 새 곡 연습 상세 기록 {steps}개.',
+    '가져오기 완료: 새 연습 내역 {sessions}개, 새 응답 {attempts}개, 새 곡 {pieces}개, 새 곡 연습 상세 기록 {steps}개, 새 스케일 연습 상세 기록 {scaleRuns}개.',
   'settings.import.failed': '가져온 내용을 저장하지 못했어요. 아무것도 바뀌지 않았어요.',
 
   'settings.about': '정보',
@@ -878,7 +917,7 @@ export const ko: Dictionary = {
   'settings.storage.memory.app':
     '저장 안 됨: 지금은 dacapo가 이 기기에 데이터를 저장할 수 없어요. dacapo를 닫기 전에 내보내세요.',
   'settings.export.help.app':
-    '연습 내역, 응답, 가져온 곡, 곡 연습 상세 기록, 환경설정을 담은 {file} 파일을 저장해요.',
+    '연습 내역, 응답, 가져온 곡, 곡과 스케일의 연습 상세 기록, 환경설정을 담은 {file} 파일을 저장해요.',
   'metronome.noAudio.app': '이 기기에서는 클릭을 재생할 수 없어요. 진자는 그대로 박자를 짚어요.',
 
   'about.title': 'dacapo 정보',

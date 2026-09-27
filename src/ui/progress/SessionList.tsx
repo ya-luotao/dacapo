@@ -2,7 +2,12 @@ import { useId, useState, type ReactNode } from 'react';
 import type { PieceSessionRecord, SessionRecord } from '../../core/log.ts';
 import { useT, type MessageKey } from '../../i18n/index.ts';
 import { isBuiltInId } from '../../pieces/library/index.ts';
+import { runFigures } from '../../core/scaleProgress.ts';
+import { parseExerciseKey } from '../../core/scales.ts';
+import type { ScaleExercise } from '../../core/scaleTypes.ts';
+import { median } from '../../core/session.ts';
 import { useReadFormat } from '../read/format.ts';
+import { useExerciseName } from '../scales/format.ts';
 import { useLogFormat } from './format.ts';
 
 export const SESSIONS_PER_PAGE = 20;
@@ -63,6 +68,8 @@ function SessionRow({ session }: { session: SessionRecord }) {
   const t = useT();
   const log = useLogFormat();
   const read = useReadFormat();
+  const exerciseName = useExerciseName();
+  const scaleName = (e: ScaleExercise | null) => (e ? exerciseName(e) : none);
   const none = t('read.none');
 
   const when: [MessageKey, ReactNode] = [
@@ -140,6 +147,39 @@ function SessionRow({ session }: { session: SessionRecord }) {
         ['progress.session.hands', t(`progress.session.hands.${session.hands}`)],
       ];
       break;
+    case 'scale': {
+      const exercises = [...new Set(session.runs.map((r) => r.exercise))].map(parseExerciseKey);
+      const only = exercises.length === 1 ? exercises[0] : null;
+      // The figures of this analysis only, the weaker hand's, as everywhere else (scaleProgress).
+      const spreads = session.runs.flatMap((r) => {
+        const spread = runFigures(r.headline)?.spread;
+        return spread === null || spread === undefined ? [] : [spread];
+      });
+      const spread = median(spreads);
+      cells = [
+        when,
+        ['progress.session.kind', t('progress.kind.scales')],
+        [
+          'progress.session.scale',
+          only
+            ? t('progress.session.scaleOne', { scale: scaleName(only), octaves: only.octaves })
+            : t('progress.session.scaleCount', { n: exercises.length }),
+        ],
+        duration,
+        [
+          'progress.session.runs',
+          session.runs.length === 1
+            ? t('progress.session.runs.one')
+            : t('progress.session.runs.other', { n: session.runs.length }),
+        ],
+        [
+          'scales.result.spread',
+          spread === null ? none : t('scales.result.ms', { ms: Math.round(spread) }),
+        ],
+        ['progress.session.hands', only ? t(`progress.session.hands.${only.hands}`) : none],
+      ];
+      break;
+    }
   }
 
   return (

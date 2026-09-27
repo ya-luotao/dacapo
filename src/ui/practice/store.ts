@@ -12,6 +12,7 @@ import {
   type PieceSession,
   type PieceStep,
 } from '../../core/pieceRecords.ts';
+import { byRunTime, type ScaleSession, type StoredScaleRun } from '../../core/scaleRecords.ts';
 import type { Attempt } from '../../core/session.ts';
 import { byImportedDescending, type StoredPiece } from '../../core/storedPiece.ts';
 import { emptyStats, updateStats, type NoteStats, type StatsByKey } from '../../core/weakness.ts';
@@ -87,6 +88,22 @@ export interface PracticeStore {
   /** Every step record, for the export file. */
   allPieceSteps: () => Promise<PieceStep[]>;
   pieceStepIds: () => Promise<Set<string>>;
+  /**
+   * Stores a scale run with its session, brought up to date with the run (added or replaced by
+   * id); the snapshot has the session at once.
+   */
+  recordScaleRun: (run: StoredScaleRun, session: ScaleSession) => void;
+  /**
+   * The scale runs of an exercise (its `exerciseKey`), in the order played, once loaded; null until
+   * then. Runs are read one exercise at a time and only when asked for (`loadScaleRuns`).
+   */
+  getScaleRuns: (exercise: string) => readonly StoredScaleRun[] | null;
+  /** Starts reading an exercise's scale runs unless they are loaded or loading. */
+  loadScaleRuns: (exercise: string) => void;
+  subscribeScaleRuns: (onChange: () => void) => () => void;
+  /** Every scale run, for the export file. */
+  allScaleRuns: () => Promise<StoredScaleRun[]>;
+  scaleRunIds: () => Promise<Set<string>>;
   /** Merges by id, rebuilds note stats from all attempts and reloads. */
   importData: (input: MergeInput) => Promise<MergeResult>;
   /** Resolves once every write requested so far has finished (or failed). */
@@ -108,6 +125,7 @@ export type SyncMessage =
   | { type: 'piece'; piece: StoredPiece }
   | { type: 'pieceDeleted'; id: string; steps: boolean }
   | { type: 'pieceStep'; step: PieceStep }
+  | { type: 'scaleRun'; run: StoredScaleRun; session: ScaleSession }
   | { type: 'reload' };
 
 /** What the store needs from `navigator.storage`. */
@@ -157,6 +175,22 @@ function addSteps(steps: readonly PieceStep[], added: readonly PieceStep[]): Pie
 type StepCache =
   { ready: true; steps: readonly PieceStep[] } | { ready: false; extra: PieceStep[] };
 
+function addRuns(
+  runs: readonly StoredScaleRun[],
+  added: readonly StoredScaleRun[],
+): StoredScaleRun[] {
+  const ids = new Set(runs.map((r) => r.id));
+  const fresh = added.filter((r) => !ids.has(r.id) && Boolean(ids.add(r.id)));
+  if (fresh.length === 0) return runs as StoredScaleRun[];
+  const last = runs.at(-1);
+  const merged = [...runs, ...fresh];
+  return last && fresh.some((r) => byRunTime(last, r) > 0) ? merged.sort(byRunTime) : merged;
+}
+
+/** Scale runs of one exercise: loaded, or loading with the runs recorded meanwhile. */
+type RunCache =
+  { ready: true; runs: readonly StoredScaleRun[] } | { ready: false; extra: StoredScaleRun[] };
+
 /**
  * The practice data of the app: loaded once from storage, updated in memory at once on every
  * change (the UI never waits for storage) and written in the background, in order. Other tabs are
@@ -173,6 +207,8 @@ export function createPracticeStore({
   const statusListeners = new Set<() => void>();
   const stepListeners = new Set<() => void>();
   let stepCache = new Map<string, StepCache>();
+  const runListeners = new Set<() => void>();
+  let runCache = new Map<string, RunCache>();
 
   let repository: PracticeRepository | null = null;
   let channel: SyncChannel | null = null;
@@ -209,6 +245,24 @@ export function createPracticeStore({
       const next = addSteps(entry.steps, steps);
       if (next !== entry.steps) setStepCache(pieceId, { ready: true, steps: next });
     }
+  }
+
+  function setRunCache(exercise: string, entry: RunCache) {
+    runCache = new Map(runCache);
+    runCache.set(exercise, entry);
+    for (const listener of [...runListeners]) listener();
+  }
+
+  /** Adds a run to its exercise's cache, if that is loaded or loading. */
+  function cacheRun(run: StoredScaleRun) {
+    const entry = runCache.get(run.exercise);
+    if (!entry) return;
+    if (!entry.ready) {
+      entry.extra.push(run);
+      return;
+    }
+    const next = addRuns(entry.runs, [run]);
+    if (next !== entry.runs) setRunCache(run.exercise, { ready: true, runs: next });
   }
 
   function setStatus(next: Partial<StorageStatus>) {
@@ -301,6 +355,8 @@ export function createPracticeStore({
       // Loaded again when next asked for.
       stepCache = new Map();
       for (const listener of [...stepListeners]) listener();
+      runCache = new Map();
+      for (const listener of [...runListeners]) listener();
     });
   }
 
@@ -335,6 +391,10 @@ export function createPracticeStore({
         return;
       case 'pieceStep':
         cacheSteps([m.step]);
+        return;
+      case 'scaleRun':
+        set({ ...data, sessions: upsertSession(data.sessions, m.session) });
+        cacheRun(m.run);
         return;
       case 'reload':
         void reload();
@@ -456,6 +516,41 @@ export function createPracticeStore({
     },
     async pieceStepIds() {
       return new Set((await enqueue((repo) => repo.pieceStepIds())) ?? []);
+    },
+    recordScaleRun(run, session) {
+      set({ ...data, sessions: upsertSession(data.sessions, session) });
+      cacheRun(run);
+      void enqueue(async (repo) => {
+        await repo.addScaleRun(run, session);
+        broadcast({ type: 'scaleRun', run, session });
+        requestPersistence();
+      });
+    },
+    getScaleRuns(exercise) {
+      const entry = runCache.get(exercise);
+      return entry?.ready ? entry.runs : null;
+    },
+    loadScaleRuns(exercise) {
+      if (runCache.has(exercise)) return;
+      const loading: RunCache = { ready: false, extra: [] };
+      setRunCache(exercise, loading);
+      void enqueue((repo) => repo.scaleRuns({ exercise })).then((runs) => {
+        // Dropped meanwhile (a reload): the next request reads again.
+        if (runCache.get(exercise) !== loading) return;
+        setRunCache(exercise, { ready: true, runs: addRuns(runs ?? [], loading.extra) });
+      });
+    },
+    subscribeScaleRuns(onChange) {
+      runListeners.add(onChange);
+      return () => void runListeners.delete(onChange);
+    },
+    async allScaleRuns() {
+      const runs = await enqueue((repo) => repo.allScaleRuns());
+      if (!runs) throw new Error('Scale runs could not be read');
+      return runs;
+    },
+    async scaleRunIds() {
+      return new Set((await enqueue((repo) => repo.scaleRunIds())) ?? []);
     },
     async importData(input) {
       const added = await enqueue((repo) => repo.merge(input));

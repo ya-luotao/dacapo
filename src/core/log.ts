@@ -1,12 +1,15 @@
 import type { FreePlaySession } from './freePlay.ts';
 import type { PieceSession } from './pieceRecords.ts';
+import type { ScaleSession } from './scaleRecords.ts';
 import { recoverSummary, type Attempt, type SessionSummary } from './session.ts';
 
 /** A flashcard session as stored: its summary. */
 export type ReadSessionRecord = SessionSummary & { kind: 'read' };
 export type FreePlaySessionRecord = FreePlaySession;
 export type PieceSessionRecord = PieceSession;
-export type SessionRecord = ReadSessionRecord | FreePlaySessionRecord | PieceSessionRecord;
+export type ScaleSessionRecord = ScaleSession;
+export type SessionRecord =
+  ReadSessionRecord | FreePlaySessionRecord | PieceSessionRecord | ScaleSessionRecord;
 
 export function byTime(a: Attempt, b: Attempt): number {
   return a.at - b.at || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);

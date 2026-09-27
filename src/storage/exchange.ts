@@ -1,24 +1,32 @@
 import { byStartDescending, byTime, type SessionRecord } from '../core/log.ts';
 import { byStepTime, type PieceStep } from '../core/pieceRecords.ts';
+import { byRunTime, type StoredScaleRun } from '../core/scaleRecords.ts';
 import type { Attempt } from '../core/session.ts';
 import { byImportedDescending, type StoredPiece } from '../core/storedPiece.ts';
 import { dayKey } from '../core/streak.ts';
 import type { NoteStats } from '../core/weakness.ts';
 import { isLocale, type Locale } from '../i18n/locale.ts';
 import { isThemePreference, type ThemePreference } from '../lib/themePreference.ts';
-import { validateAttempt, validatePiece, validatePieceStep, validateSession } from './validate.ts';
+import {
+  validateAttempt,
+  validatePiece,
+  validatePieceStep,
+  validateScaleRun,
+  validateSession,
+} from './validate.ts';
 
 // The export file: everything the user owns, as one versioned JSON document. Importing merges by
 // id and never trusts the file's note stats; they are rebuilt from the attempts. Piece figures are
-// never stored at all: they are recomputed from the step records.
+// never stored at all: they are recomputed from the step records, and scale figures from the runs.
 
 export const EXPORT_FORMAT = 'dacapo';
 /**
  * Bump when the file shape changes; older files must keep importing. Version 2 adds pieces,
  * version 3 piece sessions and step records, version 4 rhythm-mode steps and sessions (a `mode`
- * and their timings; records without a mode are wait mode's, as in version 3).
+ * and their timings; records without a mode are wait mode's, as in version 3), version 5 scale
+ * sessions and scale runs.
  */
-export const EXPORT_VERSION = 4;
+export const EXPORT_VERSION = 5;
 
 export interface Preferences {
   /** null follows the browser language. */
@@ -43,6 +51,8 @@ export interface ExportFile {
   pieces: StoredPiece[];
   /** Step records of wait and rhythm mode, oldest first. */
   pieceSteps: PieceStep[];
+  /** Scale runs as played, oldest first. */
+  scaleRuns: StoredScaleRun[];
 }
 
 export interface ExportInput {
@@ -51,6 +61,7 @@ export interface ExportInput {
   stats: Readonly<Record<string, NoteStats>>;
   pieces: readonly StoredPiece[];
   pieceSteps: readonly PieceStep[];
+  scaleRuns: readonly StoredScaleRun[];
 }
 
 export function buildExport(
@@ -69,6 +80,7 @@ export function buildExport(
     noteStats: Object.values(data.stats).sort((a, b) => (a.key < b.key ? -1 : 1)),
     pieces: [...data.pieces].sort((a, b) => byImportedDescending(b, a)),
     pieceSteps: [...data.pieceSteps].sort(byStepTime),
+    scaleRuns: [...data.scaleRuns].sort(byRunTime),
   };
 }
 
@@ -80,7 +92,7 @@ export function exportFileName(now: number, timeZone?: string): string {
 export type ImportError =
   { kind: 'malformed' } | { kind: 'wrong-format' } | { kind: 'future-version'; version: number };
 
-export type Collection = 'sessions' | 'attempts' | 'pieces' | 'pieceSteps';
+export type Collection = 'sessions' | 'attempts' | 'pieces' | 'pieceSteps' | 'scaleRuns';
 
 export interface InvalidRecord {
   collection: Collection | 'preferences';
@@ -101,6 +113,8 @@ export interface ParsedImport {
   pieces: StoredPiece[];
   /** Empty before version 3. */
   pieceSteps: PieceStep[];
+  /** Empty before version 5. */
+  scaleRuns: StoredScaleRun[];
   /** null when the file has none or they are invalid (then listed in `invalid`). */
   preferences: Preferences | null;
   invalid: InvalidRecord[];
@@ -167,6 +181,10 @@ export function parseImport(text: string): ParseResult {
   if (version >= 3 && !Array.isArray(json.pieceSteps)) {
     return { ok: false, error: { kind: 'wrong-format' } };
   }
+  // Scale runs with version 5.
+  if (version >= 5 && !Array.isArray(json.scaleRuns)) {
+    return { ok: false, error: { kind: 'wrong-format' } };
+  }
 
   const invalid: InvalidRecord[] = [];
   const sessions = validateAll('sessions', json.sessions, validateSession, invalid);
@@ -176,6 +194,9 @@ export function parseImport(text: string): ParseResult {
     : [];
   const pieceSteps = Array.isArray(json.pieceSteps)
     ? validateAll('pieceSteps', json.pieceSteps, validatePieceStep, invalid)
+    : [];
+  const scaleRuns = Array.isArray(json.scaleRuns)
+    ? validateAll('scaleRuns', json.scaleRuns, validateScaleRun, invalid)
     : [];
   let preferences: Preferences | null = null;
   if (json.preferences !== undefined) {
@@ -197,6 +218,7 @@ export function parseImport(text: string): ParseResult {
       attempts,
       pieces,
       pieceSteps,
+      scaleRuns,
       preferences,
       invalid,
     },
@@ -220,6 +242,7 @@ export function planImport(
     attemptIds: ReadonlySet<string>;
     pieceIds: ReadonlySet<string>;
     pieceStepIds: ReadonlySet<string>;
+    scaleRunIds: ReadonlySet<string>;
   },
 ): ImportPlan {
   const count = (
@@ -239,5 +262,6 @@ export function planImport(
     attempts: count(parsed.attempts, existing.attemptIds, 'attempts'),
     pieces: count(parsed.pieces, existing.pieceIds, 'pieces'),
     pieceSteps: count(parsed.pieceSteps, existing.pieceStepIds, 'pieceSteps'),
+    scaleRuns: count(parsed.scaleRuns, existing.scaleRunIds, 'scaleRuns'),
   };
 }

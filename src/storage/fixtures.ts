@@ -1,5 +1,6 @@
 // Sample records for storage tests. Not imported by the app.
 import { IDBFactory } from 'fake-indexeddb';
+import type { RunHeadline } from '../core/evenness.ts';
 import type { SessionRecord } from '../core/log.ts';
 import { parseNoteKey } from '../core/levels.ts';
 import {
@@ -9,6 +10,12 @@ import {
   type PieceSession,
   type PieceStep,
 } from '../core/pieceRecords.ts';
+import {
+  scaleRunId,
+  withRun,
+  type ScaleSession,
+  type StoredScaleRun,
+} from '../core/scaleRecords.ts';
 import { recoverSummary, type Attempt } from '../core/session.ts';
 import type { StoredPiece } from '../core/storedPiece.ts';
 
@@ -175,4 +182,83 @@ export function sampleRhythmRun(
       true,
     ),
   };
+}
+
+/** C major up and down one octave, right hand: MIDI keys in the order played. */
+const C_MAJOR = [60, 62, 64, 65, 67, 69, 71, 72, 71, 69, 67, 65, 64, 62, 60];
+
+/**
+ * Run `n` of scale session `sessionId`: one octave of C major, a key every 250 ms (the last one
+ * still down at the end), velocities around 64, runs 20 s apart.
+ */
+export function sampleScaleRun(
+  sessionId: string,
+  n: number,
+  patch: Partial<StoredScaleRun> = {},
+): StoredScaleRun {
+  return {
+    id: scaleRunId(sessionId, n),
+    sessionId,
+    exercise: 'major:C:1:right',
+    startedAt: T0 + n * 20_000,
+    end: 'finished',
+    keys: C_MAJOR.map((midi, i) => ({
+      midi,
+      on: i * 250 + ((i * 7 + n) % 5),
+      off: i === C_MAJOR.length - 1 ? null : i * 250 + 200,
+      velocity: 60 + ((i * 3 + n) % 9),
+    })),
+    pedal:
+      n % 2 === 1
+        ? [
+            { down: true, time: 900.5 },
+            { down: false, time: 1400 },
+          ]
+        : [],
+    pedalAtStart: false,
+    velocityMeasured: true,
+    inputs: ['Digital Piano'],
+    ...patch,
+  };
+}
+
+/** Headline figures of a run such as `sampleScaleRun`'s. */
+export function sampleHeadline(patch: Partial<RunHeadline> = {}): RunHeadline {
+  return {
+    version: 1,
+    quality: 'ok',
+    counts: { expected: 15, matched: 15, wrong: 0, missed: 0, extra: 0 },
+    velocityMeasured: true,
+    hands: [
+      {
+        hand: 'right',
+        spread: 2.4,
+        spreadShare: 1,
+        rough: true,
+        hesitations: 0,
+        medianInterval: 250,
+      },
+    ],
+    ...patch,
+  };
+}
+
+/** A scale session of `count` runs, built as the Scales page builds it. */
+export function sampleScaleSession(
+  sessionId: string,
+  count: number,
+  patch: Partial<StoredScaleRun> = {},
+): { runs: StoredScaleRun[]; session: ScaleSession } {
+  const runs = Array.from({ length: count }, (_, n) => sampleScaleRun(sessionId, n, patch));
+  let session: ScaleSession | null = null;
+  for (const run of runs) {
+    session = withRun(session, sessionId, {
+      id: run.id,
+      exercise: run.exercise,
+      startedAt: run.startedAt,
+      endedAt: run.startedAt + Math.max(...run.keys.map((k) => k.on)),
+      headline: sampleHeadline(),
+    });
+  }
+  return { runs, session: session! };
 }

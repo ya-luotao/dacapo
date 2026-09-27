@@ -1,13 +1,18 @@
 import { useEffect, useId, useMemo, useReducer, useRef, useState, type CSSProperties } from 'react';
 import { analyzeRun, type RunAnalysis } from '../../core/evenness.ts';
 import { parseMusicXml } from '../../core/musicxml.ts';
-import type { ScaleRun } from '../../core/scaleRecords.ts';
+import { scaleProgress } from '../../core/scaleProgress.ts';
+import { dayKey } from '../../core/streak.ts';
+import type { ScaleSession } from '../../core/scaleRecords.ts';
 import { exerciseKey, scaleNotes, tonicsOf } from '../../core/scales.ts';
 import { SCALE_OCTAVES, SCALE_TYPES, type ScaleExercise } from '../../core/scaleTypes.ts';
 import { scaleHands, scaleMusicXml } from '../../core/scaleXml.ts';
 import { buildSteps, keyRange, type Hand } from '../../core/score.ts';
 import { useT } from '../../i18n/index.ts';
+import type { MidiStatus } from '../../input/index.ts';
 import { useHubState, useInput, useKeyboardOctave } from '../input/context.ts';
+import { usePractice, usePracticeStore } from '../practice/context.ts';
+import { useNow } from '../progress/useNow.ts';
 import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
 import { ScoreView, type ScoreStatus } from '../notation/ScoreView.tsx';
 import { prefetchVerovio, type Engraving } from '../notation/verovio.ts';
@@ -16,7 +21,9 @@ import { keyboardRange, whiteKeys } from '../piano/range.ts';
 import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
 import { spelledName, tonicName, useExerciseName } from './format.ts';
 import { readExercise, writeExercise } from './prefs.ts';
+import { scaleRunRecord, useScaleRecorder, type SessionSlot } from './record.ts';
 import { sessionStep, velocityMeasured, waitingRun, type ScaleRunState } from './run.ts';
+import { ScaleProgress, YourScales } from './ScaleProgress.tsx';
 import { ScaleSummary } from './ScaleSummary.tsx';
 
 /** How often a running run looks at the clock, for its idle end. */
@@ -27,20 +34,38 @@ const TICK_MS = 250;
  */
 const ZOOM: Record<ScaleExercise['octaves'], number> = { 1: 1.6, 2: 1.3, 3: 1.15, 4: 1 };
 /**
- * A system at least half full is stretched, the last bar alone on a line is not; octave lines read
- * "8va", stacked clear of the fingering.
+ * A system at least a third full is stretched (one octave on one staff fills about 40 %); the last
+ * bar alone on a line (about a quarter) is not. Octave lines read "8va", clear of the fingering.
  */
-const ENGRAVING: Engraving = { lastJustification: 0.5, ottavaText: true };
+const ENGRAVING: Engraving = { lastJustification: 0.35, ottavaText: true };
 /** Hands together comes with S3. */
 const HANDS: readonly Hand[] = ['right', 'left'];
 
 export function ScalesPage() {
   const t = useT();
   const [exercise, setExerciseState] = useState(readExercise);
+  const { sessions } = usePractice();
+  const now = useNow();
+  // Every scale played, least even first, from the sessions loaded at startup.
+  // Again when the sessions change or the day does, not on every tick of the clock.
+  const today = dayKey(now);
+  const progress = useMemo(
+    () => scaleProgress(sessions, now),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `now` counts only through its day
+    [sessions, today],
+  );
   // The notation engine is large: fetch it while the page is read.
   useEffect(prefetchVerovio, []);
 
   const stage = useRef<HTMLDivElement>(null);
+  // One practice session per visit to the page, whatever scales are played in it.
+  const session = useRef<ScaleSession | null>(null);
+  const [slot] = useState<SessionSlot>(() => ({
+    get: () => session.current,
+    set: (next) => {
+      session.current = next;
+    },
+  }));
 
   function setExercise(next: ScaleExercise) {
     setExerciseState(next);
@@ -57,8 +82,23 @@ export function ScalesPage() {
         onChosen={() => stage.current?.focus({ preventScroll: true })}
       />
       <div className="scale-stage" ref={stage} tabIndex={-1}>
-        <ScaleSession key={exerciseKey(exercise)} exercise={exercise} />
+        <ScaleSession key={exerciseKey(exercise)} exercise={exercise} slot={slot} />
       </div>
+      <ScaleProgress
+        exercise={exercise}
+        progress={progress.find((p) => p.exercise === exerciseKey(exercise)) ?? null}
+        now={now}
+      />
+      <YourScales
+        list={progress}
+        now={now}
+        current={exercise}
+        onPick={(next) => {
+          setExercise(next);
+          stage.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+          stage.current?.focus({ preventScroll: true });
+        }}
+      />
     </section>
   );
 }
@@ -169,10 +209,11 @@ function deviationMark(deviation: number | null): string | null {
   return 'is-dev-4';
 }
 
-function ScaleSession({ exercise }: { exercise: ScaleExercise }) {
+function ScaleSession({ exercise, slot }: { exercise: ScaleExercise; slot: SessionSlot }) {
   const t = useT();
   const name = useExerciseName();
-  const { hub, pointer } = useInput();
+  const { hub, pointer, midi } = useInput();
+  const store = usePracticeStore();
   const { held, sustained } = useHubState();
   const hand: Hand = exercise.hands === 'left' ? 'left' : 'right';
   const expected = useMemo(() => scaleNotes(exercise)[hand], [exercise, hand]);
@@ -204,6 +245,7 @@ function ScaleSession({ exercise }: { exercise: ScaleExercise }) {
   const [run, dispatch] = useReducer(sessionStep, expected, (notes) =>
     waitingRun(notes, hub.getState().sustain),
   );
+  useScaleRecorder(run, exercise, slot, store, () => inputNames(midi.getStatus()));
   // From the first run on; the page alone does not keep the screen on.
   useKeepAwake(run.phase !== 'waiting', KEEP_AWAKE_IDLE_MS);
 
@@ -356,17 +398,7 @@ function analyze(run: ScaleRunState): RunAnalysis {
 function SaveRun({ exercise, run }: { exercise: ScaleExercise; run: ScaleRunState }) {
   const { midi } = useInput();
   function save() {
-    const status = midi.getStatus();
-    const record: ScaleRun = {
-      exercise: exerciseKey(exercise),
-      startedAt: run.startedAt ?? Date.now(),
-      end: run.end ?? 'stopped',
-      keys: [...run.keys],
-      pedal: [...run.pedal],
-      pedalAtStart: run.pedalAtStart,
-      velocityMeasured: velocityMeasured(run.keys),
-      inputs: status.state === 'connected' ? [...status.names] : [],
-    };
+    const record = scaleRunRecord(exercise, run, inputNames(midi.getStatus()));
     const url = URL.createObjectURL(
       new Blob([JSON.stringify(record)], { type: 'application/json' }),
     );
@@ -383,4 +415,9 @@ function SaveRun({ exercise, run }: { exercise: ScaleExercise; run: ScaleRunStat
       </button>
     </p>
   );
+}
+
+/** The MIDI inputs connected, by name: velocity curves differ between instruments. */
+function inputNames(status: MidiStatus): string[] {
+  return status.state === 'connected' ? [...status.names] : [];
 }

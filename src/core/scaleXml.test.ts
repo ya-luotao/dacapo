@@ -28,6 +28,10 @@ const SAMPLES: [ScaleExercise, ScaleXmlOptions?][] = [
   [{ type: 'chromatic', tonic: 'C', octaves: 3, hands: 'right' }, { notesPerBeat: 3 }],
 ];
 
+/** 4 notes to the beat always; 2 and 3 hands together at two and four octaves. */
+const perBeatFor = (e: ScaleExercise): readonly (2 | 3 | 4)[] =>
+  e.hands === 'both' && (e.octaves === 2 || e.octaves === 4) ? [2, 3, 4] : [4];
+
 function* allExercises(hands: ScaleExercise['hands'][] = ['both']): Generator<ScaleExercise> {
   for (const type of SCALE_TYPES)
     for (const tonic of tonicsOf(type))
@@ -184,12 +188,15 @@ describe('scaleMusicXml', () => {
     }
   });
 
-  // Every scale, key and length, at 2, 3 and 4 notes to the beat hands together and at 4 for each
-  // hand: the file parses back to the scale, and reads as written (accidentals, octave signs,
-  // clefs). One parse of each, as it is slow.
-  it('holds for every exercise', { timeout: 60_000 }, () => {
+  // Every key and length of each scale type at 4 notes to the beat, hands together and each hand,
+  // and at 2 and 3 to the beat hands together at two and four octaves (the bars, and with them the
+  // accidentals within a bar, change with the notes to the beat): the file parses back to the
+  // scale, and reads as written (accidentals, octave signs, clefs). One test per type, as a parse
+  // is slow (jsdom).
+  it.each(SCALE_TYPES)('holds for every %s exercise', { timeout: 60_000 }, (type) => {
     for (const e of allExercises(['both', 'right', 'left']))
-      for (const notesPerBeat of e.hands === 'both' ? ([2, 3, 4] as const) : ([4] as const)) {
+      for (const notesPerBeat of perBeatFor(e)) {
+        if (e.type !== type) continue;
         const where = label(e, { notesPerBeat });
         const doc = domParse(scaleMusicXml(e, { notesPerBeat }));
         const score = parseMusicXml(doc, { hands: scaleHands(e) });

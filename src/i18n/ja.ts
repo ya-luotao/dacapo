@@ -160,6 +160,13 @@ export const ja: Dictionary = {
   'progress.session.hands.right': '右手',
   'progress.session.hands.left': '左手',
   'progress.session.hands.both': '両手',
+  'progress.kind.scales': 'スケール',
+  'progress.session.scale': 'スケール',
+  'progress.session.scaleOne': '{scale}・{octaves}オクターブ',
+  'progress.session.scaleCount': '{n}種類',
+  'progress.session.runs': '回数',
+  'progress.session.runs.one': '1回',
+  'progress.session.runs.other': '{n}回',
   'progress.pieces': '今日の曲の練習：{time}。',
   'progress.duration.seconds': '{s}秒',
   'progress.duration.minutes': '{m}分{s}秒',
@@ -698,6 +705,36 @@ export const ja: Dictionary = {
     '点は1音ずつで、前後の音を結んだ線と比べています。基準はあなた自身のテンポです。×は弾き逃しかミスタッチ、音と音の間の縦線は迷いです。',
   'scales.chart.desc.loud':
     '点は1音ずつで、前後の音を結んだ線と比べています。基準はあなた自身のテンポです。×は弾き逃しかミスタッチ、音と音の間の縦線は迷いです。下の段は、各音が前後の音より強いか弱いかです。',
+  'scales.trend': '時間のばらつき（最近30日）',
+  'scales.trend.point': '{day}：{ms}ミリ秒（{runs}）',
+  'scales.trend.reference': 'プロのピアニスト ≈ {ms}ミリ秒',
+  'scales.trend.desc':
+    '点は、このスケールを弾いた日ごとの時間のばらつきの中央値です。低いほど粒がそろっています。',
+  'scales.progress': 'このスケールの記録',
+  'scales.progress.none': '弾くたびに記録します。1回弾くと、ここに記録が表示されます。',
+  'scales.progress.latest': '直近',
+  'scales.progress.best': 'ベスト',
+  'scales.progress.last': '最後に弾いた日',
+  'scales.places.notYet': '{min}回弾くと、毎回遅れたり早くなったりする場所がここに表示されます。',
+  'scales.places.none': '直近{runs}回では、毎回遅れたり早くなったりする場所はありません。',
+  'scales.places.thumbUnder.up':
+    '上行で親指をくぐらせる音が、毎回{timing}です（{keys}、直近{runs}回）。',
+  'scales.places.thumbUnder.down':
+    '下行で親指をくぐらせる音が、毎回{timing}です（{keys}、直近{runs}回）。',
+  'scales.places.fingerOver.up':
+    '上行で指が親指を越える音が、毎回{timing}です（{keys}、直近{runs}回）。',
+  'scales.places.fingerOver.down':
+    '下行で指が親指を越える音が、毎回{timing}です（{keys}、直近{runs}回）。',
+  'scales.places.notes.up': '上行で{keys}が毎回{timing}です（直近{runs}回）。',
+  'scales.places.notes.down': '下行で{keys}が毎回{timing}です（直近{runs}回）。',
+  'scales.list': 'あなたのスケール',
+  'scales.list.scale': 'スケール',
+  'scales.list.recent': 'ばらつき（音の長さ比）',
+  'scales.list.suggestion':
+    '次はこれ：{scale}。最近弾いたスケールの中で、いちばん粒がそろっていません。',
+  'scales.list.play': '弾く',
+  'scales.list.help':
+    '粒のそろっていないものから順に並べています（各スケールの直近5回の、時間のばらつきが音の長さに占める割合）。',
   'scales.table': '表で表示',
   'scales.table.note': '番号',
   'scales.table.key': '音',
@@ -799,8 +836,9 @@ export const ja: Dictionary = {
   'settings.storage.loading': '練習記録を読み込んでいます…',
   'settings.export': 'データをエクスポート',
   'settings.export.help':
-    'セッション、解答、インポートした曲、曲の練習記録、設定を含む{file}をダウンロードします。',
-  'settings.export.failed': '曲の練習記録を読み取れなかったため、何もエクスポートしていません。',
+    'セッション、解答、インポートした曲、曲とスケールの練習記録、設定を含む{file}をダウンロードします。',
+  'settings.export.failed':
+    '曲またはスケールの練習記録を読み取れなかったため、何もエクスポートしていません。',
   'settings.import': 'データをインポート…',
   'settings.import.help':
     'エクスポートしたファイルから、セッション、解答、曲を追加します。今あるデータが変更・削除されることはありません。',
@@ -821,6 +859,7 @@ export const ja: Dictionary = {
   'settings.import.attempts': '解答',
   'settings.import.pieces': 'インポートした曲',
   'settings.import.pieceSteps': '曲の練習記録',
+  'settings.import.scaleRuns': 'スケールの練習記録',
   'settings.import.stats': '音ごとの統計は、インポート後にすべての解答から計算し直します。',
   'settings.import.nothingNew': 'このファイルの内容はすべて登録済みです。',
   'settings.import.invalidTitle': '次の記録は無効なため、インポートしません：',
@@ -832,13 +871,14 @@ export const ja: Dictionary = {
   'settings.import.record.attempts': '解答',
   'settings.import.record.pieces': '曲',
   'settings.import.record.pieceSteps': '曲の練習記録',
+  'settings.import.record.scaleRuns': 'スケールの練習記録',
   'settings.import.more': '…ほか{n}件',
   'settings.import.prefs': 'ファイル内の設定も適用する：{language}、{theme}',
   'settings.import.apply': 'インポート',
   'settings.import.cancel': 'キャンセル',
   'settings.import.working': 'インポートしています…',
   'settings.import.done':
-    'インポートが完了しました：新しいセッション{sessions}件、解答{attempts}件、インポートした曲{pieces}曲、曲の練習記録{steps}件。',
+    'インポートが完了しました：新しいセッション{sessions}件、解答{attempts}件、インポートした曲{pieces}曲、曲の練習記録{steps}件、スケールの練習記録{scaleRuns}件。',
   'settings.import.failed': 'インポートを保存できませんでした。何も変更されていません。',
 
   'settings.about': 'このアプリについて',
@@ -892,7 +932,7 @@ export const ja: Dictionary = {
   'settings.storage.memory.app':
     '保存されていません：いまはこの端末にdacapoのデータを保存できません。dacapoを閉じる前にエクスポートしてください。',
   'settings.export.help.app':
-    'セッション、解答、インポートした曲、曲の練習記録、設定を含む{file}を保存します。',
+    'セッション、解答、インポートした曲、曲とスケールの練習記録、設定を含む{file}を保存します。',
   'metronome.noAudio.app':
     'この端末ではクリック音を鳴らせません。振り子はそのままテンポを刻みます。',
 

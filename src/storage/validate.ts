@@ -1,3 +1,4 @@
+import type { PlayedNote, RunHeadline } from '../core/evenness.ts';
 import type { OpenFreePlay } from '../core/freePlay.ts';
 import { isStaffHands } from '../core/hands.ts';
 import { isLevelId, parseNoteKey } from '../core/levels.ts';
@@ -5,6 +6,7 @@ import type {
   FreePlaySessionRecord,
   PieceSessionRecord,
   ReadSessionRecord,
+  ScaleSessionRecord,
   SessionRecord,
 } from '../core/log.ts';
 import { isMidiNote } from '../core/note.ts';
@@ -17,6 +19,8 @@ import {
   type RhythmCounts,
 } from '../core/pieceRecords.ts';
 import type { NoteTiming } from '../core/rhythm.ts';
+import type { PedalChange, ScaleRunSummary, StoredScaleRun } from '../core/scaleRecords.ts';
+import { parseExerciseKey } from '../core/scales.ts';
 import type { Attempt } from '../core/session.ts';
 import { isScoreWarning, type StoredPiece } from '../core/storedPiece.ts';
 
@@ -262,12 +266,177 @@ function validatePieceSession(value: Fields): Validation<PieceSessionRecord> {
   };
 }
 
+const isExerciseKey = (v: unknown): v is string =>
+  typeof v === 'string' && parseExerciseKey(v) !== null;
+const isFiniteNumber = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+const isFiniteOrNull = (v: unknown): v is number | null => v === null || isFiniteNumber(v);
+/** Far above any real run (four octaves hands together are about 120 keys) or session. */
+const MAX_RUN_EVENTS = 10_000;
+const isList = (v: unknown, check: (item: unknown) => boolean, min = 0): v is unknown[] =>
+  Array.isArray(v) && v.length >= min && v.length <= MAX_RUN_EVENTS && v.every(check);
+
+type HandHeadline = RunHeadline['hands'][number];
+
+function isHandHeadline(v: unknown): v is HandHeadline {
+  return (
+    isObject(v) &&
+    firstInvalid(v, {
+      hand: (h) => h === 'right' || h === 'left',
+      spread: isFiniteOrNull,
+      spreadShare: isFiniteOrNull,
+      rough: isBool,
+      hesitations: isCount,
+      medianInterval: isFiniteOrNull,
+    }) === null
+  );
+}
+
+/** A run's headline figures as a session keeps them (evenness.ts); recomputed when outdated. */
+function isRunHeadline(v: unknown): v is RunHeadline {
+  if (!isObject(v)) return false;
+  const { counts } = v;
+  return (
+    Number.isInteger(v.version) &&
+    (v.version as number) > 0 &&
+    (v.quality === 'ok' || v.quality === 'not-a-scale-run') &&
+    isObject(counts) &&
+    ['expected', 'matched', 'wrong', 'missed', 'extra'].every((n) => isCount(counts[n])) &&
+    isBool(v.velocityMeasured) &&
+    Array.isArray(v.hands) &&
+    v.hands.length <= 2 &&
+    v.hands.every(isHandHeadline)
+  );
+}
+
+function isRunSummary(v: unknown): v is ScaleRunSummary {
+  return (
+    isObject(v) &&
+    firstInvalid(v, {
+      id: isId,
+      exercise: isExerciseKey,
+      startedAt: isTime,
+      endedAt: isTime,
+      headline: isRunHeadline,
+    }) === null &&
+    (v.endedAt as number) >= (v.startedAt as number)
+  );
+}
+
+function cleanHeadline(h: RunHeadline): RunHeadline {
+  const { counts } = h;
+  return {
+    version: h.version,
+    quality: h.quality,
+    counts: {
+      expected: counts.expected,
+      matched: counts.matched,
+      wrong: counts.wrong,
+      missed: counts.missed,
+      extra: counts.extra,
+    },
+    velocityMeasured: h.velocityMeasured,
+    hands: h.hands.map((hand) => ({
+      hand: hand.hand,
+      spread: hand.spread,
+      spreadShare: hand.spreadShare,
+      rough: hand.rough,
+      hesitations: hand.hesitations,
+      medianInterval: hand.medianInterval,
+    })),
+  };
+}
+
+function validateScaleSession(value: Fields): Validation<ScaleSessionRecord> {
+  const field = firstInvalid(value, {
+    id: isId,
+    startedAt: isTime,
+    endedAt: isTime,
+    activeMs: isTime,
+    // A session has at least one run.
+    runs: (v) => isList(v, isRunSummary, 1),
+  });
+  if (field) return fail(field);
+  const s = value as unknown as ScaleSessionRecord;
+  if (s.endedAt < s.startedAt) return fail('endedAt');
+  return {
+    ok: true,
+    value: {
+      kind: 'scale',
+      id: s.id,
+      startedAt: s.startedAt,
+      endedAt: s.endedAt,
+      activeMs: s.activeMs,
+      runs: s.runs.map((r) => ({
+        id: r.id,
+        exercise: r.exercise,
+        startedAt: r.startedAt,
+        endedAt: r.endedAt,
+        headline: cleanHeadline(r.headline),
+      })),
+    },
+  };
+}
+
 export function validateSession(value: unknown): Validation<SessionRecord> {
   if (!isObject(value)) return fail('record');
   if (value.kind === 'read') return validateReadSession(value);
   if (value.kind === 'free') return validateFreeSession(value);
   if (value.kind === 'piece') return validatePieceSession(value);
+  if (value.kind === 'scale') return validateScaleSession(value);
   return fail('kind');
+}
+
+function isPlayedNote(v: unknown): v is PlayedNote {
+  return (
+    isObject(v) &&
+    isMidi(v.midi) &&
+    isTime(v.on) &&
+    (v.off === null || (isFiniteNumber(v.off) && v.off >= v.on)) &&
+    isFiniteNumber(v.velocity) &&
+    v.velocity >= 0 &&
+    v.velocity <= 127
+  );
+}
+
+// On the run's clock: an event stamped just before the first key would be slightly negative.
+const isPedalChange = (v: unknown): v is PedalChange =>
+  isObject(v) && isBool(v.down) && isFiniteNumber(v.time);
+
+const isInputs = (v: unknown) => Array.isArray(v) && v.length <= 50 && v.every(isText(200));
+
+/** A scale run as played, with where it belongs. */
+export function validateScaleRun(value: unknown): Validation<StoredScaleRun> {
+  if (!isObject(value)) return fail('record');
+  const field = firstInvalid(value, {
+    id: isId,
+    sessionId: isId,
+    exercise: isExerciseKey,
+    startedAt: isTime,
+    end: (v) => v === 'finished' || v === 'idle' || v === 'stopped',
+    // A run starts at its first key.
+    keys: (v) => isList(v, isPlayedNote, 1),
+    pedal: (v) => isList(v, isPedalChange),
+    pedalAtStart: isBool,
+    velocityMeasured: isBool,
+    inputs: isInputs,
+  });
+  if (field) return fail(field);
+  const r = value as unknown as StoredScaleRun;
+  return {
+    ok: true,
+    value: {
+      id: r.id,
+      sessionId: r.sessionId,
+      exercise: r.exercise,
+      startedAt: r.startedAt,
+      end: r.end,
+      keys: r.keys.map((k) => ({ midi: k.midi, on: k.on, off: k.off, velocity: k.velocity })),
+      pedal: r.pedal.map((p) => ({ down: p.down, time: p.time })),
+      pedalAtStart: r.pedalAtStart,
+      velocityMeasured: r.velocityMeasured,
+      inputs: [...r.inputs],
+    },
+  };
 }
 
 const isChecksum = (v: unknown) => typeof v === 'string' && /^[0-9a-f]{8}$/.test(v);

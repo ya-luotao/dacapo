@@ -157,6 +157,13 @@ export const zhCN: Dictionary = {
   'progress.session.hands.right': '右手',
   'progress.session.hands.left': '左手',
   'progress.session.hands.both': '双手',
+  'progress.kind.scales': '音阶',
+  'progress.session.scale': '音阶',
+  'progress.session.scaleOne': '{scale}，{octaves} 个八度',
+  'progress.session.scaleCount': '{n} 种音阶',
+  'progress.session.runs': '遍数',
+  'progress.session.runs.one': '1 遍',
+  'progress.session.runs.other': '{n} 遍',
   'progress.pieces': '今天练曲目：{time}。',
   'progress.duration.seconds': '{s} 秒',
   'progress.duration.minutes': '{m} 分 {s} 秒',
@@ -654,6 +661,33 @@ export const zhCN: Dictionary = {
     '每个点是一个音，和它前后几个音连成的线相比，所以以你自己的速度为准。叉号是漏掉或弹错的音；两个音之间的竖线表示迟疑。',
   'scales.chart.desc.loud':
     '每个点是一个音，和它前后几个音连成的线相比，所以以你自己的速度为准。叉号是漏掉或弹错的音；两个音之间的竖线表示迟疑。下面一行显示每个音比前后的音重还是轻。',
+  'scales.trend': '时间波动，最近 30 天',
+  'scales.trend.point': '{day}：{ms} 毫秒（{runs}）',
+  'scales.trend.reference': '职业钢琴家 ≈ {ms} 毫秒',
+  'scales.trend.desc': '每个点是你练这条音阶那天的时间波动中位数，越低越均匀。',
+  'scales.progress': '这条音阶的进展',
+  'scales.progress.none': '每一遍都会记下来，弹完第一遍，这里就会显示进展。',
+  'scales.progress.latest': '最近一遍',
+  'scales.progress.best': '最好',
+  'scales.progress.last': '上次练习',
+  'scales.places.notYet': '弹满 {min} 遍后，这里会显示你每次都偏晚或偏早的地方。',
+  'scales.places.none': '最近 {runs} 遍里，没有哪个地方每次都偏晚或偏早。',
+  'scales.places.thumbUnder.up':
+    '每次上行，拇指从下方穿过的那些音都{timing}（{keys}，最近 {runs} 遍）。',
+  'scales.places.thumbUnder.down':
+    '每次下行，拇指从下方穿过的那些音都{timing}（{keys}，最近 {runs} 遍）。',
+  'scales.places.fingerOver.up':
+    '每次上行，手指跨过拇指的那些音都{timing}（{keys}，最近 {runs} 遍）。',
+  'scales.places.fingerOver.down':
+    '每次下行，手指跨过拇指的那些音都{timing}（{keys}，最近 {runs} 遍）。',
+  'scales.places.notes.up': '每次上行，{keys} 都{timing}（最近 {runs} 遍）。',
+  'scales.places.notes.down': '每次下行，{keys} 都{timing}（最近 {runs} 遍）。',
+  'scales.list': '你的音阶',
+  'scales.list.scale': '音阶',
+  'scales.list.recent': '波动（占音长）',
+  'scales.list.suggestion': '下一条：{scale}，是你最近练过的音阶里最不均匀的。',
+  'scales.list.play': '练这条',
+  'scales.list.help': '最不均匀的排在前面：按每条音阶最近五遍的时间波动占音长的比例排序。',
   'scales.table': '以表格显示',
   'scales.table.note': '序号',
   'scales.table.key': '音',
@@ -749,8 +783,8 @@ export const zhCN: Dictionary = {
   'settings.storage.loading': '正在读取练习记录…',
   'settings.export': '导出数据',
   'settings.export.help':
-    '下载 {file}，包含你的练习记录、答题记录、导入的曲目、曲目练习明细和偏好设置。',
-  'settings.export.failed': '读取曲目练习明细失败，没有导出任何内容。',
+    '下载 {file}，包含你的练习记录、答题记录、导入的曲目、曲目和音阶的练习明细以及偏好设置。',
+  'settings.export.failed': '读取曲目或音阶的练习明细失败，没有导出任何内容。',
   'settings.import': '导入数据…',
   'settings.import.help':
     '把导出文件中的练习记录、答题记录和曲目添加进来，已有的数据不会被修改或删除。',
@@ -770,6 +804,7 @@ export const zhCN: Dictionary = {
   'settings.import.attempts': '答题记录',
   'settings.import.pieces': '导入的曲目',
   'settings.import.pieceSteps': '曲目练习明细',
+  'settings.import.scaleRuns': '音阶练习明细',
   'settings.import.stats': '导入后，各音符的统计会根据全部答题记录重新计算。',
   'settings.import.nothingNew': '这个文件里的内容都已经在了。',
   'settings.import.invalidTitle': '以下记录无效，不会被导入：',
@@ -780,13 +815,14 @@ export const zhCN: Dictionary = {
   'settings.import.record.attempts': '答题记录',
   'settings.import.record.pieces': '曲目',
   'settings.import.record.pieceSteps': '曲目练习明细',
+  'settings.import.record.scaleRuns': '音阶练习明细',
   'settings.import.more': '……还有 {n} 条',
   'settings.import.prefs': '同时应用文件中的偏好设置：{language}，{theme}',
   'settings.import.apply': '导入',
   'settings.import.cancel': '取消',
   'settings.import.working': '正在导入…',
   'settings.import.done':
-    '导入完成：新增 {sessions} 条练习记录、{attempts} 条答题记录、{pieces} 首曲目和 {steps} 条曲目练习明细。',
+    '导入完成：新增 {sessions} 条练习记录、{attempts} 条答题记录、{pieces} 首曲目、{steps} 条曲目练习明细和 {scaleRuns} 条音阶练习明细。',
   'settings.import.failed': '导入没能保存，数据没有任何改动。',
 
   'settings.about': '关于',
@@ -835,7 +871,7 @@ export const zhCN: Dictionary = {
   'settings.storage.memory.app':
     '未保存：dacapo 暂时无法在这台设备上存储数据。关闭 dacapo 之前请先导出。',
   'settings.export.help.app':
-    '保存 {file}，包含你的练习记录、答题记录、导入的曲目、曲目练习明细和偏好设置。',
+    '保存 {file}，包含你的练习记录、答题记录、导入的曲目、曲目和音阶的练习明细以及偏好设置。',
   'metronome.noAudio.app': '这台设备无法播放节拍声，摆锤照样打拍子。',
 
   'about.title': '关于 dacapo',

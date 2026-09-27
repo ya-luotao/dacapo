@@ -6,9 +6,9 @@ which is noted when it changes.
 
 ## Unreleased
 
-Export format version 4: the file now includes imported pieces (from version 2), piece practice
-sessions and their step records (from version 3), and rhythm-mode steps with their timings.
-Version 1, 2 and 3 files still import.
+Export format version 5: the file now includes imported pieces (from version 2), piece practice
+sessions and their step records (from version 3), rhythm-mode steps with their timings (from
+version 4), and scale sessions with every scale run as played. Version 1 to 4 files still import.
 
 ### Pieces and wait mode (P1)
 
@@ -145,6 +145,19 @@ Version 1, 2 and 3 files still import.
   (S2).
 - The navigation gains a **More** menu for the items the header has no room for, fitted to the
   width in every language; below tablet width the header takes two rows.
+
+### Scale records and progress (S2)
+
+- Every scale run is kept (IndexedDB version 4): all its keys, their releases and the pedal, the
+  raw data every figure is recomputed from. Scale sessions join the practice log, today's minutes
+  and the streak.
+- **This scale so far**: its runs, the latest and the best spread, the last day played, a chart of
+  the timing spread over the last 30 days against the professional reference, and the places that
+  come late or early every time over the last runs — the thumb passing under going up, say, or a
+  note of the scale where there is no fingering. Places are judged by groups of notes over the
+  runs, so a steady player is not told of problems that are only chance.
+- **Your scales**: every scale played, least even first, with the one to play next.
+- Export format 5 includes the scale runs; formats 1–4 still import.
 
 ## 0.1.0 — 2026-09-25
 

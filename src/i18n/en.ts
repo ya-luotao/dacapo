@@ -160,6 +160,13 @@ export const en = {
   'progress.session.hands.right': 'Right hand',
   'progress.session.hands.left': 'Left hand',
   'progress.session.hands.both': 'Both hands',
+  'progress.kind.scales': 'Scales',
+  'progress.session.scale': 'Scale',
+  'progress.session.scaleOne': '{scale}, {octaves} oct.',
+  'progress.session.scaleCount': '{n} scales',
+  'progress.session.runs': 'Runs',
+  'progress.session.runs.one': '1 run',
+  'progress.session.runs.other': '{n} runs',
   'progress.pieces': 'Pieces today: {time}.',
   'progress.duration.seconds': '{s} s',
   'progress.duration.minutes': '{m} min {s} s',
@@ -696,6 +703,39 @@ export const en = {
     'Each dot is a note against a line through the notes around it, so your own tempo is the reference. Crosses are missed or wrong notes; a rule between two notes marks a hesitation.',
   'scales.chart.desc.loud':
     'Each dot is a note against a line through the notes around it, so your own tempo is the reference. Crosses are missed or wrong notes; a rule between two notes marks a hesitation. The row below shows each note louder or softer than its neighbours.',
+  'scales.trend': 'Timing spread, the last 30 days',
+  'scales.trend.point': '{day}: {ms} ms ({runs})',
+  'scales.trend.reference': 'professional pianists ≈ {ms} ms',
+  'scales.trend.desc':
+    'Each dot is the median spread of a day you played this scale; lower is more even.',
+  'scales.progress': 'This scale so far',
+  'scales.progress.none':
+    'Every run of this scale is kept: after the first, its progress shows here.',
+  'scales.progress.latest': 'Latest',
+  'scales.progress.best': 'Best',
+  'scales.progress.last': 'Last played',
+  'scales.places.notYet':
+    'After {min} runs of this scale, this shows where you come late or early every time.',
+  'scales.places.none': 'Over your last {runs} runs, no place comes late or early every time.',
+  'scales.places.thumbUnder.up':
+    'Every time going up, the notes where the thumb passes under come {timing} ({keys}, over your last {runs} runs).',
+  'scales.places.thumbUnder.down':
+    'Every time going down, the notes where the thumb passes under come {timing} ({keys}, over your last {runs} runs).',
+  'scales.places.fingerOver.up':
+    'Every time going up, the notes where a finger crosses over the thumb come {timing} ({keys}, over your last {runs} runs).',
+  'scales.places.fingerOver.down':
+    'Every time going down, the notes where a finger crosses over the thumb come {timing} ({keys}, over your last {runs} runs).',
+  'scales.places.notes.up':
+    'Every time going up, {keys} come {timing} (over your last {runs} runs).',
+  'scales.places.notes.down':
+    'Every time going down, {keys} come {timing} (over your last {runs} runs).',
+  'scales.list': 'Your scales',
+  'scales.list.scale': 'Scale',
+  'scales.list.recent': 'Spread (of a note)',
+  'scales.list.suggestion': 'Next up: {scale}, the least even of those you played lately.',
+  'scales.list.play': 'Play',
+  'scales.list.help':
+    'Least even first: the timing spread as a share of the note length, over the last five runs of each.',
   'scales.table': 'Show as a table',
   'scales.table.note': 'Note',
   'scales.table.key': 'Key',
@@ -796,9 +836,9 @@ export const en = {
   'settings.storage.loading': 'Loading your progress…',
   'settings.export': 'Export data',
   'settings.export.help':
-    'Downloads {file} with your sessions, answers, imported pieces, piece practice records and preferences.',
+    'Downloads {file} with your sessions, answers, imported pieces, piece practice records, scale runs and preferences.',
   'settings.export.failed':
-    'The piece practice records could not be read, so nothing was exported.',
+    'The piece practice records or the scale runs could not be read, so nothing was exported.',
   'settings.import': 'Import data…',
   'settings.import.help':
     'Adds the sessions, answers and pieces from an export file. Nothing you already have is changed or removed.',
@@ -819,6 +859,7 @@ export const en = {
   'settings.import.attempts': 'Answers',
   'settings.import.pieces': 'Imported pieces',
   'settings.import.pieceSteps': 'Piece practice records',
+  'settings.import.scaleRuns': 'Scale runs',
   'settings.import.stats': 'Note statistics are recalculated from all answers after the import.',
   'settings.import.nothingNew': 'Everything in this file is already here.',
   'settings.import.invalidTitle': 'These records are invalid and will not be imported:',
@@ -829,13 +870,14 @@ export const en = {
   'settings.import.record.attempts': 'Answer',
   'settings.import.record.pieces': 'Piece',
   'settings.import.record.pieceSteps': 'Piece practice record',
+  'settings.import.record.scaleRuns': 'Scale run',
   'settings.import.more': '…and {n} more',
   'settings.import.prefs': 'Also apply the preferences from the file: {language}, {theme}',
   'settings.import.apply': 'Import',
   'settings.import.cancel': 'Cancel',
   'settings.import.working': 'Importing…',
   'settings.import.done':
-    'Import complete: {sessions} new sessions, {attempts} new answers, {pieces} new pieces and {steps} new piece practice records.',
+    'Import complete: {sessions} new sessions, {attempts} new answers, {pieces} new pieces, {steps} new piece practice records and {scaleRuns} new scale runs.',
   'settings.import.failed': 'The import could not be saved. Nothing was changed.',
 
   'settings.about': 'About',
@@ -887,7 +929,7 @@ export const en = {
   'settings.storage.memory.app':
     'Not saved: dacapo cannot store data on this device right now. Export before you close dacapo.',
   'settings.export.help.app':
-    'Saves {file} with your sessions, answers, imported pieces, piece practice records and preferences.',
+    'Saves {file} with your sessions, answers, imported pieces, piece practice records, scale runs and preferences.',
   'metronome.noAudio.app': 'The click cannot play on this device. The pendulum still keeps time.',
 
   'about.title': 'About dacapo',

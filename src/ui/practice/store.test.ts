@@ -10,6 +10,8 @@ import {
   sampleHeader,
   samplePiece,
   sampleRun,
+  sampleScaleRun,
+  sampleScaleSession,
   T0,
 } from '../../storage/fixtures.ts';
 import {
@@ -84,7 +86,9 @@ afterEach(() => {
 describe('loading', () => {
   it('reports loading, then the stored data', async () => {
     const { sessions, attempts } = sampleData();
-    await seed((repo) => repo.merge({ sessions, attempts, pieces: [], pieceSteps: [] }));
+    await seed((repo) =>
+      repo.merge({ sessions, attempts, pieces: [], pieceSteps: [], scaleRuns: [] }),
+    );
     const store = startStore();
     expect(store.getStatus()).toEqual({ state: 'loading', loaded: false, persisted: null });
     expect(store.getSnapshot().attempts).toEqual([]);
@@ -262,7 +266,13 @@ describe('several tabs', () => {
     expect(tabB.getSnapshot().stats['C4@treble']!.attempts).toBe(2);
 
     const { sessions, attempts } = sampleData();
-    await tabA.importData({ sessions, attempts, pieces: [samplePiece(3)], pieceSteps: [] });
+    await tabA.importData({
+      sessions,
+      attempts,
+      pieces: [samplePiece(3)],
+      pieceSteps: [],
+      scaleRuns: [],
+    });
     await vi.waitFor(() => expect(tabB.getSnapshot()).toEqual(tabA.getSnapshot()));
     expect(tabB.getSnapshot().pieces.map((p) => p.id)).toEqual(['p3']);
   });
@@ -428,11 +438,124 @@ describe('piece runs', () => {
 
     // An import elsewhere: the cache is read again when next asked for.
     const more = sampleRun('r2', 2, { pieceId: 'p1' });
-    await tabA.importData({ sessions: [], attempts: [], pieces: [], pieceSteps: more.steps });
+    await tabA.importData({
+      sessions: [],
+      attempts: [],
+      pieces: [],
+      pieceSteps: more.steps,
+      scaleRuns: [],
+    });
     await vi.waitFor(() => expect(tabB.getPieceSteps('p1')).toBeNull());
     tabB.loadPieceSteps('p1');
     await vi.waitFor(() => expect(tabB.getPieceSteps('p1')).toEqual(more.steps));
     expect(await tabB.pieceStepIds()).toEqual(new Set(more.steps.map((s) => s.id)));
+  });
+});
+
+describe('scale runs', () => {
+  it('records each run with its session, which the snapshot has at once', async () => {
+    const store = startStore();
+    await loaded(store);
+    const one = sampleScaleSession('k1', 1);
+    const two = sampleScaleSession('k1', 2);
+    store.recordScaleRun(one.runs[0]!, one.session);
+    expect(store.getSnapshot().sessions).toEqual([one.session]);
+    store.recordScaleRun(two.runs[1]!, two.session);
+    // The same session, brought up to date.
+    expect(store.getSnapshot().sessions).toEqual([two.session]);
+    await store.settled();
+    expect((await onDisk()).sessions).toEqual([two.session]);
+    expect(await store.allScaleRuns()).toEqual(two.runs);
+    expect(await store.scaleRunIds()).toEqual(new Set(['k1:0', 'k1:1']));
+  });
+
+  it('reads scale runs lazily, one exercise at a time', async () => {
+    const { runs, session } = sampleScaleSession('k1', 3);
+    const other = sampleScaleRun('k2', 0, { exercise: 'major:D:2:left' });
+    await seed(async (repo) => {
+      for (const run of runs) await repo.addScaleRun(run, session);
+      await repo.addScaleRun(other, { ...session, id: 'k2' });
+    });
+    const store = startStore();
+    await loaded(store);
+    expect(store.getScaleRuns('major:C:1:right')).toBeNull();
+    store.loadScaleRuns('major:C:1:right');
+    // A run recorded while the exercise is being read is not lost.
+    const late = sampleScaleRun('k1', 3);
+    store.recordScaleRun(late, session);
+    await vi.waitFor(() => expect(store.getScaleRuns('major:C:1:right')).not.toBeNull());
+    expect(store.getScaleRuns('major:C:1:right')).toEqual([...runs, late]);
+    expect(store.getScaleRuns('major:D:2:left')).toBeNull();
+    const before = store.getScaleRuns('major:C:1:right');
+    store.loadScaleRuns('major:C:1:right');
+    expect(store.getScaleRuns('major:C:1:right')).toBe(before);
+    // Recorded once loaded: appended.
+    const later = sampleScaleRun('k1', 4);
+    store.recordScaleRun(later, session);
+    expect(store.getScaleRuns('major:C:1:right')).toEqual([...runs, late, later]);
+  });
+
+  it('keeps two tabs in step: new runs, their sessions and imports', async () => {
+    const tabA = startStore();
+    const tabB = startStore();
+    await loaded(tabA);
+    await loaded(tabB);
+    tabB.loadScaleRuns('major:C:1:right');
+    await vi.waitFor(() => expect(tabB.getScaleRuns('major:C:1:right')).toEqual([]));
+
+    const one = sampleScaleSession('k1', 1);
+    const two = sampleScaleSession('k1', 2);
+    tabA.recordScaleRun(one.runs[0]!, one.session);
+    tabA.recordScaleRun(two.runs[1]!, two.session);
+    await vi.waitFor(() => expect(tabB.getScaleRuns('major:C:1:right')).toEqual(two.runs));
+    expect(tabB.getSnapshot().sessions).toEqual([two.session]);
+
+    // An import elsewhere: the cache is read again when next asked for.
+    const more = sampleScaleSession('k2', 2, { startedAt: T0 + 3_600_000 });
+    await tabA.importData({
+      sessions: [more.session],
+      attempts: [],
+      pieces: [],
+      pieceSteps: [],
+      scaleRuns: more.runs,
+    });
+    await vi.waitFor(() => expect(tabB.getScaleRuns('major:C:1:right')).toBeNull());
+    expect(tabB.getSnapshot().sessions).toEqual([more.session, two.session]);
+    tabB.loadScaleRuns('major:C:1:right');
+    await vi.waitFor(() =>
+      expect(tabB.getScaleRuns('major:C:1:right')).toEqual([...two.runs, ...more.runs]),
+    );
+    expect(await tabB.scaleRunIds()).toEqual(new Set(['k1:0', 'k1:1', 'k2:0', 'k2:1']));
+  });
+
+  it('reports a failed write and keeps the session in memory', async () => {
+    const repository: PracticeRepository = {
+      ...createMemoryRepository(),
+      addScaleRun: () => Promise.reject(new DOMException('full', 'QuotaExceededError')),
+    };
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const store = startStore({ open: () => Promise.resolve({ repository, failure: null }) });
+    await loaded(store);
+    const { runs, session } = sampleScaleSession('k1', 1);
+    store.recordScaleRun(runs[0]!, session);
+    await store.settled();
+    expect(store.getStatus().state).toBe('failed');
+    expect(store.getSnapshot().sessions).toEqual([session]);
+  });
+
+  it('works in memory when IndexedDB cannot be used', async () => {
+    vi.spyOn(indexedDB, 'open').mockImplementation(() => {
+      throw new DOMException('denied', 'SecurityError');
+    });
+    const store = startStore();
+    await loaded(store);
+    expect(store.getStatus().state).toBe('unavailable');
+    const { runs, session } = sampleScaleSession('k1', 2);
+    for (const run of runs) store.recordScaleRun(run, session);
+    store.loadScaleRuns('major:C:1:right');
+    await vi.waitFor(() => expect(store.getScaleRuns('major:C:1:right')).toEqual(runs));
+    expect(store.getSnapshot().sessions).toEqual([session]);
+    expect(await store.allScaleRuns()).toEqual(runs);
   });
 });
 

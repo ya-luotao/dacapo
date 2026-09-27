@@ -79,9 +79,34 @@ function finish(state: ScaleRunState, end: RunEnd): ScaleRunState {
   return { ...state, phase: 'done', end, wrongKey: null };
 }
 
+/** The latest key of that pitch still down is let go; a key held from before the run has none. */
+function release(state: ScaleRunState, event: { midi: number; time: number }): ScaleRunState {
+  const time = clock(state, event.time);
+  let index = -1;
+  for (let i = state.keys.length - 1; i >= 0; i--) {
+    const key = state.keys[i]!;
+    if (key.midi === event.midi && key.off === null) {
+      index = i;
+      break;
+    }
+  }
+  if (index < 0) return state;
+  const keys = state.keys.map((key, i) => (i === index ? { ...key, off: time } : key));
+  return { ...state, keys };
+}
+
+/** Every key of the run has been let go (or the run has none). */
+export function allReleased(state: Pick<ScaleRunState, 'keys'>): boolean {
+  return state.keys.every((key) => key.off !== null);
+}
+
 export function runStep(state: ScaleRunState, event: RunEvent): ScaleRunState {
-  if (state.phase === 'done')
-    return event.type === 'pedal' ? { ...state, pedalDown: event.down } : state;
+  if (state.phase === 'done') {
+    if (event.type === 'pedal') return { ...state, pedalDown: event.down };
+    // The keys still down at the end are let go after it: their releases belong to the run.
+    if (event.type === 'off' && state.origin !== null) return release(state, event);
+    return state;
+  }
   if (state.phase === 'waiting') {
     if (event.type === 'pedal')
       return { ...state, pedalAtStart: event.down, pedalDown: event.down };
@@ -128,21 +153,8 @@ export function runStep(state: ScaleRunState, event: RunEvent): ScaleRunState {
             };
       return moved.next >= expected.length ? finish(moved, 'finished') : moved;
     }
-    case 'off': {
-      const time = clock(state, event.time);
-      // The latest key of that pitch still down; a key held from before the run has none.
-      let index = -1;
-      for (let i = state.keys.length - 1; i >= 0; i--) {
-        const key = state.keys[i]!;
-        if (key.midi === event.midi && key.off === null) {
-          index = i;
-          break;
-        }
-      }
-      if (index < 0) return state;
-      const keys = state.keys.map((key, i) => (i === index ? { ...key, off: time } : key));
-      return { ...state, keys };
-    }
+    case 'off':
+      return release(state, event);
     case 'pedal':
       return {
         ...state,

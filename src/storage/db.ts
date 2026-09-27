@@ -1,13 +1,14 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { SessionRecord } from '../core/log.ts';
 import type { PieceStep } from '../core/pieceRecords.ts';
+import type { StoredScaleRun } from '../core/scaleRecords.ts';
 import type { Attempt } from '../core/session.ts';
 import type { StoredPiece } from '../core/storedPiece.ts';
 import type { NoteStats } from '../core/weakness.ts';
 
 export const DB_NAME = 'dacapo';
 /** Bump when the schema changes and add a `case` to `upgrade`. */
-export const DB_VERSION = 3;
+export const DB_VERSION = 4;
 
 export interface DacapoSchema extends DBSchema {
   noteStats: { key: string; value: NoteStats };
@@ -26,6 +27,12 @@ export interface DacapoSchema extends DBSchema {
     key: string;
     value: PieceStep;
     indexes: { 'by-piece': string; 'by-session': string };
+  };
+  /** Scale runs as played (version 4), read one exercise or one session at a time. */
+  scaleRuns: {
+    key: string;
+    value: StoredScaleRun;
+    indexes: { 'by-exercise': string; 'by-session': string };
   };
 }
 
@@ -58,6 +65,12 @@ export function upgrade(db: DacapoDB, oldVersion: number): void {
         const steps = db.createObjectStore('pieceSteps', { keyPath: 'id' });
         steps.createIndex('by-piece', 'pieceId');
         steps.createIndex('by-session', 'sessionId');
+        break;
+      }
+      case 3: {
+        const runs = db.createObjectStore('scaleRuns', { keyPath: 'id' });
+        runs.createIndex('by-exercise', 'exercise');
+        runs.createIndex('by-session', 'sessionId');
         break;
       }
     }

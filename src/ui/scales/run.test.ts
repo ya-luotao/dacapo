@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ScaleNote } from '../../core/scaleTypes.ts';
 import {
+  allReleased,
   IDLE_END_MS,
   runStep,
   sessionStep,
@@ -8,6 +9,7 @@ import {
   velocityMeasured,
   waitingRun,
   type RunEvent,
+  type ScaleRunState,
 } from './run.ts';
 
 // C D E F G F E D C, right hand.
@@ -76,6 +78,23 @@ describe('scale run', () => {
     );
     expect(runStep(started, { type: 'tick', time: T0 + 250 + IDLE_END_MS }).end).toBe('idle');
     expect(runStep(started, { type: 'stop', time: T0 + 300 }).end).toBe('stopped');
+  });
+
+  it('keeps the releases of the keys still down when the run ends', () => {
+    const done = MIDIS.map((midi, i) => on(midi, i * 250)).reduce(runStep, waitingRun(EXPECTED));
+    expect(done.phase).toBe('done');
+    expect(allReleased(done)).toBe(false);
+    const released = done.keys
+      .map((key, i) => ({ key, i }))
+      // Latest first: the scale's first and last key are the same (both C4).
+      .reverse()
+      .reduce<ScaleRunState>(
+        (state, { key, i }) =>
+          runStep(state, { type: 'off', midi: key.midi, time: T0 + i * 250 + 200 }),
+        done,
+      );
+    expect(allReleased(released)).toBe(true);
+    expect(released.keys.at(-1)!.off).toBe((MIDIS.length - 1) * 250 + 200);
   });
 
   it('pairs each release with the latest press of its key, ignoring keys held from before', () => {

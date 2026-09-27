@@ -16,6 +16,11 @@ import type { StorageStatus } from '../practice/store.ts';
 import { useNow } from '../progress/useNow.ts';
 import { ImportPreview } from './ImportPreview.tsx';
 
+interface StoredIds {
+  pieceSteps: ReadonlySet<string>;
+  scaleRuns: ReadonlySet<string>;
+}
+
 type ImportState =
   | { step: 'idle' }
   | { step: 'error'; error: ImportError | { kind: 'read' } }
@@ -23,8 +28,8 @@ type ImportState =
       step: 'preview';
       fileName: string;
       parsed: ParsedImport;
-      /** Step records stored already, by id. */
-      stepIds: ReadonlySet<string>;
+      /** Step records and scale runs stored already, by id. */
+      stored: StoredIds;
       working: boolean;
     }
   | { step: 'done'; added: MergeResult }
@@ -62,15 +67,18 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
   const [state, setState] = useState<ImportState>({ step: 'idle' });
 
   async function onExport() {
-    let pieceSteps;
+    let pieceSteps, scaleRuns;
     try {
-      pieceSteps = await practice.allPieceSteps();
+      [pieceSteps, scaleRuns] = await Promise.all([
+        practice.allPieceSteps(),
+        practice.allScaleRuns(),
+      ]);
     } catch {
       setState({ step: 'exportFailed' });
       return;
     }
     const at = Date.now();
-    const file = buildExport({ ...data, pieceSteps }, preferences, {
+    const file = buildExport({ ...data, pieceSteps, scaleRuns }, preferences, {
       now: at,
       appVersion: __APP_VERSION__,
     });
@@ -90,13 +98,16 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
       setState({ step: 'error', error: result.error });
       return;
     }
-    const stepIds =
-      result.value.pieceSteps.length > 0 ? await practice.pieceStepIds() : new Set<string>();
+    const { pieceSteps, scaleRuns } = result.value;
+    const [stepIds, runIds] = await Promise.all([
+      pieceSteps.length > 0 ? practice.pieceStepIds() : new Set<string>(),
+      scaleRuns.length > 0 ? practice.scaleRunIds() : new Set<string>(),
+    ]);
     setState({
       step: 'preview',
       fileName: file.name,
       parsed: result.value,
-      stepIds,
+      stored: { pieceSteps: stepIds, scaleRuns: runIds },
       working: false,
     });
   }
@@ -104,16 +115,17 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
   async function onApply(
     parsed: ParsedImport,
     fileName: string,
-    stepIds: ReadonlySet<string>,
+    stored: StoredIds,
     applyPreferences: boolean,
   ) {
-    setState({ step: 'preview', fileName, parsed, stepIds, working: true });
+    setState({ step: 'preview', fileName, parsed, stored, working: true });
     try {
       const added = await practice.importData({
         sessions: parsed.sessions,
         attempts: parsed.attempts,
         pieces: parsed.pieces,
         pieceSteps: parsed.pieceSteps,
+        scaleRuns: parsed.scaleRuns,
       });
       if (applyPreferences && parsed.preferences) onApplyPreferences(parsed.preferences);
       setState({ step: 'done', added });
@@ -188,11 +200,12 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
             sessionIds: new Set(data.sessions.map((s) => s.id)),
             attemptIds: new Set(data.attempts.map((a) => a.id)),
             pieceIds: new Set(data.pieces.map((p) => p.id)),
-            pieceStepIds: state.stepIds,
+            pieceStepIds: state.stored.pieceSteps,
+            scaleRunIds: state.stored.scaleRuns,
           })}
           working={state.working}
           onApply={(applyPreferences) =>
-            void onApply(state.parsed, state.fileName, state.stepIds, applyPreferences)
+            void onApply(state.parsed, state.fileName, state.stored, applyPreferences)
           }
           onCancel={() => setState({ step: 'idle' })}
         />
@@ -204,6 +217,7 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
             attempts: state.added.attempts,
             pieces: state.added.pieces,
             steps: state.added.pieceSteps,
+            scaleRuns: state.added.scaleRuns,
           })}
         </p>
       )}
