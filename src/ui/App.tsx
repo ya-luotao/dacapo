@@ -18,6 +18,10 @@ const PiecesPage = lazy(() =>
 const PiecePage = lazy(() =>
   import('./pieces/PiecePage.tsx').then((m) => ({ default: m.PiecePage })),
 );
+// Scales draw with Verovio too, loaded by the page itself.
+const ScalesPage = lazy(() =>
+  import('./scales/ScalesPage.tsx').then((m) => ({ default: m.ScalesPage })),
+);
 const MetronomePage = lazy(() =>
   import('./metronome/MetronomePage.tsx').then((m) => ({ default: m.MetronomePage })),
 );
@@ -32,6 +36,7 @@ export function App() {
           <Switch>
             <Route path="/" component={PlayPage} />
             <Route path="/read" component={ReadPage} />
+            <Route path="/scales" component={ScalesPage} />
             <Route path="/pieces" component={PiecesPage} />
             <Route path="/pieces/:id">{({ id }) => <PiecePage key={id} id={id} />}</Route>
             <Route path="/metronome" component={MetronomePage} />

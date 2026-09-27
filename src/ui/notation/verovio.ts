@@ -98,7 +98,31 @@ export function scaleFor(width: number, height: number | null = null): number {
   return Math.round(base * zoom);
 }
 
-export function layoutOptions(width: number, scale = scaleFor(width)): Record<string, unknown> {
+/** Engraving choices a page can make; by default Verovio's, as on the Pieces pages. */
+export interface Engraving {
+  /**
+   * How full the last system must be (0–1) to be stretched across the page like the others;
+   * Verovio's own is 0.8, so a short last system keeps its natural width.
+   */
+  lastJustification?: number;
+  /** Octave lines as "8va" and "15ma", stacked above the fingering (a lone "8" collides with it). */
+  ottavaText?: boolean;
+}
+
+/** Verovio's own threshold for stretching the last system. */
+const DEFAULT_LAST_JUSTIFICATION = 0.8;
+
+/** The engraving as a value: equal engravings give equal keys, whatever object holds them. */
+export const engravingKey = (e: Engraving): string =>
+  `${e.lastJustification ?? DEFAULT_LAST_JUSTIFICATION}:${e.ottavaText === true}`;
+
+const sameEngraving = (a: Engraving, b: Engraving) => engravingKey(a) === engravingKey(b);
+
+export function layoutOptions(
+  width: number,
+  scale = scaleFor(width),
+  engraving: Engraving = {},
+): Record<string, unknown> {
   return {
     // Verovio lays out in its own units; the page is `width` px at our scale.
     pageWidth: Math.round((width * 100) / scale),
@@ -120,18 +144,28 @@ export function layoutOptions(width: number, scale = scaleFor(width)): Record<st
     expandNever: true,
     // Never 'linked': that would fetch a stylesheet from verovio.org.
     smuflTextFont: 'embedded',
+    // Always both: the toolkit is shared and keeps any option it is not given again, so a page
+    // that says nothing must set Verovio's defaults back.
+    minLastJustification: engraving.lastJustification ?? DEFAULT_LAST_JUSTIFICATION,
+    octaveAlternativeSymbols: engraving.ottavaText === true,
   };
 }
 
 // The toolkit holds one document at a time; remember which, and at what width and scale.
-let loaded: { xml: string; width: number; scale: number } | null = null;
+let loaded: { xml: string; width: number; scale: number; engraving: Engraving } | null = null;
 
 /** Loads the piece into the toolkit; throws when Verovio cannot read it. */
-export function loadPiece(tk: Toolkit, xml: string, width: number, scale = scaleFor(width)): void {
+export function loadPiece(
+  tk: Toolkit,
+  xml: string,
+  width: number,
+  scale = scaleFor(width),
+  engraving: Engraving = {},
+): void {
   loaded = null;
-  tk.setOptions(layoutOptions(width, scale));
+  tk.setOptions(layoutOptions(width, scale, engraving));
   if (!tk.loadData(drawingXml(xml))) throw new Error(`Verovio: ${tk.getLog()}`);
-  loaded = { xml, width, scale };
+  loaded = { xml, width, scale, engraving };
 }
 
 /**
@@ -143,15 +177,20 @@ export function layoutPiece(
   xml: string,
   width: number,
   scale = scaleFor(width),
+  engraving: Engraving = {},
 ): boolean {
   if (loaded?.xml !== xml) {
-    loadPiece(tk, xml, width, scale);
+    loadPiece(tk, xml, width, scale, engraving);
     return true;
   }
-  if (loaded.width !== width || loaded.scale !== scale) {
-    tk.setOptions(layoutOptions(width, scale));
+  if (
+    loaded.width !== width ||
+    loaded.scale !== scale ||
+    !sameEngraving(loaded.engraving, engraving)
+  ) {
+    tk.setOptions(layoutOptions(width, scale, engraving));
     tk.redoLayout();
-    loaded = { xml, width, scale };
+    loaded = { xml, width, scale, engraving };
   }
   return false;
 }

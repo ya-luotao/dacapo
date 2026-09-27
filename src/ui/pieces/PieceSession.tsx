@@ -13,7 +13,7 @@ import { flushSync } from 'react-dom';
 import { Link } from 'wouter';
 import { barHeatmap, weakestLoop, type BarMetric } from '../../core/barHeatmap.ts';
 import { parseMeter, tempoForMeter } from '../../core/metronomeSettings.ts';
-import { isBlack, midiName, PIANO_HIGHEST, PIANO_LOWEST } from '../../core/note.ts';
+import { midiName } from '../../core/note.ts';
 import type { PracticeMode } from '../../core/pieceRecords.ts';
 import { summarizeRun } from '../../core/pieceRun.ts';
 import {
@@ -40,6 +40,7 @@ import { ScoreView, type ScoreStatus } from '../notation/ScoreView.tsx';
 import { useOutputState } from '../output/context.ts';
 import { ACCOMPANIMENT_LEVELS, readAccompanimentLevel } from '../output/prefs.ts';
 import { Piano } from '../piano/Piano.tsx';
+import { keyboardRange, whiteKeys } from '../piano/range.ts';
 import { usePieceSteps, usePracticeStore } from '../practice/context.ts';
 import { usePieceFormat } from './format.ts';
 import { readPiecePrefs, TEMPOS, writePiecePrefs } from './prefs.ts';
@@ -74,21 +75,6 @@ const WRONG_FLASH_MS = 350;
 const HAND_CHOICES = ['right', 'left', 'both'] as const;
 const NO_KEYS: readonly number[] = [];
 const newRunId = () => crypto.randomUUID();
-
-/** The piece's range on a short keyboard: at least two octaves, white keys at both ends. */
-function keyboardRange(low: number, high: number): [number, number] {
-  let lo = low - 2;
-  let hi = high + 2;
-  while (hi - lo < 24) {
-    lo--;
-    hi++;
-  }
-  lo = Math.max(PIANO_LOWEST, lo);
-  hi = Math.min(PIANO_HIGHEST, hi);
-  while (isBlack(lo)) lo--;
-  while (isBlack(hi)) hi++;
-  return [lo, hi];
-}
 
 export function PieceSession({ piece }: { piece: OpenPiece }) {
   const t = useT();
@@ -476,11 +462,7 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
     const span = keyRange(score, 'both') ?? [60, 72];
     return keyboardRange(span[0], span[1]);
   }, [score]);
-  const whites = useMemo(() => {
-    let n = 0;
-    for (let m = keys[0]; m <= keys[1]; m++) if (!isBlack(m)) n++;
-    return n;
-  }, [keys]);
+  const whites = useMemo(() => whiteKeys(keys), [keys]);
   const marked = useMemo(() => {
     // While listening the keyboard shows what sounds; otherwise, with Show keys, what to play.
     if (listening) return new Set(step?.midis ?? []);

@@ -125,6 +125,27 @@ Version 1, 2 and 3 files still import.
 - In the Apple app the metronome keeps the screen on while it runs and stops when the app goes to
   the background; in a browser a hidden tab keeps ticking.
 
+### Scales (S1)
+
+- A **Scales** page: major, natural, harmonic and melodic minor and chromatic scales in every key
+  (one spelling each, as exam syllabuses list them), one to four octaves, right or left hand. The
+  scale is drawn on the score with its key signature, accidentals up to double sharps, clef
+  changes, 8va and 15ma lines and **Hanon's fingering** (The Virtuoso Pianist, Nos. 39 and 40,
+  G. Schirmer 1900, transcribed twice and checked digit by digit; natural minor has none, as
+  Hanon prints none).
+- Play at your own tempo, no click: the run starts at the scale's first key and the next run
+  starts when you play it again. Wrong, missed and extra notes are sorted out by aligning what you
+  played with the scale, so one slip costs one note.
+- **How even it was**: the spread of the time between notes, judged against your own tempo (a run
+  that speeds up is not called uneven for it), as the literature measures it, against the
+  professional pianists' 8–9 ms; hesitations apart; the tempo and whether it moved; each note's
+  deviation from the line through its neighbours on a chart (with the fingering, the turn and the
+  crossings), in a table and as colour on the score; where the thumb crossings run late or
+  early; and, from a MIDI keyboard, accents and how even the loudness was. Runs are not saved yet
+  (S2).
+- The navigation gains a **More** menu for the items the header has no room for, fitted to the
+  width in every language; below tablet width the header takes two rows.
+
 ## 0.1.0 — 2026-09-25
 
 The first release: the MVP described in [docs/MVP.md](docs/MVP.md). Export format version 1.

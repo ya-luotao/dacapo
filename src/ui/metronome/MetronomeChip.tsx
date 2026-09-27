@@ -2,14 +2,13 @@ import { useEffect, useRef } from 'react';
 import { Link, useLocation } from 'wouter';
 import { meterBeats } from '../../core/metronomeSettings.ts';
 import { useT } from '../../i18n/index.ts';
+import { isPracticePage } from '../routes.ts';
 import { BeatDots } from './BeatDots.tsx';
 import { paintDots } from './paint.ts';
 import { useMetronome, useMetronomeState, useTempoOffer } from './context.ts';
 import { TempoMark } from './NoteValue.tsx';
 import { useBeatFrame } from './useBeatFrame.ts';
 
-/** Pages where you practise: the chip is always there. Elsewhere only while it runs or waits. */
-const PRACTICE = /^\/($|read|pieces)/;
 /** More beats than this are one dot in the header. */
 const MAX_DOTS = 8;
 
@@ -40,7 +39,8 @@ export function MetronomeChip() {
   }, []);
 
   if (hidden) return null;
-  if (!PRACTICE.test(location) && state.status === 'stopped') return null;
+  // On the pages where you practise the chip is always there; elsewhere only while it runs or waits.
+  if (!isPracticePage(location) && state.status === 'stopped') return null;
 
   const { settings } = state;
   const { beats, unit } = meterBeats(settings.meter);

@@ -1,0 +1,386 @@
+import { useEffect, useId, useMemo, useReducer, useRef, useState, type CSSProperties } from 'react';
+import { analyzeRun, type RunAnalysis } from '../../core/evenness.ts';
+import { parseMusicXml } from '../../core/musicxml.ts';
+import type { ScaleRun } from '../../core/scaleRecords.ts';
+import { exerciseKey, scaleNotes, tonicsOf } from '../../core/scales.ts';
+import { SCALE_OCTAVES, SCALE_TYPES, type ScaleExercise } from '../../core/scaleTypes.ts';
+import { scaleHands, scaleMusicXml } from '../../core/scaleXml.ts';
+import { buildSteps, keyRange, type Hand } from '../../core/score.ts';
+import { useT } from '../../i18n/index.ts';
+import { useHubState, useInput, useKeyboardOctave } from '../input/context.ts';
+import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
+import { ScoreView, type ScoreStatus } from '../notation/ScoreView.tsx';
+import { prefetchVerovio, type Engraving } from '../notation/verovio.ts';
+import { Piano } from '../piano/Piano.tsx';
+import { keyboardRange, whiteKeys } from '../piano/range.ts';
+import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
+import { spelledName, tonicName, useExerciseName } from './format.ts';
+import { readExercise, writeExercise } from './prefs.ts';
+import { sessionStep, velocityMeasured, waitingRun, type ScaleRunState } from './run.ts';
+import { ScaleSummary } from './ScaleSummary.tsx';
+
+/** How often a running run looks at the clock, for its idle end. */
+const TICK_MS = 250;
+/**
+ * A short scale is one short system: drawn larger, and stretched across the sheet. Four octaves
+ * take the whole width at the usual size.
+ */
+const ZOOM: Record<ScaleExercise['octaves'], number> = { 1: 1.6, 2: 1.3, 3: 1.15, 4: 1 };
+/**
+ * A system at least half full is stretched, the last bar alone on a line is not; octave lines read
+ * "8va", stacked clear of the fingering.
+ */
+const ENGRAVING: Engraving = { lastJustification: 0.5, ottavaText: true };
+/** Hands together comes with S3. */
+const HANDS: readonly Hand[] = ['right', 'left'];
+
+export function ScalesPage() {
+  const t = useT();
+  const [exercise, setExerciseState] = useState(readExercise);
+  // The notation engine is large: fetch it while the page is read.
+  useEffect(prefetchVerovio, []);
+
+  const stage = useRef<HTMLDivElement>(null);
+
+  function setExercise(next: ScaleExercise) {
+    setExerciseState(next);
+    writeExercise(next);
+  }
+
+  return (
+    <section className="scales">
+      <h1 className="visually-hidden">{t('scales.title')}</h1>
+      <ScalePicker
+        exercise={exercise}
+        onChange={setExercise}
+        // Selects take the computer keyboard's letters; after a choice, the keys play notes again.
+        onChosen={() => stage.current?.focus({ preventScroll: true })}
+      />
+      <div className="scale-stage" ref={stage} tabIndex={-1}>
+        <ScaleSession key={exerciseKey(exercise)} exercise={exercise} />
+      </div>
+    </section>
+  );
+}
+
+function ScalePicker({
+  exercise,
+  onChange,
+  onChosen,
+}: {
+  exercise: ScaleExercise;
+  onChange: (next: ScaleExercise) => void;
+  /** A choice was made in a select. */
+  onChosen: () => void;
+}) {
+  const t = useT();
+  const id = useId();
+
+  function setType(type: ScaleExercise['type']) {
+    // The same tonic if the new type has it, else the one at the same place in the circle.
+    const before = tonicsOf(exercise.type);
+    const after = tonicsOf(type);
+    const tonic = after.includes(exercise.tonic)
+      ? exercise.tonic
+      : (after[Math.max(0, before.indexOf(exercise.tonic))] ?? after[0]!);
+    onChange({ ...exercise, type, tonic });
+  }
+
+  return (
+    <div className="scale-picker">
+      <div className="field">
+        <label htmlFor={`${id}-type`}>{t('scales.pick.type')}</label>
+        <select
+          id={`${id}-type`}
+          value={exercise.type}
+          onChange={(e) => {
+            setType(e.target.value as ScaleExercise['type']);
+            onChosen();
+          }}
+        >
+          {SCALE_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {t(`scales.type.${type}`)}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="field">
+        <label htmlFor={`${id}-tonic`}>{t('scales.pick.tonic')}</label>
+        <select
+          id={`${id}-tonic`}
+          value={exercise.tonic}
+          onChange={(e) => {
+            onChange({ ...exercise, tonic: e.target.value });
+            onChosen();
+          }}
+        >
+          {tonicsOf(exercise.type).map((tonic) => (
+            <option key={tonic} value={tonic}>
+              {tonicName(tonic)}
+            </option>
+          ))}
+        </select>
+      </div>
+      <fieldset className="field">
+        <legend>{t('scales.pick.octaves')}</legend>
+        <div className="segmented">
+          {SCALE_OCTAVES.map((octaves) => (
+            <label key={octaves}>
+              <input
+                type="radio"
+                name={`${id}-octaves`}
+                checked={exercise.octaves === octaves}
+                onChange={() => onChange({ ...exercise, octaves })}
+              />
+              <span>{octaves}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <fieldset className="field">
+        <legend>{t('scales.pick.hand')}</legend>
+        <div className="segmented">
+          {HANDS.map((hand) => (
+            <label key={hand}>
+              <input
+                type="radio"
+                name={`${id}-hand`}
+                checked={exercise.hands === hand}
+                onChange={() => onChange({ ...exercise, hands: hand })}
+              />
+              <span>{t(`scales.hand.${hand}`)}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+    </div>
+  );
+}
+
+/** How far a note was from the line through its neighbours, as a class for its ink on the score. */
+function deviationMark(deviation: number | null): string | null {
+  if (deviation === null) return null;
+  const ms = Math.abs(deviation);
+  if (ms < 10) return null;
+  if (ms < 20) return 'is-dev-1';
+  if (ms < 35) return 'is-dev-2';
+  if (ms < 60) return 'is-dev-3';
+  return 'is-dev-4';
+}
+
+function ScaleSession({ exercise }: { exercise: ScaleExercise }) {
+  const t = useT();
+  const name = useExerciseName();
+  const { hub, pointer } = useInput();
+  const { held, sustained } = useHubState();
+  const hand: Hand = exercise.hands === 'left' ? 'left' : 'right';
+  const expected = useMemo(() => scaleNotes(exercise)[hand], [exercise, hand]);
+  const names = useMemo(() => expected.map((note) => spelledName(note.pitch)), [expected]);
+  const xml = useMemo(() => scaleMusicXml(exercise), [exercise]);
+  const score = useMemo(
+    () =>
+      parseMusicXml(new DOMParser().parseFromString(xml, 'application/xml'), {
+        hands: scaleHands(exercise),
+      }),
+    [xml, exercise],
+  );
+  const steps = useMemo(() => buildSteps(score, hand), [score, hand]);
+  // The run's notes on the score: the hand's notes in the order played are the run, note for
+  // note (scaleXml.test.ts holds it), and each belongs to the step at its onset.
+  const noteIds = useMemo(
+    () =>
+      score.notes
+        .filter((n) => n.hand === hand)
+        .sort((a, b) => a.onset - b.onset)
+        .map((n) => n.id),
+    [score, hand],
+  );
+  const stepOfNote = useMemo(
+    () => new Map(steps.flatMap((s) => s.noteIds.map((id) => [id, s] as const))),
+    [steps],
+  );
+  const [status, setStatus] = useState<ScoreStatus>({ state: 'loading' });
+  const [run, dispatch] = useReducer(sessionStep, expected, (notes) =>
+    waitingRun(notes, hub.getState().sustain),
+  );
+  // From the first run on; the page alone does not keep the screen on.
+  useKeepAwake(run.phase !== 'waiting', KEEP_AWAKE_IDLE_MS);
+
+  useEffect(
+    () =>
+      hub.onEvent((event) => {
+        if (event.type === 'sustain')
+          dispatch({ type: 'pedal', down: event.down, time: event.time });
+        else if (event.type === 'on') dispatch({ ...event, type: 'on', at: Date.now() });
+        else dispatch({ type: 'off', midi: event.midi, time: event.time });
+      }),
+    [hub],
+  );
+  const playing = run.phase === 'playing';
+  useEffect(() => {
+    if (!playing) return;
+    const id = setInterval(() => dispatch({ type: 'tick', time: performance.now() }), TICK_MS);
+    return () => clearInterval(id);
+  }, [playing]);
+
+  const analysis = useMemo(() => (run.phase === 'done' ? analyze(run) : null), [run]);
+  const ok = analysis?.quality === 'ok';
+
+  // The score: the note to play next, the notes played green; after a run, each note inked by
+  // how far off the line it was, and the wrong and missed ones in the error colour.
+  const next = noteIds[run.next];
+  const step = run.phase === 'done' || next === undefined ? null : (stepOfNote.get(next) ?? null);
+  const marks = useMemo(() => {
+    const out = new Map<string, string>();
+    const idOf = (index: number) => noteIds[index];
+    if (analysis && ok) {
+      for (const note of analysis.hands[0]!.notes) {
+        const id = idOf(note.index);
+        const mark = note.outcome === 'played' ? deviationMark(note.deviation) : 'is-missed';
+        if (id && mark) out.set(id, mark);
+      }
+    } else if (run.phase !== 'done') {
+      for (const index of run.played) {
+        const id = idOf(index);
+        if (id) out.set(id, 'is-pressed');
+      }
+    }
+    return out;
+  }, [analysis, ok, run.phase, run.played, noteIds]);
+
+  const keys = useMemo(() => {
+    const span = keyRange(score, hand) ?? [60, 72];
+    return keyboardRange(span[0], span[1]);
+  }, [score, hand]);
+  const wrong = useMemo(() => new Set(run.wrongKey === null ? [] : [run.wrongKey]), [run.wrongKey]);
+  const first = names[0] ?? '';
+  // While waiting, the key to start on.
+  const waiting = run.phase === 'waiting';
+  const firstKey = useMemo(
+    () => (waiting && expected[0] ? new Set([expected[0].midi]) : undefined),
+    [waiting, expected],
+  );
+
+  return (
+    <div className="scale-session">
+      <div className="scale-head">
+        <h2 className="scale-title">{name(exercise)}</h2>
+        <p className="scale-status" role="status">
+          {run.phase === 'waiting'
+            ? t('scales.status.start', { key: first })
+            : run.phase === 'playing'
+              ? t('scales.status.playing', { n: run.played.length, total: expected.length })
+              : ok
+                ? t('scales.status.again', { key: first })
+                : t('scales.status.notARun', { key: first })}
+        </p>
+        {playing && (
+          <button
+            type="button"
+            className="button"
+            onClick={() => dispatch({ type: 'stop', time: performance.now() })}
+          >
+            {t('scales.stop')}
+          </button>
+        )}
+      </div>
+
+      <div className="scale-sheet">
+        <ScoreView
+          xml={xml}
+          score={score}
+          title={name(exercise)}
+          step={step}
+          pressed={[]}
+          hands={hand}
+          onStatus={setStatus}
+          marks={marks}
+          zoom={ZOOM[exercise.octaves]}
+          engraving={ENGRAVING}
+          fillHeight={false}
+        />
+        {status.state !== 'ready' && (
+          <div className="piece-overlay" role="status">
+            <p className={status.state === 'failed' ? 'piece-error' : 'muted'}>
+              {status.state === 'loading'
+                ? t('pieces.preparing')
+                : status.reason === 'engine'
+                  ? t('pieces.engineFailed')
+                  : t('pieces.renderFailed')}
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="scale-keys" style={{ '--piece-whites': whiteKeys(keys) } as CSSProperties}>
+        <Piano
+          held={held}
+          sustained={sustained}
+          pointer={pointer}
+          wrong={wrong}
+          marked={firstKey}
+          range={keys}
+          className="piece-piano"
+        />
+      </div>
+
+      <KeyboardHint />
+
+      {analysis && <ScaleSummary analysis={analysis} names={names} end={run.end} />}
+      {import.meta.env.DEV && run.phase === 'done' && <SaveRun exercise={exercise} run={run} />}
+    </div>
+  );
+}
+
+/** Without a MIDI keyboard: which octave the computer keyboard plays, and how to change it. */
+function KeyboardHint() {
+  const t = useT();
+  const octave = useKeyboardOctave();
+  if (!useKeyboardFallback()) return null;
+  return <p className="muted scale-keyboard">{t('read.keyboard', { octave })}</p>;
+}
+
+function analyze(run: ScaleRunState): RunAnalysis {
+  return analyzeRun({
+    expected: run.expected,
+    played: run.keys,
+    velocityMeasured: velocityMeasured(run.keys),
+  });
+}
+
+/**
+ * Development only: saves the raw run, for setting the loudness thresholds from real instruments
+ * (docs/SCALES.md, "Still open for S1").
+ */
+function SaveRun({ exercise, run }: { exercise: ScaleExercise; run: ScaleRunState }) {
+  const { midi } = useInput();
+  function save() {
+    const status = midi.getStatus();
+    const record: ScaleRun = {
+      exercise: exerciseKey(exercise),
+      startedAt: run.startedAt ?? Date.now(),
+      end: run.end ?? 'stopped',
+      keys: [...run.keys],
+      pedal: [...run.pedal],
+      pedalAtStart: run.pedalAtStart,
+      velocityMeasured: velocityMeasured(run.keys),
+      inputs: status.state === 'connected' ? [...status.names] : [],
+    };
+    const url = URL.createObjectURL(
+      new Blob([JSON.stringify(record)], { type: 'application/json' }),
+    );
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `scale-run-${record.exercise.replaceAll(':', '-')}-${record.startedAt}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  return (
+    <p className="scale-dev">
+      <button type="button" className="button" onClick={save}>
+        Save this run (development)
+      </button>
+    </p>
+  );
+}

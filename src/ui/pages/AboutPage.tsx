@@ -227,6 +227,14 @@ export function AboutPage() {
               <a href="https://musescore.com/user/9836/scores/719631">OpenGoldberg</a>
             </p>
           </li>
+          <li className="credit">
+            <p>{t('about.music.hanon')}</p>
+            <p>
+              <a href="https://imslp.org/wiki/The_Virtuoso_Pianist_(Hanon,_Charles-Louis)">
+                IMSLP #91547
+              </a>
+            </p>
+          </li>
         </ul>
       </section>
     </section>

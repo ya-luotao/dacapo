@@ -1,10 +1,29 @@
 import type { MessageKey } from '../i18n/index.ts';
 
-export const NAV_ITEMS: readonly { path: string; label: MessageKey }[] = [
-  { path: '/', label: 'nav.play' },
-  { path: '/read', label: 'nav.read' },
-  { path: '/pieces', label: 'nav.pieces' },
-  { path: '/metronome', label: 'nav.metronome' },
-  { path: '/progress', label: 'nav.progress' },
-  { path: '/settings', label: 'nav.settings' },
+/**
+ * The navigation, in order. `priority`: when the header is too narrow, the lowest moves into the
+ * More menu first; Play and Read always stay. `practice`: a page where you play, where the header
+ * always shows the metronome chip.
+ */
+export const NAV_ITEMS: readonly {
+  path: string;
+  label: MessageKey;
+  priority: number;
+  practice?: boolean;
+}[] = [
+  { path: '/', label: 'nav.play', priority: Infinity, practice: true },
+  { path: '/read', label: 'nav.read', priority: Infinity, practice: true },
+  { path: '/scales', label: 'nav.scales', priority: 5, practice: true },
+  { path: '/pieces', label: 'nav.pieces', priority: 6, practice: true },
+  { path: '/metronome', label: 'nav.metronome', priority: 2 },
+  { path: '/progress', label: 'nav.progress', priority: 3 },
+  { path: '/settings', label: 'nav.settings', priority: 1 },
 ];
+
+/** Whether `location` is a practice page or one of its subpages (a piece belongs to Pieces). */
+export function isPracticePage(location: string): boolean {
+  return NAV_ITEMS.some(
+    ({ path, practice }) =>
+      practice && (location === path || (path !== '/' && location.startsWith(`${path}/`))),
+  );
+}

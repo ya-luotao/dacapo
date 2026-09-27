@@ -25,6 +25,18 @@ describe('scaleFor', () => {
     expect(layoutOptions(1000, 50)).toMatchObject({ scale: 50, pageWidth: 2000 });
     expect(layoutOptions(1000)).toMatchObject({ scale: 42 });
   });
+
+  it('sets the engraving every time, so one page cannot leave its own to the next', () => {
+    // The toolkit keeps options it is not given: the defaults must be sent, not left out.
+    expect(layoutOptions(1000)).toMatchObject({
+      minLastJustification: 0.8,
+      octaveAlternativeSymbols: false,
+    });
+    expect(layoutOptions(1000, 42, { lastJustification: 0.5, ottavaText: true })).toMatchObject({
+      minLastJustification: 0.5,
+      octaveAlternativeSymbols: true,
+    });
+  });
 });
 
 describe('layoutPiece', () => {

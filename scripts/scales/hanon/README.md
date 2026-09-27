@@ -38,6 +38,9 @@ transcription and the tools that check and expand it. Every command runs from th
 - `build.py` — expands a reading into `hanon.json` (`python3 build.py pass1 hanon.json`): digits
   Hanon did not print are filled by the thumb-crossing rule and marked in `printed`; the closing
   tonic takes the printed starting finger. Rebuilding gives the committed file byte for byte.
+- `../fingering.ts` — writes `src/core/scaleFingering.ts` from `hanon.json` through the pure
+  transform in `src/core/hanonData.ts`, the correction applied: run
+  `node --experimental-strip-types scripts/scales/fingering.ts` from the repository root.
 - `uncertain.md` — the doubtful digits and how each was read. The crop images it names were made
   from the scan during the transcription and are not kept; any page can be cut again from the PDF.
 - `differences.md` — where Hanon differs from the fingering commonly taught (from memory of the

@@ -76,20 +76,24 @@ and no Simplified-only characters in zh-TW.
 Address the learner as 你. Full-width punctuation, “ ” quotes, 《》 for works; a space between
 Chinese and Latin letters, digits and placeholders (`第 {n} 张`, `MIDI 键盘`); `、` for lists.
 
-| English                                 | zh-CN                        |
-| --------------------------------------- | ---------------------------- |
-| Read / flashcards                       | 识谱 / 识谱卡片              |
-| grand staff / treble staff / bass staff | 大谱表 / 高音谱表 / 低音谱表 |
-| ledger lines / sharps and flats         | 加线 / 升号和降号            |
-| bar / right, left, both hands           | 小节 / 右手、左手、双手      |
-| sustain pedal / metronome / count-in    | 延音踏板 / 节拍器 / 预备拍   |
-| tap tempo / subdivide / tempo trainer   | 敲击测速 / 细分 / 速度训练   |
-| accented / muted beat / time signature  | 重音 / 静音 / 拍号           |
-| wait mode / rhythm mode / weak bars     | 等待 / 节奏 / 薄弱小节       |
-| loop / repeat / run                     | 循环 / 反复 / 遍             |
-| latency calibration                     | 延迟校准                     |
-| built-in piano / sound out through      | 内置钢琴 / 声音输出到        |
-| export / import                         | 导出 / 导入                  |
+| English                                  | zh-CN                        |
+| ---------------------------------------- | ---------------------------- |
+| Read / flashcards                        | 识谱 / 识谱卡片              |
+| grand staff / treble staff / bass staff  | 大谱表 / 高音谱表 / 低音谱表 |
+| ledger lines / sharps and flats          | 加线 / 升号和降号            |
+| bar / right, left, both hands            | 小节 / 右手、左手、双手      |
+| sustain pedal / metronome / count-in     | 延音踏板 / 节拍器 / 预备拍   |
+| tap tempo / subdivide / tempo trainer    | 敲击测速 / 细分 / 速度训练   |
+| accented / muted beat / time signature   | 重音 / 静音 / 拍号           |
+| wait mode / rhythm mode / weak bars      | 等待 / 节奏 / 薄弱小节       |
+| loop / repeat / run                      | 循环 / 反复 / 遍             |
+| latency calibration                      | 延迟校准                     |
+| built-in piano / sound out through       | 内置钢琴 / 声音输出到        |
+| export / import                          | 导出 / 导入                  |
+| Scales (the page) / key (tonic)          | 音阶 / 主音                  |
+| major / natural, harmonic, melodic minor | 大调 / 自然、和声、旋律小调  |
+| chromatic / fingering / thumb under      | 半音阶 / 指法 / 拇指穿过     |
+| timing spread / hesitation / loudness    | 时间波动 / 迟疑 / 力度       |
 
 ## Traditional Chinese, Taiwan (`zh-TW`)
 
@@ -126,6 +130,9 @@ terms throughout. Address the learner as 你, as zh-CN does.
 | settings / tab / private window         | 設定 / 分頁 / 無痕視窗       | 设置 / 标签页 / 无痕窗口   |
 | save / reload / font                    | 儲存 / 重新整理 / 字型       | 保存 / 刷新 / 字体         |
 | built-in piano / grand piano            | 內建鋼琴 / 平台鋼琴          | 内置钢琴 / 三角钢琴        |
+| Scales (the page) / key (tonic)         | 音階 / 主音                  | 音阶 / 主音                |
+| major / harmonic, melodic minor         | 大調 / 和聲小調、旋律小調    | 大调 / 和声小调、旋律小调  |
+| chromatic / fingering / hesitation      | 半音階 / 指法 / 遲疑         | 半音阶 / 指法 / 迟疑       |
 
 Keys in titles: `G 大調`, `C 大調`. Composers as Taiwan writes them: 貝多芬, 巴哈 (not 巴赫), 舒曼,
 布爾格彌勒.
@@ -160,8 +167,12 @@ verb phrases for labels and buttons (設定, 開始, もう一度, 補正する)
 | latency calibration / demo            | 遅延の補正 / お手本                              |
 | built-in piano                        | 内蔵ピアノ                                       |
 | import / export                       | インポート / エクスポート                        |
+| Scales (the page) / key (tonic)       | スケール / 主音                                  |
+| major / harmonic, melodic minor       | 長音階 / 和声的短音階・旋律的短音階              |
+| chromatic / fingering / evenness      | 半音階 / 運指（指番号） / 粒のそろい             |
 
-Keys in titles follow Japanese editions: ハ長調, ト長調. Middle C is 中央C.
+Keys in titles follow Japanese editions: ハ長調, ト長調. Middle C is 中央C. Scale names on the Scales
+page keep the letter names of the app (`D長音階`, `G♯和声的短音階`), not ニ長音階.
 
 ## Korean (`ko`)
 
@@ -194,6 +205,9 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 | import / export                       | 가져오기 / 내보내기                                              |
 | session list / answers (records)      | 연습 내역 / 응답 (연습 기록 is the whole log)                    |
 | library (built-in pieces)             | 기본 곡                                                          |
+| Scales (the page) / key (tonic)       | 스케일 / 으뜸음                                                  |
+| major / harmonic, melodic minor       | 장음계 / 화성 단음계, 가락 단음계                                |
+| chromatic / fingering / loudness      | 반음계 / 손가락 번호 / 음량                                      |
 
 Keys in titles use letters: G장조, C장조, matching the letter names in the app. Composer names
 follow the National Institute of Korean Language: 루트비히 판 베토벤, 요한 제바스티안 바흐.

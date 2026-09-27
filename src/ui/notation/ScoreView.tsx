@@ -1,7 +1,15 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { inHands, type HandSelection, type Score, type Step } from '../../core/score.ts';
 import { useT } from '../../i18n/index.ts';
-import { layoutPiece, loadVerovio, mapNotes, scaleFor, type Toolkit } from './verovio.ts';
+import {
+  layoutPiece,
+  loadVerovio,
+  mapNotes,
+  scaleFor,
+  engravingKey,
+  type Engraving,
+  type Toolkit,
+} from './verovio.ts';
 
 export type ScoreStatus =
   | { state: 'loading' }
@@ -22,6 +30,17 @@ interface ScoreViewProps {
   behind?: (bars: BarBoxes) => ReactNode;
   /** Laid over the score, e.g. focusable targets per bar. */
   above?: (bars: BarBoxes) => ReactNode;
+  /** Classes for single notes by our note id, e.g. the notes of a scale already played. */
+  marks?: ReadonlyMap<string, string>;
+  /** Staff size relative to the usual (a short scale is drawn larger). */
+  zoom?: number;
+  /** Engraving choices other than Verovio's defaults (verovio.ts). */
+  engraving?: Engraving;
+  /**
+   * The frame has a height of its own (the practice page's one-screen layout), so a tall frame
+   * may draw the staff larger. Off where the frame is only as tall as the score.
+   */
+  fillHeight?: boolean;
 }
 
 /** The staff lines of a written bar, in px from the top left of the score's page. */
@@ -36,6 +55,7 @@ export interface BarBox {
 export type BarBoxes = ReadonlyMap<number, BarBox>;
 
 const NO_BOXES: BarBoxes = new Map();
+const NO_ENGRAVING: Engraving = {};
 
 /** One drawing of the score: our note ids and measures addressed in Verovio's SVG. */
 interface Drawing {
@@ -93,6 +113,10 @@ export function ScoreView({
   onStatus,
   behind,
   above,
+  marks,
+  zoom = 1,
+  engraving = NO_ENGRAVING,
+  fillHeight = true,
 }: ScoreViewProps) {
   const t = useT();
   const frame = useRef<HTMLDivElement>(null);
@@ -101,8 +125,12 @@ export function ScoreView({
   const band = useRef<HTMLDivElement>(null);
   const [drawing, setDrawing] = useState<Drawing | null>(null);
   const status = useRef(onStatus);
+  // The engraving is followed by value: a new object with the same choices draws nothing again.
+  const engravingId = engravingKey(engraving);
+  const engravingNow = useRef(engraving);
   useLayoutEffect(() => {
     status.current = onStatus;
+    engravingNow.current = engraving;
   });
 
   // Load the engine and draw; again whenever the width changes.
@@ -122,13 +150,18 @@ export function ScoreView({
     // The frame's height counts only where the page is one screen and the frame takes the height
     // the rest leaves (styles.css, .piece-session); elsewhere it grows with the score.
     const scaleNow = () =>
-      scaleFor(widthOf(), oneScreen.matches ? Math.floor(outer.clientHeight) : null);
+      Math.round(
+        scaleFor(
+          widthOf(),
+          fillHeight && oneScreen.matches ? Math.floor(outer.clientHeight) : null,
+        ) * zoom,
+      );
 
     function draw() {
       if (!tk) return;
       width = widthOf();
       scale = scaleNow();
-      const reloaded = layoutPiece(tk, xml, width, scale);
+      const reloaded = layoutPiece(tk, xml, width, scale, engravingNow.current);
       target!.innerHTML = tk.renderToSVG(1);
       // Everything is drawn under one color="black"; CSS decides the ink instead.
       for (const el of target!.querySelectorAll('[color]')) el.removeAttribute('color');
@@ -193,7 +226,7 @@ export function ScoreView({
       target.replaceChildren();
       setDrawing(null);
     };
-  }, [xml, score]);
+  }, [xml, score, zoom, engravingId, fillHeight]);
 
   // Notes the selected hands do not play are drawn lighter.
   useLayoutEffect(() => {
@@ -231,6 +264,21 @@ export function ScoreView({
       for (const el of marked) el.classList.remove('is-current', 'is-pressed', 'is-held');
     };
   }, [drawing, step, pressed, score]);
+
+  // Classes for single notes, laid on after the step's so they can override its ink.
+  useLayoutEffect(() => {
+    if (!drawing || !marks || marks.size === 0) return;
+    const marked: [Element, string][] = [];
+    for (const [id, name] of marks) {
+      const el = drawing.notes.get(id);
+      if (!el) continue;
+      el.classList.add(name);
+      marked.push([el, name]);
+    }
+    return () => {
+      for (const [el, name] of marked) el.classList.remove(name);
+    };
+  }, [drawing, marks]);
 
   // Where each bar is drawn, for what is placed behind or over the bars; again on every relayout.
   const wantsBoxes = Boolean(behind || above);

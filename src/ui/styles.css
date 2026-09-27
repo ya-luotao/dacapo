@@ -416,6 +416,105 @@ h1:is(:lang(zh), :lang(ja), :lang(ko)) {
   }
 }
 
+/* More: the items the bar has no room for (Header.tsx fits them). */
+
+.header nav {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.header .nav {
+  justify-content: flex-end;
+}
+
+/* The measured copy: laid out at its own width in a box of no size, so it never widens the page. */
+.nav-ruler-box {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+
+.header .nav-ruler {
+  width: max-content;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.nav-more {
+  position: relative;
+}
+
+.nav-more-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  line-height: inherit;
+  cursor: pointer;
+}
+
+.nav-more-chevron {
+  width: 0.625rem;
+  height: 0.375rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform var(--dur-fast) ease-out;
+}
+
+.nav-more-button[aria-expanded='true'] .nav-more-chevron {
+  transform: rotate(180deg);
+}
+
+.nav-more-menu {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  right: 0;
+  z-index: 20;
+  min-width: 11rem;
+  padding: 0.375rem 0;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+
+.nav-more-menu ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nav-more-link {
+  display: block;
+  padding: 0.625rem 1rem;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.nav-more-link.is-active {
+  color: var(--text);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+@media (hover: hover) {
+  .nav-more-link:hover {
+    color: var(--text);
+    background: var(--sunk);
+  }
+}
+
 /* Content */
 
 .main {
@@ -589,14 +688,7 @@ select {
 }
 
 @media (max-width: 30rem) {
-  .header nav {
-    width: 100%;
-    /* Six items fit a 375 px phone; a narrower one scrolls the menu, never the page. */
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .nav {
+  .header .nav {
     flex-wrap: nowrap;
     justify-content: space-between;
     gap: 0 0.75rem;
@@ -3910,6 +4002,191 @@ select.is-compact {
   font-variant-numeric: tabular-nums;
 }
 
+/* Scales: the choice of scale, the score of it, the keyboard, and after a run how even it was. */
+
+.scale-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1.5rem;
+}
+
+.scale-picker .field {
+  margin: 0;
+}
+
+.scale-picker select {
+  min-width: 9rem;
+}
+
+.scale-stage:focus {
+  outline: none;
+}
+
+.scale-session {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.scale-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+}
+
+.scale-title {
+  margin: 0;
+  font-size: clamp(1.375rem, 1.25rem + 0.5vw, 1.625rem);
+}
+
+.scale-status {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.scale-head .button {
+  margin-inline-start: auto;
+}
+
+/* As tall as the score: a scale is one or two systems. */
+.scale-sheet {
+  position: relative;
+  display: flex;
+  min-height: 9rem;
+}
+
+.scale-keys {
+  width: 100%;
+  max-width: calc(var(--piece-whites, 22) * 1.375rem);
+  margin-inline: auto;
+}
+
+/* After a run: each note inked by how far it was off the line through its neighbours. */
+.score-svg .is-dev-1 {
+  color: var(--heat-1);
+}
+
+.score-svg .is-dev-2 {
+  color: var(--heat-3);
+}
+
+.score-svg .is-dev-3 {
+  color: var(--heat-5);
+}
+
+.score-svg .is-dev-4 {
+  color: var(--heat-6);
+}
+
+.score-svg .is-missed {
+  color: var(--bad);
+}
+
+.scale-summary {
+  max-width: 44rem;
+}
+
+.scale-summary .figures {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  max-width: none;
+  margin: 0.25rem 0 0;
+}
+
+.scale-summary .figures div {
+  padding-block: 0.375rem 0.5rem;
+}
+
+.scale-summary .figures dt {
+  font-size: 0.75rem;
+}
+
+.scale-summary .figures dd {
+  margin-top: 0.125rem;
+  font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem);
+}
+
+.scale-rough {
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.scale-verdict {
+  max-width: 40rem;
+  margin: 0.75rem 0 1rem;
+  font-size: 1.0625rem;
+  line-height: 1.5;
+}
+
+.scale-profile .deviation-dot.is-crossing {
+  fill: var(--surface);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.scale-profile .deviation-dot.is-crossing.is-hover {
+  stroke: var(--text);
+}
+
+.scale-profile .deviation-missed.is-wrong {
+  stroke: var(--bad);
+}
+
+.scale-profile-turn line {
+  stroke: var(--border);
+  stroke-dasharray: 3 3;
+}
+
+.scale-profile-turn text,
+.scale-profile-finger {
+  fill: var(--text-muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.scale-profile-finger.is-crossing {
+  fill: var(--text);
+  font-weight: 700;
+}
+
+.scale-profile-pause line {
+  stroke: var(--warn);
+  stroke-width: 2;
+}
+
+.scale-profile-loud line {
+  stroke: var(--border);
+}
+
+.scale-profile-loud rect {
+  fill: var(--text-muted);
+}
+
+.scale-profile-loud rect.is-accent {
+  fill: var(--warn);
+}
+
+.scale-dev,
+.scale-keyboard {
+  margin: 0;
+  text-align: center;
+}
+
+@media (max-width: 30rem) {
+  .scale-summary .figures {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .scale-summary .figures div:nth-child(3) {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+  }
+}
+
 /* Latency calibration (Settings and before the first rhythm run). */
 .calibration-title.eyebrow {
   margin-bottom: 0.25rem;
@@ -4228,7 +4505,8 @@ select.is-compact {
   font-weight: 600;
 }
 
-@media (max-width: 30rem) {
+/* Narrower than a tablet: the brand and the chip on the first row, the navigation below. */
+@media (max-width: 48rem) {
   .met-chip {
     order: 1;
     margin-inline-start: auto;
@@ -4236,6 +4514,14 @@ select.is-compact {
 
   .header nav {
     order: 2;
+    flex-basis: 100%;
+  }
+}
+
+/* Between a phone (where the items spread over the row) and a tablet. */
+@media (min-width: 30.0625rem) and (max-width: 48rem) {
+  .header .nav {
+    justify-content: flex-start;
   }
 }
 
