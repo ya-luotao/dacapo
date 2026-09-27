@@ -61,9 +61,13 @@ export function ScaleProgress({
       ms: Math.round(Math.abs(p.irregularity)),
     });
     // Where there is no fingering the place is its notes, by degree.
-    return p.crossing
+    const text = p.crossing
       ? t(`scales.places.${p.crossing}.${p.direction}`, { keys, timing, runs: p.runs })
       : t(`scales.places.notes.${p.direction}`, { keys, timing, runs: p.runs });
+    // Hands together, each hand has its own places: say which.
+    return exercise.hands === 'both'
+      ? t('scales.result.forHand', { hand: t(`scales.hand.${p.hand}`), text })
+      : text;
   };
 
   let placesText: string | null;
@@ -139,7 +143,7 @@ export function YourScales({
   return (
     <section className="scale-list" aria-labelledby={`${id}-title`}>
       <h2 id={`${id}-title`}>{t('scales.list')}</h2>
-      {suggested && suggested.hands !== 'both' && exerciseKey(suggested) !== currentKey && (
+      {suggested && exerciseKey(suggested) !== currentKey && (
         <p className="scale-suggestion">
           {t('scales.list.suggestion', { scale: label(suggested) })}{' '}
           <button type="button" className="button is-compact" onClick={() => onPick(suggested)}>
@@ -176,8 +180,7 @@ export function YourScales({
                   <td>{p.best ? t('scales.result.ms', { ms: Math.round(p.best.spread) }) : '–'}</td>
                   <td>{format.longDay(dayKey(p.lastAt))}</td>
                   <td>
-                    {/* Hands together is S3: such a record (from an import) is listed, not played. */}
-                    {!here && e.hands !== 'both' && (
+                    {!here && (
                       <button type="button" className="button is-compact" onClick={() => onPick(e)}>
                         {t('scales.list.play')}
                       </button>

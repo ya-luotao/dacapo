@@ -1,12 +1,10 @@
 // How even a scale run was: in time (the spread of its intervals, hesitations, each note's
-// deviation from a line through its neighbours, the tempo at the start and the end) and in
-// loudness, per hand and per note, and the clearest problem place. Every figure is judged against
-// the run itself, never against a grid: the tempo is the player's own. See docs/SCALES.md,
-// "Analysis" and "Clarifications: Timing figures, Deviation per note".
-//
-// Hands together (asynchrony per pair) and connection (legato) are S3: they will join
-// `RunAnalysis` and `HandAnalysis` as further fields beside `timing` and `loudness`; the played
-// notes already carry what they need (`off`).
+// deviation from a line through its neighbours, the tempo at the start and the end), in loudness
+// and in connection (how each key's release meets the next key), per hand and per note; the hands
+// against each other when they play together (asynchrony per pair); and the clearest problem
+// place. Every figure is judged against the run itself, never against a grid: the tempo is the
+// player's own. See docs/SCALES.md, "Analysis" and "Clarifications: Timing figures, Deviation per
+// note".
 
 import { quantile, theilSen } from './robust.ts';
 import { alignHand, alignHands, type HandMatch } from './scaleAlign.ts';
@@ -31,6 +29,12 @@ export interface RunInput {
   played: readonly PlayedNote[];
   /** False for the computer keyboard and the on-screen piano: loudness is then not measured. */
   velocityMeasured: boolean;
+  /** The sustain pedal, as the run recorded it (`ScaleRun.pedalAtStart`, `.pedal`); none: up. */
+  pedal?: {
+    atStart: boolean;
+    /** Ms on the run's clock. */
+    changes: readonly { down: boolean; time: number }[];
+  };
 }
 
 // --- Constants ------------------------------------------------------------------------------------
@@ -140,6 +144,49 @@ export const PROBLEM_MIN_Z = 2;
 /** A place needs at least this many notes in the run. */
 const PROBLEM_MIN_NOTES = 2;
 
+/**
+ * A note is followed by a gap when its key comes up more than this long before the next key goes
+ * down: the spec's 30 ms, to be checked on recorded runs with the loudness thresholds. Where most
+ * beginners break the line is at the thumb. The median overlap takes every join, gaps included.
+ */
+export const GAP_MS = 30;
+/**
+ * A hand's connection figures need at least this many overlaps (a note and the next both played
+ * right, with a release and nothing extra between). A one-octave run has 14; the median of six
+ * overlaps at a release jitter of σ = 15 ms varies by about ±9 ms (10–90 %), under a third of the
+ * gap threshold, and fewer rest on a few notes of one direction.
+ */
+export const MIN_CONNECTED = 6;
+
+/**
+ * The hands play apart where one is more than this ahead of the other (the spec's 30 ms). It is
+ * absolute, not against the median: a steady lead of 25 ms plus jitter shows many pairs apart, as
+ * it sounds. Simulated with no lead (1000 runs per case), 3.4 % of the pairs cross it by chance at
+ * an onset jitter of σ = 10 ms per hand (the asynchrony's σ is then 14 ms), 15 % at σ = 15 and 29
+ * % at σ = 20.
+ */
+export const APART_MS = 30;
+/**
+ * One hand leads when the median asynchrony is at least this far from zero...
+ */
+export const LEAD_MS = 10;
+/**
+ * ...and this many standard errors of the median (`MEDIAN_SE` × the robust spread over √n). 10 ms
+ * alone (1000 runs per case, 250 ms notes, no lead) is quiet for a steady player, σ = 10 ms per
+ * hand: a lead called in 2.2 % of one-octave runs, 0.2 % at two octaves, none at four; but not for
+ * a looser one, whose one-octave runs it called led in 13 % (σ = 15) and 27 % (σ = 20). With both
+ * conditions (400 runs per case): a lead called falsely in 1.5–4.5 % of one-octave runs and 0–2.5 %
+ * of two-octave ones at σ = 10–25 ms per hand; a right hand 25 ms late found in 99 % (σ = 10), 87
+ * % (15) and 63 % (20) of one-octave runs and in 100 %, 99 % and 85 % at two octaves; 15 ms late
+ * in 71 % and 94 % at σ = 10. At z = 2 a looser player (σ = 20–25) was called led in 9 % of
+ * one-octave runs.
+ */
+export const LEAD_MIN_Z = 2.5;
+/** The standard error of a median of normal values is this times that of their mean (√(π/2)). */
+const MEDIAN_SE = 1.2533;
+/** Fewer pairs than this (both hands played right) give no median or spread of the asynchrony. */
+export const MIN_PAIRS = 6;
+
 // --- Output ---------------------------------------------------------------------------------------
 
 export type RunQuality = 'ok' | 'not-a-scale-run';
@@ -221,6 +268,27 @@ export interface NoteFigures {
   /** Velocity against the median of its neighbours; null when not measured. */
   velocityResidual: number | null;
   accent: boolean;
+  /**
+   * This note's release minus the next note's onset in the same hand, ms: positive, the keys
+   * overlap (legato); negative, a gap. Null when either note is not played right, this one has no
+   * release, something extra was played between them, or it is the last note. Unlike `interval`
+   * it is measured into and out of the turn as well: a turn may breathe in time, but the fingers
+   * still have to join the top note to the notes around it.
+   */
+  overlap: number | null;
+}
+
+export interface Connection {
+  /** Median overlap, ms (positive: legato overlap; negative: a gap). */
+  medianOverlap: number | null;
+  /** The median overlap in % of the hand's median interval (a slow scale and a fast one compare). */
+  overlapShare: number | null;
+  /** Expected indexes of notes followed by a gap of more than `GAP_MS` before the next. */
+  gaps: number[];
+  /** The pedal was down at some point of the run: the sound joins what the fingers may not. */
+  pedal: boolean;
+  /** How many notes the figures come from. */
+  notes: number;
 }
 
 export interface HandAnalysis {
@@ -229,6 +297,8 @@ export interface HandAnalysis {
   timing: Timing;
   /** Null: not measured (the input has no velocity) — never zero. */
   loudness: Loudness | null;
+  /** Null with fewer than `MIN_CONNECTED` overlaps (no releases: nothing to measure). */
+  connection: Connection | null;
   notes: NoteFigures[];
 }
 
@@ -251,8 +321,24 @@ export interface RunAnalysis {
   velocityMeasured: boolean;
   /** Right hand first. */
   hands: HandAnalysis[];
+  /** The hands against each other; null unless the run has both. */
+  together: Together | null;
   /** From this run alone; S2 adds the places irregular over the last runs. */
   problem: ProblemPlace | null;
+}
+
+/** Hands together: each pair of notes (the same index in both hands' runs), right against left. */
+export interface Together {
+  /** Per pair, right onset − left onset, ms; null when either is not played right. */
+  pairs: { index: number; asynchrony: number | null }[];
+  /** Median asynchrony, ms; null with fewer than `MIN_PAIRS` pairs. */
+  median: number | null;
+  /** The hand that comes first on average (see `LEAD_MS`, `LEAD_MIN_Z`); null: together. */
+  leads: Hand | null;
+  /** Robust spread (1.4826 × MAD) of the asynchronies, ms; null with fewer than `MIN_PAIRS`. */
+  spread: number | null;
+  /** Indexes of pairs more than `APART_MS` apart. */
+  apart: number[];
 }
 
 /** What a session keeps of a run, for lists and trends (the run itself keeps the raw notes). */
@@ -307,6 +393,8 @@ export function analyzeRun(input: RunInput): RunAnalysis {
   const analyses = hands.map((hand) =>
     analyzeHand(hand, expected[hand], matches[hand], extra, input),
   );
+  const together =
+    analyses.length === 2 ? handsTogether(analyses[0]!, analyses[1]!, input.played) : null;
   const counts: RunCounts = { expected: 0, matched: 0, wrong: 0, missed: 0, extra: extra.length };
   for (const a of analyses) {
     counts.expected += a.counts.expected;
@@ -321,6 +409,7 @@ export function analyzeRun(input: RunInput): RunAnalysis {
     extra,
     velocityMeasured: input.velocityMeasured,
     hands: analyses,
+    together,
     // A place is only named in a scale run: in anything else the notes are not where they seem.
     problem: quality === 'ok' ? findProblemPlace(analyses) : null,
   };
@@ -403,6 +492,16 @@ function analyzeHand(
     : velocity.map(() => null);
   const accent = velocityResidual.map((r, j) => r !== null && j !== turn && r >= ACCENT_VELOCITY);
 
+  // Each key's release against the next key's onset, the turn included (see `NoteFigures.overlap`).
+  const overlap = notes.map((_, j) => {
+    const a = match.played[j] ?? null;
+    const b = match.played[j + 1] ?? null;
+    if (a === null || b === null) return null;
+    const off = input.played[a]!.off;
+    if (off === null || extra.some((x) => x > a && x < b)) return null;
+    return off - input.played[b]!.on;
+  });
+
   const wrongAt = new Map(match.wrong.map((w) => [w.index, w.played]));
   const intervalInto = new Map(intervals.map((iv) => [iv.into, iv]));
   const figures: NoteFigures[] = notes.map((note, j) => {
@@ -425,6 +524,7 @@ function analyzeHand(
       velocity: velocity[j]!,
       velocityResidual: velocityResidual[j]!,
       accent: accent[j]!,
+      overlap: overlap[j]!,
     };
   });
 
@@ -449,7 +549,81 @@ function analyzeHand(
     counts: { expected: n, matched, wrong: match.wrong.length, missed: match.missed.length },
     timing,
     loudness,
+    connection: summarizeConnection(figures, timing.medianInterval, input.pedal),
     notes: figures,
+  };
+}
+
+/** A hand's connection from its notes' overlaps; null with fewer than `MIN_CONNECTED`. */
+function summarizeConnection(
+  figures: readonly NoteFigures[],
+  medianInterval: number | null,
+  pedal: RunInput['pedal'],
+): Connection | null {
+  const measured = figures.filter((f) => f.overlap !== null);
+  if (measured.length < MIN_CONNECTED) return null;
+  const medianOverlap = quantile(
+    measured.map((f) => f.overlap!),
+    0.5,
+  )!;
+  return {
+    medianOverlap,
+    overlapShare:
+      medianInterval !== null && medianInterval > 0 ? (100 * medianOverlap) / medianInterval : null,
+    gaps: measured.filter((f) => f.overlap! < -GAP_MS).map((f) => f.index),
+    // As `usedPedal` of the page's run: down at the start or pressed during it.
+    pedal: pedal !== undefined && (pedal.atStart || pedal.changes.some((c) => c.down)),
+    notes: measured.length,
+  };
+}
+
+/**
+ * The hands against each other, pair by pair: the notes of the same index in both runs. Hands
+ * together play an octave apart in parallel motion, so both runs have the same length and shape
+ * (`scaleNotes`; locked by a test); runs of different lengths are not paired. Every pair counts,
+ * the turn included: the hands meet at the top as anywhere. Computed for any run, a scale run or
+ * not, as the timing is; only the problem place waits for a scale run.
+ */
+function handsTogether(
+  right: HandAnalysis,
+  left: HandAnalysis,
+  played: readonly PlayedNote[],
+): Together | null {
+  if (right.notes.length !== left.notes.length) return null;
+  const onset = (f: NoteFigures) => (f.outcome === 'played' ? played[f.played!]!.on : null);
+  const pairs = right.notes.map((r, i) => {
+    const a = onset(r);
+    const b = onset(left.notes[i]!);
+    return { index: i, asynchrony: a === null || b === null ? null : a - b };
+  });
+  const values = pairs.filter((p) => p.asynchrony !== null).map((p) => p.asynchrony!);
+  const enough = values.length >= MIN_PAIRS;
+  const median = enough ? quantile(values, 0.5)! : null;
+  const spread =
+    median === null
+      ? null
+      : MAD_TO_SD *
+        quantile(
+          values.map((v) => Math.abs(v - median)),
+          0.5,
+        )!;
+  const standardError =
+    spread === null
+      ? null
+      : (MEDIAN_SE * Math.max(NOISE_FLOOR_MS, spread)) / Math.sqrt(values.length);
+  const lead =
+    median !== null &&
+    Math.abs(median) >= LEAD_MS &&
+    Math.abs(median) >= LEAD_MIN_Z * standardError!;
+  return {
+    pairs,
+    median,
+    // Right − left: positive, the right hand is late, so the left leads.
+    leads: !lead ? null : median > 0 ? 'left' : 'right',
+    spread,
+    apart: pairs
+      .filter((p) => p.asynchrony !== null && Math.abs(p.asynchrony) > APART_MS)
+      .map((p) => p.index),
   };
 }
 

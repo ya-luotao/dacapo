@@ -4108,6 +4108,23 @@ select.is-compact {
   font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem);
 }
 
+/* Hands together: a figure for each hand, one above the other. */
+.scale-per-hand {
+  display: grid;
+  gap: 0.125rem;
+}
+
+.scale-per-hand-word {
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.scale-summary .scale-profile + .scale-profile {
+  margin-top: 1.5rem;
+}
+
 .scale-rough {
   color: var(--text-muted);
   font-family: var(--font-sans);
@@ -4158,15 +4175,15 @@ select.is-compact {
   stroke-width: 2;
 }
 
-.scale-profile-loud line {
+.scale-profile-row line {
   stroke: var(--border);
 }
 
-.scale-profile-loud rect {
+.scale-profile-row rect {
   fill: var(--text-muted);
 }
 
-.scale-profile-loud rect.is-accent {
+.scale-profile-row rect.is-marked {
   fill: var(--warn);
 }
 

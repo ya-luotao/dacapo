@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { scaleNotes } from '../../core/scales.ts';
 import type { ScaleNote } from '../../core/scaleTypes.ts';
 import {
   allReleased,
@@ -144,5 +145,76 @@ describe('runs one after another', () => {
     expect(again.phase).toBe('playing');
     expect(again.origin).toBe(T0 + 6000);
     expect(again.keys).toHaveLength(1);
+  });
+});
+
+describe('hands together', () => {
+  const both = scaleNotes({ type: 'major', tonic: 'C', octaves: 1, hands: 'both' });
+  const expected = [...both.right, ...both.left];
+  const pairs = both.right.map((r, i) => [r.midi, both.left[i]!.midi] as const);
+  const playPairs = (skipLeft: ReadonlySet<number> = new Set()) => {
+    let state = waitingRun(expected);
+    pairs.forEach(([right, left], i) => {
+      // Either hand first, as it comes.
+      const order = i % 2 === 0 ? [right, left] : [left, right];
+      for (const midi of order) {
+        if (midi === left && skipLeft.has(i)) continue;
+        state = sessionStep(state, on(midi, i * 250 + (midi === left ? 7 : 0)));
+      }
+    });
+    return state;
+  };
+
+  it('pairs the hands step by step and ends at the last pair', () => {
+    const state = playPairs();
+    expect(state.steps).toHaveLength(pairs.length);
+    expect(state.end).toBe('finished');
+    expect(state.played).toHaveLength(expected.length);
+  });
+
+  it('starts on either hand’s tonic', () => {
+    const state = sessionStep(waitingRun(expected), on(pairs[0]![1], 0));
+    expect(state.phase).toBe('playing');
+    expect(state.next).toBe(0); // the right hand's tonic is still due
+    expect(sessionStep(state, on(pairs[0]![0], 5)).next).toBe(1);
+  });
+
+  it('moves on when one hand skips a few notes, and still ends at the last pair', () => {
+    const state = playPairs(new Set([2, 3]));
+    expect(state.end).toBe('finished');
+    expect(state.played).toHaveLength(expected.length - 2);
+  });
+
+  it('fills in a step for a hand that trails by a note, without jumping ahead', () => {
+    // R0 R1 L0 R2 L1 … : the left hand a note behind all the way.
+    let state = waitingRun(expected);
+    const order: number[] = [];
+    pairs.forEach(([right], i) => {
+      order.push(right);
+      if (i > 0) order.push(pairs[i - 1]![1]);
+    });
+    order.push(pairs.at(-1)![1]);
+    order.forEach((midi, n) => (state = sessionStep(state, on(midi, n * 60))));
+    expect(state.end).toBe('finished');
+    expect([...state.played].sort((a, b) => a - b)).toEqual(expected.map((_, i) => i));
+  });
+
+  it('takes a late key for its own step, not the same key after the turn', () => {
+    // The right hand's B4 comes after the left hand's C4 at the top.
+    let state = waitingRun(expected);
+    const order: number[] = [];
+    pairs.forEach(([right, left], i) => {
+      if (i === 6) order.push(left);
+      else if (i === 7) order.push(pairs[6]![0], right, left);
+      else order.push(right, left);
+    });
+    order.forEach((midi, n) => (state = sessionStep(state, on(midi, n * 60))));
+    expect(state.end).toBe('finished');
+    expect(state.played).toHaveLength(expected.length);
+  });
+
+  it('starts the next run at either tonic once one is done', () => {
+    const done = playPairs();
+    expect(sessionStep(done, on(pairs[0]![1], 9000)).phase).toBe('playing');
   });
 });

@@ -11,7 +11,7 @@ import {
 import { exerciseKey } from '../../core/scales.ts';
 import type { ScaleExercise } from '../../core/scaleTypes.ts';
 import type { PracticeStore } from '../practice/store.ts';
-import { allReleased, velocityMeasured, type ScaleRunState } from './run.ts';
+import { allReleased, runInput, velocityMeasured, type ScaleRunState } from './run.ts';
 
 /** After its last note, a run waits this long for its keys to come up before it is recorded. */
 export const RELEASE_WAIT_MS = 1500;
@@ -72,11 +72,7 @@ export function useScaleRecorder(
     pending.current = null;
     const r = waiting.run;
     if (r.startedAt === null || r.keys.length === 0) return;
-    const analysis = analyzeRun({
-      expected: r.expected,
-      played: r.keys,
-      velocityMeasured: velocityMeasured(r.keys),
-    });
+    const analysis = analyzeRun(runInput(r));
     if (analysis.quality !== 'ok') return;
     const record = scaleRunRecord(latest.current.exercise, r, latest.current.inputs());
     const before = latest.current.slot.get();

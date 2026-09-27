@@ -1,9 +1,10 @@
 // One scale run as it is played: waiting for the scale's first key, then every key collected
-// until the last note, a pause or Stop. The cursor on the score follows the notes as they come
-// (forgiving a few skipped notes); what counts afterwards is the alignment of evenness.ts over all
-// the notes kept here. Framework-free, so it is testable.
+// until the last note, a pause or Stop. The cursor on the score follows the steps as they come — a
+// step is the notes due together, one with one hand, a pair hands together — forgiving a few
+// skipped ones; what counts afterwards is the alignment of evenness.ts over all the keys kept here.
+// Framework-free, so it is testable.
 
-import type { PlayedNote } from '../../core/evenness.ts';
+import type { PlayedNote, RunInput } from '../../core/evenness.ts';
 import type { PedalChange, RunEnd } from '../../core/scaleRecords.ts';
 import type { ScaleNote } from '../../core/scaleTypes.ts';
 
@@ -12,24 +13,37 @@ export type { PedalChange, RunEnd } from '../../core/scaleRecords.ts';
 /** A run ends after this long without a key. */
 export const IDLE_END_MS = 3000;
 /**
- * The cursor looks this many notes ahead for the key played: the next note or up to three after
+ * The cursor looks this many steps ahead for the key played: the next step or up to three after
  * it, the nearest first, so it keeps up with a player who skipped a few notes and the run still
  * ends at its last note. The figures come from the alignment either way.
  */
 export const LOOKAHEAD = 4;
+
+/** The notes due together, as indexes into `expected`: one hand's note, or both hands' pair. */
+export interface RunStep {
+  notes: readonly number[];
+}
+
+/** The steps of a run: the notes of the same place in each hand's run go together. */
+export function runSteps(expected: readonly ScaleNote[]): RunStep[] {
+  const steps: number[][] = [];
+  expected.forEach((note, i) => (steps[note.index] ??= []).push(i));
+  return steps.map((notes) => ({ notes }));
+}
 
 /** A key as played, on the run's clock (ms from its first key); `off` null while it is down. */
 export type RunKey = PlayedNote;
 
 export interface ScaleRunState {
   phase: 'waiting' | 'playing' | 'done';
-  /** The notes of the hand played, in order. */
+  /** The notes of the run: one hand's, or the right hand's then the left's. */
   expected: readonly ScaleNote[];
-  /** The next note the cursor points at; `expected.length` once the last one is played. */
+  steps: readonly RunStep[];
+  /** The step the cursor points at; `steps.length` once the last one is played. */
   next: number;
-  /** Expected indexes played, as the cursor saw them. */
+  /** Indexes into `expected` of the notes played, as the cursor saw them. */
   played: readonly number[];
-  /** The last key that was not the next note, until the next right one; for a flash. */
+  /** The last key that was no note of the next steps, until the next right one; for a flash. */
   wrongKey: number | null;
   keys: readonly RunKey[];
   pedal: readonly PedalChange[];
@@ -58,6 +72,7 @@ export function waitingRun(expected: readonly ScaleNote[], pedalDown = false): S
   return {
     phase: 'waiting',
     expected,
+    steps: runSteps(expected),
     next: 0,
     played: [],
     wrongKey: null,
@@ -95,6 +110,17 @@ function release(state: ScaleRunState, event: { midi: number; time: number }): S
   return { ...state, keys };
 }
 
+/** The cursor past the steps whose notes are all played. */
+function advance(state: ScaleRunState): ScaleRunState {
+  let next = state.next;
+  while (
+    next < state.steps.length &&
+    state.steps[next]!.notes.every((n) => state.played.includes(n))
+  )
+    next++;
+  return next === state.next ? state : { ...state, next };
+}
+
 /** Every key of the run has been let go (or the run has none). */
 export function allReleased(state: Pick<ScaleRunState, 'keys'>): boolean {
   return state.keys.every((key) => key.off !== null);
@@ -111,47 +137,67 @@ export function runStep(state: ScaleRunState, event: RunEvent): ScaleRunState {
     if (event.type === 'pedal')
       return { ...state, pedalAtStart: event.down, pedalDown: event.down };
     if (event.type !== 'on') return state;
-    // Only the scale's first key starts it: whatever is played before is not the run.
-    if (event.midi !== state.expected[0]?.midi) return { ...state, wrongKey: event.midi };
-    const started: ScaleRunState = {
+    // Only the scale's first key (of either hand) starts it: whatever is played before is not the run.
+    const first = state.steps[0]?.notes.find((n) => state.expected[n]!.midi === event.midi);
+    if (first === undefined) return { ...state, wrongKey: event.midi };
+    const started = advance({
       ...state,
       phase: 'playing',
       origin: event.time,
       startedAt: event.at,
       wrongKey: null,
-      next: 1,
-      played: [0],
+      played: [first],
       keys: [{ midi: event.midi, velocity: event.velocity, on: 0, off: null }],
       lastKeyAt: 0,
-    };
-    return started.expected.length === 1 ? finish(started, 'finished') : started;
+    });
+    return started.next >= started.steps.length ? finish(started, 'finished') : started;
   }
 
   switch (event.type) {
     case 'on': {
       const on = clock(state, event.time);
       const keys = [...state.keys, { midi: event.midi, velocity: event.velocity, on, off: null }];
-      const { expected, next } = state;
-      // The next note, or the nearest of the few after it when notes were skipped.
+      // The key's note in the nearest step: the next one, a step behind it that one hand has
+      // played and the other has not yet (a hand trailing), or one of the few after it when notes
+      // were skipped; behind before ahead at the same distance. The cursor moves on to a step
+      // ahead; a step behind is only filled in.
+      const { expected, steps, next, played } = state;
+      const noteIn = (at: number) =>
+        steps[at]!.notes.find((n) => expected[n]!.midi === event.midi && !played.includes(n));
+      const started = (at: number) => steps[at]!.notes.some((n) => played.includes(n));
       let hit: number | null = null;
-      for (let i = next; i < Math.min(expected.length, next + LOOKAHEAD); i++) {
-        if (expected[i]!.midi === event.midi) {
-          hit = i;
-          break;
+      let at = next;
+      for (let d = 0; d < LOOKAHEAD && hit === null; d++) {
+        const behind = next - d;
+        if (d > 0 && behind >= 0 && started(behind)) {
+          const note = noteIn(behind);
+          if (note !== undefined) {
+            hit = note;
+            at = next;
+            break;
+          }
+        }
+        const ahead = next + d;
+        if (ahead < steps.length) {
+          const note = noteIn(ahead);
+          if (note !== undefined) {
+            hit = note;
+            at = ahead;
+          }
         }
       }
       const moved: ScaleRunState =
         hit === null
           ? { ...state, keys, lastKeyAt: on, wrongKey: event.midi }
-          : {
+          : advance({
               ...state,
               keys,
               lastKeyAt: on,
               wrongKey: null,
-              next: hit + 1,
-              played: [...state.played, hit],
-            };
-      return moved.next >= expected.length ? finish(moved, 'finished') : moved;
+              next: at,
+              played: [...played, hit],
+            });
+      return moved.next >= steps.length ? finish(moved, 'finished') : moved;
     }
     case 'off':
       return release(state, event);
@@ -188,7 +234,21 @@ export function velocityMeasured(keys: readonly Pick<RunKey, 'velocity'>[]): boo
  * player plays again without a button. Everything else after the end is ignored.
  */
 export function sessionStep(state: ScaleRunState, event: RunEvent): ScaleRunState {
-  if (state.phase === 'done' && event.type === 'on' && event.midi === state.expected[0]?.midi)
+  if (
+    state.phase === 'done' &&
+    event.type === 'on' &&
+    state.steps[0]?.notes.some((n) => state.expected[n]!.midi === event.midi)
+  )
     return runStep(waitingRun(state.expected, state.pedalDown), event);
   return runStep(state, event);
+}
+
+/** What the analysis takes of a run: its notes, its keys, the pedal, whether loudness counts. */
+export function runInput(state: ScaleRunState): RunInput {
+  return {
+    expected: state.expected,
+    played: state.keys,
+    velocityMeasured: velocityMeasured(state.keys),
+    pedal: { atStart: state.pedalAtStart, changes: state.pedal },
+  };
 }

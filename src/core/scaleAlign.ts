@@ -7,10 +7,10 @@ import type { Hand } from './score.ts';
 
 /**
  * At most this many played notes per expected note are aligned; the rest are extras without
- * looking. The hands-together table has (played + 1)(right + 1)(left + 1) cells, so a run that
- * never ends (a cat on the keys, a stuck source) must not grow it without bound. Nothing is lost:
- * past the cap the extras alone are twice the notes asked for, and a run is only a scale run with
- * at most a third (evenness.ts's quality gate).
+ * looking. The tables have a row per played note, so a run that never ends (a cat on the keys, a
+ * stuck source) must not grow them without bound. Nothing is lost: past the cap the extras alone
+ * are twice the notes asked for, and a run is only a scale run with at most a third (evenness.ts's
+ * quality gate).
  */
 export const MAX_PLAYED_PER_EXPECTED = 3;
 
@@ -26,6 +26,19 @@ const STEP = 5;
  * left hand's later). 0.6 from S0: on 600 labelled runs no played note went to the wrong hand.
  */
 const DRIFT = 3;
+/**
+ * Hands together, the table keeps only the states where the hands are at most this many notes
+ * apart. A hand that keeps two notes behind the other puts them two and three notes apart by turns,
+ * 1.8 of a note per pair (0.6 + 1.2) against 2 for giving its note up as a missed note and an extra
+ * one, so it is followed; three behind costs 3 a pair (1.2 + 1.8), so it is given up. The cheapest
+ * alignment thus stays within three notes, and one more is margin. Simulated (26,000 runs of one
+ * to four octaves with jitter up to 0.7 of a note, a hand lagging up to ten notes over a stretch,
+ * up to 26 notes missed in a row, early stops and bursts of stray keys, and 200,000 small random
+ * cases), the cheapest alignment over the whole table was never more than three notes apart, and
+ * the banded one was the same alignment every time. A hand further behind has its notes missed and
+ * played extra, as over the whole table.
+ */
+export const HANDS_BAND = 4;
 
 /** A wrong key played where an expected note was due. */
 export interface WrongKey {
@@ -150,6 +163,11 @@ export function alignHand(played: readonly number[], expected: readonly number[]
  * backwards, a right-hand match, a left-hand match, an extra note, a right-hand miss, a left-hand
  * miss.
  *
+ * Only states with the hands at most `HANDS_BAND` notes apart are kept (more when the hands' runs
+ * differ in length, so that the end is in the band): (played + 1)(right + 1)(2 · band + 1)
+ * back-pointers and two rows of costs, 0.5 MB at the cap for four chromatic octaves where the
+ * whole table took 28 MB.
+ *
  * The DP has no wrong key (a key matches only its own note), so a wrong key comes out as a missed
  * note and an extra one at the same place; `reclassifyWrongKeys` turns those pairs back into wrong
  * keys.
@@ -162,61 +180,74 @@ export function alignHands(
   const R = right.length;
   const L = left.length;
   const m = Math.min(played.length, MAX_PLAYED_PER_EXPECTED * (R + L));
-  const wk = L + 1;
-  const wj = (R + 1) * wk;
-  const size = (m + 1) * wj;
-  const cost = new Int32Array(size);
-  const from = new Uint8Array(size);
+  // State (j, k) sits at j · w + (k − j − lo): k runs over the band around j.
+  const lo = Math.min(0, L - R) - HANDS_BAND;
+  const w = Math.abs(R - L) + 2 * HANDS_BAND + 1;
+  const row = (R + 1) * w;
+  const from = new Uint8Array((m + 1) * row);
+  // Costs after the previous played note and after this one; the back-pointers keep the path.
+  let before = new Int32Array(row);
+  let now = new Int32Array(row);
   const lag = (j: number, k: number) => Math.max(0, Math.abs(j - k) - 1) * DRIFT;
   const BIG = 0x3fffffff;
 
   for (let i = 0; i <= m; i++) {
     for (let j = 0; j <= R; j++) {
-      for (let k = 0; k <= L; k++) {
-        const at = i * wj + j * wk + k;
-        if (at === 0) continue;
+      const first = Math.max(0, -j - lo);
+      const last = Math.min(w - 1, L - j - lo);
+      for (let d = first; d <= last; d++) {
+        const k = j + lo + d;
+        const at = j * w + d;
+        if (i === 0 && j === 0 && k === 0) {
+          now[at] = 0;
+          continue;
+        }
         const move = lag(j, k);
+        // (j − 1, k) is in the band unless d is its top; (j, k − 1) unless d is its bottom.
+        const up = j > 0 && d < w - 1;
+        const down = k > 0 && d > 0;
         let best = BIG;
         let how = 0;
-        if (i > 0 && j > 0 && played[i - 1] === right[j - 1]) {
-          const c = cost[at - wj - wk]! + move;
+        if (i > 0 && up && played[i - 1] === right[j - 1]) {
+          const c = before[at - w + 1]! + move;
           if (c < best) {
             best = c;
             how = MATCH_R;
           }
         }
-        if (i > 0 && k > 0 && played[i - 1] === left[k - 1]) {
-          const c = cost[at - wj - 1]! + move;
+        if (i > 0 && down && played[i - 1] === left[k - 1]) {
+          const c = before[at - 1]! + move;
           if (c < best) {
             best = c;
             how = MATCH_L;
           }
         }
         if (i > 0) {
-          const c = cost[at - wj]! + STEP;
+          const c = before[at]! + STEP;
           if (c < best) {
             best = c;
             how = EXTRA;
           }
         }
-        if (j > 0) {
-          const c = cost[at - wk]! + STEP + move;
+        if (up) {
+          const c = now[at - w + 1]! + STEP + move;
           if (c < best) {
             best = c;
             how = MISS_R;
           }
         }
-        if (k > 0) {
-          const c = cost[at - 1]! + STEP + move;
+        if (down) {
+          const c = now[at - 1]! + STEP + move;
           if (c < best) {
             best = c;
             how = MISS_L;
           }
         }
-        cost[at] = best;
-        from[at] = how;
+        now[at] = best;
+        from[i * row + at] = how;
       }
     }
+    [before, now] = [now, before];
   }
 
   const matchR: (number | null)[] = new Array<number | null>(R).fill(null);
@@ -229,7 +260,7 @@ export function alignHands(
   let j = R;
   let k = L;
   while (i > 0 || j > 0 || k > 0) {
-    const how = from[i * wj + j * wk + k];
+    const how = from[i * row + j * w + (k - j - lo)];
     if (how === MATCH_R) matchR[--j] = --i;
     else if (how === MATCH_L) matchL[--k] = --i;
     else if (how === EXTRA) extra.push(--i);

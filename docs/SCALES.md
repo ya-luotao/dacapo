@@ -218,7 +218,7 @@ reads σ for a steady player.
   where a neighbouring wrong key tied with them. S1's tests assert each played note's hand and
   index, not only its pitch. A wrong key in hands together shows as a missed note and an extra one
   at the same place, and is reported as a wrong key. Four octaves hands together (114 notes) aligns
-  in 22 ms.
+  in 22 ms (about 1 ms in a band, S3).
 - **Fingering: Hanon, as printed** (`scripts/scales/hanon/`). Nos. 39 and 40 of the G. Schirmer
   edition [1900] (IMSLP #91547; public domain in the US and the EU) were transcribed twice,
   independently, and diffed digit by digit: no difference in No. 39, one in No. 40, settled at 1200
@@ -279,13 +279,9 @@ reads σ for a steady player.
 - **On the score after a run** each note is inked by the size of its deviation in the heatmap's ramp
   (under 10, 20, 35, 60 ms and beyond), missed and wrong notes in the error colour; which way it
   went is in the chart, its tooltip and the table, so colour is never the only signal.
-- **Left for later milestones.** A run finishes at the last note-on, so the last key's release (and
-  any key still down) is not recorded: S2's records and S3's connection need the run to wait for it.
-  The hands-together alignment builds its whole (played × right × left) table, up to 28 MB and 70 ms
-  at the cap for four chromatic octaves: before S3 relies on it, restrict it to a band of a few
-  notes around the diagonal (the drift cost makes the rest useless) or move the analysis off the
-  main thread. The score's loading and failure overlay borrows the Pieces strings and styles; it
-  moves to `ui/notation/` when a third page draws a score.
+- **Left for later milestones.** The score's loading and failure overlay borrows the Pieces strings
+  and styles; it moves to `ui/notation/` when a third page draws a score. (The last key's release is
+  recorded since S2; the hands-together alignment keeps to a band since S3.)
 - **Navigation.** Below 48rem the header is two rows (brand and metronome chip, then the navigation
   across the width); the bar fits as many items as the width allows, measured per language, and the
   rest go into More.
@@ -322,6 +318,48 @@ reads σ for a steady player.
   those played in the last 14 days. The places over runs read the exercise's raw runs, only when its
   page is open.
 
+## Clarifications (decided in S3)
+
+- **Hands together.** The run's cursor goes by steps, a step being the two keys due together (one
+  key with one hand); a step is done when both its keys are struck, any order, and the run starts at
+  either hand's tonic. The run's notes stay the right hand's then the left's, as the analysis takes
+  them. After a run each hand has its own figures and its own chart (small multiples, one per hand,
+  rather than two series in one chart).
+- **Asynchrony.** Per pair, right onset − left onset. A hand leads when the median is at least 10 ms
+  and 2.5 standard errors of the median (1.2533 × the robust spread / √pairs) from zero: with 10 ms
+  alone, a loose player (σ = 15–20 ms per hand) was told a hand leads in 13–27 % of one-octave runs;
+  with both conditions, 1.5–4.5 % at one octave and 0–2.5 % at two, while a right hand 25 ms late is
+  found in 87–99 % (σ = 10–15, one octave) and 85–100 % at two. Pairs more than 30 ms apart happen
+  by chance to loose hands (3, 15 and 29 % of pairs at σ = 10, 15 and 20 ms), so a few are named,
+  many are counted, and when a quarter or more are apart the summary says the hands were often
+  apart, by their typical spread.
+- **The alignment in a band.** Hands together, the alignment keeps to states where the hands are at
+  most 4 notes apart (`HANDS_BAND`): a hand lagging by 2 notes is still followed (each pair costs
+  1.8 notes, less than a miss and an extra), by 3 it is given up, so the best path never strays more
+  than 3 — checked on 26,000 harsh random runs and 200,000 small adversarial ones against the whole
+  table, with no difference. Beyond the band the lagging hand's notes are missed and its keys extra,
+  as the whole table had them. Memory at the cap for four chromatic octaves falls from 28 MB to 0.5
+  MB, ten four-octave runs through the places over runs from 57 to 16 ms.
+- **Hands together, the places over runs.** Each hand has its own places, twice the tests: at the
+  one-hand thresholds a steady player was named in up to 12 % of exercises (1,000 simulated, C major
+  two octaves, σ = 25 ms, 3 runs), 11 points of it at crossing places, and no degree threshold alone
+  brings it under 10 % (at 4.5 it is still 10 %). Hands together a crossing place is named at 2.2
+  standard errors and a degree place at 3.75 (one hand: 2 and 3.5, unchanged). Simulated as in S2
+  (300 exercises per case, 250 ms notes, σ = 15 and 25 ms, 3–10 runs, two and four octaves, C major
+  and A natural minor, each hand jittered on its own): a steady player is named in 0–8 % of
+  exercises (0–13 % at the one-hand thresholds); a thumb 25 ms late in both hands in 100 % at σ = 15
+  and 74–100 % at σ = 25 (81–100 %); A going up in the right hand in 30–100 % and 4–96 % (40–100 %
+  and 6–98 %); and some other place beside them in 0–9 % (up to 17 % at 3.5). Real hands keep time
+  together more than independent ones, so their false namings coincide more and are fewer.
+- **Connection.** A note's overlap is its release minus the next note's onset in the same hand
+  (positive: legato; negative: a gap), measured into and out of the turn too (a turn may breathe in
+  time, the fingers still join it), none for the last note or across a wrong or extra key. A gap of
+  more than 30 ms breaks the line and is marked on the note released before it. The figures need 6
+  overlaps (their median is then within about ±9 ms at a release jitter of 15 ms). Gaps nearly
+  everywhere (half the notes or more, or a negative median) are reported as detached playing, more
+  than four are counted, fewer are named. With the pedal down the summary says the sound joins where
+  the fingers may not. The 30 ms thresholds await recorded runs, with the loudness ones.
+
 ## Milestones
 
 1. ✓ **S0 Spike** — generate the scale MusicXML and draw it with fingering and per-note tints in
@@ -330,9 +368,13 @@ reads σ for a steady player.
    simulated and recorded runs (a steady player, a thumb bump, a drift); velocity thresholds on two
    instruments; transcribe and check Hanon's fingerings. Report; no production UI.
 2. **S1 Free-tempo scales** — the exercise model, the Scales page, free-tempo runs, timing and
-   loudness analysis, the profile chart, hands separate.
-3. **S2 Records** — `scaleRuns` storage, export, sessions in the log and streak, irregularity and
+   loudness analysis, the profile chart, hands separate. Built; open until the loudness thresholds
+   and the reference bands are set from runs recorded on real instruments.
+3. ✓ **S2 Records** — `scaleRuns` storage, export, sessions in the log and streak, irregularity and
    instability over runs, progress per exercise.
-4. **S3 Hands together, connection and the click** — hands together with asynchrony, legato
-   analysis, click mode through rhythm mode's plan and matcher, focus loops.
-5. **S4 More shapes** — arpeggios, contrary motion, chromatic in contrary motion if there is demand.
+4. ✓ **S3 Hands together and connection** — hands together with asynchrony, legato analysis, the
+   hands-together alignment restricted to a band, the degree threshold for two hands.
+5. **S4 The click and focus loops** — click mode through rhythm mode's plan and matcher, with the
+   count-in and the latency calibration; focus loops on a named place (a drill: not analysed or
+   recorded).
+6. **S5 More shapes** — arpeggios, contrary motion, chromatic in contrary motion if there is demand.

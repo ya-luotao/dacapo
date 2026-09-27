@@ -146,6 +146,19 @@ version 4), and scale sessions with every scale run as played. Version 1 to 4 fi
 - The navigation gains a **More** menu for the items the header has no room for, fitted to the
   width in every language; below tablet width the header takes two rows.
 
+### Scales hands together, and legato (S3)
+
+- **Both hands**, an octave apart: the cursor waits for each pair of keys, the run starts at either
+  tonic, and afterwards each hand has its figures and its chart. How far apart the hands were, and
+  whether one comes ahead on average, judged so that chance in a loose player is not called a
+  habit.
+- **Legato**: how each key joins the next, from the releases recorded since S2 — held into the next
+  or a gap, the notes where the line breaks (most often before the thumb), detached playing, and
+  a word when the pedal joins the sound anyway. A new row on the chart.
+- The hands-together alignment keeps to a band: a four-octave run takes about a millisecond instead
+  of 20–35, and at most half a megabyte. Places over the runs of hands together are named at
+  stricter thresholds, so a steady player is not told of problems twice as often.
+
 ### Scale records and progress (S2)
 
 - Every scale run is kept (IndexedDB version 4): all its keys, their releases and the pedal, the

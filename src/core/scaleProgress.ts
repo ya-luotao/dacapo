@@ -222,6 +222,21 @@ export const CROSSING_MIN_Z = PROBLEM_MIN_Z;
  * under 10 % (the figures in `placesOverRuns`).
  */
 export const DEGREE_MIN_Z = 3.5;
+/**
+ * Hands together each hand has its own places, twice the tests, and a steady player was named
+ * falsely in up to 12 % of exercises (1,000 simulated, C major two octaves, σ = 25 ms, 3 runs; 13 %
+ * over 300), 11 points of it at crossing places: no degree threshold alone gets it under 10 % (at
+ * 4.5 it is still 10 %). At 2.2 standard errors for a crossing place it is 8.5 % there and 0–9 % in
+ * every case, at the cost of a late thumb over 3 runs at σ = 25 (named in 71 % instead of 80 %).
+ * At 2.1 it is 9.8 %, too close.
+ */
+export const CROSSING_MIN_Z_TWO_HANDS = 2.2;
+/**
+ * Hands together, a thumb late in both hands pulls the lines of notes beside it in both, and one of
+ * them was named in up to 17 % of exercises at 3.5 (C major four octaves, σ = 25 ms, 10 runs) and
+ * 8 % at 3.75, which keeps both hands to the one-hand standard: under 10 % either way.
+ */
+export const DEGREE_MIN_Z_TWO_HANDS = 3.75;
 /** The median absolute deviation times this estimates the standard deviation of normal noise. */
 const MAD_TO_SD = 1.4826;
 /** Timing is never exact to better than this (input resolution). */
@@ -295,7 +310,8 @@ export interface PlacesOverRuns {
  * are no crossing (all of them in a scale without fingering), the notes of one degree, the run's
  * first and last notes left out. A group is named when it was measured in at least `MIN_RUNS`
  * runs and its mean deviation is at least `PROBLEM_MIN_MS` from zero and `CROSSING_MIN_Z` (a
- * crossing) or `DEGREE_MIN_Z` (a degree) standard errors, the standard error being the hand's
+ * crossing) or `DEGREE_MIN_Z` (a degree) standard errors — hands together, with twice the places,
+ * `CROSSING_MIN_Z_TWO_HANDS` and `DEGREE_MIN_Z_TWO_HANDS` — the standard error being the hand's
  * robust deviation spread over all its notes and runs (1.4826 × MAD, the turn left out) over the
  * square root of the group's deviations. The turning note is never named (a turn may breathe).
  *
@@ -311,7 +327,12 @@ export interface PlacesOverRuns {
  * late, they are named in 24–100 % at σ = 15 and 5–96 % at σ = 25, and a note beside them in up
  * to 12 % (22 % at 3 standard errors, where the thumb is named more often: 47–100 % and 12–99 %).
  * One octave, where each place has one note per run, is named less often (thumb: 61–98 % at
- * σ = 15) and a steady player at most 9 % of the time.
+ * σ = 15) and a steady player at most 9 % of the time. Hands together (the same cases, each hand
+ * jittered on its own), a steady player is named in 0–8 % of exercises (0–13 % at the one-hand
+ * thresholds); a thumb 25 ms late in both hands in 100 % at σ = 15 and 74–100 % at σ = 25, A going
+ * up in the right hand in 30–100 % and 4–96 %, and A natural minor's thumb notes in 41–100 % and
+ * 6–99 %, with 0–9 % of exercises naming some other place beside them. Real hands keep time
+ * together more than independent ones, so their false namings coincide more and are fewer.
  */
 export function placesOverRuns(runs: readonly StoredScaleRun[], last = PLACE_RUNS): PlacesOverRuns {
   if (runs.length === 0) return { runs: 0, places: [], irregular: [] };
@@ -322,6 +343,9 @@ export function placesOverRuns(runs: readonly StoredScaleRun[], last = PLACE_RUN
   if (!parsed) throw new Error(`not an exercise key: ${exercise}`);
   const { right, left } = scaleNotes(parsed);
   const expected = [...right, ...left];
+  const twoHands = right.length > 0 && left.length > 0;
+  const crossingMinZ = twoHands ? CROSSING_MIN_Z_TWO_HANDS : CROSSING_MIN_Z;
+  const degreeMinZ = twoHands ? DEGREE_MIN_Z_TWO_HANDS : DEGREE_MIN_Z;
 
   const recent = [...runs]
     .sort((a, b) => b.startedAt - a.startedAt || (a.id < b.id ? 1 : a.id > b.id ? -1 : 0))
@@ -400,7 +424,7 @@ export function placesOverRuns(runs: readonly StoredScaleRun[], last = PLACE_RUN
       const irregularity = mean(d);
       const standardError = spread / Math.sqrt(d.length);
       const z = Math.abs(irregularity) / standardError;
-      const minZ = crossing === null ? DEGREE_MIN_Z : CROSSING_MIN_Z;
+      const minZ = crossing === null ? degreeMinZ : crossingMinZ;
       if (Math.abs(irregularity) < PROBLEM_MIN_MS || z < minZ) continue;
       irregular.push({
         place: {

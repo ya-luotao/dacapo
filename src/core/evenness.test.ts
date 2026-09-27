@@ -2,18 +2,24 @@ import { describe, expect, it } from 'vitest';
 import {
   ACCENT_VELOCITY,
   analyzeRun,
+  APART_MS,
+  GAP_MS,
+  LEAD_MS,
   MAX_ERROR_SHARE,
+  MIN_CONNECTED,
   MIN_MATCHED,
   runHeadline,
   ANALYSIS_VERSION,
   runQuality,
   type PlayedNote,
   type RunAnalysis,
+  type RunInput,
 } from './evenness.ts';
 import { seededRng, type Rng } from './random.ts';
 import { quantile } from './robust.ts';
+import { scaleNotes, tonicsOf } from './scales.ts';
 import type { Hand } from './score.ts';
-import type { ScaleNote } from './scaleTypes.ts';
+import { SCALE_OCTAVES, SCALE_TYPES, type ScaleNote } from './scaleTypes.ts';
 
 const STEPS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'] as const;
 const SEMITONES = [0, 2, 4, 5, 7, 9, 11];
@@ -77,6 +83,12 @@ interface Player {
   /** A pause after the top note, ms. */
   turnPause?: number;
   velocity?: number;
+  /** Each key comes up this long after the next goes down, ms (negative: a gap); else 0.9 × ioi. */
+  legato?: number;
+  /** Release jitter with `legato`, ms. */
+  releaseSigma?: number;
+  /** With `legato`: the key before each thumb passing under comes up this long before it, ms. */
+  thumbGap?: number;
 }
 
 interface Simulated {
@@ -114,8 +126,61 @@ function play(rng: Rng, p: Player): Simulated {
     off: on[i]! + 0.9 * p.ioi,
     velocity: Math.round(70 + (p.velocity ?? 0) * gaussian(rng)),
   }));
+  if (p.legato !== undefined) {
+    // Releases against the next onset as played, stops included; the last key as before.
+    for (let i = 0; i < n - 1; i++) {
+      const overlap =
+        notes[i + 1]!.crossing === 'thumbUnder' ? -(p.thumbGap ?? -p.legato) : p.legato;
+      played[i]!.off = on[i + 1]! + overlap + (p.releaseSigma ?? 0) * gaussian(rng);
+    }
+  }
   return { notes, played, stopsAt };
 }
+
+interface Pair {
+  octaves: number;
+  ioi: number;
+  /** Onset jitter per hand, ms. */
+  sigma: number;
+  /** The right hand comes this late on average, ms. */
+  lag?: number;
+  /** Each key comes up this long after the same hand's next key goes down; else no releases. */
+  legato?: number;
+  /** Right-hand notes played this much later still, by index, ms. */
+  shift?: Record<number, number>;
+  /** Left-hand notes left out, by index. */
+  leftMissing?: number[];
+}
+
+/** One run hands together, C major an octave apart, every note played with the right key. */
+function playBoth(rng: Rng, p: Pair): { expected: ScaleNote[]; played: PlayedNote[] } {
+  const right = cMajor(p.octaves, 'right');
+  const left = cMajor(p.octaves, 'left');
+  const hands = [
+    { run: right, lag: p.lag ?? 0 },
+    { run: left, lag: 0 },
+  ].map(({ run, lag }) => {
+    const on = run.map(
+      (x, i) =>
+        p.ioi * i + lag + p.sigma * gaussian(rng) + (x.hand === 'right' ? (p.shift?.[i] ?? 0) : 0),
+    );
+    return run
+      .map((x, i) => ({
+        midi: x.midi,
+        on: on[i]!,
+        off: p.legato === undefined ? null : (on[i + 1] ?? on[i]! + p.ioi) + p.legato,
+        velocity: 70,
+      }))
+      .filter((_, i) => run[i]!.hand === 'right' || !p.leftMissing?.includes(i));
+  });
+  return {
+    expected: [...left, ...right],
+    played: hands.flat().sort((a, b) => a.on - b.on),
+  };
+}
+
+const together = (input: Omit<RunInput, 'velocityMeasured'>) =>
+  analyzeRun({ ...input, velocityMeasured: false }).together;
 
 const analyze = (s: Simulated, velocityMeasured = false) =>
   analyzeRun({ expected: s.notes, played: s.played, velocityMeasured });
@@ -471,6 +536,230 @@ describe('the result', () => {
     for (const h of a.hands) {
       expect(h.timing.spread).toBeGreaterThan(8);
       expect(h.timing.spread).toBeLessThan(25);
+      // No releases: nothing to say about connection.
+      expect(h.connection).toBeNull();
     }
+  });
+
+  it('survives JSON with connection and hands together', () => {
+    const s = playBoth(seededRng(18), { octaves: 2, ioi: 250, sigma: 10, lag: 20, legato: 15 });
+    const a = analyzeRun({
+      ...s,
+      velocityMeasured: true,
+      pedal: { atStart: false, changes: [{ down: true, time: 1000 }] },
+    });
+    expect(a.together).not.toBeNull();
+    expect(a.hands.every((h) => h.connection?.pedal)).toBe(true);
+    expect(JSON.parse(JSON.stringify(a))).toEqual(a);
+  });
+});
+
+describe('connection', () => {
+  it('reads a legato player’s overlap, the turn included and the last note left out', () => {
+    const rng = seededRng(20);
+    const medians: number[] = [];
+    for (let r = 0; r < 50; r++) {
+      const s = play(rng, { octaves: 2, ioi: 250, sigma: 10, legato: 20, releaseSigma: 5 });
+      const hand = analyze(s).hands[0]!;
+      const c = hand.connection!;
+      medians.push(c.medianOverlap!);
+      expect(c.gaps).toEqual([]);
+      expect(c.pedal).toBe(false);
+      // 29 notes, 28 joins: the last note has no next.
+      expect(c.notes).toBe(28);
+      expect(hand.notes[28]!.overlap).toBeNull();
+      // Into the top note and out of it: measured, unlike the intervals there.
+      expect(hand.notes[13]!.overlap).not.toBeNull();
+      expect(hand.notes[14]!.overlap).not.toBeNull();
+      expect(hand.notes[14]!.turn).toBe(true);
+      expect(c.overlapShare).toBeCloseTo((100 * c.medianOverlap!) / hand.timing.medianInterval!, 9);
+    }
+    expect(Math.abs(median(medians) - 20)).toBeLessThan(2);
+    for (const m of medians) expect(Math.abs(m - 20)).toBeLessThan(5);
+    // 20 ms of 250: 8 % of the interval.
+    expect(median(medians) / 250).toBeCloseTo(0.08, 2);
+  });
+
+  it('finds the gaps at the thumb of a player legato elsewhere', () => {
+    const rng = seededRng(21);
+    for (let r = 0; r < 50; r++) {
+      const s = play(rng, {
+        octaves: 2,
+        ioi: 250,
+        sigma: 10,
+        legato: 15,
+        releaseSigma: 5,
+        thumbGap: 50,
+      });
+      const c = analyze(s).hands[0]!.connection!;
+      // The thumb passes under at 3, 7 and 10 going up: the note before each lets go too soon.
+      expect(c.gaps).toEqual([2, 6, 9]);
+      expect(c.medianOverlap).toBeGreaterThan(10);
+      expect(c.medianOverlap).toBeLessThan(20);
+    }
+    expect(GAP_MS).toBe(30);
+  });
+
+  it('leaves out notes without a release, and says nothing with too few', () => {
+    const s = play(seededRng(22), { octaves: 2, ioi: 250, sigma: 10, legato: 20 });
+    for (const i of [4, 11, 20]) s.played[i]!.off = null;
+    const hand = analyze(s).hands[0]!;
+    expect([4, 11, 20].map((i) => hand.notes[i]!.overlap)).toEqual([null, null, null]);
+    // The note before still has its own release.
+    expect(hand.notes[3]!.overlap).not.toBeNull();
+    expect(hand.connection!.notes).toBe(25);
+
+    // One octave with releases on only a few notes.
+    const one = play(seededRng(23), { octaves: 1, ioi: 250, sigma: 10, legato: 20 });
+    one.played.forEach((p, i) => {
+      if (i >= MIN_CONNECTED - 1) p.off = null;
+    });
+    expect(analyze(one).hands[0]!.connection).toBeNull();
+    one.played[MIN_CONNECTED - 1]!.off = one.played[MIN_CONNECTED]!.on + 20;
+    expect(analyze(one).hands[0]!.connection!.notes).toBe(MIN_CONNECTED);
+  });
+
+  it('a slip, a miss or a wrong key breaks the joins around it', () => {
+    const s = play(seededRng(24), { octaves: 2, ioi: 250, sigma: 10, legato: 20 });
+    s.played[5]!.midi += 1; // a wrong key at A4
+    s.played.splice(12, 1); // A5 missed
+    s.played.splice(7, 0, { midi: 90, on: s.played[6]!.on + 100, off: null, velocity: 60 });
+    const n = analyze(s).hands[0]!.notes;
+    const overlaps = n.map((x) => x.overlap);
+    // Into and out of the wrong key, into the extra note, into and out of the missed note.
+    for (const i of [4, 5, 6, 11, 12]) expect(overlaps[i]).toBeNull();
+    for (const i of [3, 7, 10, 13]) expect(overlaps[i]).not.toBeNull();
+    expect(overlaps.filter((o) => o !== null)).toHaveLength(23);
+  });
+
+  it('marks the pedal from the start of the run or from a change, and figures stay the same', () => {
+    const s = play(seededRng(25), { octaves: 2, ioi: 250, sigma: 10, legato: 20 });
+    const withPedal = (pedal: RunInput['pedal']) =>
+      analyzeRun({ expected: s.notes, played: s.played, velocityMeasured: false, pedal }).hands[0]!
+        .connection!;
+    const plain = withPedal(undefined);
+    expect(plain.pedal).toBe(false);
+    expect(withPedal({ atStart: false, changes: [] }).pedal).toBe(false);
+    expect(withPedal({ atStart: true, changes: [] }).pedal).toBe(true);
+    expect(withPedal({ atStart: true, changes: [{ down: false, time: 10 }] }).pedal).toBe(true);
+    const pressed = withPedal({
+      atStart: false,
+      changes: [
+        { down: true, time: 2000 },
+        { down: false, time: 2400 },
+      ],
+    });
+    expect(pressed.pedal).toBe(true);
+    expect({ ...pressed, pedal: false }).toEqual(plain);
+    // Let go at once, never pressed: not used.
+    expect(withPedal({ atStart: false, changes: [{ down: false, time: 5 }] }).pedal).toBe(false);
+  });
+});
+
+describe('hands together', () => {
+  it('pairs the same index of both hands, which have the same length and shape', () => {
+    for (const type of SCALE_TYPES)
+      for (const tonic of tonicsOf(type))
+        for (const octaves of SCALE_OCTAVES) {
+          const { right, left } = scaleNotes({ type, tonic, octaves, hands: 'both' });
+          expect(right.length).toBe(left.length);
+          right.forEach((r, i) => {
+            expect([r.direction, r.turn, r.midi - 12]).toEqual([
+              left[i]!.direction,
+              left[i]!.turn,
+              left[i]!.midi,
+            ]);
+          });
+        }
+
+    // A real exercise, played together, the right hand 20 ms late: every pair measured.
+    const { right, left } = scaleNotes({
+      type: 'harmonicMinor',
+      tonic: 'G#',
+      octaves: 2,
+      hands: 'both',
+    });
+    const played = [...right, ...left]
+      .map((n) => ({
+        midi: n.midi,
+        on: 250 * n.index + (n.hand === 'right' ? 20 : 0),
+        off: null,
+        velocity: 70,
+      }))
+      .sort((a, b) => a.on - b.on);
+    const t = together({ expected: [...right, ...left], played })!;
+    expect(t.pairs).toHaveLength(29);
+    expect(t.pairs.every((p) => p.asynchrony === 20)).toBe(true);
+    expect([t.median, t.leads, t.spread]).toEqual([20, 'left', 0]);
+
+    // Runs of different lengths are not paired.
+    const unequal = [...cMajor(2, 'right'), ...cMajor(1, 'left')];
+    const notes = unequal.map((n) => ({
+      midi: n.midi,
+      on: 250 * n.index,
+      off: null,
+      velocity: 70,
+    }));
+    expect(together({ expected: unequal, played: notes.sort((a, b) => a.on - b.on) })).toBeNull();
+  });
+
+  it('a right hand 25 ms late: the left leads', () => {
+    const rng = seededRng(30);
+    const medians: number[] = [];
+    let left = 0;
+    for (let r = 0; r < 100; r++) {
+      const t = together(playBoth(rng, { octaves: 2, ioi: 250, sigma: 10, lag: 25 }))!;
+      medians.push(t.median!);
+      if (t.leads === 'left') left++;
+      // Asynchrony of two onsets with σ = 10 each: σ√2 = 14 ms.
+      expect(t.spread).toBeGreaterThan(6);
+      expect(t.spread).toBeLessThan(24);
+    }
+    expect(left).toBeGreaterThanOrEqual(99);
+    expect(Math.abs(median(medians) - 25)).toBeLessThan(2);
+
+    const t = together(playBoth(rng, { octaves: 2, ioi: 250, sigma: 5, lag: -25 }))!;
+    expect(t.leads).toBe('right');
+    expect(t.median).toBeLessThan(-LEAD_MS);
+  });
+
+  it('jitter alone: no hand leads', () => {
+    const rng = seededRng(31);
+    let led = 0;
+    const runs = 200;
+    for (let r = 0; r < runs; r++) {
+      const octaves = r % 2 === 0 ? 1 : 2;
+      if (together(playBoth(rng, { octaves, ioi: 250, sigma: 10 }))!.leads !== null) led++;
+    }
+    expect(led / runs).toBeLessThanOrEqual(0.05);
+  });
+
+  it('names the pairs far apart', () => {
+    const rng = seededRng(32);
+    for (let r = 0; r < 20; r++) {
+      const t = together(
+        playBoth(rng, { octaves: 2, ioi: 250, sigma: 3, shift: { 5: 60, 12: -60, 20: 60 } }),
+      )!;
+      expect(t.apart).toEqual([5, 12, 20]);
+      expect(t.leads).toBeNull();
+      expect(t.pairs[12]!.asynchrony).toBeLessThan(-APART_MS);
+    }
+  });
+
+  it('a note missing in one hand leaves its pair unmeasured', () => {
+    const t = together(
+      playBoth(seededRng(33), { octaves: 2, ioi: 250, sigma: 10, leftMissing: [4, 10] }),
+    )!;
+    expect(t.pairs).toHaveLength(29);
+    expect(t.pairs.map((p) => p.index)).toEqual([...Array(29).keys()]);
+    const unmeasured = t.pairs.filter((p) => p.asynchrony === null).map((p) => p.index);
+    expect(unmeasured).toEqual([4, 10]);
+    expect(t.median).not.toBeNull();
+  });
+
+  it('is null for one hand', () => {
+    const a = analyze(play(seededRng(34), { octaves: 2, ioi: 250, sigma: 10 }));
+    expect(a.together).toBeNull();
+    expect(analyzeRun({ expected: [], played: [], velocityMeasured: false }).together).toBeNull();
   });
 });

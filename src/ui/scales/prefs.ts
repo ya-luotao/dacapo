@@ -4,7 +4,6 @@ import { readPref, writePref } from '../../lib/localPrefs.ts';
 
 export const EXERCISE_PREF = 'dacapo.scales.exercise';
 
-/** Hands together comes with S3: until then an exercise is one hand. */
 export const DEFAULT_EXERCISE: ScaleExercise = {
   type: 'major',
   tonic: 'C',
@@ -15,7 +14,7 @@ export const DEFAULT_EXERCISE: ScaleExercise = {
 /** The last exercise chosen in this browser. */
 export function readExercise(): ScaleExercise {
   const stored = parseExerciseKey(readPref(EXERCISE_PREF) ?? '');
-  return stored && stored.hands !== 'both' ? stored : DEFAULT_EXERCISE;
+  return stored ?? DEFAULT_EXERCISE;
 }
 
 export function writeExercise(e: ScaleExercise): void {

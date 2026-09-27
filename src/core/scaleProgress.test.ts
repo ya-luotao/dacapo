@@ -10,7 +10,10 @@ import type { SessionRecord } from './log.ts';
 import { seededRng, type Rng } from './random.ts';
 import {
   byWeakness,
+  CROSSING_MIN_Z,
+  CROSSING_MIN_Z_TWO_HANDS,
   DEGREE_MIN_Z,
+  DEGREE_MIN_Z_TWO_HANDS,
   MIN_RUNS,
   placesOverRuns,
   RECENT_RUNS,
@@ -413,6 +416,48 @@ describe('placesOverRuns', () => {
     }
   });
 
+  it('hands together: each hand has its places, at the stricter thresholds', () => {
+    const rng = seededRng(20);
+    const C2_BOTH = 'major:C:2:both';
+    const z = (p: { irregularity: number; standardError: number }) =>
+      Math.abs(p.irregularity) / p.standardError;
+    // A steady player over 3 runs at σ = 25, the worst case: simulated over 1,000 exercises, 8.5 %
+    // (12 % at the one-hand thresholds).
+    let named = 0;
+    const exercises = 100;
+    for (let e = 0; e < exercises; e++)
+      if (placesOverRuns(simulateRuns(rng, C2_BOTH, { sigma: 25 }, 3)).irregular.length > 0)
+        named++;
+    expect(named / exercises).toBeLessThan(0.12);
+
+    // Thumbs 25 ms late in both hands: named in either hand, each place at the two-hand thresholds.
+    const hands = new Set<Hand>();
+    let thumbNamed = 0;
+    for (let e = 0; e < 30; e++) {
+      const result = placesOverRuns(simulateRuns(rng, C2_BOTH, { sigma: 15, thumb: 25 }, 5));
+      if (result.irregular.some((p) => p.crossing === 'thumbUnder')) thumbNamed++;
+      for (const p of result.irregular) {
+        hands.add(p.hand);
+        expect(z(p)).toBeGreaterThanOrEqual(
+          p.crossing === null ? DEGREE_MIN_Z_TWO_HANDS : CROSSING_MIN_Z_TWO_HANDS,
+        );
+      }
+    }
+    expect(thumbNamed).toBe(30);
+    expect([...hands].sort()).toEqual(['left', 'right']);
+
+    // One hand keeps its thresholds: over 3 runs at σ = 25 some thumb is named below the two-hand
+    // one (simulated: named in 58 % of exercises, a fifth of the places named below it).
+    const below = Array.from({ length: 30 }, () =>
+      placesOverRuns(simulateRuns(rng, C2, { sigma: 25, thumb: 25 }, 3)).irregular.filter(
+        (p) => p.crossing !== null,
+      ),
+    ).flat();
+    expect(below.every((p) => z(p) >= CROSSING_MIN_Z)).toBe(true);
+    expect(below.some((p) => z(p) < CROSSING_MIN_Z_TWO_HANDS)).toBe(true);
+    expect(DEGREE_MIN_Z_TWO_HANDS).toBeGreaterThan(DEGREE_MIN_Z);
+  });
+
   it('names nothing with fewer than 3 runs', () => {
     const rng = seededRng(13);
     const result = placesOverRuns(simulateRuns(rng, C2, { sigma: 5, thumb: 40 }, MIN_RUNS - 1));
@@ -512,7 +557,14 @@ describe('placesOverRuns', () => {
     const ms = performance.now() - start;
     expect(result.runs).toBe(10);
     expect(result.irregular[0]?.crossing).toBe('thumbUnder');
-    // About 2 ms here (hands together, about 30); the bound is generous for slow machines.
+    // About 2 ms here; the bound is generous for slow machines.
     expect(ms).toBeLessThan(100);
+
+    // Hands together: about 15 ms (55 before the alignment kept to a band).
+    const both = simulateRuns(rng, 'major:C:4:both', { sigma: 15, thumb: 25 }, 10);
+    placesOverRuns(both);
+    const t0 = performance.now();
+    expect(placesOverRuns(both).runs).toBe(10);
+    expect(performance.now() - t0).toBeLessThan(250);
   });
 });

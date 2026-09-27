@@ -22,7 +22,7 @@ import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
 import { spelledName, tonicName, useExerciseName } from './format.ts';
 import { readExercise, writeExercise } from './prefs.ts';
 import { scaleRunRecord, useScaleRecorder, type SessionSlot } from './record.ts';
-import { sessionStep, velocityMeasured, waitingRun, type ScaleRunState } from './run.ts';
+import { runInput, sessionStep, usedPedal, waitingRun, type ScaleRunState } from './run.ts';
 import { ScaleProgress, YourScales } from './ScaleProgress.tsx';
 import { ScaleSummary } from './ScaleSummary.tsx';
 
@@ -38,8 +38,7 @@ const ZOOM: Record<ScaleExercise['octaves'], number> = { 1: 1.6, 2: 1.3, 3: 1.15
  * bar alone on a line (about a quarter) is not. Octave lines read "8va", clear of the fingering.
  */
 const ENGRAVING: Engraving = { lastJustification: 0.35, ottavaText: true };
-/** Hands together comes with S3. */
-const HANDS: readonly Hand[] = ['right', 'left'];
+const HANDS: readonly ScaleExercise['hands'][] = ['right', 'left', 'both'];
 
 export function ScalesPage() {
   const t = useT();
@@ -215,9 +214,20 @@ function ScaleSession({ exercise, slot }: { exercise: ScaleExercise; slot: Sessi
   const { hub, pointer, midi } = useInput();
   const store = usePracticeStore();
   const { held, sustained } = useHubState();
-  const hand: Hand = exercise.hands === 'left' ? 'left' : 'right';
-  const expected = useMemo(() => scaleNotes(exercise)[hand], [exercise, hand]);
-  const names = useMemo(() => expected.map((note) => spelledName(note.pitch)), [expected]);
+  const hands = exercise.hands;
+  const notes = useMemo(() => scaleNotes(exercise), [exercise]);
+  // The run: one hand's notes, or the right hand's then the left's (what the analysis takes).
+  const expected = useMemo(
+    () => (hands === 'both' ? [...notes.right, ...notes.left] : notes[hands]),
+    [notes, hands],
+  );
+  const names = useMemo(
+    () => ({
+      right: notes.right.map((note) => spelledName(note.pitch)),
+      left: notes.left.map((note) => spelledName(note.pitch)),
+    }),
+    [notes],
+  );
   const xml = useMemo(() => scaleMusicXml(exercise), [exercise]);
   const score = useMemo(
     () =>
@@ -226,16 +236,24 @@ function ScaleSession({ exercise, slot }: { exercise: ScaleExercise; slot: Sessi
       }),
     [xml, exercise],
   );
-  const steps = useMemo(() => buildSteps(score, hand), [score, hand]);
-  // The run's notes on the score: the hand's notes in the order played are the run, note for
+  const steps = useMemo(() => buildSteps(score, hands), [score, hands]);
+  // The run's notes on the score: each hand's notes in the order played are its run, note for
   // note (scaleXml.test.ts holds it), and each belongs to the step at its onset.
-  const noteIds = useMemo(
-    () =>
+  const noteIds = useMemo(() => {
+    const of = (hand: Hand) =>
       score.notes
         .filter((n) => n.hand === hand)
         .sort((a, b) => a.onset - b.onset)
-        .map((n) => n.id),
-    [score, hand],
+        .map((n) => n.id);
+    return { right: of('right'), left: of('left') };
+  }, [score]);
+  /** The score's note for a note of the run (an index into `expected`). */
+  const idOf = useMemo(
+    () => (n: number) => {
+      const note = expected[n];
+      return note ? noteIds[note.hand][note.index] : undefined;
+    },
+    [expected, noteIds],
   );
   const stepOfNote = useMemo(
     () => new Map(steps.flatMap((s) => s.noteIds.map((id) => [id, s] as const))),
@@ -271,37 +289,40 @@ function ScaleSession({ exercise, slot }: { exercise: ScaleExercise; slot: Sessi
 
   // The score: the note to play next, the notes played green; after a run, each note inked by
   // how far off the line it was, and the wrong and missed ones in the error colour.
-  const next = noteIds[run.next];
+  const nextNote = run.steps[run.next]?.notes[0];
+  const next = nextNote === undefined ? undefined : idOf(nextNote);
   const step = run.phase === 'done' || next === undefined ? null : (stepOfNote.get(next) ?? null);
   const marks = useMemo(() => {
     const out = new Map<string, string>();
-    const idOf = (index: number) => noteIds[index];
     if (analysis && ok) {
-      for (const note of analysis.hands[0]!.notes) {
-        const id = idOf(note.index);
-        const mark = note.outcome === 'played' ? deviationMark(note.deviation) : 'is-missed';
-        if (id && mark) out.set(id, mark);
-      }
+      for (const hand of analysis.hands)
+        for (const note of hand.notes) {
+          const id = noteIds[hand.hand][note.index];
+          const mark = note.outcome === 'played' ? deviationMark(note.deviation) : 'is-missed';
+          if (id && mark) out.set(id, mark);
+        }
     } else if (run.phase !== 'done') {
-      for (const index of run.played) {
-        const id = idOf(index);
+      for (const n of run.played) {
+        const id = idOf(n);
         if (id) out.set(id, 'is-pressed');
       }
     }
     return out;
-  }, [analysis, ok, run.phase, run.played, noteIds]);
+  }, [analysis, ok, run.phase, run.played, noteIds, idOf]);
 
   const keys = useMemo(() => {
-    const span = keyRange(score, hand) ?? [60, 72];
+    const span = keyRange(score, hands) ?? [60, 72];
     return keyboardRange(span[0], span[1]);
-  }, [score, hand]);
+  }, [score, hands]);
   const wrong = useMemo(() => new Set(run.wrongKey === null ? [] : [run.wrongKey]), [run.wrongKey]);
-  const first = names[0] ?? '';
-  // While waiting, the key to start on.
+  // The keys to start on: the tonic of each hand played.
+  const startNotes = run.steps[0]?.notes ?? [];
+  const first = startNotes.map((n) => names[expected[n]!.hand][0]).join(t('scales.status.and'));
   const waiting = run.phase === 'waiting';
   const firstKey = useMemo(
-    () => (waiting && expected[0] ? new Set([expected[0].midi]) : undefined),
-    [waiting, expected],
+    () =>
+      waiting ? new Set((run.steps[0]?.notes ?? []).map((n) => expected[n]!.midi)) : undefined,
+    [waiting, run.steps, expected],
   );
 
   return (
@@ -335,7 +356,7 @@ function ScaleSession({ exercise, slot }: { exercise: ScaleExercise; slot: Sessi
           title={name(exercise)}
           step={step}
           pressed={[]}
-          hands={hand}
+          hands={hands}
           onStatus={setStatus}
           marks={marks}
           zoom={ZOOM[exercise.octaves]}
@@ -369,7 +390,9 @@ function ScaleSession({ exercise, slot }: { exercise: ScaleExercise; slot: Sessi
 
       <KeyboardHint />
 
-      {analysis && <ScaleSummary analysis={analysis} names={names} end={run.end} />}
+      {analysis && (
+        <ScaleSummary analysis={analysis} names={names} end={run.end} pedal={usedPedal(run)} />
+      )}
       {import.meta.env.DEV && run.phase === 'done' && <SaveRun exercise={exercise} run={run} />}
     </div>
   );
@@ -384,11 +407,7 @@ function KeyboardHint() {
 }
 
 function analyze(run: ScaleRunState): RunAnalysis {
-  return analyzeRun({
-    expected: run.expected,
-    played: run.keys,
-    velocityMeasured: velocityMeasured(run.keys),
-  });
+  return analyzeRun(runInput(run));
 }
 
 /**

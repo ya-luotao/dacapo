@@ -17,8 +17,12 @@ const TOP = 14;
 const PLOT = 104;
 const MARK_Y = TOP + PLOT + 20;
 const FINGER_Y = MARK_Y + 16;
-const LOUD_TOP = FINGER_Y + 16;
-const LOUD = 28;
+/** The rows under the plot: loudness, then connection, each a band of bars around a line. */
+const ROWS_TOP = FINGER_Y + 16;
+const ROW = 28;
+const ROW_GAP = 8;
+/** A gap longer than this between two keys breaks the line (evenness.ts, `GAP_MS`). */
+const GAP_MS = 30;
 const DOT_R = 4;
 /** The plot shows at least ±40 ms, and never more than ±150: beyond, a dot sits on the edge. */
 const MIN_RANGE = 40;
@@ -29,17 +33,27 @@ const FINGERS_ALL_UP_TO = 36;
 export function ProfileChart({
   hand,
   names,
+  caption,
 }: {
   hand: HandAnalysis;
   /** Each note's name as the scale spells it (F𝄪, not G), by index. */
   names: readonly string[];
+  /** Instead of the usual caption, e.g. which hand (hands together draws one chart per hand). */
+  caption?: string;
 }) {
   const t = useT();
   const id = useId();
   const [hover, setHover] = useState<{ note: NoteFigures; x: number } | null>(null);
   const notes = hand.notes;
   const loud = hand.loudness !== null;
-  const height = (loud ? LOUD_TOP + LOUD : FINGER_Y) + 6;
+  const legato = hand.connection !== null;
+  const loudTop = ROWS_TOP;
+  const legatoTop = ROWS_TOP + (loud ? ROW + ROW_GAP : 0);
+  const height = (legato ? legatoTop + ROW : loud ? loudTop + ROW : FINGER_Y) + 6;
+  const legatoRange = useMemo(
+    () => Math.max(40, ...notes.map((n) => Math.abs(n.overlap ?? 0))),
+    [notes],
+  );
 
   const range = useMemo(() => {
     const most = Math.max(0, ...notes.map((n) => Math.abs(n.deviation ?? 0)));
@@ -82,6 +96,12 @@ export function ProfileChart({
           velocity: note.velocity,
           residual: `${note.velocityResidual > 0 ? '+' : note.velocityResidual < 0 ? '−' : '±'}${Math.abs(Math.round(note.velocityResidual))}`,
         });
+  const connection = (note: NoteFigures) =>
+    note.overlap === null
+      ? ''
+      : note.overlap >= 0
+        ? t('scales.note.overlap', { ms: Math.round(note.overlap) })
+        : t('scales.note.gap', { ms: Math.round(-note.overlap) });
   const label = (note: NoteFigures) =>
     [
       t('scales.note.label', { n: note.index + 1, key: names[note.index] ?? '' }),
@@ -91,13 +111,14 @@ export function ProfileChart({
         ? t('scales.note.hesitation', { ms: Math.round(note.hesitation) })
         : '',
       loud ? loudness(note) : '',
+      legato ? connection(note) : '',
     ]
       .filter(Boolean)
       .join(' · ');
 
   return (
     <figure className="deviation scale-profile">
-      <figcaption id={`${id}-title`}>{t('scales.chart')}</figcaption>
+      <figcaption id={`${id}-title`}>{caption ?? t('scales.chart')}</figcaption>
       <div className="deviation-frame">
         <svg
           viewBox={`0 0 ${WIDTH} ${height}`}
@@ -190,38 +211,33 @@ export function ProfileChart({
             ),
           )}
           {loud && (
-            <g className="scale-profile-loud">
-              <text
-                className="deviation-word"
-                x={LEFT - 6}
-                y={LOUD_TOP + LOUD / 2}
-                dy="0.32em"
-                textAnchor="end"
-              >
-                {t('scales.chart.loud')}
-              </text>
-              <line
-                x1={LEFT}
-                x2={WIDTH - RIGHT}
-                y1={LOUD_TOP + LOUD / 2}
-                y2={LOUD_TOP + LOUD / 2}
-              />
-              {notes.map((note) => {
-                if (note.velocityResidual === null) return null;
-                const h = (Math.abs(note.velocityResidual) / loudRange) * (LOUD / 2);
-                const mid = LOUD_TOP + LOUD / 2;
-                return (
-                  <rect
-                    key={`v${note.index}`}
-                    className={note.accent ? 'is-accent' : undefined}
-                    x={x(note.index) - 1.5}
-                    y={note.velocityResidual > 0 ? mid - h : mid}
-                    width={3}
-                    height={Math.max(0.5, h)}
-                  />
-                );
-              })}
-            </g>
+            <BarRow
+              className="scale-profile-loud"
+              label={t('scales.chart.loud')}
+              top={loudTop}
+              bars={notes.map((note) => ({
+                key: note.index,
+                x: x(note.index),
+                value: note.velocityResidual,
+                marked: note.accent,
+              }))}
+              range={loudRange}
+            />
+          )}
+          {legato && (
+            // Between a note and the next: up, the keys overlap (legato); down, a gap.
+            <BarRow
+              className="scale-profile-legato"
+              label={t('scales.chart.legato')}
+              top={legatoTop}
+              bars={notes.map((note) => ({
+                key: note.index,
+                x: x(note.index + 0.5),
+                value: note.overlap,
+                marked: note.overlap !== null && note.overlap < -GAP_MS,
+              }))}
+              range={legatoRange}
+            />
           )}
         </svg>
         {hover && (
@@ -244,6 +260,7 @@ export function ProfileChart({
                 <th scope="col">{t('scales.table.finger')}</th>
                 <th scope="col">{t('scales.table.timing')}</th>
                 {loud && <th scope="col">{t('scales.table.velocity')}</th>}
+                {legato && <th scope="col">{t('scales.table.legato')}</th>}
               </tr>
             </thead>
             <tbody>
@@ -258,6 +275,7 @@ export function ProfileChart({
                       ` · ${t('scales.note.hesitation', { ms: Math.round(note.hesitation) })}`}
                   </td>
                   {loud && <td>{loudness(note) || '–'}</td>}
+                  {legato && <td>{connection(note) || '–'}</td>}
                 </tr>
               ))}
             </tbody>
@@ -265,5 +283,44 @@ export function ProfileChart({
         </div>
       </details>
     </figure>
+  );
+}
+
+/** A band of thin bars around a line, one per note: up for more, down for less. */
+function BarRow({
+  className,
+  label,
+  top,
+  bars,
+  range,
+}: {
+  className: string;
+  label: string;
+  top: number;
+  bars: readonly { key: number; x: number; value: number | null; marked: boolean }[];
+  range: number;
+}) {
+  const mid = top + ROW / 2;
+  return (
+    <g className={`scale-profile-row ${className}`}>
+      <text className="deviation-word" x={LEFT - 6} y={mid} dy="0.32em" textAnchor="end">
+        {label}
+      </text>
+      <line x1={LEFT} x2={WIDTH - RIGHT} y1={mid} y2={mid} />
+      {bars.map(({ key, x, value, marked }) => {
+        if (value === null) return null;
+        const h = (Math.min(Math.abs(value), range) / range) * (ROW / 2);
+        return (
+          <rect
+            key={key}
+            className={marked ? 'is-marked' : undefined}
+            x={x - 1.5}
+            y={value > 0 ? mid - h : mid}
+            width={3}
+            height={Math.max(0.5, h)}
+          />
+        );
+      })}
+    </g>
   );
 }
