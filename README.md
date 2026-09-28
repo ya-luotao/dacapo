@@ -11,7 +11,8 @@ _Da capo_ — "from the beginning."
 
 An open-source web app for learning the piano with a MIDI keyboard: sight-reading drills
 on a real grand staff, reaction-time tracking, a per-note weakness heatmap, real pieces in wait
-and rhythm mode, and a practice log. All data stays in your browser.
+and rhythm mode, scales measured note by note for evenness, and a practice log. All data stays in
+your browser.
 
 **Try it:** [ya-luotao.github.io/dacapo](https://ya-luotao.github.io/dacapo/) — in Chrome or Edge
 on a computer, with a MIDI keyboard over USB, or with your computer keyboard. Nothing to install
@@ -29,7 +30,9 @@ so expect rough edges; bug reports are welcome. See [CHANGELOG.md](CHANGELOG.md)
 each release. Practising pieces ([docs/PIECES.md](docs/PIECES.md)) is built too, not yet in a
 release: the library, MusicXML import, wait mode, MIDI playback, practice records with a measure
 heatmap, a rhythm mode with a metronome and timing analysis, a metronome of its own for any
-practice, and a built-in piano for keyboards without a sound of their own.
+practice, and a built-in piano for keyboards without a sound of their own. So are scales
+([docs/SCALES.md](docs/SCALES.md)) with an analysis of how even they are, and a focus mode for
+practising.
 
 ## Why
 
@@ -60,7 +63,18 @@ practising the notes you are slowest at. Progress is visible day by day.
   In rhythm mode a metronome counts you in and the score moves in time: every note is timed, and
   afterwards you see how many came in time, whether you tend to play early or late, and where you
   sped up or slowed down. "Weak bars" tints each bar by how long you hesitated there, or how far
-  off the beat you were, in your last runs, and one click loops the weakest ones.
+  off the beat you were, in your last runs, and one click loops the weakest ones. If the file has
+  fingering, the keys marked on the keyboard show which finger to use.
+- **Scales, measured for evenness.** Major, the three minors and chromatic in every key, one to
+  four octaves, one hand or both, drawn with Hanon's fingering. Play at your own tempo: afterwards
+  you see how even the notes were in time (against the 8–9 ms of professional pianists), in
+  loudness and in legato, note by note on a chart and in colour on the score, including where the
+  thumb crossings come late or early. The keyboard shows the finger for the keys to start on and,
+  if you want, for each next key, with a word before a thumb crossing. Every run is kept, with a
+  30-day trend per scale and the scale to practise next.
+- **Focus mode.** While you practise a piece or a scale, the header and the settings can give way
+  to the score: one slim row keeps larger or smaller notes, the keyboard on or off, the settings
+  when you need them, the metronome and full screen. The screen stays on while you practise.
 - **Built-in piano.** A sampled Yamaha C5 grand (the Salamander Grand Piano by Alexander Holm)
   plays demos and the other hand when your keyboard has no MIDI output, and sounds the computer
   keyboard and the on-screen keys. A MIDI keyboard without a sound of its own can play through it
@@ -137,8 +151,8 @@ example `BASE_PATH=/dacapo/ pnpm build` for the GitHub Pages demo.
 
 These are deliberately out of scope for the MVP and are the candidates once it is used daily:
 
-- Analysis of scale evenness
-- Theory and ear training
+- Scales with a click, and focus loops on a weak spot
+- Theory and ear training ([docs/EAR.md](docs/EAR.md))
 - Accounts and sync between devices
 - AI coaching
 
@@ -168,7 +182,8 @@ everyone takes part under the [Code of Conduct](CODE_OF_CONDUCT.md).
 Notation is drawn with [VexFlow](https://github.com/vexflow/vexflow) (MIT) and the
 [Bravura](https://github.com/steinbergmedia/bravura) music font (SIL Open Font License 1.1) on the
 Read page, and with [Verovio](https://www.verovio.org) (LGPL-3.0-or-later, shipped unmodified as
-separate files) on the Pieces pages. Some built-in pieces are CC0 encodings from the
-[PDMX](https://zenodo.org/records/15571083) dataset (CC BY 4.0). Everything is part of the build,
-so the app never loads anything from a CDN. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+separate files) on the Pieces and Scales pages. The scale fingering is transcribed from Hanon's
+_The Virtuoso Pianist_ (G. Schirmer, 1900; public domain). Some built-in pieces are CC0 encodings
+from the [PDMX](https://zenodo.org/records/15571083) dataset (CC BY 4.0). Everything is part of the
+build, so the app never loads anything from a CDN. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
 for every licence and source.
