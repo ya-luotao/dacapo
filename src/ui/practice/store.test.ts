@@ -436,19 +436,62 @@ describe('piece runs', () => {
     await tabA.settled();
     expect(await tabA.allPieceSteps()).toEqual([]);
 
-    // An import elsewhere: the cache is read again when next asked for.
-    const more = sampleRun('r2', 2, { pieceId: 'p1' });
+    // An import elsewhere: the cache is read again when next asked for. (Step records of p1 would
+    // not come back: it was deleted with them.)
+    const more = sampleRun('r2', 2, { pieceId: 'p2' });
     await tabA.importData({
       sessions: [],
       attempts: [],
       pieces: [],
-      pieceSteps: more.steps,
+      pieceSteps: [...more.steps, ...sampleRun('r3', 1, { pieceId: 'p1' }).steps],
       scaleRuns: [],
     });
     await vi.waitFor(() => expect(tabB.getPieceSteps('p1')).toBeNull());
-    tabB.loadPieceSteps('p1');
-    await vi.waitFor(() => expect(tabB.getPieceSteps('p1')).toEqual(more.steps));
+    tabB.loadPieceSteps('p2');
+    await vi.waitFor(() => expect(tabB.getPieceSteps('p2')).toEqual(more.steps));
     expect(await tabB.pieceStepIds()).toEqual(new Set(more.steps.map((s) => s.id)));
+  });
+});
+
+describe('reloads', () => {
+  it('wait until this tab stops practising when another tab asks for one', async () => {
+    let practising = true;
+    const ends = new Set<() => void>();
+    const tabA = startStore();
+    const tabB = startStore({
+      practice: {
+        isPractising: () => practising,
+        onPracticeEnd: (listener) => {
+          ends.add(listener);
+          return () => void ends.delete(listener);
+        },
+      },
+    });
+    await loaded(tabA);
+    await loaded(tabB);
+    await tabA.importData({
+      sessions: [freeSession('f1', T0)],
+      attempts: [],
+      pieces: [],
+      pieceSteps: [],
+      scaleRuns: [],
+    });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(tabB.getSnapshot().sessions).toEqual([]);
+    practising = false;
+    for (const end of ends) end();
+    await vi.waitFor(() => expect(tabB.getSnapshot().sessions).toEqual([freeSession('f1', T0)]));
+  });
+
+  it('never finish a run that is still being played', async () => {
+    const store = startStore();
+    await loaded(store);
+    const { steps } = sampleRun('r1', 2, { pieceId: 'p1' });
+    store.recordPieceStep(steps[0]!, sampleHeader('r1', { pieceId: 'p1' }));
+    await store.settled();
+    await store.reloadAll();
+    expect(store.getSnapshot().sessions).toEqual([]);
+    expect((await onDisk()).openPieceRuns).toEqual([sampleHeader('r1', { pieceId: 'p1' })]);
   });
 });
 

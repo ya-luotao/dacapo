@@ -10,8 +10,19 @@ import { byRunTime, type ScaleSession, type StoredScaleRun } from '../core/scale
 import type { Attempt } from '../core/session.ts';
 import { byImportedDescending, type StoredPiece } from '../core/storedPiece.ts';
 import { emptyStats, statsFromAttempts, updateStats, type NoteStats } from '../core/weakness.ts';
+import { canonicalText } from '../lib/canonical.ts';
 import { openDacapoDB, type DacapoDB, type OpenHandlers } from './db.ts';
+import { createSyncStorage, deletedPieces, type SyncStorage } from './syncStorage.ts';
+import {
+  outboxEntry,
+  pieceDeletionKey,
+  SYNC_STATE_KEY,
+  type OutboxEntry,
+  type PieceDeletion,
+  type SyncCollection,
+} from './syncTypes.ts';
 import { isOpenFreePlay, validatePieceRunHeader } from './validate.ts';
+import { writeAll } from './writeAll.ts';
 
 export interface StoredData {
   /** In the order they happened. */
@@ -69,8 +80,11 @@ export interface PracticeRepository {
   finishOpenFreePlay: (id: string, session: FreePlaySession | null) => Promise<void>;
   /** Adds or replaces the piece with the same id. */
   putPiece: (piece: StoredPiece) => Promise<void>;
-  /** Deletes the piece, and with `steps` its step records, in one transaction. */
-  deletePiece: (id: string, options?: { steps: boolean }) => Promise<void>;
+  /**
+   * Deletes the piece, and with `steps` its step records, in one transaction, and remembers the
+   * deletion for sync (docs/SYNC.md: a deletion is final).
+   */
+  deletePiece: (id: string, options?: { steps: boolean; at?: number }) => Promise<void>;
   /**
    * Stores a step (one whose id is stored already changes nothing), and with the run's first step
    * the run's header, so the run can be recovered if its tab goes away.
@@ -96,10 +110,40 @@ export interface PracticeRepository {
   /**
    * Adds the records whose id is not stored yet (stored ones are kept as they are, except a scale
    * session, which gives way to a copy with more runs), then rebuilds every note's stats from all
-   * attempts, in one transaction. Returns how many were added (or replaced).
+   * attempts, in one transaction. Returns how many were added (or replaced). A deleted piece is
+   * not added again, nor, when it was deleted with them, its step records.
    */
   merge: (input: MergeInput) => Promise<MergeResult>;
+  /** The sync storage; null for the memory repository, which cannot sync. */
+  readonly sync: SyncStorage | null;
   close: () => void;
+}
+
+// While signed in to sync, every write also puts its records in the outbox, in the same
+// transaction, so nothing written is left unsent. Whether the device is signed in is read in that
+// transaction too: another tab may have signed in or out a moment ago.
+
+async function isSyncing(meta: { getKey: (key: string) => Promise<unknown> }): Promise<boolean> {
+  return (await meta.getKey(SYNC_STATE_KEY)) !== undefined;
+}
+
+type Tracked = readonly [SyncCollection, string] | OutboxEntry;
+
+// Serialized, an undefined field is left out.
+const sameBesidesFacts = (a: StoredPiece, b: StoredPiece) =>
+  canonicalText({ ...a, facts: undefined }) === canonicalText({ ...b, facts: undefined });
+
+/** The writes that put `records` in the outbox, when signed in. */
+function track(
+  outbox: { put: (entry: OutboxEntry) => Promise<unknown> },
+  syncing: boolean,
+  records: readonly Tracked[],
+): (() => Promise<unknown>)[] {
+  if (!syncing) return [];
+  return records.map((record) => {
+    const entry = 'key' in record ? record : outboxEntry(record[0], record[1]);
+    return () => outbox.put(entry);
+  });
 }
 
 const OPEN_FREE_PLAY = 'freePlay:';
@@ -142,25 +186,6 @@ function notStored<T extends { id: string }>(
   return records.filter((record) => !ids.has(record.id) && Boolean(ids.add(record.id)));
 }
 
-/**
- * Issues the writes in order and waits for the transaction to commit. If any write fails, even
- * synchronously, the transaction is aborted so none of them is kept.
- */
-async function writeAll(
-  tx: { done: Promise<void>; abort: () => void },
-  writes: readonly (() => Promise<unknown>)[],
-): Promise<void> {
-  const pending: Promise<unknown>[] = [];
-  try {
-    for (const write of writes) pending.push(write());
-  } catch (error) {
-    tx.abort();
-    await Promise.allSettled([...pending, tx.done]);
-    throw error;
-  }
-  await Promise.all([...pending, tx.done]);
-}
-
 function sorted(data: StoredData): StoredData {
   return {
     ...data,
@@ -194,64 +219,99 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
       });
     },
     async addAttempt(attempt) {
-      const tx = db.transaction(['attempts', 'noteStats'], 'readwrite');
+      const tx = db.transaction(['attempts', 'noteStats', 'meta', 'outbox'], 'readwrite');
       const attempts = tx.objectStore('attempts');
       const noteStats = tx.objectStore('noteStats');
-      const [known, current] = await Promise.all([
+      const [known, current, syncing] = await Promise.all([
         attempts.getKey(attempt.id),
         noteStats.get(attempt.note),
+        isSyncing(tx.objectStore('meta')),
       ]);
       if (known !== undefined) {
         await tx.done;
         return current ?? emptyStats(attempt.note);
       }
       const stats = updateStats(current ?? emptyStats(attempt.note), attempt);
-      await writeAll(tx, [() => noteStats.put(stats), () => attempts.add(attempt)]);
+      await writeAll(tx, [
+        () => noteStats.put(stats),
+        () => attempts.add(attempt),
+        ...track(tx.objectStore('outbox'), syncing, [['attempts', attempt.id]]),
+      ]);
       return stats;
     },
     async putSession(session) {
-      await db.put('sessions', session);
+      const tx = db.transaction(['sessions', 'meta', 'outbox'], 'readwrite');
+      const syncing = await isSyncing(tx.objectStore('meta'));
+      await writeAll(tx, [
+        () => tx.objectStore('sessions').put(session),
+        ...track(tx.objectStore('outbox'), syncing, [['sessions', session.id]]),
+      ]);
     },
     async saveOpenFreePlay(open) {
       await db.put('meta', open, openFreePlayKey(open.id));
     },
     async finishOpenFreePlay(id, session) {
-      const tx = db.transaction(['sessions', 'meta'], 'readwrite');
+      const tx = db.transaction(['sessions', 'meta', 'outbox'], 'readwrite');
+      const syncing = await isSyncing(tx.objectStore('meta'));
       await writeAll(tx, [
         ...(session ? [() => tx.objectStore('sessions').put(session)] : []),
         () => tx.objectStore('meta').delete(openFreePlayKey(id)),
+        ...track(tx.objectStore('outbox'), syncing, session ? [['sessions', session.id]] : []),
       ]);
     },
     async putPiece(piece) {
-      await db.put('pieces', piece);
+      const tx = db.transaction(['pieces', 'meta', 'outbox'], 'readwrite');
+      const pieces = tx.objectStore('pieces');
+      const [syncing, stored] = await Promise.all([
+        isSyncing(tx.objectStore('meta')),
+        pieces.get(piece.id),
+      ]);
+      // Facts are derived and not synced: filling them in sends nothing.
+      const changed = !stored || !sameBesidesFacts(stored, piece);
+      await writeAll(tx, [
+        () => pieces.put(piece),
+        ...track(tx.objectStore('outbox'), syncing && changed, [['pieces', piece.id]]),
+      ]);
     },
     async deletePiece(id, options) {
-      if (!options?.steps) {
-        await db.delete('pieces', id);
-        return;
-      }
-      const tx = db.transaction(['pieces', 'pieceSteps'], 'readwrite');
+      const withSteps = options?.steps ?? false;
+      const deletion: PieceDeletion = { deleted: true, at: options?.at ?? Date.now(), withSteps };
+      const tx = db.transaction(['pieces', 'pieceSteps', 'meta', 'outbox'], 'readwrite');
       const steps = tx.objectStore('pieceSteps');
-      const keys = await steps.index('by-piece').getAllKeys(id);
+      const meta = tx.objectStore('meta');
+      const [keys, syncing] = await Promise.all([
+        withSteps ? steps.index('by-piece').getAllKeys(id) : Promise.resolve([]),
+        isSyncing(meta),
+      ]);
       await writeAll(tx, [
         () => tx.objectStore('pieces').delete(id),
         ...keys.map((key) => () => steps.delete(key)),
+        () => meta.put(deletion, pieceDeletionKey(id)),
+        ...track(tx.objectStore('outbox'), syncing, [outboxEntry('pieces', id, deletion)]),
       ]);
     },
     async addPieceStep(step, header) {
-      const tx = db.transaction(['pieceSteps', 'meta'], 'readwrite');
+      const tx = db.transaction(['pieceSteps', 'meta', 'outbox'], 'readwrite');
       const steps = tx.objectStore('pieceSteps');
-      const known = await steps.getKey(step.id);
+      const [known, syncing] = await Promise.all([
+        steps.getKey(step.id),
+        isSyncing(tx.objectStore('meta')),
+      ]);
       await writeAll(tx, [
         ...(known === undefined ? [() => steps.add(step)] : []),
         ...(header ? [() => tx.objectStore('meta').put(header, openPieceRunKey(header.id))] : []),
+        ...track(tx.objectStore('outbox'), syncing && known === undefined, [
+          ['pieceSteps', step.id],
+        ]),
       ]);
     },
     async finishPieceRun(id, session) {
-      const tx = db.transaction(['sessions', 'meta'], 'readwrite');
+      const tx = db.transaction(['sessions', 'meta', 'outbox'], 'readwrite');
+      const syncing = await isSyncing(tx.objectStore('meta'));
       await writeAll(tx, [
         ...(session ? [() => tx.objectStore('sessions').put(session)] : []),
         () => tx.objectStore('meta').delete(openPieceRunKey(id)),
+        ...track(tx.objectStore('outbox'), syncing, session ? [['sessions', session.id]] : []),
       ]);
     },
     async pieceSteps(query) {
@@ -266,12 +326,19 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
     },
     pieceStepIds: () => db.getAllKeys('pieceSteps'),
     async addScaleRun(run, session) {
-      const tx = db.transaction(['scaleRuns', 'sessions'], 'readwrite');
+      const tx = db.transaction(['scaleRuns', 'sessions', 'meta', 'outbox'], 'readwrite');
       const runs = tx.objectStore('scaleRuns');
-      const known = await runs.getKey(run.id);
+      const [known, syncing] = await Promise.all([
+        runs.getKey(run.id),
+        isSyncing(tx.objectStore('meta')),
+      ]);
       await writeAll(tx, [
         ...(known === undefined ? [() => runs.add(run)] : []),
         () => tx.objectStore('sessions').put(session),
+        ...track(tx.objectStore('outbox'), syncing, [
+          ...(known === undefined ? [['scaleRuns', run.id] as const] : []),
+          ['sessions', session.id],
+        ]),
       ]);
     },
     async scaleRuns(query) {
@@ -287,7 +354,16 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
     scaleRunIds: () => db.getAllKeys('scaleRuns'),
     async merge(input) {
       const tx = db.transaction(
-        ['sessions', 'attempts', 'noteStats', 'pieces', 'pieceSteps', 'scaleRuns'],
+        [
+          'sessions',
+          'attempts',
+          'noteStats',
+          'pieces',
+          'pieceSteps',
+          'scaleRuns',
+          'meta',
+          'outbox',
+        ],
         'readwrite',
       );
       const sessions = tx.objectStore('sessions');
@@ -296,13 +372,17 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
       const pieces = tx.objectStore('pieces');
       const pieceSteps = tx.objectStore('pieceSteps');
       const scaleRuns = tx.objectStore('scaleRuns');
-      const [storedSessions, storedAttempts, pieceIds, stepIds, runIds] = await Promise.all([
-        sessions.getAll(),
-        attempts.getAll(),
-        pieces.getAllKeys(),
-        pieceSteps.getAllKeys(),
-        scaleRuns.getAllKeys(),
-      ]);
+      const meta = tx.objectStore('meta');
+      const [storedSessions, storedAttempts, pieceIds, stepIds, runIds, deletions, syncing] =
+        await Promise.all([
+          sessions.getAll(),
+          attempts.getAll(),
+          pieces.getAllKeys(),
+          pieceSteps.getAllKeys(),
+          scaleRuns.getAllKeys(),
+          deletedPieces(meta),
+          isSyncing(meta),
+        ]);
       const byId = new Map(storedSessions.map((s) => [s.id, s]));
       const addedSessions = notStored(input.sessions, byId.keys());
       const longerSessions = longerScaleSessions(input.sessions, (id) => byId.get(id));
@@ -310,10 +390,19 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         input.attempts,
         storedAttempts.map((a) => a.id),
       );
-      const addedPieces = notStored(input.pieces, pieceIds);
-      const addedSteps = notStored(input.pieceSteps, stepIds);
+      const addedPieces = notStored(input.pieces, pieceIds).filter((p) => !deletions.has(p.id));
+      const addedSteps = notStored(input.pieceSteps, stepIds).filter(
+        (step) => !deletions.get(step.pieceId)?.withSteps,
+      );
       const addedRuns = notStored(input.scaleRuns, runIds);
       const stats = statsFromAttempts([...storedAttempts, ...addedAttempts]);
+      const tracked: Tracked[] = [
+        ...[...addedSessions, ...longerSessions].map((r) => ['sessions', r.id] as const),
+        ...addedAttempts.map((r) => ['attempts', r.id] as const),
+        ...addedPieces.map((r) => ['pieces', r.id] as const),
+        ...addedSteps.map((r) => ['pieceSteps', r.id] as const),
+        ...addedRuns.map((r) => ['scaleRuns', r.id] as const),
+      ];
       await writeAll(tx, [
         ...addedSessions.map((session) => () => sessions.add(session)),
         ...longerSessions.map((session) => () => sessions.put(session)),
@@ -323,6 +412,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         ...addedRuns.map((run) => () => scaleRuns.add(run)),
         () => noteStats.clear(),
         ...Object.values(stats).map((s) => () => noteStats.put(s)),
+        ...track(tx.objectStore('outbox'), syncing, tracked),
       ]);
       return {
         sessions: addedSessions.length + longerSessions.length,
@@ -332,6 +422,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         scaleRuns: addedRuns.length,
       };
     },
+    sync: createSyncStorage(db),
     close: () => db.close(),
   };
 }
@@ -345,6 +436,7 @@ export function createMemoryRepository(): PracticeRepository {
   const steps = new Map<string, PieceStep>();
   const openRuns = new Map<string, PieceRunHeader>();
   const scaleRuns = new Map<string, StoredScaleRun>();
+  const deletions = new Map<string, PieceDeletion>();
   let stats: Record<string, NoteStats> = {};
   const copy = <T>(value: T): T => structuredClone(value);
 
@@ -387,6 +479,11 @@ export function createMemoryRepository(): PracticeRepository {
     },
     deletePiece(id, options) {
       pieces.delete(id);
+      deletions.set(id, {
+        deleted: true,
+        at: options?.at ?? Date.now(),
+        withSteps: options?.steps ?? false,
+      });
       if (options?.steps) {
         for (const [key, step] of steps) if (step.pieceId === id) steps.delete(key);
       }
@@ -425,8 +522,12 @@ export function createMemoryRepository(): PracticeRepository {
       const addedSessions = notStored(input.sessions, sessions.keys());
       const longerSessions = longerScaleSessions(input.sessions, (id) => sessions.get(id));
       const addedAttempts = notStored(input.attempts, attempts.keys());
-      const addedPieces = notStored(input.pieces, pieces.keys());
-      const addedSteps = notStored(input.pieceSteps, steps.keys());
+      const addedPieces = notStored(input.pieces, pieces.keys()).filter(
+        (p) => !deletions.has(p.id),
+      );
+      const addedSteps = notStored(input.pieceSteps, steps.keys()).filter(
+        (step) => !deletions.get(step.pieceId)?.withSteps,
+      );
       const addedRuns = notStored(input.scaleRuns, scaleRuns.keys());
       for (const session of [...addedSessions, ...longerSessions]) {
         sessions.set(session.id, copy(session));
@@ -444,6 +545,7 @@ export function createMemoryRepository(): PracticeRepository {
         scaleRuns: addedRuns.length,
       });
     },
+    sync: null,
     close() {},
   };
 }

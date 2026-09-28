@@ -516,6 +516,7 @@ export function validatePiece(value: unknown): Validation<StoredPiece> {
     fileName: isText(500),
     xml: (v) => typeof v === 'string' && v.length > 0 && v.length <= MAX_PIECE_XML,
     importedAt: isTime,
+    updatedAt: (v) => v === undefined || isTime(v),
     hands: (v) => v === null || isStaffHands(v),
     warnings: (v) => Array.isArray(v) && v.every(isScoreWarning),
     facts: (v) => v === undefined || isFacts(v),
@@ -531,6 +532,7 @@ export function validatePiece(value: unknown): Validation<StoredPiece> {
       fileName: p.fileName,
       xml: p.xml,
       importedAt: p.importedAt,
+      ...(p.updatedAt !== undefined && { updatedAt: p.updatedAt }),
       hands: p.hands === null ? null : { ...p.hands },
       warnings: [...new Set(p.warnings)],
       ...(p.facts && {

@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { currentShell, holdKeepAwake } from './shell.ts';
+import {
+  beginPractice,
+  currentShell,
+  holdKeepAwake,
+  isPractising,
+  onPracticeEnd,
+} from './shell.ts';
 
 const postMessage = vi.fn();
 
@@ -107,5 +113,32 @@ describe('holdKeepAwake in a browser with the Screen Wake Lock API', () => {
     await settle();
     expect(request).not.toHaveBeenCalled();
     expect(postMessage).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('beginPractice', () => {
+  it('counts practices, and calls back when the last one ends, once', () => {
+    const ended = vi.fn();
+    const stop = onPracticeEnd(ended);
+    const read = beginPractice();
+    const metronome = beginPractice();
+    expect(isPractising()).toBe(true);
+    read();
+    read();
+    expect(isPractising()).toBe(true);
+    expect(ended).not.toHaveBeenCalled();
+    metronome();
+    expect(isPractising()).toBe(false);
+    expect(ended).toHaveBeenCalledTimes(1);
+    stop();
+    beginPractice()();
+    expect(ended).toHaveBeenCalledTimes(1);
+  });
+
+  it('is apart from the screen: letting the screen go ends no practice', () => {
+    const end = beginPractice();
+    holdKeepAwake()();
+    expect(isPractising()).toBe(true);
+    end();
   });
 });

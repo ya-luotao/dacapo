@@ -12,6 +12,11 @@ export interface StoredPiece {
   xml: string;
   /** Epoch ms. */
   importedAt: number;
+  /**
+   * Epoch ms of the last rename or change of hands; absent until then, when `importedAt` counts.
+   * Of two copies of a piece from two devices, the later one wins (docs/SYNC.md).
+   */
+  updatedAt?: number;
   /** The user's choice of hands per staff; null: as detected. */
   hands: StaffHands | null;
   /** What the parser reported when the piece was imported. */
@@ -22,6 +27,17 @@ export interface StoredPiece {
    */
   facts?: PieceFacts;
 }
+
+/** A piece's version, for "the later copy wins" (docs/SYNC.md). */
+export const pieceVersion = (piece: Pick<StoredPiece, 'updatedAt' | 'importedAt'>): number =>
+  piece.updatedAt ?? piece.importedAt;
+
+/**
+ * The version for a change made now: later than the piece's own, even on a device whose clock
+ * is behind the one that made the last change.
+ */
+export const nextPieceVersion = (piece: StoredPiece, now: number): number =>
+  Math.max(now, pieceVersion(piece) + 1);
 
 export const SCORE_WARNINGS: readonly ScoreWarning[] = [
   'finer-than-ticks',

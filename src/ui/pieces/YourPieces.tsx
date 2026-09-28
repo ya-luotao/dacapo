@@ -3,7 +3,7 @@ import { Link } from 'wouter';
 import type { ScoreErrorKind } from '../../core/musicxml.ts';
 import { pieceFacts } from '../../core/pieceRecords.ts';
 import type { ScoreWarning } from '../../core/score.ts';
-import type { StoredPiece } from '../../core/storedPiece.ts';
+import { nextPieceVersion, type StoredPiece } from '../../core/storedPiece.ts';
 import { useT } from '../../i18n/index.ts';
 import {
   isPieceFileName,
@@ -302,7 +302,13 @@ function ImportedPiece({ piece }: { piece: StoredPiece }) {
           onSubmit={(e) => {
             e.preventDefault();
             const next = title.trim();
-            if (next && next !== piece.title) store.savePiece({ ...piece, title: next });
+            if (next && next !== piece.title) {
+              store.savePiece({
+                ...piece,
+                title: next,
+                updatedAt: nextPieceVersion(piece, Date.now()),
+              });
+            }
             setMode('view');
           }}
         >
@@ -337,7 +343,12 @@ function ImportedPiece({ piece }: { piece: StoredPiece }) {
               } catch {
                 // Kept as they were; the practice page recomputes them.
               }
-              store.savePiece({ ...piece, hands, ...(facts && { facts }) });
+              store.savePiece({
+                ...piece,
+                hands,
+                ...(facts && { facts }),
+                updatedAt: nextPieceVersion(piece, Date.now()),
+              });
             }
             setMode('view');
           }}

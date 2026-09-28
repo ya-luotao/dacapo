@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { byStepTime, stepMode } from '../core/pieceRecords.ts';
 import { byRunTime } from '../core/scaleRecords.ts';
 import { statsFromAttempts } from '../core/weakness.ts';
-import { DB_NAME, DB_VERSION, openDacapoDB, type DacapoDB } from './db.ts';
+import { DB_NAME, DB_VERSION, openDacapoDB, upgrade, type DacapoDB } from './db.ts';
 import {
   resetIndexedDB,
   sampleAttempt,
@@ -43,14 +43,15 @@ afterEach(() => {
 });
 
 describe('schema', () => {
-  it('creates the seven stores with their keys and indexes', async () => {
+  it('creates the eight stores with their keys and indexes', async () => {
     const db = await openDb();
     expect(db.version).toBe(DB_VERSION);
-    expect(DB_VERSION).toBe(4);
+    expect(DB_VERSION).toBe(5);
     expect([...db.objectStoreNames].sort()).toEqual([
       'attempts',
       'meta',
       'noteStats',
+      'outbox',
       'pieceSteps',
       'pieces',
       'scaleRuns',
@@ -90,6 +91,7 @@ describe('schema', () => {
     expect(runs.index('by-exercise').keyPath).toBe('exercise');
     expect(runs.index('by-session').keyPath).toBe('sessionId');
     await tx.done;
+    expect(db.transaction('outbox').objectStore('outbox').keyPath).toBe('key');
   });
 
   /** Version 1 exactly as release 0.1.0 created it. */
@@ -207,10 +209,10 @@ describe('schema', () => {
     expect((await repo.load()).sessions).toContainEqual(rhythm.session);
   });
 
-  it('migrates a version 3 database to version 4: its records stay, scale runs are stored', async () => {
+  it('migrates a version 3 database: its records stay, scale runs are stored', async () => {
     const old = await seedV3();
     const db = await openDb();
-    expect(db.version).toBe(4);
+    expect(db.version).toBe(DB_VERSION);
     const repo = createIndexedDbRepository(db);
     const data = await repo.load();
     expect(data.sessions).toEqual([old.done.session]);
@@ -223,6 +225,35 @@ describe('schema', () => {
     for (const run of runs) await repo.addScaleRun(run, session);
     expect(await repo.scaleRuns({ sessionId: 'k1' })).toEqual(runs);
     expect((await repo.load()).sessions).toContainEqual(session);
+  });
+
+  it('migrates a version 4 database to version 5: its records stay, the outbox is empty', async () => {
+    const old = await openDB(DB_NAME, 4, {
+      upgrade: (database, oldVersion) => upgrade(database as DacapoDB, oldVersion, 4),
+    });
+    const { runs, session } = sampleScaleSession('k1', 2);
+    const tx = old.transaction(['scaleRuns', 'sessions', 'pieces'], 'readwrite');
+    for (const run of runs) void tx.objectStore('scaleRuns').put(run);
+    void tx.objectStore('sessions').put(session);
+    void tx.objectStore('pieces').put(samplePiece(1));
+    await tx.done;
+    old.close();
+
+    const db = await openDb();
+    expect(db.version).toBe(5);
+    const repo = createIndexedDbRepository(db);
+    expect((await repo.load()).sessions).toEqual([session]);
+    expect(await repo.allScaleRuns()).toEqual(runs);
+    expect(await db.count('outbox')).toBe(0);
+    // Signed out, nothing goes to the outbox.
+    await repo.addAttempt(sampleAttempt(0));
+    await repo.deletePiece('p1', { steps: true, at: T0 });
+    expect(await db.count('outbox')).toBe(0);
+    expect(await db.get('meta', 'deleted:piece:p1')).toEqual({
+      deleted: true,
+      at: T0,
+      withSteps: true,
+    });
   });
 
   it('never reads scale runs at startup', async () => {
@@ -461,6 +492,27 @@ describe.each([
     const data = await repo.load();
     expect(data.pieces).toEqual([]);
     expect(data.sessions).toEqual([one.session]);
+    expect(await repo.pieceSteps({ pieceId: 'p1' })).toEqual([]);
+    expect(await repo.pieceSteps({ pieceId: 'p2' })).toEqual(two.steps);
+  });
+
+  it('does not import a deleted piece again, nor its step records if deleted with them', async () => {
+    const repo = await create();
+    await repo.putPiece(samplePiece(1));
+    await repo.putPiece(samplePiece(2));
+    await repo.deletePiece('p1', { steps: true });
+    await repo.deletePiece('p2');
+    const one = sampleRun('r1', 2, { pieceId: 'p1' });
+    const two = sampleRun('r2', 2, { pieceId: 'p2' });
+    const added = await repo.merge({
+      sessions: [],
+      attempts: [],
+      pieces: [samplePiece(1), samplePiece(2), samplePiece(3)],
+      pieceSteps: [...one.steps, ...two.steps],
+      scaleRuns: [],
+    });
+    expect(added).toEqual({ sessions: 0, attempts: 0, pieces: 1, pieceSteps: 2, scaleRuns: 0 });
+    expect((await repo.load()).pieces.map((p) => p.id)).toEqual(['p3']);
     expect(await repo.pieceSteps({ pieceId: 'p1' })).toEqual([]);
     expect(await repo.pieceSteps({ pieceId: 'p2' })).toEqual(two.steps);
   });

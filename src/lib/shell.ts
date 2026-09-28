@@ -24,6 +24,34 @@ function appHandler(): AppMessageHandler | null {
 }
 
 let holds = 0;
+let practising = 0;
+const practiceEndListeners = new Set<() => void>();
+
+/**
+ * Marks something as being practised (a Read session, a piece run, a demo, a scale run, the
+ * metronome) until the returned function is called. Unlike the screen's hold, it is not let go
+ * when the player pauses: sync waits until nothing is practised, so it never runs while timings
+ * are measured or a session is half recorded.
+ */
+export function beginPractice(): () => void {
+  practising++;
+  let ended = false;
+  return () => {
+    if (ended) return;
+    ended = true;
+    practising--;
+    if (practising > 0) return;
+    for (const listener of [...practiceEndListeners]) listener();
+  };
+}
+
+export const isPractising = (): boolean => practising > 0;
+
+/** Calls `listener` whenever the last practice ends. Returns the function that stops. */
+export function onPracticeEnd(listener: () => void): () => void {
+  practiceEndListeners.add(listener);
+  return () => void practiceEndListeners.delete(listener);
+}
 
 /**
  * In a browser, the Screen Wake Lock API. The browser lets go of the lock whenever the page is

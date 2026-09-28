@@ -5,10 +5,11 @@ import type { StoredScaleRun } from '../core/scaleRecords.ts';
 import type { Attempt } from '../core/session.ts';
 import type { StoredPiece } from '../core/storedPiece.ts';
 import type { NoteStats } from '../core/weakness.ts';
+import type { OutboxEntry } from './syncTypes.ts';
 
 export const DB_NAME = 'dacapo';
 /** Bump when the schema changes and add a `case` to `upgrade`. */
-export const DB_VERSION = 4;
+export const DB_VERSION = 5;
 
 export interface DacapoSchema extends DBSchema {
   noteStats: { key: string; value: NoteStats };
@@ -34,17 +35,20 @@ export interface DacapoSchema extends DBSchema {
     value: StoredScaleRun;
     indexes: { 'by-exercise': string; 'by-session': string };
   };
+  /** Records written while signed in and not yet sent to the sync service (version 5). */
+  outbox: { key: string; value: OutboxEntry };
 }
 
 export type DacapoDB = IDBPDatabase<DacapoSchema>;
 
 /**
  * Runs every migration from `oldVersion` up to `DB_VERSION`, one version at a time, so a database
- * of any older version ends up in the current shape. `case n` migrates version n to n + 1.
+ * of any older version ends up in the current shape (tests stop at `newVersion` to build an older
+ * one). `case n` migrates version n to n + 1.
  * (A migration that rewrites records will need the upgrade transaction passed in as well.)
  */
-export function upgrade(db: DacapoDB, oldVersion: number): void {
-  for (let version = oldVersion; version < DB_VERSION; version++) {
+export function upgrade(db: DacapoDB, oldVersion: number, newVersion = DB_VERSION): void {
+  for (let version = oldVersion; version < newVersion; version++) {
     switch (version) {
       case 0: {
         db.createObjectStore('noteStats', { keyPath: 'key' });
@@ -71,6 +75,10 @@ export function upgrade(db: DacapoDB, oldVersion: number): void {
         const runs = db.createObjectStore('scaleRuns', { keyPath: 'id' });
         runs.createIndex('by-exercise', 'exercise');
         runs.createIndex('by-session', 'sessionId');
+        break;
+      }
+      case 4: {
+        db.createObjectStore('outbox', { keyPath: 'key' });
         break;
       }
     }

@@ -25,6 +25,8 @@ import {
   type PracticeRepository,
   type StoredData,
 } from '../../storage/repository.ts';
+import type { SyncStorage } from '../../storage/syncStorage.ts';
+import { isPractising, onPracticeEnd } from '../../lib/shell.ts';
 
 /** Everything practised, as plain data: raw attempts, per-note stats and sessions. */
 export interface PracticeData {
@@ -106,6 +108,13 @@ export interface PracticeStore {
   scaleRunIds: () => Promise<Set<string>>;
   /** Merges by id, rebuilds note stats from all attempts and reloads. */
   importData: (input: MergeInput) => Promise<MergeResult>;
+  /**
+   * Runs `task` on the sync storage after every write requested so far; null when this storage
+   * cannot sync (the in-memory fallback) or has stopped saving. Unlike a write, a failure rejects.
+   */
+  withSync: <T>(task: (sync: SyncStorage) => Promise<T>) => Promise<T | null>;
+  /** Reloads everything from storage and tells the other tabs: records came from another device. */
+  reloadAll: () => Promise<void>;
   /** Resolves once every write requested so far has finished (or failed). */
   settled: () => Promise<void>;
   /** Opens storage and loads. Call once; returns a function that closes everything. */
@@ -139,6 +148,8 @@ export interface PracticeStoreOptions {
   /** Other tabs of the app; null when `BroadcastChannel` is missing. */
   channel?: () => SyncChannel | null;
   storage?: PersistentStorage | null;
+  /** Whether something is being practised in this tab, and when it stops (src/lib/shell.ts). */
+  practice?: { isPractising: () => boolean; onPracticeEnd: (listener: () => void) => () => void };
 }
 
 export const SYNC_CHANNEL = 'dacapo';
@@ -200,6 +211,7 @@ export function createPracticeStore({
   open = openInMemory,
   channel: createChannel = () => null,
   storage = null,
+  practice = { isPractising, onPracticeEnd },
 }: PracticeStoreOptions = {}): PracticeStore {
   let data = EMPTY_PRACTICE;
   let status: StorageStatus = { state: 'loading', loaded: false, persisted: null };
@@ -313,7 +325,9 @@ export function createPracticeStore({
   /**
    * Loads everything and repairs what a closed tab left behind: free-play sessions still open,
    * and flashcard attempts whose session summary was never written. Both are keyed by the id the
-   * other tab uses, so if that tab is in fact still running, its own later write wins.
+   * other tab uses, so if that tab is in fact still running, its own later write wins. Only at
+   * startup: a reload must not finish a run that this or another tab is still playing, nor
+   * rebuild the session of answers another device has sent before their session.
    */
   async function load(repo: PracticeRepository): Promise<StoredData> {
     const stored = await repo.load();
@@ -345,7 +359,7 @@ export function createPracticeStore({
 
   function reload() {
     return enqueue(async (repo) => {
-      const stored = await load(repo);
+      const stored = await repo.load();
       set({
         attempts: stored.attempts,
         stats: stored.stats,
@@ -362,6 +376,7 @@ export function createPracticeStore({
 
   // Messages that arrive while loading wait until the stored data is in.
   let pending: unknown[] | null = [];
+  let reloadAfterPractice = false;
 
   function onMessage({ data: message }: { data: unknown }) {
     if (pending) {
@@ -397,7 +412,9 @@ export function createPracticeStore({
         cacheRun(m.run);
         return;
       case 'reload':
-        void reload();
+        // Not in the middle of a session: after it.
+        if (practice.isPractising()) reloadAfterPractice = true;
+        else void reload();
         return;
     }
   }
@@ -559,6 +576,21 @@ export function createPracticeStore({
       broadcast({ type: 'reload' });
       return added;
     },
+    withSync(task) {
+      const result = queue.then(() => {
+        const sync = repository?.sync;
+        return sync && !outdated() ? task(sync) : null;
+      });
+      queue = result.then(
+        () => undefined,
+        () => undefined,
+      );
+      return result;
+    },
+    async reloadAll() {
+      await reload();
+      broadcast({ type: 'reload' });
+    },
     settled: () => queue,
     start() {
       let stopped = false;
@@ -604,8 +636,15 @@ export function createPracticeStore({
         }
       })();
 
+      const stopPracticeEnd = practice.onPracticeEnd(() => {
+        if (!reloadAfterPractice) return;
+        reloadAfterPractice = false;
+        void reload();
+      });
+
       return () => {
         stopped = true;
+        stopPracticeEnd();
         channel?.close();
         channel = null;
         repository?.close();

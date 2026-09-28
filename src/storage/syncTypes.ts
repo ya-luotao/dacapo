@@ -1,0 +1,68 @@
+// What the device keeps for sync (docs/SYNC.md): the account it is signed in to, the records still
+// to send, and the pieces deleted here or on another device.
+
+/** The collections sent to the sync service, named as the stores that hold them. */
+export type SyncCollection = 'attempts' | 'sessions' | 'pieces' | 'pieceSteps' | 'scaleRuns';
+
+export const SYNC_COLLECTIONS: readonly SyncCollection[] = [
+  'attempts',
+  'sessions',
+  'pieces',
+  'pieceSteps',
+  'scaleRuns',
+];
+
+/** A deleted piece, sent under the piece's id. A deletion is final. */
+export interface PieceDeletion {
+  deleted: true;
+  /** Epoch ms. */
+  at: number;
+  /** Its step records were deleted with it. */
+  withSteps: boolean;
+}
+
+/** A record written while signed in and not yet sent. */
+export interface OutboxEntry {
+  /** `collection/id`. */
+  key: string;
+  collection: SyncCollection;
+  id: string;
+  /** Changes with every write, so a record written again while being sent is sent again. */
+  rev: string;
+  /** Only for a piece's deletion: the record itself is gone. */
+  deletion?: PieceDeletion;
+}
+
+export interface SyncAccount {
+  id: string;
+  email: string;
+}
+
+/** Stored while signed in; its presence is what makes writes go to the outbox. */
+export interface SyncState {
+  account: SyncAccount;
+  token: string;
+  /** The service's `seq` up to which everything is applied here. */
+  cursor: number;
+  /** Epoch ms of the last round that finished; null before the first. */
+  lastSyncAt: number | null;
+}
+
+export const SYNC_STATE_KEY = 'sync:state';
+export const PIECE_DELETION_PREFIX = 'deleted:piece:';
+export const pieceDeletionKey = (id: string) => PIECE_DELETION_PREFIX + id;
+export const outboxKey = (collection: SyncCollection, id: string) => `${collection}/${id}`;
+
+export function outboxEntry(
+  collection: SyncCollection,
+  id: string,
+  deletion?: PieceDeletion,
+): OutboxEntry {
+  return {
+    key: outboxKey(collection, id),
+    collection,
+    id,
+    rev: crypto.randomUUID(),
+    ...(deletion && { deletion }),
+  };
+}
