@@ -272,6 +272,14 @@ describe('applying pulled records', () => {
     expect((await repo.load()).sessions).toContainEqual(longer);
   });
 
+  it('keeps a run played to the end over one rebuilt from the same steps', async () => {
+    const run = sampleRun('r1', 2);
+    const rebuilt = { ...run.session, completed: false };
+    await repo.putSession(rebuilt);
+    expect(run.session.completed).toBe(true);
+    expect((await sync.apply({ ...nothing, sessions: [run.session] })).sessions).toBe(1);
+  });
+
   it('picks the same copy of two that tie, on every device', async () => {
     const run = sampleRun('r1', 1);
     const a = { ...run.session, title: 'A' };

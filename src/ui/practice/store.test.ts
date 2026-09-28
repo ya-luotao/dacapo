@@ -483,6 +483,27 @@ describe('reloads', () => {
     await vi.waitFor(() => expect(tabB.getSnapshot().sessions).toEqual([freeSession('f1', T0)]));
   });
 
+  it('wait until this tab stops practising when sync asks for one', async () => {
+    let practising = true;
+    const ends = new Set<() => void>();
+    const store = startStore({
+      practice: {
+        isPractising: () => practising,
+        onPracticeEnd: (listener) => {
+          ends.add(listener);
+          return () => void ends.delete(listener);
+        },
+      },
+    });
+    await loaded(store);
+    await seed((repo) => repo.putSession(freeSession('f1', T0)));
+    await store.reloadAll();
+    expect(store.getSnapshot().sessions).toEqual([]);
+    practising = false;
+    for (const end of ends) end();
+    await vi.waitFor(() => expect(store.getSnapshot().sessions).toEqual([freeSession('f1', T0)]));
+  });
+
   it('never finish a run that is still being played', async () => {
     const store = startStore();
     await loaded(store);

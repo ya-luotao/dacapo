@@ -92,14 +92,19 @@ function byText(a: unknown, b: unknown): number {
 }
 
 const runCount = (session: SessionRecord) => (session.kind === 'scale' ? session.runs.length : 0);
+const finished = (session: SessionRecord) =>
+  session.kind === 'piece' && session.completed ? 1 : 0;
 
 /**
  * Orders two copies of a session: a session grows while it is played, so the one with more runs
- * (a scale session), or else the one that ended later, is the later copy. Their text breaks a tie,
- * so every device picks the same copy. 0 only for the same record.
+ * (a scale session), or else the one that ended later, is the later copy; of two that ended at the
+ * same step, a run played to the end beats one rebuilt from its steps. Their text breaks a
+ * remaining tie, so every device picks the same copy. 0 only for the same record.
  */
 export function compareSessions(a: SessionRecord, b: SessionRecord): number {
-  return runCount(a) - runCount(b) || a.endedAt - b.endedAt || byText(a, b);
+  return (
+    runCount(a) - runCount(b) || a.endedAt - b.endedAt || finished(a) - finished(b) || byText(a, b)
+  );
 }
 
 // Serialized, an undefined field is left out.

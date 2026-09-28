@@ -10,6 +10,17 @@ Export format version 5: the file now includes imported pieces (from version 2),
 sessions and their step records (from version 3), rhythm-mode steps with their timings (from
 version 4), and scale sessions with every scale run as played. Version 1 to 4 files still import.
 
+### Accounts and sync, under way ([docs/SYNC.md](docs/SYNC.md))
+
+- Nothing to see yet: the app has no sign-in until the account section in Settings (C3). Built so
+  far: the service, and on the device the storage and the sync engine behind it.
+- Storage moves to IndexedDB version 5 (an outbox of records to send, used only while signed in).
+- A deleted piece stays deleted: importing an export file made before the deletion no longer
+  brings it back, nor, if its records were deleted with it, its step records. Importing the
+  MusicXML file again adds it as a new piece.
+- A reload after an import no longer finishes a piece run that is still being played in another
+  tab.
+
 ### Pieces and wait mode (P1)
 
 - A **Pieces** page. The built-in library has six public-domain pieces, by level from Initial to

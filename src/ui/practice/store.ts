@@ -113,7 +113,10 @@ export interface PracticeStore {
    * cannot sync (the in-memory fallback) or has stopped saving. Unlike a write, a failure rejects.
    */
   withSync: <T>(task: (sync: SyncStorage) => Promise<T>) => Promise<T | null>;
-  /** Reloads everything from storage and tells the other tabs: records came from another device. */
+  /**
+   * Reloads everything from storage and tells the other tabs: records came from another device.
+   * A tab that is practising reloads when it stops.
+   */
   reloadAll: () => Promise<void>;
   /** Resolves once every write requested so far has finished (or failed). */
   settled: () => Promise<void>;
@@ -588,8 +591,10 @@ export function createPracticeStore({
       return result;
     },
     async reloadAll() {
-      await reload();
       broadcast({ type: 'reload' });
+      // Not in the middle of a session: after it.
+      if (practice.isPractising()) reloadAfterPractice = true;
+      else await reload();
     },
     settled: () => queue,
     start() {

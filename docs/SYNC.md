@@ -1,9 +1,11 @@
 # dacapo — Account and sync specification
 
-Status: planned. This extends [MVP.md](MVP.md) and the later specifications; their principles and
-fixed decisions still apply, with one change: **no backend is required.** dacapo works fully without
-an account, offline, as before. An account is optional and only adds sync between the user's own
-devices (the browser on a computer, an iPad on the music stand, a Mac).
+Status: C1 (the service) is deployed and C2 (storage and the engine) is built; the account UI (C3)
+is next, so the app has no sign-in yet. This extends [MVP.md](MVP.md) and the later
+specifications; their principles and fixed decisions still apply, with one change: **no backend is
+required.** dacapo works fully without an account, offline, as before. An account is optional and
+only adds sync between the user's own devices (the browser on a computer, an iPad on the music
+stand, a Mac).
 
 Goal: practise on any of your devices and see the same log, streak, heatmap, pieces and scale
 progress on all of them, without giving up the export file or working offline.
@@ -194,10 +196,10 @@ winner.
 
 ## Milestones
 
-1. **C1 Service** — `dacapo-cloud`: accounts and codes, tokens, sync, blobs, account deletion,
+1. ✓ **C1 Service** — `dacapo-cloud`: accounts and codes, tokens, sync, blobs, account deletion,
    the privacy page; tested locally (Workers test pool), then deployed to `api.playdacapo.com` with
    the sending domain verified.
-2. **C2 Client** — database version 5 and the outbox, the sync engine and the pull rules, piece
+2. ✓ **C2 Client** — database version 5 and the outbox, the sync engine and the pull rules, piece
    `updatedAt` and deletion records, the first push; against the protocol with a fake service in
    tests.
 3. **C3 Account UI** — the Account section in Settings in every language (with app wording),
