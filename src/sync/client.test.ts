@@ -14,7 +14,7 @@ import {
 import { createIndexedDbRepository } from '../storage/repository.ts';
 import { createPracticeStore, type PracticeStore } from '../ui/practice/store.ts';
 import { ApiError, type SyncApi } from './api.ts';
-import { createSyncClient, type SyncClient } from './client.ts';
+import { CHANGE_DELAY_MS, createSyncClient, START_DELAY_MS, type SyncClient } from './client.ts';
 import { sha256Hex } from './records.ts';
 
 /**
@@ -427,6 +427,45 @@ describe('a round', () => {
     ipad.busy.value = false;
     ipad.idle();
     await vi.waitFor(() => expect(service.rows.size).toBe(1));
+  });
+
+  it('runs a round a while after a change made here, once for many', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'] });
+    try {
+      const service = fakeService();
+      const ipad = await device(service);
+      const changes = new Set<() => void>();
+      const client = createSyncClient({
+        api: service.api,
+        host: ipad.store,
+        onChange: (listener) => {
+          changes.add(listener);
+          return () => void changes.delete(listener);
+        },
+        lock: (task) => task(),
+        broadcast: () => null,
+        document: null,
+      });
+      await client.signIn('pianist@example.com', '123456', 'Test');
+      await client.syncNow();
+      cleanups.push(client.start());
+      // The round at start.
+      await vi.advanceTimersByTimeAsync(START_DELAY_MS);
+      await client.syncNow();
+      const sync = vi.spyOn(service.api, 'sync');
+      for (let i = 0; i < 5; i++) {
+        ipad.store.recordAttempt(sampleAttempt(i));
+        for (const listener of changes) listener();
+      }
+      await ipad.store.settled();
+      await vi.advanceTimersByTimeAsync(CHANGE_DELAY_MS - 1_000);
+      expect(sync).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(1_000);
+      await vi.waitFor(() => expect(service.rows.size).toBe(5));
+      expect(sync).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('keeps everything for the next round when the network fails', async () => {

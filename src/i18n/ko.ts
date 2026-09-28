@@ -866,6 +866,8 @@ export const ko: Dictionary = {
   'settings.data': '내 데이터',
   'settings.data.help':
     '모든 데이터는 이 브라우저에만 저장돼요. 백업용으로, 또는 다른 컴퓨터로 옮길 때 가끔 파일로 내보내 두세요.',
+  'settings.data.help.synced':
+    '모든 데이터는 이 브라우저에 저장되고 계정에 동기화돼요. 백업용으로 가끔 파일로 내보내 두세요.',
   'settings.storage.persisted': '이 기기에 저장됨. 브라우저가 알아서 지우지 않아요.',
   'settings.storage.notPersisted':
     '이 기기에 저장됨. 공간이 부족하면 브라우저가 지울 수 있으니 내보낸 파일을 백업으로 보관하세요.',
@@ -919,6 +921,44 @@ export const ko: Dictionary = {
     '가져오기 완료: 새 연습 내역 {sessions}개, 새 응답 {attempts}개, 새 곡 {pieces}개, 새 곡 연습 상세 기록 {steps}개, 새 스케일 연습 상세 기록 {scaleRuns}개.',
   'settings.import.failed': '가져온 내용을 저장하지 못했어요. 아무것도 바뀌지 않았어요.',
 
+  'settings.account': '계정',
+  'settings.account.help':
+    '로그인하면 컴퓨터, 보면대 위의 iPad 등 모든 기기에서 연습 기록이 동기화돼요. 계정이 없으면 모든 데이터는 이 기기에만 저장돼요.',
+  'settings.account.unavailable':
+    '로그인하려면 이 기기에 dacapo 저장 공간이 필요한데, 지금은 사용할 수 없어요.',
+  'settings.account.email': '이메일 주소',
+  'settings.account.sendCode': '코드 보내기',
+  'settings.account.codeSent': '{email}(으)로 6자리 코드를 보냈어요. 10분 동안 유효해요.',
+  'settings.account.code': '코드',
+  'settings.account.signIn': '로그인',
+  'settings.account.resend': '새 코드 보내기',
+  'settings.account.otherEmail': '다른 주소 사용',
+  'settings.account.signedIn': '{email}(으)로 로그인됨',
+  'settings.account.status.syncing': '동기화 중…',
+  'settings.account.status.synced': '마지막 동기화: {time}',
+  'settings.account.status.never': '아직 동기화하지 않았어요.',
+  'settings.account.status.offline':
+    '오프라인 상태예요. 동기화 서비스에 연결되면 자동으로 동기화돼요.',
+  'settings.account.status.error':
+    '마지막 동기화가 끝나지 않았어요. dacapo가 알아서 다시 시도해요.',
+  'settings.account.syncNow': '지금 동기화',
+  'settings.account.signOut': '로그아웃',
+  'settings.account.signOut.help':
+    '이 기기의 동기화가 멈춰요. 연습 기록은 이 기기에 그대로 남아요.',
+  'settings.account.delete': '계정 삭제…',
+  'settings.account.delete.confirm':
+    '계정과 동기화 서비스에 있는 모든 데이터를 삭제할까요? 이 기기의 연습 기록은 남아 있고, 계속 내보낼 수 있어요.',
+  'settings.account.delete.button': '계정 삭제',
+  'settings.account.cancel': '취소',
+  'settings.account.deleted': '계정이 삭제됐어요.',
+  'settings.account.privacy': '개인정보 처리방침',
+  'settings.account.error.email': '올바른 이메일 주소를 입력하세요.',
+  'settings.account.error.code': '코드가 틀렸거나 만료됐어요. 확인하거나 새 코드를 받으세요.',
+  'settings.account.error.rateLimited': '시도가 너무 많아요. {time} 기다린 뒤 다시 시도하세요.',
+  'settings.account.error.network': '동기화 서비스에 연결할 수 없어요. 온라인 상태인지 확인하세요.',
+  'settings.account.error.unavailable':
+    '지금은 동기화 서비스를 사용할 수 없어요. 나중에 다시 시도하세요.',
+
   'settings.about': '정보',
   'settings.about.text': 'dacapo는 MIT 라이선스로 배포되는 자유 소프트웨어예요. 버전 {version}.',
   'settings.about.source': '소스 코드',
@@ -957,6 +997,8 @@ export const ko: Dictionary = {
   'calibration.noAudio.app': '이 기기에서는 클릭을 재생할 수 없어요.',
   'settings.data.help.app':
     '모든 데이터는 이 기기의 dacapo 안에만 저장돼요. 백업용으로, 또는 다른 기기로 옮길 때 가끔 파일로 내보내 두세요.',
+  'settings.data.help.synced.app':
+    '모든 데이터는 이 기기의 dacapo 안에 저장되고 계정에 동기화돼요. 백업용으로 가끔 파일로 내보내 두세요.',
   'settings.storage.persisted.app':
     '이 기기에 저장됨. dacapo를 삭제하면 데이터도 함께 지워지니 내보낸 파일을 백업으로 보관하세요.',
   'settings.storage.notPersisted.app':

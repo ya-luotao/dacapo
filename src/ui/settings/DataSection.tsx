@@ -12,6 +12,7 @@ import type { MergeResult } from '../../storage/repository.ts';
 import { useT, type MessageKey } from '../../i18n/index.ts';
 import { downloadText } from '../../lib/download.ts';
 import { usePractice, usePracticeStore, useStorageStatus } from '../practice/context.ts';
+import { useSyncStatus } from '../sync/context.ts';
 import type { StorageStatus } from '../practice/store.ts';
 import { useNow } from '../progress/useNow.ts';
 import { ImportPreview } from './ImportPreview.tsx';
@@ -62,6 +63,7 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
   const practice = usePracticeStore();
   const data = usePractice();
   const status = useStorageStatus();
+  const synced = Boolean(useSyncStatus()?.account);
   const now = useNow();
   const fileInput = useRef<HTMLInputElement>(null);
   const [state, setState] = useState<ImportState>({ step: 'idle' });
@@ -137,7 +139,7 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
   return (
     <section className="field data" aria-labelledby={`${id}-title`}>
       <h2 id={`${id}-title`}>{t('settings.data')}</h2>
-      <p className="help">{t('settings.data.help')}</p>
+      <p className="help">{t(synced ? 'settings.data.help.synced' : 'settings.data.help')}</p>
       <p className={status.state === 'unavailable' ? 'data-status is-warning' : 'data-status'}>
         {t(storageMessage(status))}
       </p>

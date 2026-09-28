@@ -875,6 +875,8 @@ export const ja: Dictionary = {
   'settings.data': 'データ',
   'settings.data.help':
     'データはすべてこのブラウザに保存されます。バックアップのため、または別のパソコンに移すために、ときどきエクスポートしてください。',
+  'settings.data.help.synced':
+    'データはすべてこのブラウザに保存され、アカウントに同期されます。バックアップのため、ときどきエクスポートしてください。',
   'settings.storage.persisted':
     'この端末に保存されています。ブラウザが自動的に消去することはありません。',
   'settings.storage.notPersisted':
@@ -930,6 +932,44 @@ export const ja: Dictionary = {
     'インポートが完了しました：新しいセッション{sessions}件、解答{attempts}件、インポートした曲{pieces}曲、曲の練習記録{steps}件、スケールの練習記録{scaleRuns}件。',
   'settings.import.failed': 'インポートを保存できませんでした。何も変更されていません。',
 
+  'settings.account': 'アカウント',
+  'settings.account.help':
+    'ログインすると、パソコンや譜面台のiPadなど、すべての端末で練習が同期されます。アカウントがなければ、データはすべてこの端末に保存されます。',
+  'settings.account.unavailable':
+    'ログインするには、この端末でのdacapoの保存領域が必要ですが、いまは使えません。',
+  'settings.account.email': 'メールアドレス',
+  'settings.account.sendCode': 'コードを送信',
+  'settings.account.codeSent': '6桁のコードを{email}に送りました。有効期限は10分です。',
+  'settings.account.code': 'コード',
+  'settings.account.signIn': 'ログイン',
+  'settings.account.resend': 'コードを再送信',
+  'settings.account.otherEmail': '別のアドレスを使う',
+  'settings.account.signedIn': '{email}でログイン中',
+  'settings.account.status.syncing': '同期しています…',
+  'settings.account.status.synced': '最終同期：{time}',
+  'settings.account.status.never': 'まだ同期していません。',
+  'settings.account.status.offline': 'オフラインです。同期サービスにつながりしだい同期します。',
+  'settings.account.status.error': '前回の同期は完了しませんでした。dacapoが自動でやり直します。',
+  'settings.account.syncNow': '今すぐ同期',
+  'settings.account.signOut': 'ログアウト',
+  'settings.account.signOut.help': 'この端末での同期を止めます。練習の記録はこの端末に残ります。',
+  'settings.account.delete': 'アカウントを削除…',
+  'settings.account.delete.confirm':
+    'アカウントと、同期サービスにあるすべてのデータを削除しますか？この端末の練習の記録は残り、エクスポートもできます。',
+  'settings.account.delete.button': 'アカウントを削除',
+  'settings.account.cancel': 'キャンセル',
+  'settings.account.deleted': 'アカウントを削除しました。',
+  'settings.account.privacy': 'プライバシーポリシー',
+  'settings.account.error.email': '有効なメールアドレスを入力してください。',
+  'settings.account.error.code':
+    'コードが違うか、有効期限が切れています。確認するか、新しいコードを送信してください。',
+  'settings.account.error.rateLimited':
+    '試行回数が多すぎます。{time}待ってから、もう一度お試しください。',
+  'settings.account.error.network':
+    '同期サービスに接続できませんでした。インターネットにつながっているか確認してください。',
+  'settings.account.error.unavailable':
+    '同期サービスは現在利用できません。しばらくしてからお試しください。',
+
   'settings.about': 'このアプリについて',
   'settings.about.text':
     'dacapo {version}は、MITライセンスで公開されているフリーソフトウェアです。',
@@ -972,6 +1012,8 @@ export const ja: Dictionary = {
   'calibration.noAudio.app': 'この端末ではクリック音を鳴らせません。',
   'settings.data.help.app':
     'データはすべてこの端末のdacapoの中に保存されます。バックアップのため、または別の端末に移すために、ときどきエクスポートしてください。',
+  'settings.data.help.synced.app':
+    'データはすべてこの端末のdacapoの中に保存され、アカウントに同期されます。バックアップのため、ときどきエクスポートしてください。',
   'settings.storage.persisted.app':
     'この端末に保存されています。dacapoを削除するとデータも消えるため、エクスポートしたファイルをバックアップとして残しておいてください。',
   'settings.storage.notPersisted.app':

@@ -26,6 +26,8 @@ export const PUSH_BYTES = 6 * 1024 * 1024;
 export const MAX_REQUESTS = 200;
 export const INTERVAL_MS = 5 * 60_000;
 export const START_DELAY_MS = 3_000;
+/** A round this long after the last change made here (an import, a rename), not at every one. */
+export const CHANGE_DELAY_MS = 10_000;
 const RETRY_MS = 30_000;
 
 /** `offline`: the service could not be reached; the next round tries again. */
@@ -63,6 +65,8 @@ export interface SyncClientOptions {
   isBusy?: () => boolean;
   /** Calls back when practising stops; returns the function that stops listening. */
   onIdle?: (listener: () => void) => () => void;
+  /** Calls back when the practice data changes (the store's `subscribe`). */
+  onChange?: (listener: () => void) => () => void;
   /** Runs `task` unless another tab holds the sync lock (then null). */
   lock?: <T>(task: () => Promise<T>) => Promise<T | null>;
   broadcast?: () => SyncBroadcast | null;
@@ -122,6 +126,7 @@ export function createSyncClient({
   now = Date.now,
   isBusy = () => false,
   onIdle = () => () => {},
+  onChange = () => () => {},
   lock = webLock,
   broadcast: createBroadcast = syncBroadcast,
   document: doc = globalThis.document ?? null,
@@ -360,6 +365,13 @@ export function createSyncClient({
       const first = setTimeout(() => void round(), START_DELAY_MS);
       const interval = setInterval(() => void round(), INTERVAL_MS);
       const stopIdle = onIdle(() => void round());
+      // A change during a round is the round's own reload: nothing to send.
+      let changed: ReturnType<typeof setTimeout> | undefined;
+      const stopChange = onChange(() => {
+        if (running || !status.account) return;
+        clearTimeout(changed);
+        changed = setTimeout(() => void round(), CHANGE_DELAY_MS);
+      });
       const onVisibility = () => void round();
       doc?.addEventListener('visibilitychange', onVisibility);
       return () => {
@@ -367,7 +379,9 @@ export function createSyncClient({
         clearTimeout(first);
         clearTimeout(retry);
         clearInterval(interval);
+        clearTimeout(changed);
         stopIdle();
+        stopChange();
         doc?.removeEventListener('visibilitychange', onVisibility);
         channel?.close();
         channel = null;

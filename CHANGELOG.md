@@ -12,8 +12,14 @@ version 4), and scale sessions with every scale run as played. Version 1 to 4 fi
 
 ### Accounts and sync, under way ([docs/SYNC.md](docs/SYNC.md))
 
-- Nothing to see yet: the app has no sign-in until the account section in Settings (C3). Built so
-  far: the service, and on the device the storage and the sync engine behind it.
+- An optional **account** in Settings: sign in with your email address and a 6-digit code sent to
+  it, and your sessions, answers, pieces, piece practice records and scale runs sync between your
+  devices. The account section shows when the last sync was, syncs now on request, signs out
+  (your practice stays on the device) and deletes the account with everything on the service.
+  Without an account nothing changes and no request is made. Only the official builds have it.
+- Syncing waits while you practise, so it never touches the timing of what is being measured, and
+  runs at start, when practising stops, a little after a change, when the app comes back to the
+  front, and every 5 minutes.
 - Storage moves to IndexedDB version 5 (an outbox of records to send, used only while signed in).
 - A deleted piece stays deleted: importing an export file made before the deletion no longer
   brings it back, nor, if its records were deleted with it, its step records. Importing the

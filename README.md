@@ -12,11 +12,11 @@ _Da capo_ — "from the beginning."
 An open-source web app for learning the piano with a MIDI keyboard: sight-reading drills
 on a real grand staff, reaction-time tracking, a per-note weakness heatmap, real pieces in wait
 and rhythm mode, scales measured note by note for evenness, and a practice log. All data stays in
-your browser.
+your browser, unless you sign in to sync it between your own devices.
 
 **Try it:** [ya-luotao.github.io/dacapo](https://ya-luotao.github.io/dacapo/) — in Chrome or Edge
-on a computer, with a MIDI keyboard over USB, or with your computer keyboard. Nothing to install
-and no account.
+on a computer, with a MIDI keyboard over USB, or with your computer keyboard. Nothing to install,
+and no account needed.
 
 <p>
   <img src="docs/images/read.webp" alt="A flashcard on the grand staff: one note in the bass clef, with the piano keyboard below" width="32%">
@@ -31,8 +31,10 @@ each release. Practising pieces ([docs/PIECES.md](docs/PIECES.md)) is built too,
 release: the library, MusicXML import, wait mode, MIDI playback, practice records with a measure
 heatmap, a rhythm mode with a metronome and timing analysis, a metronome of its own for any
 practice, and a built-in piano for keyboards without a sound of their own. So are scales
-([docs/SCALES.md](docs/SCALES.md)) with an analysis of how even they are, and a focus mode for
-practising.
+([docs/SCALES.md](docs/SCALES.md)) with an analysis of how even they are, a focus mode for
+practising, and an optional account that syncs your practice between your devices
+([docs/SYNC.md](docs/SYNC.md)); the Apple app gets it in its next release, with its privacy
+details updated.
 
 ## Why
 
@@ -112,8 +114,13 @@ The screenshots use generated practice data.
   of rhythm mode and the metronome come from the computer too; to hear them in a digital piano's
   headphones, connect the computer's audio output to the piano's line input, and avoid Bluetooth
   headphones (their delay varies too much to calibrate).
-- No account, no server. Everything is stored locally in your browser; Settings can export it
-  as a JSON file for a backup or to move to another computer.
+- No account needed. Everything is stored locally in your browser; Settings can export it as a
+  JSON file for a backup or to move to another computer.
+- Optionally, sign in with your email address and a code sent to it, and your practice syncs
+  between your devices through dacapo's sync service
+  ([privacy policy](https://playdacapo.com/privacy)). Deleting the account in Settings removes
+  everything from the service. A build without `VITE_SYNC_ENDPOINT` (a fork, your own build) has
+  no account at all ([docs/SYNC.md](docs/SYNC.md)).
 
 ## Development
 
@@ -153,7 +160,6 @@ These are deliberately out of scope for the MVP and are the candidates once it i
 
 - Scales with a click, and focus loops on a weak spot
 - Theory and ear training ([docs/EAR.md](docs/EAR.md))
-- Accounts and sync between devices
 - AI coaching
 
 ## Contributing

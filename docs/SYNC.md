@@ -1,7 +1,7 @@
 # dacapo — Account and sync specification
 
-Status: C1 (the service) is deployed and C2 (storage and the engine) is built; the account UI (C3)
-is next, so the app has no sign-in yet. This extends [MVP.md](MVP.md) and the later
+Status: C1–C3 are built: the service is deployed, and the official web build has the account in
+Settings. The Apple app (C4) is next. This extends [MVP.md](MVP.md) and the later
 specifications; their principles and fixed decisions still apply, with one change: **no backend is
 required.** dacapo works fully without an account, offline, as before. An account is optional and
 only adds sync between the user's own devices (the browser on a computer, an iPad on the music
@@ -60,6 +60,7 @@ email could not be sent, or the account is being deleted; try again later).
 | `DELETE /v1/account`                             | 204; 401 once done (see below)             |
 | `POST /v1/sync` `{ cursor, changes }`            | 200 `{ rejected, cursor, changes, more }`  |
 | `HEAD`, `PUT`, `GET /v1/blobs/<sha256>`          | 200 or 404; 204 on `PUT`                   |
+| `GET /privacy`                                   | the service's privacy policy (HTML)        |
 
 ### Sync
 
@@ -164,6 +165,16 @@ winner.
   the last sync, "Sync now", sign out, delete the account (with a confirmation that says local data
   stays). Nothing else in the app changes; the storage notice and the export stay as they are.
 
+## Builds
+
+- The official builds set `VITE_SYNC_ENDPOINT=https://api.playdacapo.com`: the web build in
+  `.github/workflows/pages.yml`, the Apple app in `apple/scripts/embed-web.sh`
+  (`DACAPO_SYNC_ENDPOINT` overrides it; empty builds an app without accounts). Every other build
+  (`pnpm dev`, `pnpm build`, the tests, a fork) has no account unless it sets the variable.
+- To work on sync locally, run the service with `wrangler dev` (its email is printed, code
+  included, instead of sent) and start dacapo with `VITE_SYNC_ENDPOINT=http://localhost:8787`.
+- The Settings link to the privacy policy is the service's own `/privacy`.
+
 ## Service storage (`dacapo-cloud`)
 
 - **D1**: `accounts` (id, unique email, created), `tokens` (hash as the key, account, device,
@@ -202,6 +213,6 @@ winner.
 2. ✓ **C2 Client** — database version 5 and the outbox, the sync engine and the pull rules, piece
    `updatedAt` and deletion records, the first push; against the protocol with a fake service in
    tests.
-3. **C3 Account UI** — the Account section in Settings in every language (with app wording),
+3. ✓ **C3 Account UI** — the Account section in Settings in every language (with app wording),
    sync status, sign out, delete account; which official builds set `VITE_SYNC_ENDPOINT`.
 4. **C4 Apple** — privacy label and manifest, review notes, APPLE.md.

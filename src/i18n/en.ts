@@ -879,6 +879,8 @@ export const en = {
   'settings.data': 'Your data',
   'settings.data.help':
     'Everything stays in this browser. Export a file now and then as a backup, or to move to another computer.',
+  'settings.data.help.synced':
+    'Everything is stored in this browser and synced to your account. Export a file now and then as a backup.',
   'settings.storage.persisted': 'Stored on this device. The browser will not clear it on its own.',
   'settings.storage.notPersisted':
     'Stored on this device. The browser may clear it if space runs low, so keep an export as a backup.',
@@ -932,6 +934,42 @@ export const en = {
     'Import complete: {sessions} new sessions, {attempts} new answers, {pieces} new pieces, {steps} new piece practice records and {scaleRuns} new scale runs.',
   'settings.import.failed': 'The import could not be saved. Nothing was changed.',
 
+  'settings.account': 'Account',
+  'settings.account.help':
+    'Sign in to keep your practice in step on all your devices, such as a computer and an iPad on the music stand. Without an account, everything stays on this device.',
+  'settings.account.unavailable':
+    'Signing in needs dacapo’s storage on this device, which is not available right now.',
+  'settings.account.email': 'Email address',
+  'settings.account.sendCode': 'Send code',
+  'settings.account.codeSent': 'We sent a 6-digit code to {email}. It works for 10 minutes.',
+  'settings.account.code': 'Code',
+  'settings.account.signIn': 'Sign in',
+  'settings.account.resend': 'Send a new code',
+  'settings.account.otherEmail': 'Use another address',
+  'settings.account.signedIn': 'Signed in as {email}',
+  'settings.account.status.syncing': 'Syncing…',
+  'settings.account.status.synced': 'Last synced: {time}',
+  'settings.account.status.never': 'Not synced yet.',
+  'settings.account.status.offline':
+    'Offline. Your practice syncs once dacapo can reach the sync service again.',
+  'settings.account.status.error': 'The last sync did not finish. dacapo tries again on its own.',
+  'settings.account.syncNow': 'Sync now',
+  'settings.account.signOut': 'Sign out',
+  'settings.account.signOut.help': 'This device stops syncing. Your practice stays on it.',
+  'settings.account.delete': 'Delete account…',
+  'settings.account.delete.confirm':
+    'Delete your account and everything synced to it from the sync service? Your practice on this device stays, and you can still export it.',
+  'settings.account.delete.button': 'Delete account',
+  'settings.account.cancel': 'Cancel',
+  'settings.account.deleted': 'Your account was deleted.',
+  'settings.account.privacy': 'Privacy policy',
+  'settings.account.error.email': 'Enter a valid email address.',
+  'settings.account.error.code': 'That code is wrong or has expired. Check it, or send a new one.',
+  'settings.account.error.rateLimited': 'Too many tries. Wait {time}, then try again.',
+  'settings.account.error.network': 'The sync service could not be reached. Are you online?',
+  'settings.account.error.unavailable':
+    'The sync service is not available right now. Try again later.',
+
   'settings.about': 'About',
   'settings.about.text': 'dacapo {version} is free software under the MIT licence.',
   'settings.about.source': 'Source code',
@@ -972,6 +1010,8 @@ export const en = {
   'calibration.noAudio.app': 'The click cannot play on this device.',
   'settings.data.help.app':
     'Everything stays on this device, inside dacapo. Export a file now and then as a backup, or to move to another device.',
+  'settings.data.help.synced.app':
+    'Everything is stored on this device, inside dacapo, and synced to your account. Export a file now and then as a backup.',
   'settings.storage.persisted.app':
     'Stored on this device. Deleting dacapo deletes it too, so keep an export as a backup.',
   'settings.storage.notPersisted.app':

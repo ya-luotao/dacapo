@@ -32,6 +32,8 @@ jobs:
       - run: pnpm build
         env:
           BASE_PATH: /dacapo/
+          # The official build syncs through the official service (docs/SYNC.md).
+          VITE_SYNC_ENDPOINT: https://api.playdacapo.com
 
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5

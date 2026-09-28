@@ -21,6 +21,9 @@ else
     nvm use --silent >/dev/null 2>&1 || nvm use --silent default >/dev/null 2>&1 || true
   fi
   command -v pnpm >/dev/null 2>&1 || { echo "error: pnpm not found (see CONTRIBUTING.md)"; exit 1; }
+  # The app syncs through the official service (docs/SYNC.md); DACAPO_SYNC_ENDPOINT overrides it,
+  # and an empty value builds an app without accounts.
+  export VITE_SYNC_ENDPOINT="${DACAPO_SYNC_ENDPOINT-https://api.playdacapo.com}"
   # Type checking is pnpm check's job; the app only needs the production bundle.
   pnpm exec vite build --logLevel warn --outDir "${out}" --emptyOutDir
   src="${out}"

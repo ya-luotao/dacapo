@@ -2,12 +2,14 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { I18nProvider, loadLocale, preferredLocale } from './i18n/index.ts';
 import { openRepository } from './storage/repository.ts';
+import { createAppSync } from './sync/app.ts';
 import { App } from './ui/App.tsx';
 import { InputProvider } from './ui/input/InputProvider.tsx';
 import { MetronomeProvider } from './ui/metronome/MetronomeProvider.tsx';
 import { createAppMetronome } from './ui/metronome/prefs.ts';
 import { PracticeProvider } from './ui/practice/PracticeProvider.tsx';
 import { broadcastChannel, createPracticeStore } from './ui/practice/store.ts';
+import { SyncProvider } from './ui/sync/SyncProvider.tsx';
 import { applyTheme, readStoredTheme } from './ui/theme.ts';
 import './ui/fonts/fonts.css';
 import './ui/styles.css';
@@ -21,6 +23,10 @@ const practice = createPracticeStore({
   storage: typeof navigator.storage?.persist === 'function' ? navigator.storage : null,
 });
 practice.start();
+
+// Only in a build with a sync service; without one there is no account and no request.
+const sync = createAppSync(practice);
+sync?.start();
 
 // One metronome for the page; it makes no sound (and no AudioContext) until it is started.
 const metronome = createAppMetronome();
@@ -36,9 +42,11 @@ void loadLocale(preferredLocale()).then((initial) => {
       <I18nProvider initial={initial}>
         <InputProvider>
           <PracticeProvider store={practice}>
-            <MetronomeProvider handle={metronome}>
-              <App />
-            </MetronomeProvider>
+            <SyncProvider client={sync}>
+              <MetronomeProvider handle={metronome}>
+                <App />
+              </MetronomeProvider>
+            </SyncProvider>
           </PracticeProvider>
         </InputProvider>
       </I18nProvider>

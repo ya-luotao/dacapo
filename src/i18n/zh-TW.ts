@@ -827,6 +827,8 @@ export const zhTW: Dictionary = {
   'settings.data': '你的資料',
   'settings.data.help':
     '所有資料都只儲存在這個瀏覽器裡。建議不時匯出一份當作備份，換電腦時也能用它搬移資料。',
+  'settings.data.help.synced':
+    '所有資料都儲存在這個瀏覽器裡，並同步到你的帳號。建議不時匯出一份當作備份。',
   'settings.storage.persisted': '已儲存在這台裝置上，瀏覽器不會自行清除。',
   'settings.storage.notPersisted':
     '已儲存在這台裝置上。空間不足時瀏覽器可能會清除它，請保留一份匯出檔作為備份。',
@@ -877,6 +879,39 @@ export const zhTW: Dictionary = {
     '匯入完成：新增 {sessions} 筆練習紀錄、{attempts} 筆作答紀錄、{pieces} 首樂曲、{steps} 筆樂曲練習明細和 {scaleRuns} 筆音階練習明細。',
   'settings.import.failed': '匯入沒能儲存，資料沒有任何變動。',
 
+  'settings.account': '帳號',
+  'settings.account.help':
+    '登入後，你在各個裝置上的練習會保持同步，例如電腦和譜架上的 iPad。不登入的話，所有資料都只儲存在這台裝置上。',
+  'settings.account.unavailable': '登入需要 dacapo 在這台裝置上的儲存空間，目前無法使用。',
+  'settings.account.email': '電子郵件地址',
+  'settings.account.sendCode': '傳送驗證碼',
+  'settings.account.codeSent': '驗證碼已傳送到 {email}，10 分鐘內有效。',
+  'settings.account.code': '驗證碼',
+  'settings.account.signIn': '登入',
+  'settings.account.resend': '重新傳送驗證碼',
+  'settings.account.otherEmail': '改用其他地址',
+  'settings.account.signedIn': '已登入：{email}',
+  'settings.account.status.syncing': '正在同步⋯',
+  'settings.account.status.synced': '上次同步：{time}',
+  'settings.account.status.never': '還沒有同步過。',
+  'settings.account.status.offline': '目前離線。能連上同步服務後會自動同步。',
+  'settings.account.status.error': '上次同步沒有完成，dacapo 會自動重試。',
+  'settings.account.syncNow': '立即同步',
+  'settings.account.signOut': '登出',
+  'settings.account.signOut.help': '這台裝置會停止同步，練習紀錄仍會保留在這台裝置上。',
+  'settings.account.delete': '刪除帳號⋯',
+  'settings.account.delete.confirm':
+    '要刪除你的帳號，以及同步服務上的所有資料嗎？這台裝置上的練習紀錄會保留，你仍然可以匯出。',
+  'settings.account.delete.button': '刪除帳號',
+  'settings.account.cancel': '取消',
+  'settings.account.deleted': '你的帳號已刪除。',
+  'settings.account.privacy': '隱私權政策',
+  'settings.account.error.email': '請輸入有效的電子郵件地址。',
+  'settings.account.error.code': '驗證碼不正確或已過期。請檢查一下，或重新傳送一個。',
+  'settings.account.error.rateLimited': '嘗試次數太多。請等 {time} 後再試。',
+  'settings.account.error.network': '無法連上同步服務。請確認裝置已連上網際網路。',
+  'settings.account.error.unavailable': '同步服務暫時無法使用，請稍後再試。',
+
   'settings.about': '關於',
   'settings.about.text': 'dacapo {version} 是以 MIT 授權條款發布的自由軟體。',
   'settings.about.source': '原始碼',
@@ -914,6 +949,8 @@ export const zhTW: Dictionary = {
   'calibration.noAudio.app': '這台裝置無法播放節拍聲。',
   'settings.data.help.app':
     '所有資料都只儲存在這台裝置上的 dacapo 裡。建議不時匯出一份當作備份，換裝置時也能用它搬移資料。',
+  'settings.data.help.synced.app':
+    '所有資料都儲存在這台裝置上的 dacapo 裡，並同步到你的帳號。建議不時匯出一份當作備份。',
   'settings.storage.persisted.app':
     '已儲存在這台裝置上。刪除 dacapo 會一併刪除這些資料，請保留一份匯出檔作為備份。',
   'settings.storage.notPersisted.app':

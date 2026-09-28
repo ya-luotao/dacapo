@@ -824,6 +824,8 @@ export const zhCN: Dictionary = {
   'settings.data': '你的数据',
   'settings.data.help':
     '所有数据都只保存在这个浏览器里。建议不时导出一份作为备份，换电脑时也可以用它迁移。',
+  'settings.data.help.synced':
+    '所有数据都保存在这个浏览器里，并同步到你的账号。建议不时导出一份作为备份。',
   'settings.storage.persisted': '已保存在本设备上，浏览器不会自行清除。',
   'settings.storage.notPersisted':
     '已保存在本设备上。存储空间不足时浏览器可能会清除它，请保留一份导出文件作为备份。',
@@ -874,6 +876,39 @@ export const zhCN: Dictionary = {
     '导入完成：新增 {sessions} 条练习记录、{attempts} 条答题记录、{pieces} 首曲目、{steps} 条曲目练习明细和 {scaleRuns} 条音阶练习明细。',
   'settings.import.failed': '导入没能保存，数据没有任何改动。',
 
+  'settings.account': '账号',
+  'settings.account.help':
+    '登录后，你在各台设备上的练习会保持同步，比如电脑和谱架上的 iPad。不登录的话，所有数据都只保存在这台设备上。',
+  'settings.account.unavailable': '登录需要 dacapo 在这台设备上的存储空间，目前无法使用。',
+  'settings.account.email': '邮箱地址',
+  'settings.account.sendCode': '发送验证码',
+  'settings.account.codeSent': '验证码已发送到 {email}，10 分钟内有效。',
+  'settings.account.code': '验证码',
+  'settings.account.signIn': '登录',
+  'settings.account.resend': '重新发送验证码',
+  'settings.account.otherEmail': '换一个邮箱',
+  'settings.account.signedIn': '已登录：{email}',
+  'settings.account.status.syncing': '正在同步…',
+  'settings.account.status.synced': '上次同步：{time}',
+  'settings.account.status.never': '还没有同步过。',
+  'settings.account.status.offline': '当前离线。能连上同步服务后会自动同步。',
+  'settings.account.status.error': '上次同步没有完成，dacapo 会自动重试。',
+  'settings.account.syncNow': '立即同步',
+  'settings.account.signOut': '退出登录',
+  'settings.account.signOut.help': '这台设备将停止同步，练习记录仍保留在这台设备上。',
+  'settings.account.delete': '删除账号…',
+  'settings.account.delete.confirm':
+    '要删除你的账号以及同步服务上的所有数据吗？这台设备上的练习记录会保留，你仍然可以导出。',
+  'settings.account.delete.button': '删除账号',
+  'settings.account.cancel': '取消',
+  'settings.account.deleted': '你的账号已删除。',
+  'settings.account.privacy': '隐私政策',
+  'settings.account.error.email': '请输入有效的邮箱地址。',
+  'settings.account.error.code': '验证码不正确或已过期。请检查一下，或重新发送一个。',
+  'settings.account.error.rateLimited': '尝试次数过多。请等待 {time} 后再试。',
+  'settings.account.error.network': '无法连接同步服务。请确认设备已联网。',
+  'settings.account.error.unavailable': '同步服务暂时不可用，请稍后再试。',
+
   'settings.about': '关于',
   'settings.about.text': 'dacapo {version} 是以 MIT 许可证发布的自由软件。',
   'settings.about.source': '源代码',
@@ -911,6 +946,8 @@ export const zhCN: Dictionary = {
   'calibration.noAudio.app': '这台设备无法播放点击声。',
   'settings.data.help.app':
     '所有数据都只保存在这台设备上的 dacapo 里。建议不时导出一份作为备份，换设备时也可以用它迁移。',
+  'settings.data.help.synced.app':
+    '所有数据都保存在这台设备上的 dacapo 里，并同步到你的账号。建议不时导出一份作为备份。',
   'settings.storage.persisted.app':
     '已保存在本设备上。删除 dacapo 会一并删除这些数据，请保留一份导出文件作为备份。',
   'settings.storage.notPersisted.app':

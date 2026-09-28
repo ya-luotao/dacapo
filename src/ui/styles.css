@@ -2421,6 +2421,41 @@ kbd {
   margin: 0.75rem 0 0;
 }
 
+/* Settings: account */
+
+.account-form {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 34rem;
+  margin-top: 1rem;
+}
+
+.account-form > label {
+  font-weight: 600;
+}
+
+.account-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+}
+
+.account-code {
+  flex: 0 1 9rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2em;
+}
+
+.account-email {
+  margin: 0.75rem 0 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.account-delete {
+  margin-top: 1.25rem;
+}
+
 .data-status.is-warning {
   color: var(--warn);
   font-weight: 600;

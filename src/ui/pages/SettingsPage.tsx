@@ -2,6 +2,7 @@ import { useId, useState } from 'react';
 import { Link } from 'wouter';
 import { isLocale, LOCALE_NAMES, LOCALES, useI18n } from '../../i18n/index.ts';
 import type { Preferences } from '../../storage/exchange.ts';
+import { AccountSection } from '../settings/AccountSection.tsx';
 import { DataSection } from '../settings/DataSection.tsx';
 import { SoundSection } from '../settings/SoundSection.tsx';
 import { currentTheme, setTheme, THEME_PREFERENCES, type ThemePreference } from '../theme.ts';
@@ -75,6 +76,8 @@ export function SettingsPage() {
       </fieldset>
 
       <SoundSection />
+
+      <AccountSection />
 
       <DataSection
         preferences={{ locale: override, theme }}
