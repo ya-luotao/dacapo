@@ -30,6 +30,7 @@ function score(): Score {
     voice: '1',
     tieStart: false,
     tieStop: false,
+    finger: null,
   }));
   const measure = (index: number) => ({
     index,

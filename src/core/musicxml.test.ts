@@ -129,6 +129,33 @@ describe('parseMusicXml', () => {
     expect(s.warnings).toContain('tie-mismatch');
   });
 
+  it('reads the printed finger, not an alternative or a substitution', () => {
+    const fingering = (...marks: string[]) =>
+      `<staff>1</staff><notations><technical>${marks.join('')}</technical></notations>`;
+    const s = parse(
+      piano([
+        note('C5', 1, fingering('<fingering>1</fingering>')) +
+          note(
+            'D5',
+            1,
+            fingering('<fingering alternate="yes">4</fingering><fingering>2</fingering>'),
+          ) +
+          note('E5', 1, fingering('<fingering>3-1</fingering>')) +
+          note('F5', 1, fingering('<fingering substitution="yes">2</fingering>')) +
+          note('G5', 1, '<staff>1</staff>') +
+          note('A5', 1, fingering('<fingering>x</fingering>')) +
+          note(
+            'B5',
+            1,
+            '<staff>1</staff><notations><slur type="start"/></notations>' +
+              '<notations><technical><fingering>5</fingering></technical></notations>',
+          ),
+      ]),
+    );
+    // A note may carry several <notations>; the fingering can be in any of them.
+    expect(s.notes.map((n) => n.finger)).toEqual([1, 2, 3, null, null, null, 5]);
+  });
+
   it('skips grace notes, rests and cue notes without losing time', () => {
     const s = parse(
       piano([

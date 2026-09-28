@@ -54,6 +54,7 @@ export function note(
     voice: '1',
     tieStart: false,
     tieStop: false,
+    finger: null,
   };
 }
 

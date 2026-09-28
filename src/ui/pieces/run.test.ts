@@ -24,6 +24,7 @@ function score(): Score {
       voice: '1',
       tieStart: false,
       tieStop: false,
+      finger: null,
     });
   for (const m of [0, 1]) {
     note(`r${m}a`, m, m * 4 * Q, 72, 'right');

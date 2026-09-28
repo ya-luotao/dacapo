@@ -48,3 +48,64 @@ describe('holdKeepAwake', () => {
     expect(postMessage).not.toHaveBeenCalled();
   });
 });
+
+describe('holdKeepAwake in a browser with the Screen Wake Lock API', () => {
+  const release = vi.fn(() => Promise.resolve());
+  const request = vi.fn(() => Promise.resolve({ released: false, release }));
+
+  beforeEach(() => {
+    release.mockClear();
+    request.mockClear();
+    Object.defineProperty(navigator, 'wakeLock', { value: { request }, configurable: true });
+  });
+
+  afterEach(() => {
+    delete (navigator as { wakeLock?: unknown }).wakeLock;
+  });
+
+  const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  it('takes one lock for any number of holds, and lets it go after the last', async () => {
+    const a = holdKeepAwake();
+    const b = holdKeepAwake();
+    await settle();
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(request).toHaveBeenCalledWith('screen');
+    a();
+    expect(release).not.toHaveBeenCalled();
+    b();
+    expect(release).toHaveBeenCalledTimes(1);
+    expect(postMessage).not.toHaveBeenCalled();
+  });
+
+  it('lets go of a lock that arrives after the last hold ended', async () => {
+    holdKeepAwake()();
+    await settle();
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(release).toHaveBeenCalledTimes(1);
+  });
+
+  it('takes the lock again when the page comes back, while a hold is on', async () => {
+    const lock = { released: false, release };
+    request.mockImplementation(() => Promise.resolve(lock));
+    const end = holdKeepAwake();
+    await settle();
+    // The browser released it while the page was hidden.
+    lock.released = true;
+    document.dispatchEvent(new Event('visibilitychange'));
+    await settle();
+    expect(request).toHaveBeenCalledTimes(2);
+    end();
+    document.dispatchEvent(new Event('visibilitychange'));
+    await settle();
+    expect(request).toHaveBeenCalledTimes(2);
+  });
+
+  it('leaves it to the app inside the app', async () => {
+    document.documentElement.dataset.shell = 'apple';
+    holdKeepAwake()();
+    await settle();
+    expect(request).not.toHaveBeenCalled();
+    expect(postMessage).toHaveBeenCalledTimes(2);
+  });
+});

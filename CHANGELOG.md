@@ -176,6 +176,18 @@ version 4), and scale sessions with every scale run as played. Version 1 to 4 fi
 
 The first release: the MVP described in [docs/MVP.md](docs/MVP.md). Export format version 1.
 
+### Focus mode and fingering on the keyboard
+
+- **Focus mode** on a piece and on the Scales page: the header and the settings give way, and one
+  row above the score keeps the way back, larger or smaller notes, the keyboard on or off,
+  Settings (unfolds the controls), the metronome, full screen and Exit focus (or Escape). It is
+  remembered in this browser.
+- **Fingering on the keyboard.** Imported pieces with fingering show the finger on each key marked
+  by Show keys. On the Scales page the keys to start on carry their finger, and **Show the next
+  key** marks each next key with its finger and names a thumb crossing just ahead.
+- In a browser, the screen now stays on during practice too, where it supports the Screen Wake
+  Lock API.
+
 ### Visual design
 
 - "Engraved score" look: warm paper and ink, hairline rules, one urtext-blue accent, and a

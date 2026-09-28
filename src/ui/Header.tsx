@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from
 import { Link, useLocation } from 'wouter';
 import { useI18n, useT } from '../i18n/index.ts';
 import { BrandMark } from './BrandMark.tsx';
+import { useFocusActive } from './focus/focus.ts';
 import { MetronomeChip } from './metronome/MetronomeChip.tsx';
 import { fitNav, type NavFit } from './navFit.ts';
 import { NAV_ITEMS } from './routes.ts';
@@ -13,7 +14,12 @@ function isActive(location: string, path: string): boolean {
   return location === path || (path !== '/' && location.startsWith(`${path}/`));
 }
 
+/** The header, except in focus mode, where the practice page keeps its own row instead. */
 export function Header() {
+  return useFocusActive() ? null : <HeaderBar />;
+}
+
+function HeaderBar() {
   const t = useT();
   const { locale } = useI18n();
   const [location] = useLocation();
@@ -78,6 +84,7 @@ export function Header() {
   const onMenuKey = (e: KeyboardEvent) => {
     if (e.key !== 'Escape' || !open) return;
     e.stopPropagation();
+    e.preventDefault();
     setOpen(false);
     moreButton.current?.focus();
   };

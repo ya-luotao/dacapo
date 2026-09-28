@@ -203,6 +203,20 @@ for drawing.
   repeats, other hand, show keys, weak bars and the click are under Options (a disclosure); Listen,
   Start/Stop and Restart sit under the score. The weak-bar details are laid over the page, placed
   against the window.
+- **Focus mode.** A Focus button next to the piece's name hides the header and folds the control
+  row away; one row is left above the score: back, the name, smaller and larger notes (0.85–2 ×
+  the usual staff, `ui/focus/focus.ts`), the on-screen keyboard on or off, Settings (unfolds the
+  control row), the metronome chip, full screen where the browser offers it (not in the Apple app)
+  and Exit focus. Escape folds Settings first, then leaves; a panel or dialog open on the page takes
+  Escape before it. The choice, the size and the keyboard are remembered in this browser and shared
+  with the Scales page. The page may run wider than usual (100rem).
+- **Fingering on the keyboard.** The parser keeps the first printed finger of a note (not an
+  `alternate` or `substitution` one, in any of its `<notations>`; "3-1" starts with 3) as
+  `ScoreNote.finger`. With Show keys, a marked key carries its finger in place of the triangle.
+  Only imported pieces can have fingering: the built-in files have none (see Clarifications). The
+  checksum leaves the finger out, so records made before stay valid.
+- **The screen stays on in a browser too**, through the Screen Wake Lock API where there is one,
+  taken again when the page comes back into view (the app keeps doing it natively).
 
 ## Built-in piano (after P4)
 

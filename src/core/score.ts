@@ -50,6 +50,8 @@ export interface ScoreNote {
   tieStart: boolean;
   /** This note continues a tie: it sounds, but it is not a new key press. */
   tieStop: boolean;
+  /** The finger printed for this note (1 = thumb … 5), if the file gives one. */
+  finger: number | null;
 }
 
 export interface Repeat {

@@ -42,6 +42,8 @@ export function useCellNavigation(ids: readonly string[]) {
 
   function onKeyDown(event: KeyboardEvent) {
     if (event.key === 'Escape') {
+      // Handled only when there were details to hide; otherwise the page may take it (focus mode).
+      if (shown !== null) event.preventDefault();
       setDismissed(true);
       return;
     }

@@ -32,6 +32,7 @@ function note(
     voice: '1',
     tieStart: tie.tieStart ?? false,
     tieStop: tie.tieStop ?? false,
+    finger: null,
   };
 }
 

@@ -208,6 +208,13 @@ describe('scaleMusicXml', () => {
         expect(score.notes.filter((n) => n.hand === 'left').map((n) => n.midi)).toEqual(
           left.map((n) => n.midi),
         );
+        // The fingering reads back too (the keyboard shows it from the score's notes).
+        expect(score.notes.filter((n) => n.hand === 'right').map((n) => n.finger)).toEqual(
+          right.map((n) => n.finger),
+        );
+        expect(score.notes.filter((n) => n.hand === 'left').map((n) => n.finger)).toEqual(
+          left.map((n) => n.finger),
+        );
         // Bars of whole beats in quarter notes, four to the bar but the last, ending with the run.
         const last = score.notes.at(-1)!;
         const end = score.measures.at(-1)!;

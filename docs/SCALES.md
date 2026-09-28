@@ -160,6 +160,12 @@ All figures come from the raw notes of the run (see Records) and are recomputed 
   stay), and More is marked as the current page when the page's item is inside it. The header chip
   still opens the metronome. The menu is a disclosure button with a list of links, operable from the
   keyboard, closed by Escape and by choosing an item.
+- **Focus mode** as on the Pieces pages (PIECES.md): the header, the progress and the list give way,
+  the choice of scale folds under Settings, and the staff can be drawn larger.
+- **The keyboard's fingering.** The keys to start on carry their finger. With **Show the next key**
+  (on by default, remembered) each next key is marked with its finger as the run goes, and a
+  crossing just ahead is named above the score (thumb under, or which finger goes over the thumb;
+  with the hand when both play). Fingering is still shown, never enforced.
 - The Apple app: the screen stays awake during a run, and the page's usual silencing on hide
   applies. Every string in all five languages; scale and mode names need glossary rows in
   [TRANSLATING.md](TRANSLATING.md) (장조/단조, 長調/短調, 和声短音阶 …).

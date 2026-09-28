@@ -261,6 +261,7 @@ export function parseMusicXml(doc: Document, options: ParseOptions = {}): Score 
                 voice,
                 tieStart,
                 tieStop,
+                finger: readFinger(el),
               },
             });
             break;
@@ -351,6 +352,23 @@ function readBarlines(m: Element): Barlines {
     if (type === 'stop' || type === 'discontinue') bars.endingEnd = true;
   }
   return bars;
+}
+
+/**
+ * The finger to start the note with: the first `<fingering>` that is not an alternative or a
+ * substitution, in any of the note's `<notations>`. A change of finger on the key ("3-1", "32")
+ * starts with its first digit.
+ */
+function readFinger(note: Element): number | null {
+  for (const notations of childrenNamed(note, 'notations'))
+    for (const technical of childrenNamed(notations, 'technical'))
+      for (const fingering of childrenNamed(technical, 'fingering')) {
+        if (fingering.getAttribute('alternate') === 'yes') continue;
+        if (fingering.getAttribute('substitution') === 'yes') continue;
+        const digit = /[1-5]/.exec(text(fingering));
+        if (digit) return Number(digit[0]);
+      }
+  return null;
 }
 
 function readJumps(m: Element): string[] {

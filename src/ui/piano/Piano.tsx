@@ -77,12 +77,15 @@ interface PianoProps {
   marked?: ReadonlySet<number>;
   /** Keys just played wrong: flashed in the error colour. */
   wrong?: ReadonlySet<number>;
+  /** The finger for a marked key (1 = thumb … 5): shown on the key in place of the triangle. */
+  fingers?: ReadonlyMap<number, number>;
   /** A shorter keyboard (both ends white keys); the whole 88 keys by default. */
   range?: readonly [low: number, high: number];
   className?: string;
 }
 
 const NONE: ReadonlySet<number> = new Set();
+const NO_FINGERS: ReadonlyMap<number, number> = new Map();
 
 export function Piano({
   held,
@@ -90,6 +93,7 @@ export function Piano({
   pointer,
   marked = NONE,
   wrong = NONE,
+  fingers = NO_FINGERS,
   range,
   className,
 }: PianoProps) {
@@ -165,6 +169,7 @@ export function Piano({
       >
         {layout.keys.map(({ midi, black, left, width }) => {
           const velocity = held.get(midi);
+          const finger = marked.has(midi) ? fingers.get(midi) : undefined;
           const state =
             (velocity !== undefined ? ' is-held' : sustained.has(midi) ? ' is-sustained' : '') +
             (marked.has(midi) ? ' is-marked' : '') +
@@ -182,9 +187,11 @@ export function Piano({
               }}
               data-midi={midi}
               aria-label={
-                marked.has(midi)
-                  ? t('piano.key.marked', { name: labels.get(midi)! })
-                  : labels.get(midi)
+                finger !== undefined
+                  ? t('piano.key.markedFinger', { name: labels.get(midi)!, finger })
+                  : marked.has(midi)
+                    ? t('piano.key.marked', { name: labels.get(midi)! })
+                    : labels.get(midi)
               }
               aria-pressed={velocity !== undefined}
               onClick={(e) => onKeyActivate(midi, e.detail, e.timeStamp)}
@@ -192,7 +199,11 @@ export function Piano({
               {velocity !== undefined && (
                 <span className="key-fill" style={{ opacity: velocityOpacity(velocity) }} />
               )}
-              {marked.has(midi) ? (
+              {finger !== undefined ? (
+                <span className="key-target" aria-hidden="true">
+                  <span className="key-finger">{finger}</span>
+                </span>
+              ) : marked.has(midi) ? (
                 <span className="key-target" aria-hidden="true">
                   <svg viewBox="0 0 10 8">
                     <path d="M5 0l5 8H0z" />

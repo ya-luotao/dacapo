@@ -19,6 +19,9 @@ import { prefetchVerovio, type Engraving } from '../notation/verovio.ts';
 import { Piano } from '../piano/Piano.tsx';
 import { keyboardRange, whiteKeys } from '../piano/range.ts';
 import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
+import { FocusBar, FocusEnter } from '../focus/FocusBar.tsx';
+import { useFocusState } from '../focus/focus.ts';
+import { readPref, writePref } from '../../lib/localPrefs.ts';
 import { spelledName, tonicName, useExerciseName } from './format.ts';
 import { readExercise, writeExercise } from './prefs.ts';
 import { scaleRunRecord, useScaleRecorder, type SessionSlot } from './record.ts';
@@ -39,10 +42,19 @@ const ZOOM: Record<ScaleExercise['octaves'], number> = { 1: 1.6, 2: 1.3, 3: 1.15
  */
 const ENGRAVING: Engraving = { lastJustification: 0.35, ottavaText: true };
 const HANDS: readonly ScaleExercise['hands'][] = ['right', 'left', 'both'];
+/** Off: the keyboard marks only the keys to start on, not each next key. */
+const GUIDE_PREF = 'dacapo.scales.guide';
 
 export function ScalesPage() {
   const t = useT();
+  const name = useExerciseName();
   const [exercise, setExerciseState] = useState(readExercise);
+  const focus = useFocusState();
+  // In focus mode the choice of scale folds away until asked for.
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  // Folded again for the next time focus mode is entered.
+  if (!focus.on && settingsOpen) setSettingsOpen(false);
+  const pickerId = useId();
   const { sessions } = usePractice();
   const now = useNow();
   // Every scale played, least even first, from the sessions loaded at startup.
@@ -72,9 +84,21 @@ export function ScalesPage() {
   }
 
   return (
-    <section className="scales">
+    <section className={focus.on ? 'scales is-focus' : 'scales'}>
       <h1 className="visually-hidden">{t('scales.title')}</h1>
+      {focus.on && (
+        <FocusBar
+          heading={<h2 className="focus-title">{name(exercise)}</h2>}
+          settings={{
+            open: settingsOpen,
+            onToggle: () => setSettingsOpen((open) => !open),
+            controls: pickerId,
+          }}
+        />
+      )}
       <ScalePicker
+        id={pickerId}
+        hidden={focus.on && !settingsOpen}
         exercise={exercise}
         onChange={setExercise}
         // Selects take the computer keyboard's letters; after a choice, the keys play notes again.
@@ -83,30 +107,38 @@ export function ScalesPage() {
       <div className="scale-stage" ref={stage} tabIndex={-1}>
         <ScaleSession key={exerciseKey(exercise)} exercise={exercise} slot={slot} />
       </div>
-      <ScaleProgress
-        exercise={exercise}
-        progress={progress.find((p) => p.exercise === exerciseKey(exercise)) ?? null}
-        now={now}
-      />
-      <YourScales
-        list={progress}
-        now={now}
-        current={exercise}
-        onPick={(next) => {
-          setExercise(next);
-          stage.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-          stage.current?.focus({ preventScroll: true });
-        }}
-      />
+      {!focus.on && (
+        <>
+          <ScaleProgress
+            exercise={exercise}
+            progress={progress.find((p) => p.exercise === exerciseKey(exercise)) ?? null}
+            now={now}
+          />
+          <YourScales
+            list={progress}
+            now={now}
+            current={exercise}
+            onPick={(next) => {
+              setExercise(next);
+              stage.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+              stage.current?.focus({ preventScroll: true });
+            }}
+          />
+        </>
+      )}
     </section>
   );
 }
 
 function ScalePicker({
+  id: pickerId,
+  hidden,
   exercise,
   onChange,
   onChosen,
 }: {
+  id: string;
+  hidden: boolean;
   exercise: ScaleExercise;
   onChange: (next: ScaleExercise) => void;
   /** A choice was made in a select. */
@@ -126,7 +158,7 @@ function ScalePicker({
   }
 
   return (
-    <div className="scale-picker">
+    <div className="scale-picker" id={pickerId} hidden={hidden}>
       <div className="field">
         <label htmlFor={`${id}-type`}>{t('scales.pick.type')}</label>
         <select
@@ -211,6 +243,8 @@ function deviationMark(deviation: number | null): string | null {
 function ScaleSession({ exercise, slot }: { exercise: ScaleExercise; slot: SessionSlot }) {
   const t = useT();
   const name = useExerciseName();
+  const focus = useFocusState();
+  const [guide, setGuideState] = useState(() => readPref(GUIDE_PREF) !== '0');
   const { hub, pointer, midi } = useInput();
   const store = usePracticeStore();
   const { held, sustained } = useHubState();
@@ -319,16 +353,44 @@ function ScaleSession({ exercise, slot }: { exercise: ScaleExercise; slot: Sessi
   const startNotes = run.steps[0]?.notes ?? [];
   const first = startNotes.map((n) => names[expected[n]!.hand][0]).join(t('scales.status.and'));
   const waiting = run.phase === 'waiting';
-  const firstKey = useMemo(
+  // The keyboard marks the keys to start on, and with the guide each next key as the run goes,
+  // with the finger to take it; a crossing just ahead is named too.
+  const cue = waiting ? run.steps[0] : guide && playing ? run.steps[run.next] : null;
+  const cueNotes = useMemo(() => (cue?.notes ?? []).map((n) => expected[n]!), [cue, expected]);
+  const marked = useMemo(() => new Set(cueNotes.map((note) => note.midi)), [cueNotes]);
+  const fingers = useMemo(
     () =>
-      waiting ? new Set((run.steps[0]?.notes ?? []).map((n) => expected[n]!.midi)) : undefined,
-    [waiting, run.steps, expected],
+      new Map(
+        cueNotes.flatMap((note): [number, number][] =>
+          note.finger === null ? [] : [[note.midi, note.finger]],
+        ),
+      ),
+    [cueNotes],
   );
+  const crossings = playing
+    ? cueNotes.flatMap((note) => {
+        if (!note.crossing || note.finger === null) return [];
+        const what =
+          note.crossing === 'thumbUnder'
+            ? t('scales.guide.thumbUnder')
+            : t('scales.guide.fingerOver', { finger: note.finger });
+        return [
+          hands === 'both'
+            ? t('scales.guide.hand', { hand: t(`scales.hand.${note.hand}`), cue: what })
+            : what,
+        ];
+      })
+    : [];
+
+  function setGuide(next: boolean) {
+    setGuideState(next);
+    writePref(GUIDE_PREF, next ? null : '0');
+  }
 
   return (
     <div className="scale-session">
       <div className="scale-head">
-        <h2 className="scale-title">{name(exercise)}</h2>
+        {!focus.on && <h2 className="scale-title">{name(exercise)}</h2>}
         <p className="scale-status" role="status">
           {run.phase === 'waiting'
             ? t('scales.status.start', { key: first })
@@ -338,15 +400,27 @@ function ScaleSession({ exercise, slot }: { exercise: ScaleExercise; slot: Sessi
                 ? t('scales.status.again', { key: first })
                 : t('scales.status.notARun', { key: first })}
         </p>
-        {playing && (
-          <button
-            type="button"
-            className="button"
-            onClick={() => dispatch({ type: 'stop', time: performance.now() })}
-          >
-            {t('scales.stop')}
-          </button>
+        {crossings.length > 0 && (
+          <p className="scale-cue">
+            {t('scales.guide.next', { cues: crossings.join(t('app.listSeparator')) })}
+          </p>
         )}
+        <div className="scale-head-tools">
+          <label className="check">
+            <input type="checkbox" checked={guide} onChange={(e) => setGuide(e.target.checked)} />
+            <span>{t('scales.guide')}</span>
+          </label>
+          {playing && (
+            <button
+              type="button"
+              className="button is-compact"
+              onClick={() => dispatch({ type: 'stop', time: performance.now() })}
+            >
+              {t('scales.stop')}
+            </button>
+          )}
+          {!focus.on && <FocusEnter />}
+        </div>
       </div>
 
       <div className="scale-sheet">
@@ -359,7 +433,7 @@ function ScaleSession({ exercise, slot }: { exercise: ScaleExercise; slot: Sessi
           hands={hands}
           onStatus={setStatus}
           marks={marks}
-          zoom={ZOOM[exercise.octaves]}
+          zoom={ZOOM[exercise.octaves] * (focus.on ? focus.zoom : 1)}
           engraving={ENGRAVING}
           fillHeight={false}
         />
@@ -376,17 +450,20 @@ function ScaleSession({ exercise, slot }: { exercise: ScaleExercise; slot: Sessi
         )}
       </div>
 
-      <div className="scale-keys" style={{ '--piece-whites': whiteKeys(keys) } as CSSProperties}>
-        <Piano
-          held={held}
-          sustained={sustained}
-          pointer={pointer}
-          wrong={wrong}
-          marked={firstKey}
-          range={keys}
-          className="piece-piano"
-        />
-      </div>
+      {(!focus.on || focus.keyboard) && (
+        <div className="scale-keys" style={{ '--piece-whites': whiteKeys(keys) } as CSSProperties}>
+          <Piano
+            held={held}
+            sustained={sustained}
+            pointer={pointer}
+            wrong={wrong}
+            marked={marked}
+            fingers={fingers}
+            range={keys}
+            className="piece-piano"
+          />
+        </div>
+      )}
 
       <KeyboardHint />
 

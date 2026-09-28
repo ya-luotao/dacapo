@@ -83,6 +83,7 @@ export function MetronomeChip() {
         ref={more}
         onKeyDown={(e) => {
           if (e.key === 'Escape' && more.current?.open) {
+            e.preventDefault();
             more.current.open = false;
             more.current.querySelector('summary')?.focus();
           }

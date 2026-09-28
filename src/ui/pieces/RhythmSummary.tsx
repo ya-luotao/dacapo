@@ -64,7 +64,9 @@ export function RhythmSummary({
       className="piece-summary rhythm-summary"
       aria-labelledby="rhythm-summary-title"
       onKeyDown={(e) => {
-        if (e.key === 'Escape') onClose();
+        if (e.key !== 'Escape') return;
+        e.preventDefault();
+        onClose();
       }}
     >
       <div className="rhythm-summary-head">

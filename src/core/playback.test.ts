@@ -50,6 +50,7 @@ function note(
     voice: '1',
     tieStart: options.tieStart ?? false,
     tieStop: options.tieStop ?? false,
+    finger: null,
   };
 }
 

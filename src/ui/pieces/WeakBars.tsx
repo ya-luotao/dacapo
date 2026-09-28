@@ -328,7 +328,9 @@ export function WeakBarsTable({
       className="piece-summary weak-table"
       aria-labelledby="weak-table-title"
       onKeyDown={(e) => {
-        if (e.key === 'Escape') onClose();
+        if (e.key !== 'Escape') return;
+        e.preventDefault();
+        onClose();
       }}
     >
       <div className="weak-table-head">

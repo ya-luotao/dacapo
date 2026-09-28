@@ -35,7 +35,9 @@ export function CalibrationSheet({
       className="piece-summary calibration-sheet"
       aria-labelledby="calibration-sheet-title"
       onKeyDown={(e) => {
-        if (e.key === 'Escape') onClose();
+        if (e.key !== 'Escape') return;
+        e.preventDefault();
+        onClose();
       }}
     >
       <h2 id="calibration-sheet-title" ref={heading} tabIndex={-1}>

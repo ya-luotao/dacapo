@@ -61,6 +61,8 @@ import { RhythmSummary } from './RhythmSummary.tsx';
 import { useRhythmPlayer } from './useRhythmPlayer.ts';
 import type { OpenPiece } from './usePiece.ts';
 import { useBarFormat } from './barFormat.ts';
+import { FocusBar, FocusEnter } from '../focus/FocusBar.tsx';
+import { useFocusState } from '../focus/focus.ts';
 import { BarTargets, BarTints, WeakBarsBar, WeakBarsTable } from './WeakBars.tsx';
 import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
 
@@ -86,6 +88,11 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
   const region = useRef<HTMLElement>(null);
   const options = useRef<HTMLDetailsElement>(null);
   const showKeysId = useId();
+  const focus = useFocusState();
+  // In focus mode the controls fold away until asked for.
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  // Folded again for the next time focus mode is entered.
+  if (!focus.on && settingsOpen) setSettingsOpen(false);
 
   const store = usePracticeStore();
   const [prefs] = useState(() => readPiecePrefs(piece.id));
@@ -472,6 +479,17 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
       : new Set<number>();
   }, [listening, rhythmMode, showKeys, step, wait?.pressed]);
 
+  // The fingers printed for the keys marked (a piece without fingering has none).
+  const notesById = useMemo(() => new Map(score.notes.map((n) => [n.id, n])), [score]);
+  const fingers = useMemo(() => {
+    const out = new Map<number, number>();
+    for (const id of step?.noteIds ?? []) {
+      const note = notesById.get(id);
+      if (note?.finger != null && !out.has(note.midi)) out.set(note.midi, note.finger);
+    }
+    return out;
+  }, [step, notesById]);
+
   const barOptions = playedBars.map((index) => (
     <option key={index} value={index}>
       {format.barNumber(index)}
@@ -493,22 +511,46 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
 
   return (
     <section
-      className="piece-session"
+      className={focus.on ? 'piece-session is-focus' : 'piece-session'}
       ref={region}
       tabIndex={-1}
       aria-labelledby={`${showKeysId}-title`}
     >
-      <header className="piece-head">
-        <Link href="/pieces" className="piece-back-link">
-          {t('pieces.back')}
-        </Link>
-        <h1 id={`${showKeysId}-title`} className="piece-title">
-          {piece.title}
-          {piece.composer && <span className="piece-composer">{piece.composer}</span>}
-        </h1>
-      </header>
+      {focus.on ? (
+        <FocusBar
+          heading={
+            <h1 id={`${showKeysId}-title`} className="focus-title">
+              {piece.title}
+              {piece.composer && <span className="piece-composer">{piece.composer}</span>}
+            </h1>
+          }
+          back={{ href: '/pieces', label: t('pieces.back') }}
+          settings={{
+            open: settingsOpen,
+            onToggle: () => setSettingsOpen((open) => !open),
+            controls: `${showKeysId}-controls`,
+          }}
+        />
+      ) : (
+        <header className="piece-head">
+          <Link href="/pieces" className="piece-back-link">
+            {t('pieces.back')}
+          </Link>
+          <h1 id={`${showKeysId}-title`} className="piece-title">
+            {piece.title}
+            {piece.composer && <span className="piece-composer">{piece.composer}</span>}
+          </h1>
+          <FocusEnter />
+        </header>
+      )}
 
-      <div className="piece-controls" role="group" aria-label={t('pieces.controls')}>
+      <div
+        className="piece-controls"
+        id={`${showKeysId}-controls`}
+        role="group"
+        aria-label={t('pieces.controls')}
+        hidden={focus.on && !settingsOpen}
+      >
         <fieldset className="piece-control piece-mode" aria-describedby={`${showKeysId}-mode`}>
           <legend className="visually-hidden">{t('pieces.mode')}</legend>
           <div className="segmented is-compact">
@@ -631,6 +673,7 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
           ref={options}
           onKeyDown={(e) => {
             if (e.key === 'Escape' && options.current?.open) {
+              e.preventDefault();
               options.current.open = false;
               options.current.querySelector('summary')?.focus();
             }
@@ -806,6 +849,7 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
           pressed={listening || rhythmMode ? NO_KEYS : (wait?.pressed ?? NO_KEYS)}
           hands={hands}
           onStatus={setScoreStatus}
+          zoom={focus.on ? focus.zoom : 1}
           behind={
             weakBars
               ? (boxes) => <BarTints cells={heat.cells} boxes={boxes} format={barFormat} />
@@ -1006,17 +1050,20 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
         </div>
       </div>
 
-      <div className="piece-keys" style={{ '--piece-whites': whites } as CSSProperties}>
-        <Piano
-          held={held}
-          sustained={sustained}
-          pointer={pointer}
-          marked={marked}
-          wrong={rhythmMode ? NO_WRONG : wrong}
-          range={keys}
-          className="piece-piano"
-        />
-      </div>
+      {(!focus.on || focus.keyboard) && (
+        <div className="piece-keys" style={{ '--piece-whites': whites } as CSSProperties}>
+          <Piano
+            held={held}
+            sustained={sustained}
+            pointer={pointer}
+            marked={marked}
+            wrong={rhythmMode ? NO_WRONG : wrong}
+            fingers={fingers}
+            range={keys}
+            className="piece-piano"
+          />
+        </div>
+      )}
     </section>
   );
 }
