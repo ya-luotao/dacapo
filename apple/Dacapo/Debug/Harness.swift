@@ -117,6 +117,7 @@ final class Harness {
                 report["shown"] = await js("return document.querySelector('main h1')?.textContent ?? ''") ?? NSNull()
                 write("url", report)
             case "utypes": uniformTypes()
+            case "sync": await syncService()
             case let mode where mode.hasPrefix("route:"):
                 location(String(mode.dropFirst(6)))
                 try? await Task.sleep(for: .seconds(2))
@@ -413,6 +414,40 @@ final class Harness {
         }
         report["pages"] = pages
         write("shell", report)
+    }
+
+    /// Sync from the app's page (docs/SYNC.md): Settings shows the account, and the service
+    /// answers the dacapo:// origin — a plain GET, and a POST that needs a CORS preflight. The
+    /// address in the POST is invalid, so no email is sent.
+    func syncService() async {
+        var report = environment()
+        location("#/settings")
+        try? await Task.sleep(for: .seconds(1.5))
+        report["page"] = await js("""
+            const privacy = document.querySelector('.account a')?.href ?? null;
+            const endpoint = privacy?.replace(/\\/privacy$/, '') ?? null;
+            const out = { origin: location.origin, account: Boolean(document.querySelector('.account')), privacy, endpoint };
+            if (endpoint) {
+              try {
+                const get = await fetch(`${endpoint}/v1/account`);
+                out.get = { status: get.status, body: await get.json() };
+              } catch (e) {
+                out.get = String(e);
+              }
+              try {
+                const post = await fetch(`${endpoint}/v1/auth/code`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email: 'not an address', locale: 'en' }),
+                });
+                out.post = { status: post.status, body: await post.json() };
+              } catch (e) {
+                out.post = String(e);
+              }
+            }
+            return JSON.stringify(out);
+            """) ?? NSNull()
+        write("sync", report)
     }
 
     // MARK: MIDI

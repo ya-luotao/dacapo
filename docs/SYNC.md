@@ -1,7 +1,8 @@
 # dacapo — Account and sync specification
 
-Status: C1–C3 are built: the service is deployed, and the official web build has the account in
-Settings. The Apple app (C4) is next. This extends [MVP.md](MVP.md) and the later
+Status: C1–C4 are built: the service is deployed, the official web build has the account in
+Settings, and the Apple app has it too, with its privacy manifest; its App Store privacy label is
+entered with the first submission (APPLE.md, A2). This extends [MVP.md](MVP.md) and the later
 specifications; their principles and fixed decisions still apply, with one change: **no backend is
 required.** dacapo works fully without an account, offline, as before. An account is optional and
 only adds sync between the user's own devices (the browser on a computer, an iPad on the music
@@ -215,4 +216,4 @@ winner.
    tests.
 3. ✓ **C3 Account UI** — the Account section in Settings in every language (with app wording),
    sync status, sign out, delete account; which official builds set `VITE_SYNC_ENDPOINT`.
-4. **C4 Apple** — privacy label and manifest, review notes, APPLE.md.
+4. ✓ **C4 Apple** — privacy label and manifest, review notes, APPLE.md.

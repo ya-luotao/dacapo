@@ -111,6 +111,7 @@ open -W <path/to/Debug/Dacapo.app> --args -dacapoAuto probe,hotplug,timing -daca
 | `file`                                                        | The Pieces import (Mac: the open panel is answered with a bundled score; `-dacapoImportMXL YES` for the `.mxl`)                |
 | `seed`                                                        | Copies test scores into Documents, which Debug builds share with the Files app                                                 |
 | `shell`, `audio`, `utypes`                                    | App marker and browser-only wording on every page; audio session; MusicXML types                                               |
+| `sync`                                                        | Settings shows the account; the sync service answers the `dacapo://` origin (a GET, a preflighted POST; no email is sent)      |
 | `route:#/…`, `sleep:N`, `shot:name`, `window:WxH`, `orient:…` | Helpers for screenshots                                                                                                        |
 
 Results go to `Documents/harness/*.json` in the app's container (on the Mac:

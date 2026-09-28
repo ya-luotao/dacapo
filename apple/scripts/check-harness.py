@@ -31,6 +31,13 @@ def main():
     done = load(directory, "done")
     modes = set(done["modes"].split(",")) if done else set()
 
+    if "sync" in modes and (sync := load(directory, "sync")):
+        page = json.loads(sync["page"]) if isinstance(sync.get("page"), str) else sync.get("page")
+        check(isinstance(page, dict) and page.get("account"), f"sync: no account section: {page}")
+        if isinstance(page, dict) and page.get("endpoint"):
+            check(page.get("get", {}).get("status") == 401, f"sync: GET {page.get('get')}")
+            check(page.get("post", {}).get("status") == 400, f"sync: POST {page.get('post')}")
+
     if "probe" in modes and (probe := load(directory, "probe")):
         page = probe.get("page")
         check(isinstance(page, dict), f"probe: the page script failed: {page}")

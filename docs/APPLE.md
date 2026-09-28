@@ -17,7 +17,7 @@ in a **WKWebView**, with a small native layer:
   accurate as in Chrome.
 - **Bundled, offline.** The production web build ships inside the app and is served through a
   custom URL scheme (stable origin for IndexedDB, correct MIME types for ES modules and WASM).
-  No network access is needed.
+  No network access is needed unless the user signs in to sync ([SYNC.md](SYNC.md)).
 - **Native affordances.** Export through the share sheet / save panel; keep the screen awake
   while practising; silence MIDI output when the app goes to the background; sensible window
   sizes on Mac; iPad in landscape on a music stand is the primary layout.
@@ -34,9 +34,14 @@ in a **WKWebView**, with a small native layer:
 
 ## Distribution
 
-App Store (iOS/iPadOS and Mac App Store), in English and Simplified Chinese. No accounts, no
-tracking, no data collection (privacy label "Data Not Collected"); a privacy manifest; no
-non-exempt encryption.
+App Store (iOS/iPadOS and Mac App Store), in English and Simplified Chinese. No tracking. The
+account is optional ([SYNC.md](SYNC.md)): signed out, nothing is collected; signed in, the
+service holds the email address and the synced practice records and imported scores. So the
+privacy label is Contact Info → Email Address and User Content → Other User Content, both linked
+to the user, for App Functionality only, not used for tracking; the privacy policy URL is
+`https://playdacapo.com/privacy`. The privacy manifest (`Resources/PrivacyInfo.xcprivacy`) says
+the same, and gives the reason for the one required-reason API (`mach_absolute_time`, system boot
+time, 35F9.1). No non-exempt encryption: the only network traffic is HTTPS.
 
 ## Milestones
 
@@ -95,3 +100,10 @@ Decided while building A1; the reasons are in the code comments and `apple/READM
   showed; after three crashes in a minute it starts from Play.
 - **Deployment floor** stays iOS/iPadOS 17 and macOS 14. The app was checked on the iOS 18.0
   simulator; no iOS 17 simulator runtime was available.
+- **Account and sync** ([SYNC.md](SYNC.md)). The app's web build syncs through
+  `https://api.playdacapo.com` (`scripts/embed-web.sh`); the page's `dacapo://app` origin is
+  answered like any other (CORS without credentials), checked by the harness's `sync` mode. The
+  account can be deleted in the app, in Settings (guideline 5.1.1(v)); signing in is by email
+  and a code only, so Sign in with Apple is not required (4.8). Links to the privacy policy open
+  in the system browser. Review notes: the account is optional and everything works without it;
+  to try sync, sign in on two devices with any address the reviewer can read.
