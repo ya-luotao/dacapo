@@ -10,7 +10,8 @@ with a MIDI keyboard. The MVP focuses on the first real bottleneck for beginners
 - **The user owns the data.** Everything stays local (IndexedDB); export/import as JSON.
 - **Measure, don't guess.** Every answer records correctness and reaction time; the app
   practises what you are weakest at.
-- **Small and dependable** beats feature-rich. No backend, minimal dependencies.
+- **Small and dependable** beats feature-rich. No backend required (an account for sync is
+  optional, see [SYNC.md](SYNC.md)), minimal dependencies.
 
 ## Fixed technical decisions
 
