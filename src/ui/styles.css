@@ -65,6 +65,12 @@
   --heat-key-white: #fefcf8;
   --heat-key-white-edge: #c3bdb3;
   --heat-key-label: #645a52;
+  /* Year grid: one blue hue, pale (a little practice) to deep (a lot); validated as an ordinal ramp. */
+  --year-0: #e6e0d6;
+  --year-1: #8fb0dd;
+  --year-2: #5d88c2;
+  --year-3: #35619b;
+  --year-4: #193d6b;
   /* Weak bars: the tint behind a bar is its heat colour mixed into the paper (ink stays ≥ 9:1). */
   --bar-wash: 22%;
 
@@ -179,6 +185,11 @@
     --heat-key-white: #26221e;
     --heat-key-white-edge: #3c3733;
     --heat-key-label: #b0a89c;
+    --year-0: #2c2622;
+    --year-1: #365681;
+    --year-2: #567caf;
+    --year-3: #7ea4d6;
+    --year-4: #b5d0f5;
   }
 }
 
@@ -244,6 +255,11 @@
   --heat-key-white: #26221e;
   --heat-key-white-edge: #3c3733;
   --heat-key-label: #b0a89c;
+  --year-0: #2c2622;
+  --year-1: #365681;
+  --year-2: #567caf;
+  --year-3: #7ea4d6;
+  --year-4: #b5d0f5;
 }
 
 *,
@@ -1913,6 +1929,25 @@ kbd {
   max-width: 46rem;
 }
 
+.history-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+}
+
+.history-head h2 {
+  margin-bottom: 0;
+}
+
+.history-switch {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
 .history-chart {
   position: relative;
   display: flex;
@@ -2070,6 +2105,111 @@ kbd {
 .history-table tbody th,
 .import-counts tbody th {
   font-weight: 500;
+}
+
+/* The year grid: a week per column, a day per cell, shaded by how long it was practised. On a
+   narrow screen it scrolls on its own, starting at today. */
+.year-scroll {
+  margin-top: 1.25rem;
+  padding-bottom: 0.25rem;
+  overflow-x: auto;
+}
+
+.year-scroll:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.year-grid {
+  display: grid;
+  grid-template-rows: auto repeat(7, 0.625rem);
+  grid-auto-flow: column;
+  grid-auto-columns: 0.625rem;
+  grid-template-columns: max-content;
+  gap: 3px;
+  width: max-content;
+  /* Room for today's ring, and for the label of a month that began this week. */
+  padding-inline-end: 1rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* The weekdays stay in view while the weeks scroll under them. */
+.year-weekday {
+  position: sticky;
+  z-index: 1;
+  inset-inline-start: 0;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  padding-inline-end: 0.375rem;
+  background: var(--bg);
+  /* Covers the gap to the first column too. */
+  box-shadow: 3px 0 0 var(--bg);
+  font-size: 0.6875rem;
+}
+
+.year-month {
+  padding-bottom: 0.25rem;
+  white-space: nowrap;
+}
+
+.year-cell {
+  display: block;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: var(--radius-sm);
+  background: var(--year-0);
+  /* The shade is the data; forced colours would paint every day the same. */
+  forced-color-adjust: none;
+}
+
+.year-cell[data-level='1'] {
+  background: var(--year-1);
+}
+
+.year-cell[data-level='2'] {
+  background: var(--year-2);
+}
+
+.year-cell[data-level='3'] {
+  background: var(--year-3);
+}
+
+.year-cell[data-level='4'] {
+  background: var(--year-4);
+}
+
+.year-grid .year-cell[data-today] {
+  outline: 1.5px solid var(--text);
+  outline-offset: 1px;
+}
+
+@media (hover: hover) {
+  .year-grid .year-cell:hover {
+    outline: 1.5px solid var(--text-muted);
+    outline-offset: 1px;
+  }
+}
+
+.year-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem 1.25rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  list-style: none;
+}
+
+.year-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
 }
 
 /* Progress: sessions */

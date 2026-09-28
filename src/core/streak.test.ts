@@ -6,8 +6,13 @@ import {
   dayHistory,
   dayKey,
   longestStreak,
+  monthStarts,
+  monthTotals,
+  practiceLevel,
   practiceLog,
   STREAK_GOAL_MS,
+  weekday,
+  yearGrid,
   type DayKey,
 } from './streak.ts';
 
@@ -158,6 +163,120 @@ describe('dayHistory', () => {
       '2026-03-08',
       '2026-03-09',
       '2026-03-10',
+    ]);
+  });
+});
+
+describe('weekday', () => {
+  it('numbers Monday 1 to Sunday 7', () => {
+    expect(weekday('2026-09-28')).toBe(1);
+    expect(weekday('2026-10-03')).toBe(6);
+    expect(weekday('2026-10-04')).toBe(7);
+    expect(weekday('2024-02-29')).toBe(4);
+  });
+});
+
+describe('practiceLevel', () => {
+  it('breaks between some practice and the goal where the streak does', () => {
+    expect(practiceLevel(0)).toBe(0);
+    expect(practiceLevel(1)).toBe(1);
+    expect(practiceLevel(STREAK_GOAL_MS - 1)).toBe(1);
+    expect(practiceLevel(STREAK_GOAL_MS)).toBe(2);
+    expect(practiceLevel(3 * STREAK_GOAL_MS - 1)).toBe(2);
+    expect(practiceLevel(3 * STREAK_GOAL_MS)).toBe(3);
+    expect(practiceLevel(6 * STREAK_GOAL_MS)).toBe(4);
+    expect(practiceLevel(5 * 60 * MIN)).toBe(4);
+  });
+});
+
+describe('yearGrid', () => {
+  it('ends with the week under way, days after today empty', () => {
+    // Wednesday 30 September 2026, weeks from Sunday.
+    const grid = yearGrid(totals({ '2026-09-30': 7 * MIN, '2026-09-27': MIN }), '2026-09-30', {
+      weeks: 2,
+    });
+    expect(grid).toHaveLength(2);
+    expect(grid[0]!.map((d) => d?.day)).toEqual([
+      '2026-09-20',
+      '2026-09-21',
+      '2026-09-22',
+      '2026-09-23',
+      '2026-09-24',
+      '2026-09-25',
+      '2026-09-26',
+    ]);
+    expect(grid[1]!.slice(0, 4)).toEqual([
+      { day: '2026-09-27', ms: MIN },
+      { day: '2026-09-28', ms: 0 },
+      { day: '2026-09-29', ms: 0 },
+      { day: '2026-09-30', ms: 7 * MIN },
+    ]);
+    expect(grid[1]!.slice(4)).toEqual([null, null, null]);
+  });
+
+  it('starts weeks on Monday when asked', () => {
+    const grid = yearGrid(new Map(), '2026-09-27', { weeks: 1, firstDay: 1 });
+    expect(grid[0]![0]!.day).toBe('2026-09-21');
+    expect(grid[0]![6]!.day).toBe('2026-09-27');
+  });
+
+  it('fills a whole column when today ends the week', () => {
+    const grid = yearGrid(new Map(), '2026-10-03', { weeks: 1 });
+    expect(grid[0]!.every((d) => d !== null)).toBe(true);
+  });
+
+  it('spans a year of whole weeks by default, across both daylight-saving changes', () => {
+    const grid = yearGrid(new Map(), '2026-09-30');
+    expect(grid).toHaveLength(53);
+    const days = grid.flat().filter((d) => d !== null);
+    expect(days[0]!.day).toBe('2025-09-28');
+    expect(days.at(-1)!.day).toBe('2026-09-30');
+    expect(new Set(days.map((d) => d.day)).size).toBe(days.length);
+    expect(days.every((d, i) => i === 0 || addDays(days[i - 1]!.day, 1) === d.day)).toBe(true);
+  });
+});
+
+describe('monthStarts', () => {
+  it('labels each month where its first week begins, the partial first one only with room', () => {
+    const labels = monthStarts(yearGrid(new Map(), '2026-09-30'));
+    // The grid opens on 28 September 2025; October begins in the next column.
+    expect(labels.has(0)).toBe(false);
+    expect([...labels.values()].map((day) => day.slice(0, 7))).toEqual([
+      '2025-10',
+      '2025-11',
+      '2025-12',
+      '2026-01',
+      '2026-02',
+      '2026-03',
+      '2026-04',
+      '2026-05',
+      '2026-06',
+      '2026-07',
+      '2026-08',
+      '2026-09',
+    ]);
+  });
+
+  it('keeps the month under way even in the last column', () => {
+    const labels = monthStarts(yearGrid(new Map(), '2026-10-08'));
+    expect(labels.get(52)).toBe('2026-10-04');
+    expect([...labels.values()].at(-2)!.slice(0, 7)).toBe('2026-09');
+  });
+});
+
+describe('monthTotals', () => {
+  it('sums days by calendar month', () => {
+    expect(
+      monthTotals([
+        { day: '2026-08-30', ms: 0 },
+        { day: '2026-08-31', ms: 2 * MIN },
+        { day: '2026-09-01', ms: 6 * MIN },
+        { day: '2026-09-02', ms: 5 * MIN },
+        { day: '2026-09-03', ms: 0 },
+      ]),
+    ).toEqual([
+      { month: '2026-08', practised: 1, reached: 0, ms: 2 * MIN },
+      { month: '2026-09', practised: 2, reached: 2, ms: 11 * MIN },
     ]);
   });
 });

@@ -172,10 +172,6 @@ version 4), and scale sessions with every scale run as played. Version 1 to 4 fi
 - **Your scales**: every scale played, least even first, with the one to play next.
 - Export format 5 includes the scale runs; formats 1–4 still import.
 
-## 0.1.0 — 2026-09-25
-
-The first release: the MVP described in [docs/MVP.md](docs/MVP.md). Export format version 1.
-
 ### Focus mode and fingering on the keyboard
 
 - **Focus mode** on a piece and on the Scales page: the header and the settings give way, and one
@@ -187,6 +183,18 @@ The first release: the MVP described in [docs/MVP.md](docs/MVP.md). Export forma
   key** marks each next key with its finger and names a thumb crossing just ahead.
 - In a browser, the screen now stays on during practice too, where it supports the Screen Wake
   Lock API.
+
+### A year of practice on the Progress page
+
+- The practice history can switch from the 30-day bars to a **year grid**: a column per week, a
+  square per day, shaded from a little practice to 30 minutes or more, with the daily goal as the
+  step between the palest shade and the next. Weeks start on Monday in Simplified Chinese and on
+  Sunday otherwise; on a phone the grid scrolls and opens on today. "Show as a table" lists the
+  months. The choice is remembered in this browser.
+
+## 0.1.0 — 2026-09-25
+
+The first release: the MVP described in [docs/MVP.md](docs/MVP.md). Export format version 1.
 
 ### Visual design
 

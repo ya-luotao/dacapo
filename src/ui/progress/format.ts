@@ -26,6 +26,20 @@ export function useLogFormat() {
       day: 'numeric',
       timeZone: 'UTC',
     });
+    const fullDay = new Intl.DateTimeFormat(locale, {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'UTC',
+    });
+    const month = new Intl.DateTimeFormat(locale, { month: 'short', timeZone: 'UTC' });
+    const monthYear = new Intl.DateTimeFormat(locale, {
+      year: 'numeric',
+      month: 'long',
+      timeZone: 'UTC',
+    });
+    const weekday = new Intl.DateTimeFormat(locale, { weekday: 'short', timeZone: 'UTC' });
     return {
       /** Whole minutes, rounded down, so "5 min" always means the goal is reached. */
       minutes: (ms: number) => t('progress.minutes', { n: Math.floor(ms / MINUTE_MS) }),
@@ -41,6 +55,11 @@ export function useLogFormat() {
       dateTime: (epochMs: number) => dateTime.format(epochMs),
       shortDay: (day: DayKey) => shortDay.format(dayInstant(day)),
       longDay: (day: DayKey) => longDay.format(dayInstant(day)),
+      fullDay: (day: DayKey) => fullDay.format(dayInstant(day)),
+      month: (day: DayKey) => month.format(dayInstant(day)),
+      /** `YYYY-MM`, as in `MonthTotal`. */
+      monthYear: (month: string) => monthYear.format(dayInstant(`${month}-01`)),
+      weekday: (day: DayKey) => weekday.format(dayInstant(day)),
     };
   }, [t, locale]);
 }

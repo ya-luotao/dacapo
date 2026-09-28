@@ -34,7 +34,7 @@ export function ProgressPage() {
       ) : (
         <>
           <PracticeFigures log={log} piecesToday={piecesToday} />
-          <DayHistory history={log.history} today={log.today} />
+          <DayHistory history={log.history} totals={log.totals} today={log.today} />
           <WeaknessHeatmap stats={stats} />
           <SessionList sessions={sessions} />
         </>
