@@ -16,6 +16,8 @@ version 4), and scale sessions with every scale run as played. Version 1 to 4 fi
   with the sync service. Every link to the old address, routes included, now goes to the new one.
 - A browser keeps what it stores per address, so practice kept at the old address without an
   account does not come along; with an account, signing in at the new address brings it back.
+- playdacapo.com counts visits with Cloudflare Web Analytics: no cookies, no personal data,
+  nothing about practice. Only the official site has it; the Apple app and any other build do not.
 
 ### Accounts and sync, under way ([docs/SYNC.md](docs/SYNC.md))
 

@@ -116,6 +116,8 @@ The screenshots use generated practice data.
   headphones (their delay varies too much to calibrate).
 - No account needed. Everything is stored locally in your browser; Settings can export it as a
   JSON file for a backup or to move to another computer.
+- playdacapo.com counts visits with Cloudflare Web Analytics: no cookies and no personal data,
+  and nothing about your practice. The Apple app and any other build have no analytics.
 - Optionally, sign in with your email address and a code sent to it, and your practice syncs
   between your devices through dacapo's sync service
   ([privacy policy](https://playdacapo.com/privacy)). Deleting the account in Settings removes

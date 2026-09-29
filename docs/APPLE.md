@@ -41,7 +41,8 @@ privacy label is Contact Info → Email Address and User Content → Other User 
 to the user, for App Functionality only, not used for tracking; the privacy policy URL is
 `https://playdacapo.com/privacy`. The privacy manifest (`Resources/PrivacyInfo.xcprivacy`) says
 the same, and gives the reason for the one required-reason API (`mach_absolute_time`, system boot
-time, 35F9.1). No non-exempt encryption: the only network traffic is HTTPS. The optional public
+time, 35F9.1). No non-exempt encryption: the only network traffic is HTTPS. The web site's visit
+counts (Cloudflare Web Analytics) are not in the app: `embed-web.sh` builds without their token. The optional public
 profile ([PROFILE.md](PROFILE.md)) adds no category: it publishes a summary of the same practice
 records, and a username, for App Functionality, only when the user turns it on.
 

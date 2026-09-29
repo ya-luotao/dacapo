@@ -23,6 +23,7 @@ dacapo 是一个开源的钢琴练习网页应用，配合 MIDI 键盘使用：�
 - 电脑上的 Chrome 或 Edge（支持 Web MIDI）。其他浏览器可以用电脑键盘或鼠标弹。
 - MIDI 键盘推荐但不是必需的，用 USB 线连接即可。
 - 不需要账号。数据可以在“设置”里导出为 JSON 文件备份或迁移。
+- playdacapo.com 用 Cloudflare Web Analytics 统计访问量：不用 cookie，不收集个人数据，也不涉及你的练习记录。Apple app 和其他构建都没有统计。
 - 也可以用邮箱和验证码登录，通过 dacapo 的同步服务在你的各台设备之间同步练习（[隐私政策](https://playdacapo.com/privacy)）。在“设置”里删除账号会清除服务上的全部数据。
 - 登录后还可以发布一个公开主页，像 GitHub 个人主页那样展示你一年的练习：可以只公开练习图，也可以同时公开每天练了什么。默认关闭，由你决定是否开启（[docs/PROFILE.md](docs/PROFILE.md)）。
 
