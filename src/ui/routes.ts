@@ -1,8 +1,8 @@
 import type { MessageKey } from '../i18n/index.ts';
 
 /**
- * The navigation, in order. `priority`: when the header is too narrow, the lowest moves into the
- * More menu first; Play and Read always stay. `practice`: a page where you play, where the header
+ * The navigation, in order; the home page is the brand's link. `priority`: when the header is too
+ * narrow, the lowest moves into the More menu first; Play and Read always stay. `practice`: a page where you play, where the header
  * always shows the metronome chip.
  */
 export const NAV_ITEMS: readonly {
@@ -11,7 +11,7 @@ export const NAV_ITEMS: readonly {
   priority: number;
   practice?: boolean;
 }[] = [
-  { path: '/', label: 'nav.play', priority: Infinity, practice: true },
+  { path: '/play', label: 'nav.play', priority: Infinity, practice: true },
   { path: '/read', label: 'nav.read', priority: Infinity, practice: true },
   { path: '/scales', label: 'nav.scales', priority: 5, practice: true },
   { path: '/pieces', label: 'nav.pieces', priority: 6, practice: true },
@@ -23,7 +23,14 @@ export const NAV_ITEMS: readonly {
 /** Whether `location` is a practice page or one of its subpages (a piece belongs to Pieces). */
 export function isPracticePage(location: string): boolean {
   return NAV_ITEMS.some(
-    ({ path, practice }) =>
-      practice && (location === path || (path !== '/' && location.startsWith(`${path}/`))),
+    ({ path, practice }) => practice && (location === path || location.startsWith(`${path}/`)),
   );
+}
+
+/** The page's name for the window title: its navigation label, or null for the home page. */
+export function pageLabel(location: string): MessageKey | null {
+  if (location === '/') return null;
+  if (location === '/about') return 'settings.about';
+  const item = NAV_ITEMS.find(({ path }) => location === path || location.startsWith(`${path}/`));
+  return item ? item.label : 'notFound.title';
 }

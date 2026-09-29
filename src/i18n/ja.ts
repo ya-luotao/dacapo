@@ -15,6 +15,65 @@ export const ja: Dictionary = {
   'nav.more': 'その他',
   'nav.star': 'GitHub で dacapo にスターを付ける',
 
+  'home.eyebrow': 'MIDIキーボードでピアノ練習',
+  'home.lede':
+    '本物の大譜表で譜読み。粒のそろいまで測るスケール。弾くまで待ってくれる本物の曲。そしてメトロノーム。dacapoはすべての解答の時間を計り、時間のかかる音を重点的に出題します。',
+  'home.start': '譜読みを始める',
+  'home.play': '自由に弾いてみる',
+  'home.facts':
+    '無料のオープンソース · アカウント不要 · MIDIキーボードでもパソコンのキーボードでも',
+  'home.specimen.label': '大譜表の音符と、その音を弾く鍵盤',
+  'home.specimen.caption': '鍵盤を押さえると、その音が譜表に現れます。',
+  'home.welcome': '練習の状況',
+  'home.welcome.link': '記録を見る',
+  'home.contents': '目次',
+  'home.read.text':
+    '大譜表の音符を1つずつ。中央Cのポジションから、加線、シャープとフラットまで。すべての解答の時間を計り、反応の遅い音ほど次のカードに出やすくなります。',
+  'home.read.meta': '{n}レベル',
+  'home.scales.text':
+    'すべての調の長音階、3種類の短音階、半音階を、ハノンの運指で。自分のテンポで弾いたあと、1音1音の粒のそろいを確かめられます。',
+  'home.scales.meta': '12の調 · 5種類のスケール',
+  'home.pieces.text':
+    'ベートーヴェン、バッハ、シューマンなどを本物の楽譜で。カーソルは正しい鍵盤を弾くまで待ち、リズムモードではテンポどおりに進みます。手持ちのMusicXMLもインポートできます。',
+  'home.pieces.meta': '{n}曲 · MusicXML',
+  'home.metronome.text':
+    '振り子に、アクセント、細分、テンポトレーナー。どんな練習にも使えるメトロノームです。',
+  'home.metronome.meta': '{min}〜{max} BPM',
+  'home.progress.text':
+    '1日の練習時間、連続日数、1年間の一覧、そして見つけるのに時間がかかる音がわかるヒートマップ。',
+  'home.progress.meta': '1日{n}分',
+  'home.principles': '練習のために',
+  'home.principle.keyboard': 'どんなキーボードでも',
+  'home.principle.keyboard.text':
+    'USBでつなぐMIDIキーボードなら、どれでも使えます。手元にキーボードがなくても、パソコンのキーボードで1オクターブずつ弾けます。',
+  'home.principle.private': 'データは手元に',
+  'home.principle.private.text':
+    '練習の記録はこの端末に保存されます。アカウントは任意で、自分の端末どうしを同期するときにだけ使います。',
+  'home.principle.open': '無料でオープンソース',
+  'home.principle.open.text':
+    'MITライセンスで、開発もすべて公開しています。広告も課金もありません。',
+  'home.principle.languages': '5つの言語',
+  'home.principle.languages.text':
+    'English、简体中文、繁體中文、日本語、한국어に対応。それぞれの言語の音楽用語を使っています。',
+  'home.faq': 'よくある質問',
+  'home.faq.midi.q': 'MIDIキーボードは必要ですか？',
+  'home.faq.midi.a':
+    'いいえ。パソコンのキーボードで1オクターブずつ弾けるほか、画面の鍵盤をクリックやタップでも弾けます。MIDIキーボードを使えば本物のピアノに近い感覚で練習でき、1音ごとのタイミングも正確に計れます。',
+  'home.faq.browser.q': '対応しているブラウザは？',
+  'home.faq.browser.a':
+    'MIDIキーボードを使うには、パソコンのChromeかEdgeが必要です。ほかのブラウザでも、パソコンのキーボードで弾けます。',
+  'home.faq.free.q': '無料ですか？',
+  'home.faq.free.a':
+    'はい。dacapoはMITライセンスの無料のオープンソースソフトウェアです。サブスクリプションも広告もなく、アカウントも不要です。',
+  'home.faq.data.q': '練習の記録はどこに保存されますか？',
+  'home.faq.data.a':
+    'この端末のこのブラウザに保存されます。「設定」からいつでもエクスポートできるほか、ログインすれば自分の端末どうしで同期できます。',
+
+  'footer.tagline': 'MIDIキーボードで弾く、無料でオープンソースのピアノ練習アプリ。',
+  'footer.about': 'dacapoについて・ライセンス',
+  'footer.privacy': 'プライバシーポリシー',
+  'footer.version': 'バージョン{version}',
+
   'play.title': '演奏',
   'play.readout.label': '音',
   'play.readout.empty': '何か弾いてみてください',
@@ -1018,7 +1077,7 @@ export const ja: Dictionary = {
   'settings.about.notices': 'サードパーティのソフトウェア、フォント、音源、楽譜のライセンス',
 
   'notFound.title': 'ページが見つかりません',
-  'notFound.back': '「演奏」へ戻る',
+  'notFound.back': 'トップページへ戻る',
 
   // In the Apple app (apple/), a key ending in `.app` replaces the key without it (see
   // i18n/shellWording.ts).

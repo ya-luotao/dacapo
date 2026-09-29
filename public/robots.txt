@@ -1,0 +1,5 @@
+# https://playdacapo.com — everything may be crawled.
+User-agent: *
+Allow: /
+
+Sitemap: https://playdacapo.com/sitemap.xml

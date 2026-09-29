@@ -62,7 +62,7 @@ function mount(path: string) {
 
 describe('the metronome chip', () => {
   it('draws the beat while the metronome runs', () => {
-    const metronome = mount('/');
+    const metronome = mount('/play');
     act(() => metronome.start());
     expect(frames).toHaveBeenCalled();
     act(() => metronome.stop());

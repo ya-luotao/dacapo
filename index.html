@@ -3,11 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>dacapo — learn to read the grand staff</title>
+    <title>dacapo — Piano practice with a MIDI keyboard</title>
     <meta
       name="description"
-      content="Learn to read the grand staff and find the key fast with a MIDI keyboard. Free and open source; everything stays in your browser."
+      content="Free piano practice with your MIDI keyboard: sight-reading on a real grand staff, scales measured for evenness, real pieces in wait and rhythm mode, and a metronome. Open source, no account needed."
     />
+    <link rel="canonical" href="https://playdacapo.com/" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f8f4ec" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#181411" />
@@ -17,12 +19,17 @@
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="dacapo" />
-    <meta property="og:title" content="dacapo — learn to read the grand staff" />
+    <meta property="og:title" content="dacapo — read the staff, find the key" />
     <meta
       property="og:description"
-      content="Sight-reading flashcards on a real grand staff, a weakness heatmap and real pieces in wait and rhythm mode, with your MIDI keyboard. Free, open source, no account."
+      content="Sight-reading flashcards on a real grand staff, scales measured for evenness, real pieces in wait and rhythm mode, and a metronome, with your MIDI keyboard. Free, open source, no account."
     />
     <meta property="og:url" content="https://playdacapo.com/" />
+    <meta property="og:locale" content="en_GB" />
+    <meta property="og:locale:alternate" content="zh_CN" />
+    <meta property="og:locale:alternate" content="zh_TW" />
+    <meta property="og:locale:alternate" content="ja_JP" />
+    <meta property="og:locale:alternate" content="ko_KR" />
     <meta property="og:image" content="https://playdacapo.com/social-card.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -31,9 +38,53 @@
       content="The dacapo wordmark above a treble staff with one whole note"
     />
     <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- What search engines show about the app (schema.org). Kept in step with the copy above. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "dacapo",
+        "alternateName": "dacapo piano practice",
+        "url": "https://playdacapo.com/",
+        "description": "Free, open-source piano practice with a MIDI keyboard: sight-reading on a real grand staff, scales measured for evenness, real pieces in wait and rhythm mode, a metronome and a practice log.",
+        "applicationCategory": "EducationalApplication",
+        "applicationSubCategory": "Music education",
+        "operatingSystem": "Web",
+        "browserRequirements": "Requires JavaScript. MIDI keyboards need the Web MIDI API.",
+        "inLanguage": ["en", "zh-CN", "zh-TW", "ja", "ko"],
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "license": "https://opensource.org/licenses/MIT",
+        "image": "https://playdacapo.com/social-card.png",
+        "screenshot": "https://playdacapo.com/social-card.png",
+        "featureList": [
+          "Sight-reading flashcards on a real grand staff, in seven levels",
+          "Reaction-time tracking and a per-note weakness heatmap",
+          "Scales in every key with Hanon's fingering, measured for evenness",
+          "Real pieces in wait mode and rhythm mode, and MusicXML import",
+          "Metronome with accents, subdivisions and a tempo trainer",
+          "Practice log with a daily streak",
+          "Works with a MIDI keyboard or the computer keyboard"
+        ],
+        "sameAs": ["https://github.com/ya-luotao/dacapo"]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <!-- Without JavaScript: the home page's words, so the page still says what it is. -->
+    <noscript>
+      <main style="max-width: 40rem; margin: 3rem auto; padding: 0 1rem; font-family: serif">
+        <h1>dacapo — read the staff, find the key</h1>
+        <p>
+          Free, open-source piano practice with a MIDI keyboard: sight-reading on a real grand
+          staff, scales measured for evenness, real pieces that wait for you, and a metronome.
+          dacapo needs JavaScript to run.
+        </p>
+        <p><a href="https://github.com/ya-luotao/dacapo">Source code on GitHub</a></p>
+      </main>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

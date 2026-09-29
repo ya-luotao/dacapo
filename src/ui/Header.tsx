@@ -12,7 +12,7 @@ const ALL: NavFit = { shown: NAV_ITEMS.map((_, i) => i), more: [] };
 
 /** A piece's page belongs to Pieces. */
 function isActive(location: string, path: string): boolean {
-  return location === path || (path !== '/' && location.startsWith(`${path}/`));
+  return location === path || location.startsWith(`${path}/`);
 }
 
 /** The header, except in focus mode, where the practice page keeps its own row instead. */
@@ -109,62 +109,64 @@ function HeaderBar() {
 
   return (
     <header className="header">
-      <Link href="/" className="brand">
-        <BrandMark className="brand-mark" />
-        <span className="visually-hidden">{t('app.name')}</span>
-      </Link>
-      <nav aria-label={t('nav.label')} ref={nav}>
-        <ul className="nav">
-          {fit.shown.map((i) => (
-            <li key={NAV_ITEMS[i]!.path}>{link(i, 'nav-link')}</li>
-          ))}
-          {fit.more.length > 0 && (
-            <li className="nav-more" onKeyDown={onMenuKey}>
-              <button
-                type="button"
-                ref={moreButton}
-                className={
-                  moreActive ? 'nav-link nav-more-button is-active' : 'nav-link nav-more-button'
-                }
-                aria-expanded={open}
-                aria-controls="nav-more-menu"
-                onClick={() => setOpen(!open)}
-              >
+      <div className="header-inner">
+        <Link href="/" className="brand">
+          <BrandMark className="brand-mark" />
+          <span className="visually-hidden">{t('app.name')}</span>
+        </Link>
+        <nav aria-label={t('nav.label')} ref={nav}>
+          <ul className="nav">
+            {fit.shown.map((i) => (
+              <li key={NAV_ITEMS[i]!.path}>{link(i, 'nav-link')}</li>
+            ))}
+            {fit.more.length > 0 && (
+              <li className="nav-more" onKeyDown={onMenuKey}>
+                <button
+                  type="button"
+                  ref={moreButton}
+                  className={
+                    moreActive ? 'nav-link nav-more-button is-active' : 'nav-link nav-more-button'
+                  }
+                  aria-expanded={open}
+                  aria-controls="nav-more-menu"
+                  onClick={() => setOpen(!open)}
+                >
+                  {t('nav.more')}
+                  <svg className="nav-more-chevron" viewBox="0 0 10 6" aria-hidden="true">
+                    <path d="M1 1l4 4 4-4" />
+                  </svg>
+                </button>
+                <div id="nav-more-menu" className="nav-more-menu" ref={menu} hidden={!open}>
+                  <ul>
+                    {fit.more.map((i) => (
+                      <li key={NAV_ITEMS[i]!.path}>{link(i, 'nav-more-link', true)}</li>
+                    ))}
+                  </ul>
+                </div>
+              </li>
+            )}
+          </ul>
+          {/* Every item and More, as the bar draws them: measured, never seen. */}
+          <div className="nav-ruler-box" aria-hidden="true">
+            <ul className="nav nav-ruler" ref={ruler}>
+              {NAV_ITEMS.map(({ path, label }) => (
+                <li key={path} className="nav-link">
+                  {t(label)}
+                </li>
+              ))}
+              <li className="nav-link nav-more-button">
                 {t('nav.more')}
-                <svg className="nav-more-chevron" viewBox="0 0 10 6" aria-hidden="true">
+                <svg className="nav-more-chevron" viewBox="0 0 10 6">
                   <path d="M1 1l4 4 4-4" />
                 </svg>
-              </button>
-              <div id="nav-more-menu" className="nav-more-menu" ref={menu} hidden={!open}>
-                <ul>
-                  {fit.more.map((i) => (
-                    <li key={NAV_ITEMS[i]!.path}>{link(i, 'nav-more-link', true)}</li>
-                  ))}
-                </ul>
-              </div>
-            </li>
-          )}
-        </ul>
-        {/* Every item and More, as the bar draws them: measured, never seen. */}
-        <div className="nav-ruler-box" aria-hidden="true">
-          <ul className="nav nav-ruler" ref={ruler}>
-            {NAV_ITEMS.map(({ path, label }) => (
-              <li key={path} className="nav-link">
-                {t(label)}
               </li>
-            ))}
-            <li className="nav-link nav-more-button">
-              {t('nav.more')}
-              <svg className="nav-more-chevron" viewBox="0 0 10 6">
-                <path d="M1 1l4 4 4-4" />
-              </svg>
-            </li>
-          </ul>
+            </ul>
+          </div>
+        </nav>
+        <div className="header-end">
+          <MetronomeChip />
+          <GitHubStar />
         </div>
-      </nav>
-      <div className="header-end">
-        <MetronomeChip />
-        <GitHubStar />
       </div>
     </header>
   );

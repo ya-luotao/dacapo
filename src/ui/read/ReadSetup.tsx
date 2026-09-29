@@ -50,42 +50,49 @@ export function ReadSetup(props: ReadSetupProps) {
         </p>
       </fieldset>
 
-      <fieldset className="field">
-        <legend>{t('read.length')}</legend>
-        <div className="segmented">
-          {SESSION_LENGTHS.map((length) => (
-            <label key={length}>
-              <input
-                type="radio"
-                name={`${id}-length`}
-                value={length}
-                checked={props.length === length}
-                onChange={() => props.onLength(length)}
-              />
-              <span>{length}</span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
-
-      <div className="field">
-        <label className="check">
-          <input
-            type="checkbox"
-            checked={props.hint}
-            onChange={(e) => props.onHint(e.target.checked)}
-            aria-describedby={`${id}-hint`}
-          />
-          <span>{t('read.hint')}</span>
-        </label>
-        <p id={`${id}-hint`} className="help">
-          {t('read.hint.help')}
+      {/* The session: beside the levels on a wide screen, as a card to start from. */}
+      <div className="read-options">
+        <p className="read-options-level" aria-hidden="true">
+          <span className="level-id">{props.level}</span>
+          <span>{t(`read.level.${props.level}`)}</span>
         </p>
-      </div>
+        <fieldset className="field">
+          <legend>{t('read.length')}</legend>
+          <div className="segmented">
+            {SESSION_LENGTHS.map((length) => (
+              <label key={length}>
+                <input
+                  type="radio"
+                  name={`${id}-length`}
+                  value={length}
+                  checked={props.length === length}
+                  onChange={() => props.onLength(length)}
+                />
+                <span>{length}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
 
-      <button type="submit" className="button button-primary read-start">
-        {t('read.start')}
-      </button>
+        <div className="field">
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={props.hint}
+              onChange={(e) => props.onHint(e.target.checked)}
+              aria-describedby={`${id}-hint`}
+            />
+            <span>{t('read.hint')}</span>
+          </label>
+          <p id={`${id}-hint`} className="help">
+            {t('read.hint.help')}
+          </p>
+        </div>
+
+        <button type="submit" className="button button-primary read-start">
+          {t('read.start')}
+        </button>
+      </div>
     </form>
   );
 }

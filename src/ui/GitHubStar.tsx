@@ -1,7 +1,6 @@
 import { useT } from '../i18n/index.ts';
 import { currentShell } from '../lib/shell.ts';
-
-const REPO_URL = 'https://github.com/ya-luotao/dacapo';
+import { REPO_URL } from '../lib/links.ts';
 
 /**
  * A link to star dacapo on GitHub, at the end of the web app's header. Not in the Apple app. Just a

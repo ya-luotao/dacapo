@@ -22,10 +22,14 @@ const BROWSER_ONLY: Record<Locale, RegExp> = {
   ko: /브라우저|탭(?!하)|사이트 데이터|사이트 설정|이 사이트|내려받|페이지를 새로 고|인터넷 연결|이 컴퓨터|컴퓨터의 헤드폰/,
 };
 
-// Matches that are not about the browser.
+// Matches that are not about the browser, or never shown in the app.
 const ALLOWED = new Set<MessageKey>([
   // "tab to it": the Tab key.
   'heatmap.hint',
+  // The home page's questions are only in the web app (HomePage.tsx).
+  'home.faq.browser.q',
+  'home.faq.browser.a',
+  'home.faq.data.a',
 ]);
 
 const placeholders = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();

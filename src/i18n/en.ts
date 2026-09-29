@@ -15,6 +15,63 @@ export const en = {
   'nav.more': 'More',
   'nav.star': 'Star dacapo on GitHub',
 
+  'home.eyebrow': 'Piano practice with a MIDI keyboard',
+  'home.lede':
+    'Sight-reading on a real grand staff, scales measured for evenness, real pieces that wait for you, and a metronome. dacapo times every answer and keeps practising the notes that slow you down.',
+  'home.start': 'Start reading',
+  'home.play': 'Or just play',
+  'home.facts': 'Free and open source · No account needed · A MIDI keyboard or your computer keys',
+  'home.specimen.label': 'A note on the grand staff, and the key that plays it',
+  'home.specimen.caption': 'Hold a key on your keyboard, and it appears on the staff.',
+  'home.welcome': 'Your practice',
+  'home.welcome.link': 'See your progress',
+  'home.contents': 'Contents',
+  'home.read.text':
+    'One note at a time on the grand staff, from middle C position to ledger lines and accidentals. Every answer is timed, and the next card favours the notes you are slow on.',
+  'home.read.meta': '{n} levels',
+  'home.scales.text':
+    'Major, the three minors and chromatic in every key, with Hanon’s fingering. Play at your own tempo, then see how even every note was.',
+  'home.scales.meta': '12 keys · 5 scales',
+  'home.pieces.text':
+    'Beethoven, Bach, Schumann and more on the real score. The cursor waits for the right keys, or keeps time in rhythm mode. Or bring your own MusicXML.',
+  'home.pieces.meta': '{n} pieces · MusicXML',
+  'home.metronome.text':
+    'A pendulum with accents, subdivisions and a tempo trainer, for any practice.',
+  'home.metronome.meta': '{min}–{max} BPM',
+  'home.progress.text':
+    'Minutes a day, a streak, a year at a glance, and a heatmap of the notes you find slowly.',
+  'home.progress.meta': '{n} minutes a day',
+  'home.principles': 'Made for practice',
+  'home.principle.keyboard': 'Any keyboard',
+  'home.principle.keyboard.text':
+    'Any MIDI keyboard over USB. No keyboard to hand? Your computer keys play an octave at a time.',
+  'home.principle.private': 'Yours alone',
+  'home.principle.private.text':
+    'Your practice stays on this device. An account is optional, only to sync your own devices.',
+  'home.principle.open': 'Free and open source',
+  'home.principle.open.text': 'MIT-licensed and made in the open. No ads, and nothing to buy.',
+  'home.principle.languages': 'Five languages',
+  'home.principle.languages.text':
+    'English, 简体中文, 繁體中文, 日本語 and 한국어, each with its own musical terms.',
+  'home.faq': 'Questions',
+  'home.faq.midi.q': 'Do I need a MIDI keyboard?',
+  'home.faq.midi.a':
+    'No. Your computer keyboard plays an octave at a time, and you can click or tap the keys. A MIDI keyboard makes practice feel real and times every note precisely.',
+  'home.faq.browser.q': 'Which browsers work?',
+  'home.faq.browser.a':
+    'For a MIDI keyboard, Chrome or Edge on a computer. Other browsers work with your computer keyboard.',
+  'home.faq.free.q': 'Is it free?',
+  'home.faq.free.a':
+    'Yes. dacapo is free and open source under the MIT licence: no subscription, no ads, and no account needed.',
+  'home.faq.data.q': 'Where is my practice saved?',
+  'home.faq.data.a':
+    'In this browser, on this device. You can export it from Settings at any time, or sign in to sync it between your own devices.',
+
+  'footer.tagline': 'Free, open-source piano practice with a MIDI keyboard.',
+  'footer.about': 'About and licences',
+  'footer.privacy': 'Privacy',
+  'footer.version': 'Version {version}',
+
   'play.title': 'Play',
   'play.readout.label': 'Notes',
   'play.readout.empty': 'Play a note',
@@ -1016,7 +1073,7 @@ export const en = {
   'settings.about.notices': 'Licences of the third-party software, fonts, sounds and music',
 
   'notFound.title': 'Page not found',
-  'notFound.back': 'Go to Play',
+  'notFound.back': 'Go to the start page',
 
   // In the Apple app (apple/), a key ending in `.app` replaces the key without it (see
   // i18n/shellWording.ts): the app has no browser, tabs, site data or downloads to speak of.

@@ -6,9 +6,9 @@ import { AccountSection } from '../settings/AccountSection.tsx';
 import { DataSection } from '../settings/DataSection.tsx';
 import { SoundSection } from '../settings/SoundSection.tsx';
 import { currentTheme, setTheme, THEME_PREFERENCES, type ThemePreference } from '../theme.ts';
+import { REPO_URL } from '../../lib/links.ts';
 
 const SYSTEM = 'system';
-const REPO_URL = 'https://github.com/ya-luotao/dacapo';
 
 export function SettingsPage() {
   const { t, override, setOverride } = useI18n();
@@ -31,7 +31,7 @@ export function SettingsPage() {
   }
 
   return (
-    <section className="page">
+    <section className="page settings">
       <h1>{t('settings.title')}</h1>
 
       <div className="field">

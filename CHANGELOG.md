@@ -10,6 +10,18 @@ Export format version 5: the file now includes imported pieces (from version 2),
 sessions and their step records (from version 3), rhythm-mode steps with their timings (from
 version 4), and scale sessions with every scale run as played. Version 1 to 4 files still import.
 
+### A home page, and a sharper look
+
+- dacapo opens on a **home page**: what it is, the way into each practice as a contents page, and
+  a grand staff with a keyboard under it that shows any key you hold on the staff. **Play** moves
+  to its own address, `#/play`; old links to `#/` now open the home page.
+- The header stays at the top while the page scrolls, and the pages use the width of a large
+  screen: Read puts the session beside the levels, and Settings sets each section's title in the
+  margin. The web app has a footer with the licences, the source and the privacy policy.
+- The window title names the page you are on.
+- For search engines: a description of every practice, structured data, a sitemap and
+  `robots.txt`.
+
 ### A new address: [playdacapo.com](https://playdacapo.com/)
 
 - The web app moves from `ya-luotao.github.io/dacapo` to **playdacapo.com**, served by Cloudflare

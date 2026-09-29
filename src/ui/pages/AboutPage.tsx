@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { useT, type MessageKey } from '../../i18n/index.ts';
+import { REPO_URL } from '../../lib/links.ts';
 
-const REPO_URL = 'https://github.com/ya-luotao/dacapo';
 /** Where the licence texts are served: public/licenses/, below the app's base path. */
 const LICENCES = `${import.meta.env.BASE_URL}licenses/`;
 

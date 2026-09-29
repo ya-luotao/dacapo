@@ -2,7 +2,7 @@
   "name": "dacapo",
   "private": true,
   "version": "0.1.0",
-  "description": "Learn to read the grand staff and find the key fast with a MIDI keyboard: sight-reading flashcards, a weakness heatmap and real pieces in wait and rhythm mode, all in the browser.",
+  "description": "Free, open-source piano practice with a MIDI keyboard: sight-reading on a real grand staff, scales measured for evenness, real pieces in wait and rhythm mode, and a metronome, all in the browser.",
   "keywords": [
     "piano",
     "sight-reading",
@@ -15,6 +15,8 @@
     "flashcards",
     "practice",
     "metronome",
+    "piano-scales",
+    "piano-practice",
     "react",
     "typescript",
     "pwa"

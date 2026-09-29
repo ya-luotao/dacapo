@@ -15,6 +15,62 @@ export const zhCN: Dictionary = {
   'nav.more': '更多',
   'nav.star': '在 GitHub 上给 dacapo 点 Star',
 
+  'home.eyebrow': '用 MIDI 键盘练钢琴',
+  'home.lede':
+    '在真正的大谱表上识谱；音阶弹得匀不匀，一测便知；真正的曲目，乐谱会等你弹对；再加一台节拍器。dacapo 为每次作答计时，哪些音让你慢下来，就多练哪些。',
+  'home.start': '开始识谱',
+  'home.play': '或者自由弹奏',
+  'home.facts': '免费开源 · 无需账号 · MIDI 键盘或电脑键盘都能弹',
+  'home.specimen.label': '大谱表上的一个音符，以及弹出它的琴键',
+  'home.specimen.caption': '在键盘上按住一个键，它就会出现在谱表上。',
+  'home.welcome': '你的练习',
+  'home.welcome.link': '查看进度',
+  'home.contents': '目录',
+  'home.read.text':
+    '大谱表上一次一个音，从中央 C 位置一直到加线和升号、降号。每次作答都会计时，下一张卡片会优先出你反应慢的音。',
+  'home.read.meta': '{n} 个级别',
+  'home.scales.text':
+    '所有调的大调、三种小调和半音阶，采用哈农的指法。按自己的速度弹，弹完看看每个音有多均匀。',
+  'home.scales.meta': '12 个调 · 5 种音阶',
+  'home.pieces.text':
+    '贝多芬、巴赫、舒曼等名家作品，在真正的乐谱上弹。光标会等你弹对，节奏模式下则跟着拍子走。也可以导入你自己的 MusicXML。',
+  'home.pieces.meta': '{n} 首曲目 · MusicXML',
+  'home.metronome.text': '带摆锤的节拍器，有重音、细分和速度训练，什么练习都用得上。',
+  'home.metronome.meta': '{min}–{max} BPM',
+  'home.progress.text':
+    '每天的练习分钟数、连续天数、一整年一目了然，还有一张热力图，标出你找得慢的音。',
+  'home.progress.meta': '每天 {n} 分钟',
+  'home.principles': '专为练琴',
+  'home.principle.keyboard': '什么键盘都行',
+  'home.principle.keyboard.text':
+    '任何通过 USB 连接的 MIDI 键盘都能用。手边没有键盘？电脑键盘也能弹，一次一个八度。',
+  'home.principle.private': '只属于你',
+  'home.principle.private.text':
+    '练习记录保存在这台设备上。账号可有可无，只用来在你自己的设备之间同步。',
+  'home.principle.open': '免费开源',
+  'home.principle.open.text': '采用 MIT 许可证，公开开发。没有广告，也没有任何付费项目。',
+  'home.principle.languages': '五种语言',
+  'home.principle.languages.text':
+    'English、简体中文、繁體中文、日本語、한국어，每种语言都用它自己的音乐术语。',
+  'home.faq': '常见问题',
+  'home.faq.midi.q': '一定要有 MIDI 键盘吗？',
+  'home.faq.midi.a':
+    '不用。电脑键盘一次可以弹一个八度，也可以直接点屏幕上的琴键。有了 MIDI 键盘，练起来更像真的弹琴，每个音的计时也更精确。',
+  'home.faq.browser.q': '支持哪些浏览器？',
+  'home.faq.browser.a':
+    '要连接 MIDI 键盘，请在电脑上使用 Chrome 或 Edge。其他浏览器可以用电脑键盘弹。',
+  'home.faq.free.q': '是免费的吗？',
+  'home.faq.free.a':
+    '完全免费。dacapo 是采用 MIT 许可证的免费开源软件：不用订阅，没有广告，也不用注册账号。',
+  'home.faq.data.q': '练习记录保存在哪里？',
+  'home.faq.data.a':
+    '保存在这台设备的这个浏览器里。你随时可以在“设置”中导出，也可以登录，在自己的几台设备之间同步。',
+
+  'footer.tagline': '免费开源，用 MIDI 键盘练钢琴。',
+  'footer.about': '关于与许可',
+  'footer.privacy': '隐私政策',
+  'footer.version': '版本 {version}',
+
   'play.title': '弹奏',
   'play.readout.label': '音符',
   'play.readout.empty': '弹一个音试试',
@@ -954,7 +1010,7 @@ export const zhCN: Dictionary = {
   'settings.about.notices': '第三方软件、字体、音色和乐谱的许可与来源',
 
   'notFound.title': '页面不存在',
-  'notFound.back': '返回弹奏',
+  'notFound.back': '返回首页',
 
   // In the Apple app (apple/), a key ending in `.app` replaces the key without it (see
   // i18n/shellWording.ts).

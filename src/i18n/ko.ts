@@ -15,6 +15,63 @@ export const ko: Dictionary = {
   'nav.more': '더 보기',
   'nav.star': 'GitHub에서 dacapo에 스타 주기',
 
+  'home.eyebrow': 'MIDI 키보드로 하는 피아노 연습',
+  'home.lede':
+    '진짜 큰보표로 하는 악보 읽기, 얼마나 고르게 치는지 재 주는 스케일, 칠 때까지 기다려 주는 진짜 곡, 그리고 메트로놈. dacapo는 모든 답의 시간을 재고, 오래 걸리는 음을 더 자주 연습시켜요.',
+  'home.start': '악보 읽기 시작',
+  'home.play': '그냥 쳐 보기',
+  'home.facts': '무료 오픈 소스 · 계정 없이 사용 · MIDI 키보드나 컴퓨터 키보드로',
+  'home.specimen.label': '큰보표 위의 음표와 그 음을 치는 건반',
+  'home.specimen.caption': '건반을 누르고 있으면 그 음이 보표에 나타나요.',
+  'home.welcome': '내 연습',
+  'home.welcome.link': '기록 보기',
+  'home.contents': '차례',
+  'home.read.text':
+    '큰보표의 음을 하나씩, 가운데 C 자리부터 덧줄, 올림표와 내림표까지. 모든 답의 시간을 재고, 느리게 찾는 음일수록 다음 카드에 더 자주 나와요.',
+  'home.read.meta': '레벨 {n}개',
+  'home.scales.text':
+    '모든 조의 장음계, 세 가지 단음계, 반음계를 하농의 손가락 번호로. 원하는 빠르기로 치고 나면 음 하나하나가 얼마나 고른지 보여 줘요.',
+  'home.scales.meta': '12개 조 · 스케일 5종',
+  'home.pieces.text':
+    '베토벤, 바흐, 슈만 등의 곡을 진짜 악보로. 커서가 맞는 건반을 칠 때까지 기다려 주고, 리듬 모드에서는 박자대로 움직여요. 가지고 있는 MusicXML도 가져올 수 있어요.',
+  'home.pieces.meta': '{n}곡 · MusicXML',
+  'home.metronome.text':
+    '강세, 세분, 빠르기 트레이너를 갖춘 진자 메트로놈. 어떤 연습에든 쓸 수 있어요.',
+  'home.metronome.meta': '{min}–{max} BPM',
+  'home.progress.text':
+    '하루 연습 시간, 연속 기록, 한눈에 보는 1년, 그리고 느리게 찾는 음을 보여 주는 히트맵.',
+  'home.progress.meta': '하루 {n}분',
+  'home.principles': '연습을 위해',
+  'home.principle.keyboard': '어떤 키보드든',
+  'home.principle.keyboard.text':
+    'USB로 연결하는 MIDI 키보드라면 무엇이든 돼요. 키보드가 없다면 컴퓨터 키보드로 한 번에 한 옥타브씩 칠 수 있어요.',
+  'home.principle.private': '나만의 기록',
+  'home.principle.private.text':
+    '연습 기록은 이 기기에 저장돼요. 계정은 선택 사항이고, 내 기기끼리 동기화할 때만 필요해요.',
+  'home.principle.open': '무료 오픈 소스',
+  'home.principle.open.text': 'MIT 라이선스로 공개 개발해요. 광고도, 결제할 것도 없어요.',
+  'home.principle.languages': '5개 언어',
+  'home.principle.languages.text':
+    'English, 简体中文, 繁體中文, 日本語, 한국어. 언어마다 그 언어의 음악 용어를 써요.',
+  'home.faq': '자주 묻는 질문',
+  'home.faq.midi.q': 'MIDI 키보드가 꼭 있어야 하나요?',
+  'home.faq.midi.a':
+    '아니요. 컴퓨터 키보드로 한 번에 한 옥타브씩 칠 수 있고, 화면의 건반을 클릭하거나 터치해도 돼요. MIDI 키보드가 있으면 실제 피아노처럼 연습할 수 있고, 음마다 타이밍도 정확하게 재요.',
+  'home.faq.browser.q': '어떤 브라우저에서 쓸 수 있나요?',
+  'home.faq.browser.a':
+    'MIDI 키보드를 쓰려면 컴퓨터의 Chrome이나 Edge가 필요해요. 다른 브라우저에서는 컴퓨터 키보드로 칠 수 있어요.',
+  'home.faq.free.q': '무료인가요?',
+  'home.faq.free.a':
+    '네. dacapo는 MIT 라이선스의 무료 오픈 소스 소프트웨어예요. 구독도 광고도 없고, 계정도 필요 없어요.',
+  'home.faq.data.q': '연습 기록은 어디에 저장되나요?',
+  'home.faq.data.a':
+    '이 기기의 이 브라우저에 저장돼요. 설정에서 언제든 내보낼 수 있고, 로그인하면 내 기기끼리 동기화할 수 있어요.',
+
+  'footer.tagline': 'MIDI 키보드로 하는 무료 오픈 소스 피아노 연습.',
+  'footer.about': '정보 및 라이선스',
+  'footer.privacy': '개인정보 처리방침',
+  'footer.version': '버전 {version}',
+
   'play.title': '연주',
   'play.readout.label': '음',
   'play.readout.empty': '아무 음이나 쳐 보세요',
@@ -1004,7 +1061,7 @@ export const ko: Dictionary = {
   'settings.about.notices': '서드파티 소프트웨어, 글꼴, 음원, 악보의 라이선스',
 
   'notFound.title': '페이지를 찾을 수 없어요',
-  'notFound.back': '연주로 가기',
+  'notFound.back': '홈으로 가기',
 
   // In the Apple app (apple/), a key ending in `.app` replaces the key without it (see
   // i18n/shellWording.ts).

@@ -15,6 +15,62 @@ export const zhTW: Dictionary = {
   'nav.more': '更多',
   'nav.star': '在 GitHub 上給 dacapo 按 Star',
 
+  'home.eyebrow': '用 MIDI 鍵盤練鋼琴',
+  'home.lede':
+    '在真正的大譜表上識譜；音階彈得勻不勻，一測便知；真正的樂曲，樂譜會等你彈對；再加上一台節拍器。dacapo 為每次作答計時，哪些音讓你慢下來，就多練哪些。',
+  'home.start': '開始識譜',
+  'home.play': '或者自由彈奏',
+  'home.facts': '免費開源 · 不需要帳號 · MIDI 鍵盤或電腦鍵盤都能彈',
+  'home.specimen.label': '大譜表上的一個音符，以及彈出它的琴鍵',
+  'home.specimen.caption': '在鍵盤上按住一個鍵，它就會出現在譜表上。',
+  'home.welcome': '你的練習',
+  'home.welcome.link': '查看進度',
+  'home.contents': '目錄',
+  'home.read.text':
+    '大譜表上一次一個音，從中央 C 位置一路到加線和升降記號。每次作答都會計時，下一張閃卡會優先出你反應慢的音。',
+  'home.read.meta': '{n} 個等級',
+  'home.scales.text':
+    '所有調的大調、三種小調和半音階，採用哈農的指法。用自己的速度彈，彈完看看每個音有多均勻。',
+  'home.scales.meta': '12 個調 · 5 種音階',
+  'home.pieces.text':
+    '貝多芬、巴哈、舒曼等名家作品，在真正的樂譜上彈。游標會等你彈對，節奏模式下則跟著拍子走。也可以匯入你自己的 MusicXML。',
+  'home.pieces.meta': '{n} 首樂曲 · MusicXML',
+  'home.metronome.text': '有擺錘的節拍器，還有重音、細分和速度訓練，什麼練習都用得上。',
+  'home.metronome.meta': '{min}–{max} BPM',
+  'home.progress.text':
+    '每天的練習分鐘數、連續天數、一整年一目了然，還有一張熱度圖，標出你找得慢的音。',
+  'home.progress.meta': '每天 {n} 分鐘',
+  'home.principles': '專為練琴',
+  'home.principle.keyboard': '什麼鍵盤都行',
+  'home.principle.keyboard.text':
+    '任何以 USB 連接的 MIDI 鍵盤都能用。手邊沒有鍵盤？電腦鍵盤也能彈，一次一個八度。',
+  'home.principle.private': '只屬於你',
+  'home.principle.private.text':
+    '練習紀錄儲存在這台裝置上。帳號可有可無，只用來在你自己的裝置之間同步。',
+  'home.principle.open': '免費開源',
+  'home.principle.open.text': '採用 MIT 授權條款，公開開發。沒有廣告，也沒有任何付費項目。',
+  'home.principle.languages': '五種語言',
+  'home.principle.languages.text':
+    'English、简体中文、繁體中文、日本語、한국어，每種語言都使用自己的音樂術語。',
+  'home.faq': '常見問題',
+  'home.faq.midi.q': '一定要有 MIDI 鍵盤嗎？',
+  'home.faq.midi.a':
+    '不用。電腦鍵盤一次可以彈一個八度，也可以直接點按畫面上的琴鍵。有了 MIDI 鍵盤，練起來更像真的在彈琴，每個音的計時也更精確。',
+  'home.faq.browser.q': '支援哪些瀏覽器？',
+  'home.faq.browser.a':
+    '要連接 MIDI 鍵盤，請在電腦上使用 Chrome 或 Edge。其他瀏覽器可以用電腦鍵盤彈奏。',
+  'home.faq.free.q': '是免費的嗎？',
+  'home.faq.free.a':
+    '完全免費。dacapo 是採用 MIT 授權條款的免費開源軟體：不用訂閱、沒有廣告，也不需要帳號。',
+  'home.faq.data.q': '練習紀錄儲存在哪裡？',
+  'home.faq.data.a':
+    '儲存在這台裝置的這個瀏覽器裡。你隨時可以在「設定」中匯出，也可以登入，在自己的幾台裝置之間同步。',
+
+  'footer.tagline': '免費開源，用 MIDI 鍵盤練鋼琴。',
+  'footer.about': '關於與授權',
+  'footer.privacy': '隱私權政策',
+  'footer.version': '版本 {version}',
+
   'play.title': '彈奏',
   'play.readout.label': '音符',
   'play.readout.empty': '彈一個音試試看',
@@ -957,7 +1013,7 @@ export const zhTW: Dictionary = {
   'settings.about.notices': '第三方軟體、字型、音色和樂譜的授權與來源',
 
   'notFound.title': '找不到頁面',
-  'notFound.back': '回到彈奏',
+  'notFound.back': '回到首頁',
 
   // In the Apple app (apple/), a key ending in `.app` replaces the key without it (see
   // i18n/shellWording.ts).

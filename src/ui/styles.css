@@ -84,14 +84,17 @@
   --radius: 3px;
   --dur-fast: 120ms;
   --dur: 180ms;
-  --gutter: 16px;
+  --gutter: clamp(16px, 3.5vw, 40px);
   /* Safe areas (index.html sets viewport-fit=cover): the notch and rounded corners of a phone in
      landscape, the status bar and the home indicator. Zero in a desktop browser. */
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --gutter-left: max(var(--gutter), env(safe-area-inset-left, 0px));
   --gutter-right: max(var(--gutter), env(safe-area-inset-right, 0px));
-  --content-width: 64rem;
+  --content-width: 72rem;
+  /* The header's glass: the paper, a little see-through, so the page moves under it. */
+  --veil: color-mix(in srgb, var(--bg) 86%, transparent);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* The same Han character is drawn differently in Japan, Korea, Taiwan and mainland China. */
@@ -271,6 +274,13 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* Anchors and focused fields stop below the sticky header. */
+  scroll-padding-top: 5rem;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--text);
 }
 
 body {
@@ -356,18 +366,42 @@ h1:is(:lang(zh), :lang(ja), :lang(ko)) {
   letter-spacing: 0.04em;
 }
 
-/* Header */
+/* Header: a full-width bar on a hairline, held at the top while the page scrolls under it. */
 
 .header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  border-bottom: 1px solid var(--border);
+  background: var(--veil);
+  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  backdrop-filter: saturate(1.4) blur(14px);
+}
+
+.header-inner {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem 2rem;
+  gap: 0.25rem 2rem;
   max-width: var(--content-width);
   margin: 0 auto;
-  padding: calc(1.125rem + var(--safe-top)) var(--gutter-right) 0.75rem var(--gutter-left);
-  border-bottom: 1px solid var(--border);
+  padding: calc(0.625rem + var(--safe-top)) var(--gutter-right) 0.625rem var(--gutter-left);
+}
+
+/* On a phone the bar takes two rows: it scrolls away with the page instead. */
+@media (max-width: 48rem) {
+  .header {
+    position: static;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .header {
+    background: var(--bg);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }
 
 .brand {
@@ -380,7 +414,7 @@ h1:is(:lang(zh), :lang(ja), :lang(ko)) {
 
 .brand-mark {
   display: block;
-  height: 1.875rem;
+  height: 1.75rem;
   width: auto;
   aspect-ratio: 4154 / 975;
   fill: currentColor;
@@ -533,10 +567,19 @@ h1:is(:lang(zh), :lang(ja), :lang(ko)) {
 
 /* Content */
 
+/* The page is a column, so the footer stays at the foot of a short page. */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
 .main {
+  flex: 1 0 auto;
+  width: 100%;
   max-width: var(--content-width);
   margin: 0 auto;
-  padding: 2.5rem var(--gutter-right) calc(4rem + var(--safe-bottom)) var(--gutter-left);
+  padding: 2.75rem var(--gutter-right) calc(4.5rem + var(--safe-bottom)) var(--gutter-left);
 }
 
 .page {
@@ -1441,6 +1484,58 @@ kbd {
   min-width: 11rem;
   margin-top: 2.5rem;
   font-size: 1.0625rem;
+}
+
+/* The level chosen, named at the top of the session card; the list says it already otherwise. */
+.read-options-level {
+  display: none;
+}
+
+@media (min-width: 64rem) {
+  .read-setup {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(17rem, 21rem);
+    gap: 0 clamp(2.5rem, 4vw, 4rem);
+    align-items: start;
+    max-width: none;
+  }
+
+  /* A card beside the list, held in view while the list scrolls. */
+  .read-options {
+    position: sticky;
+    top: 6rem;
+    margin-top: 2.25rem;
+    padding: 1.5rem 1.5rem 1.75rem;
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-sheet);
+  }
+
+  .read-options-level {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin: 0 0 1.5rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  .read-options-level .level-id {
+    color: var(--accent);
+  }
+
+  .read-options > .field:nth-child(2) {
+    margin-top: 0;
+  }
+
+  .read-start {
+    width: 100%;
+    margin-top: 1.75rem;
+  }
 }
 
 /* Read: session */
@@ -2439,6 +2534,50 @@ kbd {
   display: inline-block;
   padding-block: 0.5rem;
   font-weight: 600;
+}
+
+/* On a wide screen each section's title stands in the margin, beside its settings, as on the
+   home page; the page's own title heads the first settings. */
+@media (min-width: 64rem) {
+  .settings {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2.6fr);
+    column-gap: clamp(2.5rem, 4vw, 4rem);
+    align-items: start;
+    max-width: none;
+  }
+
+  .settings > *,
+  .settings > .field.data > * {
+    grid-column: 2;
+    min-width: 0;
+    max-width: 42rem;
+  }
+
+  .settings > h1 {
+    grid-row: 1 / span 2;
+    grid-column: 1;
+    margin: 0;
+  }
+
+  .settings > h1 + .field {
+    margin-top: 0.5rem;
+  }
+
+  .settings > .field.data {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
+    max-width: none;
+  }
+
+  .settings > .field.data > h2 {
+    position: sticky;
+    top: 6rem;
+    grid-row: 1 / span 40;
+    grid-column: 1;
+    align-self: start;
+  }
 }
 
 /* About: one credit per entry, its licence texts behind disclosures. */
@@ -6080,4 +6219,578 @@ select.is-compact {
 
 .account-link a {
   overflow-wrap: anywhere;
+}
+
+/* Home: a title page, then the contents of the method book. */
+
+.home {
+  --home-gap: clamp(4rem, 2.5rem + 5vw, 7rem);
+}
+
+.main:has(> .home) {
+  padding-top: clamp(2rem, 1rem + 4vw, 4.5rem);
+}
+
+.home-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3rem;
+  align-items: center;
+}
+
+@media (min-width: 60rem) {
+  .home-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+    gap: clamp(3rem, 5vw, 5.5rem);
+  }
+}
+
+/* The eyebrow is set off by a short rule in the accent, like a rehearsal mark. */
+.home-hero .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  color: var(--accent);
+}
+
+.home-hero .eyebrow::before {
+  content: '';
+  flex: none;
+  width: 1.5rem;
+  height: 1px;
+  background: currentColor;
+}
+
+.home-title {
+  margin: 0;
+  font-size: clamp(2.875rem, 1.75rem + 4vw, 4.75rem);
+  font-weight: 500;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+
+.home-title > span {
+  display: block;
+}
+
+.home-title:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-size: clamp(2.25rem, 1.5rem + 2.6vw, 3.5rem);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+}
+
+.home-lede {
+  max-width: 33rem;
+  margin: 1.5rem 0 0;
+  color: var(--text-muted);
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.75rem;
+  margin-top: 2.25rem;
+}
+
+.button-large {
+  min-height: 3.25rem;
+  padding: 0.5rem 1.375rem 0.5rem 1.625rem;
+  font-size: 1.0625rem;
+}
+
+/* An arrow that leans forward on hover: the way on. */
+.arrow {
+  flex: none;
+  width: 1rem;
+  height: 0.625rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform var(--dur) var(--ease-out);
+}
+
+@media (hover: hover) {
+  a:hover > .arrow {
+    transform: translateX(3px);
+  }
+}
+
+.home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .home-link:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+  }
+}
+
+/* Japanese breaks the short lines of the home page between phrases, as its headings do. */
+:is(.home-lede, .home-facts, .specimen-caption):lang(ja) {
+  word-break: auto-phrase;
+}
+
+.home-facts {
+  max-width: 33rem;
+  margin: 2rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  text-wrap: balance;
+}
+
+/* The specimen: the note on a sheet of paper, the key on the keyboard below it. */
+.specimen {
+  width: 100%;
+  max-width: 38rem;
+  margin: 0 auto;
+}
+
+@media (min-width: 60rem) {
+  .specimen {
+    max-width: none;
+  }
+}
+
+.specimen-sheet {
+  position: relative;
+  padding: clamp(1.25rem, 3vw, 2.25rem) clamp(1rem, 3vw, 2rem) clamp(1rem, 2vw, 1.5rem);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-sheet);
+}
+
+.specimen-name {
+  position: absolute;
+  top: clamp(0.75rem, 2vw, 1.25rem);
+  right: clamp(1rem, 2.5vw, 1.5rem);
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 1.375rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  animation: specimen-in 420ms var(--ease-out);
+}
+
+.specimen[data-played] .specimen-name {
+  color: var(--accent);
+}
+
+.specimen-staff {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  color: var(--text);
+  fill: currentColor;
+}
+
+.specimen-lines line,
+.specimen-ledgers line {
+  stroke: currentColor;
+  stroke-width: 1.3;
+}
+
+.specimen-lines .specimen-bar,
+.specimen-ledgers line {
+  stroke-width: 1.6;
+}
+
+.specimen-ledgers {
+  animation: specimen-in 420ms var(--ease-out);
+}
+
+.specimen-note {
+  transition: transform 560ms var(--ease-out);
+}
+
+.specimen[data-played] .specimen-note {
+  color: var(--accent);
+  transition-duration: 160ms;
+}
+
+@keyframes specimen-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* The keyboard: ivory and ebony under a strip of felt, as on the Play page. */
+.specimen-keys {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: clamp(1rem, 2.5vw, 1.5rem);
+  border-top: 5px solid var(--felt);
+  border-radius: 0 0 var(--radius) var(--radius);
+  box-shadow: 0 14px 28px -18px rgb(var(--shadow-rgb) / 0.5);
+}
+
+.specimen-keys rect {
+  fill: var(--key-white);
+  stroke: var(--key-white-edge);
+  stroke-width: 0.75;
+  transition: fill 240ms ease-out;
+}
+
+.specimen-keys rect.is-black {
+  fill: var(--key-black);
+  stroke: var(--key-black-edge);
+}
+
+.specimen-keys rect.is-lit {
+  fill: var(--key-held);
+}
+
+.specimen-keys rect.is-black.is-lit {
+  fill: var(--key-held-black);
+}
+
+.specimen-middle-c {
+  fill: var(--key-label);
+}
+
+.specimen-caption {
+  margin-top: 0.875rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .specimen-note,
+  .specimen-keys rect {
+    transition: none;
+  }
+
+  .specimen-name,
+  .specimen-ledgers {
+    animation: none;
+  }
+}
+
+/* A returning player's figures, between hairlines. */
+.home-welcome {
+  margin-top: var(--home-gap);
+}
+
+.home-welcome .figures {
+  max-width: none;
+  margin: 0;
+}
+
+.home-welcome-end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  margin: 0.75rem 0 0;
+}
+
+.home-welcome-end .goal {
+  margin: 0;
+}
+
+/* Contents: numbered like the movements of a sonata, each a row to open. */
+.home-contents {
+  margin-top: var(--home-gap);
+}
+
+.contents {
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--text);
+  list-style: none;
+  counter-reset: none;
+}
+
+.contents li {
+  border-bottom: 1px solid var(--border);
+}
+
+.contents-row {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr) auto 1.25rem;
+  gap: 0 1.5rem;
+  align-items: baseline;
+  padding: 1.5rem 0.75rem 1.625rem 0;
+  color: var(--text);
+  text-decoration: none;
+  transition: background-color var(--dur) ease-out;
+}
+
+.contents-numeral {
+  padding-inline-start: 0.25rem;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 1.375rem;
+  font-style: italic;
+  font-variant-numeric: lining-nums;
+}
+
+.contents-title {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 1.25rem + 0.8vw, 1.875rem);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.012em;
+  transition: color var(--dur-fast) ease-out;
+}
+
+.contents-title:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.contents-text {
+  display: block;
+  max-width: 40rem;
+  margin-top: 0.375rem;
+  color: var(--text-muted);
+  font-size: 1rem;
+  text-wrap: pretty;
+}
+
+.contents-meta {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.contents-meta:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-size: 0.875rem;
+  letter-spacing: 0.02em;
+}
+
+.contents-row .arrow {
+  align-self: center;
+  color: var(--text-muted);
+}
+
+@media (hover: hover) {
+  .contents-row:hover {
+    background: linear-gradient(to right, transparent, var(--sunk) 12%, var(--sunk));
+  }
+
+  .contents-row:hover .contents-title,
+  .contents-row:hover .arrow {
+    color: var(--accent);
+  }
+}
+
+@media (max-width: 40rem) {
+  .contents-row {
+    grid-template-columns: 2.25rem minmax(0, 1fr) 1rem;
+    gap: 0 0.75rem;
+    padding-inline-end: 0;
+  }
+
+  .contents-meta {
+    grid-row: 2;
+    grid-column: 2;
+    margin-top: 0.625rem;
+  }
+
+  .contents-row .arrow {
+    grid-row: 1;
+    grid-column: 3;
+  }
+}
+
+/* Principles and questions: a heading in the margin, the text in the measure beside it. */
+.home-principles,
+.home-faq {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem 3rem;
+  margin-top: var(--home-gap);
+}
+
+@media (min-width: 52rem) {
+  .home-principles,
+  .home-faq {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2.4fr);
+  }
+}
+
+.home-principles h2,
+.home-faq h2 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(1.75rem, 1.4rem + 1vw, 2.25rem);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.018em;
+  text-wrap: balance;
+}
+
+.home-principles h2:is(:lang(zh), :lang(ja), :lang(ko)),
+.home-faq h2:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.home-principles dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0 2.5rem;
+  margin: 0;
+}
+
+.home-principles dl > div {
+  padding: 1.125rem 0 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.home-principles dt {
+  font-weight: 600;
+}
+
+.home-principles dd {
+  margin: 0.375rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  text-wrap: pretty;
+}
+
+.home-faq-list {
+  border-top: 1px solid var(--border);
+}
+
+.home-question {
+  border-bottom: 1px solid var(--border);
+}
+
+.home-question summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 3.75rem;
+  padding: 0.75rem 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  list-style: none;
+  cursor: pointer;
+}
+
+.home-question summary::-webkit-details-marker {
+  display: none;
+}
+
+/* A plus that turns into a minus. */
+.home-question summary::after {
+  content: '';
+  flex: none;
+  width: 0.75rem;
+  height: 0.75rem;
+  background:
+    linear-gradient(currentColor, currentColor) center / 100% 1.5px no-repeat,
+    linear-gradient(currentColor, currentColor) center / 1.5px 100% no-repeat;
+  color: var(--text-muted);
+  transition: transform var(--dur) var(--ease-out);
+}
+
+.home-question[open] summary::after {
+  background: linear-gradient(currentColor, currentColor) center / 100% 1.5px no-repeat;
+  transform: rotate(180deg);
+}
+
+@media (hover: hover) {
+  .home-question summary:hover {
+    color: var(--accent);
+  }
+}
+
+.home-question p {
+  max-width: 40rem;
+  margin: -0.25rem 0 1.25rem;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+/* Footer: the colophon of the edition. */
+
+.footer {
+  border-top: 1px solid var(--border);
+}
+
+.footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 1.75rem var(--gutter-right) calc(1.75rem + var(--safe-bottom)) var(--gutter-left);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.footer-brand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin: 0;
+}
+
+.footer-mark {
+  display: block;
+  height: 1.125rem;
+  width: auto;
+  aspect-ratio: 4154 / 975;
+  fill: var(--text);
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.footer-links a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .footer-links a:hover {
+    color: var(--text);
+    text-decoration: underline;
+  }
+}
+
+.footer-version {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Pages that are one screen, or a whole session, have no foot. */
+#root:has(.piece-session, .read-session, .metronome) > .footer {
+  display: none;
 }
