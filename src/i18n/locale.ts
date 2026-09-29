@@ -22,6 +22,12 @@ export const SENTENCE_GAP: Record<Locale, string> = {
   ko: ' ',
 };
 
+/**
+ * The first day of the week (1 Monday … 7 Sunday), as `Intl.Locale` week info gives it for these
+ * locales. Written out because Firefox does not have week info yet.
+ */
+export const FIRST_DAY: Record<Locale, number> = { en: 7, 'zh-CN': 1, 'zh-TW': 7, ja: 7, ko: 7 };
+
 export type DictionaryLoaders = Record<Exclude<Locale, 'en'>, () => Promise<Dictionary>>;
 
 // English is bundled as the fallback; every other dictionary is its own chunk, loaded on demand.

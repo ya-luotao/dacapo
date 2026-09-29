@@ -909,6 +909,42 @@ export const zhCN: Dictionary = {
   'settings.account.error.network': '无法连接同步服务。请确认设备已联网。',
   'settings.account.error.unavailable': '同步服务暂时不可用，请稍后再试。',
 
+  'settings.profile': '公开主页',
+  'settings.profile.help':
+    '一个展示你一年练习情况的页面，类似 GitHub 个人主页，有链接的人都能看到。在你开启之前它一直是关闭的，搜索引擎也不会收录。',
+  'settings.profile.loading': '正在读取主页设置…',
+  'settings.profile.loadFailed': '无法读取主页设置。',
+  'settings.profile.retry': '重试',
+  'settings.profile.username': '用户名',
+  'settings.profile.username.save': '保存',
+  'settings.profile.username.saved': '用户名已保存。',
+  'settings.profile.username.help':
+    '3 到 30 个字符，只能用字母 a–z、数字和连字符。改名后，旧用户名会被释放，原来的链接也会失效。',
+  'settings.profile.username.remove': '移除用户名',
+  'settings.profile.username.remove.help': '公开主页会随之关闭，这个用户名也会被释放。',
+  'settings.profile.error.length': '用户名需要 3 到 30 个字符。',
+  'settings.profile.error.characters': '只能使用字母 a–z、数字和连字符。',
+  'settings.profile.error.edges': '用户名必须以字母或数字开头和结尾。',
+  'settings.profile.error.hyphens': '连字符不能连着用。',
+  'settings.profile.error.unavailable': '这个用户名不可用，请换一个。',
+  'settings.profile.visibility': '公开范围',
+  'settings.profile.visibility.off': '关闭',
+  'settings.profile.visibility.private': '仅练习图',
+  'settings.profile.visibility.public': '练习图和动态',
+  'settings.profile.visibility.needsUsername': '先设置用户名，才能开启公开主页。',
+  'settings.profile.shows.off': '没有任何内容公开。',
+  'settings.profile.shows.private':
+    '公开的内容：你的用户名、一年练习图、连续天数和总练习时长。你具体练了什么不会公开。',
+  'settings.profile.shows.public':
+    '公开的内容：你的用户名、练习图、连续天数和总时长，以及每天练了什么（识谱、自由弹奏、曲目和音阶）和各自的时长。',
+  'settings.profile.titles': '显示曲目名称',
+  'settings.profile.titles.help':
+    '不显示时，每首曲目都只写作“一首曲目”。准确率、反应时间和你的邮箱地址永远不会公开。',
+  'settings.profile.link': '你的主页',
+  'settings.profile.copy': '复制链接',
+  'settings.profile.copied': '链接已复制。',
+  'settings.profile.copyFailed': '无法复制链接，请选中链接后手动复制。',
+
   'settings.about': '关于',
   'settings.about.text': 'dacapo {version} 是以 MIT 许可证发布的自由软件。',
   'settings.about.source': '源代码',

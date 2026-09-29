@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { ApiError } from '../../sync/api.ts';
 import type { SyncStatus } from '../../sync/client.ts';
-import { accountError, codeDigits, isEmail, statusKey } from './account.ts';
+import {
+  accountError,
+  codeDigits,
+  isEmail,
+  profileError,
+  profileUrl,
+  statusKey,
+  usernameMessage,
+} from './account.ts';
 
 const status = (patch: Partial<SyncStatus>): SyncStatus => ({
   available: true,
@@ -9,6 +17,7 @@ const status = (patch: Partial<SyncStatus>): SyncStatus => ({
   account: { id: 'a', email: 'a@example.com' },
   lastSyncAt: null,
   error: null,
+  profile: null,
   ...patch,
 });
 
@@ -54,5 +63,27 @@ describe('the account section', () => {
       'settings.account.status.offline',
     );
     expect(statusKey(status({ phase: 'error' }))).toBe('settings.account.status.error');
+  });
+});
+
+describe('the public profile', () => {
+  it('links to the page on the service’s own domain', () => {
+    expect(profileUrl('https://api.playdacapo.com', 'clara')).toBe('https://playdacapo.com/clara');
+    expect(profileUrl('https://api.playdacapo.com/', 'clara')).toBe('https://playdacapo.com/clara');
+    expect(profileUrl('http://localhost:8787', 'clara')).toBe('http://localhost:8787/clara');
+  });
+
+  it('says what is wrong with a username', () => {
+    expect(usernameMessage('hyphens').key).toBe('settings.profile.error.hyphens');
+    expect(profileError(new ApiError('username-unavailable', 409)).key).toBe(
+      'settings.profile.error.unavailable',
+    );
+    expect(profileError(new ApiError('invalid-username', 400)).key).toBe(
+      'settings.profile.error.unavailable',
+    );
+    expect(profileError(new ApiError('no-username', 409)).key).toBe(
+      'settings.profile.visibility.needsUsername',
+    );
+    expect(profileError(new ApiError('network', 0)).key).toBe('settings.account.error.network');
   });
 });

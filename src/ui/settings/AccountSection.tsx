@@ -3,11 +3,12 @@ import { useI18n } from '../../i18n/index.ts';
 import { thisDevice } from '../../sync/app.ts';
 import type { SyncClient, SyncStatus } from '../../sync/client.ts';
 import { useSyncClient, useSyncStatus } from '../sync/context.ts';
+import { ProfileBlock } from './ProfileBlock.tsx';
 import { accountError, codeDigits, isEmail, statusKey, type AccountMessage } from './account.ts';
 
 // Settings → Account (docs/SYNC.md): sign in with an email address and a code, then the
-// signed-in address, how syncing goes, sync now, sign out and delete the account. Only in a
-// build with a sync service.
+// signed-in address, how syncing goes, sync now, sign out and delete the account, and the public
+// profile (docs/PROFILE.md). Only in a build with a sync service.
 
 const PRIVACY_URL = `${(import.meta.env.VITE_SYNC_ENDPOINT ?? '').replace(/\/+$/, '')}/privacy`;
 
@@ -295,6 +296,7 @@ function SignedIn({
           {text(error)}
         </p>
       )}
+      <ProfileBlock client={client} status={status} message={text} />
     </>
   );
 }

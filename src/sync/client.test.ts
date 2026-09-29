@@ -1,6 +1,7 @@
 import 'fake-indexeddb/auto';
 import { IDBFactory } from 'fake-indexeddb';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { ProfileDocument, ProfileSettings } from '../core/profile.ts';
 import { nextPieceVersion, type StoredPiece } from '../core/storedPiece.ts';
 import { openDacapoDB, type DacapoDB } from '../storage/db.ts';
 import {
@@ -28,6 +29,13 @@ function fakeService({ pageSize = 1000 } = {}) {
   >();
   const files = new Map<string, string>();
   const tokens = new Set<string>();
+  // The profile (docs/PROFILE.md): the settings and the published document.
+  const profile = {
+    username: null as string | null,
+    settings: { visibility: 'off', titles: false } as ProfileSettings,
+    document: null as ProfileDocument | null,
+    puts: 0,
+  };
   let seq = 0;
   let issued = 0;
   let failNext: ApiError | null = null;
@@ -48,7 +56,53 @@ function fakeService({ pageSize = 1000 } = {}) {
       tokens.add(token);
       return Promise.resolve({ token, account: { id: 'acc', email } });
     },
-    account: () => Promise.resolve({ id: 'acc', email: 'pianist@example.com' }),
+    account(token) {
+      auth(token);
+      return Promise.resolve({
+        id: 'acc',
+        email: 'pianist@example.com',
+        username: profile.username,
+        profile: { ...profile.settings },
+      });
+    },
+    setUsername(token, username) {
+      auth(token);
+      if (username === 'taken') throw new ApiError('username-unavailable', 409);
+      profile.username = username;
+      return Promise.resolve(username);
+    },
+    removeUsername(token) {
+      auth(token);
+      profile.username = null;
+      profile.settings = { visibility: 'off', titles: false };
+      profile.document = null;
+      return Promise.resolve();
+    },
+    setProfileSettings(token, settings) {
+      auth(token);
+      if (settings.visibility !== 'off' && !profile.username) {
+        throw new ApiError('no-username', 409);
+      }
+      const changed =
+        settings.visibility !== profile.settings.visibility ||
+        settings.titles !== profile.settings.titles;
+      profile.settings = { ...settings };
+      if (changed || settings.visibility === 'off') profile.document = null;
+      return Promise.resolve({ ...settings });
+    },
+    putProfile(token, document) {
+      auth(token);
+      if (
+        profile.settings.visibility === 'off' ||
+        document.visibility !== profile.settings.visibility ||
+        document.titles !== profile.settings.titles
+      ) {
+        throw new ApiError('profile-changed', 409);
+      }
+      profile.document = document;
+      profile.puts++;
+      return Promise.resolve();
+    },
     signOut(token) {
       tokens.delete(token);
       return Promise.resolve();
@@ -108,6 +162,7 @@ function fakeService({ pageSize = 1000 } = {}) {
     rows,
     files,
     tokens,
+    profile,
     body: (collection: string, id: string) => {
       const row = rows.get(`${collection}/${id}`);
       return row ? (JSON.parse(row.body) as unknown) : undefined;
@@ -157,6 +212,7 @@ async function device(service: Service, api: SyncApi = service.api): Promise<Dev
     },
     lock: (task) => task(),
     broadcast: () => null,
+    profileSource: () => ({ ...store.getSnapshot(), firstDay: 1 }),
     document: null,
   });
   return { db, store, client, busy, idle: () => idleListeners.forEach((l) => l()) };
@@ -596,5 +652,169 @@ describe('the account', () => {
       code: 'invalid-code',
     });
     expect(await ipad.store.withSync((s) => s.state())).toBeNull();
+  });
+});
+
+describe('the public profile', () => {
+  async function withProfile(service: Service) {
+    const ipad = await device(service);
+    for (const session of sampleData().sessions) ipad.store.recordSession(session);
+    await ipad.store.settled();
+    await signIn(ipad);
+    return ipad;
+  }
+
+  it('is not published until it is turned on', async () => {
+    const service = fakeService();
+    const ipad = await withProfile(service);
+    await ipad.client.setUsername('clara');
+    await ipad.client.syncNow();
+    expect(service.profile.puts).toBe(0);
+    expect(ipad.client.getStatus().profile).toEqual({
+      username: 'clara',
+      settings: { visibility: 'off', titles: false },
+    });
+  });
+
+  it('is published when turned on, and again only when it changes', async () => {
+    const service = fakeService();
+    const ipad = await withProfile(service);
+    await ipad.client.setUsername('clara');
+    await ipad.client.setProfileSettings({ visibility: 'public', titles: false });
+    expect(service.profile.puts).toBe(1);
+    const document = service.profile.document!;
+    expect(document).toMatchObject({ v: 1, visibility: 'public', titles: false });
+    expect(Object.keys(document.activity!)).toEqual(Object.keys(document.days));
+
+    await ipad.client.syncNow();
+    expect(service.profile.puts).toBe(1);
+
+    ipad.store.recordSession({
+      kind: 'free',
+      id: 'f2',
+      startedAt: T0 + 7_200_000,
+      endedAt: T0 + 7_500_000,
+      activeMs: 300_000,
+      notes: 100,
+    });
+    await ipad.store.settled();
+    await ipad.client.syncNow();
+    expect(service.profile.puts).toBe(2);
+    expect(service.profile.document!.totals.ms).toBe(document.totals.ms + 300_000);
+  });
+
+  it('has only the grid when private', async () => {
+    const service = fakeService();
+    const ipad = await withProfile(service);
+    await ipad.client.setUsername('clara');
+    await ipad.client.setProfileSettings({ visibility: 'private', titles: true });
+    expect(service.profile.settings).toEqual({ visibility: 'private', titles: false });
+    expect(service.profile.document).toMatchObject({ visibility: 'private', titles: false });
+    expect(service.profile.document).not.toHaveProperty('activity');
+  });
+
+  it('follows settings changed on another device', async () => {
+    const service = fakeService();
+    const ipad = await withProfile(service);
+    await ipad.client.setUsername('clara');
+    await ipad.client.setProfileSettings({ visibility: 'public', titles: true });
+
+    const mac = await device(service);
+    await signIn(mac);
+    await mac.client.loadProfile();
+    await mac.client.setProfileSettings({ visibility: 'private', titles: false });
+    expect(service.profile.document).toMatchObject({ visibility: 'private' });
+
+    // The iPad still thinks it is public: the service refuses, and it publishes under the new ones.
+    ipad.store.recordSession({
+      kind: 'free',
+      id: 'f2',
+      startedAt: T0 + 7_200_000,
+      endedAt: T0 + 7_500_000,
+      activeMs: 300_000,
+      notes: 100,
+    });
+    await ipad.store.settled();
+    await ipad.client.syncNow();
+    expect(ipad.client.getStatus().profile?.settings).toEqual({
+      visibility: 'private',
+      titles: false,
+    });
+    expect(service.profile.document).toMatchObject({ visibility: 'private', titles: false });
+    expect(service.profile.document).not.toHaveProperty('activity');
+
+    // Turned off elsewhere: nothing is published any more.
+    await mac.client.setProfileSettings({ visibility: 'off', titles: false });
+    const puts = service.profile.puts;
+    ipad.store.recordSession({
+      kind: 'free',
+      id: 'f3',
+      startedAt: T0 + 9_000_000,
+      endedAt: T0 + 9_300_000,
+      activeMs: 300_000,
+      notes: 100,
+    });
+    await ipad.store.settled();
+    await ipad.client.syncNow();
+    expect(service.profile.puts).toBe(puts);
+    expect(service.profile.document).toBeNull();
+    expect(ipad.client.getStatus().profile?.settings.visibility).toBe('off');
+  });
+
+  it('is published by a device that never opened Settings', async () => {
+    const service = fakeService();
+    const ipad = await withProfile(service);
+    await ipad.client.setUsername('clara');
+    await ipad.client.setProfileSettings({ visibility: 'private', titles: false });
+    const published = service.profile.document!;
+
+    // The Mac reads the settings once after it starts, and publishes what it practises.
+    const mac = await device(service);
+    await signIn(mac);
+    expect(mac.client.getStatus().profile?.settings.visibility).toBe('private');
+    mac.store.recordSession({
+      kind: 'free',
+      id: 'm1',
+      startedAt: T0 + 7_200_000,
+      endedAt: T0 + 7_500_000,
+      activeMs: 300_000,
+      notes: 100,
+    });
+    await mac.store.settled();
+    await mac.client.syncNow();
+    expect(service.profile.document!.totals.ms).toBe(published.totals.ms + 300_000);
+  });
+
+  it('waits while something is being practised', async () => {
+    const service = fakeService();
+    const ipad = await withProfile(service);
+    await ipad.client.setUsername('clara');
+    ipad.busy.value = true;
+    await ipad.client.setProfileSettings({ visibility: 'private', titles: false });
+    expect(service.profile.puts).toBe(0);
+    ipad.busy.value = false;
+    await ipad.client.syncNow();
+    expect(service.profile.puts).toBe(1);
+  });
+
+  it('passes on the service’s answers, and is forgotten on signing out', async () => {
+    const service = fakeService();
+    const ipad = await withProfile(service);
+    await expect(
+      ipad.client.setProfileSettings({ visibility: 'public', titles: false }),
+    ).rejects.toMatchObject({ code: 'no-username' });
+    await expect(ipad.client.setUsername('taken')).rejects.toMatchObject({
+      code: 'username-unavailable',
+    });
+    await ipad.client.setUsername('clara');
+    await ipad.client.setProfileSettings({ visibility: 'public', titles: false });
+    await ipad.client.removeUsername();
+    expect(ipad.client.getStatus().profile).toEqual({
+      username: null,
+      settings: { visibility: 'off', titles: false },
+    });
+    await ipad.client.signOut();
+    expect(ipad.client.getStatus().profile).toBeNull();
+    await expect(ipad.client.loadProfile()).rejects.toMatchObject({ code: 'unauthorized' });
   });
 });

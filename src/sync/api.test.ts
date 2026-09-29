@@ -78,6 +78,59 @@ describe('the HTTP protocol', () => {
     await api.putFile('t', 'abc', '<score>é</score>');
     expect(await requests[2]!.text()).toBe('<score>é</score>');
   });
+
+  it('reads the username and profile settings, off from a service without them', async () => {
+    const withProfile = recorder(() =>
+      json({
+        id: 'acc',
+        email: 'a@example.com',
+        createdAt: 1,
+        username: 'clara',
+        profile: { visibility: 'public', titles: true },
+      }),
+    );
+    expect(await createSyncApi('https://x', withProfile.fetcher).account('t')).toEqual({
+      id: 'acc',
+      email: 'a@example.com',
+      username: 'clara',
+      profile: { visibility: 'public', titles: true },
+    });
+    const without = recorder(() => json({ id: 'acc', email: 'a@example.com', createdAt: 1 }));
+    expect(await createSyncApi('https://x', without.fetcher).account('t')).toMatchObject({
+      username: null,
+      profile: { visibility: 'off', titles: false },
+    });
+  });
+
+  it('sets the username, the settings and the profile', async () => {
+    const { fetcher, requests } = recorder((request) => {
+      const path = new URL(request.url).pathname;
+      if (path === '/v1/account/username' && request.method === 'PUT') {
+        return json({ username: 'clara' });
+      }
+      if (path === '/v1/account/profile') return json({ visibility: 'private', titles: false });
+      if (path === '/v1/profile') return json({ error: 'profile-changed' }, 409);
+      return new Response(null, { status: 204 });
+    });
+    const api = createSyncApi('https://x', fetcher);
+    expect(await api.setUsername('t', 'Clara')).toBe('clara');
+    await api.removeUsername('t');
+    expect(await api.setProfileSettings('t', { visibility: 'private', titles: false })).toEqual({
+      visibility: 'private',
+      titles: false,
+    });
+    await expect(
+      api.putProfile('t', { v: 1 } as Parameters<typeof api.putProfile>[1]),
+    ).rejects.toMatchObject({ code: 'profile-changed', status: 409 });
+    expect(requests.map((r) => `${r.method} ${new URL(r.url).pathname}`)).toEqual([
+      'PUT /v1/account/username',
+      'DELETE /v1/account/username',
+      'PUT /v1/account/profile',
+      'PUT /v1/profile',
+    ]);
+    expect(await requests[0]!.json()).toEqual({ username: 'Clara' });
+    expect(await requests[3]!.json()).toEqual({ document: { v: 1 } });
+  });
 });
 
 describe('canonical bodies', () => {

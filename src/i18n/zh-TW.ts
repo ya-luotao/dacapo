@@ -912,6 +912,42 @@ export const zhTW: Dictionary = {
   'settings.account.error.network': '無法連上同步服務。請確認裝置已連上網際網路。',
   'settings.account.error.unavailable': '同步服務暫時無法使用，請稍後再試。',
 
+  'settings.profile': '公開個人頁面',
+  'settings.profile.help':
+    '一個呈現你一年練習情況的頁面，類似 GitHub 個人頁面，有連結的人都能看到。在你開啟之前它都是關閉的，搜尋引擎也不會收錄。',
+  'settings.profile.loading': '正在讀取個人頁面設定⋯',
+  'settings.profile.loadFailed': '無法讀取個人頁面設定。',
+  'settings.profile.retry': '再試一次',
+  'settings.profile.username': '使用者名稱',
+  'settings.profile.username.save': '儲存',
+  'settings.profile.username.saved': '已儲存使用者名稱。',
+  'settings.profile.username.help':
+    '3 到 30 個字元，只能使用字母 a–z、數字和連字號。改名後，舊名稱會釋出，原本的連結也會失效。',
+  'settings.profile.username.remove': '移除使用者名稱',
+  'settings.profile.username.remove.help': '公開個人頁面會隨之關閉，這個名稱也會釋出。',
+  'settings.profile.error.length': '使用者名稱需要 3 到 30 個字元。',
+  'settings.profile.error.characters': '只能使用字母 a–z、數字和連字號。',
+  'settings.profile.error.edges': '使用者名稱的開頭和結尾必須是字母或數字。',
+  'settings.profile.error.hyphens': '連字號不能連續使用。',
+  'settings.profile.error.unavailable': '這個使用者名稱無法使用，請換一個。',
+  'settings.profile.visibility': '公開範圍',
+  'settings.profile.visibility.off': '關閉',
+  'settings.profile.visibility.private': '只有練習圖',
+  'settings.profile.visibility.public': '練習圖和動態',
+  'settings.profile.visibility.needsUsername': '先設定使用者名稱，才能開啟公開個人頁面。',
+  'settings.profile.shows.off': '沒有任何內容公開。',
+  'settings.profile.shows.private':
+    '公開內容：你的使用者名稱、一年練習圖、連續天數和總練習時間。你練了什麼不會公開。',
+  'settings.profile.shows.public':
+    '公開內容：你的使用者名稱、練習圖、連續天數和總時間，以及每天練了什麼（識譜、自由彈奏、樂曲和音階）和各練了多久。',
+  'settings.profile.titles': '顯示樂曲名稱',
+  'settings.profile.titles.help':
+    '不顯示時，每首樂曲都只寫成「一首樂曲」。準確率、反應時間和你的電子郵件地址絕不會公開。',
+  'settings.profile.link': '你的頁面',
+  'settings.profile.copy': '複製連結',
+  'settings.profile.copied': '已複製連結。',
+  'settings.profile.copyFailed': '無法複製連結，請選取連結後自行複製。',
+
   'settings.about': '關於',
   'settings.about.text': 'dacapo {version} 是以 MIT 授權條款發布的自由軟體。',
   'settings.about.source': '原始碼',

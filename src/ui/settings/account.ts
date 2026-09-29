@@ -1,3 +1,4 @@
+import type { UsernameProblem } from '../../core/profile.ts';
 import type { MessageKey } from '../../i18n/index.ts';
 import { ApiError } from '../../sync/api.ts';
 import type { SyncStatus } from '../../sync/client.ts';
@@ -48,4 +49,47 @@ export function statusKey(status: SyncStatus): MessageKey {
         ? 'settings.account.status.never'
         : 'settings.account.status.synced';
   }
+}
+
+// The public profile (docs/PROFILE.md).
+
+const USERNAME_MESSAGES: Record<UsernameProblem, MessageKey> = {
+  length: 'settings.profile.error.length',
+  characters: 'settings.profile.error.characters',
+  edges: 'settings.profile.error.edges',
+  hyphens: 'settings.profile.error.hyphens',
+  unavailable: 'settings.profile.error.unavailable',
+};
+
+/** What to say about a username the rules refuse. */
+export const usernameMessage = (problem: UsernameProblem): AccountMessage => ({
+  key: USERNAME_MESSAGES[problem],
+});
+
+/** The message for a failed profile request. */
+export function profileError(error: unknown): AccountMessage {
+  if (error instanceof ApiError) {
+    switch (error.code) {
+      // The service's rules are the app's, so a name it calls invalid is simply not available.
+      case 'invalid-username':
+      case 'username-unavailable':
+        return { key: 'settings.profile.error.unavailable' };
+      case 'no-username':
+        return { key: 'settings.profile.visibility.needsUsername' };
+    }
+  }
+  return accountError(error, 'account');
+}
+
+/**
+ * The public page of `username`: on the service's own domain (`api.` taken off), where the
+ * service serves it; under the endpoint itself for a local service.
+ */
+export function profileUrl(endpoint: string, username: string): string {
+  const url = new URL(endpoint);
+  if (url.hostname.startsWith('api.')) url.hostname = url.hostname.slice(4);
+  url.pathname = `${url.pathname.replace(/\/+$/, '')}/${encodeURIComponent(username)}`;
+  url.search = '';
+  url.hash = '';
+  return url.href;
 }

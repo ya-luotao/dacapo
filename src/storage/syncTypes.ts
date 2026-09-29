@@ -1,3 +1,5 @@
+import type { ProfileSettings } from '../core/profile.ts';
+
 // What the device keeps for sync (docs/SYNC.md): the account it is signed in to, the records still
 // to send, and the pieces deleted here or on another device.
 
@@ -46,6 +48,15 @@ export interface SyncState {
   cursor: number;
   /** Epoch ms of the last round that finished; null before the first. */
   lastSyncAt: number | null;
+  /** The public profile (docs/PROFILE.md) as last heard from the service; absent until then. */
+  profile?: ProfileState;
+}
+
+export interface ProfileState {
+  username: string | null;
+  settings: ProfileSettings;
+  /** SHA-256 of the last document this device published under these settings; null when none. */
+  sentHash: string | null;
 }
 
 export const SYNC_STATE_KEY = 'sync:state';

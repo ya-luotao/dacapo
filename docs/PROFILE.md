@@ -1,8 +1,9 @@
 # dacapo — Username and public profile specification
 
-Status: specified, nothing built yet. This extends [SYNC.md](SYNC.md); its principles still apply,
-and one more: **a profile is opt-in and off by default.** Signed out, or signed in without turning
-the profile on, nothing is public and nothing changes.
+Status: P1–P5 are built; the service changes are not deployed yet. This extends
+[SYNC.md](SYNC.md); its principles still apply, and one more: **a profile is opt-in and off by
+default.** Signed out, or signed in without turning the profile on, nothing is public and nothing
+changes.
 
 Goal: a signed-in user can pick a username and publish a page, like a GitHub profile, with their
 year of practice as a grid of weeks. They choose whether the page also shows what they practised:
@@ -138,9 +139,10 @@ Added to SYNC.md's table; the same errors, plus 400 `invalid-username`, 409
   therefore inherits sync's rule: never while practising.
 - Only when the document differs from the last one this device sent (its hash in `meta`), so a day
   without practice still publishes once, when `today` moves.
-- On 409 `profile-changed` it asks `GET /v1/account` for the settings, keeps them, and builds and
-  sends again once (or stops, when the profile is now off). The Settings page also reads them when
-  it opens.
+- The settings are read with `GET /v1/account` once after the app starts (before its first
+  publish), when the Settings page opens, and on 409 `profile-changed`, after which it builds and
+  sends again once (or stops, when the profile is now off). So a device learns that the profile was
+  turned on or off on another one the next time it starts.
 - Several devices: each builds from its own store, which after a pull holds the same records, so
   the last device to publish shows the full picture. A device that has not pulled yet can publish
   a slightly older grid until the next round; the service does not merge documents.
@@ -160,7 +162,7 @@ Added to SYNC.md's table; the same errors, plus 400 `invalid-username`, 409
 
 ## Moderation
 
-- The blocklist is in the service (`src/blocklist.ts`): a short list of offensive words in
+- The blocklist is in the service (`src/username.ts`): a short list of offensive words in
   English and romanized Chinese, Japanese and Korean, matched against the name's hyphen-separated
   parts, and a shorter list of unambiguous ones matched anywhere in the name without hyphens.
 - A reported profile is handled by hand: the service README has the D1 statement that removes a

@@ -959,6 +959,42 @@ export const ko: Dictionary = {
   'settings.account.error.unavailable':
     '지금은 동기화 서비스를 사용할 수 없어요. 나중에 다시 시도하세요.',
 
+  'settings.profile': '공개 프로필',
+  'settings.profile.help':
+    '1년 동안의 연습을 보여 주는 페이지예요. GitHub 프로필처럼 링크가 있는 사람은 누구나 볼 수 있어요. 켜기 전까지는 공개되지 않고, 검색 엔진에도 나오지 않아요.',
+  'settings.profile.loading': '프로필 설정을 불러오는 중…',
+  'settings.profile.loadFailed': '프로필 설정을 불러오지 못했어요.',
+  'settings.profile.retry': '다시 시도',
+  'settings.profile.username': '사용자 이름',
+  'settings.profile.username.save': '저장',
+  'settings.profile.username.saved': '사용자 이름을 저장했어요.',
+  'settings.profile.username.help':
+    '영문 소문자(a–z), 숫자, 하이픈으로 3~30자까지 쓸 수 있어요. 바꾸면 이전 이름은 해제되고 이전 링크는 더 이상 열리지 않아요.',
+  'settings.profile.username.remove': '사용자 이름 삭제',
+  'settings.profile.username.remove.help': '프로필이 꺼지고 이름은 해제돼요.',
+  'settings.profile.error.length': '사용자 이름은 3~30자여야 해요.',
+  'settings.profile.error.characters': '영문자(a–z), 숫자, 하이픈만 쓸 수 있어요.',
+  'settings.profile.error.edges': '사용자 이름은 영문자나 숫자로 시작하고 끝나야 해요.',
+  'settings.profile.error.hyphens': '하이픈은 연달아 쓸 수 없어요.',
+  'settings.profile.error.unavailable': '이 사용자 이름은 쓸 수 없어요. 다른 이름을 입력하세요.',
+  'settings.profile.visibility': '공개 범위',
+  'settings.profile.visibility.off': '끔',
+  'settings.profile.visibility.private': '연습 그래프만',
+  'settings.profile.visibility.public': '그래프와 활동',
+  'settings.profile.visibility.needsUsername': '프로필을 켜려면 먼저 사용자 이름을 정하세요.',
+  'settings.profile.shows.off': '아무것도 공개되지 않아요.',
+  'settings.profile.shows.private':
+    '공개되는 정보: 사용자 이름, 1년 연습 그래프, 연속 연습 일수, 총 연습 시간이에요. 무엇을 연습했는지는 공개되지 않아요.',
+  'settings.profile.shows.public':
+    '공개되는 정보: 사용자 이름, 연습 그래프, 연속 연습 일수와 총 시간, 그리고 날마다 무엇을(악보 읽기, 자유 연주, 곡, 스케일) 얼마나 연습했는지예요.',
+  'settings.profile.titles': '곡 제목 표시',
+  'settings.profile.titles.help':
+    '끄면 모든 곡이 “곡”으로만 표시돼요. 정확도, 반응 시간, 이메일 주소는 절대 공개되지 않아요.',
+  'settings.profile.link': '내 페이지',
+  'settings.profile.copy': '링크 복사',
+  'settings.profile.copied': '링크를 복사했어요.',
+  'settings.profile.copyFailed': '링크를 복사하지 못했어요. 링크를 선택해서 직접 복사하세요.',
+
   'settings.about': '정보',
   'settings.about.text': 'dacapo는 MIT 라이선스로 배포되는 자유 소프트웨어예요. 버전 {version}.',
   'settings.about.source': '소스 코드',

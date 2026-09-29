@@ -63,6 +63,9 @@ email could not be sent, or the account is being deleted; try again later).
 | `HEAD`, `PUT`, `GET /v1/blobs/<sha256>`          | 200 or 404; 204 on `PUT`                   |
 | `GET /privacy`                                   | the service's privacy policy (HTML)        |
 
+The username, the profile settings and the public profile page have their own requests, in
+[PROFILE.md](PROFILE.md); `GET /v1/account` also returns `username` and `profile` there.
+
 ### Sync
 
 A **change** is `{ collection, id, body }`: `collection` matches `^[a-zA-Z]{1,32}$`, `id` is 1–128

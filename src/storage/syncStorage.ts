@@ -65,12 +65,12 @@ export interface SyncStorage {
    */
   signOut: (token?: string) => Promise<boolean>;
   /**
-   * Saves the cursor or the time of the last round, unless the device signed out or in again
+   * Saves the cursor, the time of the last round or the profile, unless the device signed out or in again
    * meanwhile (`token` is no longer the stored one). Returns whether it saved.
    */
   saveProgress: (
     token: string,
-    progress: Partial<Pick<SyncState, 'cursor' | 'lastSyncAt'>>,
+    progress: Partial<Pick<SyncState, 'cursor' | 'lastSyncAt' | 'profile'>>,
   ) => Promise<boolean>;
   /** Up to `limit` outbox entries with their records. */
   pending: (limit: number) => Promise<PendingRecord[]>;

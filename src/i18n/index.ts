@@ -1,6 +1,7 @@
 export { I18nProvider } from './I18nProvider.tsx';
 export { useI18n, useT, type Translate } from './context.ts';
 export {
+  FIRST_DAY,
   isLocale,
   loadLocale,
   LOCALE_NAMES,

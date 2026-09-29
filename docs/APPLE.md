@@ -41,7 +41,9 @@ privacy label is Contact Info → Email Address and User Content → Other User 
 to the user, for App Functionality only, not used for tracking; the privacy policy URL is
 `https://playdacapo.com/privacy`. The privacy manifest (`Resources/PrivacyInfo.xcprivacy`) says
 the same, and gives the reason for the one required-reason API (`mach_absolute_time`, system boot
-time, 35F9.1). No non-exempt encryption: the only network traffic is HTTPS.
+time, 35F9.1). No non-exempt encryption: the only network traffic is HTTPS. The optional public
+profile ([PROFILE.md](PROFILE.md)) adds no category: it publishes a summary of the same practice
+records, and a username, for App Functionality, only when the user turns it on.
 
 ## Milestones
 
@@ -107,3 +109,10 @@ Decided while building A1; the reasons are in the code comments and `apple/READM
   and a code only, so Sign in with Apple is not required (4.8). Links to the privacy policy open
   in the system browser. Review notes: the account is optional and everything works without it;
   to try sync, sign in on two devices with any address the reviewer can read.
+- **Public profile** ([PROFILE.md](PROFILE.md)). Off by default; signed in, Settings → Account →
+  Profile sets a username and publishes `playdacapo.com/<username>` (the grid only, or with the
+  activity). User-generated content (guideline 1.2) is limited to the username and, behind their
+  own switch, piece titles: usernames are checked against a blocklist, every profile page has a
+  "Report this profile" link, and a reported profile is removed by hand. The app shows no other
+  user's content, so there is nothing to block in it. Review notes: say that the profile is
+  optional and off by default, and give a sample profile URL.

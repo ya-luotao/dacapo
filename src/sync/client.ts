@@ -1,7 +1,10 @@
+import type { SessionRecord } from '../core/log.ts';
+import { buildProfile, PROFILE_OFF, type ProfileSettings } from '../core/profile.ts';
 import type { StoredPiece } from '../core/storedPiece.ts';
+import { canonicalText } from '../lib/canonical.ts';
 import type { AppliedCounts, PulledRecords, SyncStorage } from '../storage/syncStorage.ts';
 import { nothingApplied } from '../storage/syncStorage.ts';
-import type { OutboxEntry, SyncAccount, SyncState } from '../storage/syncTypes.ts';
+import type { OutboxEntry, ProfileState, SyncAccount, SyncState } from '../storage/syncTypes.ts';
 import { ApiError, type ApiErrorCode, type PulledPage, type SyncApi } from './api.ts';
 import {
   byteLength,
@@ -16,7 +19,8 @@ import {
 
 // The sync engine (docs/SYNC.md, "The client"): rounds of push-then-pull against the service,
 // run on the practice store's write queue so they never interleave with a write, never while
-// something is being practised, and in one tab at a time.
+// something is being practised, and in one tab at a time. After a round, the public profile
+// (docs/PROFILE.md) is published when it is on and has changed.
 
 /** Outbox entries per request (the service takes 500). */
 export const PUSH_LIMIT = 500;
@@ -42,6 +46,15 @@ export interface SyncStatus {
   lastSyncAt: number | null;
   /** Why the last round failed; null after a good one. */
   error: ApiErrorCode | 'storage' | null;
+  /** The username and profile settings as last heard from the service; null until then. */
+  profile: { username: string | null; settings: ProfileSettings } | null;
+}
+
+/** What the public profile is built from: the practice store's records and the week start. */
+export interface ProfileSource {
+  sessions: readonly SessionRecord[];
+  pieces: readonly StoredPiece[];
+  firstDay: number;
 }
 
 /** What the engine needs from the practice store. */
@@ -70,6 +83,8 @@ export interface SyncClientOptions {
   /** Runs `task` unless another tab holds the sync lock (then null). */
   lock?: <T>(task: () => Promise<T>) => Promise<T | null>;
   broadcast?: () => SyncBroadcast | null;
+  /** The records to build the public profile from; without it, no profile is published. */
+  profileSource?: () => ProfileSource | null;
   /** For tests: the document whose visibility triggers rounds. */
   document?: Pick<Document, 'visibilityState' | 'addEventListener' | 'removeEventListener'> | null;
 }
@@ -87,6 +102,14 @@ export interface SyncClient {
   deleteAccount: () => Promise<void>;
   /** A round now (or right after the one running). */
   syncNow: () => Promise<void>;
+  /** Reads the username and profile settings from the service. Rejects with an `ApiError`. */
+  loadProfile: () => Promise<void>;
+  /** Sets or changes the username. Rejects with an `ApiError`. */
+  setUsername: (username: string) => Promise<void>;
+  /** Removes the username, which turns the profile off. Rejects with an `ApiError`. */
+  removeUsername: () => Promise<void>;
+  /** Changes the profile settings and publishes under them. Rejects with an `ApiError`. */
+  setProfileSettings: (settings: ProfileSettings) => Promise<void>;
   /** Reads the account and starts syncing. Returns the function that stops. */
   start: () => () => void;
 }
@@ -116,6 +139,7 @@ const SIGNED_OUT: SyncStatus = {
   account: null,
   lastSyncAt: null,
   error: null,
+  profile: null,
 };
 
 class StorageUnavailable extends Error {}
@@ -129,6 +153,7 @@ export function createSyncClient({
   onChange = () => () => {},
   lock = webLock,
   broadcast: createBroadcast = syncBroadcast,
+  profileSource,
   document: doc = globalThis.document ?? null,
 }: SyncClientOptions): SyncClient {
   let status: SyncStatus = { ...SIGNED_OUT, available: false };
@@ -139,6 +164,9 @@ export function createSyncClient({
   let failures = 0;
   let retry: ReturnType<typeof setTimeout> | undefined;
   let stopped = true;
+  let profileQueue: Promise<unknown> = Promise.resolve();
+  /** The settings were read from the service since this page started: another device may have changed them. */
+  let profileHeard = false;
 
   function setStatus(next: Partial<SyncStatus>) {
     status = { ...status, ...next };
@@ -158,6 +186,9 @@ export function createSyncClient({
         available: true,
         account: state?.account ?? null,
         lastSyncAt: state?.lastSyncAt ?? null,
+        profile: state?.profile
+          ? { username: state.profile.username, settings: state.profile.settings }
+          : null,
         phase: state ? (status.phase === 'signedOut' ? 'idle' : status.phase) : 'signedOut',
         ...(!state && { error: null }),
       });
@@ -254,6 +285,7 @@ export function createSyncClient({
     setStatus({ phase: 'syncing' });
     let cursor = state.cursor;
     let changed = false;
+    let completed = false;
     try {
       for (let request = 0; request < MAX_REQUESTS; request++) {
         const pending = await storage((sync) => sync.pending(PUSH_LIMIT));
@@ -282,6 +314,7 @@ export function createSyncClient({
       await storage((sync) => sync.saveProgress(state.token, { lastSyncAt }));
       failures = 0;
       setStatus({ phase: 'idle', lastSyncAt, error: null });
+      completed = true;
     } catch (error) {
       if (error instanceof ApiError && error.code === 'unauthorized') {
         await signOutHere(state.token);
@@ -299,6 +332,101 @@ export function createSyncClient({
       if (changed) await host.reloadAll().catch(() => {});
       channel?.postMessage('changed');
     }
+    if (completed) await publishProfile();
+  }
+
+  // The public profile --------------------------------------------------------------------------
+
+  /** Profile requests one after another, so none saves over what another has just saved. */
+  function profileTask<T>(task: () => Promise<T>): Promise<T> {
+    const result = profileQueue.then(task);
+    profileQueue = result.catch(() => {});
+    return result;
+  }
+
+  /** Saves the profile state for `token`'s sign-in and tells the page and the other tabs. */
+  async function saveProfile(token: string, profile: ProfileState): Promise<void> {
+    if (await storage((sync) => sync.saveProgress(token, { profile }))) {
+      await readState();
+      channel?.postMessage('changed');
+    }
+  }
+
+  /** The state after hearing `username` and `settings`; what was sent counts only if they held. */
+  const heard = (
+    previous: ProfileState | undefined,
+    username: string | null,
+    settings: ProfileSettings,
+  ): ProfileState => ({
+    username,
+    settings,
+    sentHash:
+      previous &&
+      previous.settings.visibility === settings.visibility &&
+      previous.settings.titles === settings.titles
+        ? previous.sentHash
+        : null,
+  });
+
+  /** A request that got 401 signs this device out; any failure is passed on. */
+  async function authorized<T>(token: string, request: () => Promise<T>): Promise<T> {
+    try {
+      return await request();
+    } catch (error) {
+      if (error instanceof ApiError && error.code === 'unauthorized') await signOutHere(token);
+      throw error;
+    }
+  }
+
+  async function refreshProfile(state: SyncState): Promise<ProfileState> {
+    const account = await authorized(state.token, () => api.account(state.token));
+    const profile = heard(state.profile, account.username, account.profile);
+    await saveProfile(state.token, profile);
+    profileHeard = true;
+    return profile;
+  }
+
+  /**
+   * Publishes the profile when it is on and differs from the last one sent from here; never while
+   * practising. The settings are read from the service once after the page starts (the profile
+   * may have been turned on or off on another device), and again on 409 `profile-changed`, after
+   * which it tries once more. A failure is left for the next round.
+   */
+  function publishProfile(): Promise<void> {
+    return profileTask(async () => {
+      const state = await storage((sync) => sync.state()).catch(() => null);
+      let profile = state?.profile;
+      if (state && (!profileHeard || !profile) && !isBusy()) {
+        profile = await refreshProfile(state).catch(() => profile);
+      }
+      for (let attempt = 0; state && profile && attempt < 2; attempt++) {
+        if (isBusy() || !profile.username || profile.settings.visibility === 'off') return;
+        const source = profileSource?.();
+        if (!source) return;
+        const document = buildProfile({ ...source, settings: profile.settings, now: now() });
+        if (!document) return;
+        const hash = await sha256Hex(canonicalText(document));
+        if (hash === profile.sentHash) return;
+        try {
+          await authorized(state.token, () => api.putProfile(state.token, document));
+          await saveProfile(state.token, { ...profile, sentHash: hash });
+          return;
+        } catch (error) {
+          if (!(error instanceof ApiError && error.code === 'profile-changed')) {
+            if (!(error instanceof ApiError)) console.error('dacapo: publishing failed', error);
+            return;
+          }
+          profile = await refreshProfile(state).catch(() => undefined);
+        }
+      }
+    });
+  }
+
+  /** Runs `task` with the stored sign-in; rejects as `unauthorized` when signed out. */
+  async function signedIn<T>(task: (state: SyncState) => Promise<T>): Promise<T> {
+    const state = await storage((sync) => sync.state());
+    if (!state) throw new ApiError('unauthorized', 401);
+    return task(state);
   }
 
   /** A round; while one runs, another right after it, and both are awaited. */
@@ -357,6 +485,45 @@ export function createSyncClient({
       await signOutHere();
     },
     syncNow: () => round(),
+    loadProfile: () => profileTask(() => signedIn(refreshProfile).then(() => undefined)),
+    setUsername: (username) =>
+      profileTask(() =>
+        signedIn(async (state) => {
+          const stored = await authorized(state.token, () =>
+            api.setUsername(state.token, username),
+          );
+          const settings = state.profile?.settings ?? PROFILE_OFF;
+          await saveProfile(state.token, heard(state.profile, stored, settings));
+        }),
+      ),
+    removeUsername: () =>
+      profileTask(() =>
+        signedIn(async (state) => {
+          await authorized(state.token, () => api.removeUsername(state.token));
+          await saveProfile(state.token, heard(state.profile, null, PROFILE_OFF));
+        }),
+      ),
+    async setProfileSettings(settings) {
+      await profileTask(() =>
+        signedIn(async (state) => {
+          // Titles are for `public` only: the service keeps them off otherwise.
+          const asked = {
+            visibility: settings.visibility,
+            titles: settings.visibility === 'public' && settings.titles,
+          };
+          const stored = await authorized(state.token, () =>
+            api.setProfileSettings(state.token, asked),
+          );
+          // The service removed the published document: this device publishes a new one.
+          await saveProfile(state.token, {
+            username: state.profile?.username ?? null,
+            settings: stored,
+            sentHash: null,
+          });
+        }),
+      );
+      await publishProfile();
+    },
     start() {
       stopped = false;
       channel = createBroadcast();

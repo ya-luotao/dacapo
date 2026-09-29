@@ -970,6 +970,44 @@ export const ja: Dictionary = {
   'settings.account.error.unavailable':
     '同期サービスは現在利用できません。しばらくしてからお試しください。',
 
+  'settings.profile': '公開プロフィール',
+  'settings.profile.help':
+    '1年間の練習をまとめたページです。GitHubのプロフィールのように、リンクを知っている人なら誰でも見られます。オンにするまでは公開されず、検索エンジンにも載りません。',
+  'settings.profile.loading': 'プロフィールの設定を読み込んでいます…',
+  'settings.profile.loadFailed': 'プロフィールの設定を読み込めませんでした。',
+  'settings.profile.retry': 'もう一度',
+  'settings.profile.username': 'ユーザー名',
+  'settings.profile.username.save': '保存',
+  'settings.profile.username.saved': 'ユーザー名を保存しました。',
+  'settings.profile.username.help':
+    '3〜30文字の英小文字（a–z）、数字、ハイフンが使えます。変更すると古い名前は解放され、そのリンクは使えなくなります。',
+  'settings.profile.username.remove': 'ユーザー名を削除',
+  'settings.profile.username.remove.help': 'プロフィールはオフになり、名前は解放されます。',
+  'settings.profile.error.length': 'ユーザー名は3〜30文字にしてください。',
+  'settings.profile.error.characters': '使えるのは英字（a–z）、数字、ハイフンだけです。',
+  'settings.profile.error.edges': 'ユーザー名は英字か数字で始めて、英字か数字で終えてください。',
+  'settings.profile.error.hyphens': 'ハイフンは続けて使えません。',
+  'settings.profile.error.unavailable': 'このユーザー名は使えません。別の名前にしてください。',
+  'settings.profile.visibility': '公開する内容',
+  'settings.profile.visibility.off': 'オフ',
+  'settings.profile.visibility.private': '練習グラフのみ',
+  'settings.profile.visibility.public': 'グラフと内容',
+  'settings.profile.visibility.needsUsername':
+    'プロフィールをオンにするには、先にユーザー名を決めてください。',
+  'settings.profile.shows.off': '何も公開されません。',
+  'settings.profile.shows.private':
+    '公開されるのは、ユーザー名、1年間の練習グラフ、連続日数、合計練習時間です。何を練習したかは公開されません。',
+  'settings.profile.shows.public':
+    '公開されるのは、ユーザー名、練習グラフ、連続日数、合計時間と、毎日練習した内容（譜読み、自由演奏、曲、スケール）とその時間です。',
+  'settings.profile.titles': '曲名を表示',
+  'settings.profile.titles.help':
+    'オフにすると、曲はすべて「曲」とだけ表示されます。正答率、反応時間、メールアドレスが公開されることはありません。',
+  'settings.profile.link': 'あなたのページ',
+  'settings.profile.copy': 'リンクをコピー',
+  'settings.profile.copied': 'リンクをコピーしました。',
+  'settings.profile.copyFailed':
+    'リンクをコピーできませんでした。リンクを選択して、手動でコピーしてください。',
+
   'settings.about': 'このアプリについて',
   'settings.about.text':
     'dacapo {version}は、MITライセンスで公開されているフリーソフトウェアです。',

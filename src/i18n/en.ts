@@ -970,6 +970,42 @@ export const en = {
   'settings.account.error.unavailable':
     'The sync service is not available right now. Try again later.',
 
+  'settings.profile': 'Public profile',
+  'settings.profile.help':
+    'A page with your year of practice, like a GitHub profile, for anyone who has its link. It stays off until you turn it on, and search engines do not list it.',
+  'settings.profile.loading': 'Loading your profile…',
+  'settings.profile.loadFailed': 'Your profile settings could not be loaded.',
+  'settings.profile.retry': 'Try again',
+  'settings.profile.username': 'Username',
+  'settings.profile.username.save': 'Save',
+  'settings.profile.username.saved': 'Username saved.',
+  'settings.profile.username.help':
+    '3 to 30 letters a–z, digits or hyphens. If you change it, the old name is freed and its link stops working.',
+  'settings.profile.username.remove': 'Remove username',
+  'settings.profile.username.remove.help': 'Your profile is turned off and the name is freed.',
+  'settings.profile.error.length': 'A username has 3 to 30 characters.',
+  'settings.profile.error.characters': 'Use only the letters a–z, digits and hyphens.',
+  'settings.profile.error.edges': 'A username starts and ends with a letter or a digit.',
+  'settings.profile.error.hyphens': 'Use one hyphen at a time.',
+  'settings.profile.error.unavailable': 'That username is not available. Try another one.',
+  'settings.profile.visibility': 'Who sees what',
+  'settings.profile.visibility.off': 'Off',
+  'settings.profile.visibility.private': 'Grid only',
+  'settings.profile.visibility.public': 'Grid and activity',
+  'settings.profile.visibility.needsUsername': 'Choose a username to turn your profile on.',
+  'settings.profile.shows.off': 'Nothing is public.',
+  'settings.profile.shows.private':
+    'Public: your username, your year of practice as a grid, your streaks and your total practice time. What you practised stays private.',
+  'settings.profile.shows.public':
+    'Public: your username, the grid, your streaks and total time, and what you practised each day (reading, free play, pieces and scales), with how long.',
+  'settings.profile.titles': 'Show piece titles',
+  'settings.profile.titles.help':
+    'Without them, each piece is listed as “a piece”. Accuracy, reaction times and your email address are never public.',
+  'settings.profile.link': 'Your page',
+  'settings.profile.copy': 'Copy link',
+  'settings.profile.copied': 'Link copied.',
+  'settings.profile.copyFailed': 'The link could not be copied. Select it and copy it yourself.',
+
   'settings.about': 'About',
   'settings.about.text': 'dacapo {version} is free software under the MIT licence.',
   'settings.about.source': 'Source code',

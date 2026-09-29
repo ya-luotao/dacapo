@@ -9,15 +9,10 @@ import {
   yearGrid,
   type DayKey,
 } from '../../core/streak.ts';
-import { useI18n, type Locale } from '../../i18n/index.ts';
+import { FIRST_DAY, useI18n } from '../../i18n/index.ts';
 import { useLogFormat } from './format.ts';
 
 const MINUTE_MS = 60_000;
-/**
- * The first day of the week (1 Monday … 7 Sunday), as `Intl.Locale` week info gives it for these
- * locales. Written out because Firefox does not have week info yet.
- */
-const FIRST_DAY: Record<Locale, number> = { en: 7, 'zh-CN': 1, 'zh-TW': 7, ja: 7, ko: 7 };
 /** Monday, Wednesday and Friday are labelled, wherever the week starts. */
 const LABELLED_WEEKDAYS = [1, 3, 5];
 

@@ -1,7 +1,9 @@
+import type { ProfileDocument, ProfileSettings, ProfileVisibility } from '../core/profile.ts';
 import type { SyncAccount } from '../storage/syncTypes.ts';
 import type { Change } from './records.ts';
 
-// The sync service's HTTP protocol (docs/SYNC.md, "Protocol"), and nothing else.
+// The sync service's HTTP protocol (docs/SYNC.md and docs/PROFILE.md, "Protocol"), and nothing
+// else.
 
 /** Why a request failed: the service's error code, or `network` when there was no answer. */
 export type ApiErrorCode =
@@ -12,6 +14,10 @@ export type ApiErrorCode =
   | 'too-large'
   | 'rate-limited'
   | 'unavailable'
+  | 'invalid-username'
+  | 'username-unavailable'
+  | 'no-username'
+  | 'profile-changed'
   | 'network';
 
 export class ApiError extends Error {
@@ -36,6 +42,12 @@ export interface PulledPage {
   changes: unknown[];
 }
 
+/** `GET /v1/account`: the account with its username and profile settings. */
+export interface AccountDetails extends SyncAccount {
+  username: string | null;
+  profile: ProfileSettings;
+}
+
 export interface SyncApi {
   requestCode: (email: string, locale: string) => Promise<void>;
   verify: (
@@ -43,7 +55,15 @@ export interface SyncApi {
     code: string,
     device: string,
   ) => Promise<{ token: string; account: SyncAccount }>;
-  account: (token: string) => Promise<SyncAccount>;
+  account: (token: string) => Promise<AccountDetails>;
+  /** The username as stored. Rejects with `invalid-username` or `username-unavailable`. */
+  setUsername: (token: string, username: string) => Promise<string>;
+  /** Removes the username; the profile is off. */
+  removeUsername: (token: string) => Promise<void>;
+  /** The settings as stored. Rejects with `no-username` unless `off`. */
+  setProfileSettings: (token: string, settings: ProfileSettings) => Promise<ProfileSettings>;
+  /** Publishes the profile. Rejects with `profile-changed` when the settings are not the service's. */
+  putProfile: (token: string, document: ProfileDocument) => Promise<void>;
   signOut: (token: string) => Promise<void>;
   deleteAccount: (token: string) => Promise<void>;
   sync: (token: string, cursor: number, changes: readonly Change[]) => Promise<PulledPage>;
@@ -61,7 +81,21 @@ const ERROR_CODES: readonly ApiErrorCode[] = [
   'too-large',
   'rate-limited',
   'unavailable',
+  'invalid-username',
+  'username-unavailable',
+  'no-username',
+  'profile-changed',
 ];
+
+const VISIBILITIES: readonly ProfileVisibility[] = ['off', 'private', 'public'];
+
+/** The settings in an answer; a service without profiles has them off. */
+function profileSettings(value: unknown): ProfileSettings {
+  const { visibility, titles } = (value ?? {}) as Partial<Record<string, unknown>>;
+  return VISIBILITIES.includes(visibility as ProfileVisibility)
+    ? { visibility: visibility as ProfileVisibility, titles: titles === true }
+    : { visibility: 'off', titles: false };
+}
 
 async function failure(response: Response): Promise<ApiError> {
   let code: ApiErrorCode = response.status === 401 ? 'unauthorized' : 'unavailable';
@@ -114,8 +148,30 @@ export function createSyncApi(endpoint: string, fetcher: typeof fetch = fetch): 
       return { token: body.token, account: { id: body.account.id, email: body.account.email } };
     },
     async account(token) {
-      const body = (await (await call('GET', '/v1/account', { token })).json()) as SyncAccount;
-      return { id: body.id, email: body.email };
+      const body = (await (await call('GET', '/v1/account', { token })).json()) as SyncAccount & {
+        username?: unknown;
+        profile?: unknown;
+      };
+      return {
+        id: body.id,
+        email: body.email,
+        username: typeof body.username === 'string' ? body.username : null,
+        profile: profileSettings(body.profile),
+      };
+    },
+    async setUsername(token, username) {
+      const response = await call('PUT', '/v1/account/username', { token, json: { username } });
+      return ((await response.json()) as { username: string }).username;
+    },
+    async removeUsername(token) {
+      await call('DELETE', '/v1/account/username', { token });
+    },
+    async setProfileSettings(token, settings) {
+      const response = await call('PUT', '/v1/account/profile', { token, json: settings });
+      return profileSettings(await response.json());
+    },
+    async putProfile(token, document) {
+      await call('PUT', '/v1/profile', { token, json: { document } });
     },
     async signOut(token) {
       await call('POST', '/v1/auth/signout', { token });
