@@ -7483,6 +7483,10 @@ select.is-compact {
   fill: currentColor;
 }
 
+.plate-staff.is-rhythm .engraved-label {
+  font-size: 11px;
+}
+
 /* The steps of a scale: each note, and the whole or half step to the next. */
 .scale-steps {
   display: flex;

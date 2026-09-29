@@ -76,8 +76,10 @@ export function RhythmLine({
   const perBar = time[0];
   const { placed, bars } = layout(rhythm, perBar);
   const x0 = bodyStart('rhythm', 0, true);
-  const xAt = (beat: number) => x0 + beat * BEAT_WIDTH + 8;
-  const width = x0 + bars * perBar * BEAT_WIDTH + 24;
+  // Two bars or more are set closer, so they stay legible at a phone's width.
+  const beatWidth = bars > 1 ? 46 : BEAT_WIDTH;
+  const xAt = (beat: number) => x0 + beat * beatWidth + 8;
+  const width = x0 + bars * perBar * beatWidth + 24;
   const notes: StaffNote[] = placed.map((b, i) => ({
     id: `${i}`,
     pitch: b.rest ? null : { letter: 'B', accidental: 0, octave: 4 },
@@ -295,6 +297,15 @@ export function BeatPulse({ labels }: { labels: { tempo: string } }) {
     release.current?.();
     release.current = null;
   }, [running, exercise.id]);
+  // Leaving the page stops the beat too (the exercise is not turned off then).
+  useEffect(
+    () => () => {
+      clicks.stop(exercise.id);
+      release.current?.();
+      release.current = null;
+    },
+    [exercise.id],
+  );
 
   useNoteOn((_midi, time) => {
     if (!running || origin === null || time < origin - period / 2) return;
@@ -529,6 +540,21 @@ function judge(
   return { offsets };
 }
 
+/** Notes in time, notes in all, and the offsets of the notes played, over every bar's last run. */
+function score(results: readonly (Judged | undefined)[]) {
+  const offsets: number[] = [];
+  let total = 0;
+  for (const r of results) {
+    if (!r) continue;
+    for (const o of r.offsets) {
+      if (o === null) continue;
+      total++;
+      if (Number.isFinite(o)) offsets.push(o);
+    }
+  }
+  return { good: offsets.filter((o) => Math.abs(o) <= GOOD_MS).length, total, offsets };
+}
+
 /**
  * Tap the rhythm: a bar of clicks to count in, then tap any key on each note while the click goes
  * on. Every note is marked in time, early, late or missed.
@@ -549,11 +575,8 @@ export function RhythmTap({
   const [at, setAt] = useState(0);
   const [run, setRun] = useState<{ start: number; end: number } | null>(null);
   const [result, setResult] = useState<Judged | null>(null);
-  const [scores, setScores] = useState<{ good: number; total: number; offsets: number[] }>({
-    good: 0,
-    total: 0,
-    offsets: [],
-  });
+  // Each bar's last run: trying a bar again replaces its result.
+  const [results, setResults] = useState<readonly Judged[]>([]);
   const taps = useRef<number[]>([]);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const release = useRef<(() => void) | null>(null);
@@ -591,13 +614,11 @@ export function RhythmTap({
       () => {
         finish();
         const judged = judge(placed, start, period, taps.current);
-        const hit = judged.offsets.filter((o): o is number => o !== null && Number.isFinite(o));
-        const notes = judged.offsets.filter((o) => o !== null).length;
-        setScores((s) => ({
-          good: s.good + hit.filter((o) => Math.abs(o) <= GOOD_MS).length,
-          total: s.total + notes,
-          offsets: [...s.offsets, ...hit],
-        }));
+        setResults((all) => {
+          const next = [...all];
+          next[at] = judged;
+          return next;
+        });
         setResult(judged);
         setRun(null);
         exercise.stop();
@@ -620,7 +641,7 @@ export function RhythmTap({
   const restart = () => {
     setAt(0);
     setResult(null);
-    setScores({ good: 0, total: 0, offsets: [] });
+    setResults([]);
   };
 
   const tones = result?.offsets.map((o) =>
@@ -633,6 +654,7 @@ export function RhythmTap({
           : 'bad',
   );
   const counting = run !== null && beat !== null && beat < 4;
+  const scores = score(results);
   const mean =
     scores.offsets.length === 0
       ? 0

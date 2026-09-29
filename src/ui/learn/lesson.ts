@@ -1,4 +1,13 @@
-import { createContext, useCallback, useContext, useEffect, useId, useRef, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type PointerEvent,
+} from 'react';
 import { midiName } from '../../core/note.ts';
 import type { LessonLanguage } from '../../learn/lessons.ts';
 import { formatMessage } from '../../i18n/locale.ts';
@@ -130,7 +139,13 @@ export function keyName(midi: number): string {
   return midiName(midi).replace('#', '♯');
 }
 
-/** Calls `listener` with every key pressed, from any keyboard, and when (performance.now()). */
+/** Keys a figure is sounding by itself (a demo, Listen): not the player's, so never an answer. */
+const demoKeys = new Set<number>();
+
+/**
+ * Calls `listener` with every key the player presses, from any keyboard, and when
+ * (performance.now()). Keys a figure plays by itself are left out.
+ */
 export function useNoteOn(listener: (midi: number, time: number) => void, enabled = true): void {
   const { hub } = useInput();
   const latest = useRef(listener);
@@ -140,7 +155,7 @@ export function useNoteOn(listener: (midi: number, time: number) => void, enable
   useEffect(() => {
     if (!enabled) return;
     return hub.onEvent((event) => {
-      if (event.type === 'on') latest.current(event.midi, event.time);
+      if (event.type === 'on' && !demoKeys.has(event.midi)) latest.current(event.midi, event.time);
     });
   }, [hub, enabled]);
 }
@@ -175,6 +190,7 @@ export function usePlayKey(): (midi: number, ms?: number) => void {
       for (const [timer, id] of keys) {
         clearTimeout(timer);
         pointer.release(id, performance.now());
+        demoKeys.delete(-1000 - id);
       }
       keys.clear();
     };
@@ -183,10 +199,13 @@ export function usePlayKey(): (midi: number, ms?: number) => void {
     (midi, ms = 450) => {
       // A pointer id of its own, below the ones real pointers use.
       const id = -1000 - midi;
+      // Marked before the press, which reaches the listeners at once.
+      demoKeys.add(midi);
       pointer.press(id, midi, performance.now());
       const timer = setTimeout(() => {
         sounding.current.delete(timer);
         pointer.release(id, performance.now());
+        demoKeys.delete(midi);
       }, ms);
       sounding.current.set(timer, id);
     },
@@ -194,14 +213,18 @@ export function usePlayKey(): (midi: number, ms?: number) => void {
   );
 }
 
-/** Starts an exercise when one of its keys is clicked, so that very click is its first answer. */
+/**
+ * Starts an exercise when one of its keys is clicked, so that very click is its first answer.
+ * Only a key: a button in the exercise (Listen) does not start it.
+ */
 export function useStartOnPress(
   exercise: ReturnType<typeof useExercise>,
   done: boolean,
-): { onPointerDownCapture: () => void; listening: () => boolean } {
+): { onPointerDownCapture: (e: PointerEvent) => void; listening: () => boolean } {
   const pending = useRef(false);
-  const onPointerDownCapture = () => {
+  const onPointerDownCapture = (e: PointerEvent) => {
     if (exercise.active || done) return;
+    if (!(e.target as Element).closest?.('[data-midi]')) return;
     pending.current = true;
     exercise.start();
   };

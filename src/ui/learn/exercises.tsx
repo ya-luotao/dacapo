@@ -1,4 +1,4 @@
-import { useMemo, useState, type ComponentProps, type ReactNode } from 'react';
+import { useMemo, useState, type ComponentProps, type PointerEvent, type ReactNode } from 'react';
 import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
 import { LessonPiano } from './LessonPiano.tsx';
 import {
@@ -26,7 +26,7 @@ interface FrameProps {
   action: { label: string; onClick: () => void } | null;
   /** Played on the keyboard: say how to play without one. */
   keys?: boolean;
-  onPointerDownCapture?: () => void;
+  onPointerDownCapture?: (e: PointerEvent) => void;
   children: ReactNode;
 }
 
