@@ -141,6 +141,15 @@ export function ProfileBlock({
           </p>
         )}
         {username && settings.visibility !== 'off' && <ProfileLink username={username} />}
+        {username && settings.visibility !== 'off' && status.profileError && (
+          <p className="data-status is-warning" role="status">
+            {t(
+              status.profileError === 'network'
+                ? 'settings.profile.publishOffline'
+                : 'settings.profile.publishFailed',
+            )}
+          </p>
+        )}
       </>
     );
   }

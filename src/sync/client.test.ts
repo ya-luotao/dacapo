@@ -99,6 +99,16 @@ function fakeService({ pageSize = 1000 } = {}) {
       ) {
         throw new ApiError('profile-changed', 409);
       }
+      // As the service: every number in a document is a non-negative integer.
+      const numbers = (value: unknown): number[] =>
+        typeof value === 'number'
+          ? [value]
+          : typeof value === 'object' && value !== null
+            ? Object.values(value).flatMap(numbers)
+            : [];
+      if (!numbers(document).every((n) => Number.isSafeInteger(n) && n >= 0)) {
+        throw new ApiError('invalid-request', 400);
+      }
       profile.document = document;
       profile.puts++;
       return Promise.resolve();
@@ -759,6 +769,39 @@ describe('the public profile', () => {
     expect(service.profile.puts).toBe(puts);
     expect(service.profile.document).toBeNull();
     expect(ipad.client.getStatus().profile?.settings.visibility).toBe('off');
+  });
+
+  it('shows why publishing failed, and clears it once it works', async () => {
+    const service = fakeService();
+    let failures = 1;
+    const api: SyncApi = {
+      ...service.api,
+      putProfile(token, document) {
+        if (failures-- > 0) return Promise.reject(new ApiError('unavailable', 503));
+        return service.api.putProfile(token, document);
+      },
+    };
+    const ipad = await device(service, api);
+    for (const session of sampleData().sessions) ipad.store.recordSession(session);
+    await ipad.store.settled();
+    await signIn(ipad);
+    await ipad.client.setUsername('clara');
+    await ipad.client.setProfileSettings({ visibility: 'private', titles: false });
+    expect(service.profile.puts).toBe(0);
+    expect(ipad.client.getStatus().profileError).toBe('unavailable');
+
+    await ipad.client.syncNow();
+    expect(service.profile.puts).toBe(1);
+    expect(ipad.client.getStatus().profileError).toBeNull();
+  });
+
+  it('publishes again after the settings are set, even to the same ones', async () => {
+    const service = fakeService();
+    const ipad = await withProfile(service);
+    await ipad.client.setUsername('clara');
+    await ipad.client.setProfileSettings({ visibility: 'private', titles: false });
+    await ipad.client.setProfileSettings({ visibility: 'private', titles: false });
+    expect(service.profile.puts).toBe(2);
   });
 
   it('is published by a device that never opened Settings', async () => {

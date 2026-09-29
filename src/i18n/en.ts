@@ -1002,6 +1002,9 @@ export const en = {
   'settings.profile.titles.help':
     'Without them, each piece is listed as “a piece”. Accuracy, reaction times and your email address are never public.',
   'settings.profile.link': 'Your page',
+  'settings.profile.publishFailed':
+    'Your page could not be updated. dacapo tries again at the next sync.',
+  'settings.profile.publishOffline': 'Offline: your page is updated when you are back online.',
   'settings.profile.copy': 'Copy link',
   'settings.profile.copied': 'Link copied.',
   'settings.profile.copyFailed': 'The link could not be copied. Select it and copy it yourself.',

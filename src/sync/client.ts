@@ -48,6 +48,8 @@ export interface SyncStatus {
   error: ApiErrorCode | 'storage' | null;
   /** The username and profile settings as last heard from the service; null until then. */
   profile: { username: string | null; settings: ProfileSettings } | null;
+  /** Why the last publish of the profile failed; null after a good one or before any. */
+  profileError: ApiErrorCode | 'storage' | null;
 }
 
 /** What the public profile is built from: the practice store's records and the week start. */
@@ -140,6 +142,7 @@ const SIGNED_OUT: SyncStatus = {
   lastSyncAt: null,
   error: null,
   profile: null,
+  profileError: null,
 };
 
 class StorageUnavailable extends Error {}
@@ -279,9 +282,10 @@ export function createSyncClient({
     return storage((sync) => sync.apply(pulled));
   }
 
-  async function runRound(): Promise<void> {
+  /** Whether the round went through to the end. */
+  async function runRound(): Promise<boolean> {
     const state = await readState();
-    if (!state) return;
+    if (!state) return false;
     setStatus({ phase: 'syncing' });
     let cursor = state.cursor;
     let changed = false;
@@ -303,7 +307,7 @@ export function createSyncClient({
         await storage((sync) => sync.acknowledge(done));
         cursor = page.cursor;
         // Signed out or in again meanwhile: this round is over.
-        if (!(await storage((sync) => sync.saveProgress(state.token, { cursor })))) return;
+        if (!(await storage((sync) => sync.saveProgress(state.token, { cursor })))) return false;
         const drained =
           pending.length < PUSH_LIMIT && sent.length + skipped.length === pending.length;
         if (!page.more && rejected.size === 0 && drained) break;
@@ -318,7 +322,7 @@ export function createSyncClient({
     } catch (error) {
       if (error instanceof ApiError && error.code === 'unauthorized') {
         await signOutHere(state.token);
-        return;
+        return false;
       }
       if (!(error instanceof ApiError)) console.error('dacapo: sync failed', error);
       failures++;
@@ -332,7 +336,7 @@ export function createSyncClient({
       if (changed) await host.reloadAll().catch(() => {});
       channel?.postMessage('changed');
     }
-    if (completed) await publishProfile();
+    return completed;
   }
 
   // The public profile --------------------------------------------------------------------------
@@ -344,9 +348,16 @@ export function createSyncClient({
     return result;
   }
 
-  /** Saves the profile state for `token`'s sign-in and tells the page and the other tabs. */
-  async function saveProfile(token: string, profile: ProfileState): Promise<void> {
-    if (await storage((sync) => sync.saveProgress(token, { profile }))) {
+  /**
+   * Saves the profile state for `token`'s sign-in and tells the page and the other tabs; with
+   * `when`, only if the stored state still passes it (another tab may have changed it meanwhile).
+   */
+  async function saveProfile(
+    token: string,
+    profile: ProfileState,
+    when?: (stored: SyncState) => boolean,
+  ): Promise<void> {
+    if (await storage((sync) => sync.saveProgress(token, { profile }, when))) {
       await readState();
       channel?.postMessage('changed');
     }
@@ -390,9 +401,11 @@ export function createSyncClient({
    * Publishes the profile when it is on and differs from the last one sent from here; never while
    * practising. The settings are read from the service once after the page starts (the profile
    * may have been turned on or off on another device), and again on 409 `profile-changed`, after
-   * which it tries once more. A failure is left for the next round.
+   * which it tries once more. A failure is left for the next round, and shown in the status.
+   * `force`: right after a change of settings, when the service holds no document, publish even
+   * if this device's last one looks the same (its state may be behind another tab's).
    */
-  function publishProfile(): Promise<void> {
+  function publishProfile({ force = false } = {}): Promise<void> {
     return profileTask(async () => {
       const state = await storage((sync) => sync.state()).catch(() => null);
       let profile = state?.profile;
@@ -406,14 +419,27 @@ export function createSyncClient({
         const document = buildProfile({ ...source, settings: profile.settings, now: now() });
         if (!document) return;
         const hash = await sha256Hex(canonicalText(document));
-        if (hash === profile.sentHash) return;
+        if (hash === profile.sentHash && !force) return;
         try {
           await authorized(state.token, () => api.putProfile(state.token, document));
-          await saveProfile(state.token, { ...profile, sentHash: hash });
+          // What was sent counts only while the settings it was built for are still the stored ones.
+          const sentUnder = profile;
+          await saveProfile(
+            state.token,
+            { ...sentUnder, sentHash: hash },
+            (stored) =>
+              stored.profile?.username === sentUnder.username &&
+              stored.profile.settings.visibility === sentUnder.settings.visibility &&
+              stored.profile.settings.titles === sentUnder.settings.titles,
+          );
+          setStatus({ profileError: null });
           return;
         } catch (error) {
           if (!(error instanceof ApiError && error.code === 'profile-changed')) {
-            if (!(error instanceof ApiError)) console.error('dacapo: publishing failed', error);
+            if (!(error instanceof ApiError) || error.code !== 'network') {
+              console.error('dacapo: publishing the profile failed', error);
+            }
+            setStatus({ profileError: error instanceof ApiError ? error.code : 'storage' });
             return;
           }
           profile = await refreshProfile(state).catch(() => undefined);
@@ -437,14 +463,17 @@ export function createSyncClient({
     }
     if (isBusy()) return Promise.resolve();
     running = (async () => {
+      let completed = false;
       try {
         do {
           again = false;
-          await lock(runRound);
+          if (await lock(runRound)) completed = true;
         } while (again && !isBusy());
       } finally {
         running = null;
       }
+      // Outside the lock and the round: publishing holds up neither other tabs nor new changes.
+      if (completed) await publishProfile();
     })();
     return running;
   }
@@ -501,6 +530,7 @@ export function createSyncClient({
         signedIn(async (state) => {
           await authorized(state.token, () => api.removeUsername(state.token));
           await saveProfile(state.token, heard(state.profile, null, PROFILE_OFF));
+          setStatus({ profileError: null });
         }),
       ),
     async setProfileSettings(settings) {
@@ -520,9 +550,10 @@ export function createSyncClient({
             settings: stored,
             sentHash: null,
           });
+          setStatus({ profileError: null });
         }),
       );
-      await publishProfile();
+      await publishProfile({ force: true });
     },
     start() {
       stopped = false;

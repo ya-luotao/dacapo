@@ -107,6 +107,14 @@ describe('signing in and out', () => {
     expect(await sync.saveProgress('old', { cursor: 9, lastSyncAt: T0 })).toBe(false);
     expect(await sync.state()).toMatchObject({ token: 'new', cursor: 0, lastSyncAt: null });
   });
+
+  it('saves progress only while the stored state passes the check it is given', async () => {
+    await sync.signIn(account, 't');
+    expect(await sync.saveProgress('t', { cursor: 3 }, (state) => state.cursor === 1)).toBe(false);
+    expect((await sync.state())!.cursor).toBe(0);
+    expect(await sync.saveProgress('t', { cursor: 3 }, (state) => state.cursor === 0)).toBe(true);
+    expect((await sync.state())!.cursor).toBe(3);
+  });
 });
 
 describe('the outbox while signed in', () => {

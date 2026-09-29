@@ -58,3 +58,8 @@ export function isScoreWarning(value: unknown): value is ScoreWarning {
 export function byImportedDescending(a: StoredPiece, b: StoredPiece): number {
   return b.importedAt - a.importedAt || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 }
+
+/** The title an imported file gets when its score has none: its name, without the extension. */
+export function titleFromFile(name: string): string {
+  return name.replace(/\.(musicxml|xml|mxl)$/i, '').replace(/[_]+/g, ' ');
+}

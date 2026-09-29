@@ -68,9 +68,14 @@ export interface SyncStorage {
    * Saves the cursor, the time of the last round or the profile, unless the device signed out or in again
    * meanwhile (`token` is no longer the stored one). Returns whether it saved.
    */
+  /**
+   * Saves `progress` for `token`'s sign-in, and with `when`, only if the stored state passes it.
+   * False when nothing was saved.
+   */
   saveProgress: (
     token: string,
     progress: Partial<Pick<SyncState, 'cursor' | 'lastSyncAt' | 'profile'>>,
+    when?: (state: SyncState) => boolean,
   ) => Promise<boolean>;
   /** Up to `limit` outbox entries with their records. */
   pending: (limit: number) => Promise<PendingRecord[]>;
@@ -179,11 +184,11 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
       return true;
     },
 
-    async saveProgress(token, progress) {
+    async saveProgress(token, progress, when) {
       const tx = db.transaction('meta', 'readwrite');
       const meta = tx.objectStore('meta');
       const state = (await meta.get(SYNC_STATE_KEY)) as SyncState | undefined;
-      if (!state || state.token !== token) {
+      if (!state || state.token !== token || (when && !when(state))) {
         await tx.done;
         return false;
       }

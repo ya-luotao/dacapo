@@ -93,14 +93,18 @@ store, and sent whole; it replaces the previous one.
 - `activity` has the same dates as `days`. `kinds` has the kinds practised that day (`read`,
   `free`, `piece`, `scale`). `pieces` and `scales` are the five longest of the day, longest first,
   with `morePieces` / `moreScales` counting the rest when there are more. A piece's time is the
-  time of its runs; its title is the piece's current one, or the one it had when practised if it
-  has been deleted since; at most 80 characters (longer ones are cut, with `…`). A scale's time is
-  that of its runs, first key to last, whatever the octaves and hands.
-- All numbers are non-negative integers. At most 256 KB serialized; a year of daily practice is
+  time of its runs. Its title is the piece's current one, at most 80 characters (longer ones are
+  cut, with `…`); a piece deleted since, or whose title was made from its file name (a score
+  without a title), is "a piece", as the file name is never published. A scale's time is that of
+  its runs, first key to last, whatever the octaves and hands.
+- All numbers are non-negative integers (times are rounded: scale runs are timed to fractions of
+  a millisecond). At most 256 KB serialized; a year of daily practice is
   well under, and a document over it leaves out the oldest days' activity until it fits.
-- The page is as fresh as the owner's last publish and says when that was ("Updated 2 hours ago").
-  The owner's `today` is not moved forward for the viewer: without the owner's time zone the page
-  cannot know it, so the grid ends at the last publish.
+- The page is as fresh as the owner's last publish and says when that was, to the day only
+  ("Updated in the last day", "Updated 3 days ago"): next to the owner's date, the minute of a
+  publish would tell the owner's time zone. The owner's `today` is not moved forward for the
+  viewer: without the owner's time zone the page cannot know it, so the grid ends at the last
+  publish.
 
 ## Protocol
 
@@ -128,24 +132,31 @@ Added to SYNC.md's table; the same errors, plus 400 `invalid-username`, 409
   tonics, too many entries, a title with `titles` false, `activity` with `private`: 400) and keeps
   it with the time of the request.
 - Renaming, `DELETE /v1/account/username` and `PUT /v1/account/profile` are limited per account
-  (a few a minute). The page is limited per IP and sent with `Cache-Control: public, max-age=60`,
-  so a change can take a minute to show. A name that is unknown, has the profile off or has no
+  (10 a minute), and so is `PUT /v1/profile` (20 a minute: D1 serializes every write, sign-ins'
+  included). The page is limited per IP and sent with `Cache-Control: no-cache`, so turning the
+  profile off or narrowing it shows at once. A name that is unknown, has the profile off or has no
   document yet is the same 404. A name in upper case redirects (301) to its lower-case URL.
 
 ### When the client publishes
 
-- After every sync round that completes, and right after changing the settings; only while signed
-  in, with a username and a visibility other than `off` (as last heard from the service). It
-  therefore inherits sync's rule: never while practising.
-- Only when the document differs from the last one this device sent (its hash in `meta`), so a day
-  without practice still publishes once, when `today` moves.
+- After every sync round that completes (outside the round and its lock, so it holds up neither
+  other tabs nor new changes), and right after changing the settings; only while signed in, with a
+  username and a visibility other than `off` (as last heard from the service). It therefore
+  inherits sync's rule: never while practising.
+- Only when the document differs from the last one this device sent (its hash in `meta`, saved
+  only while the settings it was built for are still the stored ones, as another tab may have
+  changed them), so a day without practice still publishes once, when `today` moves. Right after
+  a change of settings it publishes whatever the hash. A failed publish is retried after the next
+  round, and Settings says it failed until one works.
 - The settings are read with `GET /v1/account` once after the app starts (before its first
   publish), when the Settings page opens, and on 409 `profile-changed`, after which it builds and
   sends again once (or stops, when the profile is now off). So a device learns that the profile was
   turned on or off on another one the next time it starts.
 - Several devices: each builds from its own store, which after a pull holds the same records, so
   the last device to publish shows the full picture. A device that has not pulled yet can publish
-  a slightly older grid until the next round; the service does not merge documents.
+  a slightly older grid until the next round; the service does not merge documents. Each device
+  builds in its own time zone and with the week start of its own language, so devices set
+  differently publish the grid shifted by a day or starting on another weekday.
 
 ## The public page
 

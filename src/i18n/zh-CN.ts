@@ -941,6 +941,8 @@ export const zhCN: Dictionary = {
   'settings.profile.titles.help':
     '不显示时，每首曲目都只写作“一首曲目”。准确率、反应时间和你的邮箱地址永远不会公开。',
   'settings.profile.link': '你的主页',
+  'settings.profile.publishFailed': '你的主页暂时无法更新，下次同步时会再试。',
+  'settings.profile.publishOffline': '当前离线：恢复联网后会更新你的主页。',
   'settings.profile.copy': '复制链接',
   'settings.profile.copied': '链接已复制。',
   'settings.profile.copyFailed': '无法复制链接，请选中链接后手动复制。',

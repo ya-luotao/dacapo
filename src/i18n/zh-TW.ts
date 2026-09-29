@@ -944,6 +944,8 @@ export const zhTW: Dictionary = {
   'settings.profile.titles.help':
     '不顯示時，每首樂曲都只寫成「一首樂曲」。準確率、反應時間和你的電子郵件地址絕不會公開。',
   'settings.profile.link': '你的頁面',
+  'settings.profile.publishFailed': '你的頁面暫時無法更新，下次同步時會再試。',
+  'settings.profile.publishOffline': '目前離線：恢復連線後會更新你的頁面。',
   'settings.profile.copy': '複製連結',
   'settings.profile.copied': '已複製連結。',
   'settings.profile.copyFailed': '無法複製連結，請選取連結後自行複製。',

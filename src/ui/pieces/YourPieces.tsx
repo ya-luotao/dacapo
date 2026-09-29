@@ -3,7 +3,7 @@ import { Link } from 'wouter';
 import type { ScoreErrorKind } from '../../core/musicxml.ts';
 import { pieceFacts } from '../../core/pieceRecords.ts';
 import type { ScoreWarning } from '../../core/score.ts';
-import { nextPieceVersion, type StoredPiece } from '../../core/storedPiece.ts';
+import { nextPieceVersion, titleFromFile, type StoredPiece } from '../../core/storedPiece.ts';
 import { useT } from '../../i18n/index.ts';
 import {
   isPieceFileName,
@@ -32,10 +32,6 @@ type ImportState =
       /** null: the score could not be drawn to check. */
       unplaced: number | null;
     };
-
-function titleFromFile(name: string): string {
-  return name.replace(/\.(musicxml|xml|mxl)$/i, '').replace(/[_]+/g, ' ');
-}
 
 export function YourPieces() {
   const t = useT();

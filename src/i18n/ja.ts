@@ -1003,6 +1003,8 @@ export const ja: Dictionary = {
   'settings.profile.titles.help':
     'オフにすると、曲はすべて「曲」とだけ表示されます。正答率、反応時間、メールアドレスが公開されることはありません。',
   'settings.profile.link': 'あなたのページ',
+  'settings.profile.publishFailed': 'ページを更新できませんでした。次の同期でもう一度試します。',
+  'settings.profile.publishOffline': 'オフラインです。オンラインに戻るとページを更新します。',
   'settings.profile.copy': 'リンクをコピー',
   'settings.profile.copied': 'リンクをコピーしました。',
   'settings.profile.copyFailed':

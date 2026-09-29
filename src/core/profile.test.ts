@@ -73,7 +73,11 @@ const scale = (id: string, startedAt: number, runs: [string, number][]): ScaleSe
   };
 };
 
-const stored = (id: string, title: string) => ({ id, title }) as StoredPiece;
+const stored = (id: string, title: string, fileName = `${id}.musicxml`) =>
+  ({ id, title, fileName }) as StoredPiece;
+/** The stored pieces of `sessions`, titled as when practised. */
+const storedFor = (sessions: readonly SessionRecord[]) =>
+  sessions.flatMap((s) => (s.kind === 'piece' ? [stored(s.pieceId, s.title)] : []));
 
 function build(patch: Partial<ProfileInput>) {
   return buildProfile({
@@ -151,10 +155,8 @@ describe('buildProfile', () => {
     expect(withTitles.activity).toEqual({
       '2026-09-29': {
         kinds: { free: 3 * MIN, piece: 7 * MIN, scale: scaleMs },
-        pieces: [
-          { title: 'Minuet in G', ms: 6 * MIN },
-          { title: 'Deleted piece', ms: MIN },
-        ],
+        // A deleted piece is "a piece": its title is no longer the owner's to publish.
+        pieces: [{ title: 'Minuet in G', ms: 6 * MIN }, { ms: MIN }],
         scales: [
           { type: 'major', tonic: 'D', ms: 30_000 },
           { type: 'naturalMinor', tonic: 'A', ms: 15_000 },
@@ -171,13 +173,46 @@ describe('buildProfile', () => {
     expect(withoutTitles.activity!['2026-09-29']!.pieces).toEqual([{ ms: 6 * MIN }, { ms: MIN }]);
   });
 
+  it('publishes whole milliseconds, though scale runs are timed to fractions of one', () => {
+    const sessions: SessionRecord[] = [
+      scale('s', NOW + 0.5, [
+        ['major:D:2:both', 20_000.3],
+        ['major:G:1:right', 10_000.4],
+      ]),
+      free('f', NOW - DAY, MIN),
+    ];
+    for (const visibility of ['private', 'public'] as const) {
+      const document = build({ sessions, settings: { visibility, titles: false } })!;
+      const numbers = (value: unknown): number[] =>
+        typeof value === 'number'
+          ? [value]
+          : typeof value === 'object' && value !== null
+            ? Object.values(value).flatMap(numbers)
+            : [];
+      expect(numbers(document).every(Number.isSafeInteger)).toBe(true);
+    }
+  });
+
+  it('never publishes a title made from the file name', () => {
+    const sessions = [piece('r1', 'p1', NOW, 2 * MIN), piece('r2', 'p2', NOW + MIN, MIN)];
+    const pieces = [
+      stored('p1', 'Anna lesson 3', 'Anna_lesson_3.musicxml'),
+      stored('p2', 'Gymnopédie No. 1', 'Anna_lesson_4.mxl'),
+    ];
+    const day = build({ sessions, pieces, settings: { visibility: 'public', titles: true } })!
+      .activity!['2026-09-29']!;
+    expect(day.pieces).toEqual([{ ms: 2 * MIN }, { title: 'Gymnopédie No. 1', ms: MIN }]);
+  });
+
   it('lists the five longest pieces and counts the rest', () => {
     const sessions = Array.from({ length: 7 }, (_, i) =>
       piece(`r${i}`, `p${i}`, NOW + i * 10 * MIN, (i + 1) * MIN),
     );
-    const day = build({ sessions, settings: { visibility: 'public', titles: true } })!.activity![
-      '2026-09-29'
-    ]!;
+    const day = build({
+      sessions,
+      pieces: storedFor(sessions),
+      settings: { visibility: 'public', titles: true },
+    })!.activity!['2026-09-29']!;
     expect(day.pieces!.map((p) => p.title)).toEqual([
       'Title of p6',
       'Title of p5',
@@ -191,9 +226,11 @@ describe('buildProfile', () => {
   it('cuts long titles and leaves out empty ones', () => {
     const long = 'é'.repeat(100);
     const sessions = [piece('r1', 'p1', NOW, MIN, long), piece('r2', 'p2', NOW + MIN, MIN, '  ')];
-    const day = build({ sessions, settings: { visibility: 'public', titles: true } })!.activity![
-      '2026-09-29'
-    ]!;
+    const day = build({
+      sessions,
+      pieces: storedFor(sessions),
+      settings: { visibility: 'public', titles: true },
+    })!.activity!['2026-09-29']!;
     expect(day.pieces![0]).toEqual({ title: `${'é'.repeat(79)}…`, ms: MIN });
     expect(day.pieces![1]).toEqual({ ms: MIN });
     expect(clip('short')).toBe('short');
@@ -221,7 +258,11 @@ describe('buildProfile', () => {
         ),
       ),
     ).flat();
-    const document = build({ sessions, settings: { visibility: 'public', titles: true } })!;
+    const document = build({
+      sessions,
+      pieces: storedFor(sessions),
+      settings: { visibility: 'public', titles: true },
+    })!;
     expect(new TextEncoder().encode(JSON.stringify(document)).byteLength).toBeLessThanOrEqual(
       MAX_PROFILE_BYTES,
     );

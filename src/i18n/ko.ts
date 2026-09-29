@@ -991,6 +991,8 @@ export const ko: Dictionary = {
   'settings.profile.titles.help':
     '끄면 모든 곡이 “곡”으로만 표시돼요. 정확도, 반응 시간, 이메일 주소는 절대 공개되지 않아요.',
   'settings.profile.link': '내 페이지',
+  'settings.profile.publishFailed': '페이지를 업데이트하지 못했어요. 다음 동기화 때 다시 시도해요.',
+  'settings.profile.publishOffline': '오프라인이에요. 다시 연결되면 페이지를 업데이트해요.',
   'settings.profile.copy': '링크 복사',
   'settings.profile.copied': '링크를 복사했어요.',
   'settings.profile.copyFailed': '링크를 복사하지 못했어요. 링크를 선택해서 직접 복사하세요.',

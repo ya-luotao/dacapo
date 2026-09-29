@@ -18,6 +18,7 @@ const status = (patch: Partial<SyncStatus>): SyncStatus => ({
   lastSyncAt: null,
   error: null,
   profile: null,
+  profileError: null,
   ...patch,
 });
 

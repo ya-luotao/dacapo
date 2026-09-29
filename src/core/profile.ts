@@ -2,7 +2,7 @@ import { canonical } from '../lib/canonical.ts';
 import type { SessionRecord } from './log.ts';
 import { parseExerciseKey } from './scales.ts';
 import type { ScaleType, Tonic } from './scaleTypes.ts';
-import type { StoredPiece } from './storedPiece.ts';
+import { titleFromFile, type StoredPiece } from './storedPiece.ts';
 import {
   currentStreak,
   dailyTotals,
@@ -105,7 +105,7 @@ function dayActivity(
     if (session.kind === 'piece') {
       const piece = pieces.get(session.pieceId) ?? {
         id: session.pieceId,
-        title: titles.get(session.pieceId) ?? session.title,
+        title: titles.get(session.pieceId) ?? '',
         ms: 0,
       };
       piece.ms += session.activeMs;
@@ -122,24 +122,34 @@ function dayActivity(
     }
   }
 
-  const activity: DayActivity = { kinds };
+  const activity: DayActivity = {
+    kinds: Object.fromEntries(Object.entries(kinds).map(([kind, ms]) => [kind, Math.round(ms)])),
+  };
   if (pieces.size > 0) {
     const { top, more } = longest([...pieces.values()], (p) => p.id);
     activity.pieces = top.map(({ title, ms }) => {
       const shown = withTitles ? clip(title.trim()) : '';
-      return shown ? { title: shown, ms } : { ms };
+      return shown ? { title: shown, ms: Math.round(ms) } : { ms: Math.round(ms) };
     });
     if (more > 0) activity.morePieces = more;
   }
   if (scales.size > 0) {
     const { top, more } = longest([...scales.values()], (s) => `${s.type}:${s.tonic}`);
-    activity.scales = top;
+    activity.scales = top.map(wholeMs);
     if (more > 0) activity.moreScales = more;
   }
   return activity;
 }
 
 const byteLength = (text: string) => new TextEncoder().encode(text).byteLength;
+
+/**
+ * Whole milliseconds: scale runs are timed to fractions of one, and the document's numbers are
+ * integers (the service refuses anything else).
+ */
+function wholeMs<T extends { ms: number }>(item: T): T {
+  return { ...item, ms: Math.round(item.ms) };
+}
 
 /**
  * The document to publish for `settings`, keys in sorted order; null when the profile is off.
@@ -159,7 +169,7 @@ export function buildProfile({
   const gridDays = yearGrid(totals, today, { firstDay })
     .flat()
     .filter((d) => d !== null && d.ms > 0);
-  const days = Object.fromEntries(gridDays.map((d) => [d!.day, d!.ms]));
+  const days = Object.fromEntries(gridDays.map((d) => [d!.day, Math.round(d!.ms)]));
 
   let allMs = 0;
   let practised = 0;
@@ -176,7 +186,7 @@ export function buildProfile({
     firstDay,
     days,
     streak: { current: currentStreak(totals, today), longest: longestStreak(totals) },
-    totals: { days: practised, ms: allMs },
+    totals: { days: practised, ms: Math.round(allMs) },
   };
 
   if (settings.visibility === 'public') {
@@ -188,7 +198,13 @@ export function buildProfile({
       if (!list) byDay.set(day, (list = []));
       list.push(session);
     }
-    const titles = new Map(pieces.map((p) => [p.id, p.title]));
+    // Only the titles of pieces still stored, and not those made from a file's name (the file
+    // name is never published): the others are "a piece".
+    const titles = new Map(
+      pieces
+        .filter((p) => p.title.trim() !== titleFromFile(p.fileName).trim())
+        .map((p) => [p.id, p.title]),
+    );
     const activity: Record<DayKey, DayActivity> = {};
     for (const day of Object.keys(days)) {
       activity[day] = dayActivity(byDay.get(day) ?? [], titles, document.titles);
