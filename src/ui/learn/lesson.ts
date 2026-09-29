@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useId, useRef } from 'react';
+import { createContext, useCallback, useContext, useEffect, useId, useRef, useState } from 'react';
 import { midiName } from '../../core/note.ts';
 import type { LessonLanguage } from '../../learn/lessons.ts';
 import { formatMessage } from '../../i18n/locale.ts';
@@ -30,6 +30,25 @@ const COPY = {
     listen: 'Listen',
     line: 'Line {n}',
     space: 'Space {n}',
+    next: 'Next: {name}',
+    sequenceDone: 'Played through: {total} notes, with {slips} wrong keys on the way.',
+    choiceRight: 'Right.',
+    choiceWrong: 'Not quite: it is {answer}.',
+    nextQuestion: 'Next',
+    stop: 'Stop',
+    tapAlong: 'Tap any key with the beat.',
+    early: 'early',
+    late: 'late',
+    onTime: 'on time',
+    offBy: '{ms} ms {side}',
+    rhythmDone: '{good} of {total} in time. {tendency}',
+    tendsEarly: 'You tend to be a little early.',
+    tendsLate: 'You tend to be a little late.',
+    tendsEven: 'Nicely even.',
+    countIn: 'Count-in…',
+    another: 'Another',
+    halfStep: 'Half step',
+    wholeStep: 'Whole step',
   },
   'zh-CN': {
     plate: '图',
@@ -51,6 +70,25 @@ const COPY = {
     listen: '听一听',
     line: '第 {n} 线',
     space: '第 {n} 间',
+    next: '下一个：{name}',
+    sequenceDone: '弹完了：一共 {total} 个音，途中按错 {slips} 次。',
+    choiceRight: '对了。',
+    choiceWrong: '不对，答案是 {answer}。',
+    nextQuestion: '下一题',
+    stop: '停止',
+    tapAlong: '跟着拍子，随便按一个键。',
+    early: '早了',
+    late: '晚了',
+    onTime: '准',
+    offBy: '{side} {ms} 毫秒',
+    rhythmDone: '{total} 个音里有 {good} 个在拍子上。{tendency}',
+    tendsEarly: '你整体稍微偏早。',
+    tendsLate: '你整体稍微偏晚。',
+    tendsEven: '很均匀。',
+    countIn: '预备拍……',
+    another: '换一个',
+    halfStep: '半音',
+    wholeStep: '全音',
   },
 } as const satisfies Record<LessonLanguage, Record<string, string>>;
 
@@ -92,8 +130,8 @@ export function keyName(midi: number): string {
   return midiName(midi).replace('#', '♯');
 }
 
-/** Calls `listener` with every key pressed, from any keyboard. */
-export function useNoteOn(listener: (midi: number) => void, enabled = true): void {
+/** Calls `listener` with every key pressed, from any keyboard, and when (performance.now()). */
+export function useNoteOn(listener: (midi: number, time: number) => void, enabled = true): void {
   const { hub } = useInput();
   const latest = useRef(listener);
   useEffect(() => {
@@ -102,7 +140,7 @@ export function useNoteOn(listener: (midi: number) => void, enabled = true): voi
   useEffect(() => {
     if (!enabled) return;
     return hub.onEvent((event) => {
-      if (event.type === 'on') latest.current(event.midi);
+      if (event.type === 'on') latest.current(event.midi, event.time);
     });
   }, [hub, enabled]);
 }
@@ -127,24 +165,99 @@ export function useExercise(): {
 /** Plays a key for a moment, as if it were clicked: the built-in piano sounds it and it lights. */
 export function usePlayKey(): (midi: number, ms?: number) => void {
   const { pointer } = useInput();
-  const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
+  // Each key sounding, by the timer that lets it go.
+  const sounding = useRef(new Map<ReturnType<typeof setTimeout>, number>());
   useEffect(() => {
-    const pending = timers.current;
+    const keys = sounding.current;
+    // Leaving the page lets go of every key at once: a key never released would stay held, and
+    // pressing it for real would then not count as a new note.
     return () => {
-      for (const timer of pending) clearTimeout(timer);
+      for (const [timer, id] of keys) {
+        clearTimeout(timer);
+        pointer.release(id, performance.now());
+      }
+      keys.clear();
     };
-  }, []);
+  }, [pointer]);
   return useCallback(
     (midi, ms = 450) => {
       // A pointer id of its own, below the ones real pointers use.
       const id = -1000 - midi;
       pointer.press(id, midi, performance.now());
       const timer = setTimeout(() => {
-        timers.current.delete(timer);
+        sounding.current.delete(timer);
         pointer.release(id, performance.now());
       }, ms);
-      timers.current.add(timer);
+      sounding.current.set(timer, id);
     },
     [pointer],
   );
+}
+
+/** Starts an exercise when one of its keys is clicked, so that very click is its first answer. */
+export function useStartOnPress(
+  exercise: ReturnType<typeof useExercise>,
+  done: boolean,
+): { onPointerDownCapture: () => void; listening: () => boolean } {
+  const pending = useRef(false);
+  const onPointerDownCapture = () => {
+    if (exercise.active || done) return;
+    pending.current = true;
+    exercise.start();
+  };
+  useEffect(() => {
+    if (exercise.active) pending.current = false;
+  }, [exercise.active]);
+  const listening = () => exercise.active || pending.current;
+  return { onPointerDownCapture, listening };
+}
+
+/** Keys flashed for a moment, as a wrong key is. */
+export function useFlash(): [ReadonlySet<number>, (midi: number) => void] {
+  const [keys, setKeys] = useState<ReadonlySet<number>>(new Set());
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const flash = (midi: number) => {
+    setKeys(new Set([midi]));
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => setKeys(new Set()), 700);
+  };
+  return [keys, flash];
+}
+
+/**
+ * Plays keys one after another (a chord when a step holds several), lighting them as it goes, and
+ * says which step is sounding. Playing again, or leaving, stops the last run.
+ */
+export function usePlaySequence(): {
+  play: (steps: readonly (number | readonly number[])[], gapMs?: number) => void;
+  stop: () => void;
+  at: number | null;
+} {
+  const playKey = usePlayKey();
+  const [at, setAt] = useState<number | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const stop = useCallback(() => {
+    clearTimeout(timer.current);
+    setAt(null);
+  }, []);
+  const play = useCallback(
+    (steps: readonly (number | readonly number[])[], gapMs = 480) => {
+      clearTimeout(timer.current);
+      const next = (i: number) => {
+        if (i >= steps.length) {
+          setAt(null);
+          return;
+        }
+        setAt(i);
+        const step = steps[i]!;
+        for (const midi of typeof step === 'number' ? [step] : step) playKey(midi, gapMs - 60);
+        timer.current = setTimeout(() => next(i + 1), gapMs);
+      };
+      next(0);
+    },
+    [playKey],
+  );
+  return { play, stop, at };
 }

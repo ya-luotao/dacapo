@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { lessonLanguage, LESSONS, neighbours } from '../../learn/lessons.ts';
+import { NAV_ITEMS } from '../routes.ts';
 import { LESSON_TEXTS } from './lessons/index.ts';
 
 describe('the lessons', () => {
@@ -31,6 +32,16 @@ describe('the lessons', () => {
   it('lead from one written lesson to the next', () => {
     expect(neighbours('keyboard')).toMatchObject({ previous: undefined, next: { slug: 'staff' } });
     expect(neighbours('staff').previous?.slug).toBe('keyboard');
+    expect(neighbours('posture')).toMatchObject({ next: undefined });
     expect(neighbours('unknown')).toEqual({});
+  });
+
+  it('each say where to practise, on a page the app has', () => {
+    for (const lesson of LESSONS.filter((l) => l.ready)) {
+      expect(
+        NAV_ITEMS.map((item) => item.path),
+        lesson.slug,
+      ).toContain(lesson.practice);
+    }
   });
 });

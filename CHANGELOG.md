@@ -12,16 +12,16 @@ version 4), and scale sessions with every scale run as played. Version 1 to 4 fi
 
 ### The basics: lessons for beginners ([docs/LEARN.md](docs/LEARN.md))
 
-- **Learn** has short lessons for your first weeks at the piano, in English and Simplified Chinese.
-  The first two are written: finding your way around the keyboard (the black keys in twos and
-  threes, the seven letters, middle C and the octaves) and the staff and the clefs (lines and
-  spaces, the treble and bass clefs, the grand staff and ledger lines).
-- Every figure is the app's own keyboard or an engraved staff: colour the black-key groups, name
-  the keys, point at a line to hear its note, hold keys to see where they are written. Each lesson
-  ends with an exercise you answer on your keyboard: find every C, play D4, read and play eight
-  notes from both clefs. Etched illustrations show how to sit and where the hands go.
-- Five more lessons are planned and listed: landmark notes and intervals, rhythm, sharps and flats,
-  the major scale, and posture and fingering.
+- **Learn** has seven short lessons for your first weeks at the piano, in English and Simplified
+  Chinese: finding your way around the keyboard; the staff and the clefs; landmark notes and
+  intervals; rhythm and the beat; sharps, flats, whole and half steps; the major scale and key
+  signatures; and posture, hand shape and fingering.
+- Every figure is the app's own keyboard or an engraved staff: colour the black-key groups, point
+  at a line to hear its note, hold keys to see where they are written, build a major scale from
+  any key, tap along with a beat and see how early or late you are. Each lesson ends with
+  exercises answered on your keyboard: find every C, name an interval, play a scale with its
+  fingering, tap a rhythm in time. Etched illustrations show how to sit, the hand's shape and the
+  finger numbers.
 
 ### A home page, and a sharper look
 

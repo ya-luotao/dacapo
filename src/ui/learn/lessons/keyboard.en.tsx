@@ -1,7 +1,8 @@
 import { isBlack, pitchClass } from '../../../core/note.ts';
-import { BlackGroups, FindKeys, KeyQuiz, LetterKeys, NameAnyKey } from '../keyboardFigures.tsx';
+import { KeyQuiz } from '../exercises.tsx';
+import { BlackGroups, FindKeys, LetterKeys, NameAnyKey } from '../keyboardFigures.tsx';
 import { Aside, Picture, Plate, Section } from '../kit.tsx';
-import { useCompleteLesson } from '../lesson.ts';
+import { keyName, useCompleteLesson } from '../lesson.ts';
 
 const THREE_OCTAVES: readonly [number, number] = [48, 83]; // C3–B5
 
@@ -126,8 +127,10 @@ export default function Lesson() {
         <Plate>
           <KeyQuiz
             range={THREE_OCTAVES}
-            keys={[60, 62, 64, 67, 57, 53, 72, 71, 55, 65]}
-            ask={(name) => `Play ${name}`}
+            items={[60, 62, 64, 67, 57, 53, 72, 71, 55, 65].map((key) => ({
+              key,
+              ask: `Play ${keyName(key)}`,
+            }))}
             onComplete={complete}
           />
         </Plate>

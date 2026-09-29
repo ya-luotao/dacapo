@@ -27,7 +27,8 @@ export const zhCN: Dictionary = {
   'home.welcome': '你的练习',
   'home.welcome.link': '查看进度',
   'home.contents': '目录',
-  'home.learn.text': '给初学者的几节短课：键盘、五线谱与谱号，配有可以动手弹的图示。',
+  'home.learn.text':
+    '七节给初学者的短课：键盘、五线谱、地标音、节奏、升降号、大调音阶和坐姿手型，配有可以动手弹的图示。',
   'home.learn.meta': '{n} 课',
   'home.read.text':
     '大谱表上一次一个音，从中央 C 位置一直到加线和升号、降号。每次作答都会计时，下一张卡片会优先出你反应慢的音。',

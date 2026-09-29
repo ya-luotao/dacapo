@@ -27,7 +27,8 @@ export const zhTW: Dictionary = {
   'home.welcome': '你的練習',
   'home.welcome.link': '查看進度',
   'home.contents': '目錄',
-  'home.learn.text': '給初學者的幾堂短課：鍵盤、五線譜與譜號，配有可以動手彈的圖示。',
+  'home.learn.text':
+    '七堂給初學者的短課：鍵盤、五線譜、地標音、節奏、升降記號、大調音階和坐姿手型，配有可以動手彈的圖示。',
   'home.learn.meta': '{n} 課',
   'home.read.text':
     '大譜表上一次一個音，從中央 C 位置一路到加線和升降記號。每次作答都會計時，下一張閃卡會優先出你反應慢的音。',

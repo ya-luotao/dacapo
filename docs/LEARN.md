@@ -11,11 +11,11 @@ the computer keyboard, a click or a tap, like the Play page.
 | --- | ------------------ | ------------------------------------ | ------- |
 | 1   | `keyboard`         | Finding your way around the keyboard | written |
 | 2   | `staff`            | The staff and the clefs              | written |
-| 3   | `landmarks`        | Landmark notes and intervals         | planned |
-| 4   | `rhythm`           | Rhythm and the beat                  | planned |
-| 5   | `sharps-and-flats` | Sharps, flats, whole and half steps  | planned |
-| 6   | `major-scale`      | The major scale and key signatures   | planned |
-| 7   | `posture`          | Posture, hand shape and fingering    | planned |
+| 3   | `landmarks`        | Landmark notes and intervals         | written |
+| 4   | `rhythm`           | Rhythm and the beat                  | written |
+| 5   | `sharps-and-flats` | Sharps, flats, whole and half steps  | written |
+| 6   | `major-scale`      | The major scale and key signatures   | written |
+| 7   | `posture`          | Posture, hand shape and fingering    | written |
 
 The list, with titles, summaries, reading times and where to practise, is `src/learn/lessons.ts`.
 A planned lesson is listed as "In preparation" and cannot be opened.
@@ -39,9 +39,15 @@ Fine") are replaced by what works in Chinese.
 - Figures go on numbered plates (`Plate`, `wide` for a full keyboard), with a caption that says
   what to do with them.
 - `Aside` holds a rhyme, a tip or a warning; `Picture` an illustration.
-- Keyboard figures and exercises are in `keyboardFigures.tsx`, staff figures in
-  `staffFigures.tsx`; staves are drawn by `ui/engraving/EngravedStaff.tsx` from Bravura's outlines,
-  so no music font is loaded.
+- Figures: `keyboardFigures.tsx` (the keyboard), `staffFigures.tsx` (the staff and clefs),
+  `theoryFigures.tsx` (landmarks, intervals, steps and accidentals, scales and key signatures,
+  fingers) and `rhythmFigures.tsx` (the beat, rhythms on a line, time signatures). Exercises share
+  one frame (`exercises.tsx`): a key quiz, a line of keys to play in order, multiple choice, and
+  in the rhythm lesson a bar to tap in time, judged against the click. Staves are drawn by
+  `ui/engraving/EngravedStaff.tsx` from Bravura's outlines (notes of every value, rests, key and
+  time signatures), so no music font is loaded.
+- The rhythm figures use the page's click track; whoever started it last owns it, so one figure
+  stopping never silences another.
 - Only one exercise listens at a time: starting one (or clicking a key on it) stops the others, so
   a key played for one never answers another. The last exercise marks the lesson done
   (`useCompleteLesson`), shown as a tick on the list; that is kept per browser, not synced.
@@ -58,6 +64,9 @@ numbers or notation. The model does not draw a keyboard reliably, so:
   keyboard, which the lesson says to do.
 - `hands-either-side.webp`: an edit of a keyboard drawn in code with the black keys in their real
   groups of two and three, the model adding the hands and the etching.
+- `posture-from-the-side.webp`, `curved-hand.webp`: generated, the better of two each.
+- `two-hands.webp`: generated with no keyboard and no numbers; the finger numbers are laid over it
+  in code (`FingerNumbers`), at positions measured on the picture.
 
 The prompts and the reference keyboard are in `scripts/learn/`.
 

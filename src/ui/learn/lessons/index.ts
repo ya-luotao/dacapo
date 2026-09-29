@@ -14,6 +14,26 @@ const LOADERS: Readonly<Record<string, Readonly<Record<LessonLanguage, Loader>>>
     en: () => import('./staff.en.tsx'),
     'zh-CN': () => import('./staff.zh-CN.tsx'),
   },
+  landmarks: {
+    en: () => import('./landmarks.en.tsx'),
+    'zh-CN': () => import('./landmarks.zh-CN.tsx'),
+  },
+  rhythm: {
+    en: () => import('./rhythm.en.tsx'),
+    'zh-CN': () => import('./rhythm.zh-CN.tsx'),
+  },
+  'sharps-and-flats': {
+    en: () => import('./sharps-and-flats.en.tsx'),
+    'zh-CN': () => import('./sharps-and-flats.zh-CN.tsx'),
+  },
+  'major-scale': {
+    en: () => import('./major-scale.en.tsx'),
+    'zh-CN': () => import('./major-scale.zh-CN.tsx'),
+  },
+  posture: {
+    en: () => import('./posture.en.tsx'),
+    'zh-CN': () => import('./posture.zh-CN.tsx'),
+  },
 };
 
 /** The lessons' texts as components that load on first render. */

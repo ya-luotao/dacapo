@@ -7260,6 +7260,12 @@ select.is-compact {
   display: none;
 }
 
+/* On a black key the name is light, and a little smaller to fit. */
+.key-black .key-name {
+  color: rgb(255 255 255 / 0.88);
+  font-size: 0.5625rem;
+}
+
 /* Exercises: a prompt, the keyboard, and what happened. */
 .exercise-head {
   display: flex;
@@ -7413,4 +7419,332 @@ select.is-compact {
   .lesson-pager-link:hover .lesson-pager-title {
     color: var(--accent);
   }
+}
+
+/* Lessons 3–7: toolbars and buttons over a figure, the scale's steps, beats and taps, rhythms,
+   choices, and the numbered hands. */
+
+.plate-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.plate-toolbar .plate-choices {
+  margin-bottom: 0;
+}
+
+.plate-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.plate-actions {
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.plate-actions.is-top {
+  margin-bottom: 0.875rem;
+}
+
+.plate-actions.is-center {
+  justify-content: center;
+}
+
+.plate-actions .button.is-current {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.plate-staff.is-rhythm {
+  max-width: none;
+  width: auto;
+  height: 7rem;
+  margin: 0;
+}
+
+.plate-staff.is-value {
+  max-width: 8rem;
+}
+
+.plate-staff.is-fingering {
+  max-width: 30rem;
+}
+
+.engraved-beam {
+  fill: currentColor;
+}
+
+/* The steps of a scale: each note, and the whole or half step to the next. */
+.scale-steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  list-style: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.scale-steps li {
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.scale-steps span {
+  min-width: 2.5rem;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  text-align: center;
+  transition: color var(--dur-fast) ease-out;
+}
+
+.scale-steps b {
+  min-width: 1.5rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.scale-steps li.is-current span {
+  color: var(--accent);
+}
+
+/* The beat: four numbered dots, the first one accented, lit in turn. */
+.beat-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+}
+
+.lesson-beats {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.lesson-beats span {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1.5px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  font-variant-numeric: tabular-nums;
+  transition:
+    background-color 60ms ease-out,
+    color 60ms ease-out,
+    border-color 60ms ease-out;
+}
+
+.lesson-beats span.is-accent {
+  border-color: var(--control);
+}
+
+.lesson-beats span.is-on {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.lesson-beats.is-small {
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.lesson-beats.is-small span {
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: 0.875rem;
+}
+
+.beat-tempo {
+  display: flex;
+  flex: 1 1 14rem;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 20rem;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.beat-tempo b {
+  color: var(--text);
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.beat-tempo input {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+/* Taps against the beat: the line is the click, early to its left, late to its right. */
+.tap-meter {
+  position: relative;
+  height: 2.5rem;
+  margin-top: 1.25rem;
+  border-radius: var(--radius);
+  background: var(--sunk);
+}
+
+.tap-centre {
+  position: absolute;
+  top: 0.25rem;
+  bottom: 0.25rem;
+  left: 50%;
+  width: 2px;
+  background: var(--text);
+  transform: translateX(-1px);
+}
+
+.tap {
+  position: absolute;
+  top: 50%;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: var(--warn);
+  transform: translate(-50%, -50%);
+}
+
+.tap.is-good {
+  background: var(--ok);
+}
+
+.tap-scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.rhythm-rows {
+  display: grid;
+  gap: 1rem;
+}
+
+.rhythm-row + .rhythm-row {
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.rhythm-row-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.rhythm-row-head p {
+  margin: 0;
+  font-weight: 600;
+}
+
+.rhythm-row .plate-staff.is-rhythm,
+.exercise .plate-staff.is-rhythm,
+.plate-body > .plate-staff.is-rhythm {
+  display: block;
+  max-width: 100%;
+}
+
+.retry {
+  margin-top: 0.5rem;
+  font-size: 0.9375rem;
+}
+
+/* Choices: the figure in question, then one button per answer. */
+.choice-figure {
+  display: flex;
+  justify-content: center;
+  min-height: 7rem;
+  margin-bottom: 1rem;
+}
+
+.choice-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.button.choice {
+  min-width: 4.5rem;
+}
+
+.button.choice.is-right {
+  border-color: var(--ok);
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.button.choice.is-wrong {
+  border-color: var(--bad);
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+.choice-listen {
+  margin-inline-start: auto;
+}
+
+/* Two hands, numbered: the figures sit on the picture at the fingertips. */
+.finger-figure {
+  position: relative;
+  max-width: 44rem;
+}
+
+.finger-figure .lesson-picture {
+  margin-bottom: 0;
+}
+
+.finger-spots {
+  position: absolute;
+  inset: 0 0 auto;
+  aspect-ratio: 3 / 2;
+  pointer-events: none;
+}
+
+.finger-spots span {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: clamp(1.375rem, 4.2vw, 2rem);
+  height: clamp(1.375rem, 4.2vw, 2rem);
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-family: var(--font-serif);
+  font-size: clamp(0.8125rem, 2.4vw, 1.125rem);
+  font-weight: 600;
+  transform: translate(-50%, -50%);
+}
+
+.finger-spots b {
+  position: absolute;
+  bottom: 3%;
+  color: #231d18;
+  font-size: clamp(0.75rem, 2vw, 0.9375rem);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transform: translateX(-50%);
 }

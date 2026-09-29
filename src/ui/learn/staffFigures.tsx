@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   midiToPitch,
   MIDDLE_C,
-  parsePitch,
   pitchAtPosition,
   pitchToMidi,
   type Clef,
@@ -15,8 +14,9 @@ import {
   type StaffNote,
 } from '../engraving/EngravedStaff.tsx';
 import { useHubState } from '../input/context.ts';
-import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
-import { LessonPiano } from './keyboardFigures.tsx';
+import { ExerciseFrame } from './exercises.tsx';
+import { LessonPiano } from './LessonPiano.tsx';
+import { pitch } from './notes.ts';
 import { Choices } from './kit.tsx';
 import { keyName, useCopy, useExercise, useNoteOn, usePlayKey } from './lesson.ts';
 
@@ -25,11 +25,6 @@ import { keyName, useCopy, useExercise, useNoteOn, usePlayKey } from './lesson.t
 
 /** The keys under the staves: from C2 to C6, enough for every note the figures draw. */
 const STAFF_KEYS: readonly [number, number] = [36, 84];
-function pitch(text: string): Pitch {
-  const parsed = parsePitch(text);
-  if (!parsed) throw new Error(`Not a pitch: ${text}`);
-  return parsed;
-}
 
 function nameOf(p: Pitch): string {
   return `${p.letter}${p.accidental === 1 ? '♯' : p.accidental === -1 ? '♭' : ''}${p.octave}`;
@@ -295,6 +290,8 @@ export function GrandStaffLink({
 export interface Card {
   pitch: string;
   clef: Clef;
+  /** A key signature on the card, whose sharps or flats the note takes. */
+  fifths?: number;
 }
 
 /** Flashcards: a note on its staff, answered on the keyboard in the right octave. */
@@ -309,7 +306,6 @@ export function StaffQuiz({
 }) {
   const copy = useCopy();
   const exercise = useExercise();
-  const fallback = useKeyboardFallback();
   const [at, setAt] = useState(0);
   const [firstTime, setFirstTime] = useState(0);
   const [missed, setMissed] = useState(false);
@@ -352,19 +348,27 @@ export function StaffQuiz({
   );
 
   return (
-    <div className={exercise.active ? 'exercise is-active' : 'exercise'}>
-      <div className="exercise-head">
-        <p className="exercise-prompt">{ask}</p>
-        <p className="exercise-progress">
-          {copy('progress', { n: Math.min(at + 1, cards.length), total: cards.length })}
-        </p>
-      </div>
+    <ExerciseFrame
+      active={exercise.active}
+      prompt={ask}
+      progress={copy('progress', { n: Math.min(at + 1, cards.length), total: cards.length })}
+      message={message ?? (exercise.active ? copy('listening') : copy('ready'))}
+      action={
+        exercise.active
+          ? null
+          : {
+              label: done ? copy('again') : copy('start'),
+              onClick: done ? restart : exercise.start,
+            }
+      }
+    >
       <div className="exercise-card">
         <EngravedStaff
           system={card.clef}
           width={200}
           className="plate-staff is-card"
           label={ask}
+          fifths={card.fifths}
           notes={
             exercise.active || done
               ? [
@@ -372,7 +376,7 @@ export function StaffQuiz({
                     id: 'card',
                     pitch: pitch(card.pitch),
                     clef: card.clef,
-                    x: 120,
+                    x: card.fifths ? 130 : 120,
                     tone: missed ? 'bad' : 'ink',
                   },
                 ]
@@ -381,21 +385,6 @@ export function StaffQuiz({
         />
       </div>
       <LessonPiano range={STAFF_KEYS} marked={marked} />
-      <div className="exercise-foot">
-        <p className="exercise-message" aria-live="polite">
-          {message ?? (exercise.active ? copy('listening') : copy('ready'))}
-        </p>
-        {!exercise.active && (
-          <button
-            type="button"
-            className="button button-primary is-compact"
-            onClick={done ? restart : exercise.start}
-          >
-            {done ? copy('again') : copy('start')}
-          </button>
-        )}
-      </div>
-      {fallback && <p className="plate-note">{copy('howToPlay')}</p>}
-    </div>
+    </ExerciseFrame>
   );
 }

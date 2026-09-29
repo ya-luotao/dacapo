@@ -12,7 +12,7 @@ export interface LessonInfo {
   summary: Readonly<Record<LessonLanguage, string>>;
   /** Minutes to read it and do the exercises. */
   minutes: number;
-  /** False while the lesson is planned but not written: listed, not opened. */
+  /** False while a lesson is planned but not written: listed, not opened. */
   ready: boolean;
   /** Where to practise what it teaches. */
   practice?: string;
@@ -50,7 +50,8 @@ export const LESSONS: readonly LessonInfo[] = [
       'zh-CN': '用地标音和音程来读谱，不再从最底下一条线数起。',
     },
     minutes: 12,
-    ready: false,
+    ready: true,
+    practice: '/read',
   },
   {
     slug: 'rhythm',
@@ -60,7 +61,8 @@ export const LESSONS: readonly LessonInfo[] = [
       'zh-CN': '音符时值、休止符、拍号，以及怎么数拍子。',
     },
     minutes: 15,
-    ready: false,
+    ready: true,
+    practice: '/metronome',
   },
   {
     slug: 'sharps-and-flats',
@@ -70,7 +72,8 @@ export const LESSONS: readonly LessonInfo[] = [
       'zh-CN': '黑键叫什么名字，以及音乐里最小的一步。',
     },
     minutes: 12,
-    ready: false,
+    ready: true,
+    practice: '/read',
   },
   {
     slug: 'major-scale',
@@ -80,7 +83,8 @@ export const LESSONS: readonly LessonInfo[] = [
       'zh-CN': '所有大调音阶背后的同一个规律，以及乐曲为什么在开头一次写明升降号。',
     },
     minutes: 15,
-    ready: false,
+    ready: true,
+    practice: '/scales',
   },
   {
     slug: 'posture',
@@ -90,7 +94,8 @@ export const LESSONS: readonly LessonInfo[] = [
       'zh-CN': '怎么坐，手怎么放，以及指法数字是什么意思。',
     },
     minutes: 10,
-    ready: false,
+    ready: true,
+    practice: '/play',
   },
 ];
 

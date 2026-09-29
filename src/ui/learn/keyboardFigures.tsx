@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ComponentProps, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import {
   isBlack,
   MIDDLE_C,
@@ -7,43 +7,19 @@ import {
   PIANO_LOWEST,
   pitchClass,
 } from '../../core/note.ts';
-import { useHubState, useInput } from '../input/context.ts';
-import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
-import { Piano } from '../piano/Piano.tsx';
+import { ExerciseFrame } from './exercises.tsx';
+import { LessonPiano } from './LessonPiano.tsx';
 import { Choices } from './kit.tsx';
-import { keyName, useCopy, useExercise, useNoteOn } from './lesson.ts';
+import { keyName, useCopy, useExercise, useFlash, useNoteOn, useStartOnPress } from './lesson.ts';
 
 // The lessons' keyboards: the app's own piano (so every figure plays and lights like the Play
 // page), coloured and labelled for what the lesson is showing, and the exercises that listen to it.
-
-type PianoFigureProps = Omit<ComponentProps<typeof Piano>, 'held' | 'sustained' | 'pointer'>;
-
-/** The app's piano, playing and lighting from every keyboard. */
-export function LessonPiano({ className, ...props }: PianoFigureProps) {
-  const { pointer } = useInput();
-  const { held, sustained } = useHubState();
-  return (
-    <Piano
-      held={held}
-      sustained={sustained}
-      pointer={pointer}
-      className={className ? `lesson-piano ${className}` : 'lesson-piano'}
-      {...props}
-    />
-  );
-}
 
 const TWO = new Set([1, 3]);
 const THREE = new Set([6, 8, 10]);
 
 function keysIn([low, high]: readonly [number, number]): number[] {
   return Array.from({ length: high - low + 1 }, (_, i) => low + i);
-}
-
-/** How to answer, under an exercise: only when no MIDI keyboard is connected. */
-function HowToPlay() {
-  const copy = useCopy();
-  return useKeyboardFallback() ? <p className="plate-note">{copy('howToPlay')}</p> : null;
 }
 
 // Figures.
@@ -171,33 +147,6 @@ export function NameAnyKey() {
 
 // Exercises.
 
-/** Starts the exercise when one of its keys is clicked, so that very click is its first answer. */
-function useStartOnPress(exercise: ReturnType<typeof useExercise>, done: boolean) {
-  const pending = useRef(false);
-  const onPointerDownCapture = () => {
-    if (exercise.active || done) return;
-    pending.current = true;
-    exercise.start();
-  };
-  useEffect(() => {
-    if (exercise.active) pending.current = false;
-  }, [exercise.active]);
-  const listening = () => exercise.active || pending.current;
-  return { onPointerDownCapture, listening };
-}
-
-function useFlash(): [ReadonlySet<number>, (midi: number) => void] {
-  const [keys, setKeys] = useState<ReadonlySet<number>>(new Set());
-  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  useEffect(() => () => clearTimeout(timer.current), []);
-  const flash = (midi: number) => {
-    setKeys(new Set([midi]));
-    clearTimeout(timer.current);
-    timer.current = setTimeout(() => setKeys(new Set()), 700);
-  };
-  return [keys, flash];
-}
-
 /**
  * Find every key of a kind on the keyboard shown: each C, or each group of two black keys. A key
  * belongs to a group (its own name, or its octave's group); finding one key of a group finds it.
@@ -265,120 +214,22 @@ export function FindKeys({
   };
 
   return (
-    <div
-      className={exercise.active ? 'exercise is-active' : 'exercise'}
+    <ExerciseFrame
+      active={exercise.active}
       onPointerDownCapture={onPointerDownCapture}
+      prompt={prompt}
+      progress={copy('found', { n: found.size, total: groups.size })}
+      message={message ?? (exercise.active ? copy('listening') : copy('ready'))}
+      action={
+        exercise.active
+          ? null
+          : {
+              label: done ? copy('again') : copy('start'),
+              onClick: done ? restart : exercise.start,
+            }
+      }
     >
-      <div className="exercise-head">
-        <p className="exercise-prompt">{prompt}</p>
-        <p className="exercise-progress">{copy('found', { n: found.size, total: groups.size })}</p>
-      </div>
       <LessonPiano range={range} keyClasses={classes} wrong={wrong} />
-      <div className="exercise-foot">
-        <p className="exercise-message" aria-live="polite">
-          {message ?? (exercise.active ? copy('listening') : copy('ready'))}
-        </p>
-        {!exercise.active && (
-          <button
-            type="button"
-            className="button button-primary is-compact"
-            onClick={done ? restart : exercise.start}
-          >
-            {done ? copy('again') : copy('start')}
-          </button>
-        )}
-      </div>
-      <HowToPlay />
-    </div>
-  );
-}
-
-/** Asks for keys by name, one at a time, in the right octave: "Play D4". */
-export function KeyQuiz({
-  range,
-  keys,
-  ask,
-  onComplete,
-}: {
-  range: readonly [number, number];
-  keys: readonly number[];
-  ask: (name: string) => string;
-  onComplete?: () => void;
-}) {
-  const copy = useCopy();
-  const exercise = useExercise();
-  const [at, setAt] = useState(0);
-  const [firstTime, setFirstTime] = useState(0);
-  const [missed, setMissed] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [wrong, flashWrong] = useFlash();
-  const done = at >= keys.length;
-  const target = keys[at];
-  const { onPointerDownCapture, listening } = useStartOnPress(exercise, done);
-
-  useNoteOn((midi) => {
-    if (!listening() || done || target === undefined) return;
-    if (midi !== target) {
-      flashWrong(midi);
-      setMissed(true);
-      setMessage(copy('wrong', { played: keyName(midi), answer: keyName(target) }));
-      return;
-    }
-    const right = firstTime + (missed ? 0 : 1);
-    setFirstTime(right);
-    setMissed(false);
-    setAt(at + 1);
-    if (at + 1 >= keys.length) {
-      setMessage(copy('done', { right, total: keys.length }));
-      exercise.stop();
-      onComplete?.();
-    } else {
-      setMessage(copy('right', { name: keyName(midi) }));
-    }
-  });
-
-  const restart = () => {
-    setAt(0);
-    setFirstTime(0);
-    setMissed(false);
-    setMessage(null);
-    exercise.start();
-  };
-
-  const marked = useMemo(
-    () => (missed && target !== undefined ? new Set([target]) : new Set<number>()),
-    [missed, target],
-  );
-
-  return (
-    <div
-      className={exercise.active ? 'exercise is-active' : 'exercise'}
-      onPointerDownCapture={onPointerDownCapture}
-    >
-      <div className="exercise-head">
-        <p className="exercise-prompt exercise-ask" aria-live="polite">
-          {done || !exercise.active ? ' ' : ask(keyName(target!))}
-        </p>
-        <p className="exercise-progress">
-          {copy('progress', { n: Math.min(at + 1, keys.length), total: keys.length })}
-        </p>
-      </div>
-      <LessonPiano range={range} wrong={wrong} marked={marked} />
-      <div className="exercise-foot">
-        <p className="exercise-message" aria-live="polite">
-          {message ?? (exercise.active ? copy('listening') : copy('ready'))}
-        </p>
-        {!exercise.active && (
-          <button
-            type="button"
-            className="button button-primary is-compact"
-            onClick={done ? restart : exercise.start}
-          >
-            {done ? copy('again') : copy('start')}
-          </button>
-        )}
-      </div>
-      <HowToPlay />
-    </div>
+    </ExerciseFrame>
   );
 }
