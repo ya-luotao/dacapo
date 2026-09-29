@@ -3,6 +3,7 @@ import { Link, useLocation } from 'wouter';
 import { useI18n, useT } from '../i18n/index.ts';
 import { BrandMark } from './BrandMark.tsx';
 import { useFocusActive } from './focus/focus.ts';
+import { GitHubStar } from './GitHubStar.tsx';
 import { MetronomeChip } from './metronome/MetronomeChip.tsx';
 import { fitNav, type NavFit } from './navFit.ts';
 import { NAV_ITEMS } from './routes.ts';
@@ -161,7 +162,10 @@ function HeaderBar() {
           </ul>
         </div>
       </nav>
-      <MetronomeChip />
+      <div className="header-end">
+        <MetronomeChip />
+        <GitHubStar />
+      </div>
     </header>
   );
 }

@@ -13,6 +13,7 @@ export const ja: Dictionary = {
   'nav.progress': '記録',
   'nav.settings': '設定',
   'nav.more': 'その他',
+  'nav.star': 'GitHub で dacapo にスターを付ける',
 
   'play.title': '演奏',
   'play.readout.label': '音',

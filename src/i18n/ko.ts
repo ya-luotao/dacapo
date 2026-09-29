@@ -13,6 +13,7 @@ export const ko: Dictionary = {
   'nav.progress': '기록',
   'nav.settings': '설정',
   'nav.more': '더 보기',
+  'nav.star': 'GitHub에서 dacapo에 스타 주기',
 
   'play.title': '연주',
   'play.readout.label': '음',

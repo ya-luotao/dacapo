@@ -13,6 +13,7 @@ export const zhCN: Dictionary = {
   'nav.progress': '进度',
   'nav.settings': '设置',
   'nav.more': '更多',
+  'nav.star': '在 GitHub 上给 dacapo 点 Star',
 
   'play.title': '弹奏',
   'play.readout.label': '音符',

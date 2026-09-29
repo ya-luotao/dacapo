@@ -13,6 +13,7 @@ export const en = {
   'nav.progress': 'Progress',
   'nav.settings': 'Settings',
   'nav.more': 'More',
+  'nav.star': 'Star dacapo on GitHub',
 
   'play.title': 'Play',
   'play.readout.label': 'Notes',

@@ -716,6 +716,67 @@ select {
   }
 }
 
+/* The end of the header: the metronome chip and, in the web app, the GitHub link. */
+.header-end {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.gh-star {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  height: 2.5rem;
+  padding: 0 0.875rem 0 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  background: var(--surface);
+  color: var(--text-muted);
+  font: 600 0.9375rem / 1 var(--font-sans);
+  text-decoration: none;
+  transition:
+    border-color var(--dur-fast) ease-out,
+    color var(--dur-fast) ease-out;
+}
+
+.gh-star:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .gh-star:hover {
+    border-color: var(--control);
+    color: var(--text);
+  }
+}
+
+.gh-star-mark {
+  width: 1.0625rem;
+  height: 1.0625rem;
+  fill: currentColor;
+}
+
+@media (max-width: 40rem) {
+  .gh-star {
+    justify-content: center;
+    width: 2.5rem;
+    padding: 0;
+  }
+
+  .gh-star-label {
+    display: none;
+  }
+}
+
+/* A phone has no room for it beside the brand and the metronome. */
+@media (max-width: 30rem) {
+  .gh-star {
+    display: none;
+  }
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -4826,7 +4887,7 @@ select.is-compact {
 
 /* Narrower than a tablet: the brand and the chip on the first row, the navigation below. */
 @media (max-width: 48rem) {
-  .met-chip {
+  .header-end {
     order: 1;
     margin-inline-start: auto;
   }
