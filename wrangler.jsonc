@@ -1,0 +1,18 @@
+// The official web app at https://playdacapo.com, on Cloudflare Workers (docs/SYNC.md, "Builds").
+// Cloudflare Workers Builds deploys it on every push to main: build command `pnpm build:site`,
+// deploy command `npx wrangler deploy`. A fork deploying its own copy changes the name and the
+// domain, and drops the service binding (then every path that is not a file is 404).
+{
+  "name": "dacapo-web",
+  "main": "web/worker.ts",
+  "compatibility_date": "2026-09-20",
+  "observability": { "enabled": true },
+  // The app is the build: served as it is, before the Worker runs.
+  "assets": { "directory": "./dist", "not_found_handling": "none" },
+  // Any other path (the privacy policy, profile pages) belongs to the account service.
+  "services": [{ "binding": "CLOUD", "service": "dacapo-cloud" }],
+  "routes": [{ "pattern": "playdacapo.com", "custom_domain": true }],
+  // One address only: no *.workers.dev copy with its own storage.
+  "workers_dev": false,
+  "preview_urls": false,
+}

@@ -171,13 +171,20 @@ winner.
 
 ## Builds
 
-- The official builds set `VITE_SYNC_ENDPOINT=https://api.playdacapo.com`: the web build in
-  `.github/workflows/pages.yml`, the Apple app in `apple/scripts/embed-web.sh`
+- The official builds set `VITE_SYNC_ENDPOINT=https://api.playdacapo.com`: the web build with
+  `pnpm build:site`, the Apple app in `apple/scripts/embed-web.sh`
   (`DACAPO_SYNC_ENDPOINT` overrides it; empty builds an app without accounts). Every other build
   (`pnpm dev`, `pnpm build`, the tests, a fork) has no account unless it sets the variable.
 - To work on sync locally, run the service with `wrangler dev` (its email is printed, code
   included, instead of sent) and start dacapo with `VITE_SYNC_ENDPOINT=http://localhost:8787`.
 - The Settings link to the privacy policy is the service's own `/privacy`.
+- The web app is at `https://playdacapo.com`: a Worker (`wrangler.jsonc`, `web/worker.ts`) serves
+  the build's files, and passes any other path (`/privacy`, profile pages) to the service through a
+  service binding; the service itself answers at `api.playdacapo.com`. Cloudflare Workers Builds
+  deploys it on every push to `main` (build command `pnpm build:site`, deploy command
+  `npx wrangler deploy`). The old address, `ya-luotao.github.io/dacapo`, redirects every link
+  there (`scripts/moved/`, `.github/workflows/pages.yml`); what a browser stored at the old
+  address stays there, as storage belongs to the address.
 
 ## Service storage (`dacapo-cloud`)
 

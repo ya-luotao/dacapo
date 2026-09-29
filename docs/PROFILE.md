@@ -29,8 +29,8 @@ private activity keeps the grid and hides everything else.
   Typed in any case, stored lower-case; unique over all accounts.
 - Not available (the same answer as a taken name): the paths the service uses or may use (`api`,
   `v1`, `u`, `privacy`, `terms`, `about`, `help`, `support`, `settings`, `admin`, `app`, `www`,
-  `mail`, `static`, `assets`, `blog`, `docs`, `report`, `robots`, `favicon`), `dacapo`,
-  `playdacapo`, and names containing a word on the service's blocklist of offensive words.
+  `mail`, `static`, `assets`, `blog`, `docs`, `report`, `robots`, `favicon`), the web app's folders
+  (`icons`, `licenses`, `piano`), `dacapo`, `playdacapo`, and names containing a word on the service's blocklist of offensive words.
 - Optional: an account without a username syncs as before. A username can exist with the profile
   off; it is reserved and nobody sees it.
 - It can be changed at any time. The old name is free again at once and its URL is 404, as on
@@ -160,8 +160,9 @@ Added to SYNC.md's table; the same errors, plus 400 `invalid-username`, 409
 
 ## The public page
 
-- Rendered by the Worker at `playdacapo.com/<username>` (the apex already routes to it for
-  `/privacy`): one static HTML page with its CSS inline, no script, readable without JavaScript,
+- Rendered by the service at `playdacapo.com/<username>`. The web app's Worker serves
+  `playdacapo.com`: its files first, and any other path (`/privacy`, a profile) through a service
+  binding to the service (see SYNC.md, "Builds"). One static HTML page with its CSS inline, no script, readable without JavaScript,
   the same shades as the app's grid, light and dark. Its language is the best match of
   `Accept-Language` among the app's five (English otherwise).
 - The username, "Updated …", the streaks and totals, the grid with its legend (each day's cell has

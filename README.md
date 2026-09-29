@@ -5,7 +5,7 @@
 
 [![CI](https://github.com/ya-luotao/dacapo/actions/workflows/ci.yml/badge.svg)](https://github.com/ya-luotao/dacapo/actions/workflows/ci.yml)
 [![Licence: MIT](https://img.shields.io/badge/licence-MIT-25497b)](LICENSE)
-[![Live demo](https://img.shields.io/badge/demo-live-25497b)](https://ya-luotao.github.io/dacapo/)
+[![Live demo](https://img.shields.io/badge/demo-live-25497b)](https://playdacapo.com/)
 
 _Da capo_ — "from the beginning."
 
@@ -14,7 +14,7 @@ on a real grand staff, reaction-time tracking, a per-note weakness heatmap, real
 and rhythm mode, scales measured note by note for evenness, and a practice log. All data stays in
 your browser, unless you sign in to sync it between your own devices.
 
-**Try it:** [ya-luotao.github.io/dacapo](https://ya-luotao.github.io/dacapo/) — in Chrome or Edge
+**Try it:** [playdacapo.com](https://playdacapo.com/) — in Chrome or Edge
 on a computer, with a MIDI keyboard over USB, or with your computer keyboard. Nothing to install,
 and no account needed.
 
@@ -154,8 +154,10 @@ Then open the URL Vite prints (usually http://localhost:5173).
 | `pnpm check`        | Typecheck, lint, test and build — run this before a PR |
 
 The app uses hash-based routes (`/#/read`), so the `dist/` folder can be served by any
-static file host without rewrite rules. To serve it below the site root, build with the path in `BASE_PATH`, for
-example `BASE_PATH=/dacapo/ pnpm build` for the GitHub Pages demo.
+static file host without rewrite rules. To serve it below the site root, build with the path in
+`BASE_PATH`, for example `BASE_PATH=/dacapo/ pnpm build`. The official site,
+[playdacapo.com](https://playdacapo.com/), is `pnpm build:site` served by a Cloudflare Worker
+(`wrangler.jsonc`), deployed by Cloudflare Workers Builds on every push to `main`.
 
 ## Roadmap (after the MVP)
 

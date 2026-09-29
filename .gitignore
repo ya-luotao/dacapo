@@ -17,3 +17,6 @@ coverage
 
 # Python bytecode from scripts/
 __pycache__/
+
+# Wrangler (wrangler.jsonc): local state of `wrangler dev`
+.wrangler/

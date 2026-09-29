@@ -9,7 +9,7 @@ dacapo는 MIDI 키보드로 피아노를 연습하는 오픈 소스 웹 앱이�
 기록해서 약한 음을 히트맵으로 보여 줘요. 진짜 악보로 곡도 연습할 수 있어요(기다리기 모드와 리듬 모드). 모든 데이터는
 브라우저에 저장되고, 로그인하면 내 기기끼리 동기화할 수도 있어요.
 
-**바로 써 보기:** [ya-luotao.github.io/dacapo](https://ya-luotao.github.io/dacapo/) — 설치할 필요도, 계정을 만들 필요도 없어요.
+**바로 써 보기:** [playdacapo.com](https://playdacapo.com/) — 설치할 필요도, 계정을 만들 필요도 없어요.
 
 ## 기능
 

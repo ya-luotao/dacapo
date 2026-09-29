@@ -1,0 +1,8 @@
+# Response headers for the files of https://playdacapo.com (Cloudflare Workers static assets; not
+# served itself). Vite names the files under /assets/ by their content, so they never change.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

@@ -10,6 +10,13 @@ Export format version 5: the file now includes imported pieces (from version 2),
 sessions and their step records (from version 3), rhythm-mode steps with their timings (from
 version 4), and scale sessions with every scale run as played. Version 1 to 4 files still import.
 
+### A new address: [playdacapo.com](https://playdacapo.com/)
+
+- The web app moves from `ya-luotao.github.io/dacapo` to **playdacapo.com**, served by Cloudflare
+  with the sync service. Every link to the old address, routes included, now goes to the new one.
+- A browser keeps what it stores per address, so practice kept at the old address without an
+  account does not come along; with an account, signing in at the new address brings it back.
+
 ### Accounts and sync, under way ([docs/SYNC.md](docs/SYNC.md))
 
 - An optional **account** in Settings: sign in with your email address and a 6-digit code sent to

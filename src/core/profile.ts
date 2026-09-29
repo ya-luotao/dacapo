@@ -255,6 +255,9 @@ export const RESERVED_USERNAMES: ReadonlySet<string> = new Set([
   'report',
   'robots',
   'favicon',
+  'icons',
+  'licenses',
+  'piano',
   'dacapo',
   'playdacapo',
 ]);

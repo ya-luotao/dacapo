@@ -7,7 +7,7 @@ _Da capo_——「從頭開始」。
 
 dacapo 是一個開放原始碼的鋼琴練習網頁應用程式，搭配 MIDI 鍵盤使用：在真正的大譜表上練習識譜，記錄你找到每個音的反應時間，用熱度圖標出最弱的音，還能在真正的樂譜上練樂曲（等待模式和節奏模式）。所有資料都儲存在你的瀏覽器裡；登入後可以在你自己的各個裝置之間同步。
 
-**線上試用：** [ya-luotao.github.io/dacapo](https://ya-luotao.github.io/dacapo/)——不用安裝，也不用註冊。
+**線上試用：** [playdacapo.com](https://playdacapo.com/)——不用安裝，也不用註冊。
 
 ## 功能
 

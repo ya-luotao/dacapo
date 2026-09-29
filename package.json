@@ -19,7 +19,7 @@
     "typescript",
     "pwa"
   ],
-  "homepage": "https://ya-luotao.github.io/dacapo/",
+  "homepage": "https://playdacapo.com/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ya-luotao/dacapo.git"
@@ -36,6 +36,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:site": "VITE_SYNC_ENDPOINT=https://api.playdacapo.com pnpm build",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint .",
