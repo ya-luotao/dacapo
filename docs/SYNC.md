@@ -16,8 +16,9 @@ progress on all of them, without giving up the export file or working offline.
 - **This repository** (MIT) holds the sync _client_ and this protocol. The client is off unless the
   build sets `VITE_SYNC_ENDPOINT`; a build without it (a fork, a self-built copy, the tests) has no
   account UI and makes no network request, exactly as today. (The official web site also counts
-  visits with Cloudflare Web Analytics when its build sets `CF_BEACON_TOKEN`: no cookies, no
-  personal data, nothing about practice; no other build, the Apple app included, has it.)
+  visits with Cloudflare Web Analytics, which Cloudflare adds to its pages as they are served, set
+  up in the dashboard: no cookies, no personal data, nothing about practice. It is not in the
+  repository, so no build has it, the Apple app included.)
 - **The service** is a separate, private project (`dacapo-cloud`) on Cloudflare: one Worker at
   `https://api.playdacapo.com`, D1 for accounts, one Durable Object with its own SQLite per user for
   the records, R2 for piece files, Cloudflare Email Service for sign-in codes. It depends on no
@@ -184,8 +185,7 @@ winner.
   the build's files, and passes any other path (`/privacy`, profile pages) to the service through a
   service binding; the service itself answers at `api.playdacapo.com`. Cloudflare Workers Builds
   deploys it on every push to `main` (build command `pnpm build:site`, deploy command
-  `npx wrangler deploy`, build variable `CF_BEACON_TOKEN`: the Web Analytics token, kept out of
-  the repository). The old address, `ya-luotao.github.io/dacapo`, redirects every link
+  `npx wrangler deploy`). The old address, `ya-luotao.github.io/dacapo`, redirects every link
   there (`scripts/moved/`, `.github/workflows/pages.yml`); what a browser stored at the old
   address stays there, as storage belongs to the address.
 
