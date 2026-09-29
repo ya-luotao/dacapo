@@ -11,6 +11,7 @@ export const NAV_ITEMS: readonly {
   priority: number;
   practice?: boolean;
 }[] = [
+  { path: '/learn', label: 'nav.learn', priority: 4 },
   { path: '/play', label: 'nav.play', priority: Infinity, practice: true },
   { path: '/read', label: 'nav.read', priority: Infinity, practice: true },
   { path: '/scales', label: 'nav.scales', priority: 5, practice: true },

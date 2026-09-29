@@ -10,6 +10,19 @@ Export format version 5: the file now includes imported pieces (from version 2),
 sessions and their step records (from version 3), rhythm-mode steps with their timings (from
 version 4), and scale sessions with every scale run as played. Version 1 to 4 files still import.
 
+### The basics: lessons for beginners ([docs/LEARN.md](docs/LEARN.md))
+
+- **Learn** has short lessons for your first weeks at the piano, in English and Simplified Chinese.
+  The first two are written: finding your way around the keyboard (the black keys in twos and
+  threes, the seven letters, middle C and the octaves) and the staff and the clefs (lines and
+  spaces, the treble and bass clefs, the grand staff and ledger lines).
+- Every figure is the app's own keyboard or an engraved staff: colour the black-key groups, name
+  the keys, point at a line to hear its note, hold keys to see where they are written. Each lesson
+  ends with an exercise you answer on your keyboard: find every C, play D4, read and play eight
+  notes from both clefs. Etched illustrations show how to sit and where the hands go.
+- Five more lessons are planned and listed: landmark notes and intervals, rhythm, sharps and flats,
+  the major scale, and posture and fingering.
+
 ### A home page, and a sharper look
 
 - dacapo opens on a **home page**: what it is, the way into each practice as a contents page, and

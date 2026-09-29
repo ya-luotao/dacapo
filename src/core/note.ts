@@ -156,6 +156,16 @@ export function staffPosition(pitch: Pitch, clef: Clef): number {
   return diatonicStep(pitch) - diatonicStep(BOTTOM_LINE[clef]);
 }
 
+/** The natural note written at a staff position in a clef: the inverse of `staffPosition`. */
+export function pitchAtPosition(clef: Clef, position: number): Pitch {
+  const step = diatonicStep(BOTTOM_LINE[clef]) + position;
+  return {
+    letter: LETTERS[((step % 7) + 7) % 7]!,
+    accidental: 0,
+    octave: Math.floor(step / 7),
+  };
+}
+
 export function isOnLine(position: number): boolean {
   return position % 2 === 0;
 }

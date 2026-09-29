@@ -5,6 +5,7 @@ export const ko: Dictionary = {
   'app.tagline': '악보를 읽고, 건반을 찾아요.',
   'app.listSeparator': ', ',
   'nav.label': '주 메뉴',
+  'nav.learn': '기초',
   'nav.play': '연주',
   'nav.read': '악보 읽기',
   'nav.scales': '스케일',
@@ -26,6 +27,9 @@ export const ko: Dictionary = {
   'home.welcome': '내 연습',
   'home.welcome.link': '기록 보기',
   'home.contents': '차례',
+  'home.learn.text':
+    '초보자를 위한 짧은 레슨이에요. 건반, 오선보와 음자리표를 직접 쳐 볼 수 있는 그림으로 배워요.',
+  'home.learn.meta': '레슨 {n}개',
   'home.read.text':
     '큰보표의 음을 하나씩, 가운데 C 자리부터 덧줄, 올림표와 내림표까지. 모든 답의 시간을 재고, 느리게 찾는 음일수록 다음 카드에 더 자주 나와요.',
   'home.read.meta': '레벨 {n}개',
@@ -66,6 +70,21 @@ export const ko: Dictionary = {
   'home.faq.data.q': '연습 기록은 어디에 저장되나요?',
   'home.faq.data.a':
     '이 기기의 이 브라우저에 저장돼요. 설정에서 언제든 내보낼 수 있고, 로그인하면 내 기기끼리 동기화할 수 있어요.',
+
+  'learn.title': '피아노 기초',
+  'learn.intro':
+    '피아노를 막 시작한 분을 위한 짧은 레슨이에요. 건반, 오선보, 리듬 등을 다루고, 레슨마다 직접 쳐 볼 수 있는 그림과 마지막 연습이 있어요.',
+  'learn.language': '레슨은 현재 영어와 중국어 간체로 쓰여 있어요. 여기서는 영어판을 보여 드려요.',
+  'learn.lesson': '레슨 {n}',
+  'learn.minutes': '{n}분',
+  'learn.planned': '준비 중',
+  'learn.done': '완료',
+  'learn.contents': '이번 레슨',
+  'learn.all': '전체 레슨',
+  'learn.next': '다음 레슨',
+  'learn.previous': '이전 레슨',
+  'learn.practice': '연습하기',
+  'learn.loadFailed': '이 레슨을 불러오지 못했어요. 연결을 확인하고 다시 열어 주세요.',
 
   'footer.tagline': 'MIDI 키보드로 하는 무료 오픈 소스 피아노 연습.',
   'footer.about': '정보 및 라이선스',

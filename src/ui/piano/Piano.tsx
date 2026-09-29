@@ -81,11 +81,16 @@ interface PianoProps {
   fingers?: ReadonlyMap<number, number>;
   /** A shorter keyboard (both ends white keys); the whole 88 keys by default. */
   range?: readonly [low: number, high: number];
+  /** Extra classes for some keys, e.g. a lesson's colouring of the black-key groups. */
+  keyClasses?: ReadonlyMap<number, string>;
+  /** Names printed on some keys, in place of middle C's mark. */
+  keyNames?: ReadonlyMap<number, string>;
   className?: string;
 }
 
 const NONE: ReadonlySet<number> = new Set();
 const NO_FINGERS: ReadonlyMap<number, number> = new Map();
+const NO_STRINGS: ReadonlyMap<number, string> = new Map();
 
 export function Piano({
   held,
@@ -95,6 +100,8 @@ export function Piano({
   wrong = NONE,
   fingers = NO_FINGERS,
   range,
+  keyClasses = NO_STRINGS,
+  keyNames = NO_STRINGS,
   className,
 }: PianoProps) {
   const t = useT();
@@ -173,7 +180,8 @@ export function Piano({
           const state =
             (velocity !== undefined ? ' is-held' : sustained.has(midi) ? ' is-sustained' : '') +
             (marked.has(midi) ? ' is-marked' : '') +
-            (wrong.has(midi) ? ' is-wrong' : '');
+            (wrong.has(midi) ? ' is-wrong' : '') +
+            (keyClasses.has(midi) ? ` ${keyClasses.get(midi)}` : '');
           return (
             <button
               key={midi}
@@ -209,8 +217,13 @@ export function Piano({
                     <path d="M5 0l5 8H0z" />
                   </svg>
                 </span>
+              ) : keyNames.has(midi) ? (
+                <span className="key-mark key-name" aria-hidden="true">
+                  {keyNames.get(midi)}
+                </span>
               ) : (
-                midi === MIDDLE_C && (
+                midi === MIDDLE_C &&
+                keyNames === NO_STRINGS && (
                   <span className="key-mark" aria-hidden="true">
                     C4
                   </span>

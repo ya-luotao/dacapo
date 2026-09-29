@@ -14,6 +14,7 @@ import {
   PIANO_HIGHEST,
   PIANO_KEY_COUNT,
   PIANO_LOWEST,
+  pitchAtPosition,
   pitchClass,
   pitchId,
   pitchToMidi,
@@ -248,5 +249,26 @@ describe('isOnLine / ledgerLineCount', () => {
     expect([-4, -3, -2, -1, 0, 4, 8, 9, 10, 11, 12].map(ledgerLineCount)).toEqual([
       2, 1, 1, 0, 0, 0, 0, 0, 1, 1, 2,
     ]);
+  });
+});
+
+describe('pitchAtPosition', () => {
+  it('names the lines and spaces of each clef', () => {
+    const names = (clef: Clef, positions: number[]) =>
+      positions.map((p) => formatPitch(pitchAtPosition(clef, p))).join(' ');
+    expect(names('treble', [0, 2, 4, 6, 8])).toBe('E4 G4 B4 D5 F5');
+    expect(names('treble', [1, 3, 5, 7])).toBe('F4 A4 C5 E5');
+    expect(names('bass', [0, 2, 4, 6, 8])).toBe('G2 B2 D3 F3 A3');
+    expect(names('bass', [1, 3, 5, 7])).toBe('A2 C3 E3 G3');
+    expect(names('treble', [-2, -3])).toBe('C4 B3');
+    expect(names('bass', [10])).toBe('C4');
+  });
+
+  it('is the inverse of staffPosition', () => {
+    for (const clef of ['treble', 'bass'] as const) {
+      for (let p = -8; p <= 16; p++) {
+        expect(staffPosition(pitchAtPosition(clef, p), clef)).toBe(p);
+      }
+    }
   });
 });

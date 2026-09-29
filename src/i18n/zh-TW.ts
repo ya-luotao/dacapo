@@ -5,6 +5,7 @@ export const zhTW: Dictionary = {
   'app.tagline': '看譜，找鍵。',
   'app.listSeparator': '、',
   'nav.label': '主選單',
+  'nav.learn': '入門',
   'nav.play': '彈奏',
   'nav.read': '識譜',
   'nav.scales': '音階',
@@ -26,6 +27,8 @@ export const zhTW: Dictionary = {
   'home.welcome': '你的練習',
   'home.welcome.link': '查看進度',
   'home.contents': '目錄',
+  'home.learn.text': '給初學者的幾堂短課：鍵盤、五線譜與譜號，配有可以動手彈的圖示。',
+  'home.learn.meta': '{n} 課',
   'home.read.text':
     '大譜表上一次一個音，從中央 C 位置一路到加線和升降記號。每次作答都會計時，下一張閃卡會優先出你反應慢的音。',
   'home.read.meta': '{n} 個等級',
@@ -65,6 +68,21 @@ export const zhTW: Dictionary = {
   'home.faq.data.q': '練習紀錄儲存在哪裡？',
   'home.faq.data.a':
     '儲存在這台裝置的這個瀏覽器裡。你隨時可以在「設定」中匯出，也可以登入，在自己的幾台裝置之間同步。',
+
+  'learn.title': '入門基礎',
+  'learn.intro':
+    '為剛開始學琴的你準備的幾堂短課：鍵盤、五線譜、節奏等等。每課都有可以動手彈的圖示，最後還有一個小練習。',
+  'learn.language': '課程目前以英文和簡體中文撰寫，這裡顯示英文版。',
+  'learn.lesson': '第 {n} 課',
+  'learn.minutes': '{n} 分鐘',
+  'learn.planned': '準備中',
+  'learn.done': '已完成',
+  'learn.contents': '本課內容',
+  'learn.all': '全部課程',
+  'learn.next': '下一課',
+  'learn.previous': '上一課',
+  'learn.practice': '去練習',
+  'learn.loadFailed': '這一課無法載入。請檢查網路後重新開啟。',
 
   'footer.tagline': '免費開源，用 MIDI 鍵盤練鋼琴。',
   'footer.about': '關於與授權',

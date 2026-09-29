@@ -25,6 +25,13 @@ const PiecePage = lazy(() =>
 const ScalesPage = lazy(() =>
   import('./scales/ScalesPage.tsx').then((m) => ({ default: m.ScalesPage })),
 );
+// The lessons load their own texts, per lesson and language (ui/learn/lessons/).
+const LearnPage = lazy(() =>
+  import('./learn/LearnPage.tsx').then((m) => ({ default: m.LearnPage })),
+);
+const LessonPage = lazy(() =>
+  import('./learn/LessonPage.tsx').then((m) => ({ default: m.LessonPage })),
+);
 const MetronomePage = lazy(() =>
   import('./metronome/MetronomePage.tsx').then((m) => ({ default: m.MetronomePage })),
 );
@@ -47,6 +54,8 @@ function Shell() {
         <Suspense fallback={null}>
           <Switch>
             <Route path="/" component={HomePage} />
+            <Route path="/learn" component={LearnPage} />
+            <Route path="/learn/:slug">{({ slug }) => <LessonPage key={slug} slug={slug} />}</Route>
             <Route path="/play" component={PlayPage} />
             <Route path="/read" component={ReadPage} />
             <Route path="/scales" component={ScalesPage} />

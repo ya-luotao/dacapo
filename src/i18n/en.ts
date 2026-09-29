@@ -5,6 +5,7 @@ export const en = {
   'app.tagline': 'Read the staff. Find the key.',
   'app.listSeparator': ', ',
   'nav.label': 'Main',
+  'nav.learn': 'Learn',
   'nav.play': 'Play',
   'nav.read': 'Read',
   'nav.scales': 'Scales',
@@ -26,6 +27,9 @@ export const en = {
   'home.welcome': 'Your practice',
   'home.welcome.link': 'See your progress',
   'home.contents': 'Contents',
+  'home.learn.text':
+    'Short lessons for your first weeks: the keyboard, the staff and the clefs, with figures to play with.',
+  'home.learn.meta': '{n} lessons',
   'home.read.text':
     'One note at a time on the grand staff, from middle C position to ledger lines and accidentals. Every answer is timed, and the next card favours the notes you are slow on.',
   'home.read.meta': '{n} levels',
@@ -66,6 +70,22 @@ export const en = {
   'home.faq.data.q': 'Where is my practice saved?',
   'home.faq.data.a':
     'In this browser, on this device. You can export it from Settings at any time, or sign in to sync it between your own devices.',
+
+  'learn.title': 'The basics',
+  'learn.intro':
+    'Short lessons for your first weeks at the piano: the keyboard, the staff, rhythm and more. Each has figures to play with, and an exercise to finish.',
+  'learn.language':
+    'The lessons are written in English and Simplified Chinese; they are shown here in English.',
+  'learn.lesson': 'Lesson {n}',
+  'learn.minutes': '{n} min',
+  'learn.planned': 'In preparation',
+  'learn.done': 'Done',
+  'learn.contents': 'In this lesson',
+  'learn.all': 'All lessons',
+  'learn.next': 'Next lesson',
+  'learn.previous': 'Previous lesson',
+  'learn.practice': 'Practise it',
+  'learn.loadFailed': 'This lesson could not be loaded. Check the connection and open it again.',
 
   'footer.tagline': 'Free, open-source piano practice with a MIDI keyboard.',
   'footer.about': 'About and licences',

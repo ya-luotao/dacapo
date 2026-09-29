@@ -402,7 +402,7 @@ final class Harness {
         report["languages"] = await js("return [...navigator.languages].join(',') + ' / html lang ' + document.documentElement.lang") ?? NSNull()
         report["preferredLocalizations"] = Bundle.main.preferredLocalizations
         var pages: [String: Any] = [:]
-        for hash in ["#/", "#/play", "#/read", "#/pieces", "#/pieces/beethoven-ode-to-joy", "#/progress", "#/settings", "#/about"] {
+        for hash in ["#/", "#/play", "#/learn", "#/learn/keyboard", "#/read", "#/pieces", "#/pieces/beethoven-ode-to-joy", "#/progress", "#/settings", "#/about"] {
             location(hash)
             try? await Task.sleep(for: .seconds(hash.contains("ode") ? 3 : 1.2))
             let hits = await js("""

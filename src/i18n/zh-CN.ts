@@ -5,6 +5,7 @@ export const zhCN: Dictionary = {
   'app.tagline': '看谱，找键。',
   'app.listSeparator': '、',
   'nav.label': '主导航',
+  'nav.learn': '入门',
   'nav.play': '弹奏',
   'nav.read': '识谱',
   'nav.scales': '音阶',
@@ -26,6 +27,8 @@ export const zhCN: Dictionary = {
   'home.welcome': '你的练习',
   'home.welcome.link': '查看进度',
   'home.contents': '目录',
+  'home.learn.text': '给初学者的几节短课：键盘、五线谱与谱号，配有可以动手弹的图示。',
+  'home.learn.meta': '{n} 课',
   'home.read.text':
     '大谱表上一次一个音，从中央 C 位置一直到加线和升号、降号。每次作答都会计时，下一张卡片会优先出你反应慢的音。',
   'home.read.meta': '{n} 个级别',
@@ -65,6 +68,21 @@ export const zhCN: Dictionary = {
   'home.faq.data.q': '练习记录保存在哪里？',
   'home.faq.data.a':
     '保存在这台设备的这个浏览器里。你随时可以在“设置”中导出，也可以登录，在自己的几台设备之间同步。',
+
+  'learn.title': '入门基础',
+  'learn.intro':
+    '为刚开始学琴的你准备的几节短课：键盘、五线谱、节奏等等。每课都有可以动手弹的图示，最后还有一个小练习。',
+  'learn.language': '课程目前用英文和简体中文编写。',
+  'learn.lesson': '第 {n} 课',
+  'learn.minutes': '{n} 分钟',
+  'learn.planned': '准备中',
+  'learn.done': '已完成',
+  'learn.contents': '本课内容',
+  'learn.all': '全部课程',
+  'learn.next': '下一课',
+  'learn.previous': '上一课',
+  'learn.practice': '去练习',
+  'learn.loadFailed': '这一课没能加载。请检查网络后重新打开。',
 
   'footer.tagline': '免费开源，用 MIDI 键盘练钢琴。',
   'footer.about': '关于与许可',

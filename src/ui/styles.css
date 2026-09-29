@@ -6221,6 +6221,106 @@ select.is-compact {
   overflow-wrap: anywhere;
 }
 
+/* Engraving: a little notation drawn from Bravura's outlines (EngravedStaff.tsx). Ink follows
+   the theme; a note or a line can be picked out in the accent. */
+
+.engraved {
+  display: block;
+  overflow: visible;
+  color: var(--text);
+  fill: currentColor;
+}
+
+.engraved-lines line,
+.engraved-ledgers line {
+  stroke: currentColor;
+  stroke-width: 1.3;
+}
+
+.engraved-lines .engraved-bar,
+.engraved-ledgers line {
+  stroke-width: 1.6;
+}
+
+.engraved-ledgers {
+  animation: engraved-in 420ms var(--ease-out);
+}
+
+.engraved-head {
+  transition: transform 560ms var(--ease-out);
+}
+
+.engraved-note.is-accent {
+  color: var(--accent);
+}
+
+.engraved-note.is-good {
+  color: var(--ok);
+}
+
+.engraved-note.is-bad {
+  color: var(--bad);
+}
+
+.engraved-note.is-faint {
+  color: var(--control);
+}
+
+.engraved-clefs {
+  transition: color var(--dur) ease-out;
+}
+
+.engraved-clefs.is-accent {
+  color: var(--accent);
+}
+
+.engraved-mark {
+  stroke: var(--accent);
+  stroke-width: 3;
+}
+
+.engraved-band {
+  fill: var(--accent-soft);
+}
+
+.engraved-mark.is-faint {
+  stroke: var(--accent-soft);
+  stroke-width: 5;
+}
+
+.engraved-band.is-faint {
+  fill: var(--accent-soft);
+  opacity: 0.6;
+}
+
+.engraved-label {
+  fill: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.engraved-hit {
+  fill: transparent;
+  cursor: pointer;
+}
+
+@keyframes engraved-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .engraved-head {
+    transition: none;
+  }
+
+  .engraved-ledgers {
+    animation: none;
+  }
+}
+
 /* Home: a title page, then the contents of the method book. */
 
 .home {
@@ -6262,9 +6362,14 @@ select.is-compact {
   background: currentColor;
 }
 
+/* The title is sized to its column, so each sentence keeps to one line. */
+.home-hero-text {
+  container-type: inline-size;
+}
+
 .home-title {
   margin: 0;
-  font-size: clamp(2.875rem, 1.75rem + 4vw, 4.75rem);
+  font-size: clamp(2.25rem, 13.2cqi, 4.75rem);
   font-weight: 500;
   line-height: 1.02;
   letter-spacing: -0.03em;
@@ -6275,7 +6380,7 @@ select.is-compact {
 }
 
 .home-title:is(:lang(zh), :lang(ja), :lang(ko)) {
-  font-size: clamp(2.25rem, 1.5rem + 2.6vw, 3.5rem);
+  font-size: clamp(2rem, 11.5cqi, 3.5rem);
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: 0.02em;
@@ -6350,7 +6455,7 @@ select.is-compact {
   margin: 2rem 0 0;
   color: var(--text-muted);
   font-size: 0.875rem;
-  text-wrap: balance;
+  text-wrap: pretty;
 }
 
 /* The specimen: the note on a sheet of paper, the key on the keyboard below it. */
@@ -6384,7 +6489,7 @@ select.is-compact {
   font-size: 1.375rem;
   font-variant-numeric: tabular-nums;
   line-height: 1;
-  animation: specimen-in 420ms var(--ease-out);
+  animation: engraved-in 420ms var(--ease-out);
 }
 
 .specimen[data-played] .specimen-name {
@@ -6395,39 +6500,10 @@ select.is-compact {
   display: block;
   width: 100%;
   height: auto;
-  overflow: visible;
-  color: var(--text);
-  fill: currentColor;
 }
 
-.specimen-lines line,
-.specimen-ledgers line {
-  stroke: currentColor;
-  stroke-width: 1.3;
-}
-
-.specimen-lines .specimen-bar,
-.specimen-ledgers line {
-  stroke-width: 1.6;
-}
-
-.specimen-ledgers {
-  animation: specimen-in 420ms var(--ease-out);
-}
-
-.specimen-note {
-  transition: transform 560ms var(--ease-out);
-}
-
-.specimen[data-played] .specimen-note {
-  color: var(--accent);
+.specimen[data-played] .engraved-head {
   transition-duration: 160ms;
-}
-
-@keyframes specimen-in {
-  from {
-    opacity: 0;
-  }
 }
 
 /* The keyboard: ivory and ebony under a strip of felt, as on the Play page. */
@@ -6473,13 +6549,11 @@ select.is-compact {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .specimen-note,
   .specimen-keys rect {
     transition: none;
   }
 
-  .specimen-name,
-  .specimen-ledgers {
+  .specimen-name {
     animation: none;
   }
 }
@@ -6793,4 +6867,550 @@ select.is-compact {
 /* Pages that are one screen, or a whole session, have no foot. */
 #root:has(.piece-session, .read-session, .metronome) > .footer {
   display: none;
+}
+
+/* Learn: lessons laid out like a method book: a measure of prose, numbered plates to play with,
+   notes in the margin, and the lesson's contents held beside it on a wide screen. */
+
+/* The keys stay ivory and ebony in both themes, so the tints on them are pale in both. */
+:root {
+  --lk-two: #3e6596;
+  --lk-three: #a8741c;
+  --lk-tint: #d4e2f1;
+  --lk-found: #d3e6d0;
+  --lk-found-edge: #316843;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --lk-two: #6289b5;
+    --lk-three: #c49445;
+    --lk-tint: #c2d4e8;
+    --lk-found: #c4dcc0;
+    --lk-found-edge: #4f8a5f;
+  }
+}
+
+:root[data-theme='dark'] {
+  --lk-two: #6289b5;
+  --lk-three: #c49445;
+  --lk-tint: #c2d4e8;
+  --lk-found: #c4dcc0;
+  --lk-found-edge: #4f8a5f;
+}
+
+.learn-lede,
+.lesson-lede {
+  max-width: 36rem;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+  text-wrap: pretty;
+}
+
+.learn .contents {
+  margin-top: 2.5rem;
+}
+
+.contents-row.is-planned {
+  color: var(--text-muted);
+}
+
+.contents-row.is-planned .contents-title {
+  color: var(--text-muted);
+}
+
+.lesson {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem clamp(2.5rem, 4vw, 4rem);
+}
+
+@media (min-width: 64rem) {
+  .lesson {
+    grid-template-columns: 13rem minmax(0, 1fr);
+  }
+
+  .lesson-rail {
+    position: sticky;
+    top: 6rem;
+    align-self: start;
+    max-height: calc(100dvh - 8rem);
+    overflow-y: auto;
+  }
+}
+
+.lesson-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.lesson-back svg {
+  width: 0.375rem;
+  height: 0.625rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (hover: hover) {
+  .lesson-back:hover {
+    color: var(--text);
+  }
+}
+
+.lesson-toc {
+  display: none;
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 64rem) {
+  .lesson-toc {
+    display: block;
+  }
+}
+
+.lesson-toc .eyebrow {
+  margin-bottom: 0.5rem;
+}
+
+.lesson-toc ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lesson-toc button {
+  display: flex;
+  align-items: baseline;
+  gap: 0.625rem;
+  width: 100%;
+  padding: 0.375rem 0;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  text-align: start;
+  cursor: pointer;
+  transition: color var(--dur-fast) ease-out;
+}
+
+/* The section being read: a dot, like the current note on the staff. */
+.lesson-toc button::before {
+  content: '';
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--border);
+  transform: translateY(-2px);
+  transition: background-color var(--dur-fast) ease-out;
+}
+
+.lesson-toc button.is-current {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.lesson-toc button.is-current::before {
+  background: var(--accent);
+}
+
+@media (hover: hover) {
+  .lesson-toc button:hover {
+    color: var(--text);
+  }
+}
+
+.lesson-main {
+  min-width: 0;
+  max-width: 50rem;
+}
+
+.lesson-head h1 {
+  margin-bottom: 1rem;
+}
+
+.lesson-head .eyebrow {
+  color: var(--accent);
+}
+
+.lesson-head .help {
+  margin-top: 1rem;
+}
+
+/* The prose: a reading measure, a little more leading than the app's. */
+.lesson-body {
+  counter-reset: plate;
+  margin-top: 2.5rem;
+}
+
+.lesson-body > p,
+.lesson-section > p,
+.lesson-section > ul {
+  max-width: 38rem;
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  text-wrap: pretty;
+}
+
+.lesson-body p,
+.lesson-body ul {
+  margin: 0 0 1.125rem;
+}
+
+.lesson-section > ul {
+  padding-inline-start: 1.25rem;
+}
+
+.lesson-section > ul li + li {
+  margin-top: 0.375rem;
+}
+
+.lesson-body strong {
+  font-weight: 600;
+}
+
+.lesson-section {
+  margin-top: 3.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+
+.lesson-section h2 {
+  margin: 0 0 1rem;
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 1.3rem + 0.8vw, 1.875rem);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+
+.lesson-section h2:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Plates: a sheet laid on the page, numbered in its caption. */
+.plate {
+  max-width: 44rem;
+  margin: 1.75rem 0 2rem;
+  counter-increment: plate;
+}
+
+.plate.is-wide {
+  max-width: none;
+}
+
+.plate-body {
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-sheet);
+  transition: box-shadow var(--dur) ease-out;
+}
+
+/* An exercise that is listening is ringed in the accent: the keys go to it. */
+.plate-body:has(.exercise.is-active) {
+  box-shadow:
+    0 0 0 2px var(--accent),
+    var(--shadow-sheet);
+}
+
+.plate-caption {
+  max-width: 38rem;
+  margin-top: 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.plate-number {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.plate-number::after {
+  content: counter(plate) ' · ';
+}
+
+.plate-choices {
+  flex-wrap: nowrap;
+  max-width: 100%;
+  margin-bottom: 1rem;
+  white-space: nowrap;
+}
+
+.plate-readout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  min-height: 2.75rem;
+  margin: 0 0 0.75rem;
+}
+
+.plate-readout.is-small {
+  min-height: 2rem;
+  margin-bottom: 0.25rem;
+}
+
+.plate-readout-name {
+  color: var(--accent);
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.plate-readout.is-small .plate-readout-name {
+  font-size: 1.375rem;
+}
+
+.plate-readout-label,
+.plate-readout-empty {
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+
+.plate-staff {
+  width: 100%;
+  max-width: 34rem;
+  height: auto;
+  margin: 0 auto 1rem;
+}
+
+.plate-staff.is-grand {
+  max-width: 28rem;
+}
+
+.plate-staff.is-card {
+  max-width: 16rem;
+  margin-bottom: 0;
+}
+
+.plate-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.button-glyph {
+  width: 0.625rem;
+  height: 0.75rem;
+  fill: currentColor;
+}
+
+.plate-note {
+  margin: 0.75rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  text-wrap: pretty;
+}
+
+.lesson-piano .piano {
+  min-height: 6rem;
+  max-height: 13rem;
+}
+
+/* The lessons' colours on the keys. */
+.key-black.lk-two {
+  background: var(--lk-two);
+}
+
+.key-black.lk-three {
+  background: var(--lk-three);
+}
+
+.key-white:is(.lk-named, .lk-same) {
+  background: var(--lk-tint);
+}
+
+.key-black.lk-same {
+  background: var(--lk-two);
+}
+
+.key-white.lk-found {
+  background: var(--lk-found);
+  box-shadow: inset 0 -4px 0 var(--lk-found-edge);
+}
+
+.key-black.lk-found {
+  background: var(--lk-found-edge);
+}
+
+.key-name {
+  font-size: 0.625rem;
+  letter-spacing: -0.02em;
+}
+
+.key-name::before {
+  display: none;
+}
+
+/* Exercises: a prompt, the keyboard, and what happened. */
+.exercise-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  margin-bottom: 0.875rem;
+}
+
+.exercise-prompt {
+  margin: 0;
+  font-weight: 600;
+  text-wrap: pretty;
+}
+
+.exercise-ask {
+  min-height: 2.5rem;
+  color: var(--accent);
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.exercise-progress {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.exercise-card {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+}
+
+.exercise-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  min-height: 2.75rem;
+  margin-top: 0.875rem;
+}
+
+.exercise-message {
+  flex: 1 1 16rem;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+
+/* Asides: a note in the margin of the book. */
+.lesson-aside {
+  max-width: 38rem;
+  margin: 1.75rem 0;
+  padding: 1rem 1.25rem 0.25rem;
+  border-radius: var(--radius);
+  background: color-mix(in oklab, var(--accent-soft) 55%, transparent);
+}
+
+.lesson-aside-title {
+  margin: 0 0 0.375rem !important;
+  color: var(--accent);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.lesson-aside-title:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+}
+
+.lesson-aside p {
+  font-size: 0.9375rem;
+  line-height: 1.65;
+}
+
+/* Pictures: etchings printed on the same paper, 3:2. */
+.lesson-picture {
+  max-width: 44rem;
+  margin: 2rem 0;
+}
+
+.lesson-picture img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  background: #f8f4ec;
+  box-shadow: var(--shadow-sheet);
+}
+
+/* In the dark the paper is dimmed a little, as a print under a lamp. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .lesson-picture img {
+    filter: brightness(0.86) sepia(0.12);
+  }
+}
+
+:root[data-theme='dark'] .lesson-picture img {
+  filter: brightness(0.86) sepia(0.12);
+}
+
+/* The end: where to practise it, and the lessons either side. */
+.lesson-end {
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--text);
+}
+
+.lesson-pager {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 2rem;
+  margin-top: 2.5rem;
+}
+
+.lesson-pager-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.lesson-pager-link.is-next {
+  grid-column: 2;
+  align-items: flex-end;
+  text-align: end;
+}
+
+.lesson-pager-link .eyebrow {
+  margin: 0;
+}
+
+.lesson-pager-title {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  line-height: 1.3;
+  transition: color var(--dur-fast) ease-out;
+}
+
+@media (hover: hover) {
+  .lesson-pager-link:hover .lesson-pager-title {
+    color: var(--accent);
+  }
 }

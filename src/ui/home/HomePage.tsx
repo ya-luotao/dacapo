@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Link } from 'wouter';
 import { LEVELS } from '../../core/levels.ts';
+import { LESSONS } from '../../learn/lessons.ts';
 import { MAX_BPM, MIN_BPM } from '../../core/pulse.ts';
 import { practiceLog, STREAK_GOAL_MS } from '../../core/streak.ts';
 import { useT, type MessageKey } from '../../i18n/index.ts';
@@ -23,8 +24,16 @@ const CONTENTS: readonly {
   values?: Record<string, number>;
 }[] = [
   {
-    path: '/read',
+    path: '/learn',
     numeral: 'I',
+    title: 'nav.learn',
+    text: 'home.learn.text',
+    meta: 'home.learn.meta',
+    values: { n: LESSONS.filter((lesson) => lesson.ready).length },
+  },
+  {
+    path: '/read',
+    numeral: 'II',
     title: 'nav.read',
     text: 'home.read.text',
     meta: 'home.read.meta',
@@ -32,14 +41,14 @@ const CONTENTS: readonly {
   },
   {
     path: '/scales',
-    numeral: 'II',
+    numeral: 'III',
     title: 'nav.scales',
     text: 'home.scales.text',
     meta: 'home.scales.meta',
   },
   {
     path: '/pieces',
-    numeral: 'III',
+    numeral: 'IV',
     title: 'nav.pieces',
     text: 'home.pieces.text',
     meta: 'home.pieces.meta',
@@ -47,7 +56,7 @@ const CONTENTS: readonly {
   },
   {
     path: '/metronome',
-    numeral: 'IV',
+    numeral: 'V',
     title: 'nav.metronome',
     text: 'home.metronome.text',
     meta: 'home.metronome.meta',
@@ -55,7 +64,7 @@ const CONTENTS: readonly {
   },
   {
     path: '/progress',
-    numeral: 'V',
+    numeral: 'VI',
     title: 'nav.progress',
     text: 'home.progress.text',
     meta: 'home.progress.meta',

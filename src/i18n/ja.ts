@@ -5,6 +5,7 @@ export const ja: Dictionary = {
   'app.tagline': '楽譜を読む。鍵盤を見つける。',
   'app.listSeparator': '、',
   'nav.label': 'メインメニュー',
+  'nav.learn': '入門',
   'nav.play': '演奏',
   'nav.read': '譜読み',
   'nav.scales': 'スケール',
@@ -27,6 +28,9 @@ export const ja: Dictionary = {
   'home.welcome': '練習の状況',
   'home.welcome.link': '記録を見る',
   'home.contents': '目次',
+  'home.learn.text':
+    '初心者のための短いレッスン。鍵盤、五線譜とト音記号・ヘ音記号を、実際に弾ける図で学べます。',
+  'home.learn.meta': '{n}レッスン',
   'home.read.text':
     '大譜表の音符を1つずつ。中央Cのポジションから、加線、シャープとフラットまで。すべての解答の時間を計り、反応の遅い音ほど次のカードに出やすくなります。',
   'home.read.meta': '{n}レベル',
@@ -68,6 +72,23 @@ export const ja: Dictionary = {
   'home.faq.data.q': '練習の記録はどこに保存されますか？',
   'home.faq.data.a':
     'この端末のこのブラウザに保存されます。「設定」からいつでもエクスポートできるほか、ログインすれば自分の端末どうしで同期できます。',
+
+  'learn.title': 'ピアノの基礎',
+  'learn.intro':
+    'ピアノを始めたばかりの人のための短いレッスンです。鍵盤、五線譜、リズムなど。どの回にも実際に弾ける図があり、最後に小さな練習があります。',
+  'learn.language':
+    'レッスンは現在、英語と簡体字中国語で書かれています。ここでは英語版を表示しています。',
+  'learn.lesson': 'レッスン {n}',
+  'learn.minutes': '{n}分',
+  'learn.planned': '準備中',
+  'learn.done': '完了',
+  'learn.contents': 'このレッスンの内容',
+  'learn.all': 'レッスン一覧',
+  'learn.next': '次のレッスン',
+  'learn.previous': '前のレッスン',
+  'learn.practice': '練習する',
+  'learn.loadFailed':
+    'このレッスンを読み込めませんでした。接続を確認して、もう一度開いてください。',
 
   'footer.tagline': 'MIDIキーボードで弾く、無料でオープンソースのピアノ練習アプリ。',
   'footer.about': 'dacapoについて・ライセンス',
