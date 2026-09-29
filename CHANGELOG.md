@@ -20,6 +20,13 @@ version 4), and scale sessions with every scale run as played. Version 1 to 4 fi
 - Syncing waits while you practise, so it never touches the timing of what is being measured, and
   runs at start, when practising stops, a little after a change, when the app comes back to the
   front, and every 5 minutes.
+- A **public profile**, off until you turn it on ([docs/PROFILE.md](docs/PROFILE.md)): choose a
+  username in Settings → Account, and `playdacapo.com/<username>` shows your year of practice as a
+  grid of weeks, your streaks and your total time, like a GitHub profile. "Grid only" keeps what
+  you practised private; "Grid and activity" also lists each day's reading, free play, pieces and
+  scales, with piece titles only if you turn them on. Accuracy, reaction times and your email
+  address are never public; search engines are asked not to list the page, and every page has a
+  link to report it.
 - Storage moves to IndexedDB version 5 (an outbox of records to send, used only while signed in).
 - A deleted piece stays deleted: importing an export file made before the deletion no longer
   brings it back, nor, if its records were deleted with it, its step records. Importing the

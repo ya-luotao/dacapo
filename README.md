@@ -121,6 +121,9 @@ The screenshots use generated practice data.
   ([privacy policy](https://playdacapo.com/privacy)). Deleting the account in Settings removes
   everything from the service. A build without `VITE_SYNC_ENDPOINT` (a fork, your own build) has
   no account at all ([docs/SYNC.md](docs/SYNC.md)).
+- Signed in, you can also publish a profile page with your year of practice, like a GitHub
+  profile: the grid only, or with what you practised each day. It is off until you turn it on
+  ([docs/PROFILE.md](docs/PROFILE.md)).
 
 ## Development
 
