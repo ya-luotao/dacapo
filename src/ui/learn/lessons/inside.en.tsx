@@ -5,13 +5,13 @@ import { useCompleteLesson } from '../lesson.ts';
 
 const COPY: InsideCopy = {
   label: 'One key of a grand piano’s action, in cross-section, moving as the key is played',
-  speed: 'Speed',
   speeds: { real: 'Real speed', slow4: '4× slower', slow10: '10× slower' },
+  touch: { key: 'Your touch', soft: 'Soft', loud: 'Loud' },
   names: 'Names',
   sustain: 'Sustain pedal',
   play: 'Play a note',
   pressed: 'Key',
-  loudness: 'String',
+  loudness: 'Loudness',
   pointAt: 'Point at any part to read what it does.',
   parts: {
     key: {
@@ -104,7 +104,8 @@ export default function Lesson() {
         <p>
           This is one key of a grand piano cut in half, as if seen from the side, with you sitting
           on the left. Press any key and the drawing plays it at the speed you pressed. Real speed
-          is too fast to follow, so it starts four times slower.
+          is too fast to follow, so it starts four times slower. Only the drawing slows down: you
+          hear the note at once, before the hammer gets there on the page.
         </p>
         <Plate
           wide
@@ -124,8 +125,9 @@ export default function Lesson() {
         <p>
           So once the hammer is on its way, nothing you do can change the note. Pressing harder into
           the bottom of the key does nothing at all. What makes a note louder is only how fast the
-          hammer is thrown, that is, how quickly you press the key. Try it above: press slowly, then
-          quickly, and watch the string.
+          hammer is thrown, that is, how quickly you press the key. Try it above: with a MIDI
+          keyboard, press slowly, then quickly, and watch the loudness. The computer keys and a
+          click always press at the same speed, so choose Soft or Loud instead.
         </p>
         <Aside title="Why it must let go">
           <p>
