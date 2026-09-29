@@ -256,8 +256,10 @@ export function SequenceExercise({
 
 export interface ChoiceQuestion {
   id: string;
-  /** What the question shows: a staff, a rhythm, a key signature. */
+  /** What the question shows: a staff, a rhythm, a key signature; or the question in words. */
   figure: ReactNode;
+  /** The question in words, over the figure. */
+  question?: string;
   options: readonly string[];
   answer: number;
   /** Keys to hear, one step after another (a chord when a step holds several). */
@@ -283,6 +285,8 @@ export function ChoiceQuiz({
   const question = questions[Math.min(at, questions.length - 1)]!;
   const answered = chosen !== null;
   const right = chosen === question.answer;
+  // Answers in sentences go one under another.
+  const long = question.options.some((o) => o.length > 14);
 
   const choose = (i: number) => {
     if (answered || done) return;
@@ -327,9 +331,10 @@ export function ChoiceQuiz({
             : null
       }
     >
-      <div className="choice-figure">{question.figure}</div>
+      {question.question && <p className="choice-question">{question.question}</p>}
+      {question.figure && <div className="choice-figure">{question.figure}</div>}
       <div
-        className="choice-options"
+        className={long ? 'choice-options is-long' : 'choice-options'}
         role="group"
         aria-label={typeof prompt === 'string' ? prompt : undefined}
       >

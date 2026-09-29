@@ -99,13 +99,36 @@ export const LESSONS: readonly LessonInfo[] = [
   },
 ];
 
+/**
+ * Pages beside the lessons: read like one (the same page, contents and languages) but not
+ * numbered, nor in the lessons' order.
+ */
+export const EXTRAS: readonly LessonInfo[] = [
+  {
+    slug: 'inside',
+    title: { en: 'Inside the piano', 'zh-CN': '钢琴里面是什么样的' },
+    summary: {
+      en: 'What happens between your finger and the string: the hammer, the jack that lets it fly, the damper, and why only the speed of your press counts.',
+      'zh-CN':
+        '从手指到琴弦之间发生了什么：琴槌、让它飞出去的顶杆、制音器，以及为什么只有按键的速度才算数。',
+    },
+    minutes: 8,
+    ready: true,
+    practice: '/play',
+  },
+];
+
 /** The language a lesson is read in: Simplified Chinese for zh-CN, English otherwise. */
 export function lessonLanguage(locale: Locale): LessonLanguage {
   return locale === 'zh-CN' ? 'zh-CN' : 'en';
 }
 
 export function lessonBySlug(slug: string): LessonInfo | undefined {
-  return LESSONS.find((lesson) => lesson.slug === slug);
+  return LESSONS.find((lesson) => lesson.slug === slug) ?? EXTRAS.find((e) => e.slug === slug);
+}
+
+export function isExtra(slug: string): boolean {
+  return EXTRAS.some((e) => e.slug === slug);
 }
 
 /** The next and the previous lesson that can be opened. */

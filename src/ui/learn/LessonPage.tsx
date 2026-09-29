@@ -10,7 +10,7 @@ import {
 } from 'react';
 import { Link } from 'wouter';
 import { useI18n } from '../../i18n/index.ts';
-import { lessonBySlug, lessonLanguage, LESSONS, neighbours } from '../../learn/lessons.ts';
+import { isExtra, lessonBySlug, lessonLanguage, LESSONS, neighbours } from '../../learn/lessons.ts';
 import { NotFoundPage } from '../pages/NotFoundPage.tsx';
 import { NAV_ITEMS } from '../routes.ts';
 import { LessonProvider } from './kit.tsx';
@@ -128,7 +128,8 @@ export function LessonPage({ slug }: { slug: string }) {
         <div className="lesson-main">
           <header className="lesson-head">
             <p className="eyebrow">
-              {t('learn.lesson', { n: number })} · {t('learn.minutes', { n: lesson.minutes })}
+              {isExtra(slug) ? t('learn.extra') : t('learn.lesson', { n: number })} ·{' '}
+              {t('learn.minutes', { n: lesson.minutes })}
             </p>
             <h1>{lesson.title[language]}</h1>
             <p className="lesson-lede">{lesson.summary[language]}</p>

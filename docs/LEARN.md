@@ -17,7 +17,16 @@ the computer keyboard, a click or a tap, like the Play page.
 | 6   | `major-scale`      | The major scale and key signatures   | written |
 | 7   | `posture`          | Posture, hand shape and fingering    | written |
 
-The list, with titles, summaries, reading times and where to practise, is `src/learn/lessons.ts`.
+Beside them, not numbered: **Inside the piano** (`inside`), one key of a grand piano's action in
+cross-section, moving as you play. Its motion comes from `src/core/pianoAction.ts`: the key, the
+jack that lets the hammer go at let-off, the hammer's free flight and rebound, the backcheck, the
+repetition lever, the damper and the string, stepped a half-millisecond at a time and drawn by
+`PianoActionDrawing.tsx`, each part turning about its own pivot. Every key pressed anywhere drives
+it, at the speed pressed, slowed down four or ten times if asked; a slowed-down tap is kept down
+long enough to play out.
+
+The list, with titles, summaries, reading times and where to practise, is `src/learn/lessons.ts`
+(`LESSONS`, and `EXTRAS` for pages like this).
 A planned lesson is listed as "In preparation" and cannot be opened.
 
 ## Languages
@@ -65,6 +74,7 @@ numbers or notation. The model does not draw a keyboard reliably, so:
 - `hands-either-side.webp`: an edit of a keyboard drawn in code with the black keys in their real
   groups of two and three, the model adding the hands and the etching.
 - `posture-from-the-side.webp`, `curved-hand.webp`: generated, the better of two each.
+- `inside-a-grand.webp`: generated, the first of two; atmosphere only, the action itself is drawn.
 - `two-hands.webp`: generated with no keyboard and no numbers; the finger numbers are laid over it
   in code (`FingerNumbers`), at positions measured on the picture.
 

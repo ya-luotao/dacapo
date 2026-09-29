@@ -7684,6 +7684,14 @@ select.is-compact {
   margin-bottom: 1rem;
 }
 
+.choice-question {
+  margin: 0 0 1rem;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+
 .choice-options {
   display: flex;
   flex-wrap: wrap;
@@ -7692,6 +7700,21 @@ select.is-compact {
 
 .button.choice {
   min-width: 4.5rem;
+}
+
+.choice-options.is-long {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.choice-options.is-long .button.choice {
+  justify-content: flex-start;
+  text-align: start;
+}
+
+.choice-options.is-long .choice-listen {
+  margin-inline-start: 0;
+  align-self: flex-start;
 }
 
 .button.choice.is-right {
@@ -7751,4 +7774,209 @@ select.is-compact {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   transform: translateX(-50%);
+}
+
+/* Inside the piano: the action drawn in its materials (wood, felt, brass, steel, iron), the same
+   in both themes as the instrument is, on a sheet of paper. */
+
+.inside {
+  --act-wood: #d9b98f;
+  --act-wood-dark: #a67c52;
+  --act-ivory: #fbf7ee;
+  --act-felt: #efe6d2;
+  --act-hammer: #f4eee2;
+  --act-brass: #c9a24a;
+  --act-metal: #8a8580;
+  --act-iron: #b5aca1;
+  --act-case: #6b4a33;
+  --act-line: #3b2e24;
+}
+
+.act-scroll {
+  margin: 0.5rem 0 0.75rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+/* Below this width the names would be too small to read: the drawing scrolls instead. */
+.act {
+  display: block;
+  width: 100%;
+  min-width: 36rem;
+  height: auto;
+  touch-action: pan-x;
+}
+
+.act :is(rect, path, circle) {
+  stroke: var(--act-line);
+  stroke-width: 1;
+}
+
+.act-wood {
+  fill: var(--act-wood);
+}
+
+.act-wood-dark {
+  fill: var(--act-wood-dark);
+}
+
+.act-ivory {
+  fill: var(--act-ivory);
+}
+
+.act-felt {
+  fill: var(--act-felt);
+}
+
+.act-hammer-felt {
+  fill: var(--act-hammer);
+  stroke-width: 1.5;
+}
+
+.act-brass {
+  fill: var(--act-brass);
+}
+
+.act-metal {
+  fill: var(--act-metal);
+}
+
+.act-iron {
+  fill: var(--act-iron);
+}
+
+.act-case {
+  fill: var(--act-case);
+}
+
+.act .act-pivot {
+  fill: var(--act-line);
+  stroke: none;
+}
+
+.act-string {
+  fill: none;
+  stroke: var(--act-line);
+  stroke-width: 1.6;
+}
+
+.act-part {
+  cursor: help;
+  /* Thin parts (a shank, a wire) are hard to point at: the whole box around each one answers. */
+  pointer-events: bounding-box;
+}
+
+/* The part pointed at: outlined in the accent, the rest left as they are. */
+.act-part.is-focus :is(rect, path, circle) {
+  stroke: var(--accent);
+  stroke-width: 2.5;
+}
+
+.act-part.is-focus .act-string {
+  stroke: var(--accent);
+}
+
+.act-names line {
+  stroke: var(--control);
+  stroke-width: 0.8;
+}
+
+.act-names text {
+  fill: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.act-names .is-focus text {
+  fill: var(--accent);
+}
+
+.act-names .is-focus line {
+  stroke: var(--accent);
+}
+
+.inside-readout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1.75rem;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+
+.inside-readout b {
+  color: var(--accent);
+  font-family: var(--font-serif);
+  font-size: 1.375rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.inside-meter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+/* How hard the string is ringing: a bar that grows with the strike and shrinks as it dies away. */
+.inside-meter i {
+  display: block;
+  width: 8rem;
+  height: 0.375rem;
+  border-radius: 1rem;
+  background: var(--accent);
+  transform-origin: left;
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+.inside-part {
+  min-height: 3.25rem;
+  margin: 0 0 0.75rem;
+  font-size: 0.9375rem;
+  text-wrap: pretty;
+}
+
+.inside-part b {
+  color: var(--accent);
+}
+
+.inside-steps {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0 0 1.25rem;
+  padding: 0;
+  counter-reset: step;
+  list-style: none;
+}
+
+.inside-steps li {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.375rem 0.625rem;
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  counter-increment: step;
+  transition:
+    background-color 90ms ease-out,
+    color 90ms ease-out;
+}
+
+.inside-steps li::before {
+  content: counter(step);
+  flex: none;
+  width: 1.25rem;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  text-align: end;
+}
+
+.inside-steps li.is-current {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.learn-extras {
+  margin-top: 3rem;
 }

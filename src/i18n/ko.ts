@@ -78,6 +78,7 @@ export const ko: Dictionary = {
   'learn.lesson': '레슨 {n}',
   'learn.minutes': '{n}분',
   'learn.planned': '준비 중',
+  'learn.extra': '번외편',
   'learn.done': '완료',
   'learn.contents': '이번 레슨',
   'learn.all': '전체 레슨',

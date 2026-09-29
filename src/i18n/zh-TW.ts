@@ -77,6 +77,7 @@ export const zhTW: Dictionary = {
   'learn.lesson': '第 {n} 課',
   'learn.minutes': '{n} 分鐘',
   'learn.planned': '準備中',
+  'learn.extra': '課外',
   'learn.done': '已完成',
   'learn.contents': '本課內容',
   'learn.all': '全部課程',

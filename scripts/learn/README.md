@@ -13,4 +13,6 @@ quality 80. Each prompt ends with `prompts/style.txt`.
 | `curved-hand.webp` | `generate` with `prompts/curve.txt`, the second of two |
 | `two-hands.webp` | `generate` with `prompts/flat-hands.txt`, the second of two; numbers added in code |
 
-Seven calls in all, two images each. See docs/LEARN.md for what to check before using a picture.
+| `inside-a-grand.webp` | `generate` with `prompts/inside.txt`, the first of two |
+
+Eight calls in all, two images each. See docs/LEARN.md for what to check before using a picture.

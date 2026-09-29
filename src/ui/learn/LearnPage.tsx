@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'wouter';
 import { useI18n } from '../../i18n/index.ts';
-import { lessonLanguage, LESSONS } from '../../learn/lessons.ts';
+import { EXTRAS, lessonLanguage, LESSONS } from '../../learn/lessons.ts';
 import { readDone } from './progress.ts';
 
 function Arrow() {
@@ -61,6 +61,29 @@ export function LearnPage() {
           );
         })}
       </ol>
+
+      <h2 className="eyebrow learn-extras">{t('learn.extra')}</h2>
+      <ul className="contents lessons">
+        {EXTRAS.map((extra) => (
+          <li key={extra.slug}>
+            <Link href={`/learn/${extra.slug}`} className="contents-row">
+              <span className="contents-numeral" aria-hidden="true">
+                ✦
+              </span>
+              <span className="contents-body">
+                <span className="contents-title">{extra.title[language]}</span>
+                <span className="contents-text">{extra.summary[language]}</span>
+              </span>
+              <span className="contents-meta">
+                {done.has(extra.slug)
+                  ? `✓ ${t('learn.done')}`
+                  : t('learn.minutes', { n: extra.minutes })}
+              </span>
+              <Arrow />
+            </Link>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

@@ -30,6 +30,10 @@ const LOADERS: Readonly<Record<string, Readonly<Record<LessonLanguage, Loader>>>
     en: () => import('./major-scale.en.tsx'),
     'zh-CN': () => import('./major-scale.zh-CN.tsx'),
   },
+  inside: {
+    en: () => import('./inside.en.tsx'),
+    'zh-CN': () => import('./inside.zh-CN.tsx'),
+  },
   posture: {
     en: () => import('./posture.en.tsx'),
     'zh-CN': () => import('./posture.zh-CN.tsx'),

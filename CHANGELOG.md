@@ -23,6 +23,16 @@ version 4), and scale sessions with every scale run as played. Version 1 to 4 fi
   fingering, tap a rhythm in time. Etched illustrations show how to sit, the hand's shape and the
   finger numbers.
 
+### Inside the piano
+
+- A page beside the lessons shows one key of a grand piano's action in cross-section, moving as
+  you play: the key, the wippen, the jack that throws the hammer and lets it go, the hammer's
+  flight to the string and back, the backcheck, the repetition lever, the damper, the string
+  ringing. Any key, on your keyboard or on the page, drives it at the speed you pressed, four or
+  ten times slower if you like; the steps light up as they happen, and pointing at a part says
+  what it does. The sustain pedal lifts the damper. With a short quiz, in English and Simplified
+  Chinese.
+
 ### A home page, and a sharper look
 
 - dacapo opens on a **home page**: what it is, the way into each practice as a contents page, and

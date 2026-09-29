@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { lessonLanguage, LESSONS, neighbours } from '../../learn/lessons.ts';
+import { EXTRAS, lessonLanguage, LESSONS, neighbours } from '../../learn/lessons.ts';
 import { NAV_ITEMS } from '../routes.ts';
 import { LESSON_TEXTS } from './lessons/index.ts';
 
@@ -19,6 +19,17 @@ describe('the lessons', () => {
       } else {
         expect(LESSON_TEXTS[lesson.slug], lesson.slug).toBeUndefined();
       }
+    }
+  });
+
+  it('have their extras written in both languages, apart from the lessons', () => {
+    for (const extra of EXTRAS) {
+      expect(Object.keys(LESSON_TEXTS[extra.slug] ?? {}).sort(), extra.slug).toEqual([
+        'en',
+        'zh-CN',
+      ]);
+      expect(LESSONS.some((l) => l.slug === extra.slug)).toBe(false);
+      expect(neighbours(extra.slug)).toEqual({});
     }
   });
 

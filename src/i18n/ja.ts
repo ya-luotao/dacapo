@@ -81,6 +81,7 @@ export const ja: Dictionary = {
   'learn.lesson': 'レッスン {n}',
   'learn.minutes': '{n}分',
   'learn.planned': '準備中',
+  'learn.extra': '番外編',
   'learn.done': '完了',
   'learn.contents': 'このレッスンの内容',
   'learn.all': 'レッスン一覧',

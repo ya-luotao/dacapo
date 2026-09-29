@@ -79,6 +79,7 @@ export const en = {
   'learn.lesson': 'Lesson {n}',
   'learn.minutes': '{n} min',
   'learn.planned': 'In preparation',
+  'learn.extra': 'Beyond the lessons',
   'learn.done': 'Done',
   'learn.contents': 'In this lesson',
   'learn.all': 'All lessons',

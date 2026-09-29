@@ -77,6 +77,7 @@ export const zhCN: Dictionary = {
   'learn.lesson': '第 {n} 课',
   'learn.minutes': '{n} 分钟',
   'learn.planned': '准备中',
+  'learn.extra': '课外',
   'learn.done': '已完成',
   'learn.contents': '本课内容',
   'learn.all': '全部课程',
