@@ -2,6 +2,7 @@ import {
   isChordSymbolAnswer,
   isEarAnswer,
   isRhythmAnswer,
+  isRhythmEarAnswer,
   isTheoryAnswer,
   type Answer as StoredAnswer,
 } from './answers.ts';
@@ -46,6 +47,20 @@ import {
 } from './earItems.ts';
 import { judgeEchoAnswer } from './earMelody.ts';
 import { CADENCES, isCadence } from './cadences.ts';
+import {
+  isTimedRhythmEar,
+  rhythmEarConfusion,
+  rhythmEarItems,
+  rhythmEarLevelProgress,
+  rhythmEarStats,
+  RHYTHM_EAR_CELLS,
+  RHYTHM_EAR_FAMILY,
+  RHYTHM_EAR_LEVEL_IDS,
+  RHYTHM_EAR_TARGET_MS,
+  type RhythmEarAnswer,
+  type RhythmEarFamily,
+  type RhythmEarLevelId,
+} from './rhythmEar.ts';
 import {
   EAR_TARGET_MS,
   earLevelProgress,
@@ -103,22 +118,23 @@ import { noteWeight, RECENT_LENGTH, type NoteStats } from './weakness.ts';
 // H1)").
 
 /**
- * The answers the families here are made of: ear, theory and chord-symbol answers, not rhythm
- * (R1's own).
+ * The answers the families here are made of: ear, rhythm dictation, theory and chord-symbol
+ * answers, not the rhythm lines of Read (R1's own figures).
  */
 export type FamilyAnswer = Exclude<StoredAnswer, { family: 'rhythm' }>;
 type Answer = FamilyAnswer;
 export const isFamilyAnswer = (answer: StoredAnswer): answer is FamilyAnswer =>
   !isRhythmAnswer(answer);
 
-export type AnswerFamily = EarFamily | TheoryFamily | HarmonyFamily;
-/** Ear's four families, then Read's three, then Harmony's: the order of the Progress page. */
+export type AnswerFamily = EarFamily | RhythmEarFamily | TheoryFamily | HarmonyFamily;
+/** Ear's families, rhythm dictation last, then Read's, then Harmony's: the Progress page's order. */
 export const ANSWER_FAMILIES: readonly AnswerFamily[] = [
   ...EAR_FAMILIES,
+  RHYTHM_EAR_FAMILY,
   ...THEORY_FAMILIES,
   ...HARMONY_FAMILIES,
 ];
-export type FamilyLevelId = EarLevelId | TheoryLevelId | HarmonyLevelId;
+export type FamilyLevelId = EarLevelId | RhythmEarLevelId | TheoryLevelId | HarmonyLevelId;
 
 const isEarFamily = (family: AnswerFamily): family is EarFamily =>
   (EAR_FAMILIES as readonly string[]).includes(family);
@@ -126,6 +142,7 @@ const isEarFamily = (family: AnswerFamily): family is EarFamily =>
 /** The family's levels, in order. */
 export function familyLevelIds(family: AnswerFamily): FamilyLevelId[] {
   if (isHarmonyFamily(family)) return [...HARMONY_LEVEL_IDS];
+  if (family === RHYTHM_EAR_FAMILY) return [...RHYTHM_EAR_LEVEL_IDS];
   return (isEarFamily(family) ? levelsOf(family) : theoryLevelsOf(family)).map((l) => l.id);
 }
 
@@ -185,6 +202,14 @@ export function familyLevels(family: AnswerFamily, answers: readonly Answer[]): 
       return { level: p.level, total, counted: p.cards, window, accuracy, medianMs, mastered };
     });
   }
+  if (family === RHYTHM_EAR_FAMILY) {
+    const rhythm = own.filter(isRhythmEarAnswer);
+    return RHYTHM_EAR_LEVEL_IDS.map((id) => {
+      const p = rhythmEarLevelProgress(rhythm, id);
+      const { total, window, accuracy, medianMs, mastered } = p;
+      return { level: p.level, total, counted: p.answers, window, accuracy, medianMs, mastered };
+    });
+  }
   if (isEarFamily(family)) {
     const ear = own.filter(isEarAnswer);
     return levelsOf(family).map((level) => {
@@ -230,6 +255,8 @@ export interface ItemFigures {
 
 /** Every item the family can ask, in the order of its levels. */
 function itemOrder(family: AnswerFamily): string[] {
+  if (family === RHYTHM_EAR_FAMILY)
+    return [...new Set(RHYTHM_EAR_LEVEL_IDS.flatMap(rhythmEarItems))];
   const items = isHarmonyFamily(family)
     ? HARMONY_LEVELS.flatMap(harmonyLevelItems)
     : isEarFamily(family)
@@ -240,6 +267,7 @@ function itemOrder(family: AnswerFamily): string[] {
 
 function statsOf(family: AnswerFamily, answers: readonly Answer[]): Record<string, NoteStats> {
   if (isHarmonyFamily(family)) return harmonyStats(answers.filter(isChordSymbolAnswer));
+  if (family === RHYTHM_EAR_FAMILY) return rhythmEarStats(answers.filter(isRhythmEarAnswer));
   return isEarFamily(family)
     ? earStats(answers.filter(isEarAnswer))
     : theoryStats(answers.filter(isTheoryAnswer));
@@ -248,18 +276,22 @@ function statsOf(family: AnswerFamily, answers: readonly Answer[]): Record<strin
 const targetMsOf = (family: AnswerFamily) =>
   isHarmonyFamily(family)
     ? HARMONY_TARGET_MS
-    : isEarFamily(family)
-      ? EAR_TARGET_MS
-      : theoryTargetMs(family);
+    : family === RHYTHM_EAR_FAMILY
+      ? RHYTHM_EAR_TARGET_MS
+      : isEarFamily(family)
+        ? EAR_TARGET_MS
+        : theoryTargetMs(family);
 
-const isTimed = (answer: Answer) =>
-  isTheoryAnswer(answer)
-    ? isTimedTheory(answer)
-    : isChordSymbolAnswer(answer)
-      ? isTimedHarmony(answer)
-      : isTimedAnswer(answer);
+/** The time an answer took, when it says something about hearing or reading; null otherwise. */
+function timedMs(answer: Answer): number | null {
+  if (isRhythmEarAnswer(answer)) return isTimedRhythmEar(answer) ? answer.ms : null;
+  if (isTheoryAnswer(answer)) return isTimedTheory(answer) ? answer.ms : null;
+  if (isChordSymbolAnswer(answer)) return isTimedHarmony(answer) ? answer.ms : null;
+  return isTimedAnswer(answer) ? answer.ms : null;
+}
 
-const aidsOf = (answer: Answer) => (isEarAnswer(answer) ? answer.replays : Number(answer.hinted));
+const aidsOf = (answer: Answer) =>
+  isEarAnswer(answer) || isRhythmEarAnswer(answer) ? answer.replays : Number(answer.hinted);
 
 /**
  * The figures of every item answered, in the order of the levels. `answers` are the family's,
@@ -289,7 +321,7 @@ export function itemFigures(family: AnswerFamily, answers: readonly Answer[]): I
         answers: list.length,
         recentCount: recent.length,
         recentCorrect: recent.filter((a) => a.correct).length,
-        medianMs: median(recent.filter(isTimed).map((a) => a.ms)),
+        medianMs: median(recent.map(timedMs).filter((ms) => ms !== null)),
         aids: recent.reduce((sum, a) => sum + aidsOf(a), 0),
         weight: noteWeight(stats[item], target),
       };
@@ -410,11 +442,13 @@ export const keyLabel = (fifths: number, mode: 'major' | 'minor') =>
  * answers. Nothing for an answer that cannot be read.
  */
 export function confusionsOf(answer: Answer): Confusion[] {
-  const pairs = isTheoryAnswer(answer)
-    ? theoryConfusions(answer)
-    : isChordSymbolAnswer(answer)
-      ? symbolConfusions(answer)
-      : earConfusions(answer);
+  const pairs = isRhythmEarAnswer(answer)
+    ? rhythmEarConfusions(answer)
+    : isTheoryAnswer(answer)
+      ? theoryConfusions(answer)
+      : isChordSymbolAnswer(answer)
+        ? symbolConfusions(answer)
+        : earConfusions(answer);
   return pairs.map((pair) =>
     pair.wrong && pair.answered === pair.asked
       ? { asked: pair.asked, answered: OTHER }
@@ -484,6 +518,17 @@ function earConfusions(answer: EarAnswer): Pair[] {
   return [
     wrong(asked, chordOfKeys(answer.answer, root, level.chords, level.bassMatters, item.quality)),
   ];
+}
+
+/**
+ * A cell tapped back or a bar chosen: the cell asked against the cell chosen, or the one the
+ * taps in its span make (`tappedAs`; none is other).
+ */
+function rhythmEarConfusions(answer: RhythmEarAnswer): Pair[] {
+  const pair = rhythmEarConfusion(answer);
+  if (!pair) return [];
+  if (answer.correct) return [right(pair.asked)];
+  return [wrong(pair.asked, pair.answered ?? OTHER)];
 }
 
 function theoryConfusions(answer: TheoryAnswer): Pair[] {
@@ -626,6 +671,10 @@ function labelRank(family: AnswerFamily, label: string): number {
       return Number(label);
     case 'cadence':
       return isCadence(label) ? CADENCES.indexOf(label) : Number.MAX_VALUE;
+    case 'rhythmEar': {
+      const i = RHYTHM_EAR_CELLS.indexOf(label);
+      return i === -1 ? Number.MAX_VALUE : i;
+    }
     case 'readInterval': {
       const number = Number(label.slice(-1));
       return number * 10 + QUALITY_RANK.indexOf(label.slice(0, -1));

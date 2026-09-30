@@ -422,7 +422,7 @@ function NoteDots({
   );
 }
 
-function HearAgain({ onClick }: { onClick: () => void }) {
+export function HearAgain({ onClick }: { onClick: () => void }) {
   const t = useT();
   return (
     <button type="button" className="button ear-again" onClick={onClick} aria-keyshortcuts="Space">
@@ -433,7 +433,7 @@ function HearAgain({ onClick }: { onClick: () => void }) {
   );
 }
 
-function ResultIcon({ ok }: { ok: boolean }) {
+export function ResultIcon({ ok }: { ok: boolean }) {
   return (
     <svg className="read-icon" viewBox="0 0 16 16" aria-hidden="true">
       {ok ? <path d="M3.5 8.5l3 3 6-7" /> : <path d="M4 4l8 8M12 4l-8 8" />}
@@ -441,7 +441,7 @@ function ResultIcon({ ok }: { ok: boolean }) {
   );
 }
 
-function SpeakerIcon({ className = 'ear-icon' }: { className?: string }) {
+export function SpeakerIcon({ className = 'ear-icon' }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 16 16" aria-hidden="true">
       <path d="M2.5 6h2.5l3.5-3v10L5 10H2.5z" />
@@ -452,7 +452,7 @@ function SpeakerIcon({ className = 'ear-icon' }: { className?: string }) {
 }
 
 /** Three keys of a keyboard, two black ones between them: it is the player's turn. */
-function KeyIcon() {
+export function KeyIcon() {
   return (
     <svg className="ear-state-icon" viewBox="0 0 16 16" aria-hidden="true">
       <rect x="1.5" y="3" width="13" height="10" rx="1" />

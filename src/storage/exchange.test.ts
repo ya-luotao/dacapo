@@ -35,6 +35,9 @@ import {
   sampleRhythmAnswers,
   sampleRhythmSession,
   sampleSightSession,
+  sampleRhythmEarChoice,
+  sampleRhythmEarSession,
+  sampleRhythmEarTaps,
   T0,
 } from './fixtures.ts';
 import { createIndexedDbRepository, type PracticeRepository } from './repository.ts';
@@ -1283,6 +1286,65 @@ describe('versions', () => {
       { collection: 'sessions', index: 8, field: 'fragments', problem: 'invalid' },
       { collection: 'sessions', index: 9, field: 'endedAt', problem: 'invalid' },
       { collection: 'sessions', index: 10, field: 'fragments', problem: 'invalid' },
+    ]);
+  });
+
+  it('imports the answers and sessions of rhythm dictation, judging each again', () => {
+    const tapped = sampleRhythmEarSession('rd1', 2, 'play');
+    const chosen = sampleRhythmEarSession('rd2', 2, 'name');
+    const [trip, quarter] = sampleRhythmEarTaps(0, 'x');
+    const choice = sampleRhythmEarChoice(1, 'x');
+    const file = parsed(
+      fileWith({
+        version: 8,
+        pieces: [],
+        pieceSteps: [],
+        scaleRuns: [],
+        takes: [],
+        sessions: [
+          { ...tapped.session, extra: 1 },
+          chosen.session,
+          { ...tapped.session, id: 'x1', level: 'R9' },
+          { ...tapped.session, id: 'x2', questionsRight: 5 },
+          { ...tapped.session, id: 'x3', missed: [{ item: 'rhythmEar:c:qe:6/8', as: 'c:eq' }] },
+          { ...tapped.session, id: 'x4', missed: [{ item: 'rhythmEar:trip:2/4', as: 'x' }] },
+        ],
+        answers: [
+          { ...tapped.answers[0]!, extra: 1 },
+          ...tapped.answers.slice(1),
+          ...chosen.answers,
+          // Not the cell's onsets, a cell of another level, a tap too many before the window, a
+          // deviation too many, judged right though wrong.
+          { ...trip!, id: 'y1', prompt: [0, 0.5, 0.75] },
+          { ...trip!, id: 'y2', item: 'rhythmEar:c:qe:6/8' },
+          { ...quarter!, id: 'y3', answer: { deviations: [5], extras: [-200] }, correct: false },
+          { ...quarter!, id: 'y4', answer: { deviations: [5, 6], extras: [] } },
+          { ...quarter!, id: 'y5', correct: false },
+          // A bar chosen that differs in two cells, judged right though another, a bar played
+          // without the cell asked about, a way of answering there is not.
+          { ...choice, id: 'y6', answer: ['qr', 'er-e', 'h'] },
+          { ...choice, id: 'y7', correct: true },
+          { ...choice, id: 'y8', prompt: ['q', 'q', 'h'] },
+          { ...choice, id: 'y9', by: 'tap' },
+        ],
+      }),
+    );
+    expect(file.sessions).toEqual([tapped.session, chosen.session]);
+    expect(file.answers).toEqual([...tapped.answers, ...chosen.answers]);
+    expect(file.invalid).toEqual([
+      { collection: 'sessions', index: 2, field: 'level', problem: 'invalid' },
+      { collection: 'sessions', index: 3, field: 'questionsRight', problem: 'invalid' },
+      { collection: 'sessions', index: 4, field: 'missed', problem: 'invalid' },
+      { collection: 'sessions', index: 5, field: 'missed', problem: 'invalid' },
+      { collection: 'answers', index: 6, field: 'prompt', problem: 'invalid' },
+      { collection: 'answers', index: 7, field: 'item', problem: 'invalid' },
+      { collection: 'answers', index: 8, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 9, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 10, field: 'correct', problem: 'invalid' },
+      { collection: 'answers', index: 11, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 12, field: 'correct', problem: 'invalid' },
+      { collection: 'answers', index: 13, field: 'prompt', problem: 'invalid' },
+      { collection: 'answers', index: 14, field: 'by', problem: 'invalid' },
     ]);
   });
 

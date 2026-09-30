@@ -39,13 +39,16 @@ export function ConfusionGrid({
   const format = useFamilyFormat();
   const id = useId();
   const echo = family === 'echo';
+  const dictation = family === 'rhythmEar';
   const otherKind = echo
     ? 'echo'
     : family === 'chordSymbol'
       ? 'chordSymbol'
-      : family === 'chord' || family === 'readChord'
-        ? 'chord'
-        : 'interval';
+      : dictation
+        ? 'rhythmEar'
+        : family === 'chord' || family === 'readChord'
+          ? 'chord'
+          : 'interval';
 
   /** What a cell counts, in words. */
   const sentence = (asked: string, answered: string, count: number, total: number) =>
@@ -69,7 +72,13 @@ export function ConfusionGrid({
         {t('families.confusion')}
       </h4>
       <p className="help cm-help">
-        {t(echo ? 'families.confusion.help.echo' : 'families.confusion.help')}
+        {t(
+          echo
+            ? 'families.confusion.help.echo'
+            : dictation
+              ? 'families.confusion.help.rhythmEar'
+              : 'families.confusion.help',
+        )}
         {matrix.columns.includes(OTHER) && <> {t(`families.confusion.other.${otherKind}`)}</>}
       </p>
       <ConfusionLegend />

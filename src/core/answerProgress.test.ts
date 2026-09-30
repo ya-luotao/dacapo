@@ -5,7 +5,10 @@ import {
   sampleChordSymbolAnswers,
   sampleEchoAnswer,
   sampleRhythmAnswers,
+  sampleRhythmEarChoice,
+  sampleRhythmEarTaps,
 } from '../storage/fixtures.ts';
+import { recoverEarSessions } from './log.ts';
 import {
   ALL_ANSWERS,
   cellCount,
@@ -464,11 +467,16 @@ describe('the confusion table', () => {
 });
 
 describe('which answers the families are made of', () => {
-  it('leaves out rhythm answers, which have figures of their own, and keeps chord symbols', () => {
+  it('leaves out Read’s rhythm answers, which have figures of their own', () => {
     const echo = sampleEchoAnswer(0);
     const rhythm = sampleRhythmAnswers(0);
     const symbols = sampleChordSymbolAnswers(0);
-    expect([echo, ...rhythm, ...symbols].filter(isFamilyAnswer)).toEqual([echo, ...symbols]);
+    const dictation = sampleRhythmEarTaps(0);
+    expect([echo, ...rhythm, ...symbols, ...dictation].filter(isFamilyAnswer)).toEqual([
+      echo,
+      ...symbols,
+      ...dictation,
+    ]);
   });
 });
 
@@ -592,5 +600,78 @@ describe('cadences', () => {
     expect(matrix.columns).toEqual(['authentic', 'deceptive']);
     expect(cellCount(matrix, 'deceptive', 'authentic')).toBe(3);
     expect(compareLabels('cadence', 'half', 'plagal')).toBeGreaterThan(0);
+  });
+});
+
+describe('rhythm dictation', () => {
+  const taps = [0, 1, 2, 3].flatMap((q) => sampleRhythmEarTaps(q));
+  const choices = [0, 1, 2].map((q) => sampleRhythmEarChoice(q));
+
+  it('has Rhythm’s one-line levels, mastered over answers without a replay', () => {
+    expect(familyLevelIds('rhythmEar')).toEqual(['R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8']);
+    const levels = familyLevels('rhythmEar', [...taps, ...choices]);
+    expect(levels.find((l) => l.level === 'R6')).toMatchObject({
+      total: 8,
+      // The odd bars were heard again.
+      counted: 4,
+      window: 40,
+      accuracy: 1,
+      mastered: false,
+    });
+    expect(levels.find((l) => l.level === 'R2')).toMatchObject({ total: 3, counted: 3 });
+  });
+
+  it('reads a triplet tapped as even eighths, and a bar chosen by the cell that differs', () => {
+    const [wrongTrip] = sampleRhythmEarTaps(1);
+    expect(confusionsOf(wrongTrip!)).toEqual([{ asked: 'trip', answered: 'ee' }]);
+    expect(confusionsOf(sampleRhythmEarChoice(1))).toEqual([{ asked: 'ee', answered: 'er-e' }]);
+    expect(confusionsOf(sampleRhythmEarChoice(0))).toEqual([{ asked: 'ee', answered: 'ee' }]);
+    // The right cell tapped out of time is other: the diagonal is the right answers.
+    const [late] = sampleRhythmEarTaps(0);
+    const outOfTime = { ...late!, answer: { deviations: [0, 60, 0], extras: [] }, correct: false };
+    expect(confusionsOf(outOfTime)).toEqual([{ asked: 'trip', answered: OTHER }]);
+  });
+
+  it('builds its table in the order the levels add the cells, filtered by how it was answered', () => {
+    const all = [...taps, ...choices];
+    const matrix = confusionMatrix('rhythmEar', all);
+    expect(matrix.rows).toEqual(['q', 'ee', 'trip']);
+    expect(matrix.columns).toEqual(['q', 'ee', 'er-e', 'trip']);
+    expect(cellCount(matrix, 'trip', 'ee')).toBe(2);
+    const tapped = confusionMatrix('rhythmEar', filterAnswers(all, { level: 'all', by: 'play' }));
+    expect(tapped.rows).toEqual(['q', 'trip']);
+    expect(compareLabels('rhythmEar', 'ed-s', 'trip')).toBeLessThan(0);
+  });
+
+  it('keeps figures for each item, the time of a bar chosen right', () => {
+    const figures = itemFigures('rhythmEar', [...taps, ...choices]);
+    expect(figures.map((f) => f.item)).toEqual([
+      'rhythmEar:q:2/4',
+      'rhythmEar:ee:4/4',
+      'rhythmEar:trip:2/4',
+    ]);
+    const ee = figures.find((f) => f.item === 'rhythmEar:ee:4/4')!;
+    expect(ee).toMatchObject({ answers: 3, recentCorrect: 2, medianMs: 1600 });
+    expect(figures.find((f) => f.item === 'rhythmEar:trip:2/4')).toMatchObject({
+      aids: 2,
+      medianMs: null,
+    });
+  });
+
+  it('recovers a session closed before its end as an ear session of the family', () => {
+    const [session] = recoverEarSessions([...taps], []);
+    expect(session).toMatchObject({
+      kind: 'ear',
+      family: 'rhythmEar',
+      by: 'play',
+      questions: 4,
+      questionsRight: 2,
+      items: 8,
+      correct: 6,
+      missed: [
+        { item: 'rhythmEar:trip:2/4', as: 'ee' },
+        { item: 'rhythmEar:trip:2/4', as: 'ee' },
+      ],
+    });
   });
 });

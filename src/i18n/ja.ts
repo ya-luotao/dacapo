@@ -37,7 +37,7 @@ export const ja: Dictionary = {
     '大譜表の音符を1つずつ。中央Cのポジションから、加線、シャープとフラットまで。さらに音程、調号、和音、テンポに合わせてタップするリズム、テンポどおりに弾く初見の短い曲も。すべての解答の時間を計り、反応の遅いものほど次のカードに出やすくなります。',
   'home.read.meta': '{n}レベル',
   'home.ear.text':
-    '音程と和音、短い旋律、終止形を耳で聴き分けます。オクターブから七の和音、半音階的な音まで。聴こえた音を鍵盤で弾くか、名前で答えます。次の問題は、よく間違えるものから出ます。',
+    '音程と和音、短い旋律、終止形、1小節のリズムを耳で聴き分けます。オクターブから七の和音、半音階的な音、シンコペーションまで。聴こえたものを鍵盤で弾くかタップするか、名前で答えます。次の問題は、よく間違えるものから出ます。',
   'home.ear.meta': '{n}レベル',
   'home.harmony.text':
     '歌本やリードシートがメロディーの上に書くコードネームを、3つの長調の三和音から、七の和音、分数コード、sus コードまで。どれも好きな配置で弾き、遅いものほど次のカードに出やすくなります。どの調のコード進行も、左手の伴奏形つきで曲のように練習できます。',
@@ -491,7 +491,7 @@ export const ja: Dictionary = {
 
   'ear.title': '聴音',
   'ear.intro':
-    '2つの音や和音、短い旋律、フレーズを閉じる終止形を聴いて、鍵盤で弾いて答えるか、名前を選んで答えます。',
+    '2つの音や和音、短い旋律、フレーズを閉じる終止形、1小節のリズムを聴いて、鍵盤で弾いたりタップしたりして答えるか、名前や楽譜を選んで答えます。',
   'ear.sound.needed': '聴音には音が必要です。出力に楽器か内蔵ピアノを選んでください。',
   'ear.sound.link': '「設定」でサウンドを選ぶ',
   'ear.family': '練習する内容',
@@ -646,6 +646,41 @@ export const ja: Dictionary = {
   'ear.echo.same': '同じ音（{key}）',
   'ear.echo.up': '上行{name}',
   'ear.echo.down': '下行{name}',
+  'ear.family.rhythmEar': 'リズム',
+  'ear.rhythm.level.stats': '{answers}/{window}回答 · 正答率{accuracy}',
+  'ear.rhythm.level.rule':
+    '「もう一度聴く」を使わずに答えた直近40回の正答率が90%以上になると、そのレベルは習得済みです。タップして答えたリズム型は1つずつ、選んで答えた小節は1つずつ数えます。次のレベルへはいつ進んでもかまいません。',
+  'ear.rhythm.by.play': 'タップして答える',
+  'ear.rhythm.by.name': '選んで答える',
+  'ear.rhythm.by.play.help':
+    '1小節のクリックのあと、1つの鍵盤でリズムが鳴り、もう1小節クリックが鳴ります。そのあと、どの鍵盤でも文字キーでもパッドでも、拍に合わせてリズムをタップしてください。',
+  'ear.rhythm.by.name.help':
+    '1小節のクリックのあと、1つの鍵盤でリズムが鳴ります。3つか4つの小節から聴こえたものを、ボタンか数字キーで選んでください。',
+  'ear.rhythm.tempo.help': '1分間の拍数。レベルごとに覚え、「譜読み」のリズムと共通です。',
+  'ear.rhythm.tempo.help.compound':
+    '1分間の付点4分音符の拍数。レベルごとに覚え、「譜読み」のリズムと共通です。',
+  'ear.rhythm.length': '1回の小節の数',
+  'ear.rhythm.count': '{n}小節目／全{total}小節',
+  'ear.rhythm.countIn': 'もう1小節数えます。そのあとタップしてください。',
+  'ear.rhythm.tap': 'クリックに合わせてタップ。',
+  'ear.rhythm.choose': 'どの小節が聴こえましたか？',
+  'ear.rhythm.stopped':
+    '止めました。この回は記録していません。「もう一度聴く」でこの小節をやり直せます。',
+  'ear.rhythm.keys':
+    'MIDI鍵盤のどのキーでも、パッドでも、パソコンの文字キーでもタップできます。スペースキーで「もう一度聴く」になります。',
+  'ear.rhythm.tapped': '{total}個のリズム型のうち{right}個正解',
+  'ear.rhythm.wrong': 'それではありません',
+  'ear.rhythm.wrong.choose': '聴こえた小節に印がついています。',
+  'ear.rhythm.bar': '{meter}拍子の小節：{cells}',
+  'ear.rhythm.choices': '選べる小節',
+  'ear.rhythm.choice': '{n}番：{cells}',
+  'ear.rhythm.cellResult': '{beat}拍目、{cell}：{timings}',
+  'ear.rhythm.next.help': 'Enterキーでも進みます。',
+  'ear.rhythm.summary.bars': '小節数',
+  'ear.rhythm.missed.tapped': '{item}：「{as}」とタップしました',
+  'ear.rhythm.missed.chosen': '{item}：「{as}」を選びました',
+  'ear.rhythm.missed.time': '{item}：音符は合っていますが、拍に合っていません',
+  'ear.rhythm.missed.none': '{item}：タップが同じ長さのどのリズム型にもなっていません',
 
   'harmony.title': '和声',
   'harmony.practice.chords': 'コード',
@@ -805,6 +840,7 @@ export const ja: Dictionary = {
   'progress.kind.rhythm': 'リズム',
   'progress.kind.chordSymbol': 'コードネーム',
   'progress.kind.sight': '初見演奏',
+  'progress.kind.rhythmEar': 'リズムの聴音',
   'progress.session.exercises': '練習数',
   'progress.session.scale': 'スケール',
   'progress.session.scaleOne': '{scale}・{octaves}オクターブ',
@@ -884,6 +920,7 @@ export const ja: Dictionary = {
   'families.family.interval': '音程の聴音',
   'families.family.chord': '和音の聴音',
   'families.family.echo': '旋律の聴音',
+  'families.family.rhythmEar': 'リズムの聴音',
   'families.family.readInterval': '楽譜の音程',
   'families.family.keySignature': '調号',
   'families.family.readChord': '楽譜の和音',
@@ -900,6 +937,8 @@ export const ja: Dictionary = {
   'families.filter.by.all': 'すべて',
   'families.filter.by.play': '弾いて',
   'families.filter.by.name': '名前で',
+  'families.filter.by.play.rhythmEar': 'タップで',
+  'families.filter.by.name.rhythmEar': '選んで',
   'families.emptyFilter': 'このレベルでは、この答え方の解答はまだありません。',
   'families.weakest': '苦手な項目',
   'families.weakest.none': 'まだありません。{n}回以上答えた項目から順位がつきます。',
@@ -921,6 +960,8 @@ export const ja: Dictionary = {
     '行が出題、列が答えで、数字はその回数です。対角線上の緑のマスが正解です。まちがいのマスは、その行に占める割合で色分けしています。',
   'families.confusion.help.echo':
     '行は旋律の各進行（ある音へ進む音程）、列は実際に弾いた進行です。まちがえた音より前の進行は正解として数え、それより後は数えません。',
+  'families.confusion.help.rhythmEar':
+    '行は聴いたリズム型、列は選んだリズム型、またはその時間にタップしたリズム型です。正解は対角線上に緑で示し、まちがいは行の中で占める割合で色分けします。',
   'families.confusion.other.interval':
     '「その他」は、ここにあるどの音程にもならない鍵盤を弾いた答えです。',
   'families.confusion.other.chord':
@@ -929,6 +970,8 @@ export const ja: Dictionary = {
     '「その他」は、同じ鍵盤をもう一度弾いた場合と、オクターブを超えて跳躍した場合です。',
   'families.confusion.other.chordSymbol':
     '「その他」は、問われた根音の上でどの和音にもならない鍵盤を弾いた答えです。',
+  'families.confusion.other.rhythmEar':
+    '「その他」は、タップが同じ長さのどのリズム型にもならなかった場合と、リズム型は合っていても拍に合っていなかった場合です。',
   'families.confusion.label': '代わりに何と答えたか：{family}',
   'families.confusion.asked': '出題',
   'families.confusion.answered': '答え',
@@ -1929,10 +1972,12 @@ export const ja: Dictionary = {
   'metronome.paused.scales': '一時停止中：スケールは専用のクリック音を使います。',
   'metronome.paused.reading': '一時停止中：リズムの練習は専用のクリック音を使います。',
   'metronome.paused.calibration': '遅延の補正のため一時停止中です。',
+  'metronome.paused.dictation': '一時停止中：リズムの聴音は専用のクリック音を使います。',
   'metronome.blocked.rhythm': 'リズムモードのクリック音が鳴っています。',
   'metronome.blocked.scales': 'スケールのクリック音が鳴っています。',
   'metronome.blocked.reading': 'リズムの練習のクリック音が鳴っています。',
   'metronome.blocked.calibration': '遅延の補正中です。',
+  'metronome.blocked.dictation': 'リズムの聴音のクリック音が鳴っています。',
   'metronome.noAudio':
     'このブラウザでは音を鳴らせません（Web Audioがありません）。振り子はそのままテンポを刻みます。',
   'metronome.source':

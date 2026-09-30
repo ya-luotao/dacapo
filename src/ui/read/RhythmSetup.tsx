@@ -1,11 +1,5 @@
-import { useId, useState } from 'react';
-import {
-  RHYTHM_LEVELS,
-  RHYTHM_MAX_BPM,
-  RHYTHM_MIN_BPM,
-  type RhythmLevel,
-  type RhythmLevelId,
-} from '../../core/rhythmCells.ts';
+import { useId } from 'react';
+import { RHYTHM_LEVELS, type RhythmLevel, type RhythmLevelId } from '../../core/rhythmCells.ts';
 import {
   RHYTHM_MASTERY_ACCURACY,
   RHYTHM_MASTERY_WINDOW,
@@ -19,6 +13,7 @@ import { Segmented } from '../Segmented.tsx';
 import { useReadFormat } from './format.ts';
 import { tempoOf, type RhythmPrefs } from './rhythmPrefs.ts';
 import { useRhythmFormat } from './rhythmFormat.ts';
+import { TempoField } from './TempoField.tsx';
 
 interface RhythmSetupProps {
   level: RhythmLevelId;
@@ -41,8 +36,6 @@ export function RhythmSetup(props: RhythmSetupProps) {
   const id = useId();
   const bpm = tempoOf(props.prefs, props.level);
   const level = RHYTHM_LEVELS.find((l) => l.id === props.level)!;
-  // The tempo as typed: taken when it is a tempo, put right when the field is left.
-  const [typed, setTyped] = useState<string | null>(null);
 
   return (
     <form
@@ -82,37 +75,14 @@ export function RhythmSetup(props: RhythmSetupProps) {
           <span className="level-id">{props.level}</span>
           <span>{format.levelName(props.level)}</span>
         </p>
-        <div className="field">
-          <label htmlFor={`${id}-bpm`}>{t('rhythm.tempo')}</label>
-          <span className="scale-tempo-input">
-            <span aria-hidden="true">{level.meters.includes('6/8') ? '♩. =' : '♩ ='}</span>
-            <input
-              id={`${id}-bpm`}
-              type="number"
-              inputMode="numeric"
-              min={RHYTHM_MIN_BPM}
-              max={RHYTHM_MAX_BPM}
-              step={1}
-              value={typed ?? String(bpm)}
-              aria-describedby={`${id}-bpm-help`}
-              onChange={(e) => {
-                setTyped(e.target.value);
-                const next = Number(e.target.value);
-                if (
-                  e.target.value !== '' &&
-                  Number.isInteger(next) &&
-                  next >= RHYTHM_MIN_BPM &&
-                  next <= RHYTHM_MAX_BPM
-                )
-                  props.onTempo(next);
-              }}
-              onBlur={() => setTyped(null)}
-            />
-          </span>
-          <p id={`${id}-bpm-help`} className="help">
-            {t(level.meters.includes('6/8') ? 'rhythm.tempo.help.compound' : 'rhythm.tempo.help')}
-          </p>
-        </div>
+        <TempoField
+          level={level}
+          bpm={bpm}
+          onTempo={props.onTempo}
+          help={t(
+            level.meters.includes('6/8') ? 'rhythm.tempo.help.compound' : 'rhythm.tempo.help',
+          )}
+        />
         <Segmented
           legend={t('rhythm.length')}
           name={`${id}-length`}

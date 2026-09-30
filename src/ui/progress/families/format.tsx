@@ -20,12 +20,16 @@ import {
   parseSymbol,
   parseSymbolItem,
 } from '../../../core/chordSymbols.ts';
+import { isRhythmEarLevelId } from '../../../core/rhythmEar.ts';
 import { parseSignature, parseTheoryItem, isTheoryLevelId } from '../../../core/theoryItems.ts';
 import { signatureTonic } from '../../../core/scales.ts';
 import { useI18n } from '../../../i18n/index.ts';
 import { useEarFormat } from '../../ear/format.ts';
+import { CellFigure } from '../../ear/rhythmFigure.tsx';
+import { useRhythmEarFormat } from '../../ear/rhythmEarFormat.ts';
 import { useHarmonyFormat } from '../../harmony/format.ts';
 import { SymbolText } from '../../harmony/SymbolText.tsx';
+import { useRhythmFormat } from '../../read/rhythmFormat.ts';
 import { useReadFormat } from '../../read/format.ts';
 import { useTheoryFormat } from '../../read/theoryFormat.ts';
 import { tonicName } from '../../scales/format.ts';
@@ -43,6 +47,8 @@ export function useFamilyFormat() {
   const theory = useTheoryFormat();
   const read = useReadFormat();
   const harmony = useHarmonyFormat();
+  const rhythm = useRhythmFormat();
+  const dictation = useRhythmEarFormat();
   return useMemo(() => {
     /** A chord and its position, the position said unless it is the root position. */
     const chord = (label: string) => {
@@ -78,6 +84,8 @@ export function useFamilyFormat() {
           return step(label);
         case 'cadence':
           return isCadence(label) ? t(`ear.cadence.${label}`) : label;
+        case 'rhythmEar':
+          return rhythm.cell(label);
         case 'readInterval':
           return theory.interval(label);
         case 'keySignature': {
@@ -109,6 +117,8 @@ export function useFamilyFormat() {
           const name = intervalOfSemitones(Math.abs(semitones));
           return `${semitones > 0 ? '↑' : '↓'}${name ?? Math.abs(semitones)}`;
         }
+        case 'rhythmEar':
+          return <CellFigure cell={label} label={rhythm.cell(label)} />;
         case 'keySignature': {
           const parsed = key(label);
           if (typeof parsed === 'string') return parsed;
@@ -141,6 +151,7 @@ export function useFamilyFormat() {
         const symbol = parseSymbolItem(itemKey);
         return symbol ? `${formatSymbol(symbol)} · ${harmony.words(symbol)}` : itemKey;
       }
+      if (family === 'rhythmEar') return dictation.item(itemKey);
       const parsed = parseTheoryItem(itemKey);
       if (!parsed) return itemKey;
       if (parsed.family === 'readChord') {
@@ -157,17 +168,19 @@ export function useFamilyFormat() {
     const level = (id: FamilyLevelId) => {
       if (isEarLevelId(id)) return ear.level(id);
       if (isHarmonyLevelId(id)) return harmony.level(id);
+      if (isRhythmEarLevelId(id)) return rhythm.level(id);
       return isTheoryLevelId(id) ? theory.level(id) : id;
     };
     const levelName = (id: FamilyLevelId) => {
       if (isEarLevelId(id)) return ear.levelName(id);
       if (isHarmonyLevelId(id)) return harmony.levelName(id);
+      if (isRhythmEarLevelId(id)) return rhythm.levelName(id);
       return isTheoryLevelId(id) ? theory.levelName(id) : id;
     };
 
     /** Replays of an Ear item, or hinted cards of a theory item. */
     const aids = (family: AnswerFamily, n: number) => {
-      const kind = (EAR_FAMILIES as readonly string[]).includes(family);
+      const kind = (EAR_FAMILIES as readonly string[]).includes(family) || family === 'rhythmEar';
       return n === 1
         ? t(kind ? 'families.item.replays.one' : 'families.item.hints.one')
         : t(kind ? 'families.item.replays.other' : 'families.item.hints.other', { n });
@@ -189,7 +202,7 @@ export function useFamilyFormat() {
       ].filter((part) => part !== false);
 
     return { long, short, item, level, levelName, aids, figures };
-  }, [t, ear, theory, read, harmony]);
+  }, [t, ear, theory, read, harmony, rhythm, dictation]);
 }
 
 export type FamilyFormat = ReturnType<typeof useFamilyFormat>;

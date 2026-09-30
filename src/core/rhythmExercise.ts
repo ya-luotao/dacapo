@@ -145,6 +145,13 @@ export interface DrawOptions {
   rng: Rng;
   /** R10 before its warm-up is done: no two against three yet. */
   cross?: boolean;
+  /**
+   * The first cell starts with a note (the default, a line's rule). Rhythm dictation lets a bar
+   * start with a rest: after its count-in the rest is heard.
+   */
+  startWithNote?: boolean;
+  /** The item a cell is weighted by: `rhythm:<cell>:<meter>` unless given (dictation's own). */
+  itemOf?: (cell: string, meter: RhythmMeter) => string;
 }
 
 /**
@@ -158,6 +165,8 @@ export interface DrawOptions {
 export function drawExercise(options: DrawOptions): RhythmExercise {
   const { level, meter, bars, stats, rng } = options;
   const cross = options.cross ?? true;
+  const startWithNote = options.startWithNote ?? true;
+  const itemOf = options.itemOf ?? rhythmItem;
   const pool = level.cells.filter((key) => cross || !key.split('|').includes(R10_CROSS));
   const perBar = beatsPerBar(meter);
   const keys: string[] = [];
@@ -173,7 +182,7 @@ export function drawExercise(options: DrawOptions): RhythmExercise {
       const possible = fits.filter((key) => {
         if (key.startsWith('~'))
           return previous !== null && !previous.startsWith('~') && endsWithNote(previous);
-        return keys.length > 0 || startsWithNote(key);
+        return keys.length > 0 || !startWithNote || startsWithNote(key);
       });
       // What it should be, unless nothing else fits: no cell three times in a row, no two
       // cells in a row with nothing to play, and a note to play in every bar.
@@ -191,7 +200,7 @@ export function drawExercise(options: DrawOptions): RhythmExercise {
         key = pickWeighted(
           preferred.length > 0 ? preferred : possible,
           (k) =>
-            noteWeight(stats[rhythmItem(k, meter)], RHYTHM_TARGET_MS) *
+            noteWeight(stats[itemOf(k, meter)], RHYTHM_TARGET_MS) *
             (level.adds.includes(k) ? NEW_CELL_WEIGHT : 1) *
             (hasOnset(k, meter) ? 1 : SILENT_WEIGHT),
           rng,

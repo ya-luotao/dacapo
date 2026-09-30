@@ -1987,6 +1987,27 @@ kbd {
   margin-top: 1.75rem;
 }
 
+/* On a phone the five families are a grid of three columns, not a row that breaks unevenly. */
+@media (max-width: 40rem) {
+  .ear-family .segmented {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .ear-family .segmented span {
+    padding-inline: 0.5rem;
+  }
+
+  .ear-family .segmented label:nth-child(3n + 1) span {
+    border-left: 0;
+  }
+
+  .ear-family .segmented label:nth-child(n + 4) span {
+    border-top: 1px solid var(--border);
+  }
+}
+
 /* The options share the card's width, so four directions stay on one row. */
 .ear-setup .read-options .segmented {
   display: flex;
@@ -2386,6 +2407,161 @@ kbd {
   .ear-state-icon.is-sounding .ear-wave {
     animation: none;
   }
+}
+
+/*
+ * Ear: rhythm (dictation). The sheet says what to do and counts the bar with its dots; after a
+ * bar tapped back it holds the bar, inked; the bars to choose from are big buttons under it, the
+ * bar written in each, 1–4 on them.
+ */
+
+.rhythm-ear-card {
+  min-height: 11rem;
+}
+
+.rhythm-ear-card .rhythm-beats {
+  justify-content: center;
+  margin: 0;
+}
+
+.rhythm-ear-tempo {
+  white-space: nowrap;
+}
+
+.rhythm-ear-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.rhythm-ear-result .rhythm-tendency {
+  margin: 0.25rem 0 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+
+.rhythm-ear-result .rhythm-key {
+  justify-content: center;
+  margin: 0;
+}
+
+/* Every bar is drawn at one size, its notes as big as the lessons' (0.1rem a unit). */
+.rhythm-ear-figure {
+  width: auto;
+  max-width: 100%;
+  height: calc(var(--rhythm-units, 70) * 0.1rem * var(--rhythm-scale, 1));
+}
+
+.rhythm-ear-figure .engraved-label {
+  font-size: 11px;
+}
+
+.rhythm-ear-choices {
+  display: grid;
+  grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+  gap: 0.75rem;
+  max-width: 52rem;
+  margin: 0 auto 1rem;
+}
+
+.rhythm-ear-choice {
+  position: relative;
+  min-height: 6.5rem;
+  padding: 1.25rem 1rem 0.5rem;
+  background: var(--surface);
+}
+
+.rhythm-ear-choice .rhythm-ear-figure {
+  --rhythm-scale: 0.8;
+  pointer-events: none;
+}
+
+.rhythm-ear-choice kbd {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.625rem;
+  color: var(--text-muted);
+  font-size: 0.75em;
+}
+
+.rhythm-ear-choice .read-icon {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.625rem;
+  width: 1rem;
+  height: 1rem;
+}
+
+.rhythm-ear-choice[aria-disabled='true'] {
+  cursor: default;
+}
+
+.rhythm-ear-choice.is-right {
+  border-color: var(--ok);
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.rhythm-ear-choice.is-chosen {
+  border-color: var(--bad);
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+/* The bar written in a choice keeps the ink of the page; the button's colour is its frame. */
+.rhythm-ear-choice.is-right .engraved,
+.rhythm-ear-choice.is-chosen .engraved {
+  color: var(--text);
+}
+
+@media (hover: hover) {
+  .rhythm-ear-choice:not([aria-disabled='true']):hover {
+    background: var(--sunk);
+  }
+}
+
+.rhythm-ear-session .rhythm-pads,
+.rhythm-ear-session .rhythm-latency {
+  max-width: 36rem;
+  margin-inline: auto;
+}
+
+@media (max-width: 40rem) {
+  .rhythm-ear-choices {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+
+  .rhythm-ear-choice {
+    min-height: 5rem;
+    padding-block: 0.5rem;
+  }
+
+  .rhythm-ear-figure {
+    --rhythm-scale: 0.85;
+  }
+
+  /* The bar keeps one row and the level its name: the tempo is the setup's (and the bar's). */
+  .rhythm-ear-session .rhythm-ear-tempo {
+    display: none;
+  }
+
+  .rhythm-ear-choice .rhythm-ear-figure {
+    --rhythm-scale: 0.7;
+  }
+
+  .rhythm-ear-session .rhythm-pad {
+    min-height: 5rem;
+  }
+}
+
+/* A cell drawn small, as a heading of the confusion table. */
+.cell-figure {
+  display: inline-block;
+  width: auto;
+  height: 1.75rem;
+  vertical-align: bottom;
 }
 
 /* Ear: summary. Four figures, two by two on a phone. */
@@ -8747,8 +8923,32 @@ select.is-compact {
   color: var(--ok);
 }
 
+.engraved-note.is-warn {
+  color: var(--warn);
+}
+
 .engraved-note.is-bad {
   color: var(--bad);
+}
+
+/* A timing written over a note after a run, in the colour the note is inked in. */
+.engraved-timing {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.engraved-timing.is-accent {
+  fill: var(--accent);
+}
+
+.engraved-timing.is-warn {
+  fill: var(--warn);
+}
+
+.engraved-timing.is-bad {
+  fill: var(--bad);
 }
 
 .engraved-note.is-faint {

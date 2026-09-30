@@ -20,6 +20,7 @@ import {
   sampleTheorySession,
   sampleRhythmSession,
   sampleSightSession,
+  sampleRhythmEarSession,
   T0,
 } from '../storage/fixtures.ts';
 import { createIndexedDbRepository } from '../storage/repository.ts';
@@ -709,6 +710,45 @@ describe('sight-reading on Read', () => {
     expect(SYNC_SCHEMA).toBeGreaterThanOrEqual(13);
     expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
     expect(mac.store.getSnapshot().sessions).toEqual([session]);
+  });
+});
+
+describe('rhythm dictation', () => {
+  it('syncs its answers and sessions, and pulls them again after a build that skipped them', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    const tapped = sampleRhythmEarSession('rd1', 2, 'play');
+    const chosen = sampleRhythmEarSession('rd2', 2, 'name');
+    const answers = [...tapped.answers, ...chosen.answers];
+    for (const answer of answers) ipad.store.recordAnswer(answer);
+    ipad.store.recordSession(tapped.session);
+    ipad.store.recordSession(chosen.session);
+    await ipad.store.settled();
+    await signIn(ipad);
+    expect(service.body('answers', answers[4]!.id)).toEqual(answers[4]);
+    await signIn(mac);
+    expect(mac.store.getSnapshot().answers).toEqual(answers);
+    expect(mac.store.getSnapshot().sessions).toHaveLength(2);
+
+    // As schema 13 left it: the dictation's answers and sessions skipped, the cursor past them.
+    const state = (await mac.db.get('meta', SYNC_STATE_KEY)) as SyncState;
+    await mac.db.clear('answers');
+    await mac.db.delete('sessions', tapped.session.id);
+    await mac.db.delete('sessions', chosen.session.id);
+    await mac.db.put('meta', { ...state, schema: 13 }, SYNC_STATE_KEY);
+    await mac.store.reloadAll();
+    const sync = vi.spyOn(service.api, 'sync');
+    await mac.client.syncNow();
+    expect(SYNC_SCHEMA).toBeGreaterThanOrEqual(14);
+    expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
+    expect(mac.store.getSnapshot().answers).toEqual(answers);
+    expect(
+      mac.store
+        .getSnapshot()
+        .sessions.map((s) => s.id)
+        .sort(),
+    ).toEqual(['rd1', 'rd2']);
   });
 });
 

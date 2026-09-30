@@ -28,6 +28,12 @@ import {
   type StoredScaleRun,
 } from '../core/scaleRecords.ts';
 import { recoverRhythmSummary, type RhythmAnswer } from '../core/rhythmRead.ts';
+import {
+  recoverRhythmEarSummary,
+  type RhythmEarAnswer,
+  type RhythmEarChoiceAnswer,
+  type RhythmEarTapAnswer,
+} from '../core/rhythmEar.ts';
 import { recoverSummary, type Attempt } from '../core/session.ts';
 import { recoverTheorySummary, type TheoryAnswer } from '../core/theorySession.ts';
 import type { StoredPiece } from '../core/storedPiece.ts';
@@ -633,6 +639,46 @@ export function sampleChordSymbolAnswers(i: number, sessionId = 'h1'): ChordSymb
   ];
 }
 
+/**
+ * Rhythm dictation: bar `question` of R6 in 2/4 at ♩ = 60 tapped back (triplet, quarter), the
+ * triplet tapped as two eighths on odd `question`, the quarter always in time.
+ */
+export function sampleRhythmEarTaps(question: number, sessionId = 'rd1'): RhythmEarTapAnswer[] {
+  const odd = question % 2 === 1;
+  const end = T0 + 16_000_000 + question * 20_000;
+  const base = {
+    sessionId,
+    family: 'rhythmEar' as const,
+    level: 'R6' as const,
+    by: 'play' as const,
+    bpm: 60,
+    question,
+    replays: odd ? 1 : 0,
+  };
+  return [
+    {
+      ...base,
+      id: `${sessionId}:${question}:0`,
+      item: 'rhythmEar:trip:2/4',
+      prompt: [0, 1 / 3, 2 / 3],
+      answer: odd
+        ? { deviations: [0, null, null], extras: [500] }
+        : { deviations: [0, -10, 12], extras: [] },
+      correct: !odd,
+      at: end + 1000,
+    },
+    {
+      ...base,
+      id: `${sessionId}:${question}:1`,
+      item: 'rhythmEar:q:2/4',
+      prompt: [0],
+      answer: { deviations: [5], extras: [] },
+      correct: true,
+      at: end + 2000,
+    },
+  ];
+}
+
 /** A Harmony session of triads (H2) of `count` answers with its record. */
 export function sampleHarmonySession(
   sessionId: string,
@@ -643,4 +689,40 @@ export function sampleHarmonySession(
     (_, i) => sampleChordSymbolAnswers(i, sessionId)[0]!,
   );
   return { answers, session: { kind: 'harmony', ...recoverHarmonySummary(answers)! } };
+}
+
+/**
+ * Rhythm dictation: bar `question` of R2 in 4/4 chosen, asked about its eighths (q ee h); on odd
+ * `question` chosen with an eighth rest and eighth for them.
+ */
+export function sampleRhythmEarChoice(question: number, sessionId = 'rd2'): RhythmEarChoiceAnswer {
+  const odd = question % 2 === 1;
+  return {
+    id: `${sessionId}:${question}`,
+    sessionId,
+    family: 'rhythmEar',
+    level: 'R2',
+    item: 'rhythmEar:ee:4/4',
+    by: 'name',
+    prompt: ['q', 'ee', 'h'],
+    answer: odd ? ['q', 'er-e', 'h'] : ['q', 'ee', 'h'],
+    correct: !odd,
+    ms: 1500 + question * 100,
+    bpm: 72,
+    question,
+    replays: 0,
+    at: T0 + 17_000_000 + question * 15_000,
+  };
+}
+
+/** A rhythm dictation session of `questions` bars, tapped back or chosen, with its record. */
+export function sampleRhythmEarSession(
+  sessionId: string,
+  questions: number,
+  by: 'play' | 'name' = 'play',
+): { answers: RhythmEarAnswer[]; session: EarSessionRecord } {
+  const answers: RhythmEarAnswer[] = Array.from({ length: questions }, (_, i) =>
+    by === 'play' ? sampleRhythmEarTaps(i, sessionId) : [sampleRhythmEarChoice(i, sessionId)],
+  ).flat();
+  return { answers, session: { kind: 'ear', ...recoverRhythmEarSummary(answers)! } };
 }

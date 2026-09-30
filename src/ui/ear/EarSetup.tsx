@@ -2,7 +2,6 @@ import { useId } from 'react';
 import {
   CHORD_STYLES,
   DIRECTION_SETTINGS,
-  EAR_FAMILIES,
   levelsOf,
   type EarLevel,
   type EarLevelId,
@@ -17,7 +16,9 @@ import { useT } from '../../i18n/index.ts';
 import { useReadFormat } from '../read/format.ts';
 import { Segmented } from '../Segmented.tsx';
 import { useEarFormat } from './format.ts';
-import type { EarPrefs } from './prefs.ts';
+import { EAR_PAGE_FAMILIES, type EarPrefs } from './prefs.ts';
+import { RhythmEarLevels, RhythmEarOptions, type RhythmEarSetupProps } from './RhythmEarSetup.tsx';
+import { useRhythmFormat } from '../read/rhythmFormat.ts';
 
 interface EarSetupProps {
   prefs: EarPrefs;
@@ -29,6 +30,8 @@ interface EarSetupProps {
   onStart: () => void;
   /** No sound to play the prompts with. */
   startDisabled?: boolean;
+  /** Rhythm (dictation): its own levels and settings. */
+  rhythm: RhythmEarSetupProps;
 }
 
 export function EarSetup({
@@ -40,12 +43,15 @@ export function EarSetup({
   onLevel,
   onStart,
   startDisabled = false,
+  rhythm,
 }: EarSetupProps) {
   const t = useT();
   const format = useEarFormat();
+  const rhythmFormat = useRhythmFormat();
   const id = useId();
   const echo = prefs.family === 'echo';
   const cadence = prefs.family === 'cadence';
+  const family = prefs.family === 'rhythmEar' ? null : prefs.family;
 
   return (
     <form
@@ -60,7 +66,7 @@ export function EarSetup({
           legend={t('ear.family')}
           name={`${id}-family`}
           className="ear-family"
-          options={EAR_FAMILIES.map((family) => ({
+          options={EAR_PAGE_FAMILIES.map((family) => ({
             value: family,
             label: t(`ear.family.${family}`),
           }))}
@@ -68,37 +74,49 @@ export function EarSetup({
           onChange={(family) => onPrefs({ family })}
         />
 
-        <fieldset className="field" aria-describedby={`${id}-rule`}>
-          <legend>{t('ear.level')}</legend>
-          <div className="levels">
-            {levelsOf(prefs.family).map((l) => (
-              <LevelOption
-                key={l.id}
-                name={`${id}-level`}
-                level={l}
-                checked={level === l.id}
-                suggested={suggested === l.id}
-                progress={progress.get(l.id)}
-                onChange={() => onLevel(l.id)}
-              />
-            ))}
-          </div>
-          <p id={`${id}-rule`} className="help">
-            {t(
-              echo ? 'ear.level.rule.echo' : cadence ? 'ear.level.rule.cadence' : 'ear.level.rule',
-            )}
-          </p>
-        </fieldset>
+        {family === null ? (
+          <RhythmEarLevels {...rhythm} />
+        ) : (
+          <fieldset className="field" aria-describedby={`${id}-rule`}>
+            <legend>{t('ear.level')}</legend>
+            <div className="levels">
+              {levelsOf(family).map((l) => (
+                <LevelOption
+                  key={l.id}
+                  name={`${id}-level`}
+                  level={l}
+                  checked={level === l.id}
+                  suggested={suggested === l.id}
+                  progress={progress.get(l.id)}
+                  onChange={() => onLevel(l.id)}
+                />
+              ))}
+            </div>
+            <p id={`${id}-rule`} className="help">
+              {t(
+                echo
+                  ? 'ear.level.rule.echo'
+                  : cadence
+                    ? 'ear.level.rule.cadence'
+                    : 'ear.level.rule',
+              )}
+            </p>
+          </fieldset>
+        )}
       </div>
 
       {/* The session: beside the levels on a wide screen, as a card to start from. */}
       <div className="read-options">
         <p className="read-options-level" aria-hidden="true">
-          <span className="level-id">{level}</span>
-          <span>{format.levelName(level)}</span>
+          <span className="level-id">{family === null ? rhythm.level : level}</span>
+          <span>
+            {family === null ? rhythmFormat.levelName(rhythm.level) : format.levelName(level)}
+          </span>
         </p>
         {/* A melody is only ever played back, a cadence only named: no choice of how to answer. */}
-        {echo || cadence ? (
+        {family === null ? (
+          <RhythmEarOptions prefs={prefs} onPrefs={onPrefs} {...rhythm} />
+        ) : echo || cadence ? (
           <p className="help ear-echo-help">{t(echo ? 'ear.echo.help' : 'ear.cadence.help')}</p>
         ) : (
           <Segmented
@@ -134,7 +152,7 @@ export function EarSetup({
             onChange={(chordStyle) => onPrefs({ chordStyle })}
           />
         )}
-        {echo ? (
+        {family === null ? null : echo ? (
           <Segmented
             legend={t('ear.echoLength')}
             name={`${id}-length`}

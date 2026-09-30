@@ -156,6 +156,8 @@ Chinese and Latin letters, digits and placeholders (`第 {n} 张`, `MIDI 键盘`
 | tie / triplet / syncopation / 6/8                              | 延音线 / 三连音 / 切分音 / 6/8 拍        |
 | count (1 trip let) / Show the counts                           | 数拍（1 连 音）/ 显示数拍                |
 | tap / pad / extra tap / click                                  | 按 / 按板 / 多按 / 节拍声                |
+| Rhythm (Ear) / Tap it back / Choose it                         | 节奏 / 打出来 / 选出来                   |
+| rhythm dictation / bar                                         | 节奏听写 / 小节                          |
 | early, late, missed / rush, drag                               | 早了、晚了、漏了 / 抢拍、拖拍            |
 | Sight-reading / fragment / look first                          | 视奏 / 片段（量词：段）/ 先看            |
 | Read ahead (off, on, hard) / Wait (mode)                       | 往前看（关、开、难）/ 等待               |
@@ -256,6 +258,8 @@ terms throughout. Address the learner as 你, as zh-CN does.
 | Rhythm (Read) / cell / In time (group)                         | 節奏 / 節奏型 / 跟著拍子                 |                                 |
 | triplet / count (1 trip let)                                   | 三連音 / 數拍（1 連 音）                 | 数拍（1 连 音）                 |
 | tap / pad / extra tap / click                                  | 按 / 按板 / 多按 / 節拍聲                |                                 |
+| Rhythm (Ear) / Tap it back / Choose it                         | 節奏 / 打出來 / 選出來                   | 打出来 / 选出来                 |
+| rhythm dictation / bar                                         | 節奏聽寫 / 小節                          | 节奏听写                        |
 | early, late, missed / rush, drag                               | 早了、晚了、漏了 / 搶拍、拖拍            | 抢拍、拖拍                      |
 | Sight-reading / fragment / look first                          | 視奏 / 片段（量詞：段）/ 先看            |                                 |
 | Read ahead (off, on, hard) / Wait (mode)                       | 往前看（關、開、難）/ 等待               |                                 |
@@ -355,6 +359,8 @@ verb phrases for labels and buttons (設定, 開始, もう一度, 補正する)
 | tie / triplet / syncopation / 6/8                              | タイ / 3連符 / シンコペーション / 8分の6拍子                 |
 | count (1 trip let) / Show the counts                           | カウント（1 trip let のまま）/ カウントを表示                |
 | tap / pad / extra tap / click                                  | タップ / パッド / 余分なタップ / クリック音                  |
+| Rhythm (Ear) / Tap it back / Choose it                         | リズム / タップして答える / 選んで答える                     |
+| rhythm dictation / bar                                         | リズムの聴音 / 小節                                          |
 | early, late, missed / rush, drag                               | 早い、遅い、抜けた / 走る、もたる                            |
 | Sight-reading / fragment / look first                          | 初見（初見演奏）/ 曲（〜曲目）/ 下見                         |
 | Read ahead (off, on, hard) / Wait (mode)                       | 先読み（オフ、オン、ハード）/ 待つ                           |
@@ -455,6 +461,8 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 | tie / triplet / syncopation / 6/8                              | 붙임줄 / 셋잇단음표 / 당김음 / 8분의 6박자                           |
 | count (1 trip let) / Show the counts                           | 세기 (1 trip let 그대로) / 세는 법 보이기                            |
 | tap / pad / extra tap / click                                  | 두드리기 / 패드 / 더 누름 / 클릭                                     |
+| Rhythm (Ear) / Tap it back / Choose it                         | 리듬 / 두드려서 답하기 / 골라서 답하기                               |
+| rhythm dictation / bar                                         | 리듬 받아쓰기 / 마디                                                 |
 | early, late, missed / rush, drag                               | 빠름, 늦음, 놓침 / 앞질러 가다, 처지다                               |
 | Sight-reading / fragment / look first                          | 초견 / 곡 / 미리 보기                                                |
 | Read ahead (off, on, hard) / Wait (mode)                       | 앞서 읽기 (끔, 켬, 어렵게) / 기다리기                                |

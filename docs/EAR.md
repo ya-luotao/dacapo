@@ -2,8 +2,10 @@
 
 Status: E1 to E4 are built (the Ear page: intervals, chords and melodies by ear; Read's
 intervals, key signatures and chords on the staff; their progress per family on the Progress
-page), and cadences by ear joined the Ear page with H2 ([HARMONY.md](HARMONY.md)); the instrument
-checks of E0 are still to do on the MP11SE. This extends [MVP.md](MVP.md) and [PIECES.md](PIECES.md); their
+page), cadences by ear joined the Ear page with H2 ([HARMONY.md](HARMONY.md)), and rhythm
+dictation joined it with R2 ([READING.md](READING.md): a bar tapped back or chosen, family
+`rhythmEar`, sessions of kind `ear`); the instrument checks of E0 are still to do on the MP11SE.
+This extends [MVP.md](MVP.md) and [PIECES.md](PIECES.md); their
 principles and fixed decisions still apply (staff first, measure don't guess, local data, English of
 record, every UI language, 3-day dependency cooldown, no backend).
 
@@ -273,7 +275,8 @@ flats.
 ## Records
 
 - Raw answers are the source of truth. An **answer** record: id, session, family (`interval`,
-  `chord`, `echo`, `readInterval`, `keySignature`, `readChord`), level, item key (for example
+  `chord`, `echo`, `readInterval`, `keySignature`, `readChord`; `rhythm` and `rhythmEar` of
+  [READING.md](READING.md)), level, item key (for example
   `int:M3:up`, `chord:min:1st`, `ks:3f:major`), how it was answered (`play` or `name`), the prompt
   (its keys, or the written notes), the answer (keys played or the name chosen), correct, ms,
   replays, when.

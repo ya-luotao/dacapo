@@ -23,7 +23,7 @@ import {
 } from '../core/chordSymbols.ts';
 import { isMelodyKeyOf, judgeEchoAnswer } from '../core/earMelody.ts';
 import { cadenceKeyOf } from '../core/cadences.ts';
-import type { EarAnswer, MissedItem } from '../core/earSession.ts';
+import type { EarAnswer, EarSessionSummary, MissedItem } from '../core/earSession.ts';
 import type { PlayedNote, RunHeadline } from '../core/evenness.ts';
 import type { OpenFreePlay } from '../core/freePlay.ts';
 import type { ChordSymbolAnswer, HarmonyMissed } from '../core/harmonySession.ts';
@@ -79,7 +79,9 @@ import {
 } from '../core/pieceRecords.ts';
 import { MAX_WINDOW_MS, type NoteTiming } from '../core/rhythm.ts';
 import {
+  cellBeats,
   cellOnsets,
+  isCellKey,
   getRhythmLevel,
   isRhythmBpm,
   isRhythmLevelId,
@@ -88,6 +90,20 @@ import {
   type RhythmLevelId,
 } from '../core/rhythmCells.ts';
 import { isRhythmFamily, judgeCell, type RhythmAnswer } from '../core/rhythmRead.ts';
+import {
+  barSound,
+  differingCell,
+  isBarOf,
+  isRhythmEarFamily,
+  isRhythmEarItemOf,
+  isRhythmEarLevelId,
+  parseRhythmEarItem,
+  sameSound,
+  type RhythmEarAnswer,
+  type RhythmEarChoiceAnswer,
+  type RhythmEarSessionSummary,
+  type RhythmEarTapAnswer,
+} from '../core/rhythmEar.ts';
 import {
   isClickTempo,
   isGridPerBeat,
@@ -538,6 +554,7 @@ function judgedAnswer(
 export function validateAnswer(value: unknown): Validation<Answer> {
   if (!isObject(value)) return fail('record');
   if (isRhythmFamily(value.family)) return validateRhythmAnswer(value);
+  if (isRhythmEarFamily(value.family)) return validateRhythmEarAnswer(value);
   if (isTheoryFamily(value.family)) return validateTheoryAnswer(value);
   if (isHarmonyFamily(value.family)) return validateChordSymbolAnswer(value);
   return validateEarAnswer(value);
@@ -605,6 +622,7 @@ function isMissed(v: unknown): v is MissedItem[] {
 }
 
 function validateEarSession(value: Fields): Validation<EarSessionRecord> {
+  if (isRhythmEarFamily(value.family)) return validateRhythmEarSession(value);
   const field = firstInvalid(value, {
     id: isId,
     family: isFamily,
@@ -622,7 +640,7 @@ function validateEarSession(value: Fields): Validation<EarSessionRecord> {
     missed: isMissed,
   });
   if (field) return fail(field);
-  const s = value as unknown as EarSessionRecord;
+  const s = value as unknown as EarSessionSummary;
   if (getEarLevel(s.level).family !== s.family) return fail('level');
   if (s.endedAt < s.startedAt) return fail('endedAt');
   if (s.correct > s.items) return fail('correct');
@@ -1402,6 +1420,176 @@ export function validatePiece(value: unknown): Validation<StoredPiece> {
           bars: { right: p.facts.bars.right, left: p.facts.bars.left, both: p.facts.bars.both },
         },
       }),
+    },
+  };
+}
+
+// --- Rhythm dictation on Ear -----------------------------------------------------------------
+
+/** A bar as cells: a few of one line's cell keys. */
+const isCells = (v: unknown): v is string[] => isList(v, isCellKey, 1) && v.length <= 16;
+
+function validateRhythmEarAnswer(value: Fields): Validation<RhythmEarAnswer> {
+  const field = firstInvalid(value, {
+    id: isId,
+    sessionId: isId,
+    family: isRhythmEarFamily,
+    level: isRhythmEarLevelId,
+    item: (v) => parseRhythmEarItem(v) !== null,
+    by: isAnswerMode,
+    bpm: isRhythmBpm,
+    question: isIndex,
+    replays: isCount,
+    correct: isBool,
+    at: isTime,
+  });
+  if (field) return fail(field);
+  const a = value as unknown as RhythmEarAnswer;
+  if (!isRhythmEarItemOf(a.level, a.item)) return fail('item');
+  const { cell, meter } = parseRhythmEarItem(a.item)!;
+  const base = {
+    id: a.id,
+    sessionId: a.sessionId,
+    family: a.family,
+    level: a.level,
+    item: a.item,
+    bpm: a.bpm,
+    question: a.question,
+    replays: a.replays,
+    at: a.at,
+  };
+
+  if (a.by === 'play') {
+    const tap = value as unknown as RhythmEarTapAnswer;
+    // The prompt is the cell's onsets, exactly as a session writes them.
+    const onsets = cellOnsets(cell, meter)[0]!;
+    if (
+      !Array.isArray(tap.prompt) ||
+      tap.prompt.length !== onsets.length ||
+      onsets.some((b, i) => tap.prompt[i] !== b)
+    )
+      return fail('prompt');
+    // Taps too many lie in the cell's span, the first cell's from a window before it.
+    const spanMs = (cellBeats(cell) * 60_000) / tap.bpm;
+    const isExtra = (v: unknown) =>
+      Number.isInteger(v) && (v as number) >= -MAX_WINDOW_MS && (v as number) <= spanMs;
+    const answer: unknown = tap.answer;
+    if (
+      !isObject(answer) ||
+      !isList(answer.deviations, isCellDeviation) ||
+      answer.deviations.length !== onsets.length ||
+      !isList(answer.extras, isExtra) ||
+      answer.extras.length > 100
+    )
+      return fail('answer');
+    const deviations = answer.deviations as (number | null)[];
+    const extras = answer.extras as number[];
+    if (judgeCell([deviations], extras.length) !== tap.correct) return fail('correct');
+    return {
+      ok: true,
+      value: {
+        ...base,
+        by: 'play',
+        prompt: [...onsets],
+        answer: { deviations: [...deviations], extras: [...extras] },
+        correct: tap.correct,
+      },
+    };
+  }
+
+  const chosen = value as unknown as RhythmEarChoiceAnswer;
+  if (!isTime(chosen.ms)) return fail('ms');
+  const level = getRhythmLevel(a.level);
+  // The bar played has the cell asked about in it; the bar chosen is it, or one the session
+  // could offer beside it: one cell changed, not sounding alike.
+  if (
+    !isCells(chosen.prompt) ||
+    !isBarOf(level, meter, chosen.prompt) ||
+    !chosen.prompt.includes(cell)
+  )
+    return fail('prompt');
+  if (!isCells(chosen.answer) || !isBarOf(level, meter, chosen.answer)) return fail('answer');
+  const same =
+    chosen.answer.length === chosen.prompt.length &&
+    chosen.answer.every((c, i) => c === chosen.prompt[i]);
+  if (!same) {
+    const at = differingCell(chosen.prompt, chosen.answer);
+    if (
+      at === null ||
+      cellBeats(chosen.answer[at]!) !== cellBeats(chosen.prompt[at]!) ||
+      sameSound(barSound(chosen.answer, meter), barSound(chosen.prompt, meter))
+    )
+      return fail('answer');
+  }
+  if (same !== chosen.correct) return fail('correct');
+  return {
+    ok: true,
+    value: {
+      ...base,
+      by: 'name',
+      prompt: [...chosen.prompt],
+      answer: [...chosen.answer],
+      correct: chosen.correct,
+      ms: chosen.ms,
+    },
+  };
+}
+
+function validateRhythmEarSession(value: Fields): Validation<EarSessionRecord> {
+  const field = firstInvalid(value, {
+    id: isId,
+    family: isRhythmEarFamily,
+    level: isRhythmEarLevelId,
+    by: isAnswerMode,
+    bpm: isRhythmBpm,
+    startedAt: isTime,
+    endedAt: isTime,
+    activeMs: isTime,
+    length: (v) => isCount(v) && v > 0,
+    questions: isCount,
+    questionsRight: isCount,
+    items: isCount,
+    correct: isCount,
+    accuracy: isRatio,
+    medianMs: isTimeOrNull,
+    medianDeviation: (v) => v === null || (isTime(v) && v <= MAX_WINDOW_MS),
+    replays: isCount,
+    missed: (v) =>
+      isList(
+        v,
+        (m) => isObject(m) && typeof m.item === 'string' && (m.as === null || isCellKey(m.as)),
+      ) && v.length <= 10_000,
+  });
+  if (field) return fail(field);
+  const s = value as unknown as RhythmEarSessionSummary;
+  if (s.endedAt < s.startedAt) return fail('endedAt');
+  if (s.questionsRight > s.questions) return fail('questionsRight');
+  if (s.questions > s.items) return fail('questions');
+  if (s.correct > s.items) return fail('correct');
+  if ((s.accuracy === null) !== (s.items === 0)) return fail('accuracy');
+  if (s.missed.some((m) => !isRhythmEarItemOf(s.level, m.item))) return fail('missed');
+  return {
+    ok: true,
+    value: {
+      kind: 'ear',
+      id: s.id,
+      family: 'rhythmEar',
+      level: s.level,
+      by: s.by,
+      bpm: s.bpm,
+      startedAt: s.startedAt,
+      endedAt: s.endedAt,
+      activeMs: s.activeMs,
+      length: s.length,
+      questions: s.questions,
+      questionsRight: s.questionsRight,
+      items: s.items,
+      correct: s.correct,
+      accuracy: s.accuracy,
+      medianMs: s.medianMs,
+      medianDeviation: s.medianDeviation,
+      replays: s.replays,
+      missed: s.missed.map(({ item, as }) => ({ item, as })),
     },
   };
 }

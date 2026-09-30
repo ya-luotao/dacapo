@@ -52,8 +52,12 @@ export const RIGHT_TAP_KEYS = [
 export const LEFT_PAD_KEY = 36;
 export const RIGHT_PAD_KEY = 72;
 
-/** The note a key taps: the left hand's from D2 up, the right hand's from D5 up; null: none. */
-export function tapKeyNote(code: string): number | null {
+/**
+ * The note a key taps: the left hand's from D2 up, the right hand's from D5 up; null: none. On the
+ * Ear page the space bar hears again (`space` false), so it taps nothing there.
+ */
+export function tapKeyNote(code: string, space = true): number | null {
+  if (!space && code === 'Space') return null;
   const left = (LEFT_TAP_KEYS as readonly string[]).indexOf(code);
   if (left >= 0) return 38 + left;
   const right = (RIGHT_TAP_KEYS as readonly string[]).indexOf(code);
@@ -73,19 +77,23 @@ interface KeyLike {
   preventDefault: () => void;
 }
 
-/** The tap keys as a source of the input hub; `target` receives the key events. */
+/**
+ * The tap keys as a source of the input hub; `target` receives the key events. Without `space`,
+ * the space bar is left to the page.
+ */
 export function createTapKeyInput(
   target: EventTarget | null = globalThis.window ?? null,
+  space = true,
 ): NoteInput {
   return {
-    id: 'tap-keys',
+    id: space ? 'tap-keys' : 'tap-letters',
     start(emit: Emit) {
       if (!target) return () => undefined;
       const pressed = new Map<string, number>();
       const onKeyDown = (event: Event) => {
         const e = event as unknown as KeyLike;
         if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing || isTextEntry(e.target)) return;
-        const midi = tapKeyNote(e.code);
+        const midi = tapKeyNote(e.code, space);
         if (midi === null) return;
         // The space bar would press a focused button, and scroll the page.
         e.preventDefault();
@@ -120,16 +128,19 @@ export function createTapKeyInput(
 }
 
 const tapped = new WeakMap<KeyMonitor, NoteInput>();
+const tappedLetters = new WeakMap<KeyMonitor, NoteInput>();
 
 /**
  * The tap keys as the input system takes them: through the monitor, so a key sounds as the
  * computer keyboard's do. A monitor taps a source once, so this is the same source every time.
+ * Without `space`, the letters alone tap (the Ear page's space bar hears again).
  */
-export function tapKeysFor(monitor: KeyMonitor): NoteInput {
-  let source = tapped.get(monitor);
+export function tapKeysFor(monitor: KeyMonitor, space = true): NoteInput {
+  const cache = space ? tapped : tappedLetters;
+  let source = cache.get(monitor);
   if (!source) {
-    source = monitor.tap(createTapKeyInput(), 'keys');
-    tapped.set(monitor, source);
+    source = monitor.tap(createTapKeyInput(globalThis.window ?? null, space), 'keys');
+    cache.set(monitor, source);
   }
   return source;
 }

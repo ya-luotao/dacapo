@@ -29,7 +29,8 @@ import { ConfusionGrid } from './ConfusionGrid.tsx';
 import { useFamilyFormat } from './format.tsx';
 import { chooseSection, isSectionOpen, readSectionChoices, writeSectionChoices } from './prefs.ts';
 
-const isEar = (family: AnswerFamily) => (EAR_FAMILIES as readonly string[]).includes(family);
+const isEar = (family: AnswerFamily) =>
+  (EAR_FAMILIES as readonly string[]).includes(family) || family === 'rhythmEar';
 
 /**
  * E4: a section for each family of the answers store (Ear's intervals, chords and melodies,
@@ -165,7 +166,14 @@ function FamilySection({ family, answers, open, onToggle }: FamilySectionProps) 
               className="hm-control family-by"
               options={[
                 { value: 'all', label: t('families.filter.by.all') },
-                ...modes.map((mode) => ({ value: mode, label: t(`families.filter.by.${mode}`) })),
+                ...modes.map((mode) => ({
+                  value: mode,
+                  label: t(
+                    family === 'rhythmEar'
+                      ? `families.filter.by.${mode}.rhythmEar`
+                      : `families.filter.by.${mode}`,
+                  ),
+                })),
               ]}
               value={by}
               onChange={(value) => setFilter({ ...filter, by: value })}

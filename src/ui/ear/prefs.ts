@@ -15,12 +15,25 @@ import {
   type AnswerMode,
   type EchoSessionLength,
 } from '../../core/earSession.ts';
+import {
+  DEFAULT_RHYTHM_EAR_SESSION_LENGTH,
+  RHYTHM_EAR_FAMILY,
+  RHYTHM_EAR_MODES,
+  RHYTHM_EAR_SESSION_LENGTHS,
+  type RhythmEarFamily,
+  type RhythmEarMode,
+  type RhythmEarSessionLength,
+} from '../../core/rhythmEar.ts';
 import { DEFAULT_SESSION_LENGTH, SESSION_LENGTHS, type SessionLength } from '../../core/session.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
 
+/** What the Ear page practises: intervals, chords, melodies, or rhythm (dictation). */
+export type EarPageFamily = EarFamily | RhythmEarFamily;
+export const EAR_PAGE_FAMILIES: readonly EarPageFamily[] = [...EAR_FAMILIES, RHYTHM_EAR_FAMILY];
+
 /** The choices of the Ear page's setup, remembered per browser. */
 export interface EarPrefs {
-  family: EarFamily;
+  family: EarPageFamily;
   by: AnswerMode;
   direction: DirectionSetting;
   chordStyle: ChordStyle;
@@ -28,6 +41,10 @@ export interface EarPrefs {
   length: SessionLength;
   /** Melodies per session of Echo. */
   echoLength: EchoSessionLength;
+  /** Rhythm: tap it back (`play`) or choose it (`name`). */
+  rhythmBy: RhythmEarMode;
+  /** Bars per session of rhythm. (Its tempo is Read's, per level: `read/rhythmPrefs.ts`.) */
+  rhythmLength: RhythmEarSessionLength;
 }
 
 export const EAR_PREFS_KEY = 'dacapo.ear';
@@ -39,6 +56,8 @@ export const DEFAULT_EAR_PREFS: EarPrefs = {
   chordStyle: DEFAULT_CHORD_STYLE,
   length: DEFAULT_SESSION_LENGTH,
   echoLength: DEFAULT_ECHO_SESSION_LENGTH,
+  rhythmBy: 'play',
+  rhythmLength: DEFAULT_RHYTHM_EAR_SESSION_LENGTH,
 };
 
 const oneOf = <T>(values: readonly T[], value: unknown, fallback: T): T =>
@@ -55,12 +74,14 @@ export function parseEarPrefs(text: string | null): EarPrefs {
   }
   const d = DEFAULT_EAR_PREFS;
   return {
-    family: oneOf(EAR_FAMILIES, stored.family, d.family),
+    family: oneOf(EAR_PAGE_FAMILIES, stored.family, d.family),
     by: oneOf(ANSWER_MODES, stored.by, d.by),
     direction: oneOf(DIRECTION_SETTINGS, stored.direction, d.direction),
     chordStyle: oneOf(CHORD_STYLES, stored.chordStyle, d.chordStyle),
     length: oneOf(SESSION_LENGTHS, stored.length, d.length),
     echoLength: oneOf(ECHO_SESSION_LENGTHS, stored.echoLength, d.echoLength),
+    rhythmBy: oneOf(RHYTHM_EAR_MODES, stored.rhythmBy, d.rhythmBy),
+    rhythmLength: oneOf(RHYTHM_EAR_SESSION_LENGTHS, stored.rhythmLength, d.rhythmLength),
   };
 }
 

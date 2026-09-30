@@ -33,10 +33,11 @@ import {
  * builds do not validate); 10, Hanon's sevenths, repeated notes, trills, thirds and octaves, and
  * the trill on a pair (S7, the same); 11, cadences by ear: answers and ear sessions of the family
  * `cadence` (older builds skip them); 13, sight-reading on Read: sessions of kind `sight` (older
- * builds skip them). Bump it whenever a build learns a collection, a session kind,
- * or records that older builds skipped.
+ * builds skip them); 14, rhythm dictation on Ear: answers of the family `rhythmEar` and `ear`
+ * sessions of that family (older builds skip them). Bump it whenever a build learns a collection,
+ * a session kind, or records that older builds skipped.
  */
-export const SYNC_SCHEMA = 13;
+export const SYNC_SCHEMA = 14;
 
 // Records as the sync service carries them (docs/SYNC.md, "What syncs"): the stored record as it
 // is, except a piece, which goes without its MusicXML (sent as a file named by its hash) and

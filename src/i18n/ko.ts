@@ -36,7 +36,7 @@ export const ko: Dictionary = {
     '큰보표의 음을 하나씩, 가운데 C 자리부터 덧줄, 올림표와 내림표까지. 음정, 조표, 화음, 박자에 맞춰 두드리는 리듬, 박자에 맞춰 치는 짧은 초견 곡도 있어요. 모든 답의 시간을 재고, 느리게 찾는 것일수록 다음 카드에 더 자주 나와요.',
   'home.read.meta': '레벨 {n}개',
   'home.ear.text':
-    '음정과 화음, 짧은 선율, 종지를 귀로 구별해요. 옥타브부터 7화음과 반음계적인 음까지. 들은 것을 건반으로 치거나 이름으로 답하면, 다음 문제는 자주 틀리는 것부터 나와요.',
+    '음정과 화음, 짧은 선율, 종지, 한 마디 리듬을 귀로 구별해요. 옥타브부터 7화음, 반음계적인 음, 당김음까지. 들은 것을 건반으로 치거나 두드리거나 이름으로 답하면, 다음 문제는 자주 틀리는 것부터 나와요.',
   'home.ear.meta': '레벨 {n}개',
   'home.harmony.text':
     '노래책과 리드 시트가 선율 위에 적는 코드 기호를, 세 장조의 3화음부터 7화음, 슬래시 코드, 서스 코드까지. 어떤 배치로든 치면 되고, 느리게 찾는 것일수록 다음 카드에 더 자주 나와요. 어떤 조의 코드 진행이든 왼손 반주 형태와 함께 곡처럼 연습해요.',
@@ -489,7 +489,7 @@ export const ko: Dictionary = {
 
   'ear.title': '청음',
   'ear.intro':
-    '두 음이나 화음, 짧은 선율, 악구를 맺는 종지를 듣고, 건반으로 쳐서 답하거나 이름을 골라 답해요.',
+    '두 음이나 화음, 짧은 선율, 악구를 맺는 종지, 한 마디 리듬을 듣고, 건반으로 치거나 두드려서 답하거나, 이름이나 악보를 골라 답해요.',
   'ear.sound.needed': '청음에는 소리가 필요해요. 출력으로 악기나 내장 피아노를 고르세요.',
   'ear.sound.link': '설정에서 소리 고르기',
   'ear.family': '연습할 내용',
@@ -644,6 +644,42 @@ export const ko: Dictionary = {
   'ear.echo.same': '같은 음 ({key})',
   'ear.echo.up': '상행 {name}',
   'ear.echo.down': '하행 {name}',
+  'ear.family.rhythmEar': '리듬',
+  'ear.rhythm.level.stats': '{answers}/{window}번 답함 · 정답률 {accuracy}',
+  'ear.rhythm.level.rule':
+    '“다시 듣기” 없이 답한 최근 40번에서 정답률이 90% 이상이면 그 레벨을 마스터한 거예요. 두드려서 답한 리듬꼴은 하나씩, 골라서 답한 마디는 하나씩 세요. 다음 레벨로는 언제든 넘어가도 돼요.',
+  'ear.rhythm.by.play': '두드려서 답하기',
+  'ear.rhythm.by.name': '골라서 답하기',
+  'ear.rhythm.by.play.help':
+    '한 마디 클릭 뒤에 한 건반으로 리듬이 울리고, 다시 한 마디 클릭이 울려요. 그다음 아무 건반이나 글자 키, 패드로 박에 맞춰 리듬을 두드려요.',
+  'ear.rhythm.by.name.help':
+    '한 마디 클릭 뒤에 한 건반으로 리듬이 울려요. 세네 마디 가운데 들은 마디를 버튼이나 숫자 키로 고르세요.',
+  'ear.rhythm.tempo.help':
+    '1분에 치는 박 수예요. 레벨마다 기억하고, ‘악보 읽기’의 리듬과 같이 써요.',
+  'ear.rhythm.tempo.help.compound':
+    '1분에 치는 점4분음표 박 수예요. 레벨마다 기억하고, ‘악보 읽기’의 리듬과 같이 써요.',
+  'ear.rhythm.length': '한 번에 할 마디 수',
+  'ear.rhythm.count': '{total}마디 중 {n}번째',
+  'ear.rhythm.countIn': '한 마디 더 세요. 그다음 두드려요.',
+  'ear.rhythm.tap': '클릭에 맞춰 두드려요.',
+  'ear.rhythm.choose': '어느 마디가 들렸나요?',
+  'ear.rhythm.stopped':
+    '멈췄어요. 이번 것은 기록하지 않았어요. ‘다시 듣기’로 이 마디를 처음부터 해요.',
+  'ear.rhythm.keys':
+    'MIDI 건반의 아무 키나 패드, 컴퓨터의 아무 글자 키로 두드려요. 스페이스 바는 다시 듣기예요.',
+  'ear.rhythm.tapped': '리듬꼴 {total}개 중 {right}개 맞음',
+  'ear.rhythm.wrong': '그게 아니에요',
+  'ear.rhythm.wrong.choose': '들은 마디가 표시돼 있어요.',
+  'ear.rhythm.bar': '{meter}박자 마디: {cells}',
+  'ear.rhythm.choices': '고를 마디',
+  'ear.rhythm.choice': '{n}번: {cells}',
+  'ear.rhythm.cellResult': '{beat}박, {cell}: {timings}',
+  'ear.rhythm.next.help': 'Enter 키를 눌러도 돼요.',
+  'ear.rhythm.summary.bars': '마디 수',
+  'ear.rhythm.missed.tapped': '{item} — 두드린 것: {as}',
+  'ear.rhythm.missed.chosen': '{item} — 고른 것: {as}',
+  'ear.rhythm.missed.time': '{item}: 음표는 맞지만 박에 맞지 않았어요',
+  'ear.rhythm.missed.none': '{item}: 두드린 것이 같은 길이의 어떤 리듬꼴도 되지 않아요',
 
   'harmony.title': '화성',
   'harmony.practice.chords': '코드',
@@ -802,6 +838,7 @@ export const ko: Dictionary = {
   'progress.kind.rhythm': '리듬',
   'progress.kind.chordSymbol': '코드 기호',
   'progress.kind.sight': '초견',
+  'progress.kind.rhythmEar': '리듬 받아쓰기',
   'progress.session.exercises': '연습 수',
   'progress.session.scale': '스케일',
   'progress.session.scaleOne': '{scale}, {octaves}옥타브',
@@ -881,6 +918,7 @@ export const ko: Dictionary = {
   'families.family.interval': '음정 듣기',
   'families.family.chord': '화음 듣기',
   'families.family.echo': '선율 듣기',
+  'families.family.rhythmEar': '리듬 듣기',
   'families.family.readInterval': '악보의 음정',
   'families.family.keySignature': '조표',
   'families.family.readChord': '악보의 화음',
@@ -897,6 +935,8 @@ export const ko: Dictionary = {
   'families.filter.by.all': '전체',
   'families.filter.by.play': '쳐서',
   'families.filter.by.name': '이름으로',
+  'families.filter.by.play.rhythmEar': '두드려서',
+  'families.filter.by.name.rhythmEar': '골라서',
   'families.emptyFilter': '이 레벨에서 이 방식으로 답한 기록은 아직 없어요.',
   'families.weakest': '가장 약한 항목',
   'families.weakest.none': '아직 없어요. 한 항목에 {n}번 이상 답하면 순위에 들어가요.',
@@ -918,6 +958,8 @@ export const ko: Dictionary = {
     '행은 문제, 열은 내 답이고 숫자는 그 횟수예요. 대각선의 초록 칸이 정답이에요. 틀린 칸은 그 행에서 차지하는 비율에 따라 색을 칠했어요.',
   'families.confusion.help.echo':
     '행은 선율의 한 걸음(어떤 음으로 가는 음정), 열은 내가 실제로 친 걸음이에요. 틀린 음 앞의 걸음은 정답으로 세고, 그 뒤의 걸음은 세지 않아요.',
+  'families.confusion.help.rhythmEar':
+    '행은 들은 리듬꼴, 열은 고른 리듬꼴이나 그 시간에 두드린 리듬꼴이에요. 정답은 대각선에 초록색으로, 틀린 답은 그 행에서 차지하는 비율에 따라 색칠해요.',
   'families.confusion.other.interval':
     '‘기타’는 여기 있는 어느 음정도 되지 않는 건반을 친 답이에요.',
   'families.confusion.other.chord':
@@ -926,6 +968,8 @@ export const ko: Dictionary = {
     '‘기타’는 같은 건반을 다시 쳤거나 옥타브보다 넓게 도약한 경우예요.',
   'families.confusion.other.chordSymbol':
     '‘기타’는 물어본 근음 위에서 어느 화음도 되지 않는 건반을 친 답이에요.',
+  'families.confusion.other.rhythmEar':
+    '‘기타’는 두드린 것이 같은 길이의 어떤 리듬꼴도 되지 않은 경우와, 리듬꼴은 맞았지만 박에 맞지 않은 경우예요.',
   'families.confusion.label': '정답 대신 고른 답: {family}',
   'families.confusion.asked': '문제',
   'families.confusion.answered': '내 답',
@@ -1913,10 +1957,12 @@ export const ko: Dictionary = {
   'metronome.paused.scales': '일시정지: 스케일은 자체 클릭을 사용해요.',
   'metronome.paused.reading': '일시정지: 리듬 연습은 자체 클릭을 사용해요.',
   'metronome.paused.calibration': '지연 보정 중이라 일시정지했어요.',
+  'metronome.paused.dictation': '일시정지: 리듬 받아쓰기는 자체 클릭을 사용해요.',
   'metronome.blocked.rhythm': '리듬 모드의 클릭이 울리고 있어요.',
   'metronome.blocked.scales': '스케일의 클릭이 울리고 있어요.',
   'metronome.blocked.reading': '리듬 연습의 클릭이 울리고 있어요.',
   'metronome.blocked.calibration': '지연 보정 중이에요.',
+  'metronome.blocked.dictation': '리듬 받아쓰기의 클릭이 울리고 있어요.',
   'metronome.noAudio':
     '이 브라우저는 소리를 낼 수 없어요(Web Audio 미지원). 진자는 그대로 박자를 짚어요.',
   'metronome.source':

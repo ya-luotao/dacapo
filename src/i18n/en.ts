@@ -36,7 +36,7 @@ export const en = {
     'One note at a time on the grand staff, from middle C position to ledger lines and accidentals, then intervals, key signatures and chords, lines of rhythm to tap in time, and short music to sight-read in time. Every answer is timed, and the next card favours what you are slow on.',
   'home.read.meta': '{n} levels',
   'home.ear.text':
-    'Intervals, chords, short melodies and cadences by ear, from the octave to seventh chords and chromatic notes. Play back what you hear on the keys, or name it; the next question favours the ones you miss.',
+    'Intervals, chords, short melodies, cadences and bars of rhythm by ear, from the octave to seventh chords, chromatic notes and syncopation. Play back what you hear on the keys, tap it, or name it; the next question favours the ones you miss.',
   'home.ear.meta': '{n} levels',
   'home.harmony.text':
     'Chord symbols as songbooks and lead sheets print them over a tune, from the triads of three major keys to seventh, slash and suspended chords. Play each one in any voicing; the next card favours the ones you are slow on. Then progressions in any key, the left hand in a pattern, practised as a piece.',
@@ -492,7 +492,7 @@ export const en = {
 
   'ear.title': 'Ear',
   'ear.intro':
-    'Hear two notes, a chord, a short melody or the cadence that ends a phrase, then play it back on your keyboard or name it.',
+    'Hear two notes, a chord, a short melody, the cadence that ends a phrase or a bar of rhythm, then play it back on your keyboard, name it or choose it.',
   'ear.sound.needed':
     'Ear training needs sound: choose your instrument or the built-in piano as the output.',
   'ear.sound.link': 'Choose the sound in Settings',
@@ -649,6 +649,40 @@ export const en = {
   'ear.echo.same': 'the same note again ({key})',
   'ear.echo.up': '{name} up',
   'ear.echo.down': '{name} down',
+  'ear.family.rhythmEar': 'Rhythm',
+  'ear.rhythm.level.stats': '{answers}/{window} answers · {accuracy} correct',
+  'ear.rhythm.level.rule':
+    'A level is mastered at 90% correct over its last 40 answers given without “Hear again”: each cell of a bar tapped back is an answer, and each bar chosen. Move on whenever you like.',
+  'ear.rhythm.by.play': 'Tap it back',
+  'ear.rhythm.by.name': 'Choose it',
+  'ear.rhythm.by.play.help':
+    'A bar of clicks, the rhythm on one key, then a second bar of clicks: tap the rhythm back in time on any key, a letter or the pad.',
+  'ear.rhythm.by.name.help':
+    'A bar of clicks, then the rhythm on one key: choose the bar you heard among three or four, with the buttons or the number keys.',
+  'ear.rhythm.tempo.help': 'Beats a minute for each level, the same as for Rhythm on Read.',
+  'ear.rhythm.tempo.help.compound':
+    'Dotted-quarter beats a minute for each level, the same as for Rhythm on Read.',
+  'ear.rhythm.length': 'Bars per session',
+  'ear.rhythm.count': 'Bar {n} of {total}',
+  'ear.rhythm.countIn': 'Now the count: tap it back after it.',
+  'ear.rhythm.tap': 'Tap it back, with the click.',
+  'ear.rhythm.choose': 'Which bar did you hear?',
+  'ear.rhythm.stopped': 'Stopped: nothing was kept. Hear it again to start the bar over.',
+  'ear.rhythm.keys':
+    'Tap on any key of a MIDI keyboard, on the pad or on any letter key; the space bar hears again.',
+  'ear.rhythm.tapped': '{right} of {total} cells right',
+  'ear.rhythm.wrong': 'Not that one',
+  'ear.rhythm.wrong.choose': 'The bar you heard is marked.',
+  'ear.rhythm.bar': 'The bar in {meter}: {cells}',
+  'ear.rhythm.choices': 'The bars to choose from',
+  'ear.rhythm.choice': 'Bar {n}: {cells}',
+  'ear.rhythm.cellResult': 'Beat {beat}, {cell}: {timings}',
+  'ear.rhythm.next.help': 'Or press Enter.',
+  'ear.rhythm.summary.bars': 'Bars',
+  'ear.rhythm.missed.tapped': '{item}, tapped as {as}',
+  'ear.rhythm.missed.chosen': '{item}, chosen as {as}',
+  'ear.rhythm.missed.time': '{item}: the right notes, not in time',
+  'ear.rhythm.missed.none': '{item}: the taps make no rhythm of its length',
 
   'harmony.title': 'Harmony',
   'harmony.practice.chords': 'Chords',
@@ -808,6 +842,7 @@ export const en = {
   'progress.kind.rhythm': 'Rhythm lines',
   'progress.kind.chordSymbol': 'Chord symbols',
   'progress.kind.sight': 'Sight-reading',
+  'progress.kind.rhythmEar': 'Rhythm dictation',
   'progress.session.exercises': 'Exercises',
   'progress.session.scale': 'Scale',
   'progress.session.scaleOne': '{scale}, {octaves} oct.',
@@ -887,6 +922,7 @@ export const en = {
   'families.family.interval': 'Intervals by ear',
   'families.family.chord': 'Chords by ear',
   'families.family.echo': 'Melodies by ear (Echo)',
+  'families.family.rhythmEar': 'Rhythm by ear (dictation)',
   'families.family.readInterval': 'Intervals on the staff',
   'families.family.keySignature': 'Key signatures',
   'families.family.readChord': 'Chords on the staff',
@@ -903,6 +939,8 @@ export const en = {
   'families.filter.by.all': 'All',
   'families.filter.by.play': 'Played',
   'families.filter.by.name': 'Named',
+  'families.filter.by.play.rhythmEar': 'Tapped',
+  'families.filter.by.name.rhythmEar': 'Chosen',
   'families.emptyFilter': 'No answers of this kind at this level yet.',
   'families.weakest': 'Weakest',
   'families.weakest.none': 'None yet. An item is ranked once you have answered it {n} times.',
@@ -924,6 +962,8 @@ export const en = {
     'A row for each thing asked and a column for each answer, with how many times it was given. Right answers are on the diagonal, in green; a wrong answer is coloured by its share of the row.',
   'families.confusion.help.echo':
     'A row for each step of the melodies, the interval into a note, and a column for the step you played into it. The steps before a wrong note count as right; those after it are not counted.',
+  'families.confusion.help.rhythmEar':
+    'A row for each cell heard and a column for the cell it was chosen as, or that the taps in its time made. Right answers are on the diagonal, in green; a wrong answer is coloured by its share of the row.',
   'families.confusion.other.interval': '“Other” counts keys that make none of the intervals here.',
   'families.confusion.other.chord':
     '“Other” counts keys that make none of the chords here, and the right chord on a wrong root or in a wrong octave.',
@@ -931,6 +971,8 @@ export const en = {
     '“Other” counts the same key played again, and a leap past the octave.',
   'families.confusion.other.chordSymbol':
     '“Other” counts keys that make no chord on the root asked.',
+  'families.confusion.other.rhythmEar':
+    '“Other” counts taps that make no cell of that length, and the right cell tapped out of time.',
   'families.confusion.label': 'What you answer instead: {family}',
   'families.confusion.asked': 'Asked',
   'families.confusion.answered': 'Answered',
@@ -1940,10 +1982,12 @@ export const en = {
   'metronome.paused.scales': 'Paused: the scale has its own click.',
   'metronome.paused.reading': 'Paused: the rhythm line has its own click.',
   'metronome.paused.calibration': 'Paused for the latency calibration.',
+  'metronome.paused.dictation': 'Paused: rhythm dictation has its own click.',
   'metronome.blocked.rhythm': 'Rhythm mode is playing its own click.',
   'metronome.blocked.scales': 'A scale is playing its own click.',
   'metronome.blocked.reading': 'A rhythm line is playing its own click.',
   'metronome.blocked.calibration': 'The latency calibration is running.',
+  'metronome.blocked.dictation': 'Rhythm dictation is playing its own click.',
   'metronome.noAudio':
     'This browser cannot play the click (it has no Web Audio). The pendulum still keeps time.',
   'metronome.source':

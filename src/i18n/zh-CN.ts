@@ -36,7 +36,7 @@ export const zhCN: Dictionary = {
     '大谱表上一次一个音，从中央 C 位置一直到加线和升号、降号，再到音程、调号和和弦，还有跟着拍子打的节奏，以及跟着拍子视奏的短曲。每次作答都会计时，下一张卡片会优先出你反应慢的内容。',
   'home.read.meta': '{n} 个级别',
   'home.ear.text':
-    '靠耳朵分辨音程、和弦、短旋律与终止式，从八度到七和弦和变化音。把听到的在琴上弹出来，或者选出名称；下一题会优先出你常答错的。',
+    '靠耳朵分辨音程、和弦、短旋律、终止式与一小节节奏，从八度到七和弦、变化音和切分音。把听到的在琴上弹出来、打出来，或者选出名称；下一题会优先出你常答错的。',
   'home.ear.meta': '{n} 个级别',
   'home.harmony.text':
     '歌本和流行乐谱印在旋律上方的和弦记号，从三个大调的三和弦，到七和弦、斜线和弦和挂留和弦。每个和弦用任意排列弹出来，下一张卡片会优先出你弹得慢的。还有任意调的和弦进行，左手按伴奏型，像曲子一样练。',
@@ -477,7 +477,7 @@ export const zhCN: Dictionary = {
 
   'ear.title': '练耳',
   'ear.intro':
-    '听两个音、一个和弦、一段短旋律或乐句结尾的终止式，然后在琴上弹出来，或者选出它的名称。',
+    '听两个音、一个和弦、一段短旋律、乐句结尾的终止式或一小节节奏，然后在琴上弹出来、打出来，或者选出它的名称。',
   'ear.sound.needed': '练耳需要声音：请把声音输出设为你的乐器或内置钢琴。',
   'ear.sound.link': '到设置里选择声音',
   'ear.family': '练习内容',
@@ -632,6 +632,39 @@ export const zhCN: Dictionary = {
   'ear.echo.same': '同一个音（{key}）',
   'ear.echo.up': '上行{name}',
   'ear.echo.down': '下行{name}',
+  'ear.family.rhythmEar': '节奏',
+  'ear.rhythm.level.stats': '{answers}/{window} 次作答 · 正确率 {accuracy}',
+  'ear.rhythm.level.rule':
+    '某一级最近 40 次作答（不算按过“再听一遍”的）的正确率达到 90%，就算掌握了：打出来的每个节奏型算一次，选出来的每个小节算一次。想换级别随时可以换。',
+  'ear.rhythm.by.play': '打出来',
+  'ear.rhythm.by.name': '选出来',
+  'ear.rhythm.by.play.help':
+    '先是一小节节拍声，然后在一个键上放出节奏，再来一小节节拍声：跟着拍子把节奏打出来，任何琴键、字母键或按板都可以。',
+  'ear.rhythm.by.name.help':
+    '先是一小节节拍声，然后在一个键上放出节奏：从三四个小节里选出你听到的那一个，用按钮或数字键都可以。',
+  'ear.rhythm.tempo.help': '每分钟的拍数，每一级分别记住，和「识谱」里的节奏练习共用。',
+  'ear.rhythm.tempo.help.compound':
+    '每分钟的附点四分音符拍数，每一级分别记住，和「识谱」里的节奏练习共用。',
+  'ear.rhythm.length': '每组小节数',
+  'ear.rhythm.count': '第 {n} 小节，共 {total} 小节',
+  'ear.rhythm.countIn': '再数一小节：数完就打出来。',
+  'ear.rhythm.tap': '跟着节拍声打出来。',
+  'ear.rhythm.choose': '你听到的是哪一小节？',
+  'ear.rhythm.stopped': '已停止，这一遍没有记录。点「再听一遍」从头开始这一小节。',
+  'ear.rhythm.keys': 'MIDI 键盘上任何键、下面的按板或电脑上任意字母键都能打；空格键是再听一遍。',
+  'ear.rhythm.tapped': '{total} 个节奏型里打对 {right} 个',
+  'ear.rhythm.wrong': '不是这一个',
+  'ear.rhythm.wrong.choose': '你听到的那一小节已经标出。',
+  'ear.rhythm.bar': '{meter} 拍的小节：{cells}',
+  'ear.rhythm.choices': '可选的小节',
+  'ear.rhythm.choice': '第 {n} 个：{cells}',
+  'ear.rhythm.cellResult': '第 {beat} 拍，{cell}：{timings}',
+  'ear.rhythm.next.help': '也可以按回车键。',
+  'ear.rhythm.summary.bars': '小节数',
+  'ear.rhythm.missed.tapped': '{item}，打成了{as}',
+  'ear.rhythm.missed.chosen': '{item}，选成了{as}',
+  'ear.rhythm.missed.time': '{item}：音对了，但不在拍子上',
+  'ear.rhythm.missed.none': '{item}：打出的不成这个长度的任何节奏型',
 
   'harmony.title': '和声',
   'harmony.practice.chords': '和弦',
@@ -786,6 +819,7 @@ export const zhCN: Dictionary = {
   'progress.kind.rhythm': '节奏练习',
   'progress.kind.chordSymbol': '和弦记号',
   'progress.kind.sight': '视奏',
+  'progress.kind.rhythmEar': '节奏听写',
   'progress.session.exercises': '练习数',
   'progress.session.scale': '音阶',
   'progress.session.scaleOne': '{scale}，{octaves} 个八度',
@@ -860,6 +894,7 @@ export const zhCN: Dictionary = {
   'families.family.interval': '听音程',
   'families.family.chord': '听和弦',
   'families.family.echo': '听旋律',
+  'families.family.rhythmEar': '听节奏',
   'families.family.readInterval': '谱上的音程',
   'families.family.keySignature': '调号',
   'families.family.readChord': '谱上的和弦',
@@ -876,6 +911,8 @@ export const zhCN: Dictionary = {
   'families.filter.by.all': '全部',
   'families.filter.by.play': '弹出来',
   'families.filter.by.name': '选名称',
+  'families.filter.by.play.rhythmEar': '打出来',
+  'families.filter.by.name.rhythmEar': '选出来',
   'families.emptyFilter': '这个级别还没有这种方式的作答。',
   'families.weakest': '最薄弱的几项',
   'families.weakest.none': '暂时没有。一项作答满 {n} 次后才会参与排名。',
@@ -897,11 +934,15 @@ export const zhCN: Dictionary = {
     '每一行是一道题目，每一列是一个答案，数字是答了几次。对角线上的绿色格子是答对的；答错的格子按它在这一行中所占的比例着色。',
   'families.confusion.help.echo':
     '每一行是旋律中的一步，即进入某个音的音程；每一列是你实际弹出的那一步。错音之前的各步算答对，错音之后的不计。',
+  'families.confusion.help.rhythmEar':
+    '每一行是听到的一个节奏型，每一列是你选成的节奏型，或是你在它那段时间里打出的节奏型。答对的在对角线上，标成绿色；答错的按它在这一行里所占的比例着色。',
   'families.confusion.other.interval': '“其他”是弹出的键构不成这里任何音程的答案。',
   'families.confusion.other.chord':
     '“其他”是弹出的键构不成这里任何和弦的答案，以及和弦对了但根音或八度错了的答案。',
   'families.confusion.other.echo': '“其他”是又弹了一遍同一个键，或跳进超过了八度。',
   'families.confusion.other.chordSymbol': '“其他”是弹出的键在所问的根音上构不成任何和弦的答案。',
+  'families.confusion.other.rhythmEar':
+    '“其他”是打出的不成这个长度的任何节奏型，以及节奏型对了但不在拍子上的答案。',
   'families.confusion.label': '你答成了什么：{family}',
   'families.confusion.asked': '题目',
   'families.confusion.answered': '答案',
@@ -1842,10 +1883,12 @@ export const zhCN: Dictionary = {
   'metronome.paused.scales': '已暂停：音阶有自己的节拍器。',
   'metronome.paused.reading': '已暂停：节奏练习有自己的节拍声。',
   'metronome.paused.calibration': '已暂停：正在进行延迟校准。',
+  'metronome.paused.dictation': '已暂停：节奏听写有自己的节拍声。',
   'metronome.blocked.rhythm': '节奏模式正在用自己的节拍器。',
   'metronome.blocked.scales': '音阶正在用自己的节拍器。',
   'metronome.blocked.reading': '节奏练习正在用自己的节拍声。',
   'metronome.blocked.calibration': '正在进行延迟校准。',
+  'metronome.blocked.dictation': '节奏听写正在用自己的节拍声。',
   'metronome.noAudio': '这个浏览器不能发出声音（不支持 Web Audio），摆锤照样打拍子。',
   'metronome.source':
     '声音由这台设备发出；大多数数码钢琴无法通过 MIDI 播放节拍声。摆锤跟着你听到的声音摆动；如果做过延迟校准，也会把它考虑进去。',

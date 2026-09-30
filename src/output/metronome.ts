@@ -51,7 +51,7 @@ export interface MetronomeContext extends ClickContext {
 
 export type MetronomeStatus = 'stopped' | 'running' | 'paused';
 /** What takes the click away from the metronome: a rhythm run or a calibration. */
-export type PauseReason = 'rhythm' | 'scales' | 'reading' | 'calibration';
+export type PauseReason = 'rhythm' | 'scales' | 'reading' | 'dictation' | 'calibration';
 
 export interface MetronomeSnapshot {
   status: MetronomeStatus;

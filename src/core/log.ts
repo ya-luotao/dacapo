@@ -2,6 +2,7 @@ import {
   isChordSymbolAnswer,
   isEarAnswer,
   isRhythmAnswer,
+  isRhythmEarAnswer,
   isTheoryAnswer,
   type Answer,
 } from './answers.ts';
@@ -9,6 +10,7 @@ import { recoverEarSummary, type EarSessionSummary } from './earSession.ts';
 import type { FreePlaySession } from './freePlay.ts';
 import { recoverHarmonySummary, type HarmonySessionSummary } from './harmonySession.ts';
 import type { PieceSession } from './pieceRecords.ts';
+import { recoverRhythmEarSummary, type RhythmEarSessionSummary } from './rhythmEar.ts';
 import { recoverRhythmSummary, type RhythmSessionSummary } from './rhythmRead.ts';
 import type { ScaleSession } from './scaleRecords.ts';
 import { sightRunCount, type SightSessionSummary } from './sightRead.ts';
@@ -20,8 +22,11 @@ export type ReadSessionRecord = SessionSummary & { kind: 'read' };
 export type FreePlaySessionRecord = FreePlaySession;
 export type PieceSessionRecord = PieceSession;
 export type ScaleSessionRecord = ScaleSession;
-/** An ear-training session as stored: its summary. */
-export type EarSessionRecord = EarSessionSummary & { kind: 'ear' };
+/**
+ * An ear-training session as stored: its summary, told apart by its family (rhythm dictation,
+ * `rhythmEar`, has figures of its own).
+ */
+export type EarSessionRecord = (EarSessionSummary | RhythmEarSessionSummary) & { kind: 'ear' };
 /** A session of theory cards on Read (intervals, key signatures, chords) as stored. */
 export type TheorySessionRecord = TheorySessionSummary & { kind: 'theory' };
 /** A session of rhythm lines on Read (docs/READING.md, "Rhythm (R1)") as stored. */
@@ -104,8 +109,9 @@ function orphanGroups<T extends { sessionId: string }>(
 }
 
 /**
- * Ear sessions for answers whose session was never stored (the tab closed mid-session).
- * `answers` must be in the order they happened; theory answers are `recoverTheorySessions`'.
+ * Ear sessions (rhythm dictation's among them) for answers whose session was never stored (the
+ * tab closed mid-session). `answers` must be in the order they happened; theory answers are
+ * `recoverTheorySessions`'.
  */
 export function recoverEarSessions(
   answers: readonly Answer[],
@@ -114,6 +120,10 @@ export function recoverEarSessions(
   const recovered: EarSessionRecord[] = [];
   for (const group of orphanGroups(answers.filter(isEarAnswer), sessions)) {
     const summary = recoverEarSummary(group);
+    if (summary) recovered.push({ kind: 'ear', ...summary });
+  }
+  for (const group of orphanGroups(answers.filter(isRhythmEarAnswer), sessions)) {
+    const summary = recoverRhythmEarSummary(group);
     if (summary) recovered.push({ kind: 'ear', ...summary });
   }
   return recovered;

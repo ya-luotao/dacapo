@@ -9,10 +9,31 @@ which is noted when it changes.
 Export format version 8: the file now includes imported pieces (from version 2), piece practice
 sessions and their step records (from version 3), rhythm-mode steps with their timings (from
 version 4), scale sessions with every scale run as played (from version 5), ear-training answers
-and sessions (from version 6; the theory cards', Read's rhythm and the chord symbols' answers and
+and sessions (from version 6; the theory cards', Read's rhythm, rhythm dictation's and the chord
+symbols' answers and
 sessions go in the same lists), the
 click's tempo and grid of scale runs played with it (from version 7), and the takes of piece runs
 (from version 8). Version 1 to 7 files still import.
+
+### Rhythm dictation on Ear (R2, [docs/READING.md](docs/READING.md))
+
+- **Ear** gains a fifth family, **Rhythm**: a bar of count-in, then one bar played on one key at
+  the level's tempo (the same tempo as Rhythm on Read, kept per level), in Rhythm's levels R1–R8.
+- **Tap it back**: after the bar, a second bar of count-in, then tap it with the click on any key,
+  the pad or any letter, timed and judged as a line on Read (the latency calibration taken off);
+  the bar is then drawn with its counts, every note inked in time, early or late (with the arrow
+  and the ms) or missed, and taps too many marked.
+- **Choose it**: three or four bars written out, big buttons with keys 1–4, the right one among
+  bars that differ from it in one cell, the cells you confuse it with first (a triplet with two
+  eighths before you have any); never two that sound alike.
+- **Hear again** (Space) is counted before the answer and starts a bar to tap over; a wrong answer
+  plays the bar again and waits for Next (Enter). Mastery at 90% of the level's last 40 answers
+  without a replay; sessions of 5, 10 or 20 bars with a summary of the cells to work on.
+- On **Progress**, "Rhythm by ear (dictation)" shows its levels, weakest cells and what each cell
+  is chosen or tapped as, the cells drawn small as the table's headings.
+- Answers of the family `rhythmEar` (one per cell tapped back, one per bar chosen), sessions of
+  kind `ear`; imports and sync check and judge every answer again. `SYNC_SCHEMA` 14; the export file
+  needs no new version.
 
 ### Sight-reading on Read (R3, [docs/READING.md](docs/READING.md))
 

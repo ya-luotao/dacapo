@@ -158,6 +158,30 @@ function SessionRow({ session }: { session: SessionRecord }) {
       ];
       break;
     case 'ear':
+      // Rhythm dictation: its bars, and how far off the beat they were tapped (or how long a
+      // bar took to choose).
+      if (session.family === 'rhythmEar') {
+        cells = [
+          when,
+          ['progress.session.kind', t('progress.kind.rhythmEar')],
+          [
+            'progress.session.level',
+            <abbr title={rhythm.levelName(session.level)}>{session.level}</abbr>,
+          ],
+          duration,
+          [
+            'ear.rhythm.summary.bars',
+            session.questions < session.length
+              ? `${session.questions}/${session.length}`
+              : session.questions,
+          ],
+          ['progress.session.accuracy', read.percent(session.accuracy)],
+          session.by === 'play'
+            ? ['rhythm.summary.median', rhythm.ms(session.medianDeviation)]
+            : ['ear.summary.median', read.seconds(session.medianMs)],
+        ];
+        break;
+      }
       cells = [
         when,
         ['progress.session.kind', t('progress.kind.ear')],

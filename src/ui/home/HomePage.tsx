@@ -3,6 +3,7 @@ import { Link } from 'wouter';
 import { HARMONY_LEVELS } from '../../core/chordSymbols.ts';
 import { EAR_LEVELS } from '../../core/earItems.ts';
 import { RHYTHM_LEVELS } from '../../core/rhythmCells.ts';
+import { RHYTHM_EAR_LEVEL_IDS } from '../../core/rhythmEar.ts';
 import { SIGHT_LEVELS } from '../../core/sightLevels.ts';
 import { THEORY_LEVELS } from '../../core/theoryItems.ts';
 import { LEVELS } from '../../core/levels.ts';
@@ -52,7 +53,7 @@ const CONTENTS: readonly {
     title: 'nav.ear',
     text: 'home.ear.text',
     meta: 'home.ear.meta',
-    values: { n: EAR_LEVELS.length },
+    values: { n: EAR_LEVELS.length + RHYTHM_EAR_LEVEL_IDS.length },
   },
   {
     path: '/harmony',

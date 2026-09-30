@@ -1,6 +1,6 @@
 # dacapo — Reading in time specification
 
-Status: R1 (Rhythm on Read) and R3 (Sight-reading on Read) are built; R2 is planned. This extends [MVP.md](MVP.md),
+Status: R1 (Rhythm on Read), R2 (rhythm dictation on Ear) and R3 (Sight-reading on Read) are built. This extends [MVP.md](MVP.md),
 [PIECES.md](PIECES.md) and [EAR.md](EAR.md); their principles and fixed decisions still apply (staff
 first, measure don't guess, local data, English of record, every UI language, 3-day dependency
 cooldown, no backend).
@@ -170,6 +170,75 @@ profile counts them as reading until the service knows the kind.
   cell (a cell the learner confuses with it first, from the confusion counts).
 - The confusion table of EAR.md applies: `ed-s` heard as `qd-e`'s half, `trip` as `ee`.
 
+### Clarifications (decided during R2)
+
+- **Where.** A family of the Ear page, **Rhythm**, after intervals, chords, Echo and cadences: the
+  levels R1–R8 with this family's own mastery and suggested level, **Tap it back** or **Choose
+  it**, the tempo and 5, 10 (default) or 20 bars a session. The tempo is Read's, kept per level
+  and shared with Rhythm on Read (a change on either page moves the other): "the level's tempo".
+- **The bar.** One bar in a meter of the level (at random), drawn by Rhythm's rules and item
+  model (keyed by this family's items), except that it may start with a rest: after a count-in a
+  rest on the downbeat is heard. The prompt is the bar on E4 (no setting), velocity 72, each note
+  as long as it is written (a tie's notes as one) less a short gap, through the output's scheduler
+  as rhythm mode's other hand is; the count-in and the click are rhythm mode's, on the
+  AudioContext, with no click under the bar itself. The header's metronome is paused meanwhile
+  (a pause reason of its own, `dictation`).
+- **Tap it back.** Count-in, the bar, a second bar of count-in, then the bar to tap with the click
+  under it; judged as Rhythm judges a line (the matcher, the calibrated latency taken off, a chord
+  as one tap, whole ms, in time within 50 ms). A tap counts from the downbeat's window (a tap on
+  the downbeat of a bar starting with a rest is one too many) to just before the next downbeat;
+  taps with the prompt or either count-in are not answers. One answer per cell, as on Read. The
+  taps come from any key, the pad, or any letter: the space bar hears again, as everywhere on
+  Ear, so it does not tap. Calibration is offered once before the first bar tapped back, as on
+  Read, and is on the session.
+- **Choose it.** A question is about one cell of the bar (the item, drawn by the item model among
+  the cells the bar can be asked about). The bars offered beside the one played change that cell
+  for another of the level's cells of the same length that fits where it starts: first the cells
+  the learner has chosen or tapped for it most often (the confusion counts, every meter), then
+  what it is heard as before any counts (the spec's pair, `trip` heard as `ee`; then the nearest
+  onsets); only where fewer than three can stand there do they change another cell. Every bar
+  offered is one the level could ask (Rhythm's rules), no two sound alike (the same notes starting
+  and ending together: `h` and `q` tied to `q`, `e-q-e` and `tie-q-e` are never offered side by
+  side), and there are four when three can be found, else three. A cell with nothing of its
+  length to stand in for it (`w`, and `h` before R3) is never asked about this way. One answer
+  per bar, right when the bar played is chosen; a choice counts from the prompt's last note-on,
+  keys 1–4.
+- **"`ed-s` heard as `qd-e`'s half"** describes what the table shows, not a way of offering bars:
+  `qd-e` is two beats and `ed-s` one, so no bar differing in one cell can hold both. It is read as
+  the long–short of a dotted rhythm heard at the wrong level of the beat, which the confusion
+  table can show only as `ed-s` against the one-beat cells it is taken for.
+- **After an answer.** Right: the next bar after 1.2 s. Wrong: the bar is played once more (with
+  its count-in) and waits for **Next** (Enter). A bar tapped back is drawn with its counts, each
+  note inked as Read inks a line (in time, early, late with the arrow and the ms, missed, a + for
+  a tap too many), with the tendency; a bar chosen marks the right one and the one chosen. The
+  bars are written by the lessons' rhythm line (`engraving/RhythmLine.tsx`), not Verovio, so the
+  Ear page loads no score engine. **Hear again** before the answer is counted and starts a bar to
+  tap over (the taps so far are dropped); after it, it is not counted. A bar stopped before its
+  end (another page, the page hidden) keeps nothing.
+- **Records.** An answer is `family: 'rhythmEar'`, `level` (R1–R8), `item`
+  (`rhythmEar:<cell>:<meter>`), `by` (`play` tapped back, `name` chosen, so Ear's filters apply),
+  `bpm`, `question` (its index in the session), `replays` and `at`. Tapped back: `prompt` the
+  cell's onsets in beats, `answer` the deviations (null when missed) and the taps too many in whole
+  ms from the cell's start. Chosen: `prompt` the bar played and `answer` the bar chosen (cells),
+  and `ms` from the prompt's last note-on. Imports and sync check that each prompt is its item's
+  (a cell's onsets; a bar of the level holding the cell), that a bar chosen differs from the one
+  played in at most one cell of the same length without sounding like it, and judge it again.
+  Sessions are kind **`ear`** (extended, not a new kind) with `family: 'rhythmEar'` and figures of
+  their own: bars planned, answered and right, the answers and those right, the median |deviation|
+  (tapped) or the median time of the bars chosen right at once, the replays, and every miss with
+  the cell it was taken for. `SYNC_SCHEMA` 14 (older builds skip them); the export file needs no
+  new version; the public profile counts them as every `ear` session (as `ear`, or as reading with
+  a service before version 2).
+- **Mastery** as the Ear page's: ≥ 90 % of the level's last 40 answers without a replay (a cell
+  tapped back or a bar chosen, however answered).
+- **Progress.** A section "Rhythm by ear (dictation)" among the families: the levels, the weakest
+  items (unevenness weighs a cell tapped right, as on Read) and the confusion table, a row for each
+  cell asked and a column for each cell chosen or tapped as, in the order the levels add them,
+  each heading the cell drawn small. The taps in a cell's span are read as the cell of the same
+  length (a tied cell only when it is the one asked) with as many onsets, every tap within a sixth
+  of a beat of one, nearest; none is Other, and so is the right cell tapped out of time (E4: the
+  diagonal is the right answers).
+
 ## Sight-reading (R3)
 
 Short music never seen before, generated, drawn on the grand staff by Verovio from MusicXML, played
@@ -331,5 +400,5 @@ wrong }`. No note played is kept. The record is stored again after every run (`e
 
 1. ✓ **R1 Rhythm** — the choice of what to read on Read, cells, levels R1–R10, generated rhythm lines,
    judging, records, sessions, mastery; the Rhythm II lesson before it (LEARN.md).
-2. **R2 Rhythm dictation** — on Ear: tap it back and choose it, confusions.
+2. ✓ **R2 Rhythm dictation** — on Ear: tap it back and choose it, confusions.
 3. ✓ **R3 Sight-reading** — fragments F1–F8, in time and wait, read ahead, the look before, records.

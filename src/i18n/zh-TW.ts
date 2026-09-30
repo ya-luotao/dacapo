@@ -36,7 +36,7 @@ export const zhTW: Dictionary = {
     '大譜表上一次一個音，從中央 C 位置一路到加線和升降記號，再到音程、調號和和弦，還有跟著拍子打的節奏，以及跟著拍子視奏的短曲。每次作答都會計時，下一張閃卡會優先出你反應慢的內容。',
   'home.read.meta': '{n} 個等級',
   'home.ear.text':
-    '用耳朵分辨音程、和弦、短旋律與終止式，從八度到七和弦和變化音。把聽到的在琴上彈出來，或是選出名稱；下一題會優先出你常答錯的。',
+    '用耳朵分辨音程、和弦、短旋律、終止式與一小節節奏，從八度到七和弦、變化音和切分音。把聽到的在琴上彈出來、打出來，或是選出名稱；下一題會優先出你常答錯的。',
   'home.ear.meta': '{n} 個等級',
   'home.harmony.text':
     '歌本和流行樂譜印在旋律上方的和弦記號，從三個大調的三和弦，到七和弦、斜線和弦和掛留和弦。每個和弦用任意排列彈出來，下一張閃卡會優先出你彈得慢的。還有任何調的和弦進行，左手按伴奏型，像樂曲一樣練習。',
@@ -477,7 +477,7 @@ export const zhTW: Dictionary = {
 
   'ear.title': '練耳',
   'ear.intro':
-    '聽兩個音、一個和弦、一段短旋律或樂句結尾的終止式，然後在琴上彈出來，或是選出它的名稱。',
+    '聽兩個音、一個和弦、一段短旋律、樂句結尾的終止式或一小節節奏，然後在琴上彈出來、打出來，或是選出它的名稱。',
   'ear.sound.needed': '練耳需要聲音：請把聲音輸出設為你的樂器或內建鋼琴。',
   'ear.sound.link': '到設定選擇聲音',
   'ear.family': '練習內容',
@@ -632,6 +632,39 @@ export const zhTW: Dictionary = {
   'ear.echo.same': '同一個音（{key}）',
   'ear.echo.up': '上行{name}',
   'ear.echo.down': '下行{name}',
+  'ear.family.rhythmEar': '節奏',
+  'ear.rhythm.level.stats': '{answers}/{window} 次作答 · 正確率 {accuracy}',
+  'ear.rhythm.level.rule':
+    '某個等級最近 40 次作答（不算按過「再聽一次」的）的正確率達到 90%，就算熟練了：打出來的每個節奏型算一次，選出來的每個小節算一次。想換等級隨時都可以換。',
+  'ear.rhythm.by.play': '打出來',
+  'ear.rhythm.by.name': '選出來',
+  'ear.rhythm.by.play.help':
+    '先是一小節節拍聲，然後在一個鍵上放出節奏，再來一小節節拍聲：跟著拍子把節奏打出來，任何琴鍵、字母鍵或按板都可以。',
+  'ear.rhythm.by.name.help':
+    '先是一小節節拍聲，然後在一個鍵上放出節奏：從三、四個小節裡選出你聽到的那一個，用按鈕或數字鍵都可以。',
+  'ear.rhythm.tempo.help': '每分鐘的拍數，每一級分別記住，和「識譜」裡的節奏練習共用。',
+  'ear.rhythm.tempo.help.compound':
+    '每分鐘的附點四分音符拍數，每一級分別記住，和「識譜」裡的節奏練習共用。',
+  'ear.rhythm.length': '每輪小節數',
+  'ear.rhythm.count': '第 {n} 小節，共 {total} 小節',
+  'ear.rhythm.countIn': '再數一小節：數完就打出來。',
+  'ear.rhythm.tap': '跟著節拍聲打出來。',
+  'ear.rhythm.choose': '你聽到的是哪一小節？',
+  'ear.rhythm.stopped': '已停止，這一遍沒有記錄。點「再聽一次」從頭開始這一小節。',
+  'ear.rhythm.keys': 'MIDI 鍵盤上任何鍵、下面的按板或電腦上任意字母鍵都能打；空白鍵是再聽一次。',
+  'ear.rhythm.tapped': '{total} 個節奏型裡打對 {right} 個',
+  'ear.rhythm.wrong': '不是這一個',
+  'ear.rhythm.wrong.choose': '你聽到的那一小節已經標出來了。',
+  'ear.rhythm.bar': '{meter} 拍的小節：{cells}',
+  'ear.rhythm.choices': '可選的小節',
+  'ear.rhythm.choice': '第 {n} 個：{cells}',
+  'ear.rhythm.cellResult': '第 {beat} 拍，{cell}：{timings}',
+  'ear.rhythm.next.help': '也可以按 Enter 鍵。',
+  'ear.rhythm.summary.bars': '小節數',
+  'ear.rhythm.missed.tapped': '{item}，打成了{as}',
+  'ear.rhythm.missed.chosen': '{item}，選成了{as}',
+  'ear.rhythm.missed.time': '{item}：音對了，但不在拍子上',
+  'ear.rhythm.missed.none': '{item}：打出的不成這個長度的任何節奏型',
 
   'harmony.title': '和聲',
   'harmony.practice.chords': '和弦',
@@ -787,6 +820,7 @@ export const zhTW: Dictionary = {
   'progress.kind.rhythm': '節奏練習',
   'progress.kind.chordSymbol': '和弦記號',
   'progress.kind.sight': '視奏',
+  'progress.kind.rhythmEar': '節奏聽寫',
   'progress.session.exercises': '練習數',
   'progress.session.scale': '音階',
   'progress.session.scaleOne': '{scale}，{octaves} 個八度',
@@ -861,6 +895,7 @@ export const zhTW: Dictionary = {
   'families.family.interval': '聽音程',
   'families.family.chord': '聽和弦',
   'families.family.echo': '聽旋律',
+  'families.family.rhythmEar': '聽節奏',
   'families.family.readInterval': '譜上的音程',
   'families.family.keySignature': '調號',
   'families.family.readChord': '譜上的和弦',
@@ -877,6 +912,8 @@ export const zhTW: Dictionary = {
   'families.filter.by.all': '全部',
   'families.filter.by.play': '彈出來',
   'families.filter.by.name': '選名稱',
+  'families.filter.by.play.rhythmEar': '打出來',
+  'families.filter.by.name.rhythmEar': '選出來',
   'families.emptyFilter': '這個等級還沒有這種方式的作答。',
   'families.weakest': '最弱的幾項',
   'families.weakest.none': '還沒有。一項作答滿 {n} 次之後才會列入排名。',
@@ -898,11 +935,15 @@ export const zhTW: Dictionary = {
     '每一列是一道題目，每一欄是一個答案，數字是答了幾次。對角線上的綠色格子是答對的；答錯的格子依它在這一列中所占的比例上色。',
   'families.confusion.help.echo':
     '每一列是旋律中的一步，也就是進入某個音的音程；每一欄是你實際彈出的那一步。錯音之前的每一步算答對，錯音之後的不計。',
+  'families.confusion.help.rhythmEar':
+    '每一列是聽到的一個節奏型，每一欄是你選成的節奏型，或是你在它那段時間裡打出的節奏型。答對的在對角線上，標成綠色；答錯的按它在這一列裡所占的比例著色。',
   'families.confusion.other.interval': '「其他」是彈出的鍵構不成這裡任何音程的答案。',
   'families.confusion.other.chord':
     '「其他」是彈出的鍵構不成這裡任何和弦的答案，以及和弦對了但根音或八度錯了的答案。',
   'families.confusion.other.echo': '「其他」是又彈了一次同一個鍵，或跳進超過了八度。',
   'families.confusion.other.chordSymbol': '「其他」是彈出的鍵在所問的根音上構不成任何和弦的答案。',
+  'families.confusion.other.rhythmEar':
+    '「其他」是打出的不成這個長度的任何節奏型，以及節奏型對了但不在拍子上的答案。',
   'families.confusion.label': '你答成了什麼：{family}',
   'families.confusion.asked': '題目',
   'families.confusion.answered': '答案',
@@ -1845,10 +1886,12 @@ export const zhTW: Dictionary = {
   'metronome.paused.scales': '已暫停：音階有自己的節拍器。',
   'metronome.paused.reading': '已暫停：節奏練習有自己的節拍聲。',
   'metronome.paused.calibration': '已暫停：正在進行延遲校正。',
+  'metronome.paused.dictation': '已暫停：節奏聽寫有自己的節拍聲。',
   'metronome.blocked.rhythm': '節奏模式正在使用自己的節拍器。',
   'metronome.blocked.scales': '音階正在使用自己的節拍器。',
   'metronome.blocked.reading': '節奏練習正在使用自己的節拍聲。',
   'metronome.blocked.calibration': '正在進行延遲校正。',
+  'metronome.blocked.dictation': '節奏聽寫正在使用自己的節拍聲。',
   'metronome.noAudio': '這個瀏覽器無法發出聲音（不支援 Web Audio），擺錘照樣打拍子。',
   'metronome.source':
     '聲音由這台裝置發出；大多數數位鋼琴無法透過 MIDI 播放節拍聲。擺錘跟著你聽到的聲音擺動；如果做過延遲校正，也會把它算進去。',

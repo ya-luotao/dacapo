@@ -32,8 +32,8 @@ export const EXPORT_FORMAT = 'dacapo';
  * with the click (their grid, and the tempo on their session's summary), version 8 the takes of
  * piece runs. New kinds of record in a list the file has (Echo answers, the theory cards' answers
  * and `theory` sessions, Read's rhythm answers and `rhythm` sessions, the chord symbols' answers
- * and `harmony` sessions) need no new version: an older build lists them among the records it
- * could not read, and imports the rest.
+ * and `harmony` sessions, rhythm dictation's answers and its `ear` sessions) need no new version:
+ * an older build lists them among the records it could not read, and imports the rest.
  */
 export const EXPORT_VERSION = 8;
 

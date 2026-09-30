@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { ledgerLineCount, staffPosition, type Clef, type Pitch } from '../../core/note.ts';
 import {
   GLYPH,
@@ -64,7 +64,7 @@ export interface StaffNote {
   stem?: 'up' | 'down';
   /** False when the caller draws a beam instead of the eighth's or sixteenth's flag. */
   flag?: boolean;
-  tone?: 'ink' | 'accent' | 'good' | 'bad' | 'faint';
+  tone?: 'ink' | 'accent' | 'good' | 'warn' | 'bad' | 'faint';
   /** Draw the accidental even when it is a natural (a courtesy natural). */
   natural?: boolean;
   /** Leave the accidental out: the key signature already gives it. */
@@ -115,8 +115,15 @@ interface EngravedStaffProps {
   reach?: Partial<Record<Clef, readonly [number, number]>>;
   label: string;
   className?: string;
+  /** The notes alone: no line, no barlines, cropped to them (a rhythm's figure in a table). */
+  bare?: boolean;
+  style?: CSSProperties;
   children?: ReactNode;
 }
+
+/** A bare drawing reaches from the stems' tops to below the ties, and a little round it. */
+const BARE_HEIGHT = 50;
+const BARE_MARGIN = 2;
 
 /** The staves a system has, and the clef each is read in (plain and rhythm read as treble). */
 function stavesOf(system: StaffSystem): Clef[] {
@@ -248,6 +255,8 @@ export function EngravedStaff({
   reach,
   label,
   className,
+  bare = false,
+  style,
   children,
 }: EngravedStaffProps) {
   const staves = stavesOf(system);
@@ -266,9 +275,14 @@ export function EngravedStaff({
   return (
     <svg
       className={className ? `engraved ${className}` : 'engraved'}
-      viewBox={`0 ${-above} ${width} ${height + above + below}`}
+      viewBox={
+        bare
+          ? `0 ${-above - BARE_MARGIN} ${width} ${above + BARE_HEIGHT + BARE_MARGIN}`
+          : `0 ${-above} ${width} ${height + above + below}`
+      }
       role="img"
       aria-label={label}
+      style={style}
       onPointerLeave={onHover ? () => onHover(null) : undefined}
     >
       {marks.map(({ clef, position, tone = 'accent' }) =>
@@ -293,7 +307,7 @@ export function EngravedStaff({
         ),
       )}
 
-      <g className="engraved-lines">
+      <g className="engraved-lines" display={bare ? 'none' : undefined}>
         {staves.flatMap((clef) =>
           lines.map((p) => (
             <line
@@ -315,6 +329,7 @@ export function EngravedStaff({
         <line className="engraved-bar" x1={right - 7} x2={right - 7} y1={barTop} y2={barBottom} />
       </g>
       <rect
+        display={bare ? 'none' : undefined}
         className="engraved-final"
         x={right - 4}
         y={barTop}
