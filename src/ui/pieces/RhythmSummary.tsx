@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import {
   IN_TIME_MS,
   TENDENCY_MS,
@@ -20,6 +20,8 @@ interface RhythmSummaryProps {
   /** Loop the written bars of a stretch. */
   onLoopBars: (from: number, to: number) => void;
   onClose: () => void;
+  /** The run's Expression panel. */
+  expression?: ReactNode;
 }
 
 /** The end of a rhythm run: the figures, the tendency, where the tempo moved, and every note. */
@@ -31,6 +33,7 @@ export function RhythmSummary({
   onAgain,
   onLoopBars,
   onClose,
+  expression,
 }: RhythmSummaryProps) {
   const { t, locale } = useI18n();
   const heading = useRef<HTMLHeadingElement>(null);
@@ -139,6 +142,7 @@ export function RhythmSummary({
       </p>
       <DeviationChart summary={summary} format={format} />
       <p className="help">{t('pieces.rhythm.saved')}</p>
+      {expression}
     </section>
   );
 }

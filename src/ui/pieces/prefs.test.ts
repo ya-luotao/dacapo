@@ -27,10 +27,27 @@ describe('per-piece preferences', () => {
     writePiecePrefs('minuet', { hands: 'left' });
     writePiecePrefs('minuet', { tempo: 70, mode: 'rhythm' });
     writePiecePrefs('ode', { tempo: 50 });
-    expect(readPiecePrefs('minuet')).toEqual({ hands: 'left', tempo: 70, mode: 'rhythm' });
-    // A piece not practised yet starts with the hands chosen last anywhere, at 100 %, waiting.
-    expect(readPiecePrefs('prelude')).toEqual({ hands: 'left', tempo: 100, mode: 'wait' });
-    expect(readPiecePrefs('ode')).toEqual({ hands: 'left', tempo: 50, mode: 'wait' });
+    writePiecePrefs('minuet', { melody: 'top' });
+    expect(readPiecePrefs('minuet')).toEqual({
+      hands: 'left',
+      tempo: 70,
+      mode: 'rhythm',
+      melody: 'top',
+    });
+    // A piece not practised yet starts with the hands chosen last anywhere, at 100 %, waiting,
+    // the melody on top of the right hand.
+    expect(readPiecePrefs('prelude')).toEqual({
+      hands: 'left',
+      tempo: 100,
+      mode: 'wait',
+      melody: 'right',
+    });
+    expect(readPiecePrefs('ode')).toEqual({
+      hands: 'left',
+      tempo: 50,
+      mode: 'wait',
+      melody: 'right',
+    });
     writePiecePrefs('ode', { hands: 'both' });
     expect(readPiecePrefs('minuet').hands).toBe('left');
     expect(localStorage.getItem(HANDS_PREF)).toBe('both');
@@ -48,7 +65,7 @@ describe('per-piece preferences', () => {
     expect(
       parsePiecePrefs(
         JSON.stringify({
-          a: { hands: 'feet', tempo: 55, mode: 'jazz' },
+          a: { hands: 'feet', tempo: 55, mode: 'jazz', melody: 'alto' },
           b: 3,
           c: { hands: 'right', tempo: 80, mode: 'rhythm' },
         }),
@@ -66,6 +83,11 @@ describe('per-piece preferences', () => {
       },
     });
     writePiecePrefs('x', { hands: 'both' });
-    expect(readPiecePrefs('x')).toEqual({ hands: 'right', tempo: 100, mode: 'wait' });
+    expect(readPiecePrefs('x')).toEqual({
+      hands: 'right',
+      tempo: 100,
+      mode: 'wait',
+      melody: 'right',
+    });
   });
 });

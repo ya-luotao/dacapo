@@ -133,6 +133,9 @@ Chinese and Latin letters, digits and placeholders (`第 {n} 张`, `MIDI 键盘`
 | natural sign / root pos., 1st inv.          | 还原号 / 原位、第一转位                  |
 | Ear training and theory (Progress)          | 练耳与乐理卡片                           |
 | what you answer instead / Other             | 你答成了什么 / 其他                      |
+| expression / dynamics / balance             | 表现 / 力度 / 声部平衡                   |
+| crescendo / diminuendo / accent / sf        | 渐强 / 渐弱 / 重音 / 突强                |
+| melody / accompaniment / your runs          | 旋律 / 伴奏 / 弹奏记录                   |
 
 ## Traditional Chinese, Taiwan (`zh-TW`)
 
@@ -195,6 +198,9 @@ terms throughout. Address the learner as 你, as zh-CN does.
 | natural sign / 1st inversion              | 還原記號 / 第一轉位                  | 还原号 / 第一转位          |
 | Ear training and theory (Progress)        | 練耳與樂理閃卡                       | 练耳与乐理卡片             |
 | what you answer instead / row, column     | 你答成了什麼 / 列、欄                | 你答成了什么 / 行、列      |
+| expression / dynamics / balance           | 表情 / 力度 / 聲部平衡               | 表现 / 力度 / 声部平衡     |
+| crescendo / diminuendo / accent           | 漸強 / 漸弱 / 重音                   | 渐强 / 渐弱                |
+| melody / accompaniment / your runs        | 旋律 / 伴奏 / 彈奏紀錄               | 弹奏记录                   |
 
 Keys in titles: `G 大調`, `C 大調`. Composers as Taiwan writes them: 貝多芬, 巴哈 (not 巴赫), 舒曼,
 布爾格彌勒.
@@ -255,6 +261,9 @@ verb phrases for labels and buttons (設定, 開始, もう一度, 補正する)
 | natural sign / 1st inversion (button)       | ナチュラル / 第1転回                             |
 | Ear training and theory (Progress)          | 聴音と楽典カード                                 |
 | what you answer instead / Other             | 代わりに何と答えたか / その他                    |
+| expression / dynamics / balance             | 表現 / 強弱 / 声部のバランス                     |
+| crescendo / diminuendo / accent (the sign)  | クレッシェンド / ディミヌエンド / アクセント     |
+| melody / accompaniment / your runs          | 旋律 / 伴奏 / これまでの演奏                     |
 
 Keys in titles follow Japanese editions: ハ長調, ト長調. Middle C is 中央C. Scale names on the Scales
 page keep the letter names of the app (`D長音階`, `G♯和声的短音階`), not ニ長音階.
@@ -316,6 +325,9 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 | natural sign / 1st inversion (button)       | 제자리표 / 제1전위                                                   |
 | Ear training and theory (Progress)          | 청음과 이론 카드                                                     |
 | what you answer instead / Other             | 정답 대신 고른 답 / 기타                                             |
+| expression / dynamics / balance             | 표현 / 셈여림 / 성부 균형                                            |
+| crescendo / diminuendo / accent (the sign)  | 크레셴도 / 디미누엔도 / 악센트 (the sign; 강세 stays the beat's)     |
+| melody / accompaniment / your runs          | 선율 / 반주 / 지난 연주                                              |
 
 Keys in titles use letters: G장조, C장조, matching the letter names in the app. Composer names
 follow the National Institute of Korean Language: 루트비히 판 베토벤, 요한 제바스티안 바흐.

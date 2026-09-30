@@ -1,7 +1,7 @@
 # dacapo — Expression specification
 
-Status: X0 is built (the markings, their sound in playback, takes, the library's markings); X1–X4
-are planned. This extends [MVP.md](MVP.md) and
+Status: X0 is built (the markings, their sound in playback, takes, the library's markings) and X1
+(dynamics and balance, the Expression panel, a piece's past runs); X2–X4 are planned. This extends [MVP.md](MVP.md) and
 [PIECES.md](PIECES.md); their principles and fixed decisions still apply (staff first, measure don't
 guess, local data, English of record, every UI language, 3-day dependency cooldown, no backend).
 
@@ -218,11 +218,96 @@ page has the development-only "Save this run" button that Scales has.
 - **Import report.** `grace-notes` and `ornaments` are no longer reported. Pieces imported before
   keep them in their stored warnings (so their synced copies stay the same) and they are not shown.
 
+## Clarifications (decided during X1)
+
+- **Reading the take.** Each key down that names a step is matched to the note of that step with
+  its key; wrong and extra keys are left out. A key struck again on its step before the step was
+  complete (wait mode) counts once, as its last stroke. A key up ends the key's last stroke, and a
+  second key down with no key up between ends the first there. The sustain pedal is down from 64
+  (as MIDI has it) and a note is "held by the pedal" when it was down at its key up, in the order
+  the take has them. The rounds of a loop: in wait mode a step earlier than the one before starts a
+  new round; in rhythm mode a key goes to the round whose due time (the take's time less the
+  latency) is nearest.
+- **Velocity measured**, as Scales decides it: some key down has a velocity different from the
+  others. Without it (the computer keyboard, the on-screen keys, a fixed touch) the Dynamics tab
+  says so and shows and judges nothing on loudness.
+- **The range** is P5–P95 of the velocities of the run's notes of the score (wrong and extra keys
+  left out). The steps (`DYNAMIC_STEP`, `ACCENT_STEP`, `BALANCE_STEP`) are its shares, at least
+  their floors, as specified. Everything is judged only within what the run played: from its first
+  note of the score to its last, so a rhythm run stopped early is not judged on what was never
+  reached. The panel tells apart a stretch the score marks nothing in (only the curve and the
+  balance), one that keeps a single level with no hairpin or accent (nothing to judge: the
+  Soldiers' March's repeated `f`), and markings too short or too little played to judge.
+- **The curve's beats** are the click's (the dotted beat in 6/8, 9/8, 12/8), each hand's median of
+  the notes begun in the beat, over the bars from the run's first note to its last, round after
+  round; a beat without a note is a gap. The dynamics, hairpins (a wedge, or _cresc._ and _dim._
+  with their dashes) and accents are drawn above the bar numbers; a dynamic that would run into
+  the one before is left out of the drawing only.
+- **Levels.** A dynamic applies to its whole part, whichever staff it is written on (piano
+  editions print one between the staves). The same level written again, or on both staves at one
+  place, is no change; `fp`, `sfp`, `sfzp` and `sfpp` accent their note and leave `p` (`pp`) in
+  force. A passage's loudness is the median velocity of its notes, both hands, without the notes
+  under a hairpin and the accented ones (a passage marked `p` that grows into `f` is not a soft
+  passage). Both passages need two beats and three written notes, else the change is not judged;
+  with fewer than three notes played either side it is **missed**. The change is heard across the
+  mark: its bars are the bar before a mark on a barline and the mark's bar.
+- **The wrong way round** is a change the other way of at least a whole step
+  (`WRONG_WAY_SHARE`); less, or none, is **too little**.
+- **Too much.** A change of level is too much when it takes more of the run's range than its share
+  of the levels marked in what was played plus `TOO_MUCH_SHARE` (0.3): mp to mf in a piece marked
+  from p to f (a third of its levels) is too much from 0.63 of the range. The widest contrast
+  marked is never too much, since the range is the run's own; nor are hairpins and accents (an
+  accent's height has no upper bound the run can set).
+- **Hairpins** are judged on the hand of the staff they are written on (Morning Prayer's
+  diminuendo in bar 17 is the left hand's), and not when that hand is not practised. The line is a
+  Theil–Sen fit through the loudest note of each of that hand's steps (a chord's melody) from the
+  hairpin's start to its end, the arrival included, accented steps left out, every round
+  together; its rise is the slope times the hairpin's length. A hairpin needs two beats and three
+  steps of its hand, all within what the run played. The same hairpin on two staves of one hand is
+  one.
+- **Accents.** `accent` and `strong-accent` are on their note, and accent its hand's chord there;
+  `sf`, `sfz`, `sffz`, `fz`, `rf`, `rfz` (and the `fp` family) the chord of their staff's hand at
+  that place, else of the other hand of the part struck there. The chord's loudest note (an accent
+  on an inner note lifts the chord as heard) is compared with the median of the loudest note of up
+  to three steps of the same hand on each side that carry no accent; over the rounds of a loop,
+  the median. Not above the neighbours it is **not accented**; an accented chord not played is
+  **missed**.
+- **Balance.** At each step (per round) where the melody's hand plays, the melody is its top note
+  (or the top of all the notes, "top of both hands"); the notes struck with it are every other
+  note within 30 ms, which must include one of the other hand, so the balance is measured with
+  both hands only. Per bar, the median of melody − median(the others): balanced (at least a
+  `BALANCE_STEP`), equal, or the accompaniment on top. The figure "Melody on top" is the share of
+  those places balanced. The melody's hand is kept with the piece's other preferences in this
+  browser (`melody` in `dacapo.pieces.byPiece`) and chosen in the Dynamics tab.
+- **Bars to look at**: every judged marking not right (the wrong way round 3, too little, too much
+  and missed 2) and every bar where the accompaniment is on top (2) or equally loud (1), summed
+  per place; a place is a marking's bars or a bar of the balance. The three heaviest, then in the
+  order of the score, each with what went wrong there and a button that loops those written bars
+  (as "Loop the weakest bars" does).
+- **Where a marking is** reads as its bars, with the beat when it starts inside a bar
+  ("bar 13, beat 3") and "(repeat)" on a repeat's later passes.
+- **The panel** closes both summaries, below their own figures; its tabs are an ARIA tab list
+  (arrow keys, Home, End). Its table view lists the judged markings with their change and the
+  least change needed in velocity units, and every bar played with each hand's median and the
+  balance.
+- **Past runs.** Options has **Your runs**, a sheet over the score listing the piece's runs, most
+  recent first (when, mode, hands, bars, tempo, time), ten at a time. Each row's actions are
+  open-ended (P5's Play back joins Expression there). Opening one reads its take then (by session)
+  and computes its expression with the hands, repeats, loop and tempo of its session and the
+  latency of its take; the start bar is not needed, since time 0 is the span's start. A run from
+  before takes, or of another version of the notes (the take's checksum), says so.
+- **Development export.** In a development build the panel ends with "Save this run
+  (development)", which downloads the run's take with a reference to its score (piece id and
+  checksum, title), its settings (mode, hands, repeats, loop, tempo, latency, start), the MIDI
+  inputs connected and `ANALYSIS_VERSION`, as `piece-take-<piece>-<start>.json`.
+- **Thresholds are provisional**: the shares above wait for runs recorded on real instruments (the
+  MP11SE first), as S1's do.
+
 ## Milestones
 
 1. ✓ **X0 Markings and takes** — markings in the parser and score, grace notes and ornaments
    realised in playback, the `takes` store (synced, exported), the library's markings.
-2. **X1 Dynamics and balance** — curve, markings, balance, the Expression panel.
+2. ✓ **X1 Dynamics and balance** — curve, markings, balance, the Expression panel.
 3. **X2 Articulation** — held lengths, slurs, staccato, tenuto.
 4. **X3 Pedal** — the pedal line, changes, gaps and blurs.
 5. **X4 Ornaments** — accepted in wait and rhythm mode, the keyboard hint.

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import type { RunSummary as Summary } from '../../core/pieceRun.ts';
 import { useT } from '../../i18n/index.ts';
 import { useLogFormat } from '../progress/format.ts';
@@ -11,10 +11,19 @@ interface RunSummaryProps {
   format: ReturnType<typeof usePieceFormat>;
   onAgain: () => void;
   onLoopBar: (bar: number) => void;
+  /** The run's Expression panel. */
+  expression?: ReactNode;
 }
 
 /** The end of a run: a sheet laid over the score. */
-export function RunSummary({ summary, looped, format, onAgain, onLoopBar }: RunSummaryProps) {
+export function RunSummary({
+  summary,
+  looped,
+  format,
+  onAgain,
+  onLoopBar,
+  expression,
+}: RunSummaryProps) {
   const t = useT();
   const log = useLogFormat();
   const heading = useRef<HTMLHeadingElement>(null);
@@ -69,6 +78,7 @@ export function RunSummary({ summary, looped, format, onAgain, onLoopBar }: RunS
           </button>
         )}
       </div>
+      {expression}
     </section>
   );
 }

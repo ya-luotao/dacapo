@@ -5534,6 +5534,458 @@ select.is-compact {
   font-variant-numeric: tabular-nums;
 }
 
+/* The Expression panel of a run (docs/EXPRESSION.md): a tab per aspect, its chart under the bar
+   numbers, every judged marking in words, the bars to look at, a table view. */
+.piece-summary:has(.expression) {
+  max-width: 44rem;
+}
+
+.expression {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.expression-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.expression-head h3 {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.expression-head h3:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-weight: 600;
+}
+
+.expression-tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: -1px;
+}
+
+.expression-tab {
+  min-height: 2.75rem;
+  padding: 0.5rem 0.875rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.expression-tab[aria-selected='true'] {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+}
+
+@media (hover: hover) {
+  .expression-tab[aria-selected='false']:hover {
+    color: var(--text);
+  }
+}
+
+.expression-tab:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -4px;
+}
+
+.expression-panel {
+  padding-top: 0.25rem;
+}
+
+.expression .figures {
+  max-width: none;
+  margin: 0.75rem 0;
+}
+
+.expression .figures div {
+  padding-block: 0.375rem 0.5rem;
+}
+
+.expression .figures dt {
+  font-size: 0.75rem;
+}
+
+.expression .figures dd {
+  margin-top: 0.125rem;
+  font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem);
+}
+
+.expression-note {
+  max-width: 40rem;
+  margin: 0.5rem 0;
+  text-wrap: pretty;
+}
+
+.expression-section {
+  margin-top: 1rem;
+}
+
+.expression-section h4 {
+  margin: 0 0 0.375rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.expression-section h4:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+}
+
+.expression-judgements {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.expression-judgements li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  padding: 0.375rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.expression-what {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.75rem;
+  min-width: 0;
+}
+
+.expression-where {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.expression-verdict {
+  flex: none;
+  padding: 0.0625rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.expression-verdict.is-ok {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.expression-verdict.is-warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.expression-verdict.is-bad {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+.expression-melody {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  font-size: 0.9375rem;
+}
+
+.expression-look {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.expression-look li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.375rem 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.expression-look li > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.expression-look ul {
+  margin: 0.125rem 0 0;
+  padding: 0;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  list-style: none;
+}
+
+.expression-look ul li {
+  display: block;
+  padding: 0;
+  border: 0;
+  text-wrap: pretty;
+}
+
+.expression .history-details {
+  margin-top: 1rem;
+}
+
+.expression-table caption {
+  padding-top: 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: start;
+}
+
+.expression-dev {
+  margin: 1rem 0 0;
+}
+
+.dynamics-chart {
+  margin: 1rem 0 0;
+}
+
+.dynamics-chart figcaption {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.dynamics-chart figcaption:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+}
+
+.dynamics-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0.375rem 0 0;
+  padding: 0;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  list-style: none;
+}
+
+.dynamics-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.dynamics-legend svg {
+  width: 1.75rem;
+  height: 0.625rem;
+  overflow: visible;
+}
+
+.dynamics-legend-balance {
+  flex-wrap: wrap;
+  column-gap: 0.875rem !important;
+}
+
+.dynamics-frame {
+  position: relative;
+  margin-top: 0.25rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+/* On a phone the chart keeps a readable size and scrolls sideways. */
+.dynamics-frame svg {
+  display: block;
+  width: 100%;
+  min-width: 34rem;
+  height: auto;
+  overflow: visible;
+  font-family: var(--font-sans);
+  touch-action: pan-y;
+}
+
+.dynamics-band {
+  fill: color-mix(in oklab, var(--text) 7%, var(--surface));
+}
+
+.dynamics-axis,
+.dynamics-bar text,
+.dynamics-words text {
+  fill: var(--text-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.dynamics-bar line {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.dynamics-bar.is-round line {
+  stroke: var(--text-muted);
+  stroke-dasharray: 3 3;
+}
+
+.dynamics-mark {
+  fill: var(--text);
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 700;
+}
+
+.dynamics-hairpin,
+.dynamics-words line,
+.dynamics-accent {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dynamics-words line {
+  stroke-dasharray: 3 3;
+}
+
+.dynamics-words text {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-style: italic;
+  fill: var(--text);
+}
+
+.dynamics-line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.dynamics-line.is-right {
+  stroke: var(--accent);
+}
+
+.dynamics-line.is-left {
+  stroke: var(--text-muted);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 3;
+}
+
+.dynamics-dot.is-right {
+  fill: var(--accent);
+}
+
+.dynamics-dot.is-left {
+  fill: var(--surface);
+  stroke: var(--text-muted);
+  stroke-width: 1.25;
+}
+
+.dynamics-hover {
+  stroke: var(--text);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+.dynamics-balance {
+  font-size: 10px;
+}
+
+.dynamics-balance.is-balanced {
+  fill: var(--ok);
+}
+
+.dynamics-balance.is-equal {
+  fill: var(--text-muted);
+}
+
+.dynamics-balance.is-under {
+  fill: var(--bad);
+}
+
+.dynamics-chart .help {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+}
+
+/* "Your runs": the piece's past runs, laid over the score. */
+.your-runs {
+  max-width: 44rem;
+}
+
+.your-runs .weak-table-head .actions {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.your-runs-facts {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.run-list {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.run-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.375rem 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.run-facts {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.run-facts time {
+  font-weight: 600;
+}
+
+.run-facts span {
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.run-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.run-more {
+  margin-top: 0.75rem;
+}
+
 /* Scales: the choice of scale, the score of it, the keyboard, and after a run how even it was. */
 
 .scale-picker {

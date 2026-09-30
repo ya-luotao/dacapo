@@ -12,6 +12,7 @@ import {
 import { flushSync } from 'react-dom';
 import { Link } from 'wouter';
 import { barHeatmap, weakestLoop, type BarMetric } from '../../core/barHeatmap.ts';
+import { analyzeExpression, type Melody } from '../../core/expression.ts';
 import { parseMeter, tempoForMeter } from '../../core/metronomeSettings.ts';
 import { midiName } from '../../core/note.ts';
 import type { PracticeMode } from '../../core/pieceRecords.ts';
@@ -29,6 +30,7 @@ import { summarizeRhythm } from '../../core/rhythmRun.ts';
 import { playOrder, type RepeatMode } from '../../core/repeats.ts';
 import { buildSteps, keyRange, type HandSelection } from '../../core/score.ts';
 import { waitRange, type BarLoop, type WaitState } from '../../core/wait.ts';
+import type { TakeState } from '../../core/takes.ts';
 import { useT } from '../../i18n/index.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
 import { createAccompanist } from '../../output/accompany.ts';
@@ -65,6 +67,9 @@ import { useBarFormat } from './barFormat.ts';
 import { FocusBar, FocusEnter } from '../focus/FocusBar.tsx';
 import { useFocusState } from '../focus/focus.ts';
 import { BarTargets, BarTints, WeakBarsBar, WeakBarsTable } from './WeakBars.tsx';
+import { ExpressionPanel } from './ExpressionPanel.tsx';
+import { SaveTake } from './SaveTake.tsx';
+import { YourRuns } from './YourRuns.tsx';
 import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
 
 const SHOW_KEYS_PREF = 'dacapo.pieces.showKeys';
@@ -105,6 +110,9 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
   const [showKeys, setShowKeysState] = useState(() => readPref(SHOW_KEYS_PREF) === '1');
   const [scoreStatus, setScoreStatus] = useState<ScoreStatus>({ state: 'loading' });
   const [tempo, setTempo] = useState(prefs.tempo);
+  const [melody, setMelodyState] = useState<Melody>(prefs.melody);
+  /** "Your runs", laid over the score. */
+  const [runsOpen, setRunsOpen] = useState(false);
   const [weakBars, setWeakBarsState] = useState(() => readPref(WEAK_BARS_PREF) === '1');
   const [metric, setMetric] = useState<BarMetric>(metricOf(prefs.mode));
   const [table, setTable] = useState(false);
@@ -129,6 +137,8 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
     () => metronome.block('rhythm'),
   );
   const [rhythm, dispatchRhythm] = useReducer(rhythmReducer, newRunId(), idleRhythm);
+  /** What the rhythm run was started with: its result is read against it, whatever changes since. */
+  const [rhythmSettings, setRhythmSettings] = useState<RunSettings | null>(null);
   const inTime = beat.state !== 'stopped';
   const rhythmMode = mode === 'rhythm';
 
@@ -387,6 +397,7 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
       onEnd: (reason) => dispatchRhythm({ type: 'end', reason }),
     });
     takeOpen.current = true;
+    setRhythmSettings({ hands, repeats, loop, tempo, latency });
     dispatchRhythm({
       type: 'start',
       id,
@@ -481,6 +492,20 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
     settle();
   }
 
+  function setMelody(next: Melody) {
+    setMelodyState(next);
+    writePiecePrefs(piece.id, { melody: next });
+  }
+
+  /** Loops written bars from an Expression panel: the next run plays them. */
+  function loopBars(from: number, to: number) {
+    setRunsOpen(false);
+    setLoop({ from, to });
+    setStartBar(from);
+    dispatchRhythm({ type: 'reset', id: newRunId() });
+    settle();
+  }
+
   function setShowKeys(next: boolean) {
     setShowKeysState(next);
     writePref(SHOW_KEYS_PREF, next ? '1' : null);
@@ -510,6 +535,79 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
         : null,
     [rhythmMode, rhythm],
   );
+
+  // The run's expression, from its take (docs/EXPRESSION.md): once it is over, and again as the
+  // keys held at the end are let go.
+  const waitTake = done ? run.take : null;
+  const waitExpression = useMemo(
+    () =>
+      waitTake
+        ? analyzeExpression({
+            score,
+            hands,
+            repeats,
+            loop,
+            mode: 'wait',
+            events: waitTake.events,
+            melody,
+          })
+        : null,
+    [waitTake, score, hands, repeats, loop, melody],
+  );
+  const rhythmTake = rhythmSummary ? rhythm.take : null;
+  const rhythmExpression = useMemo(
+    () =>
+      rhythmTake && rhythmSettings
+        ? analyzeExpression({
+            score,
+            hands: rhythmSettings.hands,
+            repeats: rhythmSettings.repeats,
+            loop: rhythmSettings.loop,
+            mode: 'rhythm',
+            scale: rhythmSettings.tempo / 100,
+            latency: rhythmSettings.latency,
+            events: rhythmTake.events,
+            melody,
+          })
+        : null,
+    [rhythmTake, rhythmSettings, score, melody],
+  );
+  const expressionPanel = (
+    analysis: ReturnType<typeof analyzeExpression> | null,
+    settings: RunSettings,
+    take: TakeState | null,
+    mode: PracticeMode,
+  ) =>
+    analysis && (
+      <ExpressionPanel
+        analysis={analysis}
+        format={format}
+        hands={settings.hands}
+        melody={melody}
+        onMelody={setMelody}
+        onLoopBars={loopBars}
+        footer={
+          import.meta.env.DEV &&
+          take && (
+            <SaveTake
+              run={{
+                pieceId: piece.id,
+                checksum: piece.facts.checksum,
+                title: piece.title,
+                mode,
+                hands: settings.hands,
+                repeats: settings.repeats,
+                loop: settings.loop,
+                tempo: settings.tempo,
+                latency: settings.latency,
+                startedAt: take.startedAt,
+                events: take.events.map((e) => [...e]),
+              }}
+            />
+          )
+        }
+      />
+    );
 
   const keys = useMemo(() => {
     const span = keyRange(score, 'both') ?? [60, 72];
@@ -852,6 +950,20 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
               </span>
             </div>
 
+            <p className="piece-option">
+              <button
+                type="button"
+                className="button is-compact"
+                disabled={inTime}
+                onClick={() => {
+                  if (options.current) options.current.open = false;
+                  setRunsOpen(true);
+                }}
+              >
+                {t('pieces.runs')}
+              </button>
+            </p>
+
             {rhythmMode && (
               <p className="piece-option piece-latency">
                 <span>
@@ -918,7 +1030,7 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
             </p>
           </div>
         )}
-        {table && weakBars && !summary && !rhythmSummary && (
+        {table && weakBars && !summary && !rhythmSummary && !runsOpen && (
           <WeakBarsTable
             cells={heat.cells}
             format={barFormat}
@@ -928,7 +1040,7 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
             }}
           />
         )}
-        {summary && (
+        {summary && !runsOpen && (
           <RunSummary
             summary={summary}
             looped={run.ended}
@@ -938,9 +1050,15 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
               setLoop({ from: bar, to: bar });
               settle();
             }}
+            expression={expressionPanel(
+              waitExpression,
+              { hands, repeats, loop, tempo, latency: 0 },
+              run.take,
+              'wait',
+            )}
           />
         )}
-        {rhythmSummary && !calibration && (
+        {rhythmSummary && !calibration && !runsOpen && (
           <RhythmSummary
             summary={rhythmSummary}
             done={rhythm.end === 'done'}
@@ -955,6 +1073,25 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
             }}
             onClose={() => {
               dispatchRhythm({ type: 'hide' });
+              settle();
+            }}
+            expression={
+              rhythmSettings &&
+              expressionPanel(rhythmExpression, rhythmSettings, rhythm.take, 'rhythm')
+            }
+          />
+        )}
+        {runsOpen && (
+          <YourRuns
+            pieceId={piece.id}
+            checksum={piece.facts.checksum}
+            score={score}
+            format={format}
+            melody={melody}
+            onMelody={setMelody}
+            onLoopBars={loopBars}
+            onClose={() => {
+              setRunsOpen(false);
               settle();
             }}
           />
@@ -1112,6 +1249,17 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
       )}
     </section>
   );
+}
+
+/** What a run was practised with, for reading its take. */
+interface RunSettings {
+  hands: HandSelection;
+  repeats: RepeatMode;
+  loop: BarLoop | null;
+  /** Percent of the score's tempo. */
+  tempo: number;
+  /** Rhythm mode: the latency taken off every key. */
+  latency: number;
 }
 
 const NO_WRONG: ReadonlySet<number> = new Set();

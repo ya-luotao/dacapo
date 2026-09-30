@@ -56,6 +56,25 @@ click's tempo and grid of scale runs played with it (from version 7), and the ta
   open is rebuilt from its answers. Sync learns them (`SYNC_SCHEMA` 6): a device that updates
   pulls everything again once. The export file needs no new version for them.
 
+### Dynamics and balance (X1, [docs/EXPRESSION.md](docs/EXPRESSION.md))
+
+- **Expression** after every run of a piece, in wait and rhythm mode: the Dynamics tab draws how
+  loud each hand played, beat by beat, under the bar numbers with the score's dynamics and
+  hairpins above, and says of every marking in words whether it was played right, too little, too
+  much, the wrong way round or missed: each change of level (p to f), each crescendo and
+  diminuendo, each accent and sf. Loudness is judged against your own range in the run, never an
+  absolute velocity, since keyboards differ; the computer keyboard and the on-screen keys measure
+  none, and the panel says so.
+- **Balance**: where both hands play together, whether the melody sounds over the accompaniment,
+  per bar. The melody is the top note of the right hand, or of the left hand or of both, a choice
+  kept per piece.
+- **Bars to look at**: the three places where the dynamics went furthest astray, each with a
+  button to loop them, and a table view of every marking and bar.
+- **Your runs** (under Options on a piece): the piece's past runs, each with its Expression panel,
+  computed from its take when you open it.
+- The thresholds are provisional until runs recorded on real instruments set them; a development
+  build can save a run's take for that.
+
 ### The score's markings, and takes (X0, [docs/EXPRESSION.md](docs/EXPRESSION.md))
 
 - Pieces now keep what the score marks besides the notes: dynamics and hairpins (and _cresc._ or

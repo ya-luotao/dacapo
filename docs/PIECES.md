@@ -189,6 +189,11 @@ for drawing.
   last bar have moved at least 30 ms from its first, and the change is at least 5 standard errors
   from noise; the clearest wins, and a shorter one inside it nearly as clear and steeper is
   preferred. A drift over the whole run is reported as such when it is the clearest.
+- **Expression (EXPRESSION.md, X1).** Both summaries, wait and rhythm, end with the run's
+  Expression panel, computed from its take: the Dynamics tab (the loudness per hand and beat under
+  the bar numbers with the score's dynamics above, every dynamic, hairpin and accent judged in
+  words, the balance of melody over accompaniment, the bars to look at, each loopable, and a table
+  view). Options has **Your runs**: the piece's past runs, each with its Expression panel.
 - **Rhythm records.** Rhythm steps go into the same `pieceSteps` store with `mode: 'rhythm'` and
   `notes` (each key's deviation in whole ms, or null when missed); `ms` is the step's share of the
   run at its tempo and `wrong` its extra notes, so session time and the log work unchanged. No
