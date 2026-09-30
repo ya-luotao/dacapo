@@ -153,6 +153,18 @@ export const LESSONS: readonly LessonInfo[] = [
     ready: true,
     practice: '/pieces',
   },
+  {
+    slug: 'chords',
+    title: { en: 'Chords and harmony', 'zh-CN': '和弦与和声' },
+    summary: {
+      en: 'Triads and their inversions, the chords of a key and their numerals, seventh chords, cadences, chord symbols, and the harmony in a piece.',
+      'zh-CN':
+        '三和弦和它的转位，一个调里的和弦和级数，七和弦，终止式，和弦记号，以及怎样找出曲子里的和声。',
+    },
+    minutes: 20,
+    ready: true,
+    practice: '/ear',
+  },
 ];
 
 /**

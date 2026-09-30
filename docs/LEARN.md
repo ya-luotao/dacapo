@@ -21,6 +21,7 @@ the computer keyboard, a click or a tap, like the Play page.
 | 10  | `dynamics`         | Loud and soft, joined and detached   | written |
 | 11  | `pedals`           | The pedals                           | written |
 | 12  | `ornaments`        | Ornaments                            | written |
+| 13  | `chords`           | Chords and harmony                   | written |
 
 Beside them, not numbered: **Inside the piano** (`inside`), one key of a grand piano's action in
 cross-section, moving as you play. Its motion comes from `src/core/pianoAction.ts`: the key, the
@@ -96,6 +97,19 @@ Fine") are replaced by what works in Chinese.
   play, slowly or at tempo. The examples are in the style of the library's minuets; the mordent
   is bar 5 of the Minuet in G. The line (`OrnamentStaff`) beams any group of eighths, sixteenths
   and 32nds, one way by the group's average, lengthening the stems to the beam.
+- `harmonyFigures.tsx` has lesson 13's: a chord built in thirds on any root (C, D, E, F, G, A or
+  B♭, whose every triad and seventh chord is spelled without a double sharp or flat), written one
+  note after another and then stacked, heard broken and together, in root position or either
+  inversion; the seven triads of a major key after its signature, each under its symbol and over
+  its roman numeral; chords on the grand staff (a phrase ending with each cadence, V and V7 going
+  to I, and the first four bars of Bach's Prelude in C folded into chords and heard as written);
+  and the exercise that asks for a chord (`ChordQuiz`). It judges as the Ear page does
+  (`judgeChordKeys`), by pitch classes in any voicing and octave, with the bass lowest for a slash
+  chord, but on every key pressed since the question began rather than the keys held, so a chord
+  can be clicked a note at a time; keys still arriving from a judged chord (250 ms) are not the
+  next answer. `harmony.ts` spells, inverts, names and judges the chords. The staff staggers the
+  accidentals of a chord (a sixth or closer goes a column further left) and sets the upper note of
+  a second beside the lower.
 - An exercise that needs something not everyone has (a keyboard that senses touch, a sustain
   pedal) says so when no MIDI keyboard is connected and can always be skipped; the lesson is
   finished by its last exercise, which anyone can do. Lesson 10's crescendo passes when every

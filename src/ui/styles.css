@@ -8826,3 +8826,61 @@ select.is-compact {
 .ornament-label:lang(zh) {
   letter-spacing: 0.08em;
 }
+
+/* Lesson 13: a chord broken and stacked, the chords of a key, chords on the grand staff, and a
+   chord symbol printed large for the exercise. */
+.plate-staff.is-key-chords {
+  max-width: 36rem;
+}
+
+.plate-staff.is-grand.is-chord-row {
+  max-width: 30rem;
+}
+
+.chord-symbol {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-serif);
+  font-size: 2.75rem;
+  font-weight: 500;
+  line-height: 1.1;
+  text-align: center;
+}
+
+/* Four choices side by side do not fit a phone: two by two there. */
+@media (max-width: 34rem) {
+  .plate-choices.is-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    white-space: normal;
+  }
+
+  .plate-choices.is-grid label:nth-child(odd) span {
+    border-left: none;
+  }
+
+  .plate-choices.is-grid label:nth-child(n + 3) span {
+    border-top: 1px solid var(--border);
+  }
+}
+
+/* Choices with long names share a phone's width, each name on two lines if need be. */
+@media (max-width: 34rem) {
+  .plate-choices.is-fit {
+    display: flex;
+    width: 100%;
+    white-space: normal;
+  }
+
+  .plate-choices.is-fit label {
+    flex: 1;
+  }
+
+  .plate-choices.is-fit span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    line-height: 1.25;
+  }
+}

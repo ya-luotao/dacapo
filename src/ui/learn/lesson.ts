@@ -80,6 +80,11 @@ const COPY = {
     chordProgress: 'Chord {n} of {total}',
     fingersOnly: 'The sustain pedal is down: the sound carries on, but this shows your fingers.',
     playSome: 'Play a few notes.',
+    chordListening: 'Listening: play the chord, its notes together or one at a time.',
+    chordSoFar: 'So far: {notes}.',
+    chordWrong: '{name} is not in this chord. Start again: it is {answer}, marked on the keyboard.',
+    chordRight: 'Right: {answer}.',
+    chordBass: 'The right notes, but not the right one lowest. Start again: {answer}.',
   },
   'zh-CN': {
     plate: '图',
@@ -140,6 +145,11 @@ const COPY = {
     chordProgress: '第 {n} 个和弦，共 {total} 个',
     fingersOnly: '延音踏板踩着：声音还在延续，这里显示的是你的手指。',
     playSome: '弹几个音试试。',
+    chordListening: '正在听：弹出这个和弦，几个音一起弹或一个一个弹都行。',
+    chordSoFar: '已经弹了：{notes}。',
+    chordWrong: '{name} 不在这个和弦里。重新来：它是 {answer}，已在键盘上标出。',
+    chordRight: '对了：{answer}。',
+    chordBass: '音都对，但最低的音不对。重新来：{answer}。',
   },
 } as const satisfies Record<LessonLanguage, Record<string, string>>;
 

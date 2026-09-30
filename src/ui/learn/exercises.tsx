@@ -270,6 +270,8 @@ export interface ChoiceQuestion {
   answer: number;
   /** Keys to hear, one step after another (a chord when a step holds several). */
   sound?: readonly (number | readonly number[])[];
+  /** Milliseconds from one step of the sound to the next, when not the usual 480. */
+  gap?: number;
 }
 
 /** Questions answered by choosing: step or skip, how many beats, which key. */
@@ -298,7 +300,7 @@ export function ChoiceQuiz({
     if (answered || done) return;
     setChosen(i);
     if (i === question.answer) setFirstTime(firstTime + 1);
-    if (question.sound) listen.play(question.sound);
+    if (question.sound) listen.play(question.sound, question.gap);
   };
   const next = () => {
     setChosen(null);
@@ -364,7 +366,7 @@ export function ChoiceQuiz({
           <button
             type="button"
             className="button is-compact choice-listen"
-            onClick={() => listen.play(question.sound!)}
+            onClick={() => listen.play(question.sound!, question.gap)}
           >
             <svg className="button-glyph" viewBox="0 0 10 12" aria-hidden="true">
               <path d="M1 1l8 5-8 5z" />

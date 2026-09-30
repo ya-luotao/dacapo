@@ -69,6 +69,8 @@ export interface StaffNote {
   natural?: boolean;
   /** Leave the accidental out: the key signature already gives it. */
   inKey?: boolean;
+  /** Moves the accidental further left, clear of another in the same chord. */
+  accidentalShift?: number;
 }
 
 export interface StaffMark {
@@ -197,7 +199,12 @@ function Note({ system, note }: { system: StaffSystem; note: StaffNote }) {
         ))}
       </g>
       <g className="engraved-head" style={{ transform: `translate(${note.x}px, ${y}px)` }}>
-        {accidental && <path d={accidental} transform={`translate(-15 0) scale(${GLYPH})`} />}
+        {accidental && (
+          <path
+            d={accidental}
+            transform={`translate(${-15 - (note.accidentalShift ?? 0)} 0) scale(${GLYPH})`}
+          />
+        )}
         <path d={head} transform={`scale(${GLYPH})`} />
         {duration !== 'whole' &&
           (up ? (

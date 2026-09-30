@@ -86,11 +86,12 @@ and sessions (from version 6), and the click's tempo and grid of scale runs play
 
 ### The basics: lessons for beginners ([docs/LEARN.md](docs/LEARN.md))
 
-- **Learn** has twelve short lessons for your first weeks at the piano, in English and
+- **Learn** has thirteen short lessons for your first weeks at the piano, in English and
   Simplified Chinese: finding your way around the keyboard; the staff and the clefs; landmark
   notes and intervals; rhythm and the beat; sharps, flats, whole and half steps; the major scale
   and key signatures; posture, hand shape and fingering; dots, ties, triplets and syncopation;
-  minor scales and minor keys; loud and soft, joined and detached; the pedals; and ornaments.
+  minor scales and minor keys; loud and soft, joined and detached; the pedals; ornaments; and
+  chords and harmony.
 - The second rhythm lesson reads the rhythms of most beginners' pieces: the dotted quarter and its
   eighth, ties over the beat and the barline, sixteenths and the dotted eighth, triplets against
   straight eighths, syncopation, and 6/8 set beside 3/4. Every rhythm is engraved with its beams,
@@ -123,6 +124,15 @@ and sessions (from version 6), and the click's tempo and grid of scale runs play
   out and beamed, and plays both slowly and at tempo; then a spread chord and a fermata, with the
   sign and without. It ends with ten ornaments to name, and a mordent and a turn to play written
   out.
+- The lesson on chords builds a triad on any root, major, minor, diminished or augmented, written
+  one note after another and then stacked, and heard broken and together; turns it upside down to
+  its first and second inversions; engraves the seven chords of a major key under their symbols and
+  over their roman numerals, the primary chords I, IV and V among them; builds the four seventh
+  chords and shows why V7 pulls home, B rising to C as F falls to E; plays a phrase ending with each
+  cadence, authentic, plagal, half and deceptive; reads chord symbols and their other spellings
+  (Δ, –, ø, sus, a slash for the bass); and folds the first bars of Bach's Prelude in C into their
+  chords. You then play triads and chord symbols on the keyboard, the notes together or one at a
+  time, and name eight cadences by ear.
 - Every figure is the app's own keyboard or an engraved staff: colour the black-key groups, point
   at a line to hear its note, hold keys to see where they are written, build a major scale from
   any key, tap along with a beat and see how early or late you are. Each lesson ends with
