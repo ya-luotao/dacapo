@@ -1,5 +1,5 @@
 import { GLYPH, SPACE } from './geometry.ts';
-import { ACCENT, DYNAMIC_LETTERS, STACCATO, TENUTO } from './glyphs.ts';
+import { ACCENT, DYNAMIC_LETTERS, PEDAL_DOWN, PEDAL_UP, STACCATO, TENUTO } from './glyphs.ts';
 import { dynamicWidth, isDynamicLetter } from './shapes.ts';
 
 // What is written around the notes of an EngravedStaff, drawn as its children in the same units
@@ -130,6 +130,61 @@ export function Words({
           y2={y - 3}
         />
       )}
+    </g>
+  );
+}
+
+/** The size the pedal marks are set at: Ped. about a staff space and a half tall. */
+const PEDAL_SCALE = 0.6;
+
+/** Ped. (press the sustain pedal) from `x`, or the star (let it up) centred on `x`; baseline `y`. */
+export function PedalMark({
+  kind,
+  x,
+  y,
+  className,
+}: {
+  kind: 'down' | 'up';
+  x: number;
+  y: number;
+  className?: string;
+}) {
+  const scale = GLYPH * PEDAL_SCALE;
+  const left = kind === 'down' ? x : x - (450 * scale) / 2;
+  return (
+    <path
+      className={className}
+      d={kind === 'down' ? PEDAL_DOWN : PEDAL_UP}
+      transform={`translate(${left} ${y}) scale(${scale})`}
+    />
+  );
+}
+
+/**
+ * The pedal as a line under the staff: down at `x1`, a notch at each change (up and straight down
+ * again), up at `x2`.
+ */
+export function PedalLine({
+  x1,
+  x2,
+  y,
+  changes = [],
+  className,
+}: {
+  x1: number;
+  x2: number;
+  y: number;
+  changes?: readonly number[];
+  className?: string;
+}) {
+  const hook = 0.7 * SPACE;
+  const notch = 0.35 * SPACE;
+  let d = `M${x1} ${y - hook}V${y}`;
+  for (const c of changes) d += `H${c - notch}L${c} ${y - hook}L${c + notch} ${y}`;
+  d += `H${x2}V${y - hook}`;
+  return (
+    <g className={className}>
+      <path className="engraved-stroke" d={d} />
     </g>
   );
 }

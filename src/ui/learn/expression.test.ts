@@ -5,6 +5,9 @@ import {
   isCrescendo,
   joinOf,
   judgeCrescendo,
+  judgePedalChanges,
+  pedalDownAt,
+  type PedalEvent,
   type Stroke,
 } from './expression.ts';
 
@@ -53,5 +56,59 @@ describe('how a note joins the next', () => {
   it('says how much of its length a note was held', () => {
     expect(heldShare(stroke(0, 250), stroke(500, 900), 1000)).toBe(0.5);
     expect(heldShare(stroke(0, null), stroke(500, 900), 400)).toBeCloseTo(0.8);
+  });
+});
+
+const down = (time: number): PedalEvent => ({ down: true, time });
+const up = (time: number): PedalEvent => ({ down: false, time });
+
+describe('a pedal change', () => {
+  const chords = [0, 1000, 2000, 3000];
+
+  it('is clean when the pedal comes up just after each chord and goes straight down', () => {
+    const pedal = [down(200), up(1100), down(1250), up(2150), down(2300), up(3200), down(3400)];
+    expect(judgePedalChanges(chords, pedal, 5000)).toEqual([
+      { kind: 'clean', up: 100, down: 150 },
+      { kind: 'clean', up: 150, down: 150 },
+      { kind: 'clean', up: 200, down: 200 },
+    ]);
+  });
+
+  it('leaves a gap when lifted before the chord, even if pressed again before it', () => {
+    const pedal = [down(200), up(900), down(1150), up(1900), down(1950)];
+    expect(judgePedalChanges(chords.slice(0, 3), pedal, 5000)).toEqual([
+      { kind: 'early', ms: 100 },
+      { kind: 'early', ms: 100 },
+    ]);
+    expect(pedalDownAt(pedal, 1000)).toBe(false);
+    expect(pedalDownAt(pedal, 2000)).toBe(true);
+  });
+
+  it('blurs when lifted too late, or not before the next chord', () => {
+    expect(judgePedalChanges([0, 1000], [down(100), up(1400), down(1500)], 5000)).toEqual([
+      { kind: 'late', ms: 400 },
+    ]);
+    expect(judgePedalChanges([0, 1000, 2000], [down(100), up(2100), down(2200)], 5000)).toEqual([
+      { kind: 'held' },
+      { kind: 'clean', up: 100, down: 100 },
+    ]);
+  });
+
+  it('is slow when the pedal stays up too long after the change', () => {
+    expect(judgePedalChanges([0, 1000], [down(100), up(1100), down(1700)], 5000)).toEqual([
+      { kind: 'slow', ms: 600 },
+    ]);
+  });
+
+  it('waits while the change may still come', () => {
+    expect(judgePedalChanges([0, 1000], [down(100)], 1200)).toEqual([{ kind: 'pending' }]);
+    expect(judgePedalChanges([0, 1000], [down(100)], 1300)).toEqual([{ kind: 'late', ms: 300 }]);
+    expect(judgePedalChanges([0, 1000], [down(100), up(1100)], 1300)).toEqual([
+      { kind: 'pending' },
+    ]);
+  });
+
+  it('has nothing to change when the pedal was never down', () => {
+    expect(judgePedalChanges([0, 1000], [], 5000)).toEqual([{ kind: 'none' }]);
   });
 });

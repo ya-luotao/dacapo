@@ -19,6 +19,7 @@ the computer keyboard, a click or a tap, like the Play page.
 | 8   | `rhythm-2`         | Dots, ties, triplets and syncopation | written |
 | 9   | `minor-keys`       | Minor scales and minor keys          | written |
 | 10  | `dynamics`         | Loud and soft, joined and detached   | written |
+| 11  | `pedals`           | The pedals                           | written |
 
 Beside them, not numbered: **Inside the piano** (`inside`), one key of a grand piano's action in
 cross-section, moving as you play. Its motion comes from `src/core/pianoAction.ts`: the key, the
@@ -69,7 +70,8 @@ Fine") are replaced by what works in Chinese.
   `ui/engraving/EngravedStaff.tsx` from Bravura's outlines (notes of every value, rests, key and
   time signatures), so no music font is loaded; `ui/engraving/marks.tsx` draws what is written
   around the notes (dynamics in Bravura's letters, hairpins and the words for them, accents,
-  staccato dots and tenuto lines, slurs).
+  staccato dots and tenuto lines, slurs, and the pedal as Ped. and its star or as a line with a
+  notch at each change).
 - `expressionFigures.tsx` has lesson 10's: a phrase at any dynamic from pp to ff, a swell as
   hairpins or words, accents and sf, the Ode to Joy's tune over its chords (balanced or not),
   the velocity of each key struck, and a line played legato, non legato, staccato or tenuto with
@@ -77,6 +79,15 @@ Fine") are replaced by what works in Chinese.
   whether it joined the next, left a gap or overlapped it, by the thresholds EXPRESSION.md plans
   for the Pieces (`expression.ts`). A figure plays its notes with their own times, lengths and
   loudness (`usePlayNotes`); the built-in piano sounds them at that velocity.
+- `pedalFigures.tsx` has lesson 11's: four chords on the grand staff with the pedal marked both
+  ways, heard without it, held through and changed with each chord; and a timeline of keys,
+  pedal and sound (a key rings on while the pedal is down) that follows your keyboard and its
+  sustain pedal, or plays a demo of the pedal changed in time, too early or too late, and marks
+  each change's gap or blur. The figures never press the app's pedal: a demo holds its keys as
+  long as the pedal would, so the player's own pedal and Inside the piano's are left alone. The
+  exercise's four chords are judged by X3's numbers (`judgePedalChanges`): up within 250 ms after
+  each new chord, down again within 400 ms. Timelines are drawn a unit to a pixel at the width
+  they are given, so they stay legible on a phone.
 - An exercise that needs something not everyone has (a keyboard that senses touch, a sustain
   pedal) says so when no MIDI keyboard is connected and can always be skipped; the lesson is
   finished by its last exercise, which anyone can do. Lesson 10's crescendo passes when every

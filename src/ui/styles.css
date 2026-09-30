@@ -8624,3 +8624,90 @@ select.is-compact {
   flex: 1 1 16rem;
   margin: 0;
 }
+
+/* Lesson 11: keys, the pedal and the sound on one timeline, each change's gap or blur marked. */
+/* Drawn a unit to a pixel at the width it is given, so its words stay legible on a phone. */
+.pedal-lanes {
+  margin: 0 0 1rem;
+}
+
+.pedal-lanes svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.pedal-lane-name {
+  fill: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  dominant-baseline: central;
+}
+
+.pedal-lane-rule {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.pedal-key {
+  fill: var(--accent);
+}
+
+.pedal-down {
+  fill: var(--control);
+}
+
+.pedal-sound {
+  fill: var(--accent);
+  opacity: 0.55;
+}
+
+.pedal-mark.is-clean {
+  fill: var(--ok);
+}
+
+.pedal-mark rect {
+  fill-opacity: 0.22;
+  stroke-width: 1;
+}
+
+.pedal-mark.is-gap rect {
+  fill: var(--bad);
+  stroke: var(--bad);
+}
+
+.pedal-mark.is-blur rect {
+  fill: var(--warn);
+  stroke: var(--warn);
+}
+
+.pedal-mark text {
+  font-family: var(--font-sans);
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.pedal-mark.is-gap text {
+  fill: var(--bad);
+}
+
+.pedal-mark.is-blur text {
+  fill: var(--warn);
+}
+
+.pedal-changes {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+
+.pedal-changes .is-clean {
+  color: var(--ok);
+}
+
+.pedal-changes :is(.is-early, .is-late, .is-held, .is-slow, .is-none) {
+  color: var(--bad);
+}

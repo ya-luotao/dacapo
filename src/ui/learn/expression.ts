@@ -1,6 +1,7 @@
-// What the lesson on touch hears in your playing: whether five notes get louder, and how each note
-// joins the next. The numbers are the ones docs/EXPRESSION.md plans for the Pieces (its X2), so a
-// lesson and the Pieces will agree; the Pieces' own analysis will live in core/expression.ts.
+// What the lessons on touch and the pedals hear in your playing: whether five notes get louder,
+// how each note joins the next, and whether the pedal changes just after each new chord. The
+// numbers are the ones docs/EXPRESSION.md plans for the Pieces (its X2 and X3), so a lesson and the
+// Pieces will agree; the Pieces' own analysis will live in core/expression.ts.
 
 /** A note as played: when the key went down and came up (null while held), and how hard. */
 export interface Stroke {
@@ -79,4 +80,106 @@ export function heldShare(note: Stroke, next: Stroke, now: number): number {
   const span = next.on - note.on;
   if (span <= 0) return 1;
   return ((note.off ?? now) - note.on) / span;
+}
+
+// Changing the pedal.
+
+/** The pedal goes up at most this long after a new chord (EXPRESSION.md, X3)... */
+export const CHANGE_MAX_MS = 250;
+/** ...and down again at most this long after it went up. */
+export const RELEASE_MAX_MS = 400;
+
+/** The sustain pedal going down or up. */
+export interface PedalEvent {
+  down: boolean;
+  time: number;
+}
+
+export type PedalChange =
+  /** Not decided yet: the pedal may still go up, or down again. */
+  | { kind: 'pending' }
+  /** Up after the chord, within CHANGE_MAX_MS, and down again within RELEASE_MAX_MS. */
+  | { kind: 'clean'; up: number; down: number }
+  /** Lifted `ms` before the chord was played: a gap in the sound. */
+  | { kind: 'early'; ms: number }
+  /** Lifted `ms` after the chord, too late: the old chord blurred into the new one. */
+  | { kind: 'late'; ms: number }
+  /** Not lifted before the next chord: the chords ran into each other. */
+  | { kind: 'held' }
+  /** Lifted in time, but down again only `ms` later: the new chord went unheld. */
+  | { kind: 'slow'; ms: number }
+  /** The pedal was not down when the chord came: nothing to change. */
+  | { kind: 'none' };
+
+/** Whether the pedal is down at `time`, from its events in order. */
+export function pedalDownAt(pedal: readonly PedalEvent[], time: number): boolean {
+  let down = false;
+  for (const e of pedal) {
+    if (e.time > time) break;
+    down = e.down;
+  }
+  return down;
+}
+
+/**
+ * Each pedal change, one for every chord after the first: `chords` are when each chord was played,
+ * in order; `pedal` the pedal's events, in order, from before the first chord; `now` the present.
+ * The first chord only starts the pedal. For each later chord it should come up just after the
+ * chord and go down again straight away (legato, or syncopated, pedalling).
+ */
+export function judgePedalChanges(
+  chords: readonly number[],
+  pedal: readonly PedalEvent[],
+  now: number,
+): PedalChange[] {
+  const changes: PedalChange[] = [];
+  // Where the last change ended: events before it belong to earlier chords. After the first chord,
+  // the pedal's first press.
+  const first = chords[0] ?? 0;
+  let since = pedal.find((e) => e.down && e.time > first)?.time ?? first;
+  for (let k = 1; k < chords.length; k++) {
+    const at = chords[k]!;
+    const next = chords[k + 1] ?? Infinity;
+    const lifted = pedal.findLast((e) => !e.down && e.time > since && e.time <= at);
+    if (lifted) {
+      // Up before the chord (and maybe down again before it too): the sound broke.
+      changes.push({ kind: 'early', ms: Math.round(at - lifted.time) });
+      since = pedal.find((e) => e.down && e.time > lifted.time && e.time < next)?.time ?? at;
+      continue;
+    }
+    if (!pedalDownAt(pedal, at)) {
+      changes.push({ kind: 'none' });
+      since = pedal.find((e) => e.down && e.time > at && e.time < next)?.time ?? at;
+      continue;
+    }
+    const up = pedal.find((e) => !e.down && e.time > at && e.time < next);
+    if (!up) {
+      since = at;
+      if (next !== Infinity) changes.push({ kind: 'held' });
+      else if (now - at > CHANGE_MAX_MS) changes.push({ kind: 'late', ms: Math.round(now - at) });
+      else changes.push({ kind: 'pending' });
+      continue;
+    }
+    const late = up.time - at;
+    const down = pedal.find((e) => e.down && e.time > up.time && e.time < next);
+    since = down?.time ?? up.time;
+    if (late > CHANGE_MAX_MS) {
+      changes.push({ kind: 'late', ms: Math.round(late) });
+      continue;
+    }
+    if (!down) {
+      const waited = Math.min(next, now) - up.time;
+      changes.push(
+        waited > RELEASE_MAX_MS ? { kind: 'slow', ms: Math.round(waited) } : { kind: 'pending' },
+      );
+      continue;
+    }
+    const again = down.time - up.time;
+    changes.push(
+      again > RELEASE_MAX_MS
+        ? { kind: 'slow', ms: Math.round(again) }
+        : { kind: 'clean', up: Math.round(late), down: Math.round(again) },
+    );
+  }
+  return changes;
 }

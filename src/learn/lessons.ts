@@ -131,6 +131,17 @@ export const LESSONS: readonly LessonInfo[] = [
     ready: true,
     practice: '/scales',
   },
+  {
+    slug: 'pedals',
+    title: { en: 'The pedals', 'zh-CN': '踏板' },
+    summary: {
+      en: 'The sustain, soft and sostenuto pedals, how to press them, the pedal marks, and changing the pedal cleanly after each chord.',
+      'zh-CN': '延音、弱音和持音三个踏板，怎么踩，踏板记号，以及怎样在每个和弦之后干净地换踏板。',
+    },
+    minutes: 15,
+    ready: true,
+    practice: '/play',
+  },
 ];
 
 /**

@@ -92,6 +92,8 @@ interface EngravedStaffProps {
   width?: number;
   /** Room added above the staff, for a triplet's bracket over the beams. */
   above?: number;
+  /** Room added below the staff, for pedal marks under a grand staff. */
+  below?: number;
   notes?: readonly StaffNote[];
   /** Key signature: sharps (+) or flats (−). */
   fifths?: number;
@@ -226,6 +228,7 @@ export function EngravedStaff({
   system,
   width = 300,
   above = 0,
+  below = 0,
   notes = [],
   fifths = 0,
   time,
@@ -256,7 +259,7 @@ export function EngravedStaff({
   return (
     <svg
       className={className ? `engraved ${className}` : 'engraved'}
-      viewBox={`0 ${-above} ${width} ${height + above}`}
+      viewBox={`0 ${-above} ${width} ${height + above + below}`}
       role="img"
       aria-label={label}
       onPointerLeave={onHover ? () => onHover(null) : undefined}

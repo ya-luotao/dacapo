@@ -25,6 +25,7 @@ import { Choices, PlayButton } from './kit.tsx';
 import {
   useCopy,
   useExercise,
+  useElementWidth,
   useKeyEvents,
   useNoteOn,
   usePlayNotes,
@@ -638,7 +639,7 @@ function useStrokes(): { strokes: readonly Heard[]; now: number } {
 function TouchTimeline({ strokes, now }: { strokes: readonly Heard[]; now: number }) {
   const copy = useCopy();
   const { sustain } = useHubState();
-  const width = 560;
+  const [box, width] = useElementWidth<HTMLDivElement>(560);
   const rows = [...new Set(strokes.map((s) => s.midi))].sort((a, b) => b - a);
   const rowHeight = 9;
   const laneY = 8 + Math.max(rows.length, 5) * rowHeight + 6;
@@ -654,7 +655,7 @@ function TouchTimeline({ strokes, now }: { strokes: readonly Heard[]; now: numbe
   const last = joins.at(-1)?.join;
 
   return (
-    <div className="touch-timeline">
+    <div className="touch-timeline" ref={box}>
       <svg
         viewBox={`0 0 ${width} ${height}`}
         role="img"

@@ -50,6 +50,10 @@ const LOADERS: Readonly<Record<string, Readonly<Record<LessonLanguage, Loader>>>
     en: () => import('./dynamics.en.tsx'),
     'zh-CN': () => import('./dynamics.zh-CN.tsx'),
   },
+  pedals: {
+    en: () => import('./pedals.en.tsx'),
+    'zh-CN': () => import('./pedals.zh-CN.tsx'),
+  },
 };
 
 /** The lessons' texts as components that load on first render. */

@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
   type PointerEvent,
+  type RefObject,
 } from 'react';
 import { midiName } from '../../core/note.ts';
 import type { HubEvent } from '../../input/index.ts';
@@ -71,6 +72,12 @@ const COPY = {
     joins: '{joined} joined, {gaps} with a gap, {overlaps} overlapping.',
     lastJoin: 'The last: ',
     noteProgress: '{n} of {total}',
+    keysLane: 'Keys',
+    pedalLane: 'Pedal',
+    soundLane: 'Sound',
+    gapMark: 'gap',
+    blurMark: 'blur',
+    chordProgress: 'Chord {n} of {total}',
     fingersOnly: 'The sustain pedal is down: the sound carries on, but this shows your fingers.',
     playSome: 'Play a few notes.',
   },
@@ -125,6 +132,12 @@ const COPY = {
     joins: '{joined} 处连上，{gaps} 处断开，{overlaps} 处重叠。',
     lastJoin: '最后一处：',
     noteProgress: '第 {n} 个音，共 {total} 个',
+    keysLane: '琴键',
+    pedalLane: '踏板',
+    soundLane: '声音',
+    gapMark: '断开',
+    blurMark: '混浊',
+    chordProgress: '第 {n} 个和弦，共 {total} 个',
     fingersOnly: '延音踏板踩着：声音还在延续，这里显示的是你的手指。',
     playSome: '弹几个音试试。',
   },
@@ -348,6 +361,27 @@ export function usePlaySequence(): {
     [playKey],
   );
   return { play, stop, at };
+}
+
+/**
+ * The width of an element in CSS pixels, as it changes: for a timeline drawn one SVG unit to a
+ * pixel, whose words and bars keep their size on a phone.
+ */
+export function useElementWidth<T extends Element>(
+  fallback: number,
+): [RefObject<T | null>, number] {
+  const ref = useRef<T>(null);
+  const [width, setWidth] = useState(fallback);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry && entry.contentRect.width > 0) setWidth(Math.round(entry.contentRect.width));
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return [ref, width];
 }
 
 /** A note a figure plays by itself: when (ms from the start), how long, and how hard (1–127). */
