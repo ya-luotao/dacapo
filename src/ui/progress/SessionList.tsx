@@ -2,6 +2,7 @@ import { useId, useState, type ReactNode } from 'react';
 import type { PieceSessionRecord, SessionRecord } from '../../core/log.ts';
 import { useT, type MessageKey } from '../../i18n/index.ts';
 import { isBuiltInId } from '../../pieces/library/index.ts';
+import { progressionPieceTitle } from '../harmony/progressionFormat.ts';
 import { runFigures } from '../../core/scaleProgress.ts';
 import { parseExerciseKey } from '../../core/scales.ts';
 import { median } from '../../core/session.ts';
@@ -270,11 +271,14 @@ function SessionRow({ session }: { session: SessionRecord }) {
   );
 }
 
-/** Built-in pieces by their name in the current language; imported ones as they were called. */
+/**
+ * Built-in pieces and progressions by their name in the current language; imported ones as they
+ * were called.
+ */
 function PieceTitle({ session }: { session: PieceSessionRecord }) {
   const t = useT();
   const title = isBuiltInId(session.pieceId)
     ? t(`library.${session.pieceId}.title`)
-    : session.title || t('pieces.untitled');
+    : (progressionPieceTitle(t, session.pieceId) ?? (session.title || t('pieces.untitled')));
   return <span className="session-piece">{title}</span>;
 }

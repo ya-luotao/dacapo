@@ -91,8 +91,15 @@ const HAND_CHOICES = ['right', 'left', 'both'] as const;
 const NO_KEYS: readonly number[] = [];
 const newRunId = () => crypto.randomUUID();
 
-export function PieceSession({ piece }: { piece: OpenPiece }) {
+/** Where the page's back link goes: the Pieces page, or the page a generated piece came from. */
+export interface PieceBack {
+  href: string;
+  label: string;
+}
+
+export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBack }) {
   const t = useT();
+  const backTo = back ?? { href: '/pieces', label: t('pieces.back') };
   const { score } = piece;
   const format = usePieceFormat(score.measures);
   const { hub, pointer, output } = useInput();
@@ -734,7 +741,7 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
               {piece.composer && <span className="piece-composer">{piece.composer}</span>}
             </h1>
           }
-          back={{ href: '/pieces', label: t('pieces.back') }}
+          back={backTo}
           settings={{
             open: settingsOpen,
             onToggle: () => setSettingsOpen((open) => !open),
@@ -743,8 +750,8 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
         />
       ) : (
         <header className="piece-head">
-          <Link href="/pieces" className="piece-back-link">
-            {t('pieces.back')}
+          <Link href={backTo.href} className="piece-back-link">
+            {backTo.label}
           </Link>
           <h1 id={`${showKeysId}-title`} className="piece-title">
             {piece.title}

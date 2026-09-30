@@ -18,6 +18,10 @@ const EarPage = lazy(() => import('./pages/EarPage.tsx').then((m) => ({ default:
 const HarmonyPage = lazy(() =>
   import('./harmony/HarmonyPage.tsx').then((m) => ({ default: m.HarmonyPage })),
 );
+// A progression is practised as a piece: Verovio, loaded by the score itself.
+const ProgressionPage = lazy(() =>
+  import('./harmony/ProgressionPage.tsx').then((m) => ({ default: m.ProgressionPage })),
+);
 // Pieces load Verovio on their own, later still (ui/notation/verovio.ts).
 const PiecesPage = lazy(() =>
   import('./pieces/PiecesPage.tsx').then((m) => ({ default: m.PiecesPage })),
@@ -64,6 +68,16 @@ function Shell() {
             <Route path="/read" component={ReadPage} />
             <Route path="/ear" component={EarPage} />
             <Route path="/harmony" component={HarmonyPage} />
+            <Route path="/harmony/progressions/:progression/:key/:pattern">
+              {({ progression, key, pattern }) => (
+                <ProgressionPage
+                  key={`${progression}/${key}/${pattern}`}
+                  progression={progression}
+                  keyName={key}
+                  pattern={pattern}
+                />
+              )}
+            </Route>
             <Route path="/scales" component={ScalesPage} />
             <Route path="/pieces" component={PiecesPage} />
             <Route path="/pieces/:id">{({ id }) => <PiecePage key={id} id={id} />}</Route>

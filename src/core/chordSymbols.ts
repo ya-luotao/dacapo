@@ -165,7 +165,7 @@ export function symbolPitchClasses(symbol: ChordSymbol): Set<number> {
 }
 
 /** A note named `steps` letters and `semitones` above `root`, with whatever sign that takes. */
-function noteAbove(root: Root, steps: number, semitones: number): Root {
+export function noteAbove(root: Root, steps: number, semitones: number): Root {
   const step = LETTERS[(LETTERS.indexOf(root.step) + steps) % 7]!;
   const natural = STEP_PC[step];
   let alter = (rootPc(root) + semitones - natural) % 12;

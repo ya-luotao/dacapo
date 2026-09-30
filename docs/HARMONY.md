@@ -1,7 +1,8 @@
 # dacapo — Harmony, accompaniment and making music specification
 
 Status: H1 is built (the Harmony page with Chords: chord symbols to play, five levels, their
-answers and progress); H2 to H6 are planned (after [EXPRESSION.md](EXPRESSION.md)). This extends
+answers and progress), and H2's Progressions (generated scores practised as pieces); cadences by
+ear and H3 to H6 are planned (after [EXPRESSION.md](EXPRESSION.md)). This extends
 [MVP.md](MVP.md),
 [PIECES.md](PIECES.md) and [EAR.md](EAR.md); their principles and fixed decisions still apply
 (staff first, measure don't guess, local data, English of record, every UI language, 3-day
@@ -46,9 +47,9 @@ ear is a family of the Ear page; transposing is an option of every piece.
 - **Names.** The levels are `H1`–`H5`, as the table has them; the milestones H1–H6 below share the
   letter, so a level is always written with its word ("level H2") where it could be read as a
   milestone. The page is `/harmony`, between Ear and Scales in the navigation (and the home page's
-  contents); it moves into the More menu early on a narrow screen (priority 2.5). Chords is its
-  only practice for now: a section under its own heading, with a chooser above the practices once
-  Progressions or Improvise joins it (`ui/harmony/practices.ts`). Lesson 13 (chords) now practises
+  contents); it moves into the More menu early on a narrow screen (priority 2.5). Chords is a
+  section under its own heading; since H2 a chooser above the practices picks it or Progressions
+  (`ui/harmony/practices.ts`), and Improvise joins them with H6. Lesson 13 (chords) now practises
   here.
 - **The symbols** are one style everywhere (`core/chordSymbols.ts`): a root (C D E F G A B, ♭ or ♯),
   then nothing (major), `m`, `°`, `+`, `sus2`, `sus4`, `7`, `maj7`, `m7`, `m7♭5`, `°7`, `6`, `m6`
@@ -123,6 +124,68 @@ ear is a family of the Ear page; transposing is an option of every piece.
   recorded as a piece's are, under a piece id that names the progression, key and pattern.
 - **Cadences by ear** join the Ear page: authentic, plagal, half and deceptive, each heard as the
   last two chords of a short progression in a key set by its tonic chord; named by buttons.
+
+### Clarifications (decided during H2)
+
+- **The page.** Chords and Progressions are chosen by a row above them (Practice), remembered in
+  this browser with every choice of Progressions (`dacapo.harmony`). A progression is practised on
+  its own page, `/harmony/progressions/<progression>/<key>/<pattern>` (the key escaped: `F%23m`),
+  whose back link returns to Harmony; the navigation keeps Harmony lit there.
+- **The progressions** (`core/progressions.ts`), one chord to a bar: `I–IV–V–I`; `I–vi–IV–V` (the
+  fifties progression); `ii7–V7–Imaj7` with its I held a second bar (the jazz ii–V–I is of seventh
+  chords); `vi–ii–V–I` (the circle of fifths, as a pop or hymn turnaround plays it: triads);
+  `i–iv–V–i` in minor, V major with the raised leading note of harmonic minor; the 12-bar blues of
+  dominant sevenths, `I7 I7 I7 I7 | IV7 IV7 I7 I7 | V7 IV7 I7 I7`, ending at home (no
+  turnaround). A progression has one mode: the major ones in the twelve major keys, `i–iv–V–i` in
+  the twelve minor ones, each list round the circle of fifths as the Scales page spells its tonics
+  (C G D A E B F♯ D♭ A♭ E♭ B♭ F; A E B F♯ C♯ G♯ E♭ B♭ F C G D minor).
+- **Spelling.** Each chord is spelled from the key by letter (`noteAbove` from the tonic), not by
+  H1's rule for a symbol alone: D♯m in F♯ major, D♯ with its F𝄪 in G♯ minor, C♭ in E♭ minor's iv.
+  Symbols are H1's one style (`B♭m`, `Dm7`, `Cmaj7`, `E♭7`); numerals are upper case major, lower
+  case minor, `7` and `maj7` as the figure (`ii7`, `V7`, `Imaj7`), raised on the page.
+- **Patterns** of the left hand, each a bar: **block chords** (the chord on the 1, root position,
+  held; a seventh chord as root, 3rd and 7th), **root and fifth** (together, held), **waltz** (in
+  3/4: the root, then the chord on 2 and 3), **Alberti** (eighths low, high, middle, high on the
+  block chord's three keys), **arpeggio up** (quarters 1–5–8–10; 1–5–7–10 for a seventh chord),
+  **stride** (the root on 1, the fifth on 3 — a fourth below where that stays above C2, else a
+  fifth above — and the chord on 2 and 4). The waltz's and the stride's chords are the triad, or a
+  seventh chord without its root, in close position in the tenor (up to B3), voiced as the right
+  hand's are. Registers: the root of block chords and Alberti from F2, of the others from C2; the
+  left hand stays within C2–D♯4 (the top only for a seventh chord's 7th or the arpeggio's 10th);
+  the right hand's chords in C4–C6, always wholly above everything the left hand plays in the bar,
+  so no key is ever the two hands' at once.
+- **Voice leading** (`core/voiceLeading.ts`): the right hand plays the whole chord in close
+  position (three keys for a triad, four for a seventh chord, every inversion), struck anew each
+  bar and held through it (common tones are kept in their voice, not tied: a chord is played as
+  the symbol changes). Of all the sequences of voicings in range, the one moving least is taken,
+  exactly: each voice's semitones summed, parallel fifths or octaves costing 40 between the bass
+  and the top voice and 14 between any other two, a little for straying from G4. `I–vi–IV–V`,
+  ending away from home, is voiced round the loop (its V to its I counts); the others end on their
+  tonic and are voiced for themselves. Across every progression, key and pattern there are no
+  parallel fifths or octaves between the bass and any voice of the right hand, nor within it (a
+  test checks them all). The result is the textbook one where there is one:
+  `C–F–G–C` as E G C, F A C, D G B, E G C; `Dm7–G7–Cmaj7` as D F A C, D F G B, C E G B.
+- **The score** (`core/progressionXml.ts`): a grand staff, the right hand on the treble staff, the
+  left on the bass staff (given to the parser as hands, never guessed), the key signature, the time
+  signature, a tempo mark, the chord symbols above as `<harmony>` (root, alter, kind with its
+  printed text) and the numerals below as upright `<words>`; eighths beamed by the half bar; every
+  sign written out (a courtesy one after a bar that altered the note). Verovio draws it and
+  `parseMusicXml` reads it back note for note without warnings; a test locks every progression's
+  checksum per pattern.
+- **Tempo.** 60, 72, 80 (the default), 96 or 112 to the quarter, chosen on the Harmony page and
+  written into the score as its tempo mark; it is not part of the id, so records survive a change
+  of tempo (the checksum leaves it out too). Opening a progression from the setup sets the
+  practice page's own tempo to 100 %, so the tempo chosen is the tempo practised; the practice
+  page's control then works as on any piece. The tempo last opened is kept per progression.
+- **Records.** A progression is a piece to the Pieces machinery: its steps and runs are recorded
+  under `prog:<progression>:<key>:<pattern>` (`prog:I-IV-V-I:C:block`, `prog:i-iv-V-i:F#m:alberti`),
+  with the score's checksum, as a built-in piece's are; weak bars, Your runs, the summaries and the
+  piece's preferences all work unchanged. Nothing new is stored, synced or exported: `pieceSteps`
+  and piece sessions already take any piece id. The session list and Progress name a progression
+  in the current language from its id (`I–IV–V–I in C major · Alberti bass`); the public profile
+  counts it as a piece without a title, as it does a built-in one.
+- **Your progressions** lists the progressions practised, the latest first (at most eight), each
+  with its pattern, its tempo and the piece's progress line (last practised, runs, steady bars).
 
 ## Lead sheets (H3)
 

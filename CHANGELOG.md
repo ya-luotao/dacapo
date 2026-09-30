@@ -14,6 +14,20 @@ sessions go in the same lists), the
 click's tempo and grid of scale runs played with it (from version 7), and the takes of piece runs
 (from version 8). Version 1 to 7 files still import.
 
+### Harmony: progressions (H2)
+
+- Harmony gains a second practice, **Progressions**: choose a progression (`I–IV–V–I`,
+  `I–vi–IV–V`, `ii7–V7–Imaj7`, `vi–ii–V–I`, `i–iv–V–i` in minor, the 12-bar blues), a key round the
+  circle of fifths, the left hand's pattern (block chords, root and fifth, waltz, Alberti bass,
+  arpeggio up, stride) and a tempo, and it is written out as a score: the chord symbols above,
+  the roman numerals below, the right hand in close-position chords that move as little as they
+  can (common tones kept, no parallel fifths or octaves against the bass), each hand on its staff
+  ([docs/HARMONY.md](docs/HARMONY.md)).
+- It is practised as a piece: wait and rhythm mode, a hand at a time, loops, Listen, weak bars and
+  Your runs, with its runs and steps recorded, exported and synced as a piece's are. **Your
+  progressions** lists the ones practised lately with how far you got, and the session list names
+  them in your language.
+
 ### Ornaments (X4, [docs/EXPRESSION.md](docs/EXPRESSION.md))
 
 - **Wait mode** waits for an ornament's note: the ornament's other notes (a mordent's lower note,

@@ -477,6 +477,19 @@ describe('buildProfile', () => {
     expect(day.pieces).toEqual([{ ms: 2 * MIN }, { title: 'Gymnopédie No. 1', ms: MIN }]);
   });
 
+  it('counts a progression of the Harmony page as a piece without a title', () => {
+    const sessions = [piece('r1', 'prog:I-IV-V-I:C:alberti', NOW, 2 * MIN, 'I–IV–V–I in C major')];
+    for (const profileVersion of [1, NAMED_PROFILE_VERSION]) {
+      const day = build({
+        sessions,
+        settings: { visibility: 'public', titles: true },
+        profileVersion,
+      })!.activity!['2026-09-29']!;
+      expect(day.kinds).toEqual({ piece: 2 * MIN });
+      expect(day.pieces).toEqual([{ ms: 2 * MIN }]);
+    }
+  });
+
   it('lists the five longest pieces and counts the rest', () => {
     const sessions = Array.from({ length: 7 }, (_, i) =>
       piece(`r${i}`, `p${i}`, NOW + i * 10 * MIN, (i + 1) * MIN),

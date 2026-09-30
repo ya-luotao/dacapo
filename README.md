@@ -76,7 +76,10 @@ practising the notes you are slowest at. Progress is visible day by day.
   `F/A`, `Dm7♭5`); play its notes in any octave and voicing, a slash chord's bass lowest. Five
   levels from the triads of C, G and F major to every root's triads and seventh chords, slash
   chords and `°`, `+`, `sus`, `6` and `add9` chords, timed and favouring the ones you are slow on,
-  with the notes shown on request ([docs/HARMONY.md](docs/HARMONY.md)).
+  with the notes shown on request. **Progressions** (`I–IV–V–I`, `ii7–V7–Imaj7`, the 12-bar
+  blues and more) are written out in any key with the left hand in a pattern (block chords,
+  Alberti bass, waltz, stride …) and the right hand's chords voiced to move as little as they can,
+  then practised as a piece ([docs/HARMONY.md](docs/HARMONY.md)).
 - **Practice log.** Flashcard sessions and free play are saved: minutes today, a daily streak
   (5 minutes a day), a 30-day chart and the list of sessions.
 - **Weakness heatmap.** Every note you have practised, on the grand staff or on the keyboard,

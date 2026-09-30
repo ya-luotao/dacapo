@@ -3050,6 +3050,102 @@ kbd {
   }
 }
 
+/* The chooser of the page's practices, above them. */
+.harmony-practices {
+  margin-top: 1.25rem;
+}
+
+.harmony-practices + .harmony-practice .harmony-practice-title {
+  margin-top: 2rem;
+}
+
+/*
+ * Progressions: the list of progressions reads as a method book's contents, each led by its
+ * numerals set as an analysis sets them; the keys are a row of twelve round the circle of fifths.
+ */
+.progressions .level {
+  grid-template-columns: 1.125rem 8.25rem minmax(0, 1fr);
+}
+
+.progression-numerals {
+  font-size: 1.1875rem;
+  white-space: nowrap;
+}
+
+.patterns .level {
+  grid-template-columns: 1.125rem minmax(0, 1fr);
+}
+
+.progression-keys .segmented {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.progression-keys .segmented span {
+  min-width: 0;
+  padding-inline: 0.25rem;
+  white-space: nowrap;
+}
+
+.progression-chosen {
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.progression-tempo .segmented span {
+  min-width: 0;
+  padding-inline: 0.875rem;
+}
+
+.progression-chosen-pattern {
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+}
+
+.progression-yours {
+  margin-top: 3.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+
+.progression-yours h3 {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-serif);
+  font-size: 1.375rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.progression-yours h3:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-weight: 600;
+}
+
+@media (max-width: 52rem) {
+  /* Two rows of six, the circle of fifths read across and down. */
+  .progression-keys .segmented {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .progression-keys .segmented label:nth-child(6n + 1) span {
+    border-left: 0;
+  }
+
+  .progression-keys .segmented label:nth-child(n + 7) span {
+    border-top: 1px solid var(--border);
+  }
+}
+
+@media (max-width: 40rem) {
+  .progressions .level {
+    grid-template-columns: 1.125rem 6.75rem minmax(0, 1fr);
+  }
+
+  .progression-numerals {
+    font-size: 1rem;
+  }
+}
+
 /* Storage notice: a footnote-style strip, tinted with the warning colour. */
 
 .storage-notice {

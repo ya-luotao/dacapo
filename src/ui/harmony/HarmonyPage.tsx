@@ -20,7 +20,10 @@ import { ChordsSession } from './ChordsSession.tsx';
 import { ChordsSetup } from './ChordsSetup.tsx';
 import { ChordsSummary } from './ChordsSummary.tsx';
 import { createHarmonyController } from './controller.ts';
-import type { HarmonyPractice } from './practices.ts';
+import { HARMONY_PRACTICES, type HarmonyPractice } from './practices.ts';
+import { readHarmonyPrefs, writeHarmonyPrefs, type HarmonyPrefs } from './prefs.ts';
+import { ProgressionsSetup } from './ProgressionsSetup.tsx';
+import { Segmented } from '../Segmented.tsx';
 
 export function HarmonyPage() {
   const t = useT();
@@ -44,6 +47,14 @@ export function HarmonyPage() {
   const level = picked ?? suggested;
   const [length, setLength] = useState<SessionLength>(DEFAULT_SESSION_LENGTH);
   const [hint, setHint] = useState(false);
+  const [prefs, setPrefs] = useState(readHarmonyPrefs);
+  const choose = useId();
+
+  function changePrefs(patch: Partial<HarmonyPrefs>) {
+    const next = { ...prefs, ...patch };
+    setPrefs(next);
+    writeHarmonyPrefs(next);
+  }
 
   useEffect(() => () => controller.dispose(), [controller]);
   useEffect(
@@ -96,19 +107,38 @@ export function HarmonyPage() {
           onChooseLevel={controller.close}
         />
       ) : (
-        <PracticeSection practice="chords">
-          <ChordsSetup
-            level={level}
-            length={length}
-            hint={hint}
-            progress={progress}
-            suggested={suggested}
-            onLevel={setPicked}
-            onLength={setLength}
-            onHint={setHint}
-            onStart={() => start(level)}
+        <>
+          <Segmented
+            legend={t('harmony.practices')}
+            name={`${choose}-practice`}
+            className="harmony-practices"
+            options={HARMONY_PRACTICES.map((p) => ({
+              value: p,
+              label: t(`harmony.practice.${p}`),
+            }))}
+            value={prefs.practice}
+            onChange={(practice) => changePrefs({ practice })}
           />
-        </PracticeSection>
+          {prefs.practice === 'chords' ? (
+            <PracticeSection practice="chords">
+              <ChordsSetup
+                level={level}
+                length={length}
+                hint={hint}
+                progress={progress}
+                suggested={suggested}
+                onLevel={setPicked}
+                onLength={setLength}
+                onHint={setHint}
+                onStart={() => start(level)}
+              />
+            </PracticeSection>
+          ) : (
+            <PracticeSection practice="progressions">
+              <ProgressionsSetup prefs={prefs} onPrefs={changePrefs} />
+            </PracticeSection>
+          )}
+        </>
       )}
     </section>
   );
