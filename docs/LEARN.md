@@ -22,6 +22,7 @@ the computer keyboard, a click or a tap, like the Play page.
 | 11  | `pedals`           | The pedals                           | written |
 | 12  | `ornaments`        | Ornaments                            | written |
 | 13  | `chords`           | Chords and harmony                   | written |
+| 14  | `practising`       | Practising well                      | written |
 
 Beside them, not numbered: **Inside the piano** (`inside`), one key of a grand piano's action in
 cross-section, moving as you play. Its motion comes from `src/core/pianoAction.ts`: the key, the
@@ -110,6 +111,14 @@ Fine") are replaced by what works in Chinese.
   next answer. `harmony.ts` spells, inverts, names and judges the chords. The staff staggers the
   accidentals of a chord (a sixth or closer goes a column further left) and sets the upper note of
   a second beside the lower.
+- `practiceFigures.tsx` has lesson 14's, which is mostly prose: the start of the Ode to Joy on a
+  ladder of tempos, 60, 70, 80 and 90 per cent of the one you aim for and then that one, as the
+  Metronome's tempo trainer climbs it; and a practice session of 10 to 45 minutes split into warm-up,
+  hard spots, something new, a play-through and something for fun, in whole minutes that add up
+  (`practice.ts`). Its picture is the posture etching of lesson 7; what it says of the app points
+  to what exists (the Pieces' loop, weak bars, hands, tempo and modes; the Metronome's tempo
+  trainer and silent bars; the Progress page's streak and daily goal), and recording yourself is
+  done on a phone.
 - An exercise that needs something not everyone has (a keyboard that senses touch, a sustain
   pedal) says so when no MIDI keyboard is connected and can always be skipped; the lesson is
   finished by its last exercise, which anyone can do. Lesson 10's crescendo passes when every

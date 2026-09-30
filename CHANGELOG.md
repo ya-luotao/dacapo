@@ -86,12 +86,12 @@ and sessions (from version 6), and the click's tempo and grid of scale runs play
 
 ### The basics: lessons for beginners ([docs/LEARN.md](docs/LEARN.md))
 
-- **Learn** has thirteen short lessons for your first weeks at the piano, in English and
+- **Learn** has fourteen short lessons for your first weeks at the piano, in English and
   Simplified Chinese: finding your way around the keyboard; the staff and the clefs; landmark
   notes and intervals; rhythm and the beat; sharps, flats, whole and half steps; the major scale
   and key signatures; posture, hand shape and fingering; dots, ties, triplets and syncopation;
-  minor scales and minor keys; loud and soft, joined and detached; the pedals; ornaments; and
-  chords and harmony.
+  minor scales and minor keys; loud and soft, joined and detached; the pedals; ornaments;
+  chords and harmony; and practising well.
 - The second rhythm lesson reads the rhythms of most beginners' pieces: the dotted quarter and its
   eighth, ties over the beat and the barline, sixteenths and the dotted eighth, triplets against
   straight eighths, syncopation, and 6/8 set beside 3/4. Every rhythm is engraved with its beams,
@@ -133,6 +133,13 @@ and sessions (from version 6), and the click's tempo and grid of scale runs play
   (Δ, –, ø, sus, a slash for the bass); and folds the first bars of Bach's Prelude in C into their
   chords. You then play triads and chord symbols on the keyboard, the notes together or one at a
   time, and name eight cadences by ear.
+- The lesson on practising explains slow practice, with the Ode to Joy on a ladder of tempos up to
+  the one you aim for (as the Metronome's tempo trainer climbs it); small chunks and loops, and the
+  Pieces' weak bars; hands separately, then together; when to stop and fix and when to play
+  through; starting with the hardest bar; short, daily practice, with a session of any length
+  split into its parts; learning a piece by heart in several ways at once, with a plan; playing for
+  others, recording yourself and going on after a slip; playing without strain; and what an app
+  cannot hear, which a teacher can. Nine questions on its ideas finish it.
 - Every figure is the app's own keyboard or an engraved staff: colour the black-key groups, point
   at a line to hear its note, hold keys to see where they are written, build a major scale from
   any key, tap along with a beat and see how early or late you are. Each lesson ends with

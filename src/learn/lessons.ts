@@ -165,6 +165,18 @@ export const LESSONS: readonly LessonInfo[] = [
     ready: true,
     practice: '/ear',
   },
+  {
+    slug: 'practising',
+    title: { en: 'Practising well', 'zh-CN': '怎样练琴' },
+    summary: {
+      en: 'Slow practice, small chunks and loops, hands separately, stopping or playing through, short daily sessions, learning by heart, playing for others and playing without strain.',
+      'zh-CN':
+        '慢练，分段循环，先分手再合手，停下来改还是弹下去，每天短时间地练，背谱，弹给别人听，以及弹琴不要勉强。',
+    },
+    minutes: 15,
+    ready: true,
+    practice: '/pieces',
+  },
 ];
 
 /**

@@ -29,7 +29,7 @@ export const en = {
   'home.welcome.link': 'See your progress',
   'home.contents': 'Contents',
   'home.learn.text':
-    'Thirteen short lessons for your first weeks: the keyboard, the staff, landmarks, rhythm, sharps and flats, the major scale, posture, then dots, ties and triplets, minor keys, loud and soft, joined and detached, the pedals, ornaments and chords, with figures to play with.',
+    'Fourteen short lessons for your first weeks: the keyboard, the staff, landmarks, rhythm, sharps and flats, the major scale, posture, then dots, ties and triplets, minor keys, loud and soft, joined and detached, the pedals, ornaments, chords and how to practise, with figures to play with.',
   'home.learn.meta': '{n} lessons',
   'home.read.text':
     'One note at a time on the grand staff, from middle C position to ledger lines and accidentals. Every answer is timed, and the next card favours the notes you are slow on.',
