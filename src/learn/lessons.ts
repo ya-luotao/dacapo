@@ -142,6 +142,17 @@ export const LESSONS: readonly LessonInfo[] = [
     ready: true,
     practice: '/play',
   },
+  {
+    slug: 'ornaments',
+    title: { en: 'Ornaments', 'zh-CN': '装饰音' },
+    summary: {
+      en: 'Grace notes, mordents, the turn and the trill, each written out as it is played, and spread chords and the pause.',
+      'zh-CN': '倚音、波音、回音和颤音，每一种都写出实际弹的音，还有琶音和延长记号。',
+    },
+    minutes: 15,
+    ready: true,
+    practice: '/pieces',
+  },
 ];
 
 /**

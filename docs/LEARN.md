@@ -20,6 +20,7 @@ the computer keyboard, a click or a tap, like the Play page.
 | 9   | `minor-keys`       | Minor scales and minor keys          | written |
 | 10  | `dynamics`         | Loud and soft, joined and detached   | written |
 | 11  | `pedals`           | The pedals                           | written |
+| 12  | `ornaments`        | Ornaments                            | written |
 
 Beside them, not numbered: **Inside the piano** (`inside`), one key of a grand piano's action in
 cross-section, moving as you play. Its motion comes from `src/core/pianoAction.ts`: the key, the
@@ -88,6 +89,13 @@ Fine") are replaced by what works in Chinese.
   exercise's four chords are judged by X3's numbers (`judgePedalChanges`): up within 250 ms after
   each new chord, down again within 400 ms. Timelines are drawn a unit to a pixel at the width
   they are given, so they stay legible on a phone.
+- `ornamentFigures.tsx` has lesson 12's: each ornament engraved as written (grace notes small,
+  slashed or not; the mordent, the inverted mordent, the turn, tr with its wavy line and its
+  ending; a spread chord's wavy line; the fermata, all from Bravura's outlines) over the notes it
+  stands for, written out in sixteenths (a crushed note as a 32nd) and beamed, both lit as they
+  play, slowly or at tempo. The examples are in the style of the library's minuets; the mordent
+  is bar 5 of the Minuet in G. The line (`OrnamentStaff`) beams any group of eighths, sixteenths
+  and 32nds, one way by the group's average, lengthening the stems to the beam.
 - An exercise that needs something not everyone has (a keyboard that senses touch, a sustain
   pedal) says so when no MIDI keyboard is connected and can always be skipped; the lesson is
   finished by its last exercise, which anyone can do. Lesson 10's crescendo passes when every

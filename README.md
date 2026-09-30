@@ -45,11 +45,11 @@ practising the notes you are slowest at. Progress is visible day by day.
 
 ## Features
 
-- **The basics.** Eleven short lessons for complete beginners, in English and Simplified Chinese:
+- **The basics.** Twelve short lessons for complete beginners, in English and Simplified Chinese:
   the keyboard, the staff and clefs, landmark notes and intervals, rhythm, sharps and flats, the
   major scale and key signatures, posture and fingering, dots, ties, triplets and syncopation,
-  minor keys, dynamics and articulation, and the pedals, each with figures to play with on your
-  own keyboard and exercises to finish ([docs/LEARN.md](docs/LEARN.md)).
+  minor keys, dynamics and articulation, the pedals, and ornaments, each with figures to play with
+  on your own keyboard and exercises to finish ([docs/LEARN.md](docs/LEARN.md)).
 - **Live keyboard.** An 88-key on-screen piano lights up as you play, with velocity, the sustain
   pedal and the notes you just played. Works with a MIDI keyboard, your computer keyboard or
   the mouse / touch.

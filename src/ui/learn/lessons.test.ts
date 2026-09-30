@@ -47,8 +47,9 @@ describe('the lessons', () => {
     expect(neighbours('rhythm-2').next?.slug).toBe('minor-keys');
     expect(neighbours('minor-keys').next?.slug).toBe('dynamics');
     expect(neighbours('dynamics').next?.slug).toBe('pedals');
-    expect(neighbours('pedals')).toMatchObject({
-      previous: { slug: 'dynamics' },
+    expect(neighbours('pedals').next?.slug).toBe('ornaments');
+    expect(neighbours('ornaments')).toMatchObject({
+      previous: { slug: 'pedals' },
       next: undefined,
     });
     expect(neighbours('unknown')).toEqual({});

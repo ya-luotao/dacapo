@@ -54,6 +54,10 @@ const LOADERS: Readonly<Record<string, Readonly<Record<LessonLanguage, Loader>>>
     en: () => import('./pedals.en.tsx'),
     'zh-CN': () => import('./pedals.zh-CN.tsx'),
   },
+  ornaments: {
+    en: () => import('./ornaments.en.tsx'),
+    'zh-CN': () => import('./ornaments.zh-CN.tsx'),
+  },
 };
 
 /** The lessons' texts as components that load on first render. */

@@ -57,11 +57,11 @@ answers and sessions. Version 1 to 5 files still import.
 
 ### The basics: lessons for beginners ([docs/LEARN.md](docs/LEARN.md))
 
-- **Learn** has eleven short lessons for your first weeks at the piano, in English and
+- **Learn** has twelve short lessons for your first weeks at the piano, in English and
   Simplified Chinese: finding your way around the keyboard; the staff and the clefs; landmark
   notes and intervals; rhythm and the beat; sharps, flats, whole and half steps; the major scale
   and key signatures; posture, hand shape and fingering; dots, ties, triplets and syncopation;
-  minor scales and minor keys; loud and soft, joined and detached; and the pedals.
+  minor scales and minor keys; loud and soft, joined and detached; the pedals; and ornaments.
 - The second rhythm lesson reads the rhythms of most beginners' pieces: the dotted quarter and its
   eighth, ties over the beat and the barline, sixteenths and the dotted eighth, triplets against
   straight eighths, syncopation, and 6/8 set beside 3/4. Every rhythm is engraved with its beams,
@@ -88,6 +88,12 @@ answers and sessions. Version 1 to 5 files still import.
   pedal or from a demo changed in time, too early or too late, with each gap or blur marked. It
   ends with four chords to pedal, each change timed (skippable without a pedal), and nine
   questions.
+- The ornaments lesson engraves the acciaccatura and the appoggiatura, the mordent and the
+  inverted mordent (bar 5 of the Minuet in G), the turn and the trill, from the note above or
+  from the note itself and with its written ending, each over the notes it stands for, written
+  out and beamed, and plays both slowly and at tempo; then a spread chord and a fermata, with the
+  sign and without. It ends with ten ornaments to name, and a mordent and a turn to play written
+  out.
 - Every figure is the app's own keyboard or an engraved staff: colour the black-key groups, point
   at a line to hear its note, hold keys to see where they are written, build a major scale from
   any key, tap along with a beat and see how early or late you are. Each lesson ends with
