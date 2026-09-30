@@ -3,7 +3,7 @@ import { parseMusicXml } from '../../core/musicxml.ts';
 import { handsPlaying, scaleNotes } from '../../core/scales.ts';
 import type { ScaleExercise } from '../../core/scaleTypes.ts';
 import { scaleHands, scaleMusicXml } from '../../core/scaleXml.ts';
-import { buildSteps, keyRange, type Hand } from '../../core/score.ts';
+import { buildSteps, keyRange } from '../../core/score.ts';
 import { useT } from '../../i18n/index.ts';
 import { useHubState, useInput } from '../input/context.ts';
 import { ScoreView, type ScoreStatus } from '../notation/ScoreView.tsx';
@@ -12,8 +12,17 @@ import { Piano } from '../piano/Piano.tsx';
 import { keyboardRange, whiteKeys } from '../piano/range.ts';
 import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
 import { useFocusState } from '../focus/focus.ts';
-import { spelledName, useExerciseTitle } from './format.ts';
-import { loopKey, loopNotes, loopSpan, startLoop, type LoopPlace } from './loop.ts';
+import { stepNames, useExerciseTitle } from './format.ts';
+import {
+  loopKey,
+  loopNotes,
+  loopSpan,
+  noteIdsOf,
+  noteKey,
+  startLoop,
+  stepCount,
+  type LoopPlace,
+} from './loop.ts';
 
 /** A loop is a few notes: drawn as large as one octave of a scale. */
 const LOOP_ZOOM = 1.6;
@@ -32,7 +41,7 @@ export function ScaleLoop({
 }: {
   exercise: ScaleExercise;
   place: LoopPlace;
-  perBeat: 2 | 3 | 4;
+  perBeat: number;
   onStop: () => void;
 }) {
   const t = useT();
@@ -43,7 +52,8 @@ export function ScaleLoop({
   const hands = handsPlaying(exercise.hands);
   const notes = useMemo(() => scaleNotes(exercise), [exercise]);
   const run = notes[place.hand];
-  const span = useMemo(() => loopSpan(run.length, place.index), [run.length, place.index]);
+  const steps = stepCount(run);
+  const span = useMemo(() => loopSpan(steps, place.index), [steps, place.index]);
   const expected = useMemo(() => loopNotes(notes, span), [notes, span]);
   const xml = useMemo(
     () => scaleMusicXml(exercise, { notesPerBeat: perBeat, loop: span }),
@@ -56,19 +66,19 @@ export function ScaleLoop({
       }),
     [xml, exercise],
   );
-  const steps = useMemo(() => buildSteps(score, hands), [score, hands]);
+  const scoreSteps = useMemo(() => buildSteps(score, hands), [score, hands]);
   // The loop's notes on the score: each hand's notes by onset are its notes of the span.
-  const noteIds = useMemo(() => {
-    const of = (hand: Hand) =>
-      score.notes
-        .filter((n) => n.hand === hand)
-        .sort((a, b) => a.onset - b.onset)
-        .map((n) => n.id);
-    return { right: of('right'), left: of('left') };
-  }, [score]);
+  const noteIds = useMemo(
+    () =>
+      noteIdsOf(score, {
+        right: expected.filter((n) => n.hand === 'right'),
+        left: expected.filter((n) => n.hand === 'left'),
+      }),
+    [score, expected],
+  );
   const stepOfNote = useMemo(
-    () => new Map(steps.flatMap((s) => s.noteIds.map((id) => [id, s] as const))),
-    [steps],
+    () => new Map(scoreSteps.flatMap((s) => s.noteIds.map((id) => [id, s] as const))),
+    [scoreSteps],
   );
   const [status, setStatus] = useState<ScoreStatus>({ state: 'loading' });
   const [loop, dispatch] = useReducer(loopKey, expected, startLoop);
@@ -85,7 +95,7 @@ export function ScaleLoop({
 
   const idOf = (n: number) => {
     const note = expected[n];
-    return note ? noteIds[note.hand][note.index - span.from] : undefined;
+    return note ? noteIds.get(noteKey(note)) : undefined;
   };
   const due = loop.steps[loop.next] ?? [];
   const nextId = due[0] === undefined ? undefined : idOf(due[0]);
@@ -107,8 +117,7 @@ export function ScaleLoop({
     const range = keyRange(score, hands) ?? [60, 72];
     return keyboardRange(range[0], range[1]);
   }, [score, hands]);
-  const center = run[place.index];
-  const where = center ? spelledName(center.pitch) : '';
+  const where = stepNames(run)[place.index] ?? '';
 
   return (
     <div className="scale-session scale-loop">
@@ -118,7 +127,9 @@ export function ScaleLoop({
         </h2>
         <p className="scale-status" role="status">
           {loop.rounds === 0 && loop.next === 0 && loop.played.length === 0
-            ? t('scales.loop.start', { key: spelledName(dueNotes[0]!.pitch) })
+            ? t('scales.loop.start', {
+                key: stepNames(dueNotes.filter((n) => n.hand === dueNotes[0]!.hand))[0] ?? '',
+              })
             : t('scales.loop.rounds', { n: loop.rounds })}
         </p>
         <div className="scale-head-tools">

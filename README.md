@@ -102,6 +102,12 @@ practising the notes you are slowest at. Progress is visible day by day.
   spot can be looped, a few notes either side, until you stop. The keyboard shows the finger for
   the keys to start on and, if you want, for each next key, with a word before a thumb crossing.
   Every run is kept, with a 30-day trend per scale and the scale to practise next.
+- **Technique, measured the same way.** Five-finger patterns in every key, Hanon's first twenty
+  exercises exactly as printed (notes, bars and his fingering, transcribed twice from the 1900
+  edition and checked), and the key's triad in block chords (two or three octaves) and broken chords
+  (one or two).
+  Chords are timed by their first key, with how far apart their keys came and whether the top note
+  stood out; in Hanon's patterns the place named is the same note of every group.
 - **Focus mode.** While you practise a piece or a scale, the header and the settings can give way
   to the score: one slim row keeps larger or smaller notes, the keyboard on or off, the settings
   when you need them, the metronome and full screen. The screen stays on while you practise.
@@ -221,8 +227,8 @@ everyone takes part under the [Code of Conduct](CODE_OF_CONDUCT.md).
 Notation is drawn with [VexFlow](https://github.com/vexflow/vexflow) (MIT) and the
 [Bravura](https://github.com/steinbergmedia/bravura) music font (SIL Open Font License 1.1) on the
 Read page, and with [Verovio](https://www.verovio.org) (LGPL-3.0-or-later, shipped unmodified as
-separate files) on the Pieces and Scales pages. The scale fingering is transcribed from Hanon's
-_The Virtuoso Pianist_ (G. Schirmer, 1900; public domain). Some built-in pieces are CC0 encodings
+separate files) on the Pieces and Scales pages. The scale fingering and the technique exercises
+Nos. 1–20 are transcribed from Hanon's _The Virtuoso Pianist_ (G. Schirmer, 1900; public domain). Some built-in pieces are CC0 encodings
 from the [PDMX](https://zenodo.org/records/15571083) dataset (CC BY 4.0). Everything is part of the
 build, so the app never loads anything from a CDN. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
 for every licence and source.

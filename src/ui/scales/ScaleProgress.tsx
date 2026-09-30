@@ -8,11 +8,12 @@ import {
 } from '../../core/scaleProgress.ts';
 import { exerciseKey, parseExerciseKey, scaleNotes } from '../../core/scales.ts';
 import type { ScaleExercise } from '../../core/scaleTypes.ts';
+import type { Hand } from '../../core/score.ts';
 import { dayKey } from '../../core/streak.ts';
 import { SENTENCE_GAP, useI18n } from '../../i18n/index.ts';
 import { useScaleRuns } from '../practice/context.ts';
 import { useLogFormat } from '../progress/format.ts';
-import { spelledName, useExerciseName } from './format.ts';
+import { fewKeys, stepNames, useExerciseLabel } from './format.ts';
 import type { LoopPlace } from './loop.ts';
 import { TrendChart } from './TrendChart.tsx';
 
@@ -39,13 +40,13 @@ export function ScaleProgress({
   const key = exerciseKey(exercise);
   const runs = useScaleRuns(key);
   const places = useMemo(() => (runs && runs.length > 0 ? placesOverRuns(runs) : null), [runs]);
-  const names = useMemo(() => {
-    const notes = scaleNotes(exercise);
-    return {
-      right: notes.right.map((n) => spelledName(n.pitch)),
-      left: notes.left.map((n) => spelledName(n.pitch)),
-    };
-  }, [exercise]);
+  const notes = useMemo(() => scaleNotes(exercise), [exercise]);
+  const names = useMemo(
+    () => ({ right: stepNames(notes.right), left: stepNames(notes.left) }),
+    [notes],
+  );
+  /** A pattern that never turns (the five-finger group): its places have no direction. */
+  const oneWay = (hand: Hand) => notes[hand].every((n) => n.direction === 'up');
   const gap = SENTENCE_GAP[locale];
   const ms = (value: number | null | undefined) =>
     value === null || value === undefined ? '–' : t('scales.result.ms', { ms: Math.round(value) });
@@ -64,10 +65,22 @@ export function ScaleProgress({
     const timing = t(p.irregularity > 0 ? 'scales.problem.late' : 'scales.problem.early', {
       ms: Math.round(Math.abs(p.irregularity)),
     });
-    // Where there is no fingering the place is its notes, by degree.
+    // Where there is no fingering the place is its notes, by degree; in a pattern, a note of
+    // every group, named by a few of its keys.
+    const few = fewKeys(
+      p.indexes.map((i) => names[p.hand][i] ?? ''),
+      t('app.listSeparator'),
+    );
     const text = p.crossing
       ? t(`scales.places.${p.crossing}.${p.direction}`, { keys, timing, runs: p.runs })
-      : t(`scales.places.notes.${p.direction}`, { keys, timing, runs: p.runs });
+      : p.pattern
+        ? t(`scales.places.pattern.${oneWay(p.hand) ? 'any' : p.direction}`, {
+            n: (p.degree ?? 0) + 1,
+            keys: few,
+            timing,
+            runs: p.runs,
+          })
+        : t(`scales.places.notes.${p.direction}`, { keys, timing, runs: p.runs });
     // Hands together, each hand has its own places: say which.
     return exercise.hands === 'both' || exercise.hands === 'contrary'
       ? t('scales.result.forHand', { hand: t(`scales.hand.${p.hand}`), text })
@@ -165,7 +178,7 @@ export function YourScales({
 }) {
   const { t, locale } = useI18n();
   const format = useLogFormat();
-  const name = useExerciseName();
+  const exerciseLabel = useExerciseLabel();
   const id = useId();
   const percent = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
   const suggestion = suggestedExercise(list, now);
@@ -174,8 +187,7 @@ export function YourScales({
   const currentKey = exerciseKey(current);
 
   const label = (e: ScaleExercise) =>
-    t('progress.session.scaleOne', { scale: name(e), octaves: e.octaves }) +
-    ` · ${t(`progress.session.hands.${e.hands}`)}`;
+    `${exerciseLabel(e)} · ${t(`progress.session.hands.${e.hands}`)}`;
 
   return (
     <section className="scale-list" aria-labelledby={`${id}-title`}>

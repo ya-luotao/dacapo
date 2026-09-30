@@ -11,13 +11,25 @@ import {
 import { analyzeRun, type RunAnalysis } from '../../core/evenness.ts';
 import { parseMusicXml } from '../../core/musicxml.ts';
 import { summarizeRhythm } from '../../core/rhythmRun.ts';
-import { clickTimings, scaleRhythmPlan, type ClickSettings } from '../../core/scaleClick.ts';
+import {
+  clickTimings,
+  scaleRhythmPlan,
+  type ClickSettings,
+  type GridPerBeat,
+} from '../../core/scaleClick.ts';
 import { scaleProgress } from '../../core/scaleProgress.ts';
 import { dayKey } from '../../core/streak.ts';
 import type { ScaleSession } from '../../core/scaleRecords.ts';
 import { exerciseKey, handsPlaying, scaleNotes } from '../../core/scales.ts';
 import type { ScaleExercise } from '../../core/scaleTypes.ts';
-import { freePerBeat, scaleHands, scaleMusicXml } from '../../core/scaleXml.ts';
+import {
+  exerciseBeats,
+  freePerBeat,
+  layoutOf,
+  scaleHands,
+  scaleMusicXml,
+} from '../../core/scaleXml.ts';
+import { isTechnique } from '../../core/technique.ts';
 import { buildSteps, keyRange, type Hand } from '../../core/score.ts';
 import { useT } from '../../i18n/index.ts';
 import type { MidiStatus } from '../../input/index.ts';
@@ -37,9 +49,9 @@ import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
 import { FocusBar, FocusEnter } from '../focus/FocusBar.tsx';
 import { useFocusState } from '../focus/focus.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
-import { spelledName, useExerciseTitle } from './format.ts';
+import { stepNames, useExerciseTitle } from './format.ts';
 import { KeyboardHint } from './KeyboardHint.tsx';
-import type { LoopPlace } from './loop.ts';
+import { noteIdsOf, noteKey, type LoopPlace } from './loop.ts';
 import {
   readClickPrefs,
   readExercise,
@@ -68,6 +80,17 @@ const TICK_MS = 250;
  * take the whole width at the usual size.
  */
 const ZOOM: Record<ScaleExercise['octaves'], number> = { 1: 1.6, 2: 1.3, 3: 1.15, 4: 1 };
+
+/**
+ * A technique exercise is drawn as large as a scale of about as many beats (a five-finger pattern
+ * as one octave, a broken chord over an octave as two); Hanon's thirty bars take several systems at
+ * the usual size.
+ */
+function zoomOf(e: ScaleExercise, perBeat: number | undefined): number {
+  if (!isTechnique(e.type)) return ZOOM[e.octaves];
+  const beats = exerciseBeats(e, perBeat);
+  return beats <= 5 ? 1.6 : beats <= 9 ? 1.3 : beats <= 12 ? 1.15 : 1;
+}
 /**
  * A system at least a third full is stretched (one octave on one staff fills about 40 %); the last
  * bar alone on a line (about a quarter) is not. Octave lines read "8va", clear of the fingering.
@@ -133,8 +156,9 @@ export function ScalesPage() {
     stage.current?.focus({ preventScroll: true });
   }
 
+  // The grid as played: the notes to the beat chosen, or the exercise's own rhythm.
   const clickSettings: ClickSettings | null = click.on
-    ? { bpm: click.bpm, perBeat: click.perBeat }
+    ? { bpm: click.bpm, perBeat: layoutOf(exercise, click.perBeat).perBeat as GridPerBeat }
     : null;
   // A new session view for another scale or another grid: its run and result belong to those.
   const sessionKey = `${exerciseKey(exercise)}:${clickSettings ? `${clickSettings.bpm}:${clickSettings.perBeat}` : 'free'}`;
@@ -247,18 +271,16 @@ function ScaleSession({
   const { settings: metronomeSettings } = useMetronomeState();
   // Contrary motion is both hands, as the score, the steps and the keyboard see it.
   const hands = handsPlaying(exercise.hands);
-  const perBeat = click?.perBeat ?? freePerBeat(exercise.type);
+  const perBeat = click?.perBeat;
   const notes = useMemo(() => scaleNotes(exercise), [exercise]);
   // The run: one hand's notes, or the right hand's then the left's (what the analysis takes).
   const expected = useMemo(
     () => (hands === 'both' ? [...notes.right, ...notes.left] : notes[hands]),
     [notes, hands],
   );
+  // Each step by name, a chord by its keys.
   const names = useMemo(
-    () => ({
-      right: notes.right.map((note) => spelledName(note.pitch)),
-      left: notes.left.map((note) => spelledName(note.pitch)),
-    }),
+    () => ({ right: stepNames(notes.right), left: stepNames(notes.left) }),
     [notes],
   );
   const xml = useMemo(
@@ -278,24 +300,29 @@ function ScaleSession({
     () => (click ? scaleRhythmPlan(score, hands, click.bpm) : null),
     [click, score, hands],
   );
-  // The run's notes on the score: each hand's notes in the order played are its run, note for
-  // note (scaleXml.test.ts holds it), and each belongs to the step at its onset.
-  const noteIds = useMemo(() => {
-    const of = (hand: Hand) =>
-      score.notes
-        .filter((n) => n.hand === hand)
-        .sort((a, b) => a.onset - b.onset)
-        .map((n) => n.id);
-    return { right: of('right'), left: of('left') };
-  }, [score]);
+  // The run's notes on the score: each hand's notes in the order played (a chord's lowest
+  // first) are its run, note for note (scaleXml.test.ts holds it), and each belongs to the step
+  // at its onset.
+  const noteIds = useMemo(() => noteIdsOf(score, notes), [score, notes]);
   /** The score's note for a note of the run (an index into `expected`). */
   const idOf = useMemo(
     () => (n: number) => {
       const note = expected[n];
-      return note ? noteIds[note.hand][note.index] : undefined;
+      return note ? noteIds.get(noteKey(note)) : undefined;
     },
     [expected, noteIds],
   );
+  /** The score's notes of a step of a hand's run (a chord's keys). */
+  const idsOfStep = useMemo(() => {
+    const byStep = new Map<string, string[]>();
+    for (const note of [...notes.right, ...notes.left]) {
+      const id = noteIds.get(noteKey(note));
+      if (!id) continue;
+      const key = `${note.hand}:${note.index}`;
+      byStep.set(key, [...(byStep.get(key) ?? []), id]);
+    }
+    return (hand: Hand, index: number) => byStep.get(`${hand}:${index}`) ?? [];
+  }, [notes, noteIds]);
   const stepOfNote = useMemo(
     () => new Map(steps.flatMap((s) => s.noteIds.map((id) => [id, s] as const))),
     [steps],
@@ -422,9 +449,8 @@ function ScaleSession({
     if (analysis && ok) {
       for (const hand of analysis.hands)
         for (const note of hand.notes) {
-          const id = noteIds[hand.hand][note.index];
           const mark = note.outcome === 'played' ? deviationMark(note.deviation) : 'is-missed';
-          if (id && mark) out.set(id, mark);
+          if (mark) for (const id of idsOfStep(hand.hand, note.index)) out.set(id, mark);
         }
     } else if (run.phase !== 'done') {
       for (const n of run.played) {
@@ -433,7 +459,7 @@ function ScaleSession({
       }
     }
     return out;
-  }, [analysis, ok, run.phase, run.played, noteIds, idOf]);
+  }, [analysis, ok, run.phase, run.played, idsOfStep, idOf]);
 
   const keys = useMemo(() => {
     const span = keyRange(score, hands) ?? [60, 72];
@@ -592,7 +618,7 @@ function ScaleSession({
           hands={hands}
           onStatus={setStatus}
           marks={marks}
-          zoom={ZOOM[exercise.octaves] * (focus.on ? focus.zoom : 1)}
+          zoom={zoomOf(exercise, perBeat) * (focus.on ? focus.zoom : 1)}
           engraving={ENGRAVING}
           fillHeight={false}
         />
@@ -622,6 +648,12 @@ function ScaleSession({
             className="piece-piano"
           />
         </div>
+      )}
+
+      {exercise.type === 'hanon' && (
+        <p className="help scale-source">
+          {t('scales.hanon.source', { n: exercise.variant ?? '' })}
+        </p>
       )}
 
       <KeyboardHint />

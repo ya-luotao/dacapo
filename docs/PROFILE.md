@@ -96,9 +96,10 @@ store, and sent whole; it replaces the previous one.
   time of its runs. Its title is the piece's current one, at most 80 characters (longer ones are
   cut, with `…`); a piece deleted since, or whose title was made from its file name (a score
   without a title), is "a piece", as the file name is never published. A scale's time is that of
-  its runs, first key to last, whatever the octaves and hands. Only the five scale types the service knows are named (major,
-  the three minors, chromatic); arpeggios and anything later are counted in `moreScales` until the
-  service learns them.
+  its runs, first key to last, whatever the octaves and hands. The service names only the five
+  scale types (major, natural, harmonic and melodic minor, chromatic) and rejects a document with
+  any other, so the arpeggios and the technique exercises are not listed: their time counts in
+  `kinds.scale`, and each counts one in `moreScales`, until the service learns their names.
 - All numbers are non-negative integers (times are rounded: scale runs are timed to fractions of
   a millisecond). At most 256 KB serialized; a year of daily practice is
   well under, and a document over it leaves out the oldest days' activity until it fits.

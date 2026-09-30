@@ -1,6 +1,6 @@
 # dacapo — Scales specification
 
-Status: S0–S5 are built (S1 stays open until the loudness thresholds and the reference bands are
+Status: S0–S6 are built (S1 stays open until the loudness thresholds and the reference bands are
 set from runs recorded on real instruments). This extends [MVP.md](MVP.md) and
 [PIECES.md](PIECES.md); their principles and fixed decisions still apply (staff first, measure
 don't guess, local data, English of record, every UI language, 3-day dependency cooldown, no
@@ -450,6 +450,151 @@ reads σ for a steady player.
   pair played as one key has no asynchrony and is left out of the hands' figures; the cursor takes
   both notes of the step from one key-down, and so does a focus loop.
 
+## Technique (S6, S7)
+
+Scales and arpeggios are half of a pianist's daily technique. The other half — five-finger
+patterns, Hanon's exercises, chords, broken chords, double notes, octaves, repeated notes and
+trills — is measured the same way: every key's onset, release and velocity, against its neighbours.
+
+### Where it lives
+
+The Scales page's type list gains a group **Technique** under the scales and arpeggios, with the
+same key, octaves (where they apply), hands, free tempo or the click, focus mode, focus loops,
+records and progress per exercise. Each exercise is generated MusicXML drawn by Verovio, like the
+scales, with fingering only where a public-domain edition prints it (Hanon, transcribed and
+checked as S0 and S5 did); nothing is invented.
+
+### Exercises
+
+| Exercise                | What                                                                                                                                                                       | Keys                              | Fingering                                                                       |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------- |
+| **Five-finger pattern** | 1 2 3 4 5 4 3 2 from the tonic, four times over, then the tonic; the hand still                                                                                            | every major/minor                 | the finger is the degree (1–5 on 1–5, as the hand lies; no edition needed)      |
+| **Hanon 1–20** (Part I) | Each exercise's group of eight sixteenths (one bar of 2/4), a step higher each bar for two octaves, then its mirror a step lower each bar, and the closing bar, as printed | C (as printed)                    | Hanon's, as printed: in full in the first bars, then only the fingers it trains |
+| **Block chords**        | The key's triad in root position and both inversions, up two or three octaves and back                                                                                     | every major/minor                 | none                                                                            |
+| **Broken chords**       | The same chords broken low–middle–high–middle, one or two octaves, closing on the root                                                                                     | every major/minor                 | none                                                                            |
+| **Sevenths**            | Hanon No. 42 (the diminished sevenths) and No. 43 (the dominant sevenths), in arpeggios: per chord a bar of stretching, then the arpeggio up and down                      | as printed                        | Hanon's                                                                         |
+| **Repeated notes**      | Hanon Nos. 44 (in groups of three), 45 (in groups of two, in six fingerings) and 47 (in groups of four)                                                                    | C (as printed)                    | Hanon's                                                                         |
+| **Trills**              | Hanon No. 46 (the trill for all five fingers, the pair changing as printed), then any pair of fingers held for 4, 8 or 16 bars                                             | C (as printed); any key for pairs | Hanon's; the pair chosen                                                        |
+| **Thirds**              | The scale in legato thirds printed after No. 50 ("Scales in Legato Thirds", unnumbered, after No. 50's legato-thirds exercise)                                             | C (as printed)                    | Hanon's                                                                         |
+| **Octaves**             | Hanon No. 51 (preparatory: each degree repeated in octaves, the first three lines he sets apart) and No. 53 (the scales in octaves in the 24 keys, the minors melodic)     | C; the 24 keys                    | Hanon's (No. 53: his footnote, the black keys with the fourth finger)           |
+
+Hanon's numbers are those of the G. Schirmer edition already transcribed (IMSLP #91547). Where the
+drafted list differed from the plates, the plates decided: No. 42 is the diminished sevenths and
+No. 43 the dominant ones; No. 45 prints six fingerings (its title's "all five fingers" names the
+fingers, not the count); No. 46 trains every pair of fingers, not only 4–5; the scale in thirds is
+an unnumbered part of No. 50; No. 51 repeats each degree in octaves.
+
+### What is measured
+
+- Single-note lines (five-finger, Hanon 1–20, broken chords, sevenths, repeated notes): the scale
+  analysis as it is (timing spread, hesitations, deviation per note, loudness and accents,
+  legato), with the crossings replaced by the pattern's own places (the same note of every group).
+- **Chords, thirds and octaves** (two or more keys struck together): each chord's **spread** (last
+  onset − first, ms; a chord is the keys within 60 ms), its **balance** (the top note's velocity
+  against the others', relative to the run's range, as EXPRESSION.md does it), the timing spread of
+  the chords' first onsets, and, legato thirds, the overlap of each voice.
+- **Trills**: the **rate** (notes per second) over time, its **steadiness** (the spread of the
+  intervals, hesitations apart), whether it **slows** (the fitted slope over the trill), and the
+  **evenness of the two fingers** (the intervals after each finger against the other's).
+- **Repeated notes**: the intervals between repeats of one key and whether the key came fully up
+  (a release before each repeat).
+
+## Clarifications (decided during S6)
+
+- **The exercise model.** A technique exercise is a `ScaleExercise` like a scale — a type, a key,
+  octaves and hands — with a fifth field, `variant`, where the type has several forms in one key
+  (Hanon's number): `majorChords:F:1:both`, `hanon:C:2:both:12`. Its key names its records and
+  progress, so each Hanon number, each key and each length has its own. Each type sets its keys,
+  lengths and hands (`techniqueRules`): the five-finger patterns one octave in every major or minor
+  key; Hanon in C, two octaves, as printed; block chords two or three octaves (an octave up and
+  back is seven chords, three intervals a direction, too few for any timing figure, as each
+  interval is judged against three neighbours at least); broken chords one or two octaves (the
+  first is 29 notes); no contrary motion.
+  The picker lists the types in two groups, Scales and arpeggios, then Technique, and shows Hanon's
+  number when Hanon is chosen; octaves and hands the type does not have are disabled. Older builds
+  do not validate these keys, so `SYNC_SCHEMA` is 9 (docs/SYNC.md); the export format is unchanged,
+  as for S5's arpeggios (an older app reports such records as invalid, the rest imports). The public
+  profile names only the five scale types the service accepts (it rejects a document with any
+  other): the arpeggios and the technique exercises count in `moreScales` (docs/PROFILE.md).
+- **Hanon's Part I, transcribed** (`scripts/scales/hanon/part1/`). Each of Nos. 1–20 was read twice,
+  independently, from the scan (PDF pp. 3–22): for every exercise the first bar of each half in
+  full, both hands, at sounding pitch; the first note of every bar; any bar that is not the first
+  bar of its half moved by step, in full; the closing bar; and every printed digit by bar, hand and
+  note. The two readings were diffed (`diff_part1.py`), every difference settled on the scan at
+  higher resolution, and the doubtful digits are listed in `uncertain.md`. `build_part1.py` then
+  expands a reading into every note (each bar the group moved by step, the irregular bars as read)
+  and checks it against the first notes read for every bar; the module `hanonPartOne.ts` is
+  generated from it and locked by a checksum, and the drawn scores were compared with the plates
+  bar by bar. The first readings differed in 31 places, in three kinds: the number of descending
+  bars (fourteen in most exercises, but fifteen in Nos. 1, 12 and 20 and thirteen in No. 17, and
+  each reading once took one exercise's count for another's), two last bars that end off the
+  pattern (Nos. 6 and 9), and two digits. Those two sit on the top line of the treble staff,
+  which closes a 1's long flag into what looks like a 4 (No. 9 bar 6, No. 13 bar 6): matched
+  against the clean 1s and 4s of the same page with the line masked, both are 1s, the thumb the
+  fingering printed in full has there. Nothing is corrected (`resolved.py`).
+- **Hanon's fingering is shown as printed.** From the third bar Hanon prints only the fingers each
+  exercise trains ("for brevity", his footnote to No. 1); the other notes have no digit on the
+  score, on the keyboard or in the chart. Filling them in (every bar as the first) is what a player
+  does, but it is not what he printed, so dacapo does not.
+- **Hanon's rhythm and bars as printed**: sixteenths in 2/4 with the time signature shown (the
+  scales hide theirs), one group a bar, the closing half note a bar of its own. With the click the
+  notes to the beat stay his (the choice of 2, 3 or 4 is not offered), and the count-in is one bar,
+  two clicks, as rhythm mode counts any 2/4 piece. Hands together as printed, an octave apart;
+  either hand alone plays its own staff. What is not transcribed is the layout: the clef of each
+  bar is the one needing fewer ledger lines (`barClefs`; the plates keep the left hand in the bass
+  clef longer), and the repeat sign before the closing bar is left out, since a run plays the
+  exercise once. Four readers compared every drawn score with its plate, bar by bar, notes, rhythm,
+  bar count and digits, and found no difference.
+- **A pattern turns once.** Hanon's groups rise and fall inside every bar, so a note's direction is
+  its half of the exercise (the ascending bars, then the mirrored ones), and the run turns after
+  the last ascending bar: the neighbour windows, lines and hesitations are the scale's, over the
+  sixteenths. A note's `degree` is its place in its group (0–7; 0–3 in a broken chord), and the
+  note is marked `pattern`.
+- **A pattern's places.** With no crossings, a run's problem place is the same note of every group
+  in one direction of one hand, the first and last notes left out, named at 3 standard errors
+  (`PATTERN_MIN_Z`) and at least 15 ms, from at least 4 notes: simulated
+  (`scripts/scales/simPattern.ts`), a steady player is named somewhere in 1.3–4.3 % of runs at σ =
+  15–25 ms, and the fourth note of every group 25 ms late going up is found in 98 % of runs of
+  Hanon No. 1's shape at σ = 15 (54 % at σ = 25), in 53–56 % (11 %) of the broken chords over two
+  octaves. At the degree places' 3.5 of the places over runs the steady player was named in 1–2 %
+  but the late note found in only 35 % and 4 % at σ = 25; at 2.5 a steady player was named in
+  21 %. Over runs the pattern's places are the degree places they already were (`DEGREE_MIN_Z`,
+  unchanged), and the sentences name a place as "note 4 of each group" with its first keys.
+- **The five-finger pattern** is its group 1 2 3 4 5 4 3 2 played four times over and the tonic
+  (33 notes in eighths at free tempo; with the click, the notes to the beat chosen). Once through
+  (nine notes, the draft's reading) it has four intervals a direction, too few for a spread at all
+  (each interval needs three neighbours), so the run would have no figure and no progress. Repeated
+  it is a pattern that never turns: every note goes one way, no interval is a turn's, its places
+  are the notes of the group (the sentences name them without a direction), and the finger is the
+  degree.
+- **Block chords** are drawn a quarter note each, the last filling its bar, with the key signature
+  and no fingering; with the click one chord to the beat. **Broken chords** are sixteenths, a chord
+  to the beat, closing on the root, fingering none (no edition we can cite prints it).
+- **Chords, aligned.** The played keys are grouped into clusters, each key within 60 ms of the key
+  before it (the spec's 60 ms, chained so a rolled chord stays one), and the clusters aligned
+  against the steps by edit distance on sets (`alignChords`): a cluster matches a step at the cost of
+  its mistakes (a key of the step not struck and a key struck that is not in it make one wrong key;
+  the rest are missed or extra), a step may take two clusters in a row (one hand 80 ms after the
+  other, a chord broken wider than the chain), a cluster may be extra, a step missed. Hands
+  together both hands' keys of a step are one set, since they strike together. The counts are of
+  keys, so the quality gate reads as for a scale. A chord is played when every key of it is right:
+  its time is its first key's, its loudness the median of its keys', and a chord with a wrong or
+  missed key is a mistake (in the error colour, no time), as a scale's wrong note is.
+- **Spread and balance.** A chord's spread is its last onset − its first; more than 30 ms
+  (`CHORD_APART_MS`, the hands' threshold) is heard as broken, named up to four and counted beyond.
+  Its balance is its top key's velocity − the median of the others'; the run's range is its keys'
+  5th to 95th percentile velocities, and the top stands out or under by `BALANCE_SHARE` (0.08) of
+  it, at least 3 (EXPRESSION.md's `BALANCE_STEP`); the summary says which by the median over the
+  run. Both thresholds are provisional, as S1's are, until recorded runs set them. Without
+  velocity, balance is not measured, never zero.
+- **Chords' connection** goes voice by voice (the lowest key to the next chord's lowest, and so
+  on), and a chord's is the voice that lets go first.
+- **After a run.** The figures add the chords' spread and the top note's balance; the chart one dot
+  per chord, with two rows more (spread, marked beyond 30 ms, and balance) and the table two
+  columns; the score inks every key of a chord. A long run (Hanon's two hundred and thirty notes a
+  hand) keeps at least 6 px between notes and scrolls sideways. A technique exercise's score is drawn
+  as large as a scale of as many beats; Hanon's thirty bars take several systems.
+
 ## Milestones
 
 1. ✓ **S0 Spike** — generate the scale MusicXML and draw it with fingering and per-note tints in
@@ -469,3 +614,7 @@ reads σ for a steady player.
    recorded).
 6. ✓ **S5 More shapes** — arpeggios, contrary motion, chromatic in contrary motion if there is
    demand.
+7. ✓ **S6 Technique I** — the Technique group, five-finger patterns, Hanon 1–20 (transcribed),
+   block and broken chords, chord spread and balance.
+8. **S7 Technique II** — sevenths, repeated notes, trills (with the trill figures), thirds and
+   octaves, each with Hanon's fingering transcribed.

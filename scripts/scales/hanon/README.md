@@ -1,10 +1,12 @@
-# Scale fingerings from Hanon
+# Hanon: the scale fingerings and the technique exercises
 
 The fingering the Scales page shows (see [docs/SCALES.md](../../../docs/SCALES.md)) comes from
 Charles-Louis Hanon, _The Virtuoso Pianist_, Nos. 39 (the major and minor scales), 40 (the
 chromatic scales) and 41 (the arpeggios on the triads), transcribed digit by digit from a
-public-domain scan. This folder holds the
-transcription and the tools that check and expand it. Every command runs from this folder.
+public-domain scan; and its technique exercises Hanon Nos. 1–20 are his Part I, transcribed note
+by note and digit by digit from the same scan (`part1/`). This folder holds the transcriptions and
+the tools that check and expand them. Every command runs from this folder (Part I's from
+`part1/`).
 
 ## Source
 
@@ -15,7 +17,8 @@ transcription and the tools that check and expand it. Every command runs from th
   <https://imslp.org/wiki/The_Virtuoso_Pianist_(Hanon,_Charles-Louis)> (file
   `PMLP03129-Hanon_Final.pdf`, sha1 `f53906b31b484493f8fd3433c6496cf073bac239`). No. 39 is on
   printed pages 50–61 (PDF 51–62), No. 40 on printed pages 62–64 (PDF 63–65), No. 41 on printed
-  pages 65–68 (PDF 66–69).
+  pages 65–68 (PDF 66–69). Part I: No. n on printed page n + 1 (PDF n + 2), No. 1 running on to
+  the top of the next page.
 - **Second copy of the same plate:** IMSLP #00875 (Part II, 300 dpi), used only to settle damaged
   glyphs.
 
@@ -34,6 +37,16 @@ transcription and the tools that check and expand it. Every command runs from th
   in 3/4 (25 notes a hand: the top on the first beat of the second bar, the closing root a half
   note in a bar of its own). He prints the first octave and the crossings, the top, and the
   closing root in most keys.
+
+- Part I, Nos. 1–20: both hands an octave apart, the right hand in octave 3 and the left in
+  octave 2 (Nos. 1–11 and 14–19 from C, No. 12 from G, Nos. 13 and 20 from E), in 2/4, sixteenths,
+  each bar one group of eight moved a step higher in each bar of the ascending half (14 bars; 15 in
+  No. 20) and its mirrored form a step lower in each bar of the descending half (14 bars; 15 in
+  Nos. 1, 12 and 20, 13 in No. 17), then a closing half note (No. 20: a chord in each hand). A few
+  bars depart from the group: the last ascending bar and the last descending bar end differently
+  in Nos. 6, 12, 15, 17 and 20, the last descending bar in No. 9, and No. 12's first bar opens with
+  a fifth where its other bars have a sixth. He prints the full fingering in the first bars and
+  then, "for brevity" (the footnote to No. 1), only the fingers each exercise trains.
 
 ## Files
 
@@ -62,6 +75,19 @@ transcription and the tools that check and expand it. Every command runs from th
   from the scan during the transcription and are not kept; any page can be cut again from the PDF.
 - `differences.md` — where Hanon differs from the fingering commonly taught (from memory of the
   ABRSM and RCM books, not checked against one).
+- `part1/` — Part I. `passA/` and `passB/` are two independent readings, four readers each, who
+  did not see the other reading: per exercise the first bar of each half in full (both hands, at
+  sounding pitch), the first note of every bar, every bar that is not its half's first bar moved
+  by step (in full), the closing bar, and every printed digit by bar, hand and note, with the
+  doubtful places in `uncertain`. `python3 diff_part1.py` compares them (31 differences in the
+  first readings, all in bar counts, three irregular bars and two digits); `resolved.py` settles
+  each against the plate, and `python3 build_part1.py passA part1.json` expands the reading so
+  settled into every note and digit and checks it (every bar starts where it was read, the bars of
+  a half a step apart, the hands an octave apart, every digit on a note). Rebuilding gives the
+  committed `part1.json` byte for byte. `../hanonPartOne.ts` writes `src/core/hanonPartOne.ts` from
+  it (`node --experimental-strip-types scripts/scales/hanonPartOne.ts` from the repository root);
+  a test rebuilds and compares, and a checksum locks every note and digit. The drawn scores were
+  then compared with the plates bar by bar.
 
 ## How dacapo uses it
 
@@ -78,3 +104,5 @@ Decided in S0 (the reasons are in `docs/SCALES.md`, Clarifications):
   (every pair of neighbouring fingers is one he prints on the same notes); F♯ major takes his G♭
   major. Contrary motion (decided in S5) plays each hand's own runs: the right hand as in parallel
   motion, the left hand his descent from the top and then his ascent.
+- Part I (decided in S6): every note as printed, and his digits as printed and nowhere else (a
+  note he leaves unfingered has no finger), with no correction.

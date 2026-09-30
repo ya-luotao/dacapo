@@ -1,14 +1,23 @@
 import { useId, useState } from 'react';
 import { CLICK_MAX_BPM, CLICK_MIN_BPM, NOTES_PER_BEAT } from '../../core/scaleClick.ts';
-import { handsAllowed, SCALE_HANDS, tonicsOf } from '../../core/scales.ts';
-import { SCALE_OCTAVES, SCALE_TYPES, type ScaleExercise } from '../../core/scaleTypes.ts';
+import { handsAllowed, octavesOf, SCALE_HANDS, tonicsOf } from '../../core/scales.ts';
+import {
+  SCALE_OCTAVES,
+  SCALE_TYPES,
+  TECHNIQUE_TYPES,
+  type ExerciseType,
+  type ScaleExercise,
+} from '../../core/scaleTypes.ts';
+import { takesPerBeat } from '../../core/scaleXml.ts';
+import { isTechnique, techniqueRules } from '../../core/technique.ts';
 import { useT } from '../../i18n/index.ts';
 import { tonicName } from './format.ts';
 import { clampTempo, type ClickPrefs } from './prefs.ts';
 
 /**
- * The choice of scale — type, key, octaves, hands — and of tempo: free, or with the click at a
- * tempo and a number of notes to the beat. Quiet controls in one row that wraps.
+ * The choice of scale — type, key, octaves, hands, and for Hanon the exercise's number — and of
+ * tempo: free, or with the click at a tempo and a number of notes to the beat. Quiet controls in
+ * one row that wraps.
  */
 export function ScalePicker({
   id: pickerId,
@@ -35,23 +44,39 @@ export function ScalePicker({
   const id = useId();
   // The tempo as typed: taken when it is a tempo, put right when the field is left.
   const [typed, setTyped] = useState<string | null>(null);
+  const variants = isTechnique(exercise.type) ? techniqueRules(exercise.type).variants : [];
+  const octaves = octavesOf(exercise.type);
 
-  function setType(type: ScaleExercise['type']) {
+  function setType(type: ExerciseType) {
     // The same tonic if the new type has it, else the one at the same place in the circle.
     const before = tonicsOf(exercise.type);
     const after = tonicsOf(type);
     const tonic = after.includes(exercise.tonic)
       ? exercise.tonic
       : (after[Math.max(0, before.indexOf(exercise.tonic))] ?? after[0]!);
+    // The same octaves where the new type has them, else the nearest it has.
+    const lengths = octavesOf(type);
+    const length = lengths.includes(exercise.octaves)
+      ? exercise.octaves
+      : lengths.reduce((a, o) =>
+          Math.abs(o - exercise.octaves) < Math.abs(a - exercise.octaves) ? o : a,
+        );
     // Contrary motion where the new type has it, else both hands in parallel.
-    const hands = handsAllowed({ ...exercise, type }, exercise.hands) ? exercise.hands : 'both';
-    onChange({ ...exercise, type, tonic, hands });
+    const hands = handsAllowed({ type, octaves: length }, exercise.hands) ? exercise.hands : 'both';
+    const forms = isTechnique(type) ? techniqueRules(type).variants : [];
+    const next: ScaleExercise = { type, tonic, octaves: length, hands };
+    if (forms.length > 0)
+      next.variant =
+        exercise.variant !== undefined && forms.includes(exercise.variant)
+          ? exercise.variant
+          : forms[0]!;
+    onChange(next);
   }
 
   /** Contrary motion goes up to three octaves: choosing it from four takes three. */
   function setHands(hands: ScaleExercise['hands']) {
-    const octaves = handsAllowed(exercise, hands) ? exercise.octaves : 3;
-    onChange({ ...exercise, hands, octaves });
+    const length = handsAllowed(exercise, hands) ? exercise.octaves : 3;
+    onChange({ ...exercise, hands, octaves: length });
   }
 
   return (
@@ -63,23 +88,53 @@ export function ScalePicker({
           value={exercise.type}
           disabled={disabled}
           onChange={(e) => {
-            setType(e.target.value as ScaleExercise['type']);
+            setType(e.target.value as ExerciseType);
             onChosen();
           }}
         >
-          {SCALE_TYPES.map((type) => (
-            <option key={type} value={type}>
-              {t(`scales.type.${type}`)}
-            </option>
-          ))}
+          <optgroup label={t('scales.pick.group.scales')}>
+            {SCALE_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {t(`scales.type.${type}`)}
+              </option>
+            ))}
+          </optgroup>
+          <optgroup label={t('scales.pick.group.technique')}>
+            {TECHNIQUE_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {t(`scales.type.${type}`)}
+              </option>
+            ))}
+          </optgroup>
         </select>
       </div>
+      {variants.length > 0 && (
+        <div className="field">
+          <label htmlFor={`${id}-variant`}>{t('scales.pick.number')}</label>
+          <select
+            id={`${id}-variant`}
+            value={exercise.variant}
+            disabled={disabled}
+            onChange={(e) => {
+              onChange({ ...exercise, variant: e.target.value });
+              onChosen();
+            }}
+          >
+            {variants.map((variant) => (
+              <option key={variant} value={variant}>
+                {variant}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       <div className="field">
         <label htmlFor={`${id}-tonic`}>{t('scales.pick.tonic')}</label>
         <select
           id={`${id}-tonic`}
           value={exercise.tonic}
-          disabled={disabled}
+          // Hanon's Part I is in C only.
+          disabled={disabled || tonicsOf(exercise.type).length < 2}
           onChange={(e) => {
             onChange({ ...exercise, tonic: e.target.value });
             onChosen();
@@ -95,16 +150,20 @@ export function ScalePicker({
       <fieldset className="field" disabled={disabled}>
         <legend>{t('scales.pick.octaves')}</legend>
         <div className="segmented">
-          {SCALE_OCTAVES.map((octaves) => (
-            <label key={octaves}>
+          {SCALE_OCTAVES.map((length) => (
+            <label key={length}>
               <input
                 type="radio"
                 name={`${id}-octaves`}
-                checked={exercise.octaves === octaves}
-                disabled={!handsAllowed({ ...exercise, octaves }, exercise.hands)}
-                onChange={() => onChange({ ...exercise, octaves })}
+                checked={exercise.octaves === length}
+                // A technique exercise has its own lengths (Hanon's two octaves, as printed).
+                disabled={
+                  !octaves.includes(length) ||
+                  !handsAllowed({ ...exercise, octaves: length }, exercise.hands)
+                }
+                onChange={() => onChange({ ...exercise, octaves: length })}
               />
-              <span>{octaves}</span>
+              <span>{length}</span>
             </label>
           ))}
         </div>
@@ -119,7 +178,12 @@ export function ScalePicker({
                 name={`${id}-hand`}
                 checked={exercise.hands === hand}
                 // Contrary motion is offered for the majors, harmonic minors and chromatic.
-                disabled={!handsAllowed({ ...exercise, octaves: 1 }, hand)}
+                disabled={
+                  !handsAllowed(
+                    { ...exercise, octaves: isTechnique(exercise.type) ? exercise.octaves : 1 },
+                    hand,
+                  )
+                }
                 onChange={() => setHands(hand)}
               />
               <span>{t(`scales.hand.${hand}`)}</span>
@@ -173,22 +237,25 @@ export function ScalePicker({
               />
             </span>
           </div>
-          <fieldset className="field" disabled={disabled}>
-            <legend>{t('scales.pick.perBeat')}</legend>
-            <div className="segmented">
-              {NOTES_PER_BEAT.map((perBeat) => (
-                <label key={perBeat}>
-                  <input
-                    type="radio"
-                    name={`${id}-per-beat`}
-                    checked={click.perBeat === perBeat}
-                    onChange={() => onClick({ ...click, perBeat })}
-                  />
-                  <span>{perBeat}</span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
+          {/* An exercise with a rhythm of its own (Hanon's, a chord to the beat) keeps it. */}
+          {takesPerBeat(exercise.type) && (
+            <fieldset className="field" disabled={disabled}>
+              <legend>{t('scales.pick.perBeat')}</legend>
+              <div className="segmented">
+                {NOTES_PER_BEAT.map((perBeat) => (
+                  <label key={perBeat}>
+                    <input
+                      type="radio"
+                      name={`${id}-per-beat`}
+                      checked={click.perBeat === perBeat}
+                      onChange={() => onClick({ ...click, perBeat })}
+                    />
+                    <span>{perBeat}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )}
         </>
       )}
     </div>

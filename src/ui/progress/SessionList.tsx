@@ -4,14 +4,13 @@ import { useT, type MessageKey } from '../../i18n/index.ts';
 import { isBuiltInId } from '../../pieces/library/index.ts';
 import { runFigures } from '../../core/scaleProgress.ts';
 import { parseExerciseKey } from '../../core/scales.ts';
-import type { ScaleExercise } from '../../core/scaleTypes.ts';
 import { median } from '../../core/session.ts';
 import { useEarFormat } from '../ear/format.ts';
 import { useHarmonyFormat } from '../harmony/format.ts';
 import { useReadFormat } from '../read/format.ts';
 import { useRhythmFormat } from '../read/rhythmFormat.ts';
 import { useTheoryFormat } from '../read/theoryFormat.ts';
-import { useExerciseName } from '../scales/format.ts';
+import { useExerciseLabel } from '../scales/format.ts';
 import { useLogFormat } from './format.ts';
 
 export const SESSIONS_PER_PAGE = 20;
@@ -76,8 +75,7 @@ function SessionRow({ session }: { session: SessionRecord }) {
   const theory = useTheoryFormat();
   const rhythm = useRhythmFormat();
   const harmony = useHarmonyFormat();
-  const exerciseName = useExerciseName();
-  const scaleName = (e: ScaleExercise | null) => (e ? exerciseName(e) : none);
+  const exerciseLabel = useExerciseLabel();
   const none = t('read.none');
 
   const when: [MessageKey, ReactNode] = [
@@ -239,9 +237,7 @@ function SessionRow({ session }: { session: SessionRecord }) {
         ['progress.session.kind', t('progress.kind.scales')],
         [
           'progress.session.scale',
-          only
-            ? t('progress.session.scaleOne', { scale: scaleName(only), octaves: only.octaves })
-            : t('progress.session.scaleCount', { n: exercises.length }),
+          only ? exerciseLabel(only) : t('progress.session.scaleCount', { n: exercises.length }),
         ],
         duration,
         [

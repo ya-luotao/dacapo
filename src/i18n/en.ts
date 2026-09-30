@@ -1366,7 +1366,7 @@ export const en = {
   'calibration.noAudio': 'This browser cannot play the click (it has no Web Audio).',
   'calibration.reset': 'Forget',
   'scales.title': 'Scales',
-  'scales.pick.type': 'Scale',
+  'scales.pick.type': 'Exercise',
   'scales.pick.tonic': 'Key',
   'scales.pick.octaves': 'Octaves',
   'scales.pick.hand': 'Hand',
@@ -1419,8 +1419,7 @@ export const en = {
     'Loudness is not measured: every key came with the same velocity, as from the computer keyboard or the on-screen keys.',
   'scales.result.accents': 'Accented: {keys}.',
   'scales.result.evenLoudness': 'The loudness was even: no note stood out.',
-  'scales.result.notARun':
-    'Too many mistakes to measure this one: {mistakes} in a scale of {total} notes.',
+  'scales.result.notARun': 'Too many mistakes to measure this one: {mistakes} in {total} notes.',
   'scales.problem.late': '{ms} ms late',
   'scales.problem.early': '{ms} ms early',
   'scales.problem.thumbUnder.up':
@@ -1458,15 +1457,15 @@ export const en = {
   'scales.trend.point': '{day}: {ms} ms ({runs})',
   'scales.trend.reference': 'professional pianists ≈ {ms} ms',
   'scales.trend.desc':
-    'Each dot is the median spread of a day you played this scale; lower is more even.',
-  'scales.progress': 'This scale so far',
+    'Each dot is the median spread of a day you played this exercise; lower is more even.',
+  'scales.progress': 'This exercise so far',
   'scales.progress.none':
-    'Every run of this scale is kept: after the first, its progress shows here.',
+    'Every run of this exercise is kept: after the first, its progress shows here.',
   'scales.progress.latest': 'Latest',
   'scales.progress.best': 'Best',
   'scales.progress.last': 'Last played',
   'scales.places.notYet':
-    'After {min} runs of this scale, this shows where you come late or early every time.',
+    'After {min} runs of this exercise, this shows where you come late or early every time.',
   'scales.places.none': 'Over your last {runs} runs, no place comes late or early every time.',
   'scales.places.thumbUnder.up':
     'Every time going up, the notes where the thumb passes under come {timing} ({keys}, over your last {runs} runs).',
@@ -1480,8 +1479,8 @@ export const en = {
     'Every time going up, {keys} come {timing} (over your last {runs} runs).',
   'scales.places.notes.down':
     'Every time going down, {keys} come {timing} (over your last {runs} runs).',
-  'scales.list': 'Your scales',
-  'scales.list.scale': 'Scale',
+  'scales.list': 'Your exercises',
+  'scales.list.scale': 'Exercise',
   'scales.list.recent': 'Spread (of a note)',
   'scales.list.suggestion': 'Next up: {scale}, the least even of those you played lately.',
   'scales.list.play': 'Play',
@@ -1539,6 +1538,62 @@ export const en = {
   'scales.loop.rounds': 'Times round: {n}',
   'scales.loop.stop': 'Back to the scale',
   'scales.loop.help': 'A drill at your own pace, round and round: nothing is timed or recorded.',
+  'scales.pick.group.scales': 'Scales and arpeggios',
+  'scales.pick.group.technique': 'Technique',
+  'scales.pick.number': 'No.',
+  'scales.type.majorFiveFinger': 'Five-finger pattern, major',
+  'scales.type.minorFiveFinger': 'Five-finger pattern, minor',
+  'scales.type.hanon': 'Hanon, Nos. 1–20',
+  'scales.type.majorChords': 'Block chords, major',
+  'scales.type.minorChords': 'Block chords, minor',
+  'scales.type.majorBrokenChords': 'Broken chords, major',
+  'scales.type.minorBrokenChords': 'Broken chords, minor',
+  'scales.name.majorFiveFinger': '{tonic} major five-finger pattern',
+  'scales.name.minorFiveFinger': '{tonic} minor five-finger pattern',
+  'scales.name.hanon': 'Hanon No. {n}',
+  'scales.name.majorChords': '{tonic} major chords',
+  'scales.name.minorChords': '{tonic} minor chords',
+  'scales.name.majorBrokenChords': '{tonic} major broken chords',
+  'scales.name.minorBrokenChords': '{tonic} minor broken chords',
+  'scales.hanon.source':
+    'As printed in Hanon’s The Virtuoso Pianist, No. {n}: the fingering in full in the first bars, then only the fingers the exercise trains.',
+  'scales.problem.pattern.up':
+    'Going up, note {n} of each group comes {timing} on average ({keys}).',
+  'scales.problem.pattern.down':
+    'Going down, note {n} of each group comes {timing} on average ({keys}).',
+  'scales.problem.pattern.any': 'Note {n} of each group comes {timing} on average ({keys}).',
+  'scales.places.pattern.up':
+    'Every time going up, note {n} of each group comes {timing} ({keys}, over your last {runs} runs).',
+  'scales.places.pattern.down':
+    'Every time going down, note {n} of each group comes {timing} ({keys}, over your last {runs} runs).',
+  'scales.places.pattern.any':
+    'Every time, note {n} of each group comes {timing} ({keys}, over your last {runs} runs).',
+  'scales.result.chordSpread': 'Chord spread',
+  'scales.result.topNote': 'Top note',
+  'scales.result.topLouder': 'louder by {n}',
+  'scales.result.topSofter': 'softer by {n}',
+  'scales.result.topEven': 'even',
+  'scales.result.chordsTogether':
+    'The chords were struck together: their keys within {ms} ms of each other, typically.',
+  'scales.result.chordsBroken': 'Chords not struck together (keys more than 30 ms apart): {keys}.',
+  'scales.result.chordsBrokenMany':
+    '{n} of {total} chords were not struck together (keys more than 30 ms apart).',
+  'scales.result.topOver': 'The top note of each chord stood out, by {n} velocity on average.',
+  'scales.result.topUnder':
+    'The top note of each chord was softer than the others, by {n} velocity on average.',
+  'scales.result.balanceEven': 'The keys of each chord were about as loud as each other.',
+  'scales.note.chord': 'Chord {n}, {key}',
+  'scales.note.spread': 'spread {ms} ms',
+  'scales.note.balance': 'top note {residual}',
+  'scales.chart.spread': 'spread',
+  'scales.chart.balance': 'top note',
+  'scales.chart.desc.chords':
+    'Each dot is a chord (its first key) against a line through the chords around it, so your own tempo is the reference. Crosses are chords with a missed or wrong key. The rows below show each chord louder or softer than its neighbours, how far apart its keys came (marked beyond 30 ms), and its top key against the others.',
+  'scales.table.chord': 'Chord',
+  'scales.table.spread': 'Spread',
+  'scales.table.balance': 'Top note',
+  'scales.chart.chords': 'Each chord against its neighbours',
+  'scales.chart.hand.chords': '{hand} hand: each chord against its neighbours',
   'metronome.title': 'Metronome',
   'metronome.start': 'Start',
   'metronome.stop': 'Stop',
@@ -1853,7 +1908,7 @@ export const en = {
   'about.music.pdmx':
     'Arabesque (Burgmüller), Soldiers’ March (Schumann) and the Prelude in C major (Bach) are encodings from MuseScore that their uploaders PianoXML, jadr and OpenGoldberg dedicated to the public domain (CC0); the dacapo project removed the fingering. They come from the PDMX dataset by Phillip Long, Zachary Novack, Julian McAuley and Taylor Berg-Kirkpatrick, licensed under CC BY 4.0.',
   'about.music.hanon':
-    'The fingering of the scales and arpeggios is Charles-Louis Hanon’s, from The Virtuoso Pianist, Nos. 39, 40 and 41 (G. Schirmer, New York, 1900), a public-domain edition transcribed by the dacapo project.',
+    'Charles-Louis Hanon’s The Virtuoso Pianist (G. Schirmer, New York, 1900), a public-domain edition transcribed by the dacapo project, gives the fingering of the scales and arpeggios (Nos. 39, 40 and 41) and the notes and fingering of the technique exercises Nos. 1–20.',
   'about.sounds': 'Sounds',
   'about.salamander':
     'Salamander Grand Piano V3, the built-in piano’s sound: a Yamaha C5 recorded by Alexander Holm. Creative Commons Attribution 3.0 (CC BY 3.0). The dacapo project took three of its sixteen velocity layers, trimmed them and encoded them as MP3.',

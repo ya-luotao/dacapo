@@ -62,6 +62,36 @@ turning points (all filled by the thumb-crossing rule, see `build.py`):
 - **Note counts:** No. 39 = 29 notes up + 27 down + inferred tonic per hand; No. 40 = 12 notes per bar in
   every bar of every form.
 
+## Part I, Nos. 1–20 (PDF pp. 3–22)
+
+Read twice independently (`part1/passA/`, `part1/passB/`, four readers each). `part1/diff_part1.py`
+found 31 differences, every one settled on the plate (`part1/resolved.py`):
+
+- **Bar counts.** passA gave Nos. 2, 3 and 4 fifteen descending bars, as No. 1 has; the plates
+  have fourteen (systems of 5, 6, 6, 6 and 5 bars and the closing bar), as passB read. passB gave
+  No. 12 fourteen; its plate has fifteen (five systems of 5, 6, 6, 6 and 6 bars), as passA read.
+  Counted system by system at 130 dpi.
+- **Irregular bars.** The last bar before the closing bar of No. 6 ends on E3 (E2) where the group
+  moved by step gives C3, and of No. 9 on D3 E3 where it gives C3 D3: passB read both in full,
+  passA took them as regular. Checked at 300 dpi.
+- **Two digits on the top line of the treble staff.** No. 9 bar 6, the right hand's first note
+  (A3): passA read 4, passB 1. No. 13 bar 6, the right hand's second note (A3): passA read 1,
+  passB 4. The staff line closes the long flag of a 1 into what looks like a 4's counter, and at
+  1200 dpi by eye each looked like a 4. Matched against the clean digits of the same page (its 1s
+  and 4s away from any line, the staff line's rows masked), each is a 1: as tall as the 1s (86 px;
+  the 4s are 92–96) and overlapping them by 0.65–0.81 against 0.29–0.62 for the 4s; No. 45's
+  first fingering has the same glyph on the same line where its pattern needs a 1 (0.83 against
+  0.48). The thumb, as the fingering printed in full and every other bar have it. No correction.
+
+The places both readers marked doubtful and read alike: digits crossed by a staff line (1s that
+look like 4s, read by the glyph's width and flag: No. 6 bars 5–6, 7 bar 7, 10 bars 12–14, 11 bar
+5); damaged digits (No. 3 bar 4 LH 5, bar 17 RH 2; No. 11 bar 21 LH 1, No. 19 bar 26 LH 3); blotted
+note heads read by position (No. 3 bar 18 LH D4, No. 16 bar 18 LH D4, bar 24 RH E4); No. 20's
+closing chord, whose E3 and C3 heads touch both stems (the up-stem stops at E3: RH E3+C4, LH
+C2+C3); and specks taken for dirt (Nos. 2, 3, 6, 7, 9, 10, 11, 17). Digits printed irregularly are
+recorded as printed, not filled in: No. 7 bar 14 RH 3 where bars 3–13 have 4, No. 8 bar 28 LH none,
+No. 12 bar 20 LH no 3, No. 17 bar 7 RH no 5, No. 18 bar 7 LH only 1, No. 20 bar 7 RH 1 2 4 and a 4.
+
 ## No. 41 (arpeggios, PDF pp. 66–69)
 
 Read twice independently: `pass1/data41.py` (all 24 keys) and `pass2/data41_A.py`,

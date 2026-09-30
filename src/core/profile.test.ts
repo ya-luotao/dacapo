@@ -277,6 +277,30 @@ describe('buildProfile', () => {
     expect(onlyArpeggios.moreScales).toBe(1);
   });
 
+  it('names only the scale types the service knows, and counts the other exercises', () => {
+    const sessions: SessionRecord[] = [
+      scale('s', NOW, [
+        ['major:D:2:both', 20_000],
+        ['majorArpeggio:C:2:right', 10_000],
+        ['majorChords:F:2:both', 12_000],
+        ['majorChords:F:2:right', 5_000],
+      ]),
+    ];
+    const day = build({ sessions, settings: { visibility: 'public', titles: false } })!.activity![
+      '2026-09-29'
+    ]!;
+    expect(day.kinds.scale).toBe(sessions[0]!.activeMs);
+    expect(day.scales).toEqual([{ type: 'major', tonic: 'D', ms: 20_000 }]);
+    // The arpeggio and the F major chords (one exercise whatever the hands).
+    expect(day.moreScales).toBe(2);
+    const only = build({
+      sessions: [scale('t', NOW, [['majorFiveFinger:G:1:right', 9_000]])],
+      settings: { visibility: 'public', titles: false },
+    })!.activity!['2026-09-29']!;
+    expect(only.scales).toBeUndefined();
+    expect(only.moreScales).toBe(1);
+  });
+
   it('publishes whole milliseconds, though scale runs are timed to fractions of one', () => {
     const sessions: SessionRecord[] = [
       scale('s', NOW + 0.5, [

@@ -6,7 +6,7 @@
 
 import type { RunAnalysis } from '../../core/evenness.ts';
 import type { ScaleNote } from '../../core/scaleTypes.ts';
-import type { Hand } from '../../core/score.ts';
+import type { Hand, Score } from '../../core/score.ts';
 
 /** Notes either side of the place: seven in all, as a pianist cuts a passage to practise it. */
 export const LOOP_SIDE = 3;
@@ -34,13 +34,45 @@ export function loopSpan(length: number, index: number, side = LOOP_SIDE): LoopS
   return { from, to: from + size - 1 };
 }
 
-/** The notes of each hand in the span, the right hand's then the left's. */
+/** The notes of each hand in the span (a chord's keys all), the right hand's then the left's. */
 export function loopNotes(
   notes: Readonly<Record<Hand, readonly ScaleNote[]>>,
   span: LoopSpan,
 ): ScaleNote[] {
-  const cut = (run: readonly ScaleNote[]) => run.slice(span.from, span.to + 1);
+  const cut = (run: readonly ScaleNote[]) =>
+    run.filter((n) => n.index >= span.from && n.index <= span.to);
   return [...cut(notes.right), ...cut(notes.left)];
+}
+
+/** Steps in a hand's run: its last index and one (a chord is one step). */
+export function stepCount(run: readonly Pick<ScaleNote, 'index'>[]): number {
+  return run.reduce((a, n) => Math.max(a, n.index + 1), 0);
+}
+
+/** A note of a run by hand, step and key: `right:5:64`. */
+export const noteKey = (note: Pick<ScaleNote, 'hand' | 'index' | 'midi'>) =>
+  `${note.hand}:${note.index}:${note.midi}`;
+
+/**
+ * The score's note for each note of the run (`noteKey`): each hand's notes of the score by onset,
+ * a chord's lowest first, are its run's in order (scaleXml.test.ts holds it).
+ */
+export function noteIdsOf(
+  score: Pick<Score, 'notes'>,
+  notes: Readonly<Record<Hand, readonly ScaleNote[]>>,
+): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const hand of ['right', 'left'] as const) {
+    const drawn = score.notes
+      .filter((n) => n.hand === hand)
+      .sort((a, b) => a.onset - b.onset || a.midi - b.midi);
+    const run = [...notes[hand]].sort((a, b) => a.index - b.index || a.midi - b.midi);
+    run.forEach((note, i) => {
+      const id = drawn[i]?.id;
+      if (id) out.set(noteKey(note), id);
+    });
+  }
+  return out;
 }
 
 export interface LoopState {

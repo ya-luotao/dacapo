@@ -18,10 +18,16 @@ export const NOTES_PER_BEAT = [2, 3, 4] as const;
 /** 2: eighths, 3: triplet eighths, 4: sixteenths (the drawing follows, see scaleXml.ts). */
 export type NotesPerBeat = (typeof NOTES_PER_BEAT)[number];
 
+/**
+ * Notes to the beat of a grid as played: the 2, 3 or 4 chosen, or a technique exercise's own
+ * rhythm (a block chord to the beat is 1; Hanon's sixteenths 4).
+ */
+export type GridPerBeat = 1 | 2 | 3 | 4;
+
 /** What the player sets: the tempo of the beat and how many notes go to it. */
 export interface ClickSettings {
   bpm: number;
-  perBeat: NotesPerBeat;
+  perBeat: GridPerBeat;
 }
 
 /** The grid of a clicked run, as its record keeps it: enough to match its keys again. */
@@ -38,6 +44,11 @@ export function isClickTempo(bpm: unknown): bpm is number {
   return (
     typeof bpm === 'number' && Number.isInteger(bpm) && bpm >= CLICK_MIN_BPM && bpm <= CLICK_MAX_BPM
   );
+}
+
+/** A grid's notes to the beat, as a record keeps it (`GridPerBeat`). */
+export function isGridPerBeat(value: unknown): value is GridPerBeat {
+  return value === 1 || isNotesPerBeat(value);
 }
 
 export function isNotesPerBeat(value: unknown): value is NotesPerBeat {

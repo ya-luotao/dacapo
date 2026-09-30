@@ -3,6 +3,7 @@ import { IN_TIME_MS, TENDENCY_MS, type RhythmSummary } from '../../core/rhythmRu
 import type { ClickSettings } from '../../core/scaleClick.ts';
 import type { Hand } from '../../core/score.ts';
 import { SENTENCE_GAP, useI18n } from '../../i18n/index.ts';
+import { fewKeys } from './format.ts';
 import { weakestPlace, type LoopPlace } from './loop.ts';
 import { ProfileChart } from './ProfileChart.tsx';
 import type { RunEnd } from './run.ts';
@@ -78,6 +79,12 @@ export function ScaleSummary({
   const handWord = (hand: Hand) => t(`scales.hand.${hand}`);
   const keysOf = (hand: Hand, indexes: readonly number[]) =>
     list(indexes.map((i) => names[hand][i] ?? ''));
+  /** The first few keys, and "…" for the rest. */
+  const someKeys = (hand: Hand, indexes: readonly number[]) =>
+    fewKeys(
+      indexes.map((i) => names[hand][i] ?? ''),
+      t('app.listSeparator'),
+    );
   // With both hands, a sentence about one of them says which.
   const forHand = (hand: Hand, text: string) =>
     two ? t('scales.result.forHand', { hand: handWord(hand), text }) : text;
@@ -92,15 +99,57 @@ export function ScaleSummary({
   const moved = start !== null && finish !== null ? finish / start - 1 : 0;
 
   function problemSentence(problem: ProblemPlace): string {
+    const timing = t(problem.deviation > 0 ? 'scales.problem.late' : 'scales.problem.early', {
+      ms: Math.round(Math.abs(problem.deviation)),
+    });
+    // A pattern has no crossings: its place is a note of every group (in a direction, unless
+    // the pattern never turns).
+    if (problem.crossing === null) {
+      const hand = hands.find((h) => h.hand === problem.hand);
+      const way = hand?.notes.every((n) => n.direction === 'up') ? 'any' : problem.direction;
+      return forHand(
+        problem.hand,
+        t(`scales.problem.pattern.${way}`, {
+          n: (problem.degree ?? 0) + 1,
+          timing,
+          keys: someKeys(problem.hand, problem.indexes),
+        }),
+      );
+    }
     return forHand(
       problem.hand,
       t(`scales.problem.${problem.crossing}.${problem.direction}`, {
-        timing: t(problem.deviation > 0 ? 'scales.problem.late' : 'scales.problem.early', {
-          ms: Math.round(Math.abs(problem.deviation)),
-        }),
+        timing,
         keys: keysOf(problem.hand, problem.indexes),
       }),
     );
+  }
+
+  /** How a hand's chords were struck: together, or which were broken. */
+  function chordSentence(hand: HandAnalysis): string | null {
+    const c = hand.chords;
+    if (!c || c.medianSpread === null) return null;
+    const text =
+      c.broken.length === 0
+        ? t('scales.result.chordsTogether', { ms: Math.round(c.medianSpread) })
+        : c.broken.length > MAX_NAMED_GAPS || c.broken.length * 2 >= c.chords
+          ? t('scales.result.chordsBrokenMany', { n: c.broken.length, total: c.chords })
+          : t('scales.result.chordsBroken', { keys: keysOf(hand.hand, c.broken) });
+    return forHand(hand.hand, text);
+  }
+
+  /** Whether each chord's top key stood out, by the median over the run. */
+  function balanceSentence(hand: HandAnalysis): string | null {
+    const c = hand.chords;
+    if (!c || c.medianBalance === null || c.balanceStep === null) return null;
+    const n = Math.round(Math.abs(c.medianBalance));
+    const text =
+      c.medianBalance >= c.balanceStep
+        ? t('scales.result.topOver', { n })
+        : c.medianBalance <= -c.balanceStep
+          ? t('scales.result.topUnder', { n })
+          : t('scales.result.balanceEven');
+    return forHand(hand.hand, text);
   }
 
   function connectionSentence(hand: HandAnalysis): string | null {
@@ -121,6 +170,11 @@ export function ScaleSummary({
   // Most telling first; at most three are shown.
   const sentences: string[] = end === 'stopped' ? [t('scales.result.stopped')] : [];
   if (analysis.problem) sentences.push(problemSentence(analysis.problem));
+  // Chords: whether they were struck together is what the exercise is for.
+  for (const hand of hands) {
+    const sentence = chordSentence(hand);
+    if (sentence) sentences.push(sentence);
+  }
   // With the click, whether the notes sat on it: what the click is there for.
   const tendency = click?.summary.tendency ?? null;
   if (click)
@@ -182,6 +236,11 @@ export function ScaleSummary({
   else
     for (const hand of hands) {
       if (!hand.loudness) continue;
+      const balance = balanceSentence(hand);
+      if (balance) {
+        sentences.push(balance);
+        continue;
+      }
       sentences.push(
         forHand(
           hand.hand,
@@ -199,6 +258,19 @@ export function ScaleSummary({
       ? '–'
       : t('scales.result.percent', { percent: whole.format(hand.timing.spreadShare) });
   const rough = hands.some((h) => h.timing.rough);
+  const chordRun = hands.some((h) => h.chords);
+  const chordSpreadOf = (hand: HandAnalysis) =>
+    hand.chords?.medianSpread == null ? '–' : ms(hand.chords.medianSpread);
+  const balanceOf = (hand: HandAnalysis) => {
+    const c = hand.chords;
+    if (!c || c.medianBalance === null || c.balanceStep === null) return '–';
+    const n = Math.round(Math.abs(c.medianBalance));
+    return c.medianBalance >= c.balanceStep
+      ? t('scales.result.topLouder', { n })
+      : c.medianBalance <= -c.balanceStep
+        ? t('scales.result.topSofter', { n })
+        : t('scales.result.topEven');
+  };
   const weakest = onLoop ? weakestPlace(analysis) : null;
   const clicked = click?.summary;
 
@@ -236,6 +308,26 @@ export function ScaleSummary({
           <dt>{t('scales.result.wrong')}</dt>
           <dd>{counts.wrong + counts.missed + counts.extra}</dd>
         </div>
+        {chordRun && (
+          <div>
+            <dt>{t('scales.result.chordSpread')}</dt>
+            <dd>
+              {two ? (
+                <PerHand hands={hands} value={chordSpreadOf} word={handWord} />
+              ) : (
+                chordSpreadOf(lead)
+              )}
+            </dd>
+          </div>
+        )}
+        {chordRun && analysis.velocityMeasured && (
+          <div>
+            <dt>{t('scales.result.topNote')}</dt>
+            <dd>
+              {two ? <PerHand hands={hands} value={balanceOf} word={handWord} /> : balanceOf(lead)}
+            </dd>
+          </div>
+        )}
       </dl>
       {click && clicked && (
         <dl className="figures scale-click-figures">
@@ -287,7 +379,13 @@ export function ScaleSummary({
           key={hand.hand}
           hand={hand}
           names={names[hand.hand]}
-          caption={two ? t('scales.chart.hand', { hand: handWord(hand.hand) }) : undefined}
+          caption={
+            two
+              ? t(hand.chords ? 'scales.chart.hand.chords' : 'scales.chart.hand', {
+                  hand: handWord(hand.hand),
+                })
+              : undefined
+          }
           onLoop={onLoop && ((index) => onLoop({ hand: hand.hand, index }))}
         />
       ))}

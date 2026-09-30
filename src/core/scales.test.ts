@@ -37,7 +37,9 @@ import type { Hand, SpelledPitch } from './score.ts';
 const HANDS = ['right', 'left', 'both'] as const;
 const FINGERED: ScaleType[] = ['major', 'harmonicMinor', 'melodicMinor'];
 
-function* exercises(types: readonly ScaleType[] = SCALE_TYPES): Generator<ScaleExercise> {
+function* exercises(
+  types: readonly ScaleType[] = SCALE_TYPES,
+): Generator<ScaleExercise & { type: ScaleType }> {
   for (const type of types)
     for (const tonic of tonicsOf(type))
       for (const octaves of SCALE_OCTAVES)

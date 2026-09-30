@@ -7,9 +7,21 @@
 // note".
 
 import { quantile, theilSen } from './robust.ts';
-import { alignHand, alignHands, type HandMatch } from './scaleAlign.ts';
+import {
+  alignChords,
+  alignHand,
+  alignHands,
+  CHORD_CHAIN_MS,
+  type HandMatch,
+} from './scaleAlign.ts';
 import type { Hand } from './score.ts';
-import type { Crossing, Direction, ScaleNote } from './scaleTypes.ts';
+import {
+  hasChordSteps,
+  stepsOf,
+  type Crossing,
+  type Direction,
+  type ScaleNote,
+} from './scaleTypes.ts';
 
 /** One key of the run, in the order played. Held keys from before the run are not in it. */
 export interface PlayedNote {
@@ -187,6 +199,38 @@ const MEDIAN_SE = 1.2533;
 /** Fewer pairs than this (both hands played right) give no median or spread of the asynchrony. */
 export const MIN_PAIRS = 6;
 
+/**
+ * A pattern's place (the same note of every group, in one direction of one hand: Hanon's Part I,
+ * the broken chords) is named in one run at this many standard errors, where a scale's crossing
+ * place needs `PROBLEM_MIN_Z`: a hand has four to eight such places a direction against a scale's
+ * two. Simulated (scripts/scales/simPattern.ts: one hand, 125 and 250 ms notes, 400 runs a case),
+ * a steady player is named somewhere in 1.3–4.3 % of runs at σ = 15–25 ms (21 % at 2.5), and the
+ * fourth note of every group 25 ms late going up is found in 98 % of runs of Hanon No. 1's shape
+ * at σ = 15 and 54 % at σ = 25, and in 53–56 % and 11 % of the broken chords over two octaves
+ * (seven groups a direction). At 3.5 a steady player was named in 1–2 % but the late note found in
+ * 35 % and 4 % at σ = 25.
+ */
+export const PATTERN_MIN_Z = 3;
+/** A pattern's place needs at least this many notes in the run. */
+const PATTERN_MIN_NOTES = 4;
+
+/**
+ * A chord whose keys spread wider than this (last onset − first) is heard as broken rather than
+ * struck together: the hands' 30 ms (`APART_MS`), provisional until runs recorded on real
+ * instruments set it, with the loudness thresholds (S1).
+ */
+export const CHORD_APART_MS = 30;
+/**
+ * The run's velocity range is the 5th to the 95th percentile of its keys' velocities
+ * (docs/EXPRESSION.md, "Loudness is relative"); a chord's top key stands out (or under) when it is
+ * at least this share of the range above (or below) the median of the chord's other keys, and at
+ * least `BALANCE_FLOOR` velocity units: EXPRESSION.md's `BALANCE_STEP`, provisional as there.
+ */
+export const BALANCE_SHARE = 0.08;
+export const BALANCE_FLOOR = 3;
+/** A chord's figures need its keys all played right; the run's, this many such chords. */
+export const MIN_CHORDS = 3;
+
 // --- Output ---------------------------------------------------------------------------------------
 
 export type RunQuality = 'ok' | 'not-a-scale-run';
@@ -273,9 +317,49 @@ export interface NoteFigures {
    * overlap (legato); negative, a gap. Null when either note is not played right, this one has no
    * release, something extra was played between them, or it is the last note. Unlike `interval`
    * it is measured into and out of the turn as well: a turn may breathe in time, but the fingers
-   * still have to join the top note to the notes around it.
+   * still have to join the top note to the notes around it. For a chord, the smaller of its
+   * voices' (the voice that lets go first).
    */
   overlap: number | null;
+  /** The run is a pattern (`ScaleNote.pattern`): places are named by the note's place in its group. */
+  pattern?: true;
+  /** A chord: its keys and how they were struck (block chords, S6). */
+  chord?: ChordFigures;
+}
+
+/**
+ * One chord of a hand (a step of several keys). Its timing figures above are its first key's; its
+ * velocity the median of its keys'.
+ */
+export interface ChordFigures {
+  /** Keys asked for. */
+  keys: number;
+  /** Last onset − first, ms, when every key was played right. */
+  spread: number | null;
+  /**
+   * The top key's velocity against the median of the others', in velocity units (positive: the
+   * top stands out), when every key was played right and loudness is measured.
+   */
+  balance: number | null;
+}
+
+/** A hand's chords over the run (block chords, S6). */
+export interface ChordSummary {
+  /** Chords played with every key right. */
+  chords: number;
+  /** Median spread of those, ms; null with fewer than `MIN_CHORDS`. */
+  medianSpread: number | null;
+  /** Indexes of the chords spread wider than `CHORD_APART_MS`. */
+  broken: number[];
+  /** The run's velocity range (5th to 95th percentile of every key played right); null unmeasured. */
+  range: number | null;
+  /** The balance a chord needs to stand out: `BALANCE_SHARE` of the range, at least the floor. */
+  balanceStep: number | null;
+  /** Median balance, velocity units; null unmeasured or with fewer than `MIN_CHORDS`. */
+  medianBalance: number | null;
+  /** Indexes of the chords whose top key stood out, and of those whose top key was under. */
+  topOver: number[];
+  topUnder: number[];
 }
 
 export interface Connection {
@@ -299,13 +383,22 @@ export interface HandAnalysis {
   loudness: Loudness | null;
   /** Null with fewer than `MIN_CONNECTED` overlaps (no releases: nothing to measure). */
   connection: Connection | null;
+  /** One per step: a note, or a chord (`NoteFigures.chord`). */
   notes: NoteFigures[];
+  /** Block chords: how the hand's chords were struck. */
+  chords?: ChordSummary;
 }
 
+/**
+ * The clearest problem place of a run: the crossings of one kind in one direction of one hand, or
+ * in a pattern (`crossing` null) the notes of one place in the group (`degree`).
+ */
 export interface ProblemPlace {
   hand: Hand;
   direction: Direction;
-  crossing: Exclude<Crossing, null>;
+  crossing: Crossing;
+  /** A pattern's place: the note's place in its group (0-based); null for a crossing. */
+  degree: number | null;
   /** Expected indexes of the notes it rests on. */
   indexes: number[];
   /** Mean deviation of those notes, ms (early −, late +). */
@@ -362,8 +455,13 @@ export interface RunHeadline {
 
 /** Aligns the run, checks it is a scale run, and measures it. */
 export function analyzeRun(input: RunInput): RunAnalysis {
+  if (allChords(input.expected)) return analyzeChordRun(input);
+  // A line with a chord or two (Hanon No. 20 closes on one): the line is aligned note by note,
+  // each chord by its lowest key, and the chord's other keys are taken from the keys struck with
+  // it (`attachChordKeys`).
+  const chordSteps = hasChordSteps(input.expected);
   const byHand = (hand: Hand) =>
-    input.expected.filter((n) => n.hand === hand).sort((a, b) => a.index - b.index);
+    stepsOf(input.expected.filter((n) => n.hand === hand)).map((step) => step[0]!);
   const expected = { right: byHand('right'), left: byHand('left') };
   const hands = (['right', 'left'] as const).filter((h) => expected[h].length > 0);
   const keys = input.played.map((p) => p.midi);
@@ -390,9 +488,110 @@ export function analyzeRun(input: RunInput): RunAnalysis {
     extra = keys.map((_, i) => i);
   }
 
+  if (chordSteps) {
+    const attached = attachChordKeys(input, hands, matches, extra);
+    const analyses = hands.map((hand) => {
+      const { match, keys: chordKeys, counts } = attached.hands[hand]!;
+      return {
+        ...analyzeHand(hand, expected[hand], match, attached.extra, input, chordKeys),
+        counts,
+      };
+    });
+    return summarizeRun(analyses, attached.extra, input);
+  }
   const analyses = hands.map((hand) =>
     analyzeHand(hand, expected[hand], matches[hand], extra, input),
   );
+  return summarizeRun(analyses, extra, input);
+}
+
+/** Every step of every hand is a chord (block chords): the run is aligned chord by chord. */
+function allChords(notes: readonly ScaleNote[]): boolean {
+  const size = new Map<string, number>();
+  for (const n of notes)
+    size.set(`${n.hand}:${n.index}`, (size.get(`${n.hand}:${n.index}`) ?? 0) + 1);
+  return size.size > 0 && [...size.values()].every((s) => s > 1);
+}
+
+/**
+ * A line with chords in it, aligned by each chord's lowest key: each chord takes its other keys
+ * from the extra keys struck within `CHORD_CHAIN_MS` of the key before (as `chordClusters`
+ * chains them) around its lowest key, nearest first. A chord with a key not found is a mistake
+ * (the step is wrong, its lowest key still timed as struck, not as a note played right), and the
+ * counts are of keys, as for a run of chords.
+ */
+function attachChordKeys(
+  input: RunInput,
+  hands: readonly Hand[],
+  matches: Record<Hand, HandMatch>,
+  extra: readonly number[],
+): {
+  hands: Partial<Record<Hand, { match: HandMatch; keys: (number | null)[][]; counts: Counts }>>;
+  extra: number[];
+} {
+  const left = new Set(extra);
+  const out: Partial<
+    Record<Hand, { match: HandMatch; keys: (number | null)[][]; counts: Counts }>
+  > = {};
+  for (const hand of hands) {
+    const steps = stepsOf(input.expected.filter((n) => n.hand === hand));
+    const match = matches[hand];
+    const counts: Counts = { expected: 0, matched: 0, wrong: 0, missed: 0 };
+    const played: (number | null)[] = [];
+    const wrong = [...match.wrong];
+    const missed = [...match.missed];
+    const keys = steps.map((step, s) => {
+      counts.expected += step.length;
+      const lowest = match.played[s] ?? null;
+      const out: (number | null)[] = [lowest];
+      if (lowest === null) {
+        played.push(null);
+        const w = match.wrong.find((x) => x.index === s);
+        counts.wrong += w ? 1 : 0;
+        counts.missed += step.length - (w ? 1 : 0);
+        return [...out, ...step.slice(1).map(() => null)];
+      }
+      counts.matched++;
+      // The chord's other keys: extra keys of those pitches, each within the chain of the one
+      // before, around the lowest.
+      let near = [input.played[lowest]!.on, input.played[lowest]!.on];
+      for (const note of step.slice(1)) {
+        let best: number | null = null;
+        for (const x of left) {
+          const on = input.played[x]!.on;
+          if (input.played[x]!.midi !== note.midi) continue;
+          if (on < near[0]! - CHORD_CHAIN_MS || on > near[1]! + CHORD_CHAIN_MS) continue;
+          const distance = Math.abs(on - input.played[lowest]!.on);
+          if (
+            best === null ||
+            distance < Math.abs(input.played[best]!.on - input.played[lowest]!.on)
+          )
+            best = x;
+        }
+        if (best !== null) {
+          left.delete(best);
+          counts.matched++;
+          const on = input.played[best]!.on;
+          near = [Math.min(near[0]!, on), Math.max(near[1]!, on)];
+        } else counts.missed++;
+        out.push(best);
+      }
+      if (out.every((k) => k !== null)) played.push(lowest);
+      else {
+        played.push(null);
+        wrong.push({ index: s, played: lowest });
+      }
+      return out;
+    });
+    wrong.sort((a, b) => a.index - b.index);
+
+    out[hand] = { match: { played, wrong, missed }, keys, counts };
+  }
+  return { hands: out, extra: [...left].sort((a, b) => a - b) };
+}
+
+/** The run's counts, quality, hands together and problem place, from its hands' figures. */
+function summarizeRun(analyses: HandAnalysis[], extra: number[], input: RunInput): RunAnalysis {
   const together =
     analyses.length === 2 ? handsTogether(analyses[0]!, analyses[1]!, input.played) : null;
   const counts: RunCounts = { expected: 0, matched: 0, wrong: 0, missed: 0, extra: extra.length };
@@ -413,6 +612,72 @@ export function analyzeRun(input: RunInput): RunAnalysis {
     // A place is only named in a scale run: in anything else the notes are not where they seem.
     problem: quality === 'ok' ? findProblemPlace(analyses) : null,
   };
+}
+
+/**
+ * A run of chords (block chords, S6): the played keys are aligned against the steps, each hand's
+ * keys of a step together (`alignChords`), and each hand measured by its steps — a chord's time is
+ * its first key's, its loudness the median of its keys' — with each chord's spread and balance.
+ * The counts are of keys, so the quality gate reads as for a scale: a chord with a wrong key is
+ * one mistake.
+ */
+function analyzeChordRun(input: RunInput): RunAnalysis {
+  const steps = {
+    right: stepsOf(input.expected.filter((n) => n.hand === 'right')),
+    left: stepsOf(input.expected.filter((n) => n.hand === 'left')),
+  };
+  const hands = (['right', 'left'] as const).filter((h) => steps[h].length > 0);
+  const length = Math.max(...hands.map((h) => steps[h].length));
+  // Both hands' keys of a step, lowest first, and whose each is.
+  const combined = Array.from({ length }, (_, s) =>
+    hands
+      .flatMap((hand) => (steps[hand][s] ?? []).map((note, p) => ({ hand, p, midi: note.midi })))
+      .sort((a, b) => a.midi - b.midi),
+  );
+  const aligned = alignChords(
+    input.played,
+    combined.map((step) => step.map((k) => k.midi)),
+  );
+  const extra = aligned.extra;
+  const analyses = hands.map((hand) => {
+    const own = steps[hand];
+    // Per step, the played key of each of the hand's keys (lowest first), or null; and wrong keys.
+    const keys = own.map((step) => step.map((): number | null => null));
+    const wrongKeys = own.map(() => [] as number[]);
+    combined.forEach((step, s) => {
+      const match = aligned.steps[s]!;
+      step.forEach((k, at) => {
+        if (k.hand !== hand) return;
+        keys[s]![k.p] = match.played[at] ?? null;
+        const wrong = match.wrong.find((w) => w.key === at);
+        if (wrong) wrongKeys[s]!.push(wrong.played);
+      });
+    });
+    const counts: Counts = { expected: 0, matched: 0, wrong: 0, missed: 0 };
+    const match: HandMatch = { played: [], wrong: [], missed: [] };
+    own.forEach((step, s) => {
+      const struck = keys[s]!.filter((k): k is number => k !== null);
+      counts.expected += step.length;
+      counts.matched += struck.length;
+      counts.wrong += wrongKeys[s]!.length;
+      counts.missed += step.length - struck.length - wrongKeys[s]!.length;
+      const complete = struck.length === step.length;
+      // The chord's time is its first key's; a chord not played whole is a mistake, not a time.
+      const first = complete
+        ? struck.reduce((a, k) => (input.played[k]!.on < input.played[a]!.on ? k : a))
+        : null;
+      match.played.push(first);
+      if (complete) return;
+      const any = [...struck, ...wrongKeys[s]!];
+      if (any.length > 0) match.wrong.push({ index: s, played: Math.min(...any) });
+      else match.missed.push(s);
+    });
+    // The step's lowest note stands for it; the chord figures come from its keys.
+    const notes = own.map((step) => step[0]!);
+    const analysis = analyzeHand(hand, notes, match, extra, input, keys);
+    return { ...analysis, counts };
+  });
+  return summarizeRun(analyses, extra, input);
 }
 
 /**
@@ -459,12 +724,19 @@ interface Interval {
   hesitation: boolean;
 }
 
+/**
+ * One hand's figures. `chordKeys`, for a run of chords, gives each step's played keys (lowest
+ * first, null where not played right): then `notes` has one note per step, and a step's time is
+ * `match`'s key (its first), its velocity the median of its keys', its connection the voice that
+ * lets go first, and each chord has its spread and balance.
+ */
 function analyzeHand(
   hand: Hand,
   notes: readonly ScaleNote[],
   match: HandMatch,
   extra: readonly number[],
   input: RunInput,
+  chordKeys?: readonly (readonly (number | null)[])[],
 ): HandAnalysis {
   const n = notes.length;
   const turn = turnIndex(notes);
@@ -484,22 +756,55 @@ function analyzeHand(
     return line && line.intercept + line.slope * x;
   });
 
-  const velocity = match.played.map((p) =>
-    p === null || !input.velocityMeasured ? null : input.played[p]!.velocity,
-  );
+  const velocity = match.played.map((p, j) => {
+    if (p === null || !input.velocityMeasured) return null;
+    if (!chordKeys) return input.played[p]!.velocity;
+    return quantile(
+      chordKeys[j]!.map((k) => input.played[k!]!.velocity),
+      0.5,
+    );
+  });
   const velocityResidual = input.velocityMeasured
     ? localResiduals(velocity, turn, 2 * VELOCITY_NEIGHBOURS + 1, (_xs, ys) => quantile(ys, 0.5))
     : velocity.map(() => null);
   const accent = velocityResidual.map((r, j) => r !== null && j !== turn && r >= ACCENT_VELOCITY);
 
   // Each key's release against the next key's onset, the turn included (see `NoteFigures.overlap`).
+  const join = (a: number, b: number): number | null => {
+    const off = input.played[a]!.off;
+    if (off === null || extra.some((x) => x > a && x < b)) return null;
+    return off - input.played[b]!.on;
+  };
   const overlap = notes.map((_, j) => {
     const a = match.played[j] ?? null;
     const b = match.played[j + 1] ?? null;
     if (a === null || b === null) return null;
-    const off = input.played[a]!.off;
-    if (off === null || extra.some((x) => x > a && x < b)) return null;
-    return off - input.played[b]!.on;
+    if (!chordKeys) return join(a, b);
+    // Chords: voice by voice (the lowest key to the next chord's lowest, and so on), where both
+    // chords have as many keys; the voice that lets go first is the chord's connection.
+    const these = chordKeys[j]!;
+    const next = chordKeys[j + 1]!;
+    if (these.length !== next.length) return null;
+    const joins = these.map((k, v) => join(k!, next[v]!));
+    return joins.some((o) => o === null) ? null : Math.min(...(joins as number[]));
+  });
+
+  // Chords: how each was struck (every key right), and over the run.
+  // Only a step of two keys or more is a chord.
+  const chordFigures = chordKeys?.map((keys, j): ChordFigures | null => {
+    if (keys.length < 2) return null;
+    const complete = match.played[j] !== null;
+    const played = complete ? keys.map((k) => input.played[k!]!) : [];
+    const ons = played.map((p) => p.on);
+    const others = played.slice(0, -1).map((p) => p.velocity);
+    return {
+      keys: keys.length,
+      spread: complete ? Math.max(...ons) - Math.min(...ons) : null,
+      balance:
+        complete && input.velocityMeasured && others.length > 0
+          ? played.at(-1)!.velocity - quantile(others, 0.5)!
+          : null,
+    };
   });
 
   const wrongAt = new Map(match.wrong.map((w) => [w.index, w.played]));
@@ -525,6 +830,8 @@ function analyzeHand(
       velocityResidual: velocityResidual[j]!,
       accent: accent[j]!,
       overlap: overlap[j]!,
+      ...(note.pattern && { pattern: true as const }),
+      ...(chordFigures?.[j] && { chord: chordFigures[j] }),
     };
   });
 
@@ -551,6 +858,57 @@ function analyzeHand(
     loudness,
     connection: summarizeConnection(figures, timing.medianInterval, input.pedal),
     notes: figures,
+    // The chords' summary where the hand has a few (not for a line closing on one).
+    ...(chordKeys &&
+      figures.filter((f) => f.chord).length >= MIN_CHORDS && {
+        chords: summarizeChords(figures, chordKeys, match, input),
+      }),
+  };
+}
+
+/**
+ * A hand's chords over the run: their spread, and their balance against the run's velocity range
+ * (docs/EXPRESSION.md, "Loudness is relative"), from the chords played whole.
+ */
+function summarizeChords(
+  figures: readonly NoteFigures[],
+  chordKeys: readonly (readonly (number | null)[])[],
+  match: HandMatch,
+  input: RunInput,
+): ChordSummary {
+  const whole = figures.filter((f) => f.chord && f.chord.spread !== null);
+  const enough = whole.length >= MIN_CHORDS;
+  const velocities = chordKeys.flatMap((keys, j) =>
+    match.played[j] === null || keys.length < 2 ? [] : keys.map((k) => input.played[k!]!.velocity),
+  );
+  const range =
+    input.velocityMeasured && velocities.length > 0
+      ? quantile(velocities, 0.95)! - quantile(velocities, 0.05)!
+      : null;
+  const step = range === null ? null : Math.max(BALANCE_FLOOR, BALANCE_SHARE * range);
+  const balanced = whole.filter((f) => f.chord!.balance !== null);
+  return {
+    chords: whole.length,
+    medianSpread: enough
+      ? quantile(
+          whole.map((f) => f.chord!.spread!),
+          0.5,
+        )
+      : null,
+    broken: whole.filter((f) => f.chord!.spread! > CHORD_APART_MS).map((f) => f.index),
+    range,
+    balanceStep: step,
+    medianBalance:
+      step !== null && balanced.length >= MIN_CHORDS
+        ? quantile(
+            balanced.map((f) => f.chord!.balance!),
+            0.5,
+          )
+        : null,
+    topOver:
+      step === null ? [] : balanced.filter((f) => f.chord!.balance! >= step).map((f) => f.index),
+    topUnder:
+      step === null ? [] : balanced.filter((f) => f.chord!.balance! <= -step).map((f) => f.index),
   };
 }
 
@@ -636,7 +994,10 @@ function turnIndex(notes: readonly ScaleNote[]): number {
   const marked = notes.findIndex((n) => n.turn);
   if (marked >= 0) return marked;
   const firstDown = notes.findIndex((n) => n.direction === 'down');
-  return firstDown > 0 ? firstDown - 1 : notes.length - 1;
+  if (firstDown > 0) return firstDown - 1;
+  // A pattern that never turns (the five-finger group repeated): past its last note, so every
+  // note is in the one direction and no interval is a turn's.
+  return firstDown < 0 && notes.some((n) => n.pattern) ? notes.length : notes.length - 1;
 }
 
 /**
@@ -776,7 +1137,9 @@ function localResiduals(
     [turn + 1, values.length - 1],
   ] as const) {
     const present: number[] = [];
-    for (let j = from; j <= to; j++) if (values[j] !== null) present.push(j);
+    // A run that never turns has its turn past its last note: only the notes there are.
+    for (let j = from; j <= Math.min(to, values.length - 1); j++)
+      if (values[j] !== null) present.push(j);
     present.forEach((j, p) => {
       const lo = Math.max(0, Math.min(p - half, present.length - window));
       const hi = Math.min(present.length - 1, lo + window - 1);
@@ -799,7 +1162,9 @@ function localResiduals(
  * The clearest problem place in this run: of the crossings of one kind in one direction of one
  * hand, with at least `PROBLEM_MIN_NOTES` deviations, those whose mean deviation is at least
  * `PROBLEM_MIN_MS` and `PROBLEM_MIN_Z` standard errors from zero; the one furthest in standard
- * errors wins. The turning note never counts (a turn may breathe).
+ * errors wins. The turning note never counts (a turn may breathe). In a pattern, where there are no
+ * crossings, the places are the notes of one place in the group in one direction (the run's first
+ * and last notes left out, as over runs), at `PATTERN_MIN_Z` and with `PATTERN_MIN_NOTES`.
  */
 export function findProblemPlace(hands: readonly HandAnalysis[]): ProblemPlace | null {
   let best: { place: ProblemPlace; z: number } | null = null;
@@ -817,23 +1182,29 @@ export function findProblemPlace(hands: readonly HandAnalysis[]): ProblemPlace |
         )!,
     );
     const groups = new Map<string, NoteFigures[]>();
+    const lastIndex = h.notes.length - 1;
     for (const n of measured) {
-      if (n.crossing === null) continue;
-      const key = `${n.direction}:${n.crossing}`;
+      const pattern = n.pattern === true && n.crossing === null;
+      if (n.crossing === null && !pattern) continue;
+      if (pattern && (n.index === 0 || n.index === lastIndex)) continue;
+      const key = pattern ? `${n.direction}:@${n.degree}` : `${n.direction}:${n.crossing}`;
       groups.set(key, [...(groups.get(key) ?? []), n]);
     }
     for (const group of groups.values()) {
-      if (group.length < PROBLEM_MIN_NOTES) continue;
+      const pattern = group[0]!.crossing === null;
+      if (group.length < (pattern ? PATTERN_MIN_NOTES : PROBLEM_MIN_NOTES)) continue;
       const mean = group.reduce((a, n) => a + n.deviation!, 0) / group.length;
       const standardError = spread / Math.sqrt(group.length);
       const z = Math.abs(mean) / standardError;
-      if (Math.abs(mean) < PROBLEM_MIN_MS || z < PROBLEM_MIN_Z) continue;
+      if (Math.abs(mean) < PROBLEM_MIN_MS || z < (pattern ? PATTERN_MIN_Z : PROBLEM_MIN_Z))
+        continue;
       if (best && z <= best.z) continue;
       best = {
         place: {
           hand: h.hand,
           direction: group[0]!.direction,
-          crossing: group[0]!.crossing!,
+          crossing: group[0]!.crossing,
+          degree: pattern ? group[0]!.degree : null,
           indexes: group.map((n) => n.index),
           deviation: mean,
           standardError,

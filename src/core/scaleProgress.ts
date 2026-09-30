@@ -14,7 +14,7 @@ import type { SessionRecord } from './log.ts';
 import { quantile } from './robust.ts';
 import type { ScaleRunSummary, StoredScaleRun } from './scaleRecords.ts';
 import { parseExerciseKey, scaleNotes } from './scales.ts';
-import type { Crossing, Direction } from './scaleTypes.ts';
+import { stepsOf, type Crossing, type Direction } from './scaleTypes.ts';
 import type { Hand } from './score.ts';
 import { addDays, dayKey, type DayKey } from './streak.ts';
 
@@ -275,8 +275,13 @@ export interface IrregularPlace {
   direction: Direction;
   /** A crossing place: its kind; null for a degree place. */
   crossing: Crossing;
-  /** A degree place: its degree (0-based from the tonic); null for a crossing place. */
+  /**
+   * A degree place: its degree (0-based from the tonic), or in a pattern its place in the group;
+   * null for a crossing place.
+   */
   degree: number | null;
+  /** The notes are a pattern's (`ScaleNote.pattern`): `degree` is the place in the group. */
+  pattern?: true;
   /** Expected indexes of the notes it rests on. */
   indexes: number[];
   /** Runs with at least one of those notes measured, and the deviations counted. */
@@ -341,8 +346,11 @@ export function placesOverRuns(runs: readonly StoredScaleRun[], last = PLACE_RUN
     throw new Error(`runs of more than one exercise: ${exercise} and others`);
   const parsed = parseExerciseKey(exercise);
   if (!parsed) throw new Error(`not an exercise key: ${exercise}`);
-  const { right, left } = scaleNotes(parsed);
-  const expected = [...right, ...left];
+  const notes = scaleNotes(parsed);
+  const expected = [...notes.right, ...notes.left];
+  // One place per step: a chord's lowest key stands for it, as in the analysis.
+  const right = stepsOf(notes.right).map((step) => step[0]!);
+  const left = stepsOf(notes.left).map((step) => step[0]!);
   const twoHands = right.length > 0 && left.length > 0;
   const crossingMinZ = twoHands ? CROSSING_MIN_Z_TWO_HANDS : CROSSING_MIN_Z;
   const degreeMinZ = twoHands ? DEGREE_MIN_Z_TWO_HANDS : DEGREE_MIN_Z;
@@ -432,6 +440,7 @@ export function placesOverRuns(runs: readonly StoredScaleRun[], last = PLACE_RUN
           direction: group[0]!.direction,
           crossing,
           degree: crossing === null ? group[0]!.degree : null,
+          ...(crossing === null && group[0]!.pattern && { pattern: true as const }),
           indexes: group.filter((n) => byIndex[n.index]!.length > 0).map((n) => n.index),
           runs: runsWith,
           notes: d.length,

@@ -14,6 +14,30 @@ sessions go in the same lists), the
 click's tempo and grid of scale runs played with it (from version 7), and the takes of piece runs
 (from version 8). Version 1 to 7 files still import.
 
+### Technique I (S6)
+
+- **Technique** on the Scales page, a second group in the list of exercises: the **five-finger
+  pattern** in every major and minor key (1 2 3 4 5 4 3 2 four times over, then the tonic, the
+  finger the degree); **Hanon's first twenty exercises** exactly as printed in The Virtuoso Pianist
+  (G. Schirmer 1900), notes, bars and fingering, chosen by number; and the key's triad in **block
+  chords** and **broken chords**, root position and both inversions, up two or three octaves and back
+  (broken, one or two).
+  Each keeps its own records and progress, plays with the click and loops like the scales.
+- Hanon Nos. 1–20 were transcribed twice independently from the scan and diffed; the drawn scores
+  were compared with the plates bar by bar. His fingering is shown as he prints it: in full in the
+  first bars, then only the fingers each exercise trains, and no digit elsewhere.
+- **Chords, measured**: each chord's **spread** (how far apart its keys came; beyond 30 ms it is
+  heard as broken) and the **balance** of its top key against the others, relative to the run's
+  own range of loudness; the chords' timing as the scales' notes are, their connection voice by
+  voice, the hands against each other. A chord with a wrong key is one mistake. The chart gains a
+  row for each, and scrolls sideways for long runs.
+- In a pattern (Hanon, broken chords, the five-finger group) the place named after a run is the
+  same note of every group ("note 4 of each group comes 25 ms late"), found by the same rules as
+  the scales' crossings with a stricter threshold, simulated.
+- The public profile counts the technique exercises instead of naming them, as it does the
+  arpeggios: the service names only the scales. Sync schema 9: a build that learns these exercises
+  pulls everything again.
+
 ### Harmony: chords from their symbols (H1)
 
 - A new **Harmony** page. Its first practice, **Chords**, shows a chord symbol as a lead sheet

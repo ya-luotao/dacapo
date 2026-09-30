@@ -4,6 +4,7 @@ import {
   isClickTempo,
   isNotesPerBeat,
   type ClickSettings,
+  type NotesPerBeat,
 } from '../../core/scaleClick.ts';
 import { exerciseKey, parseExerciseKey } from '../../core/scales.ts';
 import type { ScaleExercise } from '../../core/scaleTypes.ts';
@@ -30,8 +31,10 @@ export function writeExercise(e: ScaleExercise): void {
 }
 
 /** Free tempo or with the click, and the click's settings (kept while the click is off). */
-export interface ClickPrefs extends ClickSettings {
+export interface ClickPrefs extends Omit<ClickSettings, 'perBeat'> {
   on: boolean;
+  /** The notes to the beat chosen (an exercise with a rhythm of its own keeps it). */
+  perBeat: NotesPerBeat;
 }
 
 /** Sixteenths at ♩ = 60: four notes a second, a scale's usual first tempo with a click. */

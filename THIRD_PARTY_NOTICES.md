@@ -102,14 +102,15 @@ in `<identification>`.
   Processing_, <https://zenodo.org/records/15571083>. It is licensed under
   [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
-## Music (the fingering of the scales)
+## Music (the fingering of the scales, and Hanon's exercises)
 
 The fingering shown on the Scales page is Charles-Louis Hanon's, from _The Virtuoso Pianist_,
 Nos. 39 (the major and minor scales), 40 (the chromatic scales) and 41 (the arpeggios on the
-triads), G. Schirmer, New York, n.d. [1900], plate 15538, in the public domain (IMSLP #91547,
-<https://imslp.org/wiki/The_Virtuoso_Pianist_(Hanon,_Charles-Louis)>). The dacapo project
-transcribed it digit by digit; the transcription, its checks and the one correction are in
-`scripts/scales/hanon/`.
+triads), and the technique exercises Hanon Nos. 1–20 are his, notes and fingering, from Part I of
+the same edition: G. Schirmer, New York, n.d. [1900], plate 15538, in the public domain (IMSLP
+#91547, <https://imslp.org/wiki/The_Virtuoso_Pianist_(Hanon,_Charles-Louis)>). The dacapo project
+transcribed them note by note and digit by digit; the transcriptions, their checks and the one
+correction are in `scripts/scales/hanon/`.
 
 ## Checks only, never shipped
 

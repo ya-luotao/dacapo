@@ -5,9 +5,10 @@
 import { midiOf } from './musicxml.ts';
 import { LETTERS, type Letter } from './note.ts';
 import {
+  EXERCISE_TYPES,
   SCALE_OCTAVES,
-  SCALE_TYPES,
   type Crossing,
+  type ExerciseType,
   type Direction,
   type ScaleExercise,
   type ScaleHands,
@@ -23,6 +24,7 @@ import {
   type HanonRuns,
 } from './scaleFingering.ts';
 import type { Hand, HandSelection, SpelledPitch } from './score.ts';
+import { isTechnique, isTechniqueExercise, techniqueNotes, techniqueRules } from './technique.ts';
 
 /** Where the fingering comes from, for the page and the credits. */
 export const FINGERING_SOURCE = HANON_EDITION;
@@ -83,18 +85,32 @@ export const CONTRARY_TYPES: readonly ScaleType[] = ['major', 'harmonicMinor', '
 export const CONTRARY_MAX_OCTAVES = 3;
 
 /** An arpeggio: the root-position triad of the key, up and down. */
-export function isArpeggio(type: ScaleType): boolean {
+export function isArpeggio(type: ExerciseType): boolean {
   return type === 'majorArpeggio' || type === 'minorArpeggio';
 }
 
-/** Whether the exercise can be played so: contrary motion only for some scales and octaves. */
+/**
+ * Whether the exercise can be played so: contrary motion only for some scales and octaves; a
+ * technique exercise with the hands and octaves it offers.
+ */
 export function handsAllowed(
   e: Pick<ScaleExercise, 'type' | 'octaves'>,
   hands: ScaleHands,
 ): boolean {
+  if (isTechnique(e.type)) {
+    const rules = techniqueRules(e.type);
+    return rules.hands.includes(hands) && rules.octaves.includes(e.octaves);
+  }
   return (
-    hands !== 'contrary' || (CONTRARY_TYPES.includes(e.type) && e.octaves <= CONTRARY_MAX_OCTAVES)
+    hands !== 'contrary' ||
+    ((CONTRARY_TYPES as readonly ExerciseType[]).includes(e.type) &&
+      e.octaves <= CONTRARY_MAX_OCTAVES)
   );
+}
+
+/** The octaves an exercise can take: 1–4 for a scale, a technique exercise's own. */
+export function octavesOf(type: ExerciseType): readonly ScaleExercise['octaves'][] {
+  return isTechnique(type) ? techniqueRules(type).octaves : SCALE_OCTAVES;
 }
 
 /** The hands that play, for the score and the keyboard: contrary motion is both. */
@@ -102,27 +118,45 @@ export function handsPlaying(hands: ScaleHands): HandSelection {
   return hands === 'contrary' ? 'both' : hands;
 }
 
-export function tonicsOf(type: ScaleType): readonly Tonic[] {
+export function tonicsOf(type: ExerciseType): readonly Tonic[] {
+  if (isTechnique(type)) return techniqueRules(type).tonics;
   if (type === 'major' || type === 'majorArpeggio') return MAJOR_TONICS;
   if (type === 'chromatic') return CHROMATIC_TONICS;
   return MINOR_TONICS;
 }
 
-/** `major:D:2:both`. */
+/** `major:D:2:both`; a technique exercise's form last: `hanon:C:2:both:1`. */
 export function exerciseKey(e: ScaleExercise): string {
-  return `${e.type}:${e.tonic}:${e.octaves}:${e.hands}`;
+  const key = `${e.type}:${e.tonic}:${e.octaves}:${e.hands}`;
+  return e.variant === undefined ? key : `${key}:${e.variant}`;
 }
 
 export function isScaleExercise(value: unknown): value is ScaleExercise {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
   const e = value as Record<string, unknown>;
+  const fields = Object.keys(e).length;
+  if (
+    !(EXERCISE_TYPES as readonly unknown[]).includes(e.type) ||
+    typeof e.tonic !== 'string' ||
+    !(SCALE_OCTAVES as readonly unknown[]).includes(e.octaves) ||
+    !(SCALE_HANDS as readonly unknown[]).includes(e.hands)
+  )
+    return false;
+  const type = e.type as ExerciseType;
+  if (isTechnique(type))
+    return (
+      fields === ('variant' in e ? 5 : 4) &&
+      isTechniqueExercise({
+        type,
+        tonic: e.tonic,
+        octaves: e.octaves,
+        hands: e.hands,
+        variant: e.variant,
+      })
+    );
   return (
-    Object.keys(e).length === 4 &&
-    (SCALE_TYPES as readonly unknown[]).includes(e.type) &&
-    typeof e.tonic === 'string' &&
-    tonicsOf(e.type as ScaleType).includes(e.tonic) &&
-    (SCALE_OCTAVES as readonly unknown[]).includes(e.octaves) &&
-    (SCALE_HANDS as readonly unknown[]).includes(e.hands) &&
+    fields === 4 &&
+    tonicsOf(type).includes(e.tonic) &&
     handsAllowed(e as unknown as ScaleExercise, e.hands as ScaleHands)
   );
 }
@@ -130,10 +164,16 @@ export function isScaleExercise(value: unknown): value is ScaleExercise {
 /** The exercise a key names, or null for anything that is not exactly such a key. */
 export function parseExerciseKey(key: string): ScaleExercise | null {
   const parts = key.split(':');
-  if (parts.length !== 4) return null;
-  const [type, tonic, octaves, hands] = parts as [string, string, string, string];
+  if (parts.length !== 4 && parts.length !== 5) return null;
+  const [type, tonic, octaves, hands, variant] = parts as [string, string, string, string, string?];
   if (!/^[1-9]$/.test(octaves)) return null;
-  const e = { type, tonic, octaves: Number(octaves), hands };
+  const e = {
+    type,
+    tonic,
+    octaves: Number(octaves),
+    hands,
+    ...(variant !== undefined && { variant }),
+  };
   return isScaleExercise(e) ? e : null;
 }
 
@@ -360,7 +400,7 @@ export const CHROMATIC_FINGERS: Readonly<Record<keyof Runs, readonly number[]>> 
 
 /** Up (tonic to top) and down (top to tonic) fingers of one hand, or null without fingering. */
 export function scaleFingering(
-  e: Pick<ScaleExercise, 'type' | 'tonic' | 'octaves'>,
+  e: Pick<ScaleExercise, 'tonic' | 'octaves'> & { type: ScaleType },
   hand: Hand,
 ): { up: number[]; down: number[] } | null {
   const upRun = hand === 'right' ? 'rightUp' : 'leftUp';
@@ -407,7 +447,7 @@ function crossingOf(hand: Hand, dir: Direction, finger: number | null, previous:
  * Hanon prints on the same notes in the same direction.
  */
 function handRun(
-  e: ScaleExercise,
+  e: ScaleExercise & { type: ScaleType },
   hand: Hand,
   tonic: SpelledPitch,
   descending = false,
@@ -450,10 +490,12 @@ function handRun(
  */
 export function scaleNotes(e: ScaleExercise): { right: ScaleNote[]; left: ScaleNote[] } {
   if (!isScaleExercise(e)) throw new Error(`not a scale exercise: ${JSON.stringify(e)}`);
+  if (isTechnique(e.type)) return techniqueNotes({ ...e, type: e.type });
+  const scale = { ...e, type: e.type };
   const tonics = startingTonics(e);
   return {
-    right: e.hands === 'left' ? [] : handRun(e, 'right', tonics.right),
-    left: e.hands === 'right' ? [] : handRun(e, 'left', tonics.left, e.hands === 'contrary'),
+    right: e.hands === 'left' ? [] : handRun(scale, 'right', tonics.right),
+    left: e.hands === 'right' ? [] : handRun(scale, 'left', tonics.left, e.hands === 'contrary'),
   };
 }
 
@@ -463,13 +505,14 @@ const LETTER_FIFTHS: Record<Letter, number> = { F: -1, C: 0, G: 1, D: 2, A: 3, E
 
 /** The key signature: sharps (+) or flats (−), and the mode. The chromatic scale has none. */
 export function keySignature(
-  type: ScaleType,
+  type: ExerciseType,
   tonic: Tonic,
 ): { fifths: number; mode: 'major' | 'minor' } {
   if (type === 'chromatic') return { fifths: 0, mode: 'major' };
   const t = tonicPitch(tonic, 4);
   const major = LETTER_FIFTHS[t.step] + 7 * t.alter;
-  return type === 'major' || type === 'majorArpeggio'
+  // Hanon's Part I is in C major; the other technique types say their mode in their name.
+  return type === 'hanon' || type.startsWith('major')
     ? { fifths: major, mode: 'major' }
     : { fifths: major - 3, mode: 'minor' };
 }

@@ -1,7 +1,7 @@
 import { canonical } from '../lib/canonical.ts';
 import type { SessionRecord } from './log.ts';
 import { parseExerciseKey } from './scales.ts';
-import type { ScaleType, Tonic } from './scaleTypes.ts';
+import type { ExerciseType, ScaleType, Tonic } from './scaleTypes.ts';
 import { titleFromFile, type StoredPiece } from './storedPiece.ts';
 import {
   currentStreak,
@@ -38,7 +38,8 @@ export type ActivityKind = 'read' | 'free' | 'piece' | 'scale';
 
 /**
  * The scale types the service accepts in `activity.scales` (it rejects a document with any other):
- * the scales of S1. Arpeggios are counted in `moreScales` until it learns them (docs/PROFILE.md).
+ * the scales of S1. Arpeggios and the technique exercises are counted in `moreScales` until it
+ * learns them (docs/PROFILE.md).
  */
 export const PROFILE_SCALE_TYPES = [
   'major',
@@ -49,7 +50,7 @@ export const PROFILE_SCALE_TYPES = [
 ] as const satisfies readonly ScaleType[];
 type ProfileScaleType = (typeof PROFILE_SCALE_TYPES)[number];
 
-const isProfileScaleType = (type: ScaleType): type is ProfileScaleType =>
+const isProfileScaleType = (type: ExerciseType): type is ProfileScaleType =>
   (PROFILE_SCALE_TYPES as readonly string[]).includes(type);
 
 export interface DayActivity {
@@ -152,7 +153,7 @@ function dayActivity(
         if (!exercise) continue;
         const { type } = exercise;
         if (!isProfileScaleType(type)) {
-          unnamed.add(`${type}:${exercise.tonic}`);
+          unnamed.add(`${type}:${exercise.tonic}:${exercise.variant ?? ''}`);
           continue;
         }
         const key = `${type}:${exercise.tonic}`;

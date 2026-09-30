@@ -382,3 +382,174 @@ function reclassifyWrongKeys(
   }
   return { hands: result, extra: extra.filter((x) => !usedPlayed.has(x)) };
 }
+
+// Chords -------------------------------------------------------------------------------------------
+
+/**
+ * Keys struck together are one chord when each comes within this long of the key before it: the
+ * spec's 60 ms (docs/SCALES.md, "Technique"). A chord struck wider than this, or two hands a
+ * little apart, comes out as two clusters, and a step may take both (`alignChords`).
+ */
+export const CHORD_CHAIN_MS = 60;
+
+/** Played keys grouped into clusters: indexes into the keys, in the order played. */
+export function chordClusters(onsets: readonly number[], chain = CHORD_CHAIN_MS): number[][] {
+  const clusters: number[][] = [];
+  onsets.forEach((on, i) => {
+    const last = clusters.at(-1);
+    if (last && on - onsets[last.at(-1)!]! <= chain) last.push(i);
+    else clusters.push([i]);
+  });
+  return clusters;
+}
+
+/** How one step of chords was played: its keys matched, wrong or missed, by position in the step. */
+export interface ChordStepMatch {
+  /** Per key of the step (lowest first), the played key that matched it, or null. */
+  played: (number | null)[];
+  /** Keys of the step played with a wrong key (position in the step, and the played key). */
+  wrong: { key: number; played: number }[];
+  /** Positions in the step with no key played. */
+  missed: number[];
+}
+
+export interface ChordAlignment {
+  steps: ChordStepMatch[];
+  /** Played keys that belong to no step, ascending. */
+  extra: number[];
+  capped: boolean;
+}
+
+/**
+ * Which keys struck which chord. The played keys are grouped into clusters (`chordClusters`) and
+ * the clusters aligned against the steps (each a set of keys, lowest first) by edit distance: a
+ * cluster matches a step, or the step takes two clusters in a row (a chord broken wider than the
+ * chain, a hand late), or the cluster is extra, or the step is missed. Matching a set costs its
+ * mistakes — a key of the step not struck and a struck key not in it make one wrong key, what is
+ * left over is missed or extra — so a chord with one wrong key costs one, as a scale's wrong note
+ * does. Of equally cheap alignments the one chosen prefers, from the end backwards, a match, a
+ * step taking two clusters, an extra cluster, a missed step.
+ */
+export function alignChords(
+  played: readonly { midi: number; on: number }[],
+  steps: readonly (readonly number[])[],
+): ChordAlignment {
+  const clusters = chordClusters(played.map((p) => p.on));
+  const n = steps.length;
+  const size = steps.reduce((a, s) => a + s.length, 0);
+  // As `alignHand`, a run that never ends is cut: past three keys per key asked for, all extra.
+  let kept = 0;
+  let m = 0;
+  while (m < clusters.length && kept + clusters[m]!.length <= MAX_PLAYED_PER_EXPECTED * size) {
+    kept += clusters[m]!.length;
+    m++;
+  }
+  const keysOf = (from: number, to: number) => clusters.slice(from, to).flat();
+  /** Mistakes of `keys` struck for `step`: wrong keys paired, the rest missed or extra. */
+  const mistakes = (keys: readonly number[], step: readonly number[]) => {
+    const left = [...step];
+    let extra = 0;
+    for (const k of keys) {
+      const at = left.indexOf(played[k]!.midi);
+      if (at >= 0) left.splice(at, 1);
+      else extra++;
+    }
+    return Math.max(left.length, extra);
+  };
+  const w = n + 1;
+  const cost = new Float64Array((m + 1) * w);
+  const from = new Uint8Array((m + 1) * w);
+  const TAKE = 1;
+  const TAKE_TWO = 2;
+  const EXTRA_CLUSTER = 3;
+  const MISS_STEP = 4;
+  for (let i = 0; i <= m; i++) {
+    for (let j = 0; j <= n; j++) {
+      if (i === 0 && j === 0) continue;
+      let best = Infinity;
+      let how = 0;
+      if (i > 0 && j > 0) {
+        const c = cost[(i - 1) * w + j - 1]! + mistakes(clusters[i - 1]!, steps[j - 1]!);
+        if (c < best) {
+          best = c;
+          how = TAKE;
+        }
+      }
+      if (i > 1 && j > 0) {
+        const c = cost[(i - 2) * w + j - 1]! + mistakes(keysOf(i - 2, i), steps[j - 1]!);
+        if (c < best) {
+          best = c;
+          how = TAKE_TWO;
+        }
+      }
+      if (i > 0) {
+        const c = cost[(i - 1) * w + j]! + clusters[i - 1]!.length;
+        if (c < best) {
+          best = c;
+          how = EXTRA_CLUSTER;
+        }
+      }
+      if (j > 0) {
+        const c = cost[i * w + j - 1]! + steps[j - 1]!.length;
+        if (c < best) {
+          best = c;
+          how = MISS_STEP;
+        }
+      }
+      cost[i * w + j] = best;
+      from[i * w + j] = how;
+    }
+  }
+
+  const out: ChordStepMatch[] = steps.map((step) => ({
+    played: step.map(() => null),
+    wrong: [],
+    missed: [],
+  }));
+  const extra: number[] = [];
+  for (let c = clusters.length - 1; c >= m; c--) extra.push(...clusters[c]!);
+  let i = m;
+  let j = n;
+  while (i > 0 || j > 0) {
+    const how = from[i * w + j];
+    if (how === TAKE || how === TAKE_TWO) {
+      const take = how === TAKE ? 1 : 2;
+      const keys = keysOf(i - take, i);
+      const step = steps[j - 1]!;
+      const match = out[j - 1]!;
+      const unused: number[] = [];
+      for (const k of keys) {
+        const at = step.findIndex(
+          (midi, p) => midi === played[k]!.midi && match.played[p] === null,
+        );
+        if (at >= 0) match.played[at] = k;
+        else unused.push(k);
+      }
+      // A key of the step not struck and a key struck that is not in it: a wrong key, the
+      // nearest in pitch first (as `reclassifyWrongKeys` pairs them for the scales).
+      const open = step.map((_, p) => p).filter((p) => match.played[p] === null);
+      const pairs = open
+        .flatMap((p) => unused.map((k) => ({ p, k, d: Math.abs(played[k]!.midi - step[p]!) })))
+        .sort((a, b) => a.d - b.d || a.k - b.k || a.p - b.p);
+      const usedKeys = new Set<number>();
+      const usedPlaces = new Set<number>();
+      for (const { p, k } of pairs) {
+        if (usedKeys.has(k) || usedPlaces.has(p)) continue;
+        usedKeys.add(k);
+        usedPlaces.add(p);
+        match.wrong.push({ key: p, played: k });
+      }
+      match.wrong.sort((a, b) => a.key - b.key);
+      match.missed = open.filter((p) => !usedPlaces.has(p));
+      for (const k of unused) if (!usedKeys.has(k)) extra.push(k);
+      i -= take;
+      j--;
+    } else if (how === EXTRA_CLUSTER) {
+      extra.push(...clusters[--i]!);
+    } else {
+      const step = steps[--j]!;
+      out[j]!.missed = step.map((_, p) => p);
+    }
+  }
+  return { steps: out, extra: extra.sort((a, b) => a - b), capped: m < clusters.length };
+}

@@ -6697,6 +6697,21 @@ select.is-compact {
   fill: var(--warn);
 }
 
+/* A long run (Hanon's two hundred notes) keeps its notes apart and scrolls sideways. */
+.scale-profile-scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.scale-profile-scroll .deviation-frame {
+  margin-top: 1.75rem;
+}
+
+/* Where a technique exercise comes from, under its score. */
+.scale-source {
+  margin: 0.5rem 0 0;
+}
+
 .scale-progress,
 .scale-list {
   max-width: 44rem;
@@ -6728,6 +6743,11 @@ select.is-compact {
 .scale-progress .figures dd {
   margin-top: 0.125rem;
   font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem);
+}
+
+/* "(rough: few notes)" under the figure, not beside it: a narrow column cannot hold both. */
+.scale-progress .figures dd .scale-rough {
+  display: block;
 }
 
 .scale-progress .figures dd.scale-progress-when {
