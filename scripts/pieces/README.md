@@ -32,6 +32,23 @@ source file per piece in `sources/<id>.py`. The token format is described at the
 `musicxml_gen.py`: `c4/4` is a quarter-note C4, `[c3,e3,g3]/8` a half-note chord, `fs5/2` an
 eighth-note F♯5, `r/4` a rest, `s/4` an invisible spacer; durations are in sixteenths.
 
+The edition's markings go into the same token lists, and only those the edition prints. On a
+note: `(` and `)` start and end a slur, `~` starts a tie, `!st` `!te` `!ac` `!ma` `!sts` are
+staccato, tenuto, accent, strong accent and staccatissimo, `!fe` a fermata, `!m` `!p` `!tr`
+`!trw`/`!w` `!t` `!it` the ornaments (mordent, inverted mordent, trill, trill with a wavy line
+and its end, turn, inverted turn) with `!^s`-style accidental marks, `!c` a cautionary
+accidental; `g:` and `a:` before a note make it a grace note with and without a slash. Between
+notes, `@` tokens are directions at that place in the voice, on its staff: `@p` (any dynamic),
+`@<` `@>` `@!` (hairpins), `@w:cresc.` (words, `_` for a space), `@dashes[`/`@dashes]`, and
+`@Ped` `@Ped*` `@Ped*Ped` (the sustain pedal down, up and changed: Ped. and ✱ signs, or a
+bracket line in a piece with `'pedal_lines': True`); `^` puts one above the staff
+and `+N` moves it N sixteenths later (`@Ped*+5.5` in a piece with `'divisions': 8`), for a mark
+that falls inside a note. For example `'@p g5/2( e5/2 d5/2 c5/2)'` is a slurred group marked
+piano, and `'@Ped @Ped*+5.5 a2/1 e3/1 a3/1 r/1 r/2'` a bar pedalled until a thirty-second before
+its end. A hairpin end (`@!`) that opens a bar is written at the end of the bar before, the same
+moment, so it ends at the barline. Each source's comment says which markings come from which
+edition file.
+
 ```sh
 python3 scripts/pieces/generate.py              # write every generated piece
 python3 scripts/pieces/generate.py --check      # fail if a committed file is out of date

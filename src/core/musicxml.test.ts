@@ -452,6 +452,29 @@ describe('markings', () => {
     ]);
   });
 
+  it('reads a bracket ended and started again at one place as a change', () => {
+    const pedal = (type: string) => direction(`<pedal type="${type}" line="yes"/>`, staff(2));
+    const s = parse(
+      piano([
+        pedal('start') +
+          note('C3', 2, staff(2)) +
+          pedal('stop') +
+          pedal('start') +
+          note('D3', 2, staff(2)) +
+          pedal('stop') +
+          note('E3', 2, staff(2)) +
+          pedal('start') +
+          note('F3', 2, staff(2)),
+      ]),
+    );
+    expect(s.markings.pedals.map((p) => [p.tick, p.type])).toEqual([
+      [0, 'start'],
+      [Q, 'change'],
+      [2 * Q, 'stop'],
+      [3 * Q, 'start'],
+    ]);
+  });
+
   it('gives ornaments their neighbours from the key, the bar and the accidentals shown', () => {
     const ornament = (inner: string) => `<notations><ornaments>${inner}</ornaments></notations>`;
     const s = parse(

@@ -80,7 +80,64 @@ const LOCKED: Record<string, { notes: number; checksum: string }> = {
   'satie-gymnopedie-1': { notes: 289, checksum: 'db34d100' },
 };
 
+/** What a piece marks besides its notes, counted: locked like the notes. */
+function markings(score: Score): string {
+  const { dynamics, hairpins, pedals, slurs, fermatas } = score.markings;
+  const count = (items: string[]) => {
+    const out = new Map<string, number>();
+    for (const item of items) out.set(item, (out.get(item) ?? 0) + 1);
+    return [...out].map(([item, n]) => (n > 1 ? `${item}×${n}` : item)).join(' ');
+  };
+  return [
+    `dynamics: ${dynamics.map((d) => d.dynamic).join(' ')}`,
+    `hairpins: ${count(hairpins.map((h) => `${h.kind === 'crescendo' ? '<' : '>'}${h.written === 'words' ? '(words)' : ''}`))}`,
+    `pedal: ${count(pedals.map((p) => `${p.pedal === 'sustain' ? '' : `${p.pedal} `}${p.type}`))}`,
+    `slurs: ${slurs.length}`,
+    `fermatas: ${fermatas.length}`,
+    `articulations: ${count(score.notes.flatMap((n) => n.articulations ?? []))}`,
+    `ornaments: ${count(score.notes.flatMap((n) => n.ornaments ?? []).map((o) => o.kind))}`,
+    `graces: ${score.notes.flatMap((n) => n.graces ?? []).length}`,
+  ].join('; ');
+}
+
+/**
+ * The markings of every built-in piece, as its source edition prints them (the source files and
+ * the PDMX manifests say which). A deliberate edit to a file updates its line here.
+ */
+const MARKINGS: Record<string, string> = {
+  'petzold-minuet-in-g':
+    'dynamics: ; hairpins: ; pedal: ; slurs: 0; fermatas: 0; articulations: ; ornaments: mordent×4 inverted-mordent; graces: 1',
+  'beethoven-fur-elise':
+    'dynamics: pp pp; hairpins: ; pedal: start×12 stop×12; slurs: 1; fermatas: 0; articulations: ; ornaments: ; graces: 0',
+  'beethoven-ode-to-joy':
+    'dynamics: ; hairpins: ; pedal: ; slurs: 0; fermatas: 0; articulations: ; ornaments: ; graces: 0',
+  'burgmuller-arabesque':
+    'dynamics: p f mf sfz mf f p f f sfz; hairpins: <(words) > <; pedal: ; slurs: 30; fermatas: 2; articulations: staccato×69 accent×2; ornaments: ; graces: 0',
+  'schumann-soldiers-march':
+    'dynamics: f f f f f f f f f f f; hairpins: ; pedal: ; slurs: 0; fermatas: 0; articulations: ; ornaments: ; graces: 0',
+  'bach-prelude-in-c':
+    'dynamics: ; hairpins: ; pedal: ; slurs: 0; fermatas: 0; articulations: ; ornaments: ; graces: 0',
+  'petzold-minuet-in-g-minor':
+    'dynamics: ; hairpins: ; pedal: ; slurs: 0; fermatas: 0; articulations: ; ornaments: inverted-mordent×4 mordent×2; graces: 0',
+  'bach-musette-in-d':
+    'dynamics: ; hairpins: ; pedal: ; slurs: 0; fermatas: 2; articulations: ; ornaments: ; graces: 0',
+  'burgmuller-candeur':
+    'dynamics: p p sf p p pp; hairpins: >×8 <(words) <×2 >(words); pedal: ; slurs: 30; fermatas: 0; articulations: ; ornaments: ; graces: 0',
+  'tchaikovsky-old-french-song':
+    'dynamics: p pp p mf p; hairpins: < >; pedal: ; slurs: 26; fermatas: 0; articulations: staccato×17; ornaments: ; graces: 0',
+  'tchaikovsky-morning-prayer':
+    'dynamics: p mf p f f mf pp; hairpins: <×3 >×4 >(words); pedal: start stop; slurs: 29; fermatas: 0; articulations: accent×5 tenuto; ornaments: ; graces: 0',
+  'chopin-prelude-in-c-minor':
+    'dynamics: ff p pp; hairpins: < <(words); pedal: start×2 change×4 stop×2; slurs: 7; fermatas: 2; articulations: accent×2; ornaments: ; graces: 0',
+  'satie-gymnopedie-1':
+    'dynamics: pp f pp p; hairpins: <×6 >×6; pedal: ; slurs: 6; fermatas: 0; articulations: ; ornaments: ; graces: 0',
+};
+
 describe('built-in pieces', () => {
+  it.each(Object.keys(FILES))('%s: the markings are locked too', (id) => {
+    expect(markings(parse(id))).toBe(MARKINGS[id]);
+  });
+
   it.each(Object.keys(FILES))('%s: notes are locked by checksum', (id) => {
     const score = parse(id);
     expect({ notes: score.notes.length, checksum: pieceChecksum(score) }).toEqual(LOCKED[id]);

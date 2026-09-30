@@ -1,12 +1,42 @@
 """Builds MusicXML 4.0 (one piano part, two staves) from compact per-measure token lists. Used
 for the built-in pieces the dacapo project encodes itself; see README.md.
 
-Token: PITCH/DUR[flags]  PITCH = c4, fs5, bf3, r (rest), s (invisible spacer), [b3,d4] (chord).
-DUR in sixteenths. Prefix g: = grace (eighth, slashed). Flags: !m mordent, !p inverted mordent,
-~ tie start. clef:G / clef:F changes the clef of the voice's staff before the next note.
-Piece-level 'clefs', e.g. {1: 'F'}, sets a staff's first clef (default: G on staff 1, F on 2).
+Note token: [GRACE]PITCH/DUR[SUFFIXES]. PITCH = c4, fs5, bf3, r (rest), s (invisible spacer),
+[b3,d4] (chord). DUR in sixteenths. GRACE: g: = grace note (eighth, slashed: an acciaccatura),
+a: = grace note without a slash (an appoggiatura, drawn with DUR's note value).
+SUFFIXES, in any order:
+  ~        tie start
+  ( )      slur start / stop; (N )N with an explicit number (default: the voice's slur number,
+           1 for voice 1, 2 for voice 2, 3 for voice 5, 4 for voice 6)
+  !m !p    mordent, inverted mordent        !tr !t !it  trill (no wavy line), turn, inverted turn
+  !trw !w  trill with a wavy line starting, the wavy line's end
+  !^s !^n !^f !_s !_n !_f  accidental mark above / below an ornament (sharp, natural, flat)
+  !st !sts !te !ac !ma     staccato, staccatissimo, tenuto, accent, strong accent
+  !fe      fermata                          !c   cautionary accidental (printed even if in force)
+Marks go on the first note of a chord.
+
+Direction token: @MARK[^][+N], at the voice's position (+N: N sixteenths later, may be x.5 when
+the piece has 'divisions': 8), on the voice's staff, below it (^: above it). MARK:
+  p pp ppp mp mf f ff fff sf sfz fz fp rf rfz sfp   dynamics
+  < > !    crescendo / diminuendo hairpin start, hairpin end
+  w:TEXT   words, `_` for a space (cresc., dim., dolce, riten.)
+  dashes[ dashes]                                   dashes after words (a cresc. line), their end
+  Ped Ped* Ped*Ped                                  sustain pedal down, up, changed: Ped. and *
+                                                    signs, or with the piece's 'pedal_lines' a
+                                                    bracket line, a change being its end and a new
+                                                    start at one place (Verovio 6.3 draws a line's
+                                                    'change' from MusicXML wrongly)
+clef:G / clef:F changes the clef of the voice's staff before the next note.
+Piece-level 'clefs', e.g. {1: 'F'}, sets a staff's first clef (default: G on staff 1, F on 2);
+'divisions' (default 4) the MusicXML divisions per quarter.
+
+A hairpin end (@! or @!^) written before the first note of a bar is emitted at the end of the same
+voice in the bar before (the same moment), unless a barline with repeats or endings is between:
+the hairpin then ends at the barline, as an engraver ends one on a downbeat, and Verovio draws no
+stray piece of it at the start of a new system.
 """
 
+import re
 from xml.sax.saxutils import escape
 
 DIV = 4  # divisions per quarter: one sixteenth = 1
@@ -25,20 +55,38 @@ def parse_pitch(p):
     return step, alter, int(rest)
 
 
+SUFFIX = re.compile(r'~|\(\d?|\)\d?|![a-z]+|![\^_][snf]')
+DYNAMICS = ('p', 'pp', 'ppp', 'mp', 'mf', 'f', 'ff', 'fff', 'sf', 'sfz', 'fz', 'fp', 'rf', 'rfz',
+            'sfp')
+NOTE_FLAGS = ('!m', '!p', '!tr', '!trw', '!w', '!t', '!it', '!st', '!sts', '!te', '!ac', '!ma',
+              '!fe', '!c', '!^s', '!^n', '!^f', '!_s', '!_n', '!_f')
+DIRECTION = re.compile(r'@(?P<mark>w:[^+^]+|dashes[\[\]]|Ped\*Ped|[A-Za-z]+\*?|[<>!])'
+                       r'(?P<above>\^)?(?:\+(?P<offset>\d+(?:\.5)?))?$')
+
+
 def parse_token(tok):
-    grace = tok.startswith('g:')
-    if grace:
-        tok = tok[2:]
+    grace = None
+    if tok.startswith('g:'):
+        grace, tok = 'slash', tok[2:]
+    elif tok.startswith('a:'):
+        grace, tok = 'plain', tok[2:]
+    pitch, rest = tok.split('/')
+    digits = re.match(r'\d+', rest).group(0)
+    dur = int(digits)
+    suffix = rest[len(digits):]
     flags = []
-    while tok[-2:] in ('!m', '!p') or tok.endswith('~'):
-        if tok.endswith('~'):
+    slurs = []
+    for part in SUFFIX.findall(suffix):
+        if part == '~':
             flags.append('tie')
-            tok = tok[:-1]
+        elif part[0] in '()':
+            slurs.append(('start' if part[0] == '(' else 'stop', int(part[1:]) if part[1:] else None))
+        elif part in NOTE_FLAGS:
+            flags.append(part)
         else:
-            flags.append(tok[-2:])
-            tok = tok[:-2]
-    pitch, dur = tok.split('/')
-    dur = int(dur)
+            raise SystemExit(f'unknown flag {part} in {tok}')
+    if ''.join(SUFFIX.findall(suffix)) != suffix:
+        raise SystemExit(f'cannot read {tok}')
     if pitch == 's':
         return {'grace': False, 'pitches': None, 'dur': dur, 'flags': [], 'spacer': True}
     if pitch == 'r':
@@ -47,7 +95,21 @@ def parse_token(tok):
         pitches = [parse_pitch(x) for x in pitch[1:-1].split(',')]
     else:
         pitches = [parse_pitch(pitch)]
-    return {'grace': grace, 'pitches': pitches, 'dur': dur, 'flags': flags}
+    return {'grace': grace, 'pitches': pitches, 'dur': dur, 'flags': flags, 'slurs': slurs}
+
+
+def parse_direction(tok):
+    m = DIRECTION.match(tok)
+    if not m:
+        raise SystemExit(f'cannot read direction {tok}')
+    mark = m.group('mark')
+    if not (mark.startswith('w:') or mark in DYNAMICS or mark in ('<', '>', '!', 'Ped', 'Ped*',
+                                                                   'Ped*Ped', 'dashes[',
+                                                                   'dashes]')):
+        raise SystemExit(f'unknown direction {tok}')
+    return {'direction': mark, 'above': bool(m.group('above')),
+            'offset': float(m.group('offset') or 0), 'grace': False, 'pitches': None, 'dur': 0,
+            'flags': []}
 
 
 def beam_groups(events, group_len):
@@ -57,7 +119,7 @@ def beam_groups(events, group_len):
     runs = []
     cur = []
     for i, e in enumerate(events):
-        if e.get('clef') or e['grace']:
+        if e.get('clef') or e.get('direction') or e['grace']:
             continue
         start_group = pos // group_len
         beamable = e['pitches'] is not None and e['dur'] < 4 and e['dur'] in (1, 2, 3)
@@ -108,22 +170,37 @@ class Accidentals:
     def reset(self):
         self.state = {}
 
-    def need(self, staff, step, alter, octave):
+    def need(self, staff, step, alter, octave, force=False):
         current = self.state.get((staff, step, octave), self.key[step])
         self.state[(staff, step, octave)] = alter
-        if current == alter:
+        if current == alter and not force:
             return None
         return {2: 'double-sharp', 1: 'sharp', 0: 'natural', -1: 'flat', -2: 'flat-flat'}[alter]
 
 
-def note_xml(e, staff, voice, beams, acc, stem):
+ORNAMENTS = [('!tr', '<trill-mark/>'), ('!trw', '<trill-mark/><wavy-line type="start"/>'),
+             ('!t', '<turn/>'), ('!it', '<inverted-turn/>'), ('!m', '<mordent/>'),
+             ('!p', '<inverted-mordent/>'), ('!w', '<wavy-line type="stop"/>')]
+ACCIDENTAL_MARKS = {'s': 'sharp', 'n': 'natural', 'f': 'flat'}
+ARTICULATIONS = [('!ac', '<accent/>'), ('!ma', '<strong-accent/>'), ('!st', '<staccato/>'),
+                 ('!sts', '<staccatissimo/>'), ('!te', '<tenuto/>')]
+SLUR_NUMBERS = {1: 1, 2: 2, 5: 3, 6: 4}
+
+
+def note_xml(e, staff, voice, beams, acc, stem, scale=1):
     out = []
     pitches = e['pitches'] or [None]
-    t, dots = TYPES[2] if e['grace'] else TYPES[e['dur']]
+    if e['grace'] == 'plain':
+        t, dots = TYPES[e['dur']]
+    else:
+        t, dots = TYPES[2] if e['grace'] else TYPES[e['dur']]
+    flags = e['flags']
     for n, p in enumerate(pitches):
         x = ['<note>']
-        if e['grace']:
+        if e['grace'] == 'slash':
             x.append('<grace slash="yes"/>')
+        elif e['grace']:
+            x.append('<grace/>')
         if n > 0:
             x.append('<chord/>')
         if p is None:
@@ -133,17 +210,17 @@ def note_xml(e, staff, voice, beams, acc, stem):
             x.append(f'<pitch><step>{step}</step>' + (f'<alter>{alter}</alter>' if alter else '') +
                      f'<octave>{octave}</octave></pitch>')
         if not e['grace']:
-            x.append(f'<duration>{e["dur"]}</duration>')
+            x.append(f'<duration>{e["dur"] * scale}</duration>')
         if p in e.get('tie_stops', ()):
             x.append('<tie type="stop"/>')
-        if 'tie' in e['flags']:
+        if 'tie' in flags:
             x.append('<tie type="start"/>')
         x.append(f'<voice>{voice}</voice>')
         if not e.get('whole_rest'):
             x.append(f'<type>{t}</type>')
             x += ['<dot/>'] * dots
         if p is not None:
-            a = acc.need(staff, *p)
+            a = acc.need(staff, *p, force='!c' in flags)
             if a:
                 x.append(f'<accidental>{a}</accidental>')
             if stem:
@@ -155,16 +232,88 @@ def note_xml(e, staff, voice, beams, acc, stem):
         notations = []
         if p in e.get('tie_stops', ()):
             notations.append('<tied type="stop"/>')
-        if 'tie' in e['flags']:
+        if 'tie' in flags:
             notations.append('<tied type="start"/>')
-        if n == 0 and '!m' in e['flags']:
-            notations.append('<ornaments><mordent/></ornaments>')
-        if n == 0 and '!p' in e['flags']:
-            notations.append('<ornaments><inverted-mordent/></ornaments>')
+        if n == 0:
+            # Stops before starts, so one slur can end and the next begin on the same note.
+            for kind in ('stop', 'start'):
+                for k, number in e.get('slurs', []):
+                    if k == kind:
+                        number = number or SLUR_NUMBERS[voice]
+                        notations.append(f'<slur type="{kind}" number="{number}"/>')
+            ornaments = [xml for flag, xml in ORNAMENTS if flag in flags]
+            for flag in flags:
+                if flag[:2] in ('!^', '!_'):
+                    place = 'above' if flag[1] == '^' else 'below'
+                    ornaments.append(f'<accidental-mark placement="{place}">'
+                                     f'{ACCIDENTAL_MARKS[flag[2]]}</accidental-mark>')
+            if ornaments:
+                notations.append('<ornaments>' + ''.join(ornaments) + '</ornaments>')
+            articulations = [xml for flag, xml in ARTICULATIONS if flag in flags]
+            if articulations:
+                notations.append('<articulations>' + ''.join(articulations) + '</articulations>')
+            if '!fe' in flags:
+                notations.append('<fermata type="upright"/>')
         if notations:
             x.append('<notations>' + ''.join(notations) + '</notations>')
         x.append('</note>')
         out.append(''.join(x))
+    return out
+
+
+def direction_xml(e, staff, voice, scale, pedal_lines=False):
+    mark = e['direction']
+    placement = 'above' if e['above'] else 'below'
+    number = 1 if staff == 1 else 2
+    if mark in DYNAMICS:
+        kind = f'<dynamics><{mark}/></dynamics>'
+    elif mark in ('<', '>', '!'):
+        wedge = {'<': 'crescendo', '>': 'diminuendo', '!': 'stop'}[mark]
+        kind = f'<wedge type="{wedge}" number="{number}"/>'
+    elif mark.startswith('w:'):
+        kind = f'<words font-style="italic">{escape(mark[2:].replace("_", " "))}</words>'
+    elif mark.startswith('dashes'):
+        kind = f'<dashes type="{"start" if mark[-1] == "[" else "stop"}" number="{number}"/>'
+    else:
+        if pedal_lines and mark == 'Ped*Ped':
+            # A bracket's change: its end and a new start at one place (the parser reads the
+            # pair as the change it is).
+            return ''.join(direction_xml({**e, 'direction': m}, staff, voice, scale, True)
+                           for m in ('Ped*', 'Ped'))
+        pedal = {'Ped': 'start', 'Ped*': 'stop', 'Ped*Ped': 'change'}[mark]
+        style = 'line="yes" sign="no"' if pedal_lines else 'line="no" sign="yes"'
+        kind = f'<pedal type="{pedal}" {style}/>'
+    offset = e['offset'] * scale
+    if offset != int(offset):
+        raise SystemExit(f'offset {e["offset"]} needs more divisions')
+    x = [f'<direction placement="{placement}"><direction-type>{kind}</direction-type>']
+    if offset:
+        x.append(f'<offset>{int(offset)}</offset>')
+    x.append(f'<voice>{voice}</voice><staff>{staff}</staff></direction>')
+    return ''.join(x)
+
+
+HAIRPIN_END = re.compile(r'@!\^?$')
+
+
+def end_hairpins_at_barlines(measures):
+    """Moves a hairpin end that opens a bar's voice to the end of that voice in the bar before."""
+    out = [dict(m, voices=list(m['voices'])) for m in measures]
+    for mi in range(1, len(out)):
+        prev, cur = out[mi - 1], out[mi]
+        if prev.get('right') or cur.get('left'):
+            continue
+        for vi, (staff, voice, tokens) in enumerate(cur['voices']):
+            first, _, rest = tokens.strip().partition(' ')
+            if not HAIRPIN_END.match(first):
+                continue
+            before = [k for k, (st, vo, _) in enumerate(prev['voices']) if (st, vo) == (staff, voice)]
+            if not before:
+                continue
+            k = before[0]
+            st, vo, prev_tokens = prev['voices'][k]
+            prev['voices'][k] = (st, vo, f'{prev_tokens} {first}')
+            cur['voices'][vi] = (staff, voice, rest)
     return out
 
 
@@ -173,6 +322,8 @@ def voice_events(tokens):
     for tok in tokens.split():
         if tok.startswith('clef:'):
             events.append({'clef': tok[5:], 'grace': False, 'pitches': None, 'dur': 0, 'flags': []})
+        elif tok.startswith('@'):
+            events.append(parse_direction(tok))
         else:
             events.append(parse_token(tok))
     return events
@@ -183,14 +334,17 @@ def build(piece):
     acc = Accidentals(piece['fifths'])
     clefs = {1: 'G', 2: 'F', **piece.get('clefs', {})}
     ties_open = set()
-    for mi, m in enumerate(piece['measures']):
+    divisions = piece.get('divisions', DIV)
+    scale = divisions // DIV
+    pedal_lines = piece.get('pedal_lines', False)
+    for mi, m in enumerate(end_hairpins_at_barlines(piece['measures'])):
         acc.reset()
         x = [f'<measure number="{m.get("number", mi + (0 if piece.get("pickup") else 1))}"' +
              (' implicit="yes"' if m.get('implicit') else '') + '>']
         for bar in m.get('left', []):
             x.append(bar)
         if mi == 0:
-            x.append(f'<attributes><divisions>{DIV}</divisions><key><fifths>{piece["fifths"]}</fifths>'
+            x.append(f'<attributes><divisions>{divisions}</divisions><key><fifths>{piece["fifths"]}</fifths>'
                      f'</key><time><beats>{piece["beats"]}</beats><beat-type>{piece["beat_type"]}'
                      f'</beat-type></time><staves>2</staves>' + ''.join(
                          f'<clef number="{n}"><sign>{sign}</sign><line>{2 if sign == "G" else 4}'
@@ -208,7 +362,7 @@ def build(piece):
             if total is None:
                 total = length
             elif vi > 0:
-                x.append(f'<backup><duration>{total}</duration></backup>')
+                x.append(f'<backup><duration>{total * scale}</duration></backup>')
             if length != total:
                 raise SystemExit(f'measure {mi}: voice {voice} has {length}, expected {total}')
             multi = sum(1 for s, _, _ in voices if s == staff) > 1
@@ -231,13 +385,17 @@ def build(piece):
                             ties_open.discard(key)
                         if 'tie' in e['flags']:
                             ties_open.add(key)
+                if e.get('direction'):
+                    x.append(direction_xml(e, staff, voice, scale, pedal_lines))
+                    continue
                 if e.get('spacer'):
-                    x.append(f'<forward><duration>{e["dur"]}</duration><voice>{voice}</voice>'
+                    x.append(f'<forward><duration>{e["dur"] * scale}</duration><voice>{voice}</voice>'
                              f'<staff>{staff}</staff></forward>')
                     continue
-                if e['pitches'] is None and e['dur'] == total and len(events) == 1 and not m.get('implicit'):
+                notes = [e for e in events if not e.get('direction')]
+                if e['pitches'] is None and e['dur'] == total and len(notes) == 1 and not m.get('implicit'):
                     e['whole_rest'] = True
-                x += note_xml(e, staff, voice, beams[i], acc, stem)
+                x += note_xml(e, staff, voice, beams[i], acc, stem, scale)
         for bar in m.get('right', []):
             x.append(bar)
         x.append('</measure>')

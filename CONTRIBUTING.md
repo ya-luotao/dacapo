@@ -92,7 +92,9 @@ encoding under CC BY-SA or a non-commercial licence. The tools are in `scripts/p
    Add the oracle to `scripts/pieces/verify-library.sh`, and a line to
    [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) if the encoding is not ours.
 
-Fingering stays out unless it has been checked against a public-domain edition.
+Markings (dynamics, hairpins, slurs, articulations, pedal marks, ornaments) come from the same
+edition as the notes, and only those it prints. Fingering stays out unless it has been checked
+against a public-domain edition.
 
 ## The Apple apps
 

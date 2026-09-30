@@ -25,6 +25,11 @@ version 7), and the takes of piece runs (from version 8). Version 1 to 7 files s
   note of the other hand sounds once you complete the step. Grace notes are still no step to play:
   accepting ornaments when you play them comes later (X4).
 - The import report no longer says that grace notes and ornaments are left out.
+- **The library's markings**: the Musette, Für Elise, La Candeur, Old French Song, Morning Prayer,
+  Chopin's Prelude in C minor and the Gymnopédie No. 1 now show the dynamics, hairpins, slurs,
+  staccatos and accents, fermatas and pedal marks of the editions their notes come from, read
+  from the same Mutopia files and checked against them; nothing the editions do not print. The
+  notes are unchanged, so your records of them stay valid.
 - **Takes**: every run of a piece, in wait and rhythm mode, now keeps what you played as you
   played it: each key with how hard it was struck and when it was let go, and the pedals as the
   keyboard reports them (sustain, sostenuto and una corda, half-pedalling included), each key

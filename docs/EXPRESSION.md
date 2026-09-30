@@ -1,6 +1,7 @@
 # dacapo — Expression specification
 
-Status: planned (after [READING.md](READING.md)). This extends [MVP.md](MVP.md) and
+Status: X0 is built (the markings, their sound in playback, takes, the library's markings); X1–X4
+are planned. This extends [MVP.md](MVP.md) and
 [PIECES.md](PIECES.md); their principles and fixed decisions still apply (staff first, measure don't
 guess, local data, English of record, every UI language, 3-day dependency cooldown, no backend).
 
@@ -156,7 +157,9 @@ page has the development-only "Save this run" button that Scales has.
   left pedal's start and stop.
 - **Pedal.** `start` and `resume` put the sustain pedal down, `sostenuto` the middle one; `stop` and
   `discontinue` lift the sostenuto only when it is down under that `number` and the sustain is not,
-  otherwise the sustain. `change` and `continue` are kept as marked.
+  otherwise the sustain. `change` and `continue` are kept as marked, and a `stop` followed by a
+  `start` of the same pedal at one place is a `change` too (a bracket line with a notch is often
+  written so).
 - **Realising them.** Timed on the tempo there (a thirty-second is an eighth of a quarter at that
   point of the timeline, at the demo's tempo), as "Ornaments and grace notes" says. Decided too: a
   group of two or more grace notes is played before the beat like acciaccaturas, a thirty-second
@@ -193,12 +196,31 @@ page has the development-only "Save this run" button that Scales has.
   does a pulled deletion `withSteps`. IndexedDB version 7 adds the `takes` store (by piece, by
   session), never read at startup; `SYNC_SCHEMA` 5 makes a build that learns them pull everything
   again once.
+- **The library's markings** are read from the same Mutopia LilyPond file as the notes (named in
+  each source's comment), and checked against its PDF: the Musette, Für Elise, La Candeur, Old
+  French Song, Morning Prayer, the Prelude in C minor and the Gymnopédie gained what their editions
+  print. The Minuets in G and G minor print only the ornaments and the grace note they had; the
+  Ode to Joy is our own arrangement; the three PDMX files keep what they had (the Arabesque's
+  dynamics, hairpins, slurs and staccatos, the Soldiers' March's dynamics; the Prelude in C has
+  none). **Chopin's pedal** is a bracket line, as the edition draws it, each change written as
+  the line's end and a new start on the beat (the generator's `pedal_lines`). Verovio 6.3 draws a
+  line's MusicXML `change` wrongly (it drops the spans after the first); with Ped. and ✱ signs the
+  five signs of bars 1–2 ran into one another at every size, and `pedalStyle: altpedstar` spaced
+  them only a little while turning every imported piece's bracket lines into signs, so no Verovio
+  option is set: the brackets read cleanly from 375 px to focus mode's largest staff and nothing
+  else changes. Other drawings differ from the page and mean the same: phrasing slurs are slurs; a slur the LilyPond file ends on a rest (Morning Prayer, bar 22) ends
+  on the note before it, where the printed one ends; a slur printed twice on a chord (above and
+  below) is one. What a LilyPond file hides or does not print (an mp in Morning Prayer, a
+  crescendo on an inner chord note in La Candeur) is left out. A hairpin that ends on a downbeat
+  is written to end at the barline before it (the same moment), as an engraver ends it: otherwise
+  Verovio draws a stray piece of it at the start of the next system when a line breaks there.
+  `library.test.ts` locks every piece's markings, counted, beside its notes.
 - **Import report.** `grace-notes` and `ornaments` are no longer reported. Pieces imported before
   keep them in their stored warnings (so their synced copies stay the same) and they are not shown.
 
 ## Milestones
 
-1. **X0 Markings and takes** — markings in the parser and score, grace notes and ornaments
+1. ✓ **X0 Markings and takes** — markings in the parser and score, grace notes and ornaments
    realised in playback, the `takes` store (synced, exported), the library's markings.
 2. **X1 Dynamics and balance** — curve, markings, balance, the Expression panel.
 3. **X2 Articulation** — held lengths, slurs, staccato, tenuto.

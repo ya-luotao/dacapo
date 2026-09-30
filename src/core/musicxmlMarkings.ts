@@ -254,7 +254,7 @@ export function createMarkingReader(): MarkingReader {
       });
       const markings = emptyMarkings();
       markings.dynamics = dynamics.map(anchor).sort(byPlace);
-      markings.pedals = pedals.map(anchor).sort(byPlace);
+      markings.pedals = asChanges(pedals.map(anchor).sort(byPlace));
       const seen = new Set<string>();
       markings.fermatas = fermatas
         .map(anchor)
@@ -294,6 +294,24 @@ export function createMarkingReader(): MarkingReader {
       return markings;
     },
   };
+}
+
+/**
+ * A pedal's stop and a new start of it at one place is a change: a bracket line drawn with a notch
+ * is often written that way (and is the way Verovio draws one).
+ */
+function asChanges(pedals: PedalMark[]): PedalMark[] {
+  const out: PedalMark[] = [];
+  for (const mark of pedals) {
+    const i = out.findLastIndex((m) => m.part === mark.part && m.pedal === mark.pedal);
+    const before = out[i];
+    if (mark.type === 'start' && before?.type === 'stop' && before.tick === mark.tick) {
+      out[i] = { ...before, type: 'change' };
+      continue;
+    }
+    out.push(mark);
+  }
+  return out;
 }
 
 function byPlace(a: MarkPlace, b: MarkPlace): number {

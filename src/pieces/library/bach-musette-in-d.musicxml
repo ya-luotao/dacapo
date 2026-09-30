@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 4.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">
-<!-- Transcribed from the public-domain Mutopia edition (after the Bach-Gesellschaft) and checked note for note against its MIDI file. No fingering. Anonymous; the edition credits J. S. Bach. Left out, having no token: the fermata in bar 8 and the cautionary natural on D5 in bar 18. No tempo marking in the source (its 4 = 120 is a MIDI setting only). -->
+<!-- Transcribed from the public-domain Mutopia edition (after the Bach-Gesellschaft) and checked note for note against its MIDI file. No fingering. Anonymous; the edition credits J. S. Bach. Markings as printed in the Mutopia LilyPond file (anna-magdalena-22.ly, piece 79), its only ones: the fermata on the last note of bar 8 (both hands) and the cautionary natural on D5 in bar 18. No tempo marking in the source (its 4 = 120 is a MIDI setting only). -->
 <score-partwise version="4.0">
 <work><work-number>BWV Anh. 126</work-number><work-title>Musette in D major</work-title></work>
 <identification>
@@ -100,11 +100,11 @@
 <measure number="8">
 <note><pitch><step>E</step><octave>4</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">begin</beam></note>
 <note><pitch><step>A</step><octave>4</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">end</beam></note>
-<note><pitch><step>D</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<note><pitch><step>D</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff><notations><fermata type="upright"/></notations></note>
 <backup><duration>8</duration></backup>
 <note><pitch><step>E</step><octave>3</octave></pitch><duration>2</duration><voice>5</voice><type>eighth</type><staff>2</staff><beam number="1">begin</beam></note>
 <note><pitch><step>A</step><octave>3</octave></pitch><duration>2</duration><voice>5</voice><type>eighth</type><staff>2</staff><beam number="1">end</beam></note>
-<note><pitch><step>D</step><octave>3</octave></pitch><duration>4</duration><voice>5</voice><type>quarter</type><staff>2</staff></note>
+<note><pitch><step>D</step><octave>3</octave></pitch><duration>4</duration><voice>5</voice><type>quarter</type><staff>2</staff><notations><fermata type="upright"/></notations></note>
 <barline location="right"><bar-style>light-heavy</bar-style><repeat direction="backward"/></barline>
 </measure>
 <measure number="9">
@@ -218,7 +218,7 @@
 <note><pitch><step>E</step><octave>5</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">begin</beam></note>
 <note><pitch><step>G</step><alter>1</alter><octave>4</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><accidental>sharp</accidental><staff>1</staff><beam number="1">end</beam></note>
 <note><pitch><step>A</step><octave>4</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">begin</beam></note>
-<note><pitch><step>D</step><octave>5</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">end</beam></note>
+<note><pitch><step>D</step><octave>5</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><accidental>natural</accidental><staff>1</staff><beam number="1">end</beam></note>
 <backup><duration>8</duration></backup>
 <note><pitch><step>E</step><octave>2</octave></pitch><duration>2</duration><voice>5</voice><type>eighth</type><staff>2</staff><beam number="1">begin</beam></note>
 <note><pitch><step>D</step><octave>3</octave></pitch><duration>2</duration><voice>5</voice><type>eighth</type><staff>2</staff><beam number="1">end</beam></note>

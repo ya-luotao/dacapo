@@ -7,43 +7,63 @@ clef and changes clef where the source does (bars 4, 8, 9, 12 and 13). On beat 3
 writes a separate top voice (dotted eighth and sixteenth over a quarter-note chord) in bars 1-5,
 7-9, 11 and 12; only there does the right hand have two voices. In bars 7 and 11 the source
 enters the quarter-note chord first with \\stemDown and the moving voice second with \\stemUp;
-here the moving voice is voice 1 (stems up), which is how the source prints it. The closing
-fermata is not encoded.
+here the moving voice is voice 1 (stems up), which is how the source prints it.
+
+Markings (added in X0 from the Mutopia LilyPond file Chop-28-20.ly, piece 472, and checked
+against its PDF): ff, p, pp, the crescendo hairpin of bars 3-4 and "cresc." with its dashed line
+in bars 11-12; the phrasing slurs of both hands (as slurs); "riten.", "a tempo" and "simile"; the
+pedal (changed on every beat of bar 1, released on beat 2 of bar 2, "simile"; down again on the
+last beat of bar 12 until the last chord), drawn as the edition draws it, a bracket line, each
+change written as the line's end and a new start on the same beat (Verovio 6.3 draws a line's
+MusicXML "change" wrongly; the parser reads the pair as a change); the accents and fermatas on
+the last chord in both hands.
 """
 
-# Right hand, one row per bar: (voice 1, voice 2 or None).
+# Right hand, one row per bar: (voice 1, voice 2 or None). The edition's phrasing slurs are
+# slurs on voice 1.
 RH = [
-    ('[g3,c4,ef4,g4]/4 [af3,c4,ef4,af4]/4 [ef4,g4]/3 [d4,f4]/1 [ef3,g3,c4,ef4]/4',
+    ('@ff [g3,c4,ef4,g4]/4( [af3,c4,ef4,af4]/4 [ef4,g4]/3 [d4,f4]/1 [ef3,g3,c4,ef4]/4)',
      's/8 [g3,b3]/4 s/4'),
-    ('[ef3,af3,c4,ef4]/4 [f3,af3,df4,f4]/4 [c4,ef4]/3 [bf3,df4]/1 [c3,ef3,af3,c4]/4',
+    ('[ef3,af3,c4,ef4]/4( [f3,af3,df4,f4]/4 [c4,ef4]/3 [bf3,df4]/1 [c3,ef3,af3,c4]/4)',
      's/8 [df3,ef3,g3]/4 s/4'),
-    ('[d3,f3,b3,d4]/4 [e3,g3,bf3,c4,e4]/4 g4/3 f4/1 [g3,c4,ef4]/4',
+    ('@< [d3,f3,b3,d4]/4( [e3,g3,bf3,c4,e4]/4 g4/3 f4/1 [g3,c4,ef4]/4',
      's/8 [af3,c4]/4 s/4'),
-    ('[fs3,c4,d4]/4 [g3,b3,d4,g4]/4 clef:G b4/3 a4/1 [b3,d4,g4]/4',
+    ('[fs3,c4,d4]/4 [g3,b3,d4,g4]/4 clef:G @! b4/3 a4/1 [b3,d4,g4]/4)',
      's/8 [c4,d4,fs4]/4 s/4'),
-    ('[ef4,g4,ef5]/4 [ef4,af4,ef5]/4 [d4,d5]/4 [d4,g4,d5]/4',
+    ('@p [ef4,g4,ef5]/4( [ef4,af4,ef5]/4 [d4,d5]/4 [d4,g4,d5]/4',
      's/8 af4/3 fs4/1 s/4'),
     ('[c4,g4,c5]/4 [c4,d4,fs4,d5]/4 [d4,g4,b4]/3 [c4,a4]/1 [b3,d4,g4]/4', None),
-    ('[c4,g4,c5]/4 [af3,c4,af4]/4 g4/3 f4/1 [g3,c4,ef4]/4',
+    ('[c4,g4,c5]/4 [af3,c4,af4]/4 g4/3 f4/1 @w:riten.^ [g3,c4,ef4]/4',
      's/8 [g3,d4]/4 s/4'),
-    ('clef:F [ef3,af3,c4,ef4]/4 [f3,af3,df4,f4]/4 ef4/3 d4/1 [ef3,g3,c4]/4',
+    ('clef:F [ef3,af3,c4,ef4]/4 [f3,af3,df4,f4]/4 ef4/3 d4/1 [ef3,g3,c4]/4)',
      's/8 [f3,g3,b3]/4 s/4'),
 ]
-# Bars 9-12 repeat bars 5-8 note for note; bar 9 returns to the treble clef.
-RH += [('clef:G ' + RH[4][0], RH[4][1])] + RH[5:8]
-RH += [('clef:G [c4,ef4,g4,c5]/16', None)]
+# Bars 9-12 repeat bars 5-8 note for note, pianissimo and a tempo, with the ritenuto a beat
+# earlier and a crescendo; bar 9 returns to the treble clef.
+RH += [
+    ('clef:G @pp @w:a_tempo^ [ef4,g4,ef5]/4( [ef4,af4,ef5]/4 [d4,d5]/4 [d4,g4,d5]/4', RH[4][1]),
+    RH[5],
+    ('[c4,g4,c5]/4 [af3,c4,af4]/4 @w:riten.^ @w:cresc. @dashes[ g4/3 f4/1 [g3,c4,ef4]/4',
+     RH[6][1]),
+    ('clef:F [ef3,af3,c4,ef4]/4 [f3,af3,df4,f4]/4 ef4/3 d4/1 @dashes] [ef3,g3,c4]/4)', RH[7][1]),
+]
+RH += [('clef:G [c4,ef4,g4,c5]/16!ac!fe', None)]
 
+# The pedal: down, changed on every beat of bar 1 and the first of bar 2, up on beat 2 of bar 2
+# ("simile"); again down on the last beat of bar 12. A bracket line, as in the edition
+# ('pedal_lines'): each change ends the line and starts it again on the beat.
 LH = [
-    '[c2,c3]/4 [f1,f2]/4 [g1,g2]/4 [c2,g2,c3]/4',
-    '[af1,af2]/4 [df1,df2]/4 [ef1,ef2]/4 [af1,af2]/4',
+    '@Ped [c2,c3]/4 @Ped*Ped [f1,f2]/4 @Ped*Ped [g1,g2]/4 @Ped*Ped [c2,g2,c3]/4',
+    '@Ped*Ped [af1,af2]/4 @Ped* @w:simile [df1,df2]/4 [ef1,ef2]/4 [af1,af2]/4',
     '[g1,g2]/4 [c1,c2]/4 [f1,f2]/4 [c2,c3]/4',
     '[d2,a2,d3]/4 [g1,g2]/4 [d1,d2]/4 [g1,g2]/4',
-    '[c2,c3]/4 [c3,c4]/4 [b2,b3]/4 [bf2,bf3]/4',
+    '[c2,c3]/4( [c3,c4]/4 [b2,b3]/4 [bf2,bf3]/4',
     '[a2,a3]/4 [af2,af3]/4 [g2,g3]/4 [f2,f3]/4',
     '[ef2,ef3]/4 [f2,f3]/4 [b1,b2]/4 [c2,c3]/4',
-    '[af1,af2]/4 [df1,df2]/4 [g1,g2]/4 [c1,c2]/4',
+    '[af1,af2]/4 [df1,df2]/4 [g1,g2]/4 [c1,c2]/4)',
 ]
-LH += LH[4:8] + ['[c3,g3]/16']
+LH += LH[4:7] + ['[af1,af2]/4 [df1,df2]/4 [g1,g2]/4 @Ped [c1,c2]/4)']
+LH += ['@Ped* [c3,g3]/16!ac!fe']
 
 measures = []
 for (v1, v2), lh in zip(RH, LH):
@@ -55,7 +75,7 @@ PIECE = {
     'title': 'Prelude in C minor',
     'work_number': 'Op. 28, No. 20',
     'composer': 'Frédéric Chopin',
-    'fifths': -3, 'clefs': {1: 'F'}, 'beats': 4, 'beat_type': 4, 'beam_group': 4, 'bpm': 42,
+    'fifths': -3, 'clefs': {1: 'F'}, 'pedal_lines': True, 'beats': 4, 'beat_type': 4, 'beam_group': 4, 'bpm': 42,
     'tempo_text': 'Largo', 'measures': measures,
     'source': 'Edition Peters, as typeset by Magnus Lewis-Smith for the Mutopia Project '
               '(piece 472, public domain): '
@@ -68,6 +88,8 @@ PIECE = {
         'note for note against its MIDI file. No fingering. Bars 9-12 are written out as in the '
         'source. The tempo, quarter = 42, is the one the source gives its MIDI rendering. The '
         'right hand has two voices only on beat 3 where the source writes a separate top voice; '
-        'the closing fermata is not encoded.',
+        'markings (dynamics, hairpin, cresc., phrasing slurs as slurs, riten., a tempo, simile, the '
+        'pedal, the last chord\'s accents and fermatas) as printed in the Mutopia LilyPond file '
+        '(Chop-28-20.ly, piece 472).',
     ],
 }

@@ -14,42 +14,55 @@ The right hand is in the bass clef from the third beat of bar 19 to the end of b
 edition. In bar 23 the right hand's lower voice stops after its half note (the edition has nothing
 there, not a rest). In bars 22 to 24 the left hand's repeated D3s and G2s are slurred in the
 edition, not tied, so each is played again.
+
+Markings (added in X0 from the Mutopia LilyPond file 01MorningPrayer.ly, piece 2032, and checked
+against its PDF): the dynamics (p, mf, f, pp), the hairpins (the one over the left hand in bar 17
+placed above it, as printed), "dim." with its dashed line from bar 20 to the pp, the slurs of
+both hands (the edition doubles the slurs on the chords of bar 3, above and below; here each is
+one slur; the left hand's slur from bar 20, which the LilyPond file ends on the rest at the
+start of bar 22, ends on the A before it, where the printed slur ends), the accents, the
+tenuto on the last chord, the pedal (Ped. in bar 22, released at bar 24), and the cautionary
+naturals the edition prints (bars 5, 6, 13 and 14). The mp the LilyPond file hides in bar 5 is not
+printed and is left out.
 """
 
 # (right hand voices, left hand voices) per bar; one string is a single voice.
 BARS = [
     # 1-4
-    ('[g4,b4]/4 [g4,b4]/6 [fs4,a4]/2', '[g3,d4]/4 [g3,d4]/6 [d3,d4]/2'),
+    ('@p [g4,b4]/4 [g4,b4]/6 [fs4,a4]/2', '[g3,d4]/4 [g3,d4]/6 [d3,d4]/2'),
     ('[g4,c5]/4 [g4,b4]/8', '[e3,c4]/4 [g3,d4]/8'),
-    ('[fs4,a4]/4 [e4,g4]/4 [e4,a4]/4', '[d3,d4]/4 [e3,b3]/4 [c3,e3]/4'),
-    ('[ds4,b4]/12', '[b2,fs3]/12'),
+    ('@< [fs4,a4]/4( [e4,g4]/4) [e4,a4]/4', '[d3,d4]/4( [e3,b3]/4) [c3,e3]/4'),
+    ('@! [ds4,b4]/12', '[b2,fs3]/12'),
     # 5-8
-    (('b4/4 e4/6 a4/2', 'd4/4 cs4/8'), ('e3/4 e3/8', 'gs2/4 a2/4 g2/4')),
-    (('a4/4 d4/6 fs4/2', 'c4/4 b3/4 c4/4'), ('d3/4 d3/8', 'fs2/4 g2/4 a2/4')),
-    (('g4/4 g4/4 e5/3 a4/1', 'd4/4 e4/4 g4/4'), '[b2,g3]/4 [c3,g3]/4 [cs3,a3]/4'),
-    (('a4/12', 'g4/4 fs4/2 e4/2 fs4/4'), ('a3/8 d4/4', 'd3/12')),
+    (('@> b4/4 e4/6( @! a4/2)', 'd4/4!c cs4/8'), ('e3/4 e3/8', 'gs2/4 a2/4( g2/4)')),
+    (('@< a4/4 d4/6( fs4/2', 'c4/4!c b3/4( c4/4)'), ('d3/4 d3/8', 'fs2/4 g2/4( a2/4)')),
+    (('g4/4) g4/4 e5/3!ac( @! a4/1)', 'd4/4 e4/4 g4/4'), '[b2,g3]/4 [c3,g3]/4 [cs3,a3]/4'),
+    (('@mf a4/12', 'g4/4( @> fs4/2 e4/2 @! fs4/4)'), ('a3/8( d4/4)', 'd3/12')),
     # 9-12
-    ('[g4,b4]/4 [g4,b4]/6 [fs4,a4]/2', '[g3,d4]/4 [g3,d4]/6 [d3,d4]/2'),
-    ('[g4,c5]/4 [g4,b4]/6 [g4,b4]/2', '[e3,c4]/4 [g3,d4]/4 f4/4'),
-    ('[g4,c5]/4 [g4,b4,d5]/4 [g4,c5,e5]/4', 'e4/4 d4/4 c4/2 b3/2'),
-    (('fs5/8 fs5/4', '[fs4,cs5]/12'), 'as3/12'),
+    ('@p [g4,b4]/4 [g4,b4]/6 [fs4,a4]/2', '[g3,d4]/4 [g3,d4]/6 [d3,d4]/2'),
+    ('@< [g4,c5]/4 [g4,b4]/6 [g4,b4]/2', '[e3,c4]/4 [g3,d4]/4 f4/4('),
+    ('[g4,c5]/4 [g4,b4,d5]/4 @! [g4,c5,e5]/4', 'e4/4 d4/4 c4/2 b3/2'),
+    (('@f fs5/8!ac( fs5/4', '[fs4,cs5]/12'), 'as3/12)'),
     # 13-16
-    (('ds5/4 e5/6 cs5/2', 'b4/4 b4/4 a4/4'), ('fs4/4 e4/8', 'a3/4 gs3/4 g3/4')),
-    (('d5/4 b4/4 c5/4', 'a4/4 g4/4 g4/4'), '[fs3,d4]/4 [g3,d4]/4 [e3,c4]/4'),
-    (('b4/3 a4/1 a4/4 fs4/4', 'e4/8 d4/2 c4/2'), ('g3/8 d3/4~', 'c3/8 d3/4')),
-    (('g4/4 r/4 g5/4', 'b3/4 s/4 b4/4'), ('d3/4 r/4 d3/4', 'g2/2 g2/2 g2/2 g2/2 g2/2 g2/2')),
+    (('ds5/4)( @> e5/6 cs5/2', 'b4/4 b4/4( a4/4)'), ('fs4/4 e4/8', 'a3/4!c( gs3/4 g3/4)')),
+    (('d5/4) b4/4 c5/4!c', 'a4/4 g4/4 g4/4'), '[fs3,d4]/4 [g3,d4]/4 [e3,c4]/4'),
+    (('b4/3!ac( a4/1) a4/4 fs4/4(', 'e4/8 d4/2( c4/2'), ('g3/8 d3/4~', 'c3/8 d3/4(')),
+    (('@! g4/4) r/4 g5/4(', 'b3/4) s/4 @f b4/4'),
+     ('d3/4 r/4 d3/4(', 'g2/2) g2/2 g2/2 g2/2 g2/2 g2/2')),
     # 17-20
-    (('fs5/3 c5/1 c5/4 b4/2 a4/2', 'c5/3 c5/1 c5/4 fs4/4'),
+    (('fs5/3!ac c5/1 c5/4 b4/2 a4/2', 'c5/3 c5/1 c5/4 fs4/4'),
+     ('@>^ ef3/12', 'g2/2 g2/2 g2/2 g2/2 g2/2 g2/2')),
+    (('b4/4) r/4 g4/4(', 'g4/4 r/4 @mf b3/4'),
+     ('@!^ d3/4) r/4 d3/4(', 'g2/2 g2/2 g2/2 g2/2 g2/2 g2/2')),
+    (('fs4/3!ac c4/1 c4/4 clef:F b3/2 a3/2)', 'c4/3 c4/1 c4/4 fs3/4'),
      ('ef3/12', 'g2/2 g2/2 g2/2 g2/2 g2/2 g2/2')),
-    (('b4/4 r/4 g4/4', 'g4/4 r/4 b3/4'), ('d3/4 r/4 d3/4', 'g2/2 g2/2 g2/2 g2/2 g2/2 g2/2')),
-    (('fs4/3 c4/1 c4/4 clef:F b3/2 a3/2', 'c4/3 c4/1 c4/4 fs3/4'),
-     ('ef3/12', 'g2/2 g2/2 g2/2 g2/2 g2/2 g2/2')),
-    ('[g3,b3]/4 [g3,e4]/4 [g3,d4]/4', ('d3/4 c3/4 b2/4', 'g2/2 g2/2 g2/2 g2/2 g2/2 g2/2')),
+    ('[g3,b3]/4 [g3,e4]/4 @w:dim. @dashes[ [g3,d4]/4',
+     ('d3/4)( c3/4 b2/4', 'g2/2 g2/2 g2/2 g2/2 g2/2 g2/2')),
     # 21-24
-    ('clef:G [cs4,e4]/8 [c4,fs4]/4', ('bf2/8 a2/4', 'g2/2 g2/2 g2/2 g2/2 g2/2 g2/2')),
-    (('g4/8 r/4', 'b3/8 b3/4'), ('r/4 d3/8', 'g2/12')),
-    (('r/4 g4/4 [g4,b4]/4', '[b3,d4]/8 s/4'), ('d3/12', 'g2/12')),
-    ('[g4,b4,d5]/12', ('d3/12', 'g2/12')),
+    ('clef:G [cs4,e4]/8 [c4,fs4]/4', ('bf2/8 a2/4)', 'g2/2 g2/2 g2/2 g2/2 g2/2 g2/2')),
+    (('g4/8 r/4', 'b3/8 b3/4('), ('r/4 d3/8(', '@Ped g2/12(')),
+    (('r/4 g4/4 [g4,b4]/4', '[b3,d4]/8) s/4'), ('d3/12)(', 'g2/12)(')),
+    ('@dashes] @pp [g4,b4,d5]/12!te', ('d3/12)', '@Ped* g2/12)')),
 ]
 
 
@@ -81,7 +94,8 @@ PIECE = {
         'writes it: two voices in a hand where it has two lines, with a note both voices share '
         '(RH C5 in bar 17, C4 in bar 19; LH D3 in bar 15) written in both. The right hand is in '
         'the bass clef from beat 3 of bar 19 to bar 20. Slurred repeated notes (LH bars 22-24) '
-        'are played again, as the edition slurs rather than ties them. Slurs, accents and the '
-        'dynamics are not encoded.',
+        'are played again, as the edition slurs rather than ties them. Dynamics, hairpins, "dim.", '
+        'slurs, accents, the tenuto, the pedal and the cautionary naturals as printed in the Mutopia '
+        'LilyPond file (01MorningPrayer.ly, piece 2032).',
     ],
 }

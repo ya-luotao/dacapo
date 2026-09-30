@@ -7,35 +7,45 @@ endings as in the source. The source's second ending of the second repeat is the
 F-major section (chords on C); since this piece stops before that section, its second ending is
 the closing bar Beethoven writes when the theme returns for the last time (the last bar of the
 piece: A4 over octave As), so the A section ends on its own cadence.
+
+Markings (added in X0 from the Mutopia LilyPond file fur_Elise_WoO59.ly, piece 931), as the
+edition prints them in these bars: pp in both staves at the start; the pedal (Ped. down on the
+downbeat, up a thirty-second before the next bar, hence 8 divisions per quarter) in bars 2-4, 6, 7,
+10, 11, 17-19 and 21, held from bar 12 to the end of bar 14, and none in the other bars (the
+first endings, bar 22 and the closing bar included); the left hand's slur from E4 (bar 13) to E5
+(bar 14). The later returns of the theme, which the edition slurs differently, are not in this
+excerpt.
 """
 
 from musicxml_gen import REPEAT_FWD, ending_discontinue, ending_start, ending_stop_repeat
 
+# Pedal: down on the downbeat, up a thirty-second before the next bar ('@Ped @Ped*+5.5').
+PED = '@Ped @Ped*+5.5 '
 THEME = [
-    ('e5/1 ds5/1', 'r/2'),
+    ('@pp e5/1 ds5/1', '@pp r/2'),
     ('e5/1 ds5/1 e5/1 b4/1 d5/1 c5/1', 'r/6'),
-    ('a4/2 r/1 c4/1 e4/1 a4/1', 'a2/1 e3/1 a3/1 r/1 r/2'),
-    ('b4/2 r/1 e4/1 gs4/1 b4/1', 'e2/1 e3/1 gs3/1 r/1 r/2'),
-    ('c5/2 r/1 e4/1 e5/1 ds5/1', 'a2/1 e3/1 a3/1 r/1 r/2'),
+    ('a4/2 r/1 c4/1 e4/1 a4/1', PED + 'a2/1 e3/1 a3/1 r/1 r/2'),
+    ('b4/2 r/1 e4/1 gs4/1 b4/1', PED + 'e2/1 e3/1 gs3/1 r/1 r/2'),
+    ('c5/2 r/1 e4/1 e5/1 ds5/1', PED + 'a2/1 e3/1 a3/1 r/1 r/2'),
     ('e5/1 ds5/1 e5/1 b4/1 d5/1 c5/1', 'r/6'),
-    ('a4/2 r/1 c4/1 e4/1 a4/1', 'a2/1 e3/1 a3/1 r/1 r/2'),
-    ('b4/2 r/1 e4/1 c5/1 b4/1', 'e2/1 e3/1 gs3/1 r/1 r/2'),
+    ('a4/2 r/1 c4/1 e4/1 a4/1', PED + 'a2/1 e3/1 a3/1 r/1 r/2'),
+    ('b4/2 r/1 e4/1 c5/1 b4/1', PED + 'e2/1 e3/1 gs3/1 r/1 r/2'),
 ]
 THEME_FIRST = ('a4/4', 'a2/1 e3/1 a3/1 r/1')
 THEME_SECOND = ('a4/2 r/1 b4/1 c5/1 d5/1', 'a2/1 e3/1 a3/1 r/1 r/2')
 EPISODE_AND_RETURN = [
-    ('e5/3 g4/1 f5/1 e5/1', 'c3/1 g3/1 c4/1 r/1 r/2'),
-    ('d5/3 f4/1 e5/1 d5/1', 'g2/1 g3/1 b3/1 r/1 r/2'),
-    ('c5/3 e4/1 d5/1 c5/1', 'a2/1 e3/1 a3/1 r/1 r/2'),
-    ('b4/2 r/1 e4/1 e5/1 r/1', 'e2/1 e3/1 e4/1 r/1 r/1 clef:G e4/1'),
-    ('r/1 e5/1 e6/1 r/1 r/1 ds5/1', 'e5/1 r/1 r/1 ds5/1 e5/1 r/1'),
+    ('e5/3 g4/1 f5/1 e5/1', PED + 'c3/1 g3/1 c4/1 r/1 r/2'),
+    ('d5/3 f4/1 e5/1 d5/1', PED + 'g2/1 g3/1 b3/1 r/1 r/2'),
+    ('c5/3 e4/1 d5/1 c5/1', '@Ped a2/1 e3/1 a3/1 r/1 r/2'),
+    ('b4/2 r/1 e4/1 e5/1 r/1', 'e2/1 e3/1 e4/1 r/1 r/1 clef:G e4/1('),
+    ('r/1 e5/1 e6/1 r/1 r/1 ds5/1', '@Ped*+5.5 e5/1) r/1 r/1 ds5/1 e5/1 r/1'),
     ('e5/2 r/1 ds5/1 e5/1 ds5/1', 'r/1 ds5/1 e5/1 r/1 r/2'),
     ('e5/1 ds5/1 e5/1 b4/1 d5/1 c5/1', 'r/6'),
-    ('a4/2 r/1 c4/1 e4/1 a4/1', 'clef:F a2/1 e3/1 a3/1 r/1 r/2'),
-    ('b4/2 r/1 e4/1 gs4/1 b4/1', 'e2/1 e3/1 gs3/1 r/1 r/2'),
-    ('c5/2 r/1 e4/1 e5/1 ds5/1', 'a2/1 e3/1 a3/1 r/1 r/2'),
+    ('a4/2 r/1 c4/1 e4/1 a4/1', 'clef:F ' + PED + 'a2/1 e3/1 a3/1 r/1 r/2'),
+    ('b4/2 r/1 e4/1 gs4/1 b4/1', PED + 'e2/1 e3/1 gs3/1 r/1 r/2'),
+    ('c5/2 r/1 e4/1 e5/1 ds5/1', PED + 'a2/1 e3/1 a3/1 r/1 r/2'),
     ('e5/1 ds5/1 e5/1 b4/1 d5/1 c5/1', 'r/6'),
-    ('a4/2 r/1 c4/1 e4/1 a4/1', 'a2/1 e3/1 a3/1 r/1 r/2'),
+    ('a4/2 r/1 c4/1 e4/1 a4/1', PED + 'a2/1 e3/1 a3/1 r/1 r/2'),
     ('b4/2 r/1 e4/1 c5/1 b4/1', 'e2/1 e3/1 gs3/1 r/1 r/2'),
 ]
 RETURN_FIRST = ('a4/2 r/1 b4/1 c5/1 d5/1', 'a2/1 e3/1 a3/1 r/1 r/2')
@@ -58,7 +68,7 @@ PIECE = {
     'work_number': 'WoO 59',
     'composer': 'Ludwig van Beethoven',
     'fifths': 0, 'beats': 3, 'beat_type': 8, 'beam_group': 6, 'bpm': 72,
-    'tempo_text': 'Poco moto', 'measures': measures, 'pickup': True,
+    'tempo_text': 'Poco moto', 'measures': measures, 'pickup': True, 'divisions': 8,
     'source': 'Breitkopf & Härtel, 1888, as typeset by Stelios Samelis for the Mutopia Project '
               '(piece 931, public domain): '
               'https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=931',
@@ -69,6 +79,8 @@ PIECE = {
         'The A section with both repeats, transcribed from the public-domain Mutopia '
         'edition and checked note for note against its MIDI file. No fingering. The second ending '
         'of the second repeat is the closing bar of the piece instead of the transition into the F-major '
-        'section, so the excerpt ends on its cadence.',
+        'section, so the excerpt ends on its cadence. Markings from the Mutopia LilyPond file '
+        '(fur_Elise_WoO59.ly, piece 931): pp in both staves, the pedal marks of these bars and the '
+        'left hand slur in bars 13-14.',
     ],
 }
