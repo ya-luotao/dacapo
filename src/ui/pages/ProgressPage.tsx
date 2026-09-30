@@ -4,6 +4,7 @@ import { useT } from '../../i18n/index.ts';
 import { EmptyState } from '../EmptyState.tsx';
 import { usePractice, useStorageStatus } from '../practice/context.ts';
 import { DayHistory } from '../progress/DayHistory.tsx';
+import { FamilyProgress } from '../progress/families/FamilyProgress.tsx';
 import { WeaknessHeatmap } from '../progress/heatmap/WeaknessHeatmap.tsx';
 import { PracticeFigures } from '../progress/PracticeFigures.tsx';
 import { SessionList } from '../progress/SessionList.tsx';
@@ -12,7 +13,7 @@ import { useNow } from '../progress/useNow.ts';
 export function ProgressPage() {
   const t = useT();
   const { loaded } = useStorageStatus();
-  const { sessions, stats } = usePractice();
+  const { sessions, stats, answers } = usePractice();
   const now = useNow();
   const log = useMemo(() => practiceLog(sessions, { now }), [sessions, now]);
   const piecesToday = useMemo(() => {
@@ -36,6 +37,7 @@ export function ProgressPage() {
           <PracticeFigures log={log} piecesToday={piecesToday} />
           <DayHistory history={log.history} totals={log.totals} today={log.today} />
           <WeaknessHeatmap stats={stats} />
+          <FamilyProgress answers={answers} />
           <SessionList sessions={sessions} />
         </>
       )}

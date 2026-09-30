@@ -1,8 +1,8 @@
 # dacapo — Theory and ear training specification
 
-Status: E1, E2 and E3 are built (the Ear page: intervals, chords and melodies by ear; Read's
-intervals, key signatures and chords on the staff); the per-family progress of E4 is next, and the
-instrument checks of E0 are still to do on the MP11SE. This extends [MVP.md](MVP.md) and [PIECES.md](PIECES.md); their
+Status: E1 to E4 are built (the Ear page: intervals, chords and melodies by ear; Read's
+intervals, key signatures and chords on the staff; their progress per family on the Progress
+page); the instrument checks of E0 are still to do on the MP11SE. This extends [MVP.md](MVP.md) and [PIECES.md](PIECES.md); their
 principles and fixed decisions still apply (staff first, measure don't guess, local data, English of
 record, every UI language, 3-day dependency cooldown, no backend).
 
@@ -283,6 +283,76 @@ flats.
 - Ear and theory sessions join the `SessionRecord` union, so minutes, the streak and the log count
   them. Progress gains a section per family: level mastery, the weakest items, the confusion table.
 
+### Clarifications (decided during E4)
+
+- **Where.** Progress gains a part "Ear training and theory" after "Note by note": a section for
+  each family that has answers, Ear's intervals, chords and melodies, then Read's intervals, key
+  signatures and chords; with no answers yet, a pointer to the Ear page. Each section folds under
+  its heading. At first only the family practised last (the one with the latest answer) is open,
+  the others folded; a section opened or folded by hand stays so, remembered per browser
+  (`dacapo.progress`). Everything is
+  recomputed from the `answers` store (`core/answerProgress.ts`); no record, sync or export
+  changes.
+- **Levels.** One compact row of the family's levels with their page's mastery
+  (`earLevelProgress`, `theoryLevelProgress`): mastered, or the accuracy and the answers in the
+  window (`78% · 40/40`, `55% · 20/20` melodies), or not practised yet; a thin bar shows how full
+  the window is.
+- **Filters.** The weakest items, the table of items and the confusion table are over a level (all,
+  or one that has answers) and, where the family was answered both ways, over how (all, played,
+  named). Not remembered, as the note heatmap's level is not.
+- **Per item** (docs: "accuracy over the last 10, the median time to answer, replays"): all three
+  over the item's last 10 answers, as the heatmap's "lately": the share right, the median of the
+  timed ones among them (right, without a replay or the hint, within 30 s), and "Hear again"
+  pressed (Ear, summed) or cards answered with the hint (Read); with every answer counted beside.
+  Items are the weakness model's: an interval with its direction (`int:m6:up`), a melody by its
+  level (`echo:EC3`). **The weakest three** are by the model's weight (the family's `targetMs`)
+  among items with at least 3 answers, as notes are ranked; of equal weight the less accurate
+  lately, then the slower, then the earlier in the levels. "Every item" lists them all, weakest
+  first, then those with fewer answers.
+- **The confusion table.** A row for each thing asked, a column for each thing asked or answered,
+  in the family's order, and **Other** last for an answer that fits no column. What counts:
+  - Intervals by ear: by the interval's name, the direction aside (the name answered has none),
+    by size. Named: the name chosen. Played: the interval from the key shown to the key played,
+    in the direction asked; a key on the wrong side of the shown one, or a distance without a
+    name here (18 semitones, beyond 19), is Other.
+  - Chords by ear and on the staff: by quality and position (`min:1st`), the root aside. Named:
+    the chord chosen. Played: the keys held when the chord went wrong, read on the root asked.
+    A chord is wrong at its first key outside it, so what is held is part of it and the wrong
+    key, rarely a whole other chord: "the chord it makes" is taken as the chord of the level that
+    contains all of them (where the position is named, C3, RC3 and RC5, with the lowest key as its
+    bass), the one sharing most tones with the chord asked, then the first; none is Other. So C–E♭
+    for C major reads as minor, and C major's notes over E in C3 as its 1st inversion.
+  - Melodies: the melodic interval into a note, in signed semitones, as asked against as played.
+    Every step reached counts: a melody played right puts all its steps on the diagonal; one
+    played wrong, the steps before the wrong note on the diagonal and the step into it as played,
+    and nothing after it. A wrong first note has no step into it and is left out; the same key
+    again, or a leap past the octave, is Other.
+  - Intervals on the staff: by quality and number as written (`A2`, `d5`); RI1, which asks for the
+    number alone, by its number (`3`), asked and answered, so its rows stand beside the others'
+    in "All levels" (the level filter separates them).
+  - Key signatures: the key played is the key whose tonic it is, major or minor as asked, with the
+    fewest sharps or flats (C♯ played is D♭ major, not C♯ major); of the two with six (F♯ and G♭
+    major, D♯ and E♭ minor), the one on the side of the key asked (sharps from C major and A
+    minor).
+- **The diagonal is the right answers**, and only they: a wrong answer that reads as the item
+  asked (a chord named on a wrong root; a chord's own notes in a wrong octave, or with the same
+  bass) counts as Other.
+- **Colour and text**, as the note heatmap's: the right answers are marked apart (green, on the
+  diagonal), off the scale. A wrong cell is coloured by its share of its row on the heatmap's
+  seven colours (under 5 %, 5–10 %, 10–20 %, 20–30 %, 30–40 %, 40–50 %, 50 % or more), with its
+  count printed in the ink or the paper, whichever keeps 4.5 : 1 on that colour in either theme.
+  A row with **fewer than 5 answers** is not enough data: its counts stand in the hollow dashed
+  mark of "not enough data yet". A cell never answered is blank; a total ends each row.
+- **Headings** are short, the same in every language as note names are: `m6`, `TT`, `↑P4`, `A2`,
+  `3`, E♭ for a major key and c♯ for a minor one, chord symbols (M, m, °, +, 7, M7, m7, ø7) with
+  an inversion's figured bass (⁶, ⁶₄). Each heading's full name is in its hidden text and tooltip,
+  and each cell's tooltip says what it counts ("minor 6th answered as perfect 5th: 4 of 12").
+- **The table view** ("Show as a table") lists the confusions in words, the most frequent first,
+  then the larger share: asked, answered as, and how often ("minor 6th · perfect 5th · 4 of 12
+  (33%)"); the first 10, with how many there are in all.
+- **On a phone** the grid scrolls sideways within its sheet, its row headings kept in view; the
+  page itself never scrolls sideways.
+
 ## UI and wording
 
 - One card at a time, large, with the keyboard below; the result shows for ~400 ms (right) or until
@@ -308,4 +378,4 @@ flats.
    sampling, mastery, the `answers` store, sessions and export.
 3. ✓ **E2 Echo** — melodic dictation, drawing the melody with the answer after it.
 4. ✓ **E3 Theory on Read** — interval, key-signature and chord cards.
-5. **E4 Progress** — per-family progress and the confusion table.
+5. ✓ **E4 Progress** — per-family progress and the confusion table.

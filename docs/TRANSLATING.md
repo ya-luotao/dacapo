@@ -131,6 +131,8 @@ Chinese and Latin letters, digits and placeholders (`第 {n} 张`, `MIDI 键盘`
 | quality / number (of an interval)           | 性质 / 度数（二度……八度）                |
 | natural notes / double sharp, flat          | 自然音 / 重升、重降                      |
 | natural sign / root pos., 1st inv.          | 还原号 / 原位、第一转位                  |
+| Ear training and theory (Progress)          | 练耳与乐理卡片                           |
+| what you answer instead / Other             | 你答成了什么 / 其他                      |
 
 ## Traditional Chinese, Taiwan (`zh-TW`)
 
@@ -191,6 +193,8 @@ terms throughout. Address the learner as 你, as zh-CN does.
 | quality / number (of an interval)         | 性質 / 度數                          | 性质 / 度数                |
 | natural notes / double sharp, flat        | 自然音 / 重升、重降記號              | 重升、重降                 |
 | natural sign / 1st inversion              | 還原記號 / 第一轉位                  | 还原号 / 第一转位          |
+| Ear training and theory (Progress)        | 練耳與樂理閃卡                       | 练耳与乐理卡片             |
+| what you answer instead / row, column     | 你答成了什麼 / 列、欄                | 你答成了什么 / 行、列      |
 
 Keys in titles: `G 大調`, `C 大調`. Composers as Taiwan writes them: 貝多芬, 巴哈 (not 巴赫), 舒曼,
 布爾格彌勒.
@@ -249,6 +253,8 @@ verb phrases for labels and buttons (設定, 開始, もう一度, 補正する)
 | quality / number (of an interval)           | 種類 / 度数（2度〜8度）                          |
 | natural notes / double sharp, flat          | 幹音 / ダブルシャープ・ダブルフラット            |
 | natural sign / 1st inversion (button)       | ナチュラル / 第1転回                             |
+| Ear training and theory (Progress)          | 聴音と楽典カード                                 |
+| what you answer instead / Other             | 代わりに何と答えたか / その他                    |
 
 Keys in titles follow Japanese editions: ハ長調, ト長調. Middle C is 中央C. Scale names on the Scales
 page keep the letter names of the app (`D長音階`, `G♯和声的短音階`), not ニ長音階.
@@ -308,6 +314,8 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 | quality / number (of an interval)           | 성질 / 도수 (2도–8도)                                                |
 | natural notes / double sharp, flat          | 변화표 없는 음 / 겹올림표, 겹내림표                                  |
 | natural sign / 1st inversion (button)       | 제자리표 / 제1전위                                                   |
+| Ear training and theory (Progress)          | 청음과 이론 카드                                                     |
+| what you answer instead / Other             | 정답 대신 고른 답 / 기타                                             |
 
 Keys in titles use letters: G장조, C장조, matching the letter names in the app. Composer names
 follow the National Institute of Korean Language: 루트비히 판 베토벤, 요한 제바스티안 바흐.

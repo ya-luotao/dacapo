@@ -13,6 +13,24 @@ and sessions (from version 6; the theory cards' answers and sessions go in the s
 click's tempo and grid of scale runs played with it (from version 7), and the takes of piece runs
 (from version 8). Version 1 to 7 files still import.
 
+### Progress by family: what you answer instead (E4)
+
+- **Progress** gains a part for ear training and the theory cards: a section for each kind of
+  question you have answered (intervals, chords and melodies by ear; intervals, key signatures and
+  chords on the staff), each folding under its heading: the one you practised last opens, and a
+  section you open or fold stays so in this browser ([docs/EAR.md](docs/EAR.md)).
+- Each shows its levels in one row (mastered, or the accuracy and how full the window is), the
+  three weakest items with their figures over the last 10 answers (correct, median time, replays
+  or hints), and every item in a table.
+- **What you answer instead**: a grid of what was asked against what was answered, the count in
+  each cell, the right answers on the diagonal in green and every wrong one coloured by its share
+  of the row on the note heatmap's scale; rows with fewer than 5 answers are marked as not enough
+  data yet. A key played is read as the interval or chord it makes, a melody by the interval into
+  its first wrong note, a key signature by the key whose tonic you played. "Show as a table" lists
+  the most frequent confusions in words ("minor 6th · perfect 5th · 4 of 12").
+- A level and, where you answered both ways, played or named can be chosen. On a phone the grid
+  scrolls within its box. Nothing new is stored: it is all worked out from the answers you have.
+
 ### Theory on Read: intervals, key signatures and chords on the staff (E3)
 
 - **Read** asks what to read: **Notes** as before, or three new kinds of card, each with its own

@@ -66,7 +66,9 @@ practising the notes you are slowest at. Progress is visible day by day.
   marked) or name it. The next question favours what you miss, and every answer is kept. **Echo**
   plays a short melody after the chord of its key, in seven levels from three notes by step to
   minor keys and chromatic notes; play it back note by note, and a wrong note shows the melody on
-  the staff with yours over it ([docs/EAR.md](docs/EAR.md)).
+  the staff with yours over it. On the Progress page each kind of question, by ear or on the
+  staff, shows its levels, its weakest items and a table of what you answer instead (“minor 6th
+  answered as perfect 5th: 4 of 12”) ([docs/EAR.md](docs/EAR.md)).
 - **Practice log.** Flashcard sessions and free play are saved: minutes today, a daily streak
   (5 minutes a day), a 30-day chart and the list of sessions.
 - **Weakness heatmap.** Every note you have practised, on the grand staff or on the keyboard,
