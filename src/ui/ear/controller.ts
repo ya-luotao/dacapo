@@ -20,6 +20,7 @@ import {
   type AnswerMode,
   type EarSessionState,
 } from '../../core/earSession.ts';
+import { isEarAnswer } from '../../core/answers.ts';
 import type { Rng } from '../../core/random.ts';
 import type { PracticeStore } from '../practice/store.ts';
 
@@ -196,7 +197,7 @@ export function createEarController({
   function advance() {
     if (!view) return;
     cancelTimers();
-    const stats = earStats(practice.getSnapshot().answers);
+    const stats = earStats(practice.getSnapshot().answers.filter(isEarAnswer));
     update(view, advanceEar(view.session, { at: now(), stats, rng }));
   }
 
@@ -219,7 +220,7 @@ export function createEarController({
       cancelTimers();
       stop();
       const level = getEarLevel(config.level);
-      const stats = earStats(practice.getSnapshot().answers);
+      const stats = earStats(practice.getSnapshot().answers.filter(isEarAnswer));
       const session = startEarSession({
         id: newId(),
         level,

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Link } from 'wouter';
 import { EAR_LEVELS } from '../../core/earItems.ts';
+import { THEORY_LEVELS } from '../../core/theoryItems.ts';
 import { LEVELS } from '../../core/levels.ts';
 import { LESSONS } from '../../learn/lessons.ts';
 import { MAX_BPM, MIN_BPM } from '../../core/pulse.ts';
@@ -38,7 +39,7 @@ const CONTENTS: readonly {
     title: 'nav.read',
     text: 'home.read.text',
     meta: 'home.read.meta',
-    values: { n: LEVELS.length },
+    values: { n: LEVELS.length + THEORY_LEVELS.length },
   },
   {
     path: '/ear',

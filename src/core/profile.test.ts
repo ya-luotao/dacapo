@@ -143,12 +143,30 @@ describe('buildProfile', () => {
       ...free('r', NOW + 10 * MIN, 2 * MIN),
       kind: 'read',
     } as unknown as SessionRecord;
+    const theory = {
+      kind: 'theory',
+      id: 't',
+      family: 'keySignature',
+      level: 'KS1',
+      by: 'play',
+      startedAt: NOW + 20 * MIN,
+      endedAt: NOW + 23 * MIN,
+      activeMs: 3 * MIN,
+      length: 10,
+      cards: 10,
+      correct: 10,
+      accuracy: 1,
+      medianMs: 1500,
+      slowest: [],
+      missed: [],
+    } satisfies SessionRecord;
     const document = build({
-      sessions: [ear, read],
+      sessions: [ear, read, theory],
       settings: { visibility: 'public', titles: false },
     })!;
-    expect(document.activity!['2026-09-29']!.kinds).toEqual({ read: 6 * MIN });
-    expect(document.days['2026-09-29']).toBe(6 * MIN);
+    // The theory cards on Read are reading too.
+    expect(document.activity!['2026-09-29']!.kinds).toEqual({ read: 9 * MIN });
+    expect(document.days['2026-09-29']).toBe(9 * MIN);
   });
 
   it('starts the grid on the first day of its first week', () => {

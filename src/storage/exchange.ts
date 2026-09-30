@@ -1,4 +1,4 @@
-import { byAnswerTime, type Answer } from '../core/earSession.ts';
+import { byAnswerTime, type Answer } from '../core/answers.ts';
 import { byStartDescending, byTime, type SessionRecord } from '../core/log.ts';
 import { byStepTime, type PieceStep } from '../core/pieceRecords.ts';
 import { byRunTime, type StoredScaleRun } from '../core/scaleRecords.ts';
@@ -30,7 +30,9 @@ export const EXPORT_FORMAT = 'dacapo';
  * and their timings; records without a mode are wait mode's, as in version 3), version 5 scale
  * sessions and scale runs, version 6 ear-training answers and sessions, version 7 scale runs played
  * with the click (their grid, and the tempo on their session's summary), version 8 the takes of
- * piece runs.
+ * piece runs. New kinds of record in a list the file has (Echo answers, the theory cards' answers
+ * and `theory` sessions) need no new version: an older build lists them among the records it could
+ * not read, and imports the rest.
  */
 export const EXPORT_VERSION = 8;
 
@@ -59,7 +61,7 @@ export interface ExportFile {
   pieceSteps: PieceStep[];
   /** Scale runs as played, oldest first. */
   scaleRuns: StoredScaleRun[];
-  /** Ear-training answers, oldest first. */
+  /** Ear-training and theory answers, oldest first. */
   answers: Answer[];
   /** Takes of piece runs, in chunks, oldest first. */
   takes: TakeChunk[];

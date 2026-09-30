@@ -14,7 +14,9 @@ learner needs to read **rhythm** on its own, to **hear** a rhythm and know how i
 
 Read gains a choice of what to read (E3 adds intervals, key signatures and chords as cards). Two
 more choices read **in time**: **Rhythm** and **Sight-reading**. They share Read's level list,
-suggested level and mastery rule, but a session is a run of bars instead of a stack of cards.
+suggested level and mastery rule, but a session is a run of bars instead of a stack of cards. The
+choice is built as rows of groups (`READ_CHOICE_GROUPS` in `src/ui/read/prefs.ts`): the cards are
+one row today, and the choices read in time join as a second row of their own.
 Rhythm dictation is a family of the **Ear** page.
 
 While a run is in time, the header's metronome is paused (as rhythm mode does) and practice is

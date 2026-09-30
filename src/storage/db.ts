@@ -1,5 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import type { Answer } from '../core/earSession.ts';
+import type { Answer } from '../core/answers.ts';
 import type { SessionRecord } from '../core/log.ts';
 import type { PieceStep } from '../core/pieceRecords.ts';
 import type { StoredScaleRun } from '../core/scaleRecords.ts';
@@ -39,7 +39,7 @@ export interface DacapoSchema extends DBSchema {
   };
   /** Records written while signed in and not yet sent to the sync service (version 5). */
   outbox: { key: string; value: OutboxEntry };
-  /** Ear-training answers (version 6), by session and by item. */
+  /** Ear-training answers (version 6) and theory answers, by session and by item. */
   answers: {
     key: string;
     value: Answer;

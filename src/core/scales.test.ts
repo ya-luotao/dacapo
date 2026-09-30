@@ -13,6 +13,8 @@ import {
   notesPerOctave,
   SCALE_HANDS,
   keySignature,
+  SIGNATURE_FIFTHS,
+  signatureTonic,
   MAJOR_TONICS,
   MINOR_TONICS,
   parseExerciseKey,
@@ -293,6 +295,50 @@ describe('spelling', () => {
     expect(keySignature('chromatic', 'Eb')).toEqual({ fifths: 0, mode: 'major' });
     expect(keyAlters(-2)).toEqual({ C: 0, D: 0, E: -1, F: 0, G: 0, A: 0, B: -1 });
     expect(keyAlters(3)).toEqual({ C: 1, D: 0, E: 0, F: 1, G: 1, A: 0, B: 0 });
+  });
+
+  it('names the tonic of every signature, major and minor, and keySignature undoes it', () => {
+    const majors = SIGNATURE_FIFTHS.map((f) => signatureTonic(f, 'major'));
+    const minors = SIGNATURE_FIFTHS.map((f) => signatureTonic(f, 'minor'));
+    expect(majors).toEqual([
+      'Cb',
+      'Gb',
+      'Db',
+      'Ab',
+      'Eb',
+      'Bb',
+      'F',
+      'C',
+      'G',
+      'D',
+      'A',
+      'E',
+      'B',
+      'F#',
+      'C#',
+    ]);
+    expect(minors).toEqual([
+      'Ab',
+      'Eb',
+      'Bb',
+      'F',
+      'C',
+      'G',
+      'D',
+      'A',
+      'E',
+      'B',
+      'F#',
+      'C#',
+      'G#',
+      'D#',
+      'A#',
+    ]);
+    for (const f of SIGNATURE_FIFTHS) {
+      expect(keySignature('major', signatureTonic(f, 'major')).fifths).toBe(f);
+      expect(keySignature('naturalMinor', signatureTonic(f, 'minor')).fifths).toBe(f);
+    }
+    expect(() => signatureTonic(8, 'major')).toThrow(RangeError);
   });
 });
 

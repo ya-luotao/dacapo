@@ -1,7 +1,8 @@
 # dacapo — Theory and ear training specification
 
-Status: E1 and E2 are built (the Ear page: intervals, chords and melodies by ear); the instrument checks of E0 are
-still to do on the MP11SE. This extends [MVP.md](MVP.md) and [PIECES.md](PIECES.md); their
+Status: E1, E2 and E3 are built (the Ear page: intervals, chords and melodies by ear; Read's
+intervals, key signatures and chords on the staff); the per-family progress of E4 is next, and the
+instrument checks of E0 are still to do on the MP11SE. This extends [MVP.md](MVP.md) and [PIECES.md](PIECES.md); their
 principles and fixed decisions still apply (staff first, measure don't guess, local data, English of
 record, every UI language, 3-day dependency cooldown, no backend).
 
@@ -180,11 +181,99 @@ signatures just as well, so the staff code grows rather than changing renderer. 
 `SpelledPitch` (`alter` −2…2), since augmented and diminished intervals need double sharps and
 flats.
 
+### Clarifications (decided during E3)
+
+- **What to read.** Read's setup gains a choice above the levels: **Notes** (L1–L7, as before),
+  **Intervals**, **Key signatures** and **Chords** (and later Rhythm and Sight-reading,
+  [READING.md](READING.md)). Each has its own levels, suggested level and mastery. The choice is
+  remembered per browser. Notes keeps its `attempts` store; the others record answers.
+- **Intervals.** Two whole notes on one staff, melodic (side by side) or harmonic (stacked), up or
+  down; the lower note on the staff's lines and spaces with at most one ledger line (two in RI4).
+  RI1 the number only (2nd–octave), natural notes, treble · RI2 number and quality, natural notes
+  (so B–F is a diminished 5th and F–B an augmented 4th), treble and bass · RI3 one sharp or flat on
+  either note, every quality from diminished to augmented of the 2nd to the 7th, and the perfect
+  octave (its augmented and diminished forms left out) · RI4 double sharps and flats, two ledger
+  lines, both staves. Answered by two rows of buttons, the quality (diminished, minor, perfect,
+  major, augmented; hidden in RI1) and the number (2nd … octave), in either order; the digits
+  2–8 choose the number and the keys D m P M A (case as printed) the quality. Items
+  `ri:<quality><number>:<up|down|harm>` (`ri:A2:up`); a spelling that sounds alike is a different
+  item (C–D♯ `A2`, C–E♭ `m3`).
+- **Key signatures.** A key signature alone on the grand staff; play the tonic, any octave.
+  KS1 majors with up to two sharps or flats · KS2 up to four · KS3 all fifteen (C♯ and C♭ majors
+  included; any key of the tonic's sound is right) · KS4 the relative minors of KS2 (a small "minor"
+  above the staff says which is asked) · KS5 all fifteen minors. Items `ks:<n><s|f>:<major|minor>`
+  (`ks:3f:minor`, `ks:0:major`).
+- **Chords.** A chord of whole notes on one staff, in close position. RC1 the root-position triads
+  of C major on the treble staff (C, Dm, Em, F, G, Am, B°) · RC2 major and minor triads with sharps
+  and flats, either staff · RC3 their inversions · RC4 the four sevenths, root position · RC5 RC2–RC4
+  together. **Play it** (default): exactly the written keys, octave included, correct as soon as
+  exactly those keys are held, wrong at the first other key; **Name it**: the root (letter and
+  accidental buttons) and the quality (and in RC3 the position) by buttons. Items
+  `rc:<quality>:<inversion>`; the root is drawn at random.
+- **Timing and mastery** are Read's: the clock starts when the card is painted; mastery is ≥ 90 %
+  over the last 40 answers with a median under 3 s (intervals, key signatures) or 4 s (chords); the
+  weight's `targetMs` is 2000 ms (intervals, key signatures) and 3000 ms (chords). Hints: "Show
+  letter names" names the notes under each note (and hides nothing else); hinted answers count for
+  accuracy only.
+- **Records.** Answers with families `readInterval`, `keySignature`, `readChord` in the `answers`
+  store; `by` is `name` or `play`; the prompt is the written notes as spelled pitches
+  (`C4`, `D#4`, `Ebb5`), or the key signature (`3f`); the answer is the name chosen or the keys
+  played. Sessions are kind `theory`, counted as reading on the public profile.
+  `SYNC_SCHEMA` goes up.
+- **Drawing** is VexFlow's, from `SpelledPitch` (double sharps and flats), with key signatures.
+- **Keys for names, as built (a change from the draft).** D and A are note keys of the computer
+  keyboard (A plays C, D plays E), so while a card is answered by name the computer keyboard plays
+  no notes (`suspend()`, as the Metronome page does) and every letter is free; a MIDI keyboard
+  still sounds but answers nothing. A letter counts as typed (so AZERTY's A is A), falling back to
+  the physical key on a non-Latin layout; `m` is minor and `M` (Shift) major, D, P and A in either
+  case. A chord's root is its letter (A–G, either case), its sign − (flat), # or + (sharp) and N
+  (natural), and the chord the digits 1–9 and 0, as on the Ear page. On a phone the keys are not
+  printed on the buttons.
+- **Naming, as built.** An interval's answer is given when both a quality and a number are chosen
+  (RI1: the number alone); a number the chosen quality cannot have (a perfect 3rd, a major 5th, an
+  augmented octave) is not offered, and choosing a button again takes it back. A chord's answer is
+  given when a letter and a chord are chosen; its sign is natural unless ♭ or ♯ is chosen first,
+  as one says it ("F sharp minor"). The quality and the position are one button, as on the Ear
+  page's C3 ("Minor, 1st inversion"), in RC3 and in RC5's triads, so no answer waits on a default
+  position. The name answered is `m3` (`3` in RI1) or `F#:min:1st` (the root as written:
+  G♭ minor is not F♯ minor).
+- **Where the draft is silent (decided during E3).** Every interval level mixes up, down and
+  harmonic (no setting). "At most one ledger line" holds for both notes, and a sharp or flat in RI3
+  (a double one in RI4) may be on either or both notes, E♯, B♯, C♭ and F♭ included. RI1's items
+  keep their quality (`ri:m3:up`, `ri:M3:up`), though only the number is asked. A card is drawn by
+  choosing its staff first, each of the level's equally often, then one of the item's writings on
+  it. RC2–RC5 roots are any letter with at most one sharp or flat whose chord needs no double sharp
+  or flat (so G♯ major and D♭ minor are written, D♯ major is not); every note of a chord lies
+  within one ledger line of its staff. The augmented triad is left out, as the draft's levels do.
+  The 40 answers of mastery are the level's last 40 given without the hint, and its median is over
+  the right ones answered within 30 s, as Read counts them.
+- **On screen, as built.** An interval or a chord is written on one staff, treble or bass, in a
+  box every such card shares (room for two ledger lines and a sign either side); a key signature on
+  the cards' grand staff. Every key-signature card says "Major key" or "Minor key" in the sheet's
+  corner. The hint names each note under its column (a stack low to high), and a key signature's
+  sharps or flats in the order written (F♯ C♯ G♯), which is what there is to name; its line is kept
+  below every card, so showing it moves nothing. After a wrong answer the right one is marked on
+  the buttons and on the keyboard (a chord's or an interval's written keys; a key signature's tonic
+  nearest the key played) and said in words, and the card stays until it is given: a chord played
+  wrong is right once exactly its keys are held, so letting go of the wrong key is enough. On a
+  wide screen the answer buttons stand beside the sheet.
+- **Records, as built.** A theory answer keeps `hinted` instead of Ear's `replays`, and the staff
+  of an interval or a chord (`clef`), which its spelled notes do not say and which the checks of an
+  imported or synced answer need (the ledger lines). A stored answer is checked as the session
+  drew and judged it: the notes must be a card of its item at its level, and `correct` must agree.
+  A `theory` session keeps Read's figures (cards, accuracy, median of the timed answers) with the
+  slowest items and every card missed with what was answered. The export format stays at version
+  7: its lists are the same, and an older build lists the new records among those it could not
+  read. `SYNC_SCHEMA` 5.
+- **Settings, as built.** The session length and the hint are the page's, shared with Notes (and,
+  as for Notes, not remembered); the choice of what to read and how chords are answered are
+  remembered per browser.
+
 ## Records
 
 - Raw answers are the source of truth. An **answer** record: id, session, family (`interval`,
   `chord`, `echo`, `readInterval`, `keySignature`, `readChord`), level, item key (for example
-  `int:M3:up`, `chord:min:1st`, `ks:3b:major`), how it was answered (`play` or `name`), the prompt
+  `int:M3:up`, `chord:min:1st`, `ks:3f:major`), how it was answered (`play` or `name`), the prompt
   (its keys, or the written notes), the answer (keys played or the name chosen), correct, ms,
   replays, when.
 - IndexedDB, next version: an `answers` store with indexes by session and by item. Per-item stats
@@ -218,5 +307,5 @@ flats.
 2. ✓ **E1 Intervals and chords by ear** — the Ear page, both ways of answering, levels, weakness
    sampling, mastery, the `answers` store, sessions and export.
 3. ✓ **E2 Echo** — melodic dictation, drawing the melody with the answer after it.
-4. **E3 Theory on Read** — interval, key-signature and chord cards.
+4. ✓ **E3 Theory on Read** — interval, key-signature and chord cards.
 5. **E4 Progress** — per-family progress and the confusion table.

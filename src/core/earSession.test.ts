@@ -17,7 +17,7 @@ import {
   startEarSession,
   suggestedEarLevel,
   summarizeEar,
-  type Answer,
+  type EarAnswer,
   type AnswerMode,
   type EarSessionState,
 } from './earSession.ts';
@@ -201,7 +201,7 @@ describe('an ear session', () => {
   });
 });
 
-const answer = (i: number, patch: Partial<Answer> = {}): Answer => ({
+const answer = (i: number, patch: Partial<EarAnswer> = {}): EarAnswer => ({
   id: `x${i}`,
   sessionId: 's1',
   family: 'interval',
@@ -281,7 +281,7 @@ describe('ear figures', () => {
   });
 
   it('masters a level at 90 % over its last 40 answers without a replay', () => {
-    const answers: Answer[] = [];
+    const answers: EarAnswer[] = [];
     for (let i = 0; i < EAR_MASTERY_WINDOW; i++) {
       answers.push(answer(i, { correct: i % 10 !== 0, answer: i % 10 !== 0 ? [67] : [66] }));
     }
@@ -438,7 +438,7 @@ describe('an echo session', () => {
   it('masters an echo level over its last 20 melodies', () => {
     expect(masteryWindow('EC1')).toBe(ECHO_MASTERY_WINDOW);
     expect(masteryWindow('I1')).toBe(EAR_MASTERY_WINDOW);
-    const answers: Answer[] = Array.from({ length: ECHO_MASTERY_WINDOW }, (_, i) => ({
+    const answers: EarAnswer[] = Array.from({ length: ECHO_MASTERY_WINDOW }, (_, i) => ({
       id: `e${i}`,
       sessionId: 's',
       family: 'echo',

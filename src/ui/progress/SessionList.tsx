@@ -8,6 +8,7 @@ import type { ScaleExercise } from '../../core/scaleTypes.ts';
 import { median } from '../../core/session.ts';
 import { useEarFormat } from '../ear/format.ts';
 import { useReadFormat } from '../read/format.ts';
+import { useTheoryFormat } from '../read/theoryFormat.ts';
 import { useExerciseName } from '../scales/format.ts';
 import { useLogFormat } from './format.ts';
 
@@ -70,6 +71,7 @@ function SessionRow({ session }: { session: SessionRecord }) {
   const log = useLogFormat();
   const read = useReadFormat();
   const ear = useEarFormat();
+  const theory = useTheoryFormat();
   const exerciseName = useExerciseName();
   const scaleName = (e: ScaleExercise | null) => (e ? exerciseName(e) : none);
   const none = t('read.none');
@@ -164,6 +166,23 @@ function SessionRow({ session }: { session: SessionRecord }) {
         ],
         ['progress.session.accuracy', read.percent(session.accuracy)],
         ['ear.summary.median', read.seconds(session.medianMs)],
+      ];
+      break;
+    case 'theory':
+      cells = [
+        when,
+        ['progress.session.kind', t(`progress.kind.${session.family}`)],
+        [
+          'progress.session.level',
+          <abbr title={theory.levelName(session.level)}>{session.level}</abbr>,
+        ],
+        duration,
+        [
+          'progress.session.cards',
+          session.cards < session.length ? `${session.cards}/${session.length}` : session.cards,
+        ],
+        ['progress.session.accuracy', read.percent(session.accuracy)],
+        ['progress.session.median', read.seconds(session.medianMs)],
       ];
       break;
     case 'scale': {

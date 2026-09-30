@@ -9,6 +9,7 @@ import {
   VexFlow,
   Voice,
 } from 'vexflow/core';
+import { midiOf } from '../../core/musicxml.ts';
 import { MIDDLE_C, pitchToMidi, type Clef, type Pitch } from '../../core/note.ts';
 import type { SpelledPitch } from '../../core/score.ts';
 import { MUSIC_FONT } from './font.ts';
@@ -32,8 +33,11 @@ export function vexKey(pitch: Pitch): string {
   return `${pitch.letter.toLowerCase()}${ACCIDENTAL_CODE[pitch.accidental]}/${pitch.octave}`;
 }
 
-/** An empty braced grand staff in `host`, replacing whatever was there, drawn in `currentColor`. */
-function grandStaff(host: HTMLElement) {
+/**
+ * An empty braced grand staff in `host`, replacing whatever was there, drawn in `currentColor`;
+ * with `keySpec` (VexFlow's name of a key), its signature on both staves.
+ */
+function grandStaff(host: HTMLElement, keySpec?: string) {
   host.replaceChildren();
   const renderer = new Renderer(host as HTMLDivElement, Renderer.Backends.SVG);
   renderer.resize(STAFF_WIDTH, STAFF_HEIGHT);
@@ -45,6 +49,7 @@ function grandStaff(host: HTMLElement) {
   const treble = new Stave(LEFT, TREBLE_Y, width).addClef('treble');
   const bass = new Stave(LEFT, BASS_Y, width).addClef('bass');
   for (const stave of [treble, bass]) {
+    if (keySpec) stave.addKeySignature(keySpec);
     // VexFlow's default ledger lines are a fixed grey; follow the notation colour instead.
     stave.setDefaultLedgerLineStyle({ strokeStyle: 'currentColor', lineWidth: 1.6 });
     stave.setContext(context).draw();
@@ -56,12 +61,12 @@ function grandStaff(host: HTMLElement) {
 }
 
 /** The drawn SVG, scaled by CSS and hidden from assistive technology (the host labels it). */
-function finish(host: HTMLElement): SVGSVGElement {
+function finish(host: HTMLElement, width = STAFF_WIDTH, height = STAFF_HEIGHT): SVGSVGElement {
   const svg = host.querySelector('svg')!;
   svg.removeAttribute('width');
   svg.removeAttribute('height');
   svg.removeAttribute('style');
-  svg.setAttribute('viewBox', `0 0 ${STAFF_WIDTH} ${STAFF_HEIGHT}`);
+  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
   svg.setAttribute('aria-hidden', 'true');
   svg.setAttribute('focusable', 'false');
   return svg;
@@ -323,4 +328,86 @@ export function drawMelody(
   svg.setAttribute('aria-hidden', 'true');
   svg.setAttribute('focusable', 'false');
   return { width, height };
+}
+
+// --- Theory cards on Read -----------------------------------------------------------------------
+
+// An interval or a chord is written on one staff, treble or bass, in a box of its own that every
+// such card shares: room for two ledger lines above and below and a sign on the outermost note.
+export const ONE_STAFF_WIDTH = 250;
+export const ONE_STAFF_HEIGHT = 130;
+/** The staff's top line is this far down the box (VexFlow puts it 4 spaces below a stave's y). */
+const ONE_STAFF_TOP = 50;
+const ONE_STAFF_LEFT = 6;
+
+/** What a theory card writes: notes on one staff, or a key signature on the grand staff. */
+export type TheoryDrawing =
+  | {
+      kind: 'notes';
+      clef: Clef;
+      /** One column of whole notes per entry, left to right: two for a melodic interval. */
+      columns: readonly (readonly SpelledPitch[])[];
+    }
+  | { kind: 'signature'; fifths: number };
+
+/** The box a theory card is drawn in, in VexFlow units. */
+export function theoryBox(kind: TheoryDrawing['kind']): [width: number, height: number] {
+  return kind === 'notes' ? [ONE_STAFF_WIDTH, ONE_STAFF_HEIGHT] : [STAFF_WIDTH, STAFF_HEIGHT];
+}
+
+/**
+ * Draws a theory card into `host`, replacing whatever was there: whole notes on one staff with
+ * their signs as written (double sharps and flats too), or a key signature alone on the cards'
+ * braced grand staff. The notes are in `g.vf-stavenote` groups, all of it in `currentColor`, like
+ * `drawGrandStaff`. Returns the centre of each note column across the box (0–1), for the letter
+ * names under the notes.
+ */
+export function drawTheoryCard(host: HTMLElement, drawing: TheoryDrawing): number[] {
+  if (drawing.kind === 'signature') {
+    grandStaff(host, KEY_SPECS[drawing.fifths] ?? 'C');
+    finish(host);
+    return [];
+  }
+  host.replaceChildren();
+  const renderer = new Renderer(host as HTMLDivElement, Renderer.Backends.SVG);
+  renderer.resize(ONE_STAFF_WIDTH, ONE_STAFF_HEIGHT);
+  const context = renderer.getContext();
+  context.setFillStyle('currentColor');
+  context.setStrokeStyle('currentColor');
+  const { clef, columns } = drawing;
+  const stave = new Stave(
+    ONE_STAFF_LEFT,
+    ONE_STAFF_TOP - 40,
+    ONE_STAFF_WIDTH - 2 * ONE_STAFF_LEFT,
+  ).addClef(clef);
+  stave.setDefaultLedgerLineStyle({ strokeStyle: 'currentColor', lineWidth: 1.6 });
+  stave.setContext(context).draw();
+
+  const notes = columns.map((column) => {
+    // Low to high, so a head's index is the same for VexFlow and for its sign.
+    const pitches = [...column].sort((a, b) => midiOf(a) - midiOf(b));
+    const note = new StaveNote({
+      keys: pitches.map(spelledKey),
+      duration: 'w',
+      clef,
+      alignCenter: columns.length === 1,
+    });
+    pitches.forEach((p, i) => {
+      if (p.alter !== 0) note.addModifier(new Accidental(SIGN_CODE[p.alter] ?? 'n'), i);
+    });
+    return note;
+  });
+  const voice = new Voice({ numBeats: 4 * columns.length, beatValue: 4 }).addTickables(notes);
+  const formatter = new Formatter().joinVoices([voice]);
+  if (columns.length === 1) {
+    formatter.formatToStave([voice], stave);
+  } else {
+    formatter.format([voice], stave.getNoteEndX() - stave.getNoteStartX() - 40);
+  }
+  voice.draw(context, stave);
+  finish(host, ONE_STAFF_WIDTH, ONE_STAFF_HEIGHT);
+  // The heads' centre, the signs before them aside.
+  return notes.map(
+    (note) => (note.getNoteHeadBeginX() + note.getNoteHeadEndX()) / 2 / ONE_STAFF_WIDTH,
+  );
 }

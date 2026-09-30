@@ -60,6 +60,13 @@ and no Simplified-only characters in zh-TW.
   what is practised, as `Intervals` and `Chords` do: 旋律 (zh, ja), 선율 (ko), not a word for
   singing back (模唱). A melodic interval with its direction (`ear.echo.up`, `ear.echo.down`) is
   said as your teaching says it: 上行纯四度, 上行完全4度, 상행 완전4도, perfect 4th up.
+- **Theory cards on Read** (`read.what.*`, `theory.*`): an interval is named from two parts,
+  `theory.quality.*` (diminished … augmented) and `theory.number.*` (2nd … octave), joined by
+  `theory.interval`. Write the parts so the whole reads as your teaching says it — 增二度, 纯八度,
+  増2度, 完全8度, 증2도, 완전8도, augmented 2nd, perfect octave — and so each part stands alone on a
+  button (减 / 二度, 減 / 2度, 감 / 2도). A chord is `theory.chordName`: the root as written, then
+  the chord (`ear.chord.*`): F♯ 小三和弦, F♯の短三和音, F♯ 단3화음. `theory.inversion.*` are the
+  positions shortened for a button; the full ones are `ear.inversion.*`.
 - **Numbers, dates and lists of devices** are formatted by `Intl` in the active locale; do not
   write them into strings.
 
@@ -118,6 +125,12 @@ Chinese and Latin letters, digits and placeholders (`第 {n} 张`, `MIDI 键盘`
 | step / leap / tonic chord                   | 级进 / 跳进 / 主和弦                     |
 | chromatic (neighbour, passing) notes        | 变化音（辅助音、经过音）                 |
 | played as (a wrong key)                     | 弹成了                                   |
+| What to read: notes, intervals (Read)       | 识谱内容：音符、音程                     |
+| key signature / tonic / relative minor      | 调号 / 主音 / 关系小调                   |
+| diminished, minor, perfect, major, aug.     | 减、小、纯、大、增（增二度、减五度）     |
+| quality / number (of an interval)           | 性质 / 度数（二度……八度）                |
+| natural notes / double sharp, flat          | 自然音 / 重升、重降                      |
+| natural sign / root pos., 1st inv.          | 还原号 / 原位、第一转位                  |
 
 ## Traditional Chinese, Taiwan (`zh-TW`)
 
@@ -172,6 +185,12 @@ terms throughout. Address the learner as 你, as zh-CN does.
 | step / leap / tonic chord                 | 級進 / 跳進 / 主和弦                 | 级进 / 跳进                |
 | chromatic (neighbour, passing) notes      | 變化音                               | 变化音                     |
 | played as (a wrong key)                   | 彈成了                               | 弹成了                     |
+| What to read: notes, intervals (Read)     | 識譜內容：音符、音程                 | 识谱内容                   |
+| key signature / relative minor            | 調號 / 關係小調                      | 调号 / 关系小调            |
+| diminished, perfect, augmented            | 減、純、增（增二度、減五度）         | 减、纯、增                 |
+| quality / number (of an interval)         | 性質 / 度數                          | 性质 / 度数                |
+| natural notes / double sharp, flat        | 自然音 / 重升、重降記號              | 重升、重降                 |
+| natural sign / 1st inversion              | 還原記號 / 第一轉位                  | 还原号 / 第一转位          |
 
 Keys in titles: `G 大調`, `C 大調`. Composers as Taiwan writes them: 貝多芬, 巴哈 (not 巴赫), 舒曼,
 布爾格彌勒.
@@ -224,6 +243,12 @@ verb phrases for labels and buttons (設定, 開始, もう一度, 補正する)
 | step / leap / tonic chord                   | 順次進行 / 跳躍 / 主和音                         |
 | chromatic (neighbour, passing) notes        | 半音階的な音                                     |
 | played as (a wrong key)                     | 〜と弾きました                                   |
+| What to read: notes, intervals (Read)       | 読むもの：音符・音程                             |
+| key signature / relative minor              | 調号 / 平行調                                    |
+| diminished, minor, perfect, major, aug.     | 減・短・完全・長・増（増2度、減5度）             |
+| quality / number (of an interval)           | 種類 / 度数（2度〜8度）                          |
+| natural notes / double sharp, flat          | 幹音 / ダブルシャープ・ダブルフラット            |
+| natural sign / 1st inversion (button)       | ナチュラル / 第1転回                             |
 
 Keys in titles follow Japanese editions: ハ長調, ト長調. Middle C is 中央C. Scale names on the Scales
 page keep the letter names of the app (`D長音階`, `G♯和声的短音階`), not ニ長音階.
@@ -277,6 +302,12 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 | step / leap / tonic chord                   | 순차 진행 / 도약 / 으뜸화음                                          |
 | chromatic (neighbour, passing) notes        | 반음계적인 음                                                        |
 | played as (a wrong key)                     | 친 음은 …                                                            |
+| What to read: notes, intervals (Read)       | 읽을 것: 음표, 음정                                                  |
+| key signature / relative minor              | 조표 / 나란한조                                                      |
+| diminished, minor, perfect, major, aug.     | 감, 단, 완전, 장, 증 (증2도, 감5도)                                  |
+| quality / number (of an interval)           | 성질 / 도수 (2도–8도)                                                |
+| natural notes / double sharp, flat          | 변화표 없는 음 / 겹올림표, 겹내림표                                  |
+| natural sign / 1st inversion (button)       | 제자리표 / 제1전위                                                   |
 
 Keys in titles use letters: G장조, C장조, matching the letter names in the app. Composer names
 follow the National Institute of Korean Language: 루트비히 판 베토벤, 요한 제바스티안 바흐.

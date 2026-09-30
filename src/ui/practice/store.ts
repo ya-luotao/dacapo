@@ -1,10 +1,11 @@
-import { byAnswerTime, type Answer } from '../../core/earSession.ts';
+import { byAnswerTime, type Answer } from '../../core/answers.ts';
 import { closeFreePlay, type FreePlaySession, type OpenFreePlay } from '../../core/freePlay.ts';
 import {
   byStartDescending,
   byTime,
   recoverEarSessions,
   recoverReadSessions,
+  recoverTheorySessions,
   type SessionRecord,
 } from '../../core/log.ts';
 import {
@@ -41,7 +42,7 @@ export interface PracticeData {
   sessions: readonly SessionRecord[];
   /** Imported pieces, newest first. */
   pieces: readonly StoredPiece[];
-  /** Ear-training answers, in the order they happened (small: all loaded at startup). */
+  /** Ear-training and theory answers, in the order they happened (small: all loaded at startup). */
   answers: readonly Answer[];
 }
 
@@ -71,7 +72,7 @@ export interface PracticeStore {
   getStatus: () => StorageStatus;
   subscribeStatus: (onChange: () => void) => () => void;
   recordAttempt: (attempt: Attempt) => void;
-  /** Stores an ear-training answer (one whose id is known already changes nothing). */
+  /** Stores an ear-training or theory answer (one whose id is known already changes nothing). */
   recordAnswer: (answer: Answer) => void;
   /** Adds or replaces the session with the same id. */
   recordSession: (session: SessionRecord) => void;
@@ -360,7 +361,8 @@ export function createPracticeStore({
 
   /**
    * Loads everything and repairs what a closed tab left behind: free-play sessions still open,
-   * and flashcard attempts or ear-training answers whose session summary was never written. Both are keyed by the id the
+   * and flashcard attempts, ear-training answers or theory answers whose session summary was
+   * never written. Both are keyed by the id the
    * other tab uses, so if that tab is in fact still running, its own later write wins. Only at
    * startup: a reload must not finish a run that this or another tab is still playing, nor
    * rebuild the session of answers another device has sent before their session.
@@ -380,7 +382,10 @@ export function createPracticeStore({
       await repo.putSession(recovered);
       sessions = upsertSession(sessions, recovered);
     }
-    for (const recovered of recoverEarSessions(stored.answers, sessions)) {
+    for (const recovered of [
+      ...recoverEarSessions(stored.answers, sessions),
+      ...recoverTheorySessions(stored.answers, sessions),
+    ]) {
       await repo.putSession(recovered);
       sessions = upsertSession(sessions, recovered);
     }

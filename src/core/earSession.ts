@@ -30,7 +30,7 @@ export const ANSWER_MODES: readonly AnswerMode[] = ['play', 'name'];
 export const EAR_TARGET_MS = 2000;
 
 /** The scored first answer to one item. Plain data, so it can be stored and synced as is. */
-export interface Answer {
+export interface EarAnswer {
   /** Stable and unique, so imports and sync can merge by id. */
   id: string;
   sessionId: string;
@@ -94,7 +94,7 @@ export interface EarSessionState {
   endedAt: number | null;
   phase: 'running' | 'done';
   card: EarCard;
-  answers: readonly Answer[];
+  answers: readonly EarAnswer[];
 }
 
 export interface EarStartOptions {
@@ -191,7 +191,7 @@ function scored(
   newId: () => string,
 ): EarSessionState {
   const { card } = state;
-  const record: Answer = {
+  const record: EarAnswer = {
     id: newId(),
     sessionId: state.id,
     family: state.family,
@@ -298,7 +298,7 @@ export function endEarSession(state: EarSessionState, at: number): EarSessionSta
 // --- Figures ---------------------------------------------------------------------------------
 
 /** Answers whose time says something about hearing: right, without a replay, not timed out. */
-export function isTimedAnswer(answer: Answer): boolean {
+export function isTimedAnswer(answer: EarAnswer): boolean {
   return answer.correct && answer.replays === 0 && answer.ms <= TIMEOUT_MS;
 }
 
@@ -311,7 +311,7 @@ export interface MissedItem {
    * the interval into the wrong note.
    */
   prompt: number[];
-  /** A melody's key (`Answer.key`), to spell its notes. */
+  /** A melody's key (`EarAnswer.key`), to spell its notes. */
   key?: MelodyKey;
 }
 
@@ -378,7 +378,7 @@ export function summarizeEar(state: EarSummaryInput): EarSessionSummary {
  * The summary of a session whose answers were stored but whose end was not (the tab was closed
  * mid-session). `answers` must belong to one session, in the order they happened.
  */
-export function recoverEarSummary(answers: readonly Answer[]): EarSessionSummary | null {
+export function recoverEarSummary(answers: readonly EarAnswer[]): EarSessionSummary | null {
   const first = answers[0];
   const last = answers.at(-1);
   if (!first || !last) return null;
@@ -394,7 +394,7 @@ export function recoverEarSummary(answers: readonly Answer[]): EarSessionSummary
   });
 }
 
-export function byAnswerTime(a: Answer, b: Answer): number {
+export function byAnswerTime(a: Pick<EarAnswer, 'at' | 'id'>, b: Pick<EarAnswer, 'at' | 'id'>) {
   return a.at - b.at || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 }
 
@@ -402,7 +402,7 @@ export function byAnswerTime(a: Answer, b: Answer): number {
  * Per-item stats, recomputed from the answers (no stored stats): the note model's, with a
  * replayed answer counted like a hinted one, for accuracy but not for time.
  */
-export function earStats(answers: readonly Answer[]): Record<string, NoteStats> {
+export function earStats(answers: readonly EarAnswer[]): Record<string, NoteStats> {
   return statsFromAttempts(
     answers.map((a) => ({
       note: a.item,
@@ -450,7 +450,10 @@ export interface EarLevelProgress {
  * Mastery over the level's last `masteryWindow(level)` answers given without a replay, in any
  * direction: a full window at ≥ 90 % right. `answers` must be in the order they happened.
  */
-export function earLevelProgress(answers: readonly Answer[], level: EarLevelId): EarLevelProgress {
+export function earLevelProgress(
+  answers: readonly EarAnswer[],
+  level: EarLevelId,
+): EarLevelProgress {
   const size = masteryWindow(level);
   const ofLevel = answers.filter((a) => a.level === level);
   const window = ofLevel.filter((a) => a.replays === 0).slice(-size);

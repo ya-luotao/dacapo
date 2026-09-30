@@ -14,6 +14,7 @@ import {
   suggestedEarLevel,
   type EarLevelProgress,
 } from '../../core/earSession.ts';
+import { isEarAnswer } from '../../core/answers.ts';
 import { useT } from '../../i18n/index.ts';
 import { SETTLE_MS } from '../../output/output.ts';
 import { createEarController, type EarSound } from '../ear/controller.ts';
@@ -46,7 +47,8 @@ function useSound(): 'ready' | 'none' | 'waiting' {
 export function EarPage() {
   const t = useT();
   const practice = usePracticeStore();
-  const { answers } = usePractice();
+  const { answers: allAnswers } = usePractice();
+  const answers = useMemo(() => allAnswers.filter(isEarAnswer), [allAnswers]);
   const { loaded } = useStorageStatus();
   const { hub, output } = useInput();
   const sound = useSound();

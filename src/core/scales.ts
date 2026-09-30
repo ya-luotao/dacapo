@@ -474,6 +474,25 @@ export function keySignature(
     : { fifths: major - 3, mode: 'minor' };
 }
 
+/** The circle of fifths from seven flats (C♭ major, A♭ minor) to seven sharps (C♯, A♯ minor). */
+export const SIGNATURE_FIFTHS = [-7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7] as const;
+
+const FIFTHS_LETTERS: readonly Letter[] = ['F', 'C', 'G', 'D', 'A', 'E', 'B'];
+
+/**
+ * The tonic of the key with a signature of `fifths` sharps (+) or flats (−): the inverse of
+ * `keySignature`, for every key from seven flats to seven sharps (C♭ and C♯ major, A♭ and A♯
+ * minor included). A minor key's tonic is its relative major's sixth, three fifths on.
+ */
+export function signatureTonic(fifths: number, mode: 'major' | 'minor'): Tonic {
+  if (!Number.isInteger(fifths) || Math.abs(fifths) > 7) throw new RangeError(`fifths: ${fifths}`);
+  // F is −1: one fifth below C.
+  const n = fifths + (mode === 'minor' ? 3 : 0) + 1;
+  const letter = FIFTHS_LETTERS[((n % 7) + 7) % 7]!;
+  const alter = Math.floor(n / 7);
+  return `${letter}${alter > 0 ? '#' : alter < 0 ? 'b' : ''}`;
+}
+
 /** The alteration the key signature gives each letter. */
 export function keyAlters(fifths: number): Record<Letter, number> {
   const out: Record<Letter, number> = { C: 0, D: 0, E: 0, F: 0, G: 0, A: 0, B: 0 };

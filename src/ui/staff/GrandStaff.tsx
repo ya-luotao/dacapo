@@ -1,13 +1,16 @@
-import { useLayoutEffect, useRef, useSyncExternalStore, type CSSProperties } from 'react';
+import { useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import type { Clef, Pitch } from '../../core/note.ts';
 import { useT } from '../../i18n/index.ts';
 import {
   drawGrandStaff,
   drawGrandStaffNotes,
   drawMelody,
+  drawTheoryCard,
+  theoryBox,
   STAFF_HEIGHT,
   STAFF_WIDTH,
   type MelodyDrawing,
+  type TheoryDrawing,
 } from './draw.ts';
 import { getFontState, subscribeFont } from './font.ts';
 
@@ -92,6 +95,79 @@ export function NotesStaff({ columns, label, state = 'neutral', className }: Not
       style={{ '--staff-aspect': STAFF_WIDTH / STAFF_HEIGHT } as CSSProperties}
     >
       <div className="grand-staff-svg" ref={host} />
+      {font === 'failed' && <p className="grand-staff-error">{t('staff.fontFailed')}</p>}
+    </div>
+  );
+}
+
+interface TheoryStaffProps {
+  drawing: TheoryDrawing;
+  /** What the staff shows, for assistive technology. */
+  label: string;
+  state?: StaffState;
+  /**
+   * Called with `performance.now()` in the first animation frame after the card was drawn, as
+   * `GrandStaff` does: a new callback identity draws and reports again.
+   */
+  onPainted?: (time: number) => void;
+  /**
+   * Letter names to write under the card (the hint): one per note column, placed under it; a key
+   * signature's under the middle of the staff. Hidden from assistive technology: the caller says
+   * them.
+   */
+  names?: readonly string[] | null;
+}
+
+/**
+ * A theory card: an interval or a chord on one staff, or a key signature on the cards' braced
+ * grand staff. Colours come from CSS, so themes need no redraw.
+ */
+export function TheoryStaff({
+  drawing,
+  label,
+  state = 'neutral',
+  onPainted,
+  names,
+}: TheoryStaffProps) {
+  const t = useT();
+  const host = useRef<HTMLDivElement>(null);
+  const font = useSyncExternalStore(subscribeFont, getFontState, getFontState);
+  // Where the columns were drawn, across the staff (0–1).
+  const [columns, setColumns] = useState<readonly number[]>([]);
+  // Redrawn only when the card changes, not for a new object with the same notes.
+  const key = JSON.stringify(drawing);
+
+  useLayoutEffect(() => {
+    const el = host.current;
+    if (!el || font !== 'ready') return;
+    const drawn = drawTheoryCard(el, JSON.parse(key) as TheoryDrawing);
+    setColumns((previous) => (previous.join() === drawn.join() ? previous : drawn));
+    const frame = requestAnimationFrame(() => onPainted?.(performance.now()));
+    return () => {
+      cancelAnimationFrame(frame);
+      el.replaceChildren();
+    };
+  }, [font, key, onPainted]);
+
+  const [width, height] = theoryBox(drawing.kind);
+  return (
+    <div
+      className={drawing.kind === 'notes' ? 'grand-staff one-staff' : 'grand-staff'}
+      data-state={state}
+      role="img"
+      aria-label={label}
+      style={{ '--staff-aspect': width / height } as CSSProperties}
+    >
+      <div className="grand-staff-svg" ref={host} />
+      {names && font === 'ready' && (
+        <p className="staff-names" aria-hidden="true">
+          {names.map((name, i) => (
+            <span key={i} style={{ left: `${(columns[i] ?? 0.5) * 100}%` }}>
+              {name}
+            </span>
+          ))}
+        </p>
+      )}
       {font === 'failed' && <p className="grand-staff-error">{t('staff.fontFailed')}</p>}
     </div>
   );

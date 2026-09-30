@@ -9,8 +9,34 @@ which is noted when it changes.
 Export format version 8: the file now includes imported pieces (from version 2), piece practice
 sessions and their step records (from version 3), rhythm-mode steps with their timings (from
 version 4), scale sessions with every scale run as played (from version 5), ear-training answers
-and sessions (from version 6), the click's tempo and grid of scale runs played with it (from
-version 7), and the takes of piece runs (from version 8). Version 1 to 7 files still import.
+and sessions (from version 6; the theory cards' answers and sessions go in the same lists), the
+click's tempo and grid of scale runs played with it (from version 7), and the takes of piece runs
+(from version 8). Version 1 to 7 files still import.
+
+### Theory on Read: intervals, key signatures and chords on the staff (E3)
+
+- **Read** asks what to read: **Notes** as before, or three new kinds of card, each with its own
+  levels, suggested level and mastery ([docs/EAR.md](docs/EAR.md)).
+- **Intervals**: two notes on one staff, one after the other or stacked, up or down; name the
+  interval with two rows of buttons, its quality and its number, or with the keys (d m P M A and
+  2–8). Four levels, from the number alone on natural notes to every quality with double sharps,
+  double flats and two ledger lines. Spelling counts: C–D♯ is an augmented 2nd, C–E♭ a minor 3rd.
+- **Key signatures**: a key signature alone on the grand staff; play the tonic, in any octave.
+  Five levels, from majors with two sharps or flats to all fifteen minor keys (C♯ and C♭ majors
+  and their relative minors included).
+- **Chords**: a close-position chord on the treble or bass staff, from the triads of C major to
+  inversions and the four seventh chords; **play it** exactly as written, octave included, or
+  **name it** by its root as written, its sign and the chord.
+- As on Read: the clock starts when the card is drawn, a right answer moves on after 400 ms and a
+  wrong one shows the answer (on the keyboard, the buttons and in words) until it is given; the
+  next card favours what you miss or answer slowly, and a level is mastered at 90% over its last
+  40 cards without the hint, with a median under 3 s (4 s for chords). "Show letter names" names
+  each note under it, or a key signature's sharps or flats.
+- While a card is named, the computer keyboard plays no notes, so its letters choose names.
+- Every answer is kept in the answers store, with the notes as written; theory sessions join the
+  log, the minutes and the streak (the public profile counts them as reading), and a session left
+  open is rebuilt from its answers. Sync learns them (`SYNC_SCHEMA` 6): a device that updates
+  pulls everything again once. The export file needs no new version for them.
 
 ### The score's markings, and takes (X0, [docs/EXPRESSION.md](docs/EXPRESSION.md))
 

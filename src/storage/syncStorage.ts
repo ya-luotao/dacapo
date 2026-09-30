@@ -1,4 +1,4 @@
-import type { Answer } from '../core/earSession.ts';
+import type { Answer } from '../core/answers.ts';
 import { byTime, type SessionRecord } from '../core/log.ts';
 import type { PieceStep } from '../core/pieceRecords.ts';
 import type { StoredScaleRun } from '../core/scaleRecords.ts';

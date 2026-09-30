@@ -13,6 +13,8 @@ import {
   sampleRun,
   sampleScaleSession,
   sampleTake,
+  sampleTheoryAnswers,
+  sampleTheorySession,
   T0,
 } from '../storage/fixtures.ts';
 import { createIndexedDbRepository } from '../storage/repository.ts';
@@ -554,6 +556,35 @@ describe('ear training', () => {
     expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
     expect(mac.store.getSnapshot().answers).toEqual(echo);
   });
+
+  it('syncs the theory cards of Read, and pulls them again after a build that skipped them', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    const theory = sampleTheorySession('t1', 3);
+    const cards = [...theory.answers, ...sampleTheoryAnswers(4, 't1').slice(1)];
+    for (const answer of cards) ipad.store.recordAnswer(answer);
+    ipad.store.recordSession(theory.session);
+    await ipad.store.settled();
+    await signIn(ipad);
+    expect(service.body('answers', cards[3]!.id)).toEqual(cards[3]);
+    await signIn(mac);
+    expect(mac.store.getSnapshot().answers).toEqual(cards);
+    expect(mac.store.getSnapshot().sessions).toEqual([theory.session]);
+
+    // As schema 5 left it: the theory answers and session skipped, the cursor past them.
+    const state = (await mac.db.get('meta', SYNC_STATE_KEY)) as SyncState;
+    await mac.db.clear('answers');
+    await mac.db.delete('sessions', theory.session.id);
+    await mac.db.put('meta', { ...state, schema: 5 }, SYNC_STATE_KEY);
+    await mac.store.reloadAll();
+    const sync = vi.spyOn(service.api, 'sync');
+    await mac.client.syncNow();
+    expect(SYNC_SCHEMA).toBe(6);
+    expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
+    expect(mac.store.getSnapshot().answers).toEqual(cards);
+    expect(mac.store.getSnapshot().sessions).toEqual([theory.session]);
+  });
 });
 
 describe('takes', () => {
@@ -575,7 +606,7 @@ describe('takes', () => {
     await mac.db.put('meta', { ...state, schema: 4 }, SYNC_STATE_KEY);
     const sync = vi.spyOn(service.api, 'sync');
     await mac.client.syncNow();
-    expect(SYNC_SCHEMA).toBe(5);
+    expect(SYNC_SCHEMA).toBeGreaterThanOrEqual(5);
     expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
     expect(await mac.store.takes({ sessionId: 'r1' })).toEqual(takes);
     expect(await mac.db.count('outbox')).toBe(0);

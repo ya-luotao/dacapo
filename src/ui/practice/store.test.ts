@@ -13,6 +13,7 @@ import {
   sampleRun,
   sampleScaleRun,
   sampleScaleSession,
+  sampleTheoryAnswers,
   T0,
 } from '../../storage/fixtures.ts';
 import {
@@ -203,6 +204,24 @@ describe('ear-training answers', () => {
       expect.objectContaining({ kind: 'ear', id: 'lost', items: 2, endedAt: answers[1]!.at }),
     );
     expect((await onDisk()).sessions.map((s) => s.id).sort()).toEqual(['kept', 'lost']);
+  });
+
+  it('rebuilds a theory session beside an ear one, each from its own answers', async () => {
+    const theory = [...sampleTheoryAnswers(0, 'cards'), ...sampleTheoryAnswers(1, 'cards')];
+    const ear = [sampleAnswer(0, 'heard'), sampleAnswer(1, 'heard')];
+    await seed(async (repo) => {
+      for (const answer of [...theory, ...ear]) await repo.addAnswer(answer);
+    });
+    const store = startStore();
+    await loaded(store);
+    const { sessions } = store.getSnapshot();
+    expect(sessions).toContainEqual(
+      expect.objectContaining({ kind: 'theory', id: 'cards', cards: 8, correct: 4 }),
+    );
+    expect(sessions).toContainEqual(
+      expect.objectContaining({ kind: 'ear', id: 'heard', items: 2 }),
+    );
+    expect((await onDisk()).sessions.map((s) => s.id).sort()).toEqual(['cards', 'heard']);
   });
 
   it('records answers once, in order, and keeps the other tab in step', async () => {

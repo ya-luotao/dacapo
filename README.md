@@ -57,7 +57,9 @@ practising the notes you are slowest at. Progress is visible day by day.
 - **Sight-reading flashcards.** One note at a time on a real grand staff, in seven levels from
   middle C position to ledger lines and sharps and flats. You press the key in the right
   octave; every answer records whether it was right and how fast. The next card favours the
-  notes you are slow or unsure on.
+  notes you are slow or unsure on. Read also has **theory cards**: name the interval between two
+  written notes (up to double sharps and flats), play the tonic of a key signature, and play or
+  name a chord as written, each in levels of its own ([docs/EAR.md](docs/EAR.md)).
 - **Ear training.** Intervals and chords by ear, in twelve levels from the octave, fifth and
   major third to compound intervals, inversions and seventh chords. Your instrument or the
   built-in piano plays the question; play it back on the keys (the first note or the root is
@@ -181,7 +183,6 @@ static file host without rewrite rules. To serve it below the site root, build w
 
 These are deliberately out of scope for the MVP and are the candidates once it is used daily:
 
-- More theory: intervals, key signatures and chords on the staff ([docs/EAR.md](docs/EAR.md))
 - AI coaching
 
 ## Contributing

@@ -93,10 +93,11 @@ function longest<T extends { ms: number }>(
 /**
  * The day kind a session counts as. The service accepts these kinds only and rejects a document
  * with any other, so ear training counts as reading (the nearest: drills by level, away from the
- * pieces) until the service learns an `ear` kind (docs/EAR.md, "Clarifications").
+ * pieces) until the service learns an `ear` kind (docs/EAR.md, "Clarifications"); the theory
+ * cards on Read (kind `theory`) are reading.
  */
 function activityKind(session: SessionRecord): ActivityKind {
-  return session.kind === 'ear' ? 'read' : session.kind;
+  return session.kind === 'ear' || session.kind === 'theory' ? 'read' : session.kind;
 }
 
 function dayActivity(

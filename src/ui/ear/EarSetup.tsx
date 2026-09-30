@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from 'react';
+import { useId } from 'react';
 import {
   CHORD_STYLES,
   DIRECTION_SETTINGS,
@@ -15,6 +15,7 @@ import {
 import { SESSION_LENGTHS } from '../../core/session.ts';
 import { useT } from '../../i18n/index.ts';
 import { useReadFormat } from '../read/format.ts';
+import { Segmented } from '../Segmented.tsx';
 import { useEarFormat } from './format.ts';
 import type { EarPrefs } from './prefs.ts';
 
@@ -156,55 +157,6 @@ export function EarSetup({
         </button>
       </div>
     </form>
-  );
-}
-
-interface SegmentedProps<T extends string | number> {
-  legend: string;
-  name: string;
-  options: readonly { value: T; label: ReactNode }[];
-  value: T;
-  onChange: (value: T) => void;
-  help?: string;
-  className?: string;
-}
-
-function Segmented<T extends string | number>({
-  legend,
-  name,
-  options,
-  value,
-  onChange,
-  help,
-  className,
-}: SegmentedProps<T>) {
-  const helpId = useId();
-  return (
-    <fieldset
-      className={className ? `field ${className}` : 'field'}
-      aria-describedby={help ? helpId : undefined}
-    >
-      <legend>{legend}</legend>
-      <div className="segmented">
-        {options.map((option) => (
-          <label key={option.value}>
-            <input
-              type="radio"
-              name={name}
-              value={option.value}
-              checked={value === option.value}
-              onChange={() => onChange(option.value)}
-            />
-            <span>{option.label}</span>
-          </label>
-        ))}
-      </div>
-      {help && (
-        <p id={helpId} className="help">
-          {help}
-        </p>
-      )}
-    </fieldset>
   );
 }
 

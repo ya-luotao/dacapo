@@ -1,8 +1,8 @@
 // Sample records for storage tests. Not imported by the app.
 import { IDBFactory } from 'fake-indexeddb';
-import { recoverEarSummary, type Answer } from '../core/earSession.ts';
+import { recoverEarSummary, type EarAnswer } from '../core/earSession.ts';
 import type { RunHeadline } from '../core/evenness.ts';
-import type { EarSessionRecord, SessionRecord } from '../core/log.ts';
+import type { EarSessionRecord, SessionRecord, TheorySessionRecord } from '../core/log.ts';
 import { parseNoteKey } from '../core/levels.ts';
 import {
   pieceSession,
@@ -18,6 +18,7 @@ import {
   type StoredScaleRun,
 } from '../core/scaleRecords.ts';
 import { recoverSummary, type Attempt } from '../core/session.ts';
+import { recoverTheorySummary, type TheoryAnswer } from '../core/theorySession.ts';
 import type { StoredPiece } from '../core/storedPiece.ts';
 import { takeChunkId, type TakeChunk } from '../core/takes.ts';
 
@@ -302,7 +303,11 @@ export function sampleScaleSession(
  * Answer `i` of ear session `sessionId`: a perfect 5th up played on the keyboard, every fourth
  * one a key too low; 4 s apart, a replay on every fifth.
  */
-export function sampleAnswer(i: number, sessionId = 'e1', patch: Partial<Answer> = {}): Answer {
+export function sampleAnswer(
+  i: number,
+  sessionId = 'e1',
+  patch: Partial<EarAnswer> = {},
+): EarAnswer {
   const lower = 48 + (i % 12);
   const correct = i % 4 !== 3;
   return {
@@ -326,8 +331,8 @@ export function sampleAnswer(i: number, sessionId = 'e1', patch: Partial<Answer>
 export function sampleNamedAnswer(
   i: number,
   sessionId = 'e2',
-  patch: Partial<Answer> = {},
-): Answer {
+  patch: Partial<EarAnswer> = {},
+): EarAnswer {
   const correct = i % 2 === 0;
   return {
     id: `${sessionId}:${i}`,
@@ -347,7 +352,11 @@ export function sampleNamedAnswer(
 }
 
 /** A melody played back (EC2 in C): right on even `i`, wrong at its third note on odd `i`. */
-export function sampleEchoAnswer(i: number, sessionId = 'e3', patch: Partial<Answer> = {}): Answer {
+export function sampleEchoAnswer(
+  i: number,
+  sessionId = 'e3',
+  patch: Partial<EarAnswer> = {},
+): EarAnswer {
   const correct = i % 2 === 0;
   return {
     id: `${sessionId}:${i}`,
@@ -371,7 +380,77 @@ export function sampleEchoAnswer(i: number, sessionId = 'e3', patch: Partial<Ans
 export function sampleEarSession(
   sessionId: string,
   count: number,
-): { answers: Answer[]; session: EarSessionRecord } {
+): { answers: EarAnswer[]; session: EarSessionRecord } {
   const answers = Array.from({ length: count }, (_, i) => sampleAnswer(i, sessionId));
   return { answers, session: { kind: 'ear', ...recoverEarSummary(answers)! } };
+}
+
+/**
+ * Theory answers on Read, one of each kind of card: an interval named (RI3, C4–D♯4 up, wrong as
+ * a minor 3rd on odd `i`), a key signature played (KS2, E♭ major: an E♭, or a D on odd `i`), a
+ * chord played (RC2, C major on the treble staff) and a chord named (RC3, F♯ minor in 1st
+ * inversion on the bass staff, as G♭ on odd `i`); 3 s apart, every third one hinted.
+ */
+export function sampleTheoryAnswers(i: number, sessionId = 't1'): TheoryAnswer[] {
+  const right = i % 2 === 0;
+  const base = { sessionId, correct: right, ms: 1800 + i * 100, hinted: i % 3 === 2 };
+  const at = (n: number) => T0 + 12_000_000 + (i * 4 + n) * 3000;
+  return [
+    {
+      ...base,
+      id: `${sessionId}:${i}:ri`,
+      family: 'readInterval',
+      level: 'RI3',
+      item: 'ri:A2:up',
+      by: 'name',
+      prompt: ['C4', 'D#4'],
+      clef: 'treble',
+      answer: right ? 'A2' : 'm3',
+      at: at(0),
+    },
+    {
+      ...base,
+      id: `${sessionId}:${i}:ks`,
+      family: 'keySignature',
+      level: 'KS2',
+      item: 'ks:3f:major',
+      by: 'play',
+      prompt: '3f',
+      answer: [right ? 51 : 62],
+      at: at(1),
+    },
+    {
+      ...base,
+      id: `${sessionId}:${i}:rc`,
+      family: 'readChord',
+      level: 'RC2',
+      item: 'rc:maj:root',
+      by: 'play',
+      prompt: ['C4', 'E4', 'G4'],
+      clef: 'treble',
+      answer: right ? [60, 64, 67] : [60, 65],
+      at: at(2),
+    },
+    {
+      ...base,
+      id: `${sessionId}:${i}:rn`,
+      family: 'readChord',
+      level: 'RC3',
+      item: 'rc:min:1st',
+      by: 'name',
+      prompt: ['A2', 'C#3', 'F#3'],
+      clef: 'bass',
+      answer: right ? 'F#:min:1st' : 'Gb:min:1st',
+      at: at(3),
+    },
+  ];
+}
+
+/** A theory session of intervals (RI3) of `count` answers with its record. */
+export function sampleTheorySession(
+  sessionId: string,
+  count: number,
+): { answers: TheoryAnswer[]; session: TheorySessionRecord } {
+  const answers = Array.from({ length: count }, (_, i) => sampleTheoryAnswers(i, sessionId)[0]!);
+  return { answers, session: { kind: 'theory', ...recoverTheorySummary(answers)! } };
 }

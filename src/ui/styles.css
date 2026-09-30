@@ -2188,13 +2188,18 @@ kbd {
   text-wrap: balance;
 }
 
-/* Echo's level ids (EC1–EC7) are wider than I1 or C1: every family gets the wider column. */
-.ear-setup .level {
+/*
+ * Echo's level ids (EC1–EC7) are wider than I1 or C1: every family gets the wider column, and
+ * so do the theory cards' (RI1, KS1, RC1).
+ */
+.ear-setup .level,
+.theory-setup .level {
   grid-template-columns: 1.125rem 2.875rem minmax(0, 1fr) auto;
 }
 
 @media (max-width: 40rem) {
-  .ear-setup .level {
+  .ear-setup .level,
+  .theory-setup .level {
     grid-template-columns: 1.125rem 2.5rem minmax(0, 1fr);
   }
 }
@@ -2322,6 +2327,280 @@ kbd {
 
 .ear-missed li + li {
   margin-top: 0.25rem;
+}
+
+/*
+ * Read: what to read. The kinds of card are the tabs of a method book, one row per group (the
+ * cards now; the choices read in time later). Two by two on a phone.
+ */
+.read-what {
+  margin-top: 1.5rem;
+}
+
+.read-what-group + .read-what-group {
+  margin-top: 0.5rem;
+}
+
+.read-what + .read-intro {
+  margin-top: 1.25rem;
+}
+
+@media (max-width: 40rem) {
+  .read-what .segmented {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .read-what .segmented label:nth-child(odd) span {
+    border-left: 0;
+  }
+
+  .read-what .segmented label:nth-child(n + 3) span {
+    border-top: 1px solid var(--border);
+  }
+}
+
+/* Read: theory cards. The Read session's music stand; the answer buttons beside the sheet. */
+
+.theory-main {
+  width: min(100%, calc(var(--staff-w) + 2 * var(--sheet-px)));
+  margin-inline: auto;
+}
+
+/* Minor or major, over the key signature: a small mark in the sheet's corner. */
+.theory-mode {
+  position: absolute;
+  top: 0.625rem;
+  left: 1rem;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.theory-mode:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+}
+
+/*
+ * The hint: each note's letter name under its column, set like the sheet's own lettering. Its
+ * line is kept below every card, so showing it moves nothing; the staff gives up that height.
+ */
+.theory-session {
+  --read-chrome: 28.5rem;
+}
+
+.theory-card {
+  padding-bottom: 2.5rem;
+}
+
+/* One staff is wide and low: it takes the height the rest leaves, up to a comfortable size. */
+.theory-session.is-one-staff {
+  --staff-w: min(
+    30rem,
+    calc((100dvh - var(--read-chrome) - var(--safe-top) - var(--safe-bottom)) * var(--staff-aspect))
+  );
+}
+
+.staff-names {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+.staff-names span {
+  position: absolute;
+  top: 0.125rem;
+  font-family: var(--font-serif);
+  font-size: 1.375rem;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+/* The sheet shows the answer already: the result is a size smaller than Read's, on one line. */
+.theory-feedback .read-result {
+  display: block;
+  font-size: clamp(1.375rem, 1.2rem + 0.75vw, 1.75rem);
+  text-wrap: balance;
+}
+
+/* A chord's name may take two lines: the mark stays at the start of the first. */
+.theory-feedback .read-result .read-icon {
+  display: inline-block;
+  margin-inline-end: 0.5rem;
+  vertical-align: -0.05em;
+}
+
+.theory-feedback .read-target {
+  margin-top: 0.5rem;
+}
+
+.theory-names {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  width: min(100%, 40rem);
+  margin: 0 auto 1rem;
+}
+
+.theory-row-label {
+  margin: 0 0 0.375rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.theory-row-label:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+}
+
+/* What is chosen so far in the row (a root and its sign), in the ink of the choice. */
+.theory-picked {
+  color: var(--accent);
+  font-family: var(--font-serif);
+  font-size: 1.0625rem;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+/*
+ * The same rows in every language: the qualities three to a row, the numbers four, fewer when a
+ * name is too long for its share; a short last row widens to fill the line.
+ */
+.theory-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.theory-buttons > .theory-name {
+  flex: 1 1 calc((100% - 1rem) / 3 - 1px);
+  min-width: max-content;
+  padding-inline: 0.75rem 0.5rem;
+}
+
+.theory-numbers .theory-buttons > .theory-name {
+  flex-basis: calc((100% - 1.5rem) / 4 - 1px);
+}
+
+.theory-name[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.theory-name[aria-pressed='true'] kbd {
+  color: inherit;
+}
+
+/* A number the chosen quality cannot have, or every button once the card is answered. */
+.theory-name[aria-disabled='true']:not(.is-right, .is-chosen) {
+  opacity: 0.45;
+}
+
+/* A root: seven letters, then its sign on a line of its own. */
+.theory-roots .theory-buttons {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.theory-roots .theory-name {
+  justify-content: center;
+  padding-inline: 0.5rem;
+  font-family: var(--font-serif);
+  font-size: 1.1875rem;
+}
+
+.theory-roots .theory-name kbd {
+  font-family: var(--font-sans);
+}
+
+.theory-signs {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: 0.5rem;
+}
+
+.theory-signs .theory-name {
+  flex: 1 1 0;
+}
+
+.theory-chords .theory-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 64rem) {
+  .theory-session.is-named .theory-stage {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  .theory-session.is-named .theory-main {
+    flex: none;
+    margin-inline: 0;
+  }
+
+  .theory-session.is-named .theory-names {
+    flex: 0 1 26rem;
+    align-self: center;
+    margin: 0;
+  }
+
+  /* A chord's buttons name its position too: wider, so each name keeps to one line. */
+  .theory-session.is-named .theory-names.is-chord {
+    flex-basis: 28rem;
+  }
+
+  .theory-names.is-chord .theory-chords .theory-name > span {
+    white-space: nowrap;
+  }
+}
+
+/* On a phone the answer buttons come below the sheet: a shorter answer line keeps them in view. */
+@media (max-width: 40rem) {
+  .theory-session.is-named .read-feedback {
+    min-height: 4rem;
+  }
+
+  .theory-card {
+    padding-bottom: 2rem;
+  }
+
+  .theory-names {
+    gap: 0.625rem;
+  }
+
+  .theory-row-label {
+    margin-bottom: 0.25rem;
+  }
+
+  .theory-names .theory-name kbd {
+    display: none;
+  }
+
+  .theory-roots .theory-name {
+    padding-inline: 0;
+  }
+
+  .staff-names span {
+    font-size: 1.25rem;
+  }
 }
 
 /* Storage notice: a footnote-style strip, tinted with the warning colour. */

@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { recoverEarSummary } from '../core/earSession.ts';
+import { recoverEarSummary, type EarAnswer } from '../core/earSession.ts';
 import type { SessionRecord } from '../core/log.ts';
 import { openDacapoDB, type DacapoDB } from './db.ts';
 import {
@@ -27,6 +27,8 @@ import {
   sampleRun,
   sampleScaleSession,
   sampleTake,
+  sampleTheoryAnswers,
+  sampleTheorySession,
   T0,
 } from './fixtures.ts';
 import { createIndexedDbRepository, type PracticeRepository } from './repository.ts';
@@ -961,8 +963,91 @@ describe('versions', () => {
       { collection: 'answers', index: 13, field: 'key', problem: 'invalid' },
       { collection: 'answers', index: 14, field: 'key', problem: 'invalid' },
     ]);
-    expect(file.answers[0]!.key).toEqual({ tonic: 'C', scale: 'major' });
+    expect((file.answers[0] as EarAnswer).key).toEqual({ tonic: 'C', scale: 'major' });
     expect(file.sessions[0]).toMatchObject({ missed: [{ key: { tonic: 'C', scale: 'major' } }] });
+  });
+
+  it('imports the answers and sessions of the theory cards, judging each again', () => {
+    const [interval, key, chord, named] = sampleTheoryAnswers(0);
+    const wrong = sampleTheoryAnswers(1);
+    const { answers, session } = sampleTheorySession('t2', 3);
+    const file = parsed(
+      fileWith({
+        version: 7,
+        pieces: [],
+        pieceSteps: [],
+        scaleRuns: [],
+        sessions: [
+          { ...session, extra: 1, missed: session.missed.map((m) => ({ ...m, extra: 1 })) },
+          { ...session, id: 'x1', level: 'KS1' },
+          { ...session, id: 'x2', missed: [{ item: 'ri:A2:up', prompt: '3f', answer: 'm3' }] },
+          { ...session, id: 'x3', slowest: [{ item: 'int:P5:up', ms: 100 }] },
+          { ...session, id: 'x4', cards: 0 },
+        ],
+        answers: [
+          { ...interval, extra: 1 },
+          key,
+          chord,
+          named,
+          ...wrong,
+          ...answers,
+          // An interval: spelled another way, written the wrong way round, with a double sharp
+          // in RI3, off the staff, on no staff, or named by its number past RI1.
+          { ...interval, id: 'y1', prompt: ['C4', 'Eb4'] },
+          { ...interval, id: 'y2', prompt: ['D#4', 'C4'] },
+          { ...interval, id: 'y3', prompt: ['C##4', 'D###4'] },
+          { ...interval, id: 'y4', item: 'ri:A2:up', prompt: ['B##3', 'C###4'] },
+          { ...interval, id: 'y5', prompt: ['C6', 'D#6'] },
+          { ...interval, id: 'y6', clef: undefined },
+          { ...interval, id: 'y7', answer: '2' },
+          { ...interval, id: 'y8', by: 'play', answer: [63] },
+          { ...interval, id: 'y9', level: 'RI1' },
+          // A key signature: not its item's, on a staff, the wrong family, judged wrongly.
+          { ...key, id: 'y10', prompt: '3s' },
+          { ...key, id: 'y11', clef: 'treble' },
+          { ...key, id: 'y12', answer: [51, 63] },
+          { ...key, id: 'y13', answer: [63], correct: false },
+          { ...key, id: 'y14', family: 'readInterval' },
+          // A chord: an octave off, a key short, the root misspelled, not RC2's, as a name.
+          { ...chord, id: 'y15', answer: [48, 64, 67] },
+          { ...chord, id: 'y16', answer: [60, 64] },
+          { ...chord, id: 'y17', prompt: ['C4', 'Fb4', 'G4'] },
+          { ...chord, id: 'y18', level: 'RC4' },
+          { ...named, id: 'y19', answer: 'F#:min:2nd', correct: true },
+          { ...named, id: 'y20', answer: 'F#:dom7:root' },
+          { ...chord, id: 'y21', hinted: 'no' },
+        ],
+      }),
+    );
+    expect(file.sessions).toEqual([session]);
+    expect(file.answers).toEqual([interval, key, chord, named, ...wrong, ...answers]);
+    expect(file.invalid).toEqual([
+      { collection: 'sessions', index: 1, field: 'level', problem: 'invalid' },
+      { collection: 'sessions', index: 2, field: 'missed', problem: 'invalid' },
+      { collection: 'sessions', index: 3, field: 'slowest', problem: 'invalid' },
+      { collection: 'sessions', index: 4, field: 'correct', problem: 'invalid' },
+      { collection: 'answers', index: 11, field: 'prompt', problem: 'invalid' },
+      { collection: 'answers', index: 12, field: 'prompt', problem: 'invalid' },
+      { collection: 'answers', index: 13, field: 'prompt', problem: 'invalid' },
+      { collection: 'answers', index: 14, field: 'prompt', problem: 'invalid' },
+      { collection: 'answers', index: 15, field: 'prompt', problem: 'invalid' },
+      { collection: 'answers', index: 16, field: 'clef', problem: 'invalid' },
+      { collection: 'answers', index: 17, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 18, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 19, field: 'item', problem: 'invalid' },
+      { collection: 'answers', index: 20, field: 'prompt', problem: 'invalid' },
+      { collection: 'answers', index: 21, field: 'clef', problem: 'invalid' },
+      { collection: 'answers', index: 22, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 23, field: 'correct', problem: 'invalid' },
+      { collection: 'answers', index: 24, field: 'clef', problem: 'invalid' },
+      { collection: 'answers', index: 25, field: 'correct', problem: 'invalid' },
+      { collection: 'answers', index: 26, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 27, field: 'prompt', problem: 'invalid' },
+      { collection: 'answers', index: 28, field: 'item', problem: 'invalid' },
+      { collection: 'answers', index: 29, field: 'correct', problem: 'invalid' },
+      { collection: 'answers', index: 30, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 31, field: 'hinted', problem: 'invalid' },
+    ]);
   });
 
   it('keeps the facts of a piece and refuses broken ones', () => {

@@ -1,4 +1,4 @@
-import { byAnswerTime, type Answer } from '../core/earSession.ts';
+import { byAnswerTime, type Answer } from '../core/answers.ts';
 import type { FreePlaySession, OpenFreePlay } from '../core/freePlay.ts';
 import { byStartDescending, byTime, type SessionRecord } from '../core/log.ts';
 import {
@@ -38,7 +38,7 @@ export interface StoredData {
   pieces: StoredPiece[];
   /** Wait-mode runs whose session was not recorded yet (their tab may have gone away). */
   openPieceRuns: PieceRunHeader[];
-  /** Ear-training answers, in the order they happened. */
+  /** Ear-training and theory answers, in the order they happened. */
   answers: Answer[];
 }
 
@@ -115,7 +115,7 @@ export interface PracticeRepository {
   /** Every scale run, in order: for the export file. */
   allScaleRuns: () => Promise<StoredScaleRun[]>;
   scaleRunIds: () => Promise<string[]>;
-  /** Stores an ear-training answer; one whose id is stored already changes nothing. */
+  /** Stores an ear-training or theory answer; one whose id is stored already changes nothing. */
   addAnswer: (answer: Answer) => Promise<void>;
   /** Stores a chunk of a take; one whose id is stored already changes nothing. */
   addTake: (chunk: TakeChunk) => Promise<void>;

@@ -10,8 +10,9 @@ import {
   promptMatches,
   type EarLevelId,
 } from '../core/earItems.ts';
+import type { Answer } from '../core/answers.ts';
 import { isMelodyKeyOf, judgeEchoAnswer } from '../core/earMelody.ts';
-import type { Answer, MissedItem } from '../core/earSession.ts';
+import type { EarAnswer, MissedItem } from '../core/earSession.ts';
 import type { PlayedNote, RunHeadline } from '../core/evenness.ts';
 import type { OpenFreePlay } from '../core/freePlay.ts';
 import { isStaffHands } from '../core/hands.ts';
@@ -23,8 +24,29 @@ import type {
   ReadSessionRecord,
   ScaleSessionRecord,
   SessionRecord,
+  TheorySessionRecord,
 } from '../core/log.ts';
-import { isMidiNote } from '../core/note.ts';
+import { isMidiNote, type Clef } from '../core/note.ts';
+import type { SpelledPitch } from '../core/score.ts';
+import {
+  getTheoryLevel,
+  isChordAnswer,
+  isIntervalAnswer,
+  isTheoryFamily,
+  isTheoryLevelId,
+  isTonicKey,
+  judgeWrittenChord,
+  parseSignature,
+  parseSpelled,
+  parseTheoryItem,
+  promptFits,
+  rootOf,
+  chordAnswerName,
+  intervalAnswerName,
+  theoryItemInLevel,
+  type TheoryLevelId,
+} from '../core/theoryItems.ts';
+import type { TheoryAnswer, TheoryMissed } from '../core/theorySession.ts';
 import {
   isHandSelection,
   type LoopRange,
@@ -465,8 +487,13 @@ function judgedAnswer(
   return result === 'pending' ? null : result === 'right';
 }
 
+/** An ear-training or a theory answer, told apart by its family. */
 export function validateAnswer(value: unknown): Validation<Answer> {
   if (!isObject(value)) return fail('record');
+  return isTheoryFamily(value.family) ? validateTheoryAnswer(value) : validateEarAnswer(value);
+}
+
+function validateEarAnswer(value: Fields): Validation<EarAnswer> {
   const field = firstInvalid(value, {
     id: isId,
     sessionId: isId,
@@ -483,7 +510,7 @@ export function validateAnswer(value: unknown): Validation<Answer> {
     key: (v) => isKeyOfItem(value.item, v),
   });
   if (field) return fail(field);
-  const a = value as unknown as Answer;
+  const a = value as unknown as EarAnswer;
   const item = parseItem(a.item)!;
   const level = getEarLevel(a.level);
   if (level.family !== a.family) return fail('level');
@@ -577,6 +604,187 @@ function validateEarSession(value: Fields): Validation<EarSessionRecord> {
   };
 }
 
+// --- Theory cards on Read --------------------------------------------------------------------
+
+const isClef = (v: unknown): v is Clef => v === 'treble' || v === 'bass';
+const isTheoryItemKey = (v: unknown): v is string => parseTheoryItem(v) !== null;
+
+/** Written notes as stored (`C4`, `D#4`, `Ebb5`): two to four of them; null otherwise. */
+function writtenNotes(v: unknown): SpelledPitch[] | null {
+  if (!Array.isArray(v) || v.length < 2 || v.length > 4) return null;
+  const notes = v.map(parseSpelled);
+  return notes.every((n) => n !== null) ? notes : null;
+}
+
+/** A theory card's prompt: its written notes, or a key signature (`3f`). */
+const isTheoryPrompt = (v: unknown) =>
+  typeof v === 'string' ? parseSignature(v) !== null : writtenNotes(v) !== null;
+
+/** An interval or a chord is written on a staff; a key signature on the grand staff. */
+const isClefOfFamily = (family: unknown, v: unknown) =>
+  family === 'keySignature' ? v === undefined : isClef(v);
+
+/** Whether a stored prompt is a card of `item` at `level`, by the rules cards are drawn by. */
+function theoryPromptFits(
+  level: TheoryLevelId,
+  item: string,
+  prompt: string[] | string,
+  clef: Clef | undefined,
+): boolean {
+  const parsed = parseTheoryItem(item);
+  if (parsed?.family === 'keySignature') return parseSignature(prompt) === parsed.fifths;
+  const notes = writtenNotes(prompt);
+  return (
+    notes !== null && clef !== undefined && promptFits(getTheoryLevel(level), item, notes, clef)
+  );
+}
+
+/**
+ * Whether a theory answer is judged `correct`, by the rules the session judged it with; null when
+ * it is not an answer the session could record. The prompt must fit the item already.
+ */
+function judgedTheoryAnswer(a: TheoryAnswer): boolean | null {
+  const level = getTheoryLevel(a.level);
+  const item = parseTheoryItem(a.item)!;
+  const { answer } = a;
+  if (item.family === 'readInterval' && level.family === 'readInterval') {
+    if (a.by !== 'name' || !isIntervalAnswer(level, answer)) return null;
+    return answer === intervalAnswerName(level, a.item);
+  }
+  if (item.family === 'keySignature') {
+    if (a.by !== 'play' || !Array.isArray(answer) || answer.length !== 1) return null;
+    return isTonicKey(item.fifths, item.mode, answer[0]!);
+  }
+  if (item.family === 'readChord' && level.family === 'readChord') {
+    const notes = writtenNotes(a.prompt)!;
+    if (a.by === 'name') {
+      if (!isChordAnswer(level, answer)) return null;
+      return answer === chordAnswerName(rootOf(a.item, notes)!, item.quality, item.inversion);
+    }
+    // Held keys, low to high, each once: exactly the written ones, or one of them wrong.
+    if (typeof answer === 'string') return null;
+    if (answer.some((midi, i) => i > 0 && midi <= answer[i - 1]!)) return null;
+    const result = judgeWrittenChord(notes, answer);
+    return result === 'pending' ? null : result === 'right';
+  }
+  return null;
+}
+
+function validateTheoryAnswer(value: Fields): Validation<TheoryAnswer> {
+  const field = firstInvalid(value, {
+    id: isId,
+    sessionId: isId,
+    family: isTheoryFamily,
+    level: isTheoryLevelId,
+    item: isTheoryItemKey,
+    by: isAnswerMode,
+    prompt: isTheoryPrompt,
+    clef: (v) => isClefOfFamily(value.family, v),
+    answer: isAnswerValue,
+    correct: isBool,
+    ms: isTime,
+    hinted: isBool,
+    at: isTime,
+  });
+  if (field) return fail(field);
+  const a = value as unknown as TheoryAnswer;
+  const level = getTheoryLevel(a.level);
+  if (level.family !== a.family) return fail('level');
+  if (!theoryItemInLevel(a.item, level)) return fail('item');
+  if (!theoryPromptFits(a.level, a.item, a.prompt, a.clef)) return fail('prompt');
+  const judged = judgedTheoryAnswer(a);
+  if (judged === null) return fail('answer');
+  if (judged !== a.correct) return fail('correct');
+  return {
+    ok: true,
+    value: {
+      id: a.id,
+      sessionId: a.sessionId,
+      family: a.family,
+      level: a.level,
+      item: a.item,
+      by: a.by,
+      prompt: Array.isArray(a.prompt) ? [...a.prompt] : a.prompt,
+      ...(a.clef && { clef: a.clef }),
+      answer: Array.isArray(a.answer) ? [...a.answer] : a.answer,
+      correct: a.correct,
+      ms: a.ms,
+      hinted: a.hinted,
+      at: a.at,
+    },
+  };
+}
+
+function isTheoryMissed(v: unknown): v is TheoryMissed[] {
+  return (
+    Array.isArray(v) &&
+    v.length <= 10_000 &&
+    v.every((m) => {
+      if (!isObject(m) || !isTheoryItemKey(m.item)) return false;
+      const family = parseTheoryItem(m.item)!.family;
+      return (
+        isTheoryPrompt(m.prompt) &&
+        (typeof m.prompt === 'string') === (family === 'keySignature') &&
+        isClefOfFamily(family, m.clef) &&
+        isAnswerValue(m.answer)
+      );
+    })
+  );
+}
+
+const isSlowItems = (v: unknown) =>
+  Array.isArray(v) && v.every((s) => isObject(s) && isTheoryItemKey(s.item) && isTime(s.ms));
+
+function validateTheorySession(value: Fields): Validation<TheorySessionRecord> {
+  const field = firstInvalid(value, {
+    id: isId,
+    family: isTheoryFamily,
+    level: isTheoryLevelId,
+    by: isAnswerMode,
+    startedAt: isTime,
+    endedAt: isTime,
+    activeMs: isTime,
+    length: (v) => isCount(v) && v > 0,
+    cards: isCount,
+    correct: isCount,
+    accuracy: isRatio,
+    medianMs: isTimeOrNull,
+    slowest: isSlowItems,
+    missed: isTheoryMissed,
+  });
+  if (field) return fail(field);
+  const s = value as unknown as TheorySessionRecord;
+  if (getTheoryLevel(s.level).family !== s.family) return fail('level');
+  if (s.endedAt < s.startedAt) return fail('endedAt');
+  if (s.correct > s.cards) return fail('correct');
+  if ((s.accuracy === null) !== (s.cards === 0)) return fail('accuracy');
+  return {
+    ok: true,
+    value: {
+      kind: 'theory',
+      id: s.id,
+      family: s.family,
+      level: s.level,
+      by: s.by,
+      startedAt: s.startedAt,
+      endedAt: s.endedAt,
+      activeMs: s.activeMs,
+      length: s.length,
+      cards: s.cards,
+      correct: s.correct,
+      accuracy: s.accuracy,
+      medianMs: s.medianMs,
+      slowest: s.slowest.map(({ item, ms }) => ({ item, ms })),
+      missed: s.missed.map((m) => ({
+        item: m.item,
+        prompt: Array.isArray(m.prompt) ? [...m.prompt] : m.prompt,
+        ...(m.clef && { clef: m.clef }),
+        answer: Array.isArray(m.answer) ? [...m.answer] : m.answer,
+      })),
+    },
+  };
+}
+
 export function validateSession(value: unknown): Validation<SessionRecord> {
   if (!isObject(value)) return fail('record');
   if (value.kind === 'read') return validateReadSession(value);
@@ -584,6 +792,7 @@ export function validateSession(value: unknown): Validation<SessionRecord> {
   if (value.kind === 'piece') return validatePieceSession(value);
   if (value.kind === 'scale') return validateScaleSession(value);
   if (value.kind === 'ear') return validateEarSession(value);
+  if (value.kind === 'theory') return validateTheorySession(value);
   return fail('kind');
 }
 
