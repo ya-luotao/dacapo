@@ -549,7 +549,7 @@ describe('ear training', () => {
     await mac.store.reloadAll();
     const sync = vi.spyOn(service.api, 'sync');
     await mac.client.syncNow();
-    expect(SYNC_SCHEMA).toBe(3);
+    expect(SYNC_SCHEMA).toBeGreaterThanOrEqual(3);
     expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
     expect(mac.store.getSnapshot().answers).toEqual(echo);
   });

@@ -93,11 +93,18 @@ export interface SyncStorage {
   apply: (pulled: PulledRecords) => Promise<AppliedCounts>;
 }
 
+/**
+ * Breaks a tie between two copies of a record: the longer text first (a build that did not know
+ * a field kept a copy without it, and the copy with the field must win), then the text itself.
+ */
 function byText(a: unknown, b: unknown): number {
   const left = canonicalText(a);
   const right = canonicalText(b);
-  return left < right ? -1 : left > right ? 1 : 0;
+  return left.length - right.length || (left < right ? -1 : left > right ? 1 : 0);
 }
+
+/** Whether two copies of a record differ once serialized as the service compares them. */
+const differs = (a: unknown, b: unknown) => canonicalText(a) !== canonicalText(b);
 
 const runCount = (session: SessionRecord) => (session.kind === 'scale' ? session.runs.length : 0);
 const finished = (session: SessionRecord) =>
@@ -261,20 +268,20 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
         knownDeletions,
         syncing,
         storedSessions,
-        attemptKeys,
+        storedAttempts,
         storedPieces,
-        stepKeys,
-        runKeys,
-        answerKeys,
+        storedSteps,
+        storedRuns,
+        storedAnswers,
       ] = await Promise.all([
         deletedPieces(meta),
         meta.getKey(SYNC_STATE_KEY).then((key) => key !== undefined),
         Promise.all(pulled.sessions.map((s) => sessions.get(s.id))),
-        Promise.all(pulled.attempts.map((a) => attempts.getKey(a.id))),
+        Promise.all(pulled.attempts.map((a) => attempts.get(a.id))),
         Promise.all(pulled.pieces.map((p) => pieces.get(p.id))),
-        Promise.all(pulled.pieceSteps.map((s) => steps.getKey(s.id))),
-        Promise.all(pulled.scaleRuns.map((r) => runs.getKey(r.id))),
-        Promise.all(pulled.answers.map((a) => answers.getKey(a.id))),
+        Promise.all(pulled.pieceSteps.map((s) => steps.get(s.id))),
+        Promise.all(pulled.scaleRuns.map((r) => runs.get(r.id))),
+        Promise.all(pulled.answers.map((a) => answers.get(a.id))),
       ]);
 
       // Records whose copy here wins over a different pulled one: sent again.
@@ -319,8 +326,12 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
         if (order < 0) requeued.push(outboxEntry('sessions', session.id));
         return order > 0;
       });
+      // A record that never changes is added when it is not stored, and replaces a stored copy
+      // that differs: that copy was kept by a build that did not know some of its fields.
+      const takes = (stored: unknown, record: unknown) =>
+        stored === undefined || differs(stored, record);
       const addedAttempts = pulled.attempts.filter(
-        (attempt, i) => attemptKeys[i] === undefined && first(attempt, 'a:'),
+        (attempt, i) => takes(storedAttempts[i], attempt) && first(attempt, 'a:'),
       );
       // A newer copy keeps the facts filled in here: the MusicXML of a piece never changes.
       const addedPieces = pulled.pieces.flatMap((piece, i) => {
@@ -339,22 +350,28 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
       });
       const addedSteps = pulled.pieceSteps.filter(
         (step, i) =>
-          stepKeys[i] === undefined &&
+          takes(storedSteps[i], step) &&
           !deletions.get(step.pieceId)?.withSteps &&
           first(step, 'st:'),
       );
       const addedRuns = pulled.scaleRuns.filter(
-        (run, i) => runKeys[i] === undefined && first(run, 'r:'),
+        (run, i) => takes(storedRuns[i], run) && first(run, 'r:'),
       );
       const addedAnswers = pulled.answers.filter(
-        (answer, i) => answerKeys[i] === undefined && first(answer, 'an:'),
+        (answer, i) => takes(storedAnswers[i], answer) && first(answer, 'an:'),
       );
 
       // Note stats depend on the order of answers: rebuilt from all attempts, only when some
-      // were added.
+      // were added (or replaced).
+      const replaced = new Set(addedAttempts.map((a) => a.id));
       const stats =
         addedAttempts.length > 0
-          ? statsFromAttempts([...(await attempts.getAll()), ...addedAttempts].sort(byTime))
+          ? statsFromAttempts(
+              [
+                ...(await attempts.getAll()).filter((a) => !replaced.has(a.id)),
+                ...addedAttempts,
+              ].sort(byTime),
+            )
           : null;
       const noteStats = tx.objectStore('noteStats');
 
@@ -363,11 +380,11 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
         ...piecesToDelete.map((key) => () => pieces.delete(key)),
         ...stepKeysToDelete.map((key) => () => steps.delete(key)),
         ...addedSessions.map((session) => () => sessions.put(session)),
-        ...addedAttempts.map((attempt) => () => attempts.add(attempt)),
+        ...addedAttempts.map((attempt) => () => attempts.put(attempt)),
         ...addedPieces.map((piece) => () => pieces.put(piece)),
-        ...addedSteps.map((step) => () => steps.add(step)),
-        ...addedRuns.map((run) => () => runs.add(run)),
-        ...addedAnswers.map((answer) => () => answers.add(answer)),
+        ...addedSteps.map((step) => () => steps.put(step)),
+        ...addedRuns.map((run) => () => runs.put(run)),
+        ...addedAnswers.map((answer) => () => answers.put(answer)),
         ...(stats
           ? [() => noteStats.clear(), ...Object.values(stats).map((s) => () => noteStats.put(s))]
           : []),

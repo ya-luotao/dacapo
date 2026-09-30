@@ -104,16 +104,16 @@ referenced are left in place for now (pieces are few and small).
 ## What syncs, and which copy wins
 
 The client pushes records in these collections, with these rules on pull. Everything else stays on
-the device. Where two copies differ and neither rule decides, the one whose canonical text sorts
-later wins, so every device picks the same. **When the copy here wins over a different pulled
+the device. Where two copies differ and neither rule decides, the one whose canonical text is longer wins,
+and of two as long the one that sorts later, so every device picks the same. **When the copy here wins over a different pulled
 one, it goes in the outbox again**, so the service, and through it every device, ends up with the
 winner.
 
-| Collection                                       | Body                                                    | On pull                                                   |
-| ------------------------------------------------ | ------------------------------------------------------- | --------------------------------------------------------- |
-| `attempts`, `pieceSteps`, `scaleRuns`, `answers` | the record as stored                                    | added when its id is not stored; never changed afterwards |
-| `sessions`                                       | the record as stored                                    | the later copy wins (below)                               |
-| `pieces`                                         | `StoredPiece` without `xml` and `facts`, plus `xmlHash` | the later copy wins (below); a deletion is final          |
+| Collection                                       | Body                                                    | On pull                                                                      |
+| ------------------------------------------------ | ------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `attempts`, `pieceSteps`, `scaleRuns`, `answers` | the record as stored                                    | added when its id is not stored; replaces a stored copy that differs (below) |
+| `sessions`                                       | the record as stored                                    | the later copy wins (below)                                                  |
+| `pieces`                                         | `StoredPiece` without `xml` and `facts`, plus `xmlHash` | the later copy wins (below); a deletion is final                             |
 
 - **Sessions.** A session grows while it is played, so of two copies the one with more runs (a
   scale session), or else the one that ended later, wins. That matters because a device can hold
@@ -141,9 +141,14 @@ winner.
   family it has not learnt) but still moves its cursor past them, so after an update it would
   never see them. `SYNC_SCHEMA` in `src/sync/records.ts` counts what a build understands (1: the
   collections above without `answers`; 2: `answers` and `ear` sessions; 3: echo, the answers and
-  ear sessions of the family `echo`), and the sync state keeps the schema its cursor was reached
-  with. When the build's is higher, the next
-  round starts again from cursor 0; every rule above makes pulling a record already stored a no-op.
+  ear sessions of the family `echo`; 4: scale runs and sessions with the click, arpeggios and
+  contrary motion), and the sync state keeps the schema its cursor was reached with. When the
+  build's is higher, the next round starts again from cursor 0. Pulling a record already stored
+  changes nothing, except where the stored copy differs: an older build that did not know a field
+  kept the record without it. A record that never changes (`attempts`, `pieceSteps`, `scaleRuns`,
+  `answers`) is then replaced by the pulled copy, and where two copies of a session or a piece tie
+  by the rules above, the longer text wins before the text's order decides, so the copy with the
+  field is kept and sent again, never the one without it.
 - **Not synced:** `noteStats` (rebuilt from attempts), the free-play sessions and piece runs still
   in progress in `meta` (they become sessions when they end), the preferences (language and theme
   stay per device), the settings in `localStorage`, the token.

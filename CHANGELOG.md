@@ -179,6 +179,9 @@ and sessions (from version 6), and the click's tempo and grid of scale runs play
   address are never public; search engines are asked not to list the page, and every page has a
   link to report it.
 - Storage moves to IndexedDB version 5 (an outbox of records to send, used only while signed in).
+- A device whose older version kept a synced record without a field it did not know yet (the
+  click of a scale run) takes the full record back after the update, and never sends the shorter
+  copy over it.
 - A deleted piece stays deleted: importing an export file made before the deletion no longer
   brings it back, nor, if its records were deleted with it, its step records. Importing the
   MusicXML file again adds it as a new piece.

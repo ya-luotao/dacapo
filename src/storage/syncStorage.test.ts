@@ -392,15 +392,41 @@ describe('applying pulled records', () => {
     expect(await outboxKeys()).toEqual([]);
   });
 
-  it('adds answers once, and never changes a stored one', async () => {
+  it('adds answers once, and keeps the pulled copy of one stored differently', async () => {
     const { answers } = sampleEarSession('e1', 3);
     await repo.addAnswer(answers[0]!);
+    await repo.addAnswer(answers[1]!);
+    const pulled = { ...answers[0]!, ms: 1 };
     const counts = await sync.apply({
       ...nothing,
-      answers: [{ ...answers[0]!, ms: 1 }, ...answers.slice(1), answers[2]!],
+      answers: [pulled, ...answers.slice(1), answers[2]!],
     });
     expect(counts).toMatchObject({ answers: 2, attempts: 0, sessions: 0 });
-    expect((await repo.load()).answers).toEqual(answers);
+    expect((await repo.load()).answers).toEqual([pulled, ...answers.slice(1)]);
+  });
+
+  it('takes back what an older build left out of a record, and never sends the copy without it', async () => {
+    const scales = sampleScaleSession('k1', 2);
+    const click = { bpm: 80, perBeat: 4 as const, latency: 12, zero: 500, stoppedAt: null };
+    const full = { ...scales.runs[0]!, click };
+    const fullSession = {
+      ...scales.session,
+      runs: scales.session.runs.map((r, i) =>
+        i === 0 ? { ...r, click: { bpm: 80, perBeat: 4 as const } } : r,
+      ),
+    };
+    // Kept by a build that did not know the click: the same records without it.
+    for (const r of scales.runs) await repo.addScaleRun(r, scales.session);
+    await sync.signIn(account, 't');
+    await db.clear('outbox');
+    const counts = await sync.apply({ ...nothing, scaleRuns: [full], sessions: [fullSession] });
+    expect(counts).toMatchObject({ scaleRuns: 1, sessions: 1 });
+    expect((await repo.allScaleRuns())[0]).toEqual(full);
+    expect(await outboxKeys()).toEqual([]);
+    // The other way round: the copy here has the field, the pulled one does not.
+    const again = await sync.apply({ ...nothing, sessions: [scales.session] });
+    expect(again.sessions).toBe(0);
+    expect(await outboxKeys()).toEqual([`sessions/${scales.session.id}`]);
   });
 
   it('pulling every stored record again changes nothing (a new schema restarts at 0)', async () => {
