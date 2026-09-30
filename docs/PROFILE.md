@@ -1,6 +1,7 @@
 # dacapo — Username and public profile specification
 
-Status: P1–P5 are built; the service changes are not deployed yet. This extends
+Status: P1–P5 are built and live since 2026-09-29. Version 2 (below) is built; its service change
+waits for a deploy, and the app is right before and after it. This extends
 [SYNC.md](SYNC.md); its principles still apply, and one more: **a profile is opt-in and off by
 default.** Signed out, or signed in without turning the profile on, nothing is public and nothing
 changes.
@@ -50,8 +51,9 @@ Two settings, kept on the service (so every device of the account knows them):
 `titles` (default false), for `public` only: the activity names the pieces. Without it a piece is
 "a piece". A piece's title comes from the imported MusicXML or a rename and can be anything.
 
-**Activity**, per day with practice: the time per kind (reading, free play, pieces, scales), and
-the pieces and scales practised that day with their time. The page lists the last 30 days under
+**Activity**, per day with practice: the time per kind (note flashcards, theory cards, rhythm,
+ear training, harmony, free play, pieces, scales; with a service before version 2, reading, free
+play, pieces, scales), and the pieces and scales practised that day with their time. The page lists the last 30 days under
 the grid; choosing an earlier day in the grid shows that day's.
 
 Never published: accuracy, reaction times, wrong notes, tempo, the weakness heatmap, note stats,
@@ -90,16 +92,20 @@ store, and sent whole; it replaces the previous one.
   of the grid's 53 weeks (`GRID_WEEKS`) up to `today`, days with practice only. The page shades
   them with `practiceLevel`, so the owner's grid and the public one agree.
 - `streak` and `totals` (days with practice, and active ms, over all time) are as of `today`.
-- `activity` has the same dates as `days`. `kinds` has the kinds practised that day (`read`,
-  `free`, `piece`, `scale`). `pieces` and `scales` are the five longest of the day, longest first,
+- `activity` has the same dates as `days`. `kinds` has the kinds practised that day: each
+  session kind under its own name (`read`, `theory`, `rhythm`, `ear`, `harmony`, `free`,
+  `piece`, `scale`), or, for a service before version 2, `read`, `free`, `piece` and `scale` only
+  (see "Version 2"). `pieces` and `scales` are the five longest of the day, longest first,
   with `morePieces` / `moreScales` counting the rest when there are more. A piece's time is the
   time of its runs. Its title is the piece's current one, at most 80 characters (longer ones are
   cut, with `…`); a piece deleted since, or whose title was made from its file name (a score
   without a title), is "a piece", as the file name is never published. A scale's time is that of
-  its runs, first key to last, whatever the octaves and hands. The service names only the five
-  scale types (major, natural, harmonic and melodic minor, chromatic) and rejects a document with
-  any other, so the arpeggios and the technique exercises are not listed: their time counts in
-  `kinds.scale`, and each counts one in `moreScales`, until the service learns their names.
+  its runs, first key to last, whatever the octaves, hands and form (Hanon's numbers in one key
+  are one entry), listed by its exercise type (`EXERCISE_TYPES`) and tonic. A service before
+  version 2 takes only the five scale types (major, natural, harmonic and melodic minor,
+  chromatic) and rejects a document with any other, so for it the arpeggios and the technique
+  exercises are not listed: their time counts in `kinds.scale`, and each counts one in
+  `moreScales`.
 - All numbers are non-negative integers (times are rounded: scale runs are timed to fractions of
   a millisecond). At most 256 KB serialized; a year of daily practice is
   well under, and a document over it leaves out the oldest days' activity until it fits.
@@ -116,7 +122,7 @@ Added to SYNC.md's table; the same errors, plus 400 `invalid-username`, 409
 
 | Request                                            | Response                                                               |
 | -------------------------------------------------- | ---------------------------------------------------------------------- |
-| `GET /v1/account`                                  | 200 `{ id, email, createdAt, username, profile }`                      |
+| `GET /v1/account`                                  | 200 `{ id, email, createdAt, username, profile, profileVersion }`      |
 | `PUT /v1/account/username` `{ username }`          | 200 `{ username }`; 400 `invalid-username`; 409 `username-unavailable` |
 | `DELETE /v1/account/username`                      | 204; the profile is off                                                |
 | `PUT /v1/account/profile` `{ visibility, titles }` | 200 `{ visibility, titles }`; 409 `no-username` unless `off`           |
@@ -124,15 +130,16 @@ Added to SYNC.md's table; the same errors, plus 400 `invalid-username`, 409
 | `GET https://playdacapo.com/<username>`            | the public page (HTML), or 404                                         |
 
 - `username` is null without one; `profile` is `{ visibility, titles }`, `{ "off", false }` by
-  default.
+  default. `profileVersion` is what the service takes in a document: 2 (see "Version 2"); a
+  service before it does not send one, which the client reads as 1.
 - `PUT /v1/account/profile` removes the published document whenever the settings change (and
   `off` keeps none); the client publishes a new one right after. Until it does, the page is 404:
   never a document with more than the new settings allow.
 - `PUT /v1/profile` is accepted only when the document's `visibility` and `titles` are the
   service's current settings and the visibility is not `off`, else 409 `profile-changed`: a device
   that has not heard of a change made on another cannot publish under the old settings. The
-  service checks the document against the schema above (unknown keys, bad dates, scale types or
-  tonics, too many entries, a title with `titles` false, `activity` with `private`: 400) and keeps
+  service checks the document against the schema above (unknown keys, bad dates, kinds or scale
+  types not of their shape, bad tonics, too many entries, a title with `titles` false, `activity` with `private`: 400) and keeps
   it with the time of the request.
 - Renaming, `DELETE /v1/account/username` and `PUT /v1/account/profile` are limited per account
   (10 a minute), and so is `PUT /v1/profile` (20 a minute: D1 serializes every write, sign-ins'
@@ -147,12 +154,12 @@ Added to SYNC.md's table; the same errors, plus 400 `invalid-username`, 409
   username and a visibility other than `off` (as last heard from the service). It therefore
   inherits sync's rule: never while practising.
 - Only when the document differs from the last one this device sent (its hash in `meta`, saved
-  only while the settings it was built for are still the stored ones, as another tab may have
-  changed them), so a day without practice still publishes once, when `today` moves. Right after
+  only while the settings and the service's version it was built for are still the stored ones,
+  as another tab may have changed them), so a day without practice still publishes once, when `today` moves. Right after
   a change of settings it publishes whatever the hash. A failed publish is retried after the next
   round, and Settings says it failed until one works.
-- The settings are read with `GET /v1/account` once after the app starts (before its first
-  publish), when the Settings page opens, and on 409 `profile-changed`, after which it builds and
+- The settings, and the service's `profileVersion` with them, are read with `GET /v1/account`
+  once after the app starts (before its first publish), when the Settings page opens, and on 409 `profile-changed`, after which it builds and
   sends again once (or stops, when the profile is now off). So a device learns that the profile was
   turned on or off on another one the next time it starts.
 - Several devices: each builds from its own store, which after a pull holds the same records, so
@@ -170,10 +177,57 @@ Added to SYNC.md's table; the same errors, plus 400 `invalid-username`, 409
   `Accept-Language` among the app's five (English otherwise).
 - The username, "Updated …", the streaks and totals, the grid with its legend (each day's cell has
   its minutes as a title and, with `public`, links to its day), and with `public` the activity.
-  Scale names in the page's language ("D major", "D 大调"); letter names as the app writes them.
+  Kinds and exercises named in the page's language ("Theory cards", "D major", "D 大调");
+  letter names as the app writes them. A kind or exercise type the page does not know is shown
+  without its name (see "Version 2").
 - `<meta name="robots" content="noindex">` and `X-Robots-Tag: noindex`.
 - A link to the app, and "Report this profile": a `mailto:report@playdacapo.com` with the username
   in the subject.
+
+## Version 2: kinds and exercise types by name
+
+The app keeps gaining session kinds (`ear`, `theory`, `rhythm`, `harmony`, soon `sight`) and
+exercise types (the arpeggios, the technique of S6 and S7). With the service's closed lists of
+version 1, each one had to wait for a deploy before a profile could name it, and until then the
+client mapped it onto `read` or counted it in `moreScales`. Version 2 opens the lists; the rest of
+the document is unchanged.
+
+- **The service takes any name of the right shape.** A day's `kinds` may have any kind of 1–16
+  lower-case letters (`^[a-z]{1,16}$`), at most 16 a day; a scale entry's `type` may be any of
+  1–32 letters (`^[a-zA-Z]{1,32}$`). The tonic, the times and every other rule are as before.
+  The document keeps `"v": 1`: a version 1 document is a version 2 one, so older apps' documents
+  are accepted unchanged.
+- **The page names what it knows, and folds the rest.** Kinds, in all five languages, as the app
+  words them: `read` "Flashcards", `theory` "Theory cards", `rhythm` "Rhythm lines", `sight`
+  "Sight-reading" (视奏, 視奏, 初見, 초견), `ear` "Ear training", `harmony` "Harmony", `free`,
+  `piece`, `scale` as before. Any other kind is summed into one "Other practice" line. Exercise
+  types as the Scales page names them: the five scales, the two arpeggios and every one of
+  `TECHNIQUE_TYPES` ("F♯ major arpeggio", "Hanon, Nos. 1–20", "Trill on D"); any other type is
+  "Exercise on {tonic}". A name from the document is only compared with the known ones and never
+  shown (a kind called `constructor` is other practice); everything shown is escaped. So a new
+  kind or type never stops a profile from publishing and needs no deploy; naming it on the page is
+  a line in each language of the service's `src/page.ts`, deployed whenever.
+- `read` keeps its version 1 label "Flashcards", not "Note flashcards": in a version 1 document,
+  still published by older apps and kept until their next publish, `read` includes ear training,
+  the theory cards, rhythm and harmony.
+- **The service says it.** `GET /v1/account` answers `profileVersion: 2` (`PROFILE_VERSION` in the
+  service's `src/profile.ts`). A service before it sends none.
+- **The client names what the service knows.** It keeps the `profileVersion` it last heard with
+  the profile settings (`ProfileState.version` in `meta`; read after start, when Settings opens and
+  on 409), and `buildProfile` takes it. From 2: each session kind is its own day kind (`read` for
+  note flashcards only; `theory`, `rhythm`, `sight`, `ear`, `harmony` as they are; a later kind
+  as itself) and every exercise type is listed by name. Below 2, or before the account was heard:
+  the version 1 mapping, byte for byte as before.
+- **Publishing again.** When a device hears version 2, a document with something to rename (a
+  kind other than the four, an arpeggio or a technique exercise) differs, and so does its hash, so
+  it is published once more on the next round; one without builds the same bytes and is not. The
+  sent hash is saved only while the stored version is the one the document was built for.
+- **Deploying.** Either order is safe. The app before the service: the service says no version, so
+  the app publishes version 1 documents. The service before the app: older apps publish version 1
+  documents, which it accepts and shows as before. A service rolled back after a device heard
+  version 2 refuses that device's documents (400) until it reads the account again (its next
+  start, or opening Settings); Settings says publishing failed meanwhile, and the page keeps the
+  last document it took.
 
 ## Moderation
 

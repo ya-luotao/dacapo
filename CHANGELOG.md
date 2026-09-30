@@ -407,6 +407,12 @@ click's tempo and grid of scale runs played with it (from version 7), and the ta
   scales, with piece titles only if you turn them on. Accuracy, reaction times and your email
   address are never public; search engines are asked not to list the page, and every page has a
   link to report it.
+- The public profile names everything practised, once the service says it can (profile version
+  2): theory cards, rhythm lines, ear training and harmony each have their own line instead of
+  counting as reading, and the arpeggios and every technique exercise are listed by name instead
+  of counted. Until then, and with an older service, the profile is published as before. The page
+  shows a kind or an exercise it does not know yet as "Other practice" or "Exercise on C", so a
+  new one never stops the profile from publishing.
 - Storage moves to IndexedDB version 5 (an outbox of records to send, used only while signed in).
 - A device whose older version kept a synced record without a field it did not know yet (the
   click of a scale run) takes the full record back after the update, and never sends the shorter

@@ -1752,7 +1752,7 @@ export const zhCN: Dictionary = {
   'settings.profile.shows.private':
     '公开的内容：你的用户名、一年练习图、连续天数和总练习时长。你具体练了什么不会公开。',
   'settings.profile.shows.public':
-    '公开的内容：你的用户名、练习图、连续天数和总时长，以及每天练了什么（识谱、自由弹奏、曲目和音阶）和各自的时长。',
+    '公开的内容：你的用户名、练习图、连续天数和总时长，以及每天练了什么（识谱、练耳、和声、自由弹奏、曲目和音阶）和各自的时长。',
   'settings.profile.titles': '显示曲目名称',
   'settings.profile.titles.help':
     '不显示时，每首曲目都只写作“一首曲目”。准确率、反应时间和你的邮箱地址永远不会公开。',

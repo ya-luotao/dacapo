@@ -67,7 +67,8 @@ email could not be sent, or the account is being deleted; try again later).
 | `GET /privacy`                                   | the service's privacy policy (HTML)        |
 
 The username, the profile settings and the public profile page have their own requests, in
-[PROFILE.md](PROFILE.md); `GET /v1/account` also returns `username` and `profile` there.
+[PROFILE.md](PROFILE.md); `GET /v1/account` also returns `username`, `profile` and
+`profileVersion` there.
 
 ### Sync
 

@@ -26,7 +26,13 @@ export interface ProfileSettings {
 
 export const PROFILE_OFF: ProfileSettings = { visibility: 'off', titles: false };
 
+/** The document's `v`: still 1 with a service of version 2, whose schema is a wider version 1. */
 export const PROFILE_VERSION = 1;
+/**
+ * The service's `profileVersion` (in `GET /v1/account`) from which it takes any day kind and
+ * exercise type by name (docs/PROFILE.md, "Version 2"). An older service does not say one: 1.
+ */
+export const NAMED_PROFILE_VERSION = 2;
 /** Serialized, at most this many bytes (the service's limit). */
 export const MAX_PROFILE_BYTES = 256 * 1024;
 /** Pieces and scales listed per day; the rest are counted. */
@@ -34,12 +40,19 @@ export const DAY_ITEMS = 5;
 /** A piece's title is cut to this many characters, `…` included. */
 export const TITLE_LENGTH = 80;
 
-export type ActivityKind = 'read' | 'free' | 'piece' | 'scale';
+/**
+ * A day kind: the session kind, or with a service before version 2, one of its four
+ * (`LEGACY_KINDS`).
+ */
+export type ActivityKind = SessionRecord['kind'];
+/** The day kinds a service before version 2 accepts (it rejects a document with any other). */
+export const LEGACY_KINDS = ['read', 'free', 'piece', 'scale'] as const;
+type LegacyKind = (typeof LEGACY_KINDS)[number];
 
 /**
- * The scale types the service accepts in `activity.scales` (it rejects a document with any other):
- * the scales of S1. Arpeggios and the technique exercises are counted in `moreScales` until it
- * learns them (docs/PROFILE.md).
+ * The scale types a service before version 2 accepts in `activity.scales` (it rejects a document
+ * with any other): the scales of S1. With such a service, arpeggios and the technique exercises
+ * are counted in `moreScales` instead (docs/PROFILE.md).
  */
 export const PROFILE_SCALE_TYPES = [
   'major',
@@ -59,7 +72,8 @@ export interface DayActivity {
   /** The longest of the day, longest first; `title` only with `titles`. */
   pieces?: { title?: string; ms: number }[];
   morePieces?: number;
-  scales?: { type: ProfileScaleType; tonic: Tonic; ms: number }[];
+  /** Only the `PROFILE_SCALE_TYPES` with a service before version 2. */
+  scales?: { type: ExerciseType; tonic: Tonic; ms: number }[];
   moreScales?: number;
 }
 
@@ -86,6 +100,11 @@ export interface ProfileInput {
   settings: ProfileSettings;
   now: number;
   firstDay: number;
+  /**
+   * The service's `profileVersion` as last heard; 1 (what every service takes) when omitted. From
+   * `NAMED_PROFILE_VERSION`, each session kind and exercise type is published under its own name.
+   */
+  profileVersion?: number;
   /** For tests; the system zone when omitted. */
   timeZone?: string;
 }
@@ -108,35 +127,31 @@ function longest<T extends { ms: number }>(
 }
 
 /**
- * The day kind a session counts as. The service accepts these kinds only and rejects a document
- * with any other, so ear training counts as reading (the nearest: drills by level, away from the
- * pieces) until the service learns an `ear` kind (docs/EAR.md, "Clarifications"); the theory
+ * The day kind a session counts as with a service before version 2, which accepts the four
+ * `LEGACY_KINDS` only and rejects a document with any other: ear training counts as reading (the
+ * nearest: drills by level, away from the pieces; docs/EAR.md, "Clarifications"); the theory
  * cards on Read (kind `theory`) and its rhythm lines (kind `rhythm`) are reading, and so are the
  * chord symbols of the Harmony page (kind `harmony`), cards by level as Read's are
- * (docs/HARMONY.md, "Clarifications").
+ * (docs/HARMONY.md, "Clarifications"). From version 2 each kind is its own.
  */
-function activityKind(session: SessionRecord): ActivityKind {
-  return session.kind === 'ear' ||
-    session.kind === 'theory' ||
-    session.kind === 'rhythm' ||
-    session.kind === 'harmony'
-    ? 'read'
-    : session.kind;
+function legacyKind(kind: ActivityKind): LegacyKind {
+  return (LEGACY_KINDS as readonly string[]).includes(kind) ? (kind as LegacyKind) : 'read';
 }
 
 function dayActivity(
   sessions: readonly SessionRecord[],
   titles: ReadonlyMap<string, string>,
   withTitles: boolean,
+  named: boolean,
 ): DayActivity {
   const kinds: Partial<Record<ActivityKind, number>> = {};
   const pieces = new Map<string, { id: string; title: string; ms: number }>();
-  const scales = new Map<string, { type: ProfileScaleType; tonic: Tonic; ms: number }>();
-  // Exercises the service cannot name yet: counted, not listed.
+  const scales = new Map<string, { type: ExerciseType; tonic: Tonic; ms: number }>();
+  // Exercises an older service cannot name: counted, not listed.
   const unnamed = new Set<string>();
   for (const session of sessions) {
     if (session.activeMs > 0) {
-      const kind = activityKind(session);
+      const kind = named ? session.kind : legacyKind(session.kind);
       kinds[kind] = (kinds[kind] ?? 0) + session.activeMs;
     }
     if (session.kind === 'piece') {
@@ -152,7 +167,7 @@ function dayActivity(
         const exercise = parseExerciseKey(run.exercise);
         if (!exercise) continue;
         const { type } = exercise;
-        if (!isProfileScaleType(type)) {
+        if (!named && !isProfileScaleType(type)) {
           unnamed.add(`${type}:${exercise.tonic}:${exercise.variant ?? ''}`);
           continue;
         }
@@ -203,9 +218,11 @@ export function buildProfile({
   settings,
   now,
   firstDay,
+  profileVersion = 1,
   timeZone,
 }: ProfileInput): ProfileDocument | null {
   if (settings.visibility === 'off') return null;
+  const named = profileVersion >= NAMED_PROFILE_VERSION;
   const totals = dailyTotals(sessions, timeZone);
   const today = dayKey(now, timeZone);
   const gridDays = yearGrid(totals, today, { firstDay })
@@ -249,7 +266,7 @@ export function buildProfile({
     );
     const activity: Record<DayKey, DayActivity> = {};
     for (const day of Object.keys(days)) {
-      activity[day] = dayActivity(byDay.get(day) ?? [], titles, document.titles);
+      activity[day] = dayActivity(byDay.get(day) ?? [], titles, document.titles, named);
     }
     document.activity = activity;
 

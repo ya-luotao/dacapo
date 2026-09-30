@@ -372,11 +372,16 @@ export function createSyncClient({
     }
   }
 
-  /** The state after hearing `username` and `settings`; what was sent counts only if they held. */
+  /**
+   * The state after hearing `username`, `settings` and the service's profile `version` (absent:
+   * as before); what was sent counts only if the settings held. A new version keeps it too: the
+   * document it builds differs, so its hash does, and it is published again.
+   */
   const heard = (
     previous: ProfileState | undefined,
     username: string | null,
     settings: ProfileSettings,
+    version: number | undefined,
   ): ProfileState => ({
     username,
     settings,
@@ -386,6 +391,7 @@ export function createSyncClient({
       previous.settings.titles === settings.titles
         ? previous.sentHash
         : null,
+    ...(version !== undefined && { version }),
   });
 
   /** A request that got 401 signs this device out; any failure is passed on. */
@@ -400,7 +406,7 @@ export function createSyncClient({
 
   async function refreshProfile(state: SyncState): Promise<ProfileState> {
     const account = await authorized(state.token, () => api.account(state.token));
-    const profile = heard(state.profile, account.username, account.profile);
+    const profile = heard(state.profile, account.username, account.profile, account.profileVersion);
     await saveProfile(state.token, profile);
     profileHeard = true;
     return profile;
@@ -425,13 +431,19 @@ export function createSyncClient({
         if (isBusy() || !profile.username || profile.settings.visibility === 'off') return;
         const source = profileSource?.();
         if (!source) return;
-        const document = buildProfile({ ...source, settings: profile.settings, now: now() });
+        const document = buildProfile({
+          ...source,
+          settings: profile.settings,
+          now: now(),
+          profileVersion: profile.version,
+        });
         if (!document) return;
         const hash = await sha256Hex(canonicalText(document));
         if (hash === profile.sentHash && !force) return;
         try {
           await authorized(state.token, () => api.putProfile(state.token, document));
-          // What was sent counts only while the settings it was built for are still the stored ones.
+          // What was sent counts only while the settings and the version it was built for are
+          // still the stored ones (another tab may have heard a new version: it publishes again).
           const sentUnder = profile;
           await saveProfile(
             state.token,
@@ -439,7 +451,8 @@ export function createSyncClient({
             (stored) =>
               stored.profile?.username === sentUnder.username &&
               stored.profile.settings.visibility === sentUnder.settings.visibility &&
-              stored.profile.settings.titles === sentUnder.settings.titles,
+              stored.profile.settings.titles === sentUnder.settings.titles &&
+              (stored.profile.version ?? 1) === (sentUnder.version ?? 1),
           );
           setStatus({ profileError: null });
           return;
@@ -531,14 +544,20 @@ export function createSyncClient({
             api.setUsername(state.token, username),
           );
           const settings = state.profile?.settings ?? PROFILE_OFF;
-          await saveProfile(state.token, heard(state.profile, stored, settings));
+          await saveProfile(
+            state.token,
+            heard(state.profile, stored, settings, state.profile?.version),
+          );
         }),
       ),
     removeUsername: () =>
       profileTask(() =>
         signedIn(async (state) => {
           await authorized(state.token, () => api.removeUsername(state.token));
-          await saveProfile(state.token, heard(state.profile, null, PROFILE_OFF));
+          await saveProfile(
+            state.token,
+            heard(state.profile, null, PROFILE_OFF, state.profile?.version),
+          );
           setStatus({ profileError: null });
         }),
       ),
@@ -555,8 +574,7 @@ export function createSyncClient({
           );
           // The service removed the published document: this device publishes a new one.
           await saveProfile(state.token, {
-            username: state.profile?.username ?? null,
-            settings: stored,
+            ...heard(undefined, state.profile?.username ?? null, stored, state.profile?.version),
             sentHash: null,
           });
           setStatus({ profileError: null });

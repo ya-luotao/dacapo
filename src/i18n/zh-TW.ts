@@ -1755,7 +1755,7 @@ export const zhTW: Dictionary = {
   'settings.profile.shows.private':
     '公開內容：你的使用者名稱、一年練習圖、連續天數和總練習時間。你練了什麼不會公開。',
   'settings.profile.shows.public':
-    '公開內容：你的使用者名稱、練習圖、連續天數和總時間，以及每天練了什麼（識譜、自由彈奏、樂曲和音階）和各練了多久。',
+    '公開內容：你的使用者名稱、練習圖、連續天數和總時間，以及每天練了什麼（識譜、練耳、和聲、自由彈奏、樂曲和音階）和各練了多久。',
   'settings.profile.titles': '顯示樂曲名稱',
   'settings.profile.titles.help':
     '不顯示時，每首樂曲都只寫成「一首樂曲」。準確率、反應時間和你的電子郵件地址絕不會公開。',

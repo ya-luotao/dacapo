@@ -44,6 +44,8 @@ function fakeService({ pageSize = 1000 } = {}) {
     settings: { visibility: 'off', titles: false } as ProfileSettings,
     document: null as ProfileDocument | null,
     puts: 0,
+    // What it says in `GET /v1/account` (docs/PROFILE.md, "Version 2"); undefined: an older one.
+    version: 2 as number | undefined,
   };
   let seq = 0;
   let issued = 0;
@@ -72,6 +74,7 @@ function fakeService({ pageSize = 1000 } = {}) {
         email: 'pianist@example.com',
         username: profile.username,
         profile: { ...profile.settings },
+        profileVersion: profile.version ?? 1,
       });
     },
     setUsername(token, username) {
@@ -978,6 +981,46 @@ describe('the public profile', () => {
     expect(service.profile.puts).toBe(puts);
     expect(service.profile.document).toBeNull();
     expect(ipad.client.getStatus().profile?.settings.visibility).toBe('off');
+  });
+
+  it('names each kind once the service says version 2, and publishes again', async () => {
+    const service = fakeService();
+    service.profile.version = undefined;
+    const ipad = await device(service);
+    const ear = sampleEarSession('e1', 4);
+    for (const answer of ear.answers) ipad.store.recordAnswer(answer);
+    ipad.store.recordSession(ear.session);
+    for (const session of sampleData().sessions) ipad.store.recordSession(session);
+    await ipad.store.settled();
+    await signIn(ipad);
+    await ipad.client.setUsername('clara');
+    await ipad.client.setProfileSettings({ visibility: 'public', titles: false });
+    expect(service.profile.puts).toBe(1);
+    /** Every kind of every day published. */
+    const kindsOf = () =>
+      new Set(
+        Object.values(service.profile.document!.activity!).flatMap((d) => Object.keys(d.kinds)),
+      );
+    // An older service: ear training counts as reading.
+    expect(kindsOf().has('ear')).toBe(false);
+    const legacy = service.profile.document!;
+
+    // The service is deployed again: the device hears it the next time it reads the settings.
+    service.profile.version = 2;
+    await ipad.client.syncNow();
+    expect(service.profile.puts).toBe(1);
+    await ipad.client.loadProfile();
+    await ipad.client.syncNow();
+    expect(service.profile.puts).toBe(2);
+    expect(kindsOf().has('ear')).toBe(true);
+    expect(service.profile.document!).toMatchObject({ v: 1, days: legacy.days });
+    // Once only: what it sent is remembered with the version.
+    await ipad.client.syncNow();
+    expect(service.profile.puts).toBe(2);
+    // Settings changed keep the version.
+    await ipad.client.setProfileSettings({ visibility: 'public', titles: true });
+    expect(service.profile.puts).toBe(3);
+    expect(kindsOf().has('ear')).toBe(true);
   });
 
   it('shows why publishing failed, and clears it once it works', async () => {

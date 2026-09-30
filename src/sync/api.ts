@@ -46,6 +46,11 @@ export interface PulledPage {
 export interface AccountDetails extends SyncAccount {
   username: string | null;
   profile: ProfileSettings;
+  /**
+   * What the service takes in a profile document (docs/PROFILE.md, "Version 2"); 1 from a
+   * service that does not say.
+   */
+  profileVersion: number;
 }
 
 export interface SyncApi {
@@ -151,12 +156,17 @@ export function createSyncApi(endpoint: string, fetcher: typeof fetch = fetch): 
       const body = (await (await call('GET', '/v1/account', { token })).json()) as SyncAccount & {
         username?: unknown;
         profile?: unknown;
+        profileVersion?: unknown;
       };
       return {
         id: body.id,
         email: body.email,
         username: typeof body.username === 'string' ? body.username : null,
         profile: profileSettings(body.profile),
+        profileVersion:
+          Number.isSafeInteger(body.profileVersion) && (body.profileVersion as number) >= 1
+            ? (body.profileVersion as number)
+            : 1,
       };
     },
     async setUsername(token, username) {

@@ -87,6 +87,7 @@ describe('the HTTP protocol', () => {
         createdAt: 1,
         username: 'clara',
         profile: { visibility: 'public', titles: true },
+        profileVersion: 2,
       }),
     );
     expect(await createSyncApi('https://x', withProfile.fetcher).account('t')).toEqual({
@@ -94,12 +95,21 @@ describe('the HTTP protocol', () => {
       email: 'a@example.com',
       username: 'clara',
       profile: { visibility: 'public', titles: true },
+      profileVersion: 2,
     });
     const without = recorder(() => json({ id: 'acc', email: 'a@example.com', createdAt: 1 }));
     expect(await createSyncApi('https://x', without.fetcher).account('t')).toMatchObject({
       username: null,
       profile: { visibility: 'off', titles: false },
+      profileVersion: 1,
     });
+    // A version that is not one reads as a service without it.
+    for (const profileVersion of [0, -2, 1.5, '2', null]) {
+      const odd = recorder(() => json({ id: 'acc', email: 'a@example.com', profileVersion }));
+      expect(await createSyncApi('https://x', odd.fetcher).account('t')).toMatchObject({
+        profileVersion: 1,
+      });
+    }
   });
 
   it('sets the username, the settings and the profile', async () => {

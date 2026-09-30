@@ -65,6 +65,11 @@ export interface ProfileState {
   settings: ProfileSettings;
   /** SHA-256 of the last document this device published under these settings; null when none. */
   sentHash: string | null;
+  /**
+   * The service's `profileVersion` as last heard (docs/PROFILE.md, "Version 2"); absent from an
+   * older service, or stored by a build before it: 1.
+   */
+  version?: number;
 }
 
 export const SYNC_STATE_KEY = 'sync:state';

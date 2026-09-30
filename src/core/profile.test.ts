@@ -6,11 +6,15 @@ import {
   buildProfile,
   clip,
   MAX_PROFILE_BYTES,
+  NAMED_PROFILE_VERSION,
   normalizeUsername,
   usernameProblem,
   type ProfileInput,
 } from './profile.ts';
 import type { ScaleSession } from './scaleRecords.ts';
+import { tonicsFor } from './scales.ts';
+import { EXERCISE_TYPES } from './scaleTypes.ts';
+import { isTechnique, techniqueRules } from './technique.ts';
 import type { StoredPiece } from './storedPiece.ts';
 
 const MIN = 60_000;
@@ -73,6 +77,81 @@ const scale = (id: string, startedAt: number, runs: [string, number][]): ScaleSe
   };
 };
 
+const ear = (startedAt: number): SessionRecord => ({
+  kind: 'ear',
+  id: `e${startedAt}`,
+  family: 'interval',
+  level: 'I1',
+  by: 'play',
+  startedAt,
+  endedAt: startedAt + 4 * MIN,
+  activeMs: 4 * MIN,
+  length: 10,
+  items: 10,
+  correct: 9,
+  accuracy: 0.9,
+  medianMs: 1200,
+  replays: 0,
+  missed: [],
+});
+
+const read = (startedAt: number, activeMs: number): SessionRecord =>
+  ({ ...free(`r${startedAt}`, startedAt, activeMs), kind: 'read' }) as unknown as SessionRecord;
+
+const theory = (startedAt: number): SessionRecord => ({
+  kind: 'theory',
+  id: `t${startedAt}`,
+  family: 'keySignature',
+  level: 'KS1',
+  by: 'play',
+  startedAt,
+  endedAt: startedAt + 3 * MIN,
+  activeMs: 3 * MIN,
+  length: 10,
+  cards: 10,
+  correct: 10,
+  accuracy: 1,
+  medianMs: 1500,
+  slowest: [],
+  missed: [],
+});
+
+const rhythm = (startedAt: number): SessionRecord => ({
+  kind: 'rhythm',
+  id: `rh${startedAt}`,
+  level: 'R2',
+  bpm: 72,
+  startedAt,
+  endedAt: startedAt + 4 * MIN,
+  activeMs: 4 * MIN,
+  length: 8,
+  exercises: 8,
+  runs: 9,
+  cells: 90,
+  correct: 80,
+  accuracy: 80 / 90,
+  medianDeviation: 21,
+  tendency: -6,
+  missed: [{ item: 'rhythm:er-e:3/4', count: 4 }],
+});
+
+const harmony = (startedAt: number): SessionRecord => ({
+  kind: 'harmony',
+  id: `h${startedAt}`,
+  family: 'chordSymbol',
+  level: 'H2',
+  startedAt,
+  endedAt: startedAt + 5 * MIN,
+  activeMs: 5 * MIN,
+  length: 20,
+  cards: 20,
+  correct: 18,
+  accuracy: 0.9,
+  medianMs: 2100,
+  slowest: [],
+  missed: [],
+});
+
 const stored = (id: string, title: string, fileName = `${id}.musicxml`) =>
   ({ id, title, fileName }) as StoredPiece;
 /** The stored pieces of `sessions`, titled as when practised. */
@@ -90,6 +169,41 @@ function build(patch: Partial<ProfileInput>) {
     ...patch,
   });
 }
+
+/**
+ * Two days of everything: every session kind, a titled and a deleted piece, and scale runs of
+ * the scales, the arpeggios and the technique (two of Hanon's numbers in C, a chord in two hands).
+ */
+function richSessions(): SessionRecord[] {
+  return [
+    free('f', NOW, 3 * MIN),
+    read(NOW + 5 * MIN, 2 * MIN),
+    ear(NOW + 10 * MIN),
+    theory(NOW + 20 * MIN),
+    rhythm(NOW + 30 * MIN),
+    harmony(NOW + 40 * MIN),
+    piece('p1', 'minuet', NOW + 50 * MIN, 4 * MIN),
+    piece('p2', 'gone', NOW + 60 * MIN, MIN, 'Deleted piece'),
+    scale('s', NOW + 70 * MIN, [
+      ['major:D:2:both', 20_000.3],
+      ['majorArpeggio:C:2:right', 10_000],
+      ['majorChords:F:2:both', 12_000],
+      ['majorChords:F:2:right', 5_000],
+      ['hanon:C:2:both:5', 30_000],
+      ['hanon:C:2:right:12', 8_000],
+      ['trill:D:1:right:23-4', 7_000],
+      ['minorArpeggio:A:1:left', 15_000],
+      ['naturalMinor:A:1:left', 6_000],
+      ['chromatic:C:1:right', 4_000],
+    ]),
+    free('y', NOW - DAY, 6 * MIN),
+    scale('y2', NOW - DAY + 10 * MIN, [
+      ['major:G:1:right', 10_000],
+      ['majorFiveFinger:G:1:right', 9_000],
+    ]),
+  ];
+}
+const RICH_PIECES = [stored('minuet', 'Minuet in G')];
 
 describe('buildProfile', () => {
   it('publishes nothing when the profile is off', () => {
@@ -121,87 +235,118 @@ describe('buildProfile', () => {
     expect(document).not.toHaveProperty('activity');
   });
 
-  it('counts ear training and the cards as reading, the only day kind the service knows for them', () => {
-    const ear = {
-      kind: 'ear',
-      id: 'e',
-      family: 'interval',
-      level: 'I1',
-      by: 'play',
-      startedAt: NOW,
-      endedAt: NOW + 4 * MIN,
-      activeMs: 4 * MIN,
-      length: 10,
-      items: 10,
-      correct: 9,
-      accuracy: 0.9,
-      medianMs: 1200,
-      replays: 0,
-      missed: [],
-    } satisfies SessionRecord;
-    const read = {
-      ...free('r', NOW + 10 * MIN, 2 * MIN),
-      kind: 'read',
-    } as unknown as SessionRecord;
-    const theory = {
-      kind: 'theory',
-      id: 't',
-      family: 'keySignature',
-      level: 'KS1',
-      by: 'play',
-      startedAt: NOW + 20 * MIN,
-      endedAt: NOW + 23 * MIN,
-      activeMs: 3 * MIN,
-      length: 10,
-      cards: 10,
-      correct: 10,
-      accuracy: 1,
-      medianMs: 1500,
-      slowest: [],
-      missed: [],
-    } satisfies SessionRecord;
-    const rhythm = {
-      kind: 'rhythm',
-      id: 'rh',
-      level: 'R2',
-      bpm: 72,
-      startedAt: NOW + 30 * MIN,
-      endedAt: NOW + 34 * MIN,
-      activeMs: 4 * MIN,
-      length: 8,
-      exercises: 8,
-      runs: 9,
-      cells: 90,
-      correct: 80,
-      accuracy: 80 / 90,
-      medianDeviation: 21,
-      tendency: -6,
-      missed: [{ item: 'rhythm:er-e:3/4', count: 4 }],
-    } satisfies SessionRecord;
-    const harmony = {
-      kind: 'harmony',
-      id: 'h',
-      family: 'chordSymbol',
-      level: 'H2',
-      startedAt: NOW + 40 * MIN,
-      endedAt: NOW + 45 * MIN,
-      activeMs: 5 * MIN,
-      length: 20,
-      cards: 20,
-      correct: 18,
-      accuracy: 0.9,
-      medianMs: 2100,
-      slowest: [],
-      missed: [],
-    } satisfies SessionRecord;
-    const document = build({
-      sessions: [ear, read, theory, rhythm, harmony],
-      settings: { visibility: 'public', titles: false },
-    })!;
+  it('counts ear training and the cards as reading for a service before version 2', () => {
+    const sessions = [
+      ear(NOW),
+      read(NOW + 10 * MIN, 2 * MIN),
+      theory(NOW + 20 * MIN),
+      rhythm(NOW + 30 * MIN),
+      harmony(NOW + 40 * MIN),
+    ];
+    const document = build({ sessions, settings: { visibility: 'public', titles: false } })!;
     // The theory cards and the rhythm lines on Read are reading too, and so are the chord symbols
     // of Harmony.
     expect(document.activity!['2026-09-29']!.kinds).toEqual({ read: 18 * MIN });
     expect(document.days['2026-09-29']).toBe(18 * MIN);
+  });
+
+  it('is what it was before version 2 for a service that does not say one', () => {
+    const input = {
+      sessions: richSessions(),
+      pieces: RICH_PIECES,
+      settings: { visibility: 'public', titles: true },
+    } as const;
+    // Serialized as this build's predecessor sent it, byte for byte: an older service accepts it.
+    const legacy =
+      '{"activity":{"2026-09-28":{"kinds":{"free":360000,"scale":21000},"moreScales":1,"scales":[{"ms":10000,"tonic":"G","type":"major"}]},"2026-09-29":{"kinds":{"free":180000,"piece":300000,"read":1080000,"scale":127000},"moreScales":6,"pieces":[{"ms":240000,"title":"Minuet in G"},{"ms":60000}],"scales":[{"ms":20000,"tonic":"D","type":"major"},{"ms":6000,"tonic":"A","type":"naturalMinor"},{"ms":4000,"tonic":"C","type":"chromatic"}]}},"days":{"2026-09-28":381000,"2026-09-29":1687000},"firstDay":1,"streak":{"current":2,"longest":2},"titles":true,"today":"2026-09-29","totals":{"days":2,"ms":2068000},"v":1,"visibility":"public"}';
+    expect(canonicalText(build(input))).toBe(legacy);
+    expect(canonicalText(build({ ...input, profileVersion: 1 }))).toBe(legacy);
+  });
+
+  it('names every session kind and exercise for a service of version 2', () => {
+    const document = build({
+      sessions: richSessions(),
+      pieces: RICH_PIECES,
+      settings: { visibility: 'public', titles: true },
+      profileVersion: NAMED_PROFILE_VERSION,
+    })!;
+    expect(document.v).toBe(1);
+    expect(document.activity).toEqual({
+      '2026-09-29': {
+        kinds: {
+          free: 3 * MIN,
+          read: 2 * MIN,
+          ear: 4 * MIN,
+          theory: 3 * MIN,
+          rhythm: 4 * MIN,
+          harmony: 5 * MIN,
+          piece: 5 * MIN,
+          scale: 127_000,
+        },
+        pieces: [{ title: 'Minuet in G', ms: 4 * MIN }, { ms: MIN }],
+        // By type and key, whatever the octaves, hands or form: Hanon's Nos. 5 and 12 in C are one.
+        scales: [
+          { type: 'hanon', tonic: 'C', ms: 38_000 },
+          { type: 'major', tonic: 'D', ms: 20_000 },
+          { type: 'majorChords', tonic: 'F', ms: 17_000 },
+          { type: 'minorArpeggio', tonic: 'A', ms: 15_000 },
+          { type: 'majorArpeggio', tonic: 'C', ms: 10_000 },
+        ],
+        moreScales: 3,
+      },
+      '2026-09-28': {
+        kinds: { free: 6 * MIN, scale: 21_000 },
+        scales: [
+          { type: 'major', tonic: 'G', ms: 10_000 },
+          { type: 'majorFiveFinger', tonic: 'G', ms: 9_000 },
+        ],
+      },
+    });
+    // The grid, the streaks and the totals do not depend on the version.
+    const legacy = build({
+      sessions: richSessions(),
+      pieces: RICH_PIECES,
+      settings: { visibility: 'public', titles: true },
+    })!;
+    expect({ ...document, activity: undefined }).toEqual({ ...legacy, activity: undefined });
+    // A later service still names them.
+    expect(
+      build({
+        sessions: richSessions(),
+        pieces: RICH_PIECES,
+        settings: { visibility: 'public', titles: true },
+        profileVersion: 3,
+      }),
+    ).toEqual(document);
+  });
+
+  it('publishes only names the service of version 2 takes', () => {
+    // The service's shapes (dacapo-cloud's src/profile.ts): a kind, a type, a tonic.
+    const KIND = /^[a-z]{1,16}$/;
+    const TYPE = /^[a-zA-Z]{1,32}$/;
+    const TONIC = /^[A-G](?:#|b)?$/;
+    // Every session kind: the compiler checks that the list is whole.
+    const kinds = {
+      read: true,
+      free: true,
+      piece: true,
+      scale: true,
+      ear: true,
+      theory: true,
+      rhythm: true,
+      harmony: true,
+    } satisfies Record<SessionRecord['kind'], true>;
+    // At most 16 a day.
+    expect(Object.keys(kinds).length).toBeLessThanOrEqual(16);
+    for (const kind of Object.keys(kinds)) expect(kind).toMatch(KIND);
+    for (const type of EXERCISE_TYPES) {
+      expect(type).toMatch(TYPE);
+      const variants = isTechnique(type) ? techniqueRules(type).variants : [];
+      for (const variant of variants.length > 0 ? variants : [undefined]) {
+        for (const tonic of tonicsFor(type, variant))
+          expect(tonic, `${type} ${variant}`).toMatch(TONIC);
+      }
+    }
   });
 
   it('starts the grid on the first day of its first week', () => {
@@ -256,7 +401,7 @@ describe('buildProfile', () => {
     expect(withoutTitles.activity!['2026-09-29']!.pieces).toEqual([{ ms: 6 * MIN }, { ms: MIN }]);
   });
 
-  it('counts arpeggios without naming them, since the service names only the scales', () => {
+  it('counts arpeggios without naming them for a service before version 2', () => {
     const sessions: SessionRecord[] = [
       scale('s', NOW, [
         ['majorArpeggio:C:2:right', 20_000],
@@ -277,7 +422,7 @@ describe('buildProfile', () => {
     expect(onlyArpeggios.moreScales).toBe(1);
   });
 
-  it('names only the scale types the service knows, and counts the other exercises', () => {
+  it('names only the scales for a service before version 2, and counts the other exercises', () => {
     const sessions: SessionRecord[] = [
       scale('s', NOW, [
         ['major:D:2:both', 20_000],

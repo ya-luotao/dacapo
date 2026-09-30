@@ -1850,7 +1850,7 @@ export const en = {
   'settings.profile.shows.private':
     'Public: your username, your year of practice as a grid, your streaks and your total practice time. What you practised stays private.',
   'settings.profile.shows.public':
-    'Public: your username, the grid, your streaks and total time, and what you practised each day (reading, free play, pieces and scales), with how long.',
+    'Public: your username, the grid, your streaks and total time, and what you practised each day (reading, ear training, harmony, free play, pieces and scales), with how long.',
   'settings.profile.titles': 'Show piece titles',
   'settings.profile.titles.help':
     'Without them, each piece is listed as “a piece”. Accuracy, reaction times and your email address are never public.',
