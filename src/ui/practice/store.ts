@@ -5,6 +5,7 @@ import {
   byTime,
   recoverEarSessions,
   recoverReadSessions,
+  recoverRhythmSessions,
   recoverTheorySessions,
   type SessionRecord,
 } from '../../core/log.ts';
@@ -385,6 +386,7 @@ export function createPracticeStore({
     for (const recovered of [
       ...recoverEarSessions(stored.answers, sessions),
       ...recoverTheorySessions(stored.answers, sessions),
+      ...recoverRhythmSessions(stored.answers, sessions),
     ]) {
       await repo.putSession(recovered);
       sessions = upsertSession(sessions, recovered);

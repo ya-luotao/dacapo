@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { Answer } from './answers.ts';
+import type { FamilyAnswer as Answer } from './answerProgress.ts';
+import { sampleEchoAnswer, sampleRhythmAnswers } from '../storage/fixtures.ts';
 import {
   ALL_ANSWERS,
   cellCount,
@@ -10,6 +11,7 @@ import {
   familyLevelIds,
   familyLevels,
   filterAnswers,
+  isFamilyAnswer,
   isFamilyLevel,
   itemFigures,
   keyOfTonic,
@@ -452,5 +454,13 @@ describe('the confusion table', () => {
     expect(shareBucket(1 / 3)).toBe(4);
     expect(shareBucket(1)).toBe(6);
     expect(CONFUSION_MIN_ASKED).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe('which answers the families are made of', () => {
+  it('leaves out rhythm answers, which have figures of their own', () => {
+    const echo = sampleEchoAnswer(0);
+    const rhythm = sampleRhythmAnswers(0);
+    expect([echo, ...rhythm].filter(isFamilyAnswer)).toEqual([echo]);
   });
 });

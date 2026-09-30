@@ -1,7 +1,8 @@
-import { isEarAnswer, isTheoryAnswer, type Answer } from './answers.ts';
+import { isEarAnswer, isRhythmAnswer, isTheoryAnswer, type Answer } from './answers.ts';
 import { recoverEarSummary, type EarSessionSummary } from './earSession.ts';
 import type { FreePlaySession } from './freePlay.ts';
 import type { PieceSession } from './pieceRecords.ts';
+import { recoverRhythmSummary, type RhythmSessionSummary } from './rhythmRead.ts';
 import type { ScaleSession } from './scaleRecords.ts';
 import { recoverSummary, type Attempt, type SessionSummary } from './session.ts';
 import { recoverTheorySummary, type TheorySessionSummary } from './theorySession.ts';
@@ -15,13 +16,16 @@ export type ScaleSessionRecord = ScaleSession;
 export type EarSessionRecord = EarSessionSummary & { kind: 'ear' };
 /** A session of theory cards on Read (intervals, key signatures, chords) as stored. */
 export type TheorySessionRecord = TheorySessionSummary & { kind: 'theory' };
+/** A session of rhythm lines on Read (docs/READING.md, "Rhythm (R1)") as stored. */
+export type RhythmSessionRecord = RhythmSessionSummary & { kind: 'rhythm' };
 export type SessionRecord =
   | ReadSessionRecord
   | FreePlaySessionRecord
   | PieceSessionRecord
   | ScaleSessionRecord
   | EarSessionRecord
-  | TheorySessionRecord;
+  | TheorySessionRecord
+  | RhythmSessionRecord;
 
 export function byTime(a: Attempt, b: Attempt): number {
   return a.at - b.at || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
@@ -100,6 +104,22 @@ export function recoverTheorySessions(
   for (const group of orphanGroups(answers.filter(isTheoryAnswer), sessions)) {
     const summary = recoverTheorySummary(group);
     if (summary) recovered.push({ kind: 'theory', ...summary });
+  }
+  return recovered;
+}
+
+/**
+ * Rhythm sessions for answers whose session was never stored (the tab closed mid-session).
+ * `answers` must be in the order they happened.
+ */
+export function recoverRhythmSessions(
+  answers: readonly Answer[],
+  sessions: readonly SessionRecord[],
+): RhythmSessionRecord[] {
+  const recovered: RhythmSessionRecord[] = [];
+  for (const group of orphanGroups(answers.filter(isRhythmAnswer), sessions)) {
+    const summary = recoverRhythmSummary(group);
+    if (summary) recovered.push({ kind: 'rhythm', ...summary });
   }
   return recovered;
 }

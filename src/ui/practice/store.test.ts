@@ -14,6 +14,7 @@ import {
   sampleScaleRun,
   sampleScaleSession,
   sampleTheoryAnswers,
+  sampleRhythmAnswers,
   T0,
 } from '../../storage/fixtures.ts';
 import {
@@ -222,6 +223,24 @@ describe('ear-training answers', () => {
       expect.objectContaining({ kind: 'ear', id: 'heard', items: 2 }),
     );
     expect((await onDisk()).sessions.map((s) => s.id).sort()).toEqual(['cards', 'heard']);
+  });
+
+  it('rebuilds a rhythm session from its answers, apart from the others', async () => {
+    const rhythm = [...sampleRhythmAnswers(0, 'lines'), ...sampleRhythmAnswers(1, 'lines')];
+    const ear = [sampleAnswer(0, 'heard')];
+    await seed(async (repo) => {
+      for (const answer of [...rhythm, ...ear]) await repo.addAnswer(answer);
+    });
+    const store = startStore();
+    await loaded(store);
+    const { sessions } = store.getSnapshot();
+    expect(sessions).toContainEqual(
+      expect.objectContaining({ kind: 'rhythm', id: 'lines', cells: 8, correct: 6, runs: 2 }),
+    );
+    expect(sessions).toContainEqual(
+      expect.objectContaining({ kind: 'ear', id: 'heard', items: 1 }),
+    );
+    expect((await onDisk()).sessions.map((s) => s.id).sort()).toEqual(['heard', 'lines']);
   });
 
   it('records answers once, in order, and keeps the other tab in step', async () => {

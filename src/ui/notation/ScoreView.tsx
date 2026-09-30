@@ -28,8 +28,13 @@ interface ScoreViewProps {
   onStatus: (status: ScoreStatus) => void;
   /** Drawn behind the notes, e.g. tints per bar; placed with the bars' boxes. */
   behind?: (bars: BarBoxes) => ReactNode;
-  /** Laid over the score, e.g. focusable targets per bar. */
-  above?: (bars: BarBoxes) => ReactNode;
+  /**
+   * Laid over the score, e.g. focusable targets per bar; with `events`, also given where each
+   * note and rest of every staff is drawn.
+   */
+  above?: (bars: BarBoxes, events: EventBoxes) => ReactNode;
+  /** Measure the notes and rests too, for what is laid over the score by time (`EventBoxes`). */
+  events?: boolean;
   /** Classes for single notes by our note id, e.g. the notes of a scale already played. */
   marks?: ReadonlyMap<string, string>;
   /** Staff size relative to the usual (a short scale is drawn larger). */
@@ -54,7 +59,20 @@ export interface BarBox {
 /** Written measure index → its box. */
 export type BarBoxes = ReadonlyMap<number, BarBox>;
 
+/** Where a note or rest is drawn: its head (or the rest), and the whole of it with its stem. */
+export interface EventBox {
+  head: BarBox;
+  whole: BarBox;
+}
+
+/**
+ * Written measure index → per staff (top first) the notes and rests drawn in it, in the order of
+ * the file: a page that wrote the file knows which is which.
+ */
+export type EventBoxes = ReadonlyMap<number, readonly (readonly EventBox[])[]>;
+
 const NO_BOXES: BarBoxes = new Map();
+const NO_EVENTS: EventBoxes = new Map();
 const NO_ENGRAVING: Engraving = {};
 
 /** One drawing of the score: our note ids and measures addressed in Verovio's SVG. */
@@ -92,6 +110,10 @@ function unionRect(elements: Iterable<Element>, origin: DOMRect): DOMRect | null
   return new DOMRect(left - origin.left, top - origin.top, right - left, bottom - top);
 }
 
+function boxOf(rect: DOMRect): BarBox {
+  return { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+}
+
 /** The staff lines of a measure: the height of its system, without what sticks out. */
 function measureBox(measure: Element, origin: DOMRect): DOMRect | null {
   return unionRect(measure.querySelectorAll(':scope > g.staff > path'), origin);
@@ -117,6 +139,7 @@ export function ScoreView({
   zoom = 1,
   engraving = NO_ENGRAVING,
   fillHeight = true,
+  events = false,
 }: ScoreViewProps) {
   const t = useT();
   const frame = useRef<HTMLDivElement>(null);
@@ -283,21 +306,33 @@ export function ScoreView({
   // Where each bar is drawn, for what is placed behind or over the bars; again on every relayout.
   const wantsBoxes = Boolean(behind || above);
   const [boxes, setBoxes] = useState<BarBoxes>(NO_BOXES);
+  const [eventBoxes, setEventBoxes] = useState<EventBoxes>(NO_EVENTS);
   useLayoutEffect(() => {
     const sheet = page.current;
     if (!drawing || !sheet || !wantsBoxes) {
       setBoxes(NO_BOXES);
+      setEventBoxes(NO_EVENTS);
       return;
     }
     const origin = sheet.getBoundingClientRect();
     const next = new Map<number, BarBox>();
+    const nextEvents = new Map<number, EventBox[][]>();
     drawing.measures.forEach((measure, index) => {
       const box = measureBox(measure, origin);
-      if (box)
-        next.set(index, { left: box.left, top: box.top, width: box.width, height: box.height });
+      if (box) next.set(index, boxOf(box));
+      if (!events) return;
+      const staves = [...measure.querySelectorAll(':scope > g.staff')].map((staff) =>
+        [...staff.querySelectorAll('g.note, g.rest')].flatMap((el): EventBox[] => {
+          const whole = unionRect([el], origin);
+          const head = unionRect([el.querySelector('.notehead') ?? el], origin);
+          return whole && head ? [{ head: boxOf(head), whole: boxOf(whole) }] : [];
+        }),
+      );
+      nextEvents.set(index, staves);
     });
     setBoxes(next);
-  }, [drawing, wantsBoxes]);
+    setEventBoxes(events ? nextEvents : NO_EVENTS);
+  }, [drawing, wantsBoxes, events]);
 
   // The band behind the step, and the scroll that keeps its system (and the next) in view.
   const system = useRef<Element | null>(null);
@@ -361,7 +396,7 @@ export function ScoreView({
           role="img"
           aria-label={t('pieces.score', { title })}
         />
-        {above?.(boxes)}
+        {above?.(boxes, eventBoxes)}
       </div>
     </div>
   );

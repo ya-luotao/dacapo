@@ -2,7 +2,12 @@
 import { IDBFactory } from 'fake-indexeddb';
 import { recoverEarSummary, type EarAnswer } from '../core/earSession.ts';
 import type { RunHeadline } from '../core/evenness.ts';
-import type { EarSessionRecord, SessionRecord, TheorySessionRecord } from '../core/log.ts';
+import type {
+  EarSessionRecord,
+  RhythmSessionRecord,
+  SessionRecord,
+  TheorySessionRecord,
+} from '../core/log.ts';
 import { parseNoteKey } from '../core/levels.ts';
 import {
   pieceSession,
@@ -17,6 +22,7 @@ import {
   type ScaleSession,
   type StoredScaleRun,
 } from '../core/scaleRecords.ts';
+import { recoverRhythmSummary, type RhythmAnswer } from '../core/rhythmRead.ts';
 import { recoverSummary, type Attempt } from '../core/session.ts';
 import { recoverTheorySummary, type TheoryAnswer } from '../core/theorySession.ts';
 import type { StoredPiece } from '../core/storedPiece.ts';
@@ -453,4 +459,51 @@ export function sampleTheorySession(
 ): { answers: TheoryAnswer[]; session: TheorySessionRecord } {
   const answers = Array.from({ length: count }, (_, i) => sampleTheoryAnswers(i, sessionId)[0]!);
   return { answers, session: { kind: 'theory', ...recoverTheorySummary(answers)! } };
+}
+
+/**
+ * Rhythm answers on Read: one run of two bars of R3 in 3/4 (q h | qd-e ee), each cell timed; on
+ * odd `run` the half note is missed with a tap in its span and the second eighth comes 60 ms late.
+ */
+export function sampleRhythmAnswers(run: number, sessionId = 'r1'): RhythmAnswer[] {
+  const late = run % 2 === 1;
+  const cells: {
+    item: string;
+    prompt: number[][];
+    deviations: (number | null)[][];
+    extras: number;
+  }[] = [
+    { item: 'rhythm:q:3/4', prompt: [[0]], deviations: [[-12]], extras: 0 },
+    { item: 'rhythm:h:3/4', prompt: [[0]], deviations: [[late ? null : 5]], extras: late ? 1 : 0 },
+    { item: 'rhythm:qd-e:3/4', prompt: [[0, 1.5]], deviations: [[0, -30]], extras: 0 },
+    { item: 'rhythm:ee:3/4', prompt: [[0, 0.5]], deviations: [[8, late ? 60 : 20]], extras: 0 },
+  ];
+  const beats = [1, 2, 2, 1];
+  let end = T0 + 13_000_000 + run * 10_000;
+  return cells.map((c, i) => {
+    end += beats[i]! * 1000;
+    return {
+      id: `${sessionId}:${run}:${i}`,
+      sessionId,
+      family: 'rhythm',
+      level: 'R3',
+      item: c.item,
+      prompt: c.prompt,
+      answer: { deviations: c.deviations, extras: c.extras },
+      correct: c.extras === 0 && c.deviations.flat().every((d) => d !== null && Math.abs(d) <= 50),
+      bpm: 60,
+      exercise: Math.floor(run / 2),
+      run,
+      at: end,
+    };
+  });
+}
+
+/** A rhythm session of `runs` runs with its record. */
+export function sampleRhythmSession(
+  sessionId: string,
+  runs: number,
+): { answers: RhythmAnswer[]; session: RhythmSessionRecord } {
+  const answers = Array.from({ length: runs }, (_, i) => sampleRhythmAnswers(i, sessionId)).flat();
+  return { answers, session: { kind: 'rhythm', ...recoverRhythmSummary(answers)! } };
 }

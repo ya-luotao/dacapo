@@ -22,6 +22,7 @@ import type {
   FreePlaySessionRecord,
   PieceSessionRecord,
   ReadSessionRecord,
+  RhythmSessionRecord,
   ScaleSessionRecord,
   SessionRecord,
   TheorySessionRecord,
@@ -55,7 +56,17 @@ import {
   type PieceStep,
   type RhythmCounts,
 } from '../core/pieceRecords.ts';
-import type { NoteTiming } from '../core/rhythm.ts';
+import { MAX_WINDOW_MS, type NoteTiming } from '../core/rhythm.ts';
+import {
+  cellOnsets,
+  getRhythmLevel,
+  isRhythmBpm,
+  isRhythmLevelId,
+  parseRhythmItem,
+  rhythmItemInLevel,
+  type RhythmLevelId,
+} from '../core/rhythmCells.ts';
+import { isRhythmFamily, judgeCell, type RhythmAnswer } from '../core/rhythmRead.ts';
 import { isClickTempo, isNotesPerBeat, type ScaleClick } from '../core/scaleClick.ts';
 import type { PedalChange, ScaleRunSummary, StoredScaleRun } from '../core/scaleRecords.ts';
 import { parseExerciseKey } from '../core/scales.ts';
@@ -487,9 +498,10 @@ function judgedAnswer(
   return result === 'pending' ? null : result === 'right';
 }
 
-/** An ear-training or a theory answer, told apart by its family. */
+/** An ear-training, a theory or a rhythm answer, told apart by its family. */
 export function validateAnswer(value: unknown): Validation<Answer> {
   if (!isObject(value)) return fail('record');
+  if (isRhythmFamily(value.family)) return validateRhythmAnswer(value);
   return isTheoryFamily(value.family) ? validateTheoryAnswer(value) : validateEarAnswer(value);
 }
 
@@ -793,7 +805,142 @@ export function validateSession(value: unknown): Validation<SessionRecord> {
   if (value.kind === 'scale') return validateScaleSession(value);
   if (value.kind === 'ear') return validateEarSession(value);
   if (value.kind === 'theory') return validateTheorySession(value);
+  if (value.kind === 'rhythm') return validateRhythmSession(value);
   return fail('kind');
+}
+
+// --- Rhythm on Read --------------------------------------------------------------------------
+
+/** Onsets in beats per line, as a cell's prompt: one or two lines of at most 16. */
+const isOnsetLines = (v: unknown): v is number[][] =>
+  Array.isArray(v) &&
+  v.length >= 1 &&
+  v.length <= 2 &&
+  v.every((line) => isList(line, (b) => isFiniteNumber(b) && b >= 0 && b < 4) && line.length <= 16);
+
+/** Whole ms, early or late, within the widest window; null for a note missed. */
+const isCellDeviation = (v: unknown) =>
+  v === null || (Number.isInteger(v) && Math.abs(v as number) <= MAX_WINDOW_MS);
+
+function isRhythmAnswerValue(v: unknown): v is RhythmAnswer['answer'] {
+  if (!isObject(v) || !isCount(v.extras) || v.extras > 1000) return false;
+  const { deviations } = v;
+  return (
+    Array.isArray(deviations) &&
+    deviations.length <= 2 &&
+    deviations.every((line) => isList(line, isCellDeviation) && line.length <= 16)
+  );
+}
+
+/** Whether an item is a cell of `level`'s, in one of its meters. */
+function isItemOfLevel(level: RhythmLevelId, item: string): boolean {
+  const parsed = parseRhythmItem(item);
+  return parsed !== null && rhythmItemInLevel(getRhythmLevel(level), parsed.cell, parsed.meter);
+}
+
+const sameShape = (a: readonly (readonly unknown[])[], b: readonly (readonly unknown[])[]) =>
+  a.length === b.length && a.every((line, i) => line.length === b[i]!.length);
+
+function validateRhythmAnswer(value: Fields): Validation<RhythmAnswer> {
+  const field = firstInvalid(value, {
+    id: isId,
+    sessionId: isId,
+    family: isRhythmFamily,
+    level: isRhythmLevelId,
+    item: (v) => parseRhythmItem(v) !== null,
+    prompt: isOnsetLines,
+    answer: isRhythmAnswerValue,
+    correct: isBool,
+    bpm: isRhythmBpm,
+    exercise: isIndex,
+    run: isIndex,
+    at: isTime,
+  });
+  if (field) return fail(field);
+  const a = value as unknown as RhythmAnswer;
+  if (!isItemOfLevel(a.level, a.item)) return fail('item');
+  const { cell, meter } = parseRhythmItem(a.item)!;
+  // The prompt is the cell's onsets, exactly as a session writes them.
+  const onsets = cellOnsets(cell, meter);
+  if (
+    !sameShape(onsets, a.prompt) ||
+    onsets.some((line, i) => line.some((b, k) => a.prompt[i]![k] !== b))
+  )
+    return fail('prompt');
+  if (!sameShape(onsets, a.answer.deviations)) return fail('answer');
+  if (judgeCell(a.answer.deviations, a.answer.extras) !== a.correct) return fail('correct');
+  return {
+    ok: true,
+    value: {
+      id: a.id,
+      sessionId: a.sessionId,
+      family: 'rhythm',
+      level: a.level,
+      item: a.item,
+      prompt: a.prompt.map((line) => [...line]),
+      answer: {
+        deviations: a.answer.deviations.map((line) => [...line]),
+        extras: a.answer.extras,
+      },
+      correct: a.correct,
+      bpm: a.bpm,
+      exercise: a.exercise,
+      run: a.run,
+      at: a.at,
+    },
+  };
+}
+
+function validateRhythmSession(value: Fields): Validation<RhythmSessionRecord> {
+  const field = firstInvalid(value, {
+    id: isId,
+    level: isRhythmLevelId,
+    bpm: isRhythmBpm,
+    startedAt: isTime,
+    endedAt: isTime,
+    activeMs: isTime,
+    length: (v) => isCount(v) && v > 0,
+    exercises: isCount,
+    runs: isCount,
+    cells: isCount,
+    correct: isCount,
+    accuracy: isRatio,
+    medianDeviation: (v) => v === null || (isTime(v) && v <= MAX_WINDOW_MS),
+    tendency: (v) => v === null || (isFiniteNumber(v) && Math.abs(v) <= MAX_WINDOW_MS),
+    missed: (v) =>
+      isList(
+        v,
+        (m) => isObject(m) && typeof m.item === 'string' && isCount(m.count) && m.count > 0,
+      ) && v.length <= 10_000,
+  });
+  if (field) return fail(field);
+  const s = value as unknown as RhythmSessionRecord;
+  if (s.endedAt < s.startedAt) return fail('endedAt');
+  if (s.exercises > s.runs) return fail('exercises');
+  if (s.correct > s.cells) return fail('correct');
+  if ((s.accuracy === null) !== (s.cells === 0)) return fail('accuracy');
+  if (s.missed.some((m) => !isItemOfLevel(s.level, m.item))) return fail('missed');
+  return {
+    ok: true,
+    value: {
+      kind: 'rhythm',
+      id: s.id,
+      level: s.level,
+      bpm: s.bpm,
+      startedAt: s.startedAt,
+      endedAt: s.endedAt,
+      activeMs: s.activeMs,
+      length: s.length,
+      exercises: s.exercises,
+      runs: s.runs,
+      cells: s.cells,
+      correct: s.correct,
+      accuracy: s.accuracy,
+      medianDeviation: s.medianDeviation,
+      tendency: s.tendency,
+      missed: s.missed.map(({ item, count }) => ({ item, count })),
+    },
+  };
 }
 
 function isPlayedNote(v: unknown): v is PlayedNote {

@@ -8,6 +8,7 @@ import type { ScaleExercise } from '../../core/scaleTypes.ts';
 import { median } from '../../core/session.ts';
 import { useEarFormat } from '../ear/format.ts';
 import { useReadFormat } from '../read/format.ts';
+import { useRhythmFormat } from '../read/rhythmFormat.ts';
 import { useTheoryFormat } from '../read/theoryFormat.ts';
 import { useExerciseName } from '../scales/format.ts';
 import { useLogFormat } from './format.ts';
@@ -72,6 +73,7 @@ function SessionRow({ session }: { session: SessionRecord }) {
   const read = useReadFormat();
   const ear = useEarFormat();
   const theory = useTheoryFormat();
+  const rhythm = useRhythmFormat();
   const exerciseName = useExerciseName();
   const scaleName = (e: ScaleExercise | null) => (e ? exerciseName(e) : none);
   const none = t('read.none');
@@ -183,6 +185,25 @@ function SessionRow({ session }: { session: SessionRecord }) {
         ],
         ['progress.session.accuracy', read.percent(session.accuracy)],
         ['progress.session.median', read.seconds(session.medianMs)],
+      ];
+      break;
+    case 'rhythm':
+      cells = [
+        when,
+        ['progress.session.kind', t('progress.kind.rhythm')],
+        [
+          'progress.session.level',
+          <abbr title={rhythm.levelName(session.level)}>{session.level}</abbr>,
+        ],
+        duration,
+        [
+          'progress.session.exercises',
+          session.exercises < session.length
+            ? `${session.exercises}/${session.length}`
+            : session.exercises,
+        ],
+        ['progress.session.accuracy', read.percent(session.accuracy)],
+        ['rhythm.summary.median', rhythm.ms(session.medianDeviation)],
       ];
       break;
     case 'scale': {

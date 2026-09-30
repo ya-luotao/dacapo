@@ -15,6 +15,7 @@ import {
   sampleTake,
   sampleTheoryAnswers,
   sampleTheorySession,
+  sampleRhythmSession,
   T0,
 } from '../storage/fixtures.ts';
 import { createIndexedDbRepository } from '../storage/repository.ts';
@@ -580,10 +581,40 @@ describe('ear training', () => {
     await mac.store.reloadAll();
     const sync = vi.spyOn(service.api, 'sync');
     await mac.client.syncNow();
-    expect(SYNC_SCHEMA).toBe(6);
+    expect(SYNC_SCHEMA).toBeGreaterThanOrEqual(6);
     expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
     expect(mac.store.getSnapshot().answers).toEqual(cards);
     expect(mac.store.getSnapshot().sessions).toEqual([theory.session]);
+  });
+});
+
+describe('rhythm on Read', () => {
+  it('syncs its answers and sessions, and pulls them again after a build that skipped them', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    const rhythm = sampleRhythmSession('r1', 3);
+    for (const answer of rhythm.answers) ipad.store.recordAnswer(answer);
+    ipad.store.recordSession(rhythm.session);
+    await ipad.store.settled();
+    await signIn(ipad);
+    expect(service.body('answers', rhythm.answers[5]!.id)).toEqual(rhythm.answers[5]);
+    await signIn(mac);
+    expect(mac.store.getSnapshot().answers).toEqual(rhythm.answers);
+    expect(mac.store.getSnapshot().sessions).toEqual([rhythm.session]);
+
+    // As schema 6 left it: the rhythm answers and session skipped, the cursor past them.
+    const state = (await mac.db.get('meta', SYNC_STATE_KEY)) as SyncState;
+    await mac.db.clear('answers');
+    await mac.db.delete('sessions', rhythm.session.id);
+    await mac.db.put('meta', { ...state, schema: 6 }, SYNC_STATE_KEY);
+    await mac.store.reloadAll();
+    const sync = vi.spyOn(service.api, 'sync');
+    await mac.client.syncNow();
+    expect(SYNC_SCHEMA).toBe(7);
+    expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
+    expect(mac.store.getSnapshot().answers).toEqual(rhythm.answers);
+    expect(mac.store.getSnapshot().sessions).toEqual([rhythm.session]);
   });
 });
 

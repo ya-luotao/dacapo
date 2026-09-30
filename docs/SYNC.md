@@ -147,7 +147,8 @@ winner.
   ear sessions of the family `echo`; 4: scale runs and sessions with the click, arpeggios and
   contrary motion; 5: `takes`, which older builds skip; 6: the theory cards on Read, answers of
   the families `readInterval`, `keySignature` and `readChord` and sessions of kind `theory`, which
-  older builds skip), and the sync state keeps the schema its cursor was reached with. When the
+  older builds skip; 7: rhythm on Read, answers of the family `rhythm` and sessions of kind
+  `rhythm`, which older builds skip), and the sync state keeps the schema its cursor was reached with. When the
   build's is higher, the next round starts again from cursor 0. Pulling a record already stored
   changes nothing, except where the stored copy differs: an older build that did not know a field
   kept the record without it. A record that never changes (`attempts`, `pieceSteps`, `scaleRuns`,

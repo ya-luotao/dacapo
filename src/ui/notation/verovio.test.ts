@@ -36,6 +36,12 @@ describe('scaleFor', () => {
       minLastJustification: 0.5,
       octaveAlternativeSymbols: true,
     });
+    // Verovio's spacing unless a rhythm line asks for its own.
+    expect(layoutOptions(1000)).toMatchObject({ spacingLinear: 0.25, spacingNonLinear: 0.6 });
+    expect(layoutOptions(1000, 42, { rhythm: true })).toMatchObject({
+      spacingLinear: 0.15,
+      spacingNonLinear: 0.9,
+    });
   });
 });
 

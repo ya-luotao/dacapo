@@ -9,9 +9,36 @@ which is noted when it changes.
 Export format version 8: the file now includes imported pieces (from version 2), piece practice
 sessions and their step records (from version 3), rhythm-mode steps with their timings (from
 version 4), scale sessions with every scale run as played (from version 5), ear-training answers
-and sessions (from version 6; the theory cards' answers and sessions go in the same lists), the
+and sessions (from version 6; the theory cards' and Read's rhythm answers and sessions go in the
+same lists), the
 click's tempo and grid of scale runs played with it (from version 7), and the takes of piece runs
 (from version 8). Version 1 to 7 files still import.
+
+### Rhythm on Read (R1, [docs/READING.md](docs/READING.md))
+
+- **Read** gains a second row of what to read, what is read in time: **Rhythm**. A line of rhythm
+  on a one-line staff, drawn from generated MusicXML; press Start, hear a bar of clicks, then tap
+  each note on any key (a MIDI keyboard's, the pad under the line, or any letter or the space bar)
+  while the click goes on, or with **Count-in only** keeping the beat yourself.
+- Ten levels: quarters, halves and wholes; eighths; dotted notes; ties within the bar and over the
+  barline; sixteenths and the dotted eighth; triplets; syncopation, some lines starting off the
+  beat; 6/8; then two hands, one line each (the right hand from middle C up, the left below it):
+  the left keeping the beat, then two rhythms at once and two against three. Each exercise is four
+  bars (two at first with two hands) and a final note on the next downbeat; the next cells favour
+  the ones you miss or play unevenly, never the same one three times in a row.
+- Timing is rhythm mode's: the same count-in, click, matching windows and latency calibration
+  (Calibrate is on the setup and the session). After a run every note is inked in time, early or
+  late (with the arrow and the ms) or missed, extra taps are marked, and you see the cells right,
+  the median distance from the beat and whether you rush or drag; **Again** or **Next**. The counts
+  can be shown under the line, as the lessons write them ("1 (2) & 3", "1 e & a", "1 trip let"),
+  the count heard lit as it goes.
+- The tempo (40–160, 72 to start, 60 with sixteenths) is kept for each level, sessions are 4, 8
+  or 16 exercises, and a level is mastered at 90% of its last 40 cells right.
+- Every cell of every run played to its end is an answer in the answers store; sessions of kind
+  `rhythm` join the log, the minutes and the streak (the public profile counts them as reading)
+  and are rebuilt from their answers after a closed tab. Imports and sync check and judge every
+  answer again. `SYNC_SCHEMA` 7; the export file needs no new version. The header's metronome
+  pauses while a run is timed.
 
 ### Progress by family: what you answer instead (E4)
 

@@ -59,7 +59,10 @@ practising the notes you are slowest at. Progress is visible day by day.
   octave; every answer records whether it was right and how fast. The next card favours the
   notes you are slow or unsure on. Read also has **theory cards**: name the interval between two
   written notes (up to double sharps and flats), play the tonic of a key signature, and play or
-  name a chord as written, each in levels of its own ([docs/EAR.md](docs/EAR.md)).
+  name a chord as written, each in levels of its own ([docs/EAR.md](docs/EAR.md)). And
+  **rhythm**: a line of rhythm on a one-line staff, tapped on any key after a bar of count-in,
+  every note timed against the click; ten levels from quarter notes through ties, sixteenths,
+  triplets, syncopation and 6/8 to two hands in two rhythms ([docs/READING.md](docs/READING.md)).
 - **Ear training.** Intervals and chords by ear, in twelve levels from the octave, fifth and
   major third to compound intervals, inversions and seventh chords. Your instrument or the
   built-in piano plays the question; play it back on the keys (the first note or the root is

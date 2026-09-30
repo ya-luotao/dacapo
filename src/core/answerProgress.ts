@@ -1,4 +1,9 @@
-import { isEarAnswer, isTheoryAnswer, type Answer } from './answers.ts';
+import {
+  isEarAnswer,
+  isRhythmAnswer,
+  isTheoryAnswer,
+  type Answer as StoredAnswer,
+} from './answers.ts';
 import {
   CHORD_QUALITIES,
   CHORD_TONES,
@@ -65,6 +70,12 @@ import { noteWeight, RECENT_LENGTH, type NoteStats } from './weakness.ts';
 // "Clarifications (decided during E4)"): each level's mastery, per-item figures, the weakest
 // items, and the confusion table of what was asked against what was answered. Recomputed from
 // the raw answers whenever they change; pure, so every rule is unit-tested.
+
+/** The answers the families here are made of: ear and theory answers, not rhythm (R1's own). */
+export type FamilyAnswer = Exclude<StoredAnswer, { family: 'rhythm' }>;
+type Answer = FamilyAnswer;
+export const isFamilyAnswer = (answer: StoredAnswer): answer is FamilyAnswer =>
+  !isRhythmAnswer(answer);
 
 export type AnswerFamily = EarFamily | TheoryFamily;
 /** Ear's three families, then Read's three: the order of the Progress page. */

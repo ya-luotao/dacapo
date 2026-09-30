@@ -29,6 +29,8 @@ import {
   sampleTake,
   sampleTheoryAnswers,
   sampleTheorySession,
+  sampleRhythmAnswers,
+  sampleRhythmSession,
   T0,
 } from './fixtures.ts';
 import { createIndexedDbRepository, type PracticeRepository } from './repository.ts';
@@ -1047,6 +1049,61 @@ describe('versions', () => {
       { collection: 'answers', index: 29, field: 'correct', problem: 'invalid' },
       { collection: 'answers', index: 30, field: 'answer', problem: 'invalid' },
       { collection: 'answers', index: 31, field: 'hinted', problem: 'invalid' },
+    ]);
+  });
+
+  it('imports the answers and sessions of rhythm on Read, judging each again', () => {
+    const { answers, session } = sampleRhythmSession('rs', 2);
+    const [q, h, dotted, eighths] = sampleRhythmAnswers(1, 'rs2');
+    const file = parsed(
+      fileWith({
+        version: 8,
+        pieces: [],
+        pieceSteps: [],
+        scaleRuns: [],
+        takes: [],
+        sessions: [
+          { ...session, extra: 1 },
+          { ...session, id: 'x1', level: 'R9' },
+          { ...session, id: 'x2', missed: [{ item: 'rhythm:ssss:4/4', count: 1 }] },
+          { ...session, id: 'x3', exercises: 5 },
+          { ...session, id: 'x4', tendency: 400 },
+        ],
+        answers: [
+          { ...answers[0]!, extra: 1 },
+          ...answers.slice(1),
+          // Not the cell's onsets, a cell of another level or meter, a missed note judged
+          // right, a deviation out of any window or not whole, the lines' shape.
+          { ...q!, id: 'y1', prompt: [[0.5]] },
+          { ...q!, id: 'y2', item: 'rhythm:ssss:4/4' },
+          { ...q!, id: 'y3', item: 'rhythm:q:2/4' },
+          { ...h!, id: 'y4', correct: true },
+          { ...dotted!, id: 'y5', answer: { deviations: [[0, 151]], extras: 0 }, correct: false },
+          { ...dotted!, id: 'y6', answer: { deviations: [[0, 2.5]], extras: 0 } },
+          { ...eighths!, id: 'y7', answer: { deviations: [[8], [20]], extras: 0 } },
+          { ...eighths!, id: 'y8', bpm: 200 },
+          { ...eighths!, id: 'y9', answer: { deviations: [[8, 20]], extras: -1 } },
+          { ...eighths!, id: 'y10', item: 'rhythm:c:qe:6/8', level: 'R8' },
+        ],
+      }),
+    );
+    expect(file.sessions).toEqual([session]);
+    expect(file.answers).toEqual(answers);
+    expect(file.invalid).toEqual([
+      { collection: 'sessions', index: 1, field: 'missed', problem: 'invalid' },
+      { collection: 'sessions', index: 2, field: 'missed', problem: 'invalid' },
+      { collection: 'sessions', index: 3, field: 'exercises', problem: 'invalid' },
+      { collection: 'sessions', index: 4, field: 'tendency', problem: 'invalid' },
+      { collection: 'answers', index: 8, field: 'prompt', problem: 'invalid' },
+      { collection: 'answers', index: 9, field: 'item', problem: 'invalid' },
+      { collection: 'answers', index: 10, field: 'item', problem: 'invalid' },
+      { collection: 'answers', index: 11, field: 'correct', problem: 'invalid' },
+      { collection: 'answers', index: 12, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 13, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 14, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 15, field: 'bpm', problem: 'invalid' },
+      { collection: 'answers', index: 16, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 17, field: 'prompt', problem: 'invalid' },
     ]);
   });
 

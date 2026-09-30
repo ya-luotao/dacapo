@@ -107,14 +107,27 @@ export interface Engraving {
   lastJustification?: number;
   /** Octave lines as "8va" and "15ma", stacked above the fingering (a lone "8" collides with it). */
   ottavaText?: boolean;
+  /**
+   * Notes spaced nearly by how long they last, with room between the systems: a rhythm line,
+   * whose counts the page writes under each beat (Read's rhythm, docs/READING.md).
+   */
+  rhythm?: boolean;
 }
 
 /** Verovio's own threshold for stretching the last system. */
 const DEFAULT_LAST_JUSTIFICATION = 0.8;
 
+/** Verovio's own spacing: its default options. */
+const SPACING = { spacingLinear: 0.25, spacingNonLinear: 0.6, spacingSystem: 4 };
+/**
+ * A rhythm line's: close to proportional (a sixteenth has room for its count, and a half note
+ * looks twice a quarter), and space between systems for the counts and the timings.
+ */
+const RHYTHM_SPACING = { spacingLinear: 0.15, spacingNonLinear: 0.9, spacingSystem: 10 };
+
 /** The engraving as a value: equal engravings give equal keys, whatever object holds them. */
 export const engravingKey = (e: Engraving): string =>
-  `${e.lastJustification ?? DEFAULT_LAST_JUSTIFICATION}:${e.ottavaText === true}`;
+  `${e.lastJustification ?? DEFAULT_LAST_JUSTIFICATION}:${e.ottavaText === true}:${e.rhythm === true}`;
 
 const sameEngraving = (a: Engraving, b: Engraving) => engravingKey(a) === engravingKey(b);
 
@@ -148,6 +161,7 @@ export function layoutOptions(
     // that says nothing must set Verovio's defaults back.
     minLastJustification: engraving.lastJustification ?? DEFAULT_LAST_JUSTIFICATION,
     octaveAlternativeSymbols: engraving.ottavaText === true,
+    ...(engraving.rhythm === true ? RHYTHM_SPACING : SPACING),
   };
 }
 

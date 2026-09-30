@@ -6,6 +6,7 @@ import {
   familyAnswers,
   familyLevels,
   filterAnswers,
+  isFamilyAnswer,
   isFamilyLevel,
   itemFigures,
   MIN_ITEM_ANSWERS,
@@ -13,6 +14,7 @@ import {
   weakestItems,
   type AnswerFamily,
   type AnswerFilter,
+  type FamilyAnswer,
   type FamilyLevel,
   type ItemFigures,
 } from '../../../core/answerProgress.ts';
@@ -35,7 +37,8 @@ const isEar = (family: AnswerFamily) =>
  * answered instead. Only the family practised last is open at first; a section opened or folded
  * by hand stays so, remembered per browser.
  */
-export function FamilyProgress({ answers }: { answers: readonly Answer[] }) {
+export function FamilyProgress({ answers: stored }: { answers: readonly Answer[] }) {
+  const answers = useMemo(() => stored.filter(isFamilyAnswer), [stored]);
   const t = useT();
   const id = useId();
   const [choices, setChoices] = useState(readSectionChoices);
@@ -45,7 +48,7 @@ export function FamilyProgress({ answers }: { answers: readonly Answer[] }) {
   );
   // The family of the latest answer (the store keeps them in the order they happened).
   const latest = useMemo(() => {
-    let last: Answer | null = null;
+    let last: FamilyAnswer | null = null;
     for (const answer of answers) if (!last || answer.at >= last.at) last = answer;
     return last?.family ?? null;
   }, [answers]);
@@ -85,7 +88,7 @@ export function FamilyProgress({ answers }: { answers: readonly Answer[] }) {
 
 interface FamilySectionProps {
   family: AnswerFamily;
-  answers: readonly Answer[];
+  answers: readonly FamilyAnswer[];
   open: boolean;
   onToggle: (open: boolean) => void;
 }

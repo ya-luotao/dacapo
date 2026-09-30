@@ -160,13 +160,31 @@ describe('buildProfile', () => {
       slowest: [],
       missed: [],
     } satisfies SessionRecord;
+    const rhythm = {
+      kind: 'rhythm',
+      id: 'rh',
+      level: 'R2',
+      bpm: 72,
+      startedAt: NOW + 30 * MIN,
+      endedAt: NOW + 34 * MIN,
+      activeMs: 4 * MIN,
+      length: 8,
+      exercises: 8,
+      runs: 9,
+      cells: 90,
+      correct: 80,
+      accuracy: 80 / 90,
+      medianDeviation: 21,
+      tendency: -6,
+      missed: [{ item: 'rhythm:er-e:3/4', count: 4 }],
+    } satisfies SessionRecord;
     const document = build({
-      sessions: [ear, read, theory],
+      sessions: [ear, read, theory, rhythm],
       settings: { visibility: 'public', titles: false },
     })!;
-    // The theory cards on Read are reading too.
-    expect(document.activity!['2026-09-29']!.kinds).toEqual({ read: 9 * MIN });
-    expect(document.days['2026-09-29']).toBe(9 * MIN);
+    // The theory cards and the rhythm lines on Read are reading too.
+    expect(document.activity!['2026-09-29']!.kinds).toEqual({ read: 13 * MIN });
+    expect(document.days['2026-09-29']).toBe(13 * MIN);
   });
 
   it('starts the grid on the first day of its first week', () => {

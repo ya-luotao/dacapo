@@ -2353,10 +2353,16 @@ kbd {
 
 /*
  * Read: what to read. The kinds of card are the tabs of a method book, one row per group (the
- * cards now; the choices read in time later). Two by two on a phone.
+ * cards; what is read in time). Two by two on a phone.
  */
 .read-what {
   margin-top: 1.5rem;
+}
+
+.read-what .read-what-group {
+  display: flex;
+  width: max-content;
+  max-width: 100%;
 }
 
 .read-what-group + .read-what-group {
@@ -2380,6 +2386,262 @@ kbd {
 
   .read-what .segmented label:nth-child(n + 3) span {
     border-top: 1px solid var(--border);
+  }
+
+  /* A row of one (Rhythm, until Sight-reading joins it) is one cell of the grid above. */
+  .read-what .segmented:has(> label:only-child) {
+    grid-template-columns: minmax(0, 1fr);
+    width: calc(50% + 0.5px);
+  }
+}
+
+/*
+ * Read: rhythm. The session is the music stand again: the bar, the status with the count and
+ * Start, the line on its sheet, and under it the pads to tap, or after a run its result.
+ */
+
+.rhythm-setup .level {
+  grid-template-columns: 1.125rem 2.75rem minmax(0, 1fr) auto;
+}
+
+.rhythm-latency {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+  margin: 1.25rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.rhythm-session .rhythm-latency {
+  max-width: 46rem;
+  margin: 1rem auto 0;
+}
+
+.rhythm-session .rhythm-latency .muted {
+  flex-basis: 100%;
+}
+
+.rhythm-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+  max-width: 46rem;
+  margin: 0 auto 0.75rem;
+}
+
+.rhythm-status {
+  flex: 1 1 16rem;
+  min-height: 1.75rem;
+  margin: 0;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+.rhythm-head .rhythm-beats {
+  margin: 0;
+}
+
+/* The line on its sheet, as tall as the score; the counts and timings laid over it. */
+.rhythm-sheet {
+  position: relative;
+  display: flex;
+  min-height: 8rem;
+  max-width: 62rem;
+  margin-inline: auto;
+}
+
+/* Room above the first line for its timings, clear of a triplet's 3. */
+.rhythm-sheet .score-page {
+  padding-top: 1.5rem;
+}
+
+.rhythm-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.rhythm-count {
+  position: absolute;
+  padding-top: 0.625rem;
+  color: var(--text);
+  font-family: var(--font-serif);
+  font-size: 0.9375rem;
+  line-height: 1;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.rhythm-count.is-held {
+  color: var(--text-muted);
+}
+
+.rhythm-count.is-now {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* The beat cursor: a hairline of the accent through the beat heard now. */
+.rhythm-cursor {
+  position: absolute;
+  width: 2px;
+  margin-top: -1.75rem;
+  padding-bottom: 3.25rem;
+  border-radius: 1px;
+  background: color-mix(in oklab, var(--accent) 55%, transparent);
+  transform: translateX(-1px);
+}
+
+/* After a run: how far each onset was off, in the colour its note is inked in. */
+.rhythm-timing {
+  position: absolute;
+  padding: 0.125rem 0.25rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  transform: translate(-50%, 0.25rem);
+}
+
+.rhythm-timing.is-above {
+  transform: translate(-50%, calc(-100% - 0.25rem));
+}
+
+.rhythm-timing.is-early,
+.rhythm-key .is-early,
+.score-svg .is-rhythm-early {
+  color: var(--accent);
+}
+
+.rhythm-timing.is-late,
+.rhythm-key .is-late,
+.score-svg .is-rhythm-late {
+  color: var(--warn);
+}
+
+.rhythm-timing.is-missed,
+.rhythm-key .is-missed,
+.rhythm-key .is-extra,
+.rhythm-extra,
+.score-svg .is-rhythm-missed {
+  color: var(--bad);
+}
+
+.rhythm-key .is-in,
+.score-svg .is-rhythm-in {
+  color: var(--ok);
+}
+
+.rhythm-extra {
+  position: absolute;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+  transform: translate(-50%, -135%);
+}
+
+/* The lower line's stems go down: its extra taps are marked under it. */
+.rhythm-extra.is-below {
+  transform: translate(-50%, 35%);
+}
+
+/* The pads: wide enough to tap without looking, one per hand. */
+.rhythm-pads {
+  display: flex;
+  gap: 1rem;
+  max-width: 46rem;
+  margin: 1rem auto 0;
+}
+
+.rhythm-pad {
+  flex: 1 1 0;
+  min-height: 6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--sunk);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition: background-color 60ms ease-out;
+}
+
+.rhythm-pad:active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.rhythm-result {
+  max-width: 46rem;
+  margin: 1rem auto 0;
+}
+
+.rhythm-result .figures {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0.5rem 0 0.75rem;
+}
+
+.rhythm-result .figures dd,
+.rhythm-summary .figures dd {
+  font-size: clamp(1.5rem, 1.25rem + 1.5vw, 2.25rem);
+}
+
+.rhythm-tendency {
+  margin: 0 0 0.75rem;
+  text-wrap: pretty;
+}
+
+.rhythm-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  list-style: none;
+}
+
+.rhythm-result .actions {
+  margin-top: 0;
+}
+
+.rhythm-summary .figures {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  max-width: 46rem;
+}
+
+.rhythm-missed {
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 40rem) {
+  .rhythm-summary .figures {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rhythm-summary .figures div:nth-child(3) {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+  }
+
+  .rhythm-summary .figures div:nth-child(n + 3) {
+    border-top: 1px solid var(--border);
+  }
+
+  .rhythm-pad {
+    min-height: 5rem;
   }
 }
 
