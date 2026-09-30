@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { formatSymbol, parseSymbol, type SymbolQuality } from '../../core/chordSymbols.ts';
 import { pitchToMidi } from '../../core/note.ts';
 import {
   accidentalShifts,
@@ -11,6 +12,7 @@ import {
   ROOTS,
   SEVENTHS,
   TRIADS,
+  type Quality,
 } from './harmony.ts';
 import { pitch } from './notes.ts';
 
@@ -84,5 +86,41 @@ describe('chords for the lesson on harmony', () => {
     const fOverA = [57, 60, 65];
     expect(judgeChord(fOverA, [53, 57, 60], true)).toBe('wrong');
     expect(judgeChord(fOverA, [57, 65, 72], true)).toBe('right');
+  });
+});
+
+describe('the lesson’s chord symbols', () => {
+  it('are written as the Harmony page writes them', () => {
+    const CORE: Record<Quality, SymbolQuality> = {
+      major: 'maj',
+      minor: 'min',
+      diminished: 'dim',
+      augmented: 'aug',
+      dom7: 'dom7',
+      maj7: 'maj7',
+      min7: 'min7',
+      hdim7: 'hdim7',
+    };
+    for (const [lesson, quality] of Object.entries(CORE) as [Quality, SymbolQuality][]) {
+      for (const root of [
+        { letter: 'C', accidental: 0 },
+        { letter: 'B', accidental: -1 },
+        { letter: 'F', accidental: 1 },
+      ] as const) {
+        const written = chordSymbol(root, lesson);
+        expect(written).toBe(
+          formatSymbol({
+            root: { step: root.letter, alter: root.accidental },
+            quality,
+            bass: null,
+          }),
+        );
+        expect(parseSymbol(written)).not.toBeNull();
+      }
+    }
+    expect(
+      chordSymbol({ letter: 'F', accidental: 0 }, 'major', { letter: 'A', accidental: 0 }),
+    ).toBe('F/A');
+    expect(parseSymbol('F/A')).not.toBeNull();
   });
 });

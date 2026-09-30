@@ -27,10 +27,11 @@ import {
  * `takes` (older builds skip the collection); 6, the theory cards on Read: answers of the families
  * `readInterval`, `keySignature` and `readChord` and sessions of kind `theory` (older builds skip
  * them); 7, rhythm on Read: answers of the family `rhythm` and sessions of kind `rhythm` (older
- * builds skip them). Bump it whenever a build learns a collection, a session kind, or records that
- * older builds skipped.
+ * builds skip them); 8, the chord symbols of the Harmony page: answers of the family `chordSymbol`
+ * and sessions of kind `harmony` (older builds skip them). Bump it whenever a build learns a
+ * collection, a session kind, or records that older builds skipped.
  */
-export const SYNC_SCHEMA = 7;
+export const SYNC_SCHEMA = 8;
 
 // Records as the sync service carries them (docs/SYNC.md, "What syncs"): the stored record as it
 // is, except a piece, which goes without its MusicXML (sent as a file named by its hash) and

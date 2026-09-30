@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'wouter';
+import { HARMONY_LEVELS } from '../../core/chordSymbols.ts';
 import { EAR_LEVELS } from '../../core/earItems.ts';
 import { RHYTHM_LEVELS } from '../../core/rhythmCells.ts';
 import { THEORY_LEVELS } from '../../core/theoryItems.ts';
@@ -51,15 +52,23 @@ const CONTENTS: readonly {
     values: { n: EAR_LEVELS.length },
   },
   {
-    path: '/scales',
+    path: '/harmony',
     numeral: 'IV',
+    title: 'nav.harmony',
+    text: 'home.harmony.text',
+    meta: 'home.harmony.meta',
+    values: { n: HARMONY_LEVELS.length },
+  },
+  {
+    path: '/scales',
+    numeral: 'V',
     title: 'nav.scales',
     text: 'home.scales.text',
     meta: 'home.scales.meta',
   },
   {
     path: '/pieces',
-    numeral: 'V',
+    numeral: 'VI',
     title: 'nav.pieces',
     text: 'home.pieces.text',
     meta: 'home.pieces.meta',
@@ -67,7 +76,7 @@ const CONTENTS: readonly {
   },
   {
     path: '/metronome',
-    numeral: 'VI',
+    numeral: 'VII',
     title: 'nav.metronome',
     text: 'home.metronome.text',
     meta: 'home.metronome.meta',
@@ -75,7 +84,7 @@ const CONTENTS: readonly {
   },
   {
     path: '/progress',
-    numeral: 'VII',
+    numeral: 'VIII',
     title: 'nav.progress',
     text: 'home.progress.text',
     meta: 'home.progress.meta',

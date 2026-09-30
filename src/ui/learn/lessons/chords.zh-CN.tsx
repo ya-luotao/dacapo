@@ -369,6 +369,11 @@ export default function Lesson() {
           <Link href="/ear">「练耳」</Link>
           会弹出和弦让你说出名称或弹出来，从大三和弦、小三和弦，一直到转位和这一课的四种七和弦。
         </p>
+        <p>
+          <Link href="/harmony">「和声」</Link>
+          会一个接一个地出和弦记号让你弹，从 C、G、F
+          大调的三和弦，到七和弦、斜线和弦和这一课列出的其他和弦，每个调都有。
+        </p>
       </Section>
     </>
   );

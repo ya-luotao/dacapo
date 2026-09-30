@@ -9,10 +9,33 @@ which is noted when it changes.
 Export format version 8: the file now includes imported pieces (from version 2), piece practice
 sessions and their step records (from version 3), rhythm-mode steps with their timings (from
 version 4), scale sessions with every scale run as played (from version 5), ear-training answers
-and sessions (from version 6; the theory cards' and Read's rhythm answers and sessions go in the
-same lists), the
+and sessions (from version 6; the theory cards', Read's rhythm and the chord symbols' answers and
+sessions go in the same lists), the
 click's tempo and grid of scale runs played with it (from version 7), and the takes of piece runs
 (from version 8). Version 1 to 7 files still import.
+
+### Harmony: chords from their symbols (H1)
+
+- A new **Harmony** page. Its first practice, **Chords**, shows a chord symbol as a lead sheet
+  prints it (`Am`, `G7`, `F/A`, `B°`, `Csus4`, `Cmaj7`, `Dm7♭5`), set large with its extension
+  raised; play its notes on your keyboard, in any octave, voicing or inversion, a slash chord's bass
+  lowest ([docs/HARMONY.md](docs/HARMONY.md)).
+- Five levels: the triads of C, G and F major; major and minor triads on all twelve roots; `7`,
+  `maj7` and `m7`; slash chords (inversions such as `C/E` and bass notes such as `Am/G`); and `°`,
+  `+`, `sus2`, `sus4`, `m7♭5`, `°7`, `6`, `m6` and `add9`. Symbols are spelled as lead sheets spell
+  them (`B♭`, not `A♯`; `F♯m`, not `G♭m`) and written one way everywhere (`maj7`, `°`, `m7♭5`).
+- Read's rules: the clock starts when the symbol is on screen, the first answer counts, and the
+  card stays until you play it right; a wrong answer names what you played and the chord note by
+  note, and marks it on the keyboard. **Show the notes** names the chord's notes and marks them
+  lightly. Sessions of 10, 20 or 50 cards, a suggested level and mastery (90 % over 40 cards, a
+  median under 3 s), and a summary with the slowest and missed cards.
+- The answers and sessions are kept, exported and synced like the other cards, count as reading
+  on a public profile, and Progress has a section for **Chord symbols** with its weakest symbols
+  and what you play instead ("Dm7 played as D7"). The lesson on chords now practises here.
+- With a mouse or a finger, a click or a tap on the screen's keyboard holds a key down until it is
+  clicked again, so a chord can be built one key at a time.
+- Progress heads the chords of Ear and of Read's cards in the same style, without their root:
+  maj, m, °, +, 7, maj7, m7, m7♭5 (before: M, M7, ø7).
 
 ### Rhythm on Read (R1, [docs/READING.md](docs/READING.md))
 

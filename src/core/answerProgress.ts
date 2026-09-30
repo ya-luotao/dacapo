@@ -1,9 +1,29 @@
 import {
+  isChordSymbolAnswer,
   isEarAnswer,
   isRhythmAnswer,
   isTheoryAnswer,
   type Answer as StoredAnswer,
 } from './answers.ts';
+import {
+  formatSymbol,
+  HARMONY_FAMILIES,
+  HARMONY_LEVEL_IDS,
+  HARMONY_LEVELS,
+  harmonyLevelItems,
+  isHarmonyFamily,
+  isHarmonyLevelId,
+  parseSymbol,
+  parseSymbolItem,
+  rootPc,
+  SYMBOL_QUALITIES,
+  SYMBOL_ROOTS,
+  SYMBOL_TONES,
+  type ChordSymbol,
+  type HarmonyFamily,
+  type HarmonyLevelId,
+  type SymbolQuality,
+} from './chordSymbols.ts';
 import {
   CHORD_QUALITIES,
   CHORD_TONES,
@@ -34,6 +54,14 @@ import {
   type EarAnswer,
 } from './earSession.ts';
 import { MIN_ATTEMPTS } from './heatmap.ts';
+import {
+  HARMONY_MASTERY_WINDOW,
+  HARMONY_TARGET_MS,
+  harmonyLevelProgress,
+  harmonyStats,
+  isTimedHarmony,
+  type ChordSymbolAnswer,
+} from './harmonySession.ts';
 import { midiOf } from './musicxml.ts';
 import { pitchClass } from './note.ts';
 import { SIGNATURE_FIFTHS, signatureTonic, tonicPitch } from './scales.ts';
@@ -69,24 +97,34 @@ import { noteWeight, RECENT_LENGTH, type NoteStats } from './weakness.ts';
 // Progress per family of the answers store (docs/EAR.md, "Records and figures" and
 // "Clarifications (decided during E4)"): each level's mastery, per-item figures, the weakest
 // items, and the confusion table of what was asked against what was answered. Recomputed from
-// the raw answers whenever they change; pure, so every rule is unit-tested.
+// the raw answers whenever they change; pure, so every rule is unit-tested. The chord symbols of
+// the Harmony page are a family of their own (docs/HARMONY.md, "Clarifications (decided during
+// H1)").
 
-/** The answers the families here are made of: ear and theory answers, not rhythm (R1's own). */
+/**
+ * The answers the families here are made of: ear, theory and chord-symbol answers, not rhythm
+ * (R1's own).
+ */
 export type FamilyAnswer = Exclude<StoredAnswer, { family: 'rhythm' }>;
 type Answer = FamilyAnswer;
 export const isFamilyAnswer = (answer: StoredAnswer): answer is FamilyAnswer =>
   !isRhythmAnswer(answer);
 
-export type AnswerFamily = EarFamily | TheoryFamily;
-/** Ear's three families, then Read's three: the order of the Progress page. */
-export const ANSWER_FAMILIES: readonly AnswerFamily[] = [...EAR_FAMILIES, ...THEORY_FAMILIES];
-export type FamilyLevelId = EarLevelId | TheoryLevelId;
+export type AnswerFamily = EarFamily | TheoryFamily | HarmonyFamily;
+/** Ear's three families, then Read's three, then Harmony's: the order of the Progress page. */
+export const ANSWER_FAMILIES: readonly AnswerFamily[] = [
+  ...EAR_FAMILIES,
+  ...THEORY_FAMILIES,
+  ...HARMONY_FAMILIES,
+];
+export type FamilyLevelId = EarLevelId | TheoryLevelId | HarmonyLevelId;
 
 const isEarFamily = (family: AnswerFamily): family is EarFamily =>
   (EAR_FAMILIES as readonly string[]).includes(family);
 
 /** The family's levels, in order. */
 export function familyLevelIds(family: AnswerFamily): FamilyLevelId[] {
+  if (isHarmonyFamily(family)) return [...HARMONY_LEVEL_IDS];
   return (isEarFamily(family) ? levelsOf(family) : theoryLevelsOf(family)).map((l) => l.id);
 }
 
@@ -117,12 +155,12 @@ export function filterAnswers(answers: readonly Answer[], filter: AnswerFilter):
 
 // --- Levels ----------------------------------------------------------------------------------
 
-/** A level's mastery, the same figures for Ear's levels and Read's. */
+/** A level's mastery, the same figures for Ear's levels, Read's and Harmony's. */
 export interface FamilyLevel {
   level: FamilyLevelId;
   /** Every answer at the level, replayed or hinted or not. */
   total: number;
-  /** Answers in the mastery window: those without a replay (Ear) or the hint (Read). */
+  /** Answers in the mastery window: those without a replay (Ear) or the hint (Read, Harmony). */
   counted: number;
   /** The window's size: 40 answers, or 20 melodies. */
   window: number;
@@ -133,10 +171,19 @@ export interface FamilyLevel {
 
 /**
  * Every level of the family with its mastery, by the rules of its page (`earLevelProgress`,
- * `theoryLevelProgress`). `answers` must be in the order they happened.
+ * `theoryLevelProgress`, `harmonyLevelProgress`). `answers` must be in the order they happened.
  */
 export function familyLevels(family: AnswerFamily, answers: readonly Answer[]): FamilyLevel[] {
   const own = familyAnswers(family, answers);
+  if (isHarmonyFamily(family)) {
+    const harmony = own.filter(isChordSymbolAnswer);
+    return HARMONY_LEVEL_IDS.map((id) => {
+      const p = harmonyLevelProgress(harmony, id);
+      const { total, accuracy, medianMs, mastered } = p;
+      const window = HARMONY_MASTERY_WINDOW;
+      return { level: p.level, total, counted: p.cards, window, accuracy, medianMs, mastered };
+    });
+  }
   if (isEarFamily(family)) {
     const ear = own.filter(isEarAnswer);
     return levelsOf(family).map((level) => {
@@ -171,7 +218,10 @@ export interface ItemFigures {
   recentCorrect: number;
   /** Median of the timed answers among the last `ITEM_WINDOW`; null without one. */
   medianMs: number | null;
-  /** Among the last `ITEM_WINDOW`: "Hear again" pressed (Ear), or answers with the hint (Read). */
+  /**
+   * Among the last `ITEM_WINDOW`: "Hear again" pressed (Ear), or answers with the hint (Read,
+   * Harmony).
+   */
   aids: number;
   /** The weakness model's weight, as the next item is drawn by: the higher, the weaker. */
   weight: number;
@@ -179,26 +229,36 @@ export interface ItemFigures {
 
 /** Every item the family can ask, in the order of its levels. */
 function itemOrder(family: AnswerFamily): string[] {
-  const items = isEarFamily(family)
-    ? levelsOf(family).flatMap((level) => levelItems(level, DIRECTIONS))
-    : theoryLevelsOf(family).flatMap(theoryLevelItems);
+  const items = isHarmonyFamily(family)
+    ? HARMONY_LEVELS.flatMap(harmonyLevelItems)
+    : isEarFamily(family)
+      ? levelsOf(family).flatMap((level) => levelItems(level, DIRECTIONS))
+      : theoryLevelsOf(family).flatMap(theoryLevelItems);
   return [...new Set(items)];
 }
 
 function statsOf(family: AnswerFamily, answers: readonly Answer[]): Record<string, NoteStats> {
+  if (isHarmonyFamily(family)) return harmonyStats(answers.filter(isChordSymbolAnswer));
   return isEarFamily(family)
     ? earStats(answers.filter(isEarAnswer))
     : theoryStats(answers.filter(isTheoryAnswer));
 }
 
 const targetMsOf = (family: AnswerFamily) =>
-  isEarFamily(family) ? EAR_TARGET_MS : theoryTargetMs(family);
+  isHarmonyFamily(family)
+    ? HARMONY_TARGET_MS
+    : isEarFamily(family)
+      ? EAR_TARGET_MS
+      : theoryTargetMs(family);
 
 const isTimed = (answer: Answer) =>
-  isTheoryAnswer(answer) ? isTimedTheory(answer) : isTimedAnswer(answer);
+  isTheoryAnswer(answer)
+    ? isTimedTheory(answer)
+    : isChordSymbolAnswer(answer)
+      ? isTimedHarmony(answer)
+      : isTimedAnswer(answer);
 
-const aidsOf = (answer: Answer) =>
-  isTheoryAnswer(answer) ? Number(answer.hinted) : answer.replays;
+const aidsOf = (answer: Answer) => (isEarAnswer(answer) ? answer.replays : Number(answer.hinted));
 
 /**
  * The figures of every item answered, in the order of the levels. `answers` are the family's,
@@ -267,7 +327,8 @@ export const OTHER = 'other';
  * - `chord`, `readChord`: the chord and its position (`min:1st`);
  * - `echo`: the melodic interval into a note, in signed semitones (`+5`, `-3`);
  * - `readInterval`: the name as the level asks it (`A2`; RI1 the number alone, `3`);
- * - `keySignature`: the key (`3f:major`).
+ * - `keySignature`: the key (`3f:major`);
+ * - `chordSymbol`: the symbol as written (`Dm7`), the keys held read as a symbol on its root.
  */
 export interface Confusion {
   asked: string;
@@ -347,7 +408,11 @@ export const keyLabel = (fifths: number, mode: 'major' | 'minor') =>
  * answers. Nothing for an answer that cannot be read.
  */
 export function confusionsOf(answer: Answer): Confusion[] {
-  const pairs = isTheoryAnswer(answer) ? theoryConfusions(answer) : earConfusions(answer);
+  const pairs = isTheoryAnswer(answer)
+    ? theoryConfusions(answer)
+    : isChordSymbolAnswer(answer)
+      ? symbolConfusions(answer)
+      : earConfusions(answer);
   return pairs.map((pair) =>
     pair.wrong && pair.answered === pair.asked
       ? { asked: pair.asked, answered: OTHER }
@@ -465,6 +530,51 @@ function theoryConfusions(answer: TheoryAnswer): Pair[] {
   return [];
 }
 
+/** A note's spelling for a bass read from a key: the asked one where it is, else on its side. */
+function bassSpelling(pc: number, asked: ChordSymbol): ChordSymbol['root'] {
+  if (asked.bass && rootPc(asked.bass) === pc) return asked.bass;
+  const options = SYMBOL_ROOTS.filter((r) => rootPc(r) === pc);
+  return (
+    options.find((r) => r.alter === 0) ??
+    options.find((r) => r.alter === (asked.root.alter > 0 ? 1 : -1))!
+  );
+}
+
+/**
+ * The keys held for a symbol, read as a symbol on the root asked: the qualities containing every
+ * key held (for a slash chord asked, every key but a lowest one that is not the root, which is
+ * then read as the bass); of several, the one sharing most tones with the chord asked, then the
+ * first of `SYMBOL_QUALITIES` (the simplest). `other` when none contains them.
+ */
+export function symbolOfKeys(held: readonly number[], asked: ChordSymbol): string {
+  if (held.length === 0) return OTHER;
+  const root = rootPc(asked.root);
+  const relative = (midi: number) => (((midi - root) % 12) + 12) % 12;
+  const lowest = relative(Math.min(...held));
+  const withBass = asked.bass !== null && lowest !== 0;
+  const tones = new Set(held.map(relative));
+  if (withBass) tones.delete(lowest);
+  const askedTones = new Set(SYMBOL_TONES[asked.quality].map((t) => t.semitones % 12));
+  let best: { quality: SymbolQuality; shared: number } | null = null;
+  for (const quality of SYMBOL_QUALITIES) {
+    const chord = SYMBOL_TONES[quality].map((t) => t.semitones % 12);
+    if (![...tones].every((t) => chord.includes(t))) continue;
+    const shared = chord.filter((t) => askedTones.has(t)).length;
+    if (!best || shared > best.shared) best = { quality, shared };
+  }
+  if (!best) return OTHER;
+  const bass = withBass ? bassSpelling((root + lowest) % 12, asked) : null;
+  return formatSymbol({ root: asked.root, quality: best.quality, bass });
+}
+
+function symbolConfusions(answer: ChordSymbolAnswer): Pair[] {
+  const asked = parseSymbolItem(answer.item);
+  if (!asked || !isHarmonyLevelId(answer.level)) return [];
+  const label = formatSymbol(asked);
+  if (answer.correct) return [right(label)];
+  return [wrong(label, symbolOfKeys(answer.answer, asked))];
+}
+
 // --- The confusion table ---------------------------------------------------------------------
 
 /** A row of the table with fewer answers than this is "not enough data" to colour. */
@@ -515,6 +625,13 @@ function labelRank(family: AnswerFamily, label: string): number {
       const fifths = signature === '0' ? 0 : Number(signature!.slice(0, -1));
       const sign = signature!.endsWith('f') ? -1 : 1;
       return (mode === 'minor' ? 100 : 0) + sign * fifths;
+    }
+    case 'chordSymbol': {
+      // By root round the octave from C, then quality, then bass (none first).
+      const symbol = parseSymbol(label);
+      if (!symbol) return Number.MAX_VALUE;
+      const bass = symbol.bass ? ((rootPc(symbol.bass) - rootPc(symbol.root) + 12) % 12) + 1 : 0;
+      return rootPc(symbol.root) * 10_000 + SYMBOL_QUALITIES.indexOf(symbol.quality) * 100 + bass;
     }
     case 'chord':
     case 'readChord': {

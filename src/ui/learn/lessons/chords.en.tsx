@@ -389,6 +389,11 @@ export default function Lesson() {
           On the <Link href="/ear">Ear</Link> page, chords are played for you to name or play back,
           from major and minor triads to inversions and the four seventh chords of this lesson.
         </p>
+        <p>
+          The <Link href="/harmony">Harmony</Link> page shows chord symbols one after another for
+          you to play, from the triads of C, G and F major to seventh chords, slash chords and the
+          rest of this lesson’s list, in every key.
+        </p>
       </Section>
     </>
   );

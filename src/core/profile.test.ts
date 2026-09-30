@@ -121,7 +121,7 @@ describe('buildProfile', () => {
     expect(document).not.toHaveProperty('activity');
   });
 
-  it('counts ear training as reading, the only day kind the service knows for it', () => {
+  it('counts ear training and the cards as reading, the only day kind the service knows for them', () => {
     const ear = {
       kind: 'ear',
       id: 'e',
@@ -178,13 +178,30 @@ describe('buildProfile', () => {
       tendency: -6,
       missed: [{ item: 'rhythm:er-e:3/4', count: 4 }],
     } satisfies SessionRecord;
+    const harmony = {
+      kind: 'harmony',
+      id: 'h',
+      family: 'chordSymbol',
+      level: 'H2',
+      startedAt: NOW + 40 * MIN,
+      endedAt: NOW + 45 * MIN,
+      activeMs: 5 * MIN,
+      length: 20,
+      cards: 20,
+      correct: 18,
+      accuracy: 0.9,
+      medianMs: 2100,
+      slowest: [],
+      missed: [],
+    } satisfies SessionRecord;
     const document = build({
-      sessions: [ear, read, theory, rhythm],
+      sessions: [ear, read, theory, rhythm, harmony],
       settings: { visibility: 'public', titles: false },
     })!;
-    // The theory cards and the rhythm lines on Read are reading too.
-    expect(document.activity!['2026-09-29']!.kinds).toEqual({ read: 13 * MIN });
-    expect(document.days['2026-09-29']).toBe(13 * MIN);
+    // The theory cards and the rhythm lines on Read are reading too, and so are the chord symbols
+    // of Harmony.
+    expect(document.activity!['2026-09-29']!.kinds).toEqual({ read: 18 * MIN });
+    expect(document.days['2026-09-29']).toBe(18 * MIN);
   });
 
   it('starts the grid on the first day of its first week', () => {

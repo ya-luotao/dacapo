@@ -27,6 +27,8 @@ import {
   sampleRun,
   sampleScaleSession,
   sampleTake,
+  sampleChordSymbolAnswers,
+  sampleHarmonySession,
   sampleTheoryAnswers,
   sampleTheorySession,
   sampleRhythmAnswers,
@@ -1049,6 +1051,72 @@ describe('versions', () => {
       { collection: 'answers', index: 29, field: 'correct', problem: 'invalid' },
       { collection: 'answers', index: 30, field: 'answer', problem: 'invalid' },
       { collection: 'answers', index: 31, field: 'hinted', problem: 'invalid' },
+    ]);
+  });
+
+  it('imports the answers and sessions of the chord symbols, judging each again', () => {
+    const [triad, slash] = sampleChordSymbolAnswers(0);
+    const wrong = sampleChordSymbolAnswers(1);
+    const { answers, session } = sampleHarmonySession('h2', 3);
+    const file = parsed(
+      fileWith({
+        version: 8,
+        pieces: [],
+        pieceSteps: [],
+        scaleRuns: [],
+        takes: [],
+        sessions: [
+          { ...session, extra: 1, missed: session.missed.map((m) => ({ ...m, extra: 1 })) },
+          { ...session, id: 'x1', level: 'RC1' },
+          { ...session, id: 'x2', missed: [{ item: 'sym:Bb', answer: [58] }] },
+          { ...session, id: 'x3', slowest: [{ item: 'rc:maj:root', ms: 100 }] },
+          { ...session, id: 'x4', cards: 0 },
+          { ...session, id: 'x5', family: 'readChord' },
+        ],
+        answers: [
+          { ...triad, extra: 1 },
+          slash,
+          ...wrong,
+          ...answers,
+          // Not a symbol of the app's style, not the level's, a prompt other than the item's.
+          { ...triad, id: 'y1', item: 'sym:Gbm', prompt: 'Gbm' },
+          { ...triad, id: 'y2', item: 'sym:G♭m', prompt: 'G♭m' },
+          { ...triad, id: 'y3', level: 'H3' },
+          { ...triad, id: 'y4', prompt: 'Dm' },
+          // Named, not played; judged wrongly; not every note held yet; keys out of order.
+          { ...triad, id: 'y5', by: 'name' },
+          { ...triad, id: 'y6', correct: false },
+          { ...triad, id: 'y7', answer: [54, 57] },
+          { ...triad, id: 'y8', answer: [61, 57, 54] },
+          // A slash chord over another bass, or its bass held right.
+          { ...slash, id: 'y9', answer: [60, 64, 67] },
+          { ...slash, id: 'y10', answer: [52, 60, 64, 67], correct: false },
+          { ...triad, id: 'y11', hinted: 'no' },
+          { ...triad, id: 'y12', family: 'chord' },
+        ],
+      }),
+    );
+    expect(file.sessions).toEqual([session]);
+    expect(file.answers).toEqual([triad, slash, ...wrong, ...answers]);
+    expect(file.invalid).toEqual([
+      { collection: 'sessions', index: 1, field: 'level', problem: 'invalid' },
+      { collection: 'sessions', index: 2, field: 'missed', problem: 'invalid' },
+      { collection: 'sessions', index: 3, field: 'slowest', problem: 'invalid' },
+      { collection: 'sessions', index: 4, field: 'correct', problem: 'invalid' },
+      { collection: 'sessions', index: 5, field: 'family', problem: 'invalid' },
+      { collection: 'answers', index: 7, field: 'item', problem: 'invalid' },
+      { collection: 'answers', index: 8, field: 'item', problem: 'invalid' },
+      { collection: 'answers', index: 9, field: 'item', problem: 'invalid' },
+      { collection: 'answers', index: 10, field: 'prompt', problem: 'invalid' },
+      { collection: 'answers', index: 11, field: 'by', problem: 'invalid' },
+      { collection: 'answers', index: 12, field: 'correct', problem: 'invalid' },
+      { collection: 'answers', index: 13, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 14, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 15, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 16, field: 'correct', problem: 'invalid' },
+      { collection: 'answers', index: 17, field: 'hinted', problem: 'invalid' },
+      // Taken for an ear answer, whose levels these are not.
+      { collection: 'answers', index: 18, field: 'level', problem: 'invalid' },
     ]);
   });
 

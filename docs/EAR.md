@@ -344,8 +344,9 @@ flats.
   A row with **fewer than 5 answers** is not enough data: its counts stand in the hollow dashed
   mark of "not enough data yet". A cell never answered is blank; a total ends each row.
 - **Headings** are short, the same in every language as note names are: `m6`, `TT`, `↑P4`, `A2`,
-  `3`, E♭ for a major key and c♯ for a minor one, chord symbols (M, m, °, +, 7, M7, m7, ø7) with
-  an inversion's figured bass (⁶, ⁶₄). Each heading's full name is in its hidden text and tooltip,
+  `3`, E♭ for a major key and c♯ for a minor one, chord symbols without their root in the Harmony
+  page's one style (maj, m, °, +, 7, maj7, m7, m7♭5; `maj` for the major triad, whose symbol is its
+  root alone; decided during H1) with an inversion's figured bass (⁶, ⁶₄). Each heading's full name is in its hidden text and tooltip,
   and each cell's tooltip says what it counts ("minor 6th answered as perfect 5th: 4 of 12").
 - **The table view** ("Show as a table") lists the confusions in words, the most frequent first,
   then the larger share: asked, answered as, and how often ("minor 6th · perfect 5th · 4 of 12

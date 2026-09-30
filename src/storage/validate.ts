@@ -11,15 +11,26 @@ import {
   type EarLevelId,
 } from '../core/earItems.ts';
 import type { Answer } from '../core/answers.ts';
+import {
+  getHarmonyLevel,
+  harmonyItemInLevel,
+  isHarmonyFamily,
+  isHarmonyLevelId,
+  itemSymbol,
+  judgeSymbolKeys,
+  parseSymbolItem,
+} from '../core/chordSymbols.ts';
 import { isMelodyKeyOf, judgeEchoAnswer } from '../core/earMelody.ts';
 import type { EarAnswer, MissedItem } from '../core/earSession.ts';
 import type { PlayedNote, RunHeadline } from '../core/evenness.ts';
 import type { OpenFreePlay } from '../core/freePlay.ts';
+import type { ChordSymbolAnswer, HarmonyMissed } from '../core/harmonySession.ts';
 import { isStaffHands } from '../core/hands.ts';
 import { isLevelId, parseNoteKey } from '../core/levels.ts';
 import type {
   EarSessionRecord,
   FreePlaySessionRecord,
+  HarmonySessionRecord,
   PieceSessionRecord,
   ReadSessionRecord,
   RhythmSessionRecord,
@@ -498,11 +509,13 @@ function judgedAnswer(
   return result === 'pending' ? null : result === 'right';
 }
 
-/** An ear-training, a theory or a rhythm answer, told apart by its family. */
+/** An ear-training, a theory, a rhythm or a chord-symbol answer, told apart by its family. */
 export function validateAnswer(value: unknown): Validation<Answer> {
   if (!isObject(value)) return fail('record');
   if (isRhythmFamily(value.family)) return validateRhythmAnswer(value);
-  return isTheoryFamily(value.family) ? validateTheoryAnswer(value) : validateEarAnswer(value);
+  if (isTheoryFamily(value.family)) return validateTheoryAnswer(value);
+  if (isHarmonyFamily(value.family)) return validateChordSymbolAnswer(value);
+  return validateEarAnswer(value);
 }
 
 function validateEarAnswer(value: Fields): Validation<EarAnswer> {
@@ -797,6 +810,107 @@ function validateTheorySession(value: Fields): Validation<TheorySessionRecord> {
   };
 }
 
+// --- Chord symbols on Harmony ----------------------------------------------------------------
+
+const isSymbolItem = (v: unknown): v is string => parseSymbolItem(v) !== null;
+/** Keys held, low to high, each once. */
+const isHeldKeys = (v: unknown): v is number[] =>
+  isKeys(v, 88) && v.every((midi, i) => i === 0 || midi > v[i - 1]!);
+
+function validateChordSymbolAnswer(value: Fields): Validation<ChordSymbolAnswer> {
+  const field = firstInvalid(value, {
+    id: isId,
+    sessionId: isId,
+    family: isHarmonyFamily,
+    level: isHarmonyLevelId,
+    item: isSymbolItem,
+    by: (v) => v === 'play',
+    prompt: (v) => typeof v === 'string' && v === itemSymbol(String(value.item)),
+    answer: isHeldKeys,
+    correct: isBool,
+    ms: isTime,
+    hinted: isBool,
+    at: isTime,
+  });
+  if (field) return fail(field);
+  const a = value as unknown as ChordSymbolAnswer;
+  if (!harmonyItemInLevel(a.item, getHarmonyLevel(a.level))) return fail('item');
+  // Judged again as the session judged it: an answer is recorded once it is right or wrong.
+  const judged = judgeSymbolKeys(parseSymbolItem(a.item)!, a.answer);
+  if (judged === 'pending') return fail('answer');
+  if ((judged === 'right') !== a.correct) return fail('correct');
+  return {
+    ok: true,
+    value: {
+      id: a.id,
+      sessionId: a.sessionId,
+      family: a.family,
+      level: a.level,
+      item: a.item,
+      by: a.by,
+      prompt: a.prompt,
+      answer: [...a.answer],
+      correct: a.correct,
+      ms: a.ms,
+      hinted: a.hinted,
+      at: a.at,
+    },
+  };
+}
+
+function isHarmonyMissed(v: unknown): v is HarmonyMissed[] {
+  return (
+    Array.isArray(v) &&
+    v.length <= 10_000 &&
+    v.every((m) => isObject(m) && isSymbolItem(m.item) && isHeldKeys(m.answer))
+  );
+}
+
+const isHarmonySlowItems = (v: unknown) =>
+  Array.isArray(v) && v.every((s) => isObject(s) && isSymbolItem(s.item) && isTime(s.ms));
+
+function validateHarmonySession(value: Fields): Validation<HarmonySessionRecord> {
+  const field = firstInvalid(value, {
+    id: isId,
+    family: isHarmonyFamily,
+    level: isHarmonyLevelId,
+    startedAt: isTime,
+    endedAt: isTime,
+    activeMs: isTime,
+    length: (v) => isCount(v) && v > 0,
+    cards: isCount,
+    correct: isCount,
+    accuracy: isRatio,
+    medianMs: isTimeOrNull,
+    slowest: isHarmonySlowItems,
+    missed: isHarmonyMissed,
+  });
+  if (field) return fail(field);
+  const s = value as unknown as HarmonySessionRecord;
+  if (s.endedAt < s.startedAt) return fail('endedAt');
+  if (s.correct > s.cards) return fail('correct');
+  if ((s.accuracy === null) !== (s.cards === 0)) return fail('accuracy');
+  return {
+    ok: true,
+    value: {
+      kind: 'harmony',
+      id: s.id,
+      family: s.family,
+      level: s.level,
+      startedAt: s.startedAt,
+      endedAt: s.endedAt,
+      activeMs: s.activeMs,
+      length: s.length,
+      cards: s.cards,
+      correct: s.correct,
+      accuracy: s.accuracy,
+      medianMs: s.medianMs,
+      slowest: s.slowest.map(({ item, ms }) => ({ item, ms })),
+      missed: s.missed.map((m) => ({ item: m.item, answer: [...m.answer] })),
+    },
+  };
+}
+
 export function validateSession(value: unknown): Validation<SessionRecord> {
   if (!isObject(value)) return fail('record');
   if (value.kind === 'read') return validateReadSession(value);
@@ -806,6 +920,7 @@ export function validateSession(value: unknown): Validation<SessionRecord> {
   if (value.kind === 'ear') return validateEarSession(value);
   if (value.kind === 'theory') return validateTheorySession(value);
   if (value.kind === 'rhythm') return validateRhythmSession(value);
+  if (value.kind === 'harmony') return validateHarmonySession(value);
   return fail('kind');
 }
 

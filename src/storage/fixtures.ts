@@ -2,8 +2,10 @@
 import { IDBFactory } from 'fake-indexeddb';
 import { recoverEarSummary, type EarAnswer } from '../core/earSession.ts';
 import type { RunHeadline } from '../core/evenness.ts';
+import { recoverHarmonySummary, type ChordSymbolAnswer } from '../core/harmonySession.ts';
 import type {
   EarSessionRecord,
+  HarmonySessionRecord,
   RhythmSessionRecord,
   SessionRecord,
   TheorySessionRecord,
@@ -506,4 +508,54 @@ export function sampleRhythmSession(
 ): { answers: RhythmAnswer[]; session: RhythmSessionRecord } {
   const answers = Array.from({ length: runs }, (_, i) => sampleRhythmAnswers(i, sessionId)).flat();
   return { answers, session: { kind: 'rhythm', ...recoverRhythmSummary(answers)! } };
+}
+
+/**
+ * Chord-symbol answers on Harmony, one of each kind: a triad (H2, F♯m: right, or with a G on odd
+ * `i`) and a slash chord (H4, C/E: E G C, or C E G♭ on odd `i`); 3 s apart, every third one
+ * hinted.
+ */
+export function sampleChordSymbolAnswers(i: number, sessionId = 'h1'): ChordSymbolAnswer[] {
+  const right = i % 2 === 0;
+  const base = {
+    sessionId,
+    family: 'chordSymbol',
+    by: 'play',
+    correct: right,
+    ms: 2100 + i * 100,
+    hinted: i % 3 === 2,
+  } as const;
+  const at = (n: number) => T0 + 14_000_000 + (i * 2 + n) * 3000;
+  return [
+    {
+      ...base,
+      id: `${sessionId}:${i}:tri`,
+      level: 'H2',
+      item: 'sym:F♯m',
+      prompt: 'F♯m',
+      answer: right ? [54, 57, 61] : [54, 55],
+      at: at(0),
+    },
+    {
+      ...base,
+      id: `${sessionId}:${i}:slash`,
+      level: 'H4',
+      item: 'sym:C/E',
+      prompt: 'C/E',
+      answer: right ? [52, 55, 60] : [60, 64, 66],
+      at: at(1),
+    },
+  ];
+}
+
+/** A Harmony session of triads (H2) of `count` answers with its record. */
+export function sampleHarmonySession(
+  sessionId: string,
+  count: number,
+): { answers: ChordSymbolAnswer[]; session: HarmonySessionRecord } {
+  const answers = Array.from(
+    { length: count },
+    (_, i) => sampleChordSymbolAnswers(i, sessionId)[0]!,
+  );
+  return { answers, session: { kind: 'harmony', ...recoverHarmonySummary(answers)! } };
 }

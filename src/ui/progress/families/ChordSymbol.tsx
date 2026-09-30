@@ -1,18 +1,10 @@
 import type { ChordQuality, Inversion } from '../../../core/earItems.ts';
+import { QualityText } from '../../harmony/SymbolText.tsx';
 
-/** A chord's quality as a chord symbol, without its root: M, m, °, +, 7, M7, m7, ø7. */
-const CHORD_SYMBOL: Readonly<Record<ChordQuality, string>> = {
-  maj: 'M',
-  min: 'm',
-  dim: '°',
-  aug: '+',
-  dom7: '7',
-  maj7: 'M7',
-  min7: 'm7',
-  hdim7: 'ø7',
-};
-
-/** A chord in a cell's heading: its symbol, and its inversion as figured bass (⁶, ⁶₄). */
+/**
+ * A chord in a cell's heading: its quality as the Harmony page writes a symbol, without its root
+ * (maj, m, °, +, 7, maj7, m7, m7♭5), and its inversion as figured bass (⁶, ⁶₄).
+ */
 export function ChordSymbol({
   quality,
   inversion,
@@ -22,7 +14,7 @@ export function ChordSymbol({
 }) {
   return (
     <>
-      {CHORD_SYMBOL[quality]}
+      <QualityText quality={quality} />
       {inversion !== 'root' && (
         <span className="cm-figures">
           <span>6</span>

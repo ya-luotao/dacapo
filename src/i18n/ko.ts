@@ -9,6 +9,7 @@ export const ko: Dictionary = {
   'nav.play': '연주',
   'nav.read': '악보 읽기',
   'nav.ear': '청음',
+  'nav.harmony': '화성',
   'nav.scales': '스케일',
   'nav.pieces': '곡',
   'nav.metronome': '메트로놈',
@@ -37,6 +38,9 @@ export const ko: Dictionary = {
   'home.ear.text':
     '음정과 화음, 짧은 선율을 귀로 구별해요. 옥타브부터 7화음과 반음계적인 음까지. 들은 것을 건반으로 치거나 이름으로 답하면, 다음 문제는 자주 틀리는 것부터 나와요.',
   'home.ear.meta': '레벨 {n}개',
+  'home.harmony.text':
+    '노래책과 리드 시트가 선율 위에 적는 코드 기호를, 세 장조의 3화음부터 7화음, 슬래시 코드, 서스 코드까지. 어떤 배치로든 치면 되고, 느리게 찾는 것일수록 다음 카드에 더 자주 나와요.',
+  'home.harmony.meta': '레벨 {n}개',
   'home.scales.text':
     '모든 조의 스케일과 아르페지오를 하농의 손가락 번호로, 양손 평행이나 반진행으로도. 원하는 빠르기나 클릭에 맞춰 치고 나면 음 하나하나가 얼마나 고른지 보여 줘요.',
   'home.scales.meta': '12개 조 · 스케일 5종 · 아르페지오',
@@ -539,6 +543,42 @@ export const ko: Dictionary = {
   'ear.echo.up': '상행 {name}',
   'ear.echo.down': '하행 {name}',
 
+  'harmony.title': '화성',
+  'harmony.practice.chords': '코드',
+  'harmony.intro.chords':
+    '리드 시트가 선율 위에 적는 코드 기호예요. 그 음들을 함께 치세요. 옥타브와 순서는 자유지만, 슬래시 코드는 슬래시 뒤의 음을 가장 아래에 두세요.',
+  'harmony.level.H1': '세 장조',
+  'harmony.level.H1.detail': '다장조, 사장조, 바장조의 3화음: I ii iii IV V vi',
+  'harmony.level.H2': '장3화음과 단3화음',
+  'harmony.level.H2.detail': '열두 근음 모두 (D♭, F♯m, B♭m 등)',
+  'harmony.level.H3': '7화음',
+  'harmony.level.H3.detail': '열두 근음 모두의 7, maj7, m7',
+  'harmony.level.H4': '슬래시 코드',
+  'harmony.level.H4.detail': 'C/E, G/B 같은 자리바꿈과 Am/G 같은 베이스음',
+  'harmony.level.H5': '더 많은 코드',
+  'harmony.level.H5.detail': '열두 근음 모두의 °, +, sus2, sus4, m7♭5, °7, 6, m6, add9',
+  'harmony.hint': '구성음 보기',
+  'harmony.hint.help':
+    '화음의 구성음을 적고 건반에도 옅게 표시해요. 힌트를 켜고 한 답은 정답률에는 들어가지만 반응 시간에는 들어가지 않아요.',
+  'harmony.hint.label': '구성음: {notes}',
+  'harmony.task': '이 코드를 치세요 (옥타브는 자유)',
+  'harmony.task.slash': '{bass}을(를) 가장 아래에 두고 이 코드를 치세요',
+  'harmony.bass': '이제 베이스: {bass}을(를) 가장 낮은 건반으로',
+  'harmony.wrong': '{symbol}은(는) {notes}예요. 표시된 건반이나 같은 음을 아무 옥타브에서 치세요.',
+  'harmony.wrong.slash':
+    '{symbol}은(는) {notes}, 가장 아래는 {bass}예요. 표시된 건반이나 같은 음을 아무 옥타브에서 치세요.',
+  'harmony.notes.bass': '{notes}, 가장 아래 {bass}',
+  'harmony.summary.miss': '은(는) {notes} — 친 음: {played}',
+  'harmony.latch':
+    '화면 건반은 클릭하거나 탭하면 눌린 채로 있고, 한 번 더 클릭하거나 탭하면 떼어져요.',
+  'harmony.chord.sus2': '서스2 화음',
+  'harmony.chord.sus4': '서스4 화음',
+  'harmony.chord.dim7': '감7화음',
+  'harmony.chord.maj6': '부가6화음',
+  'harmony.chord.min6': '단3화음의 부가6화음',
+  'harmony.chord.add9': '부가9화음',
+  'harmony.chord.over': '{chord}, 베이스 {bass}',
+
   'staff.label': '음표가 하나 있는 큰보표',
   'staff.loading': '악보 글꼴을 불러오는 중…',
   'staff.fontFailed': '악보 글꼴을 불러오지 못했어요. 페이지를 새로 고쳐 다시 시도하세요.',
@@ -615,6 +655,7 @@ export const ko: Dictionary = {
   'progress.kind.keySignature': '조표 카드',
   'progress.kind.readChord': '화음 카드',
   'progress.kind.rhythm': '리듬',
+  'progress.kind.chordSymbol': '코드 기호',
   'progress.session.exercises': '연습 수',
   'progress.session.scale': '스케일',
   'progress.session.scaleOne': '{scale}, {octaves}옥타브',
@@ -697,6 +738,7 @@ export const ko: Dictionary = {
   'families.family.readInterval': '악보의 음정',
   'families.family.keySignature': '조표',
   'families.family.readChord': '악보의 화음',
+  'families.family.chordSymbol': '코드 기호',
   'families.summary': '{answers} · 레벨 {levels}개 중 {mastered}개 마스터',
   'families.answers.one': '응답 1개',
   'families.answers.other': '응답 {n}개',
@@ -735,6 +777,8 @@ export const ko: Dictionary = {
     '‘기타’는 여기 있는 어느 화음도 되지 않는 건반을 친 답과, 화음은 맞았지만 근음이나 옥타브가 틀린 답이에요.',
   'families.confusion.other.echo':
     '‘기타’는 같은 건반을 다시 쳤거나 옥타브보다 넓게 도약한 경우예요.',
+  'families.confusion.other.chordSymbol':
+    '‘기타’는 물어본 근음 위에서 어느 화음도 되지 않는 건반을 친 답이에요.',
   'families.confusion.label': '정답 대신 고른 답: {family}',
   'families.confusion.asked': '문제',
   'families.confusion.answered': '내 답',

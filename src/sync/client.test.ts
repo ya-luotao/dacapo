@@ -13,6 +13,8 @@ import {
   sampleRun,
   sampleScaleSession,
   sampleTake,
+  sampleChordSymbolAnswers,
+  sampleHarmonySession,
   sampleTheoryAnswers,
   sampleTheorySession,
   sampleRhythmSession,
@@ -586,6 +588,35 @@ describe('ear training', () => {
     expect(mac.store.getSnapshot().answers).toEqual(cards);
     expect(mac.store.getSnapshot().sessions).toEqual([theory.session]);
   });
+
+  it('syncs the chord symbols of Harmony, and pulls them again after a build that skipped them', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    const harmony = sampleHarmonySession('h1', 3);
+    const cards = [...harmony.answers, ...sampleChordSymbolAnswers(4, 'h1').slice(1)];
+    for (const answer of cards) ipad.store.recordAnswer(answer);
+    ipad.store.recordSession(harmony.session);
+    await ipad.store.settled();
+    await signIn(ipad);
+    expect(service.body('answers', cards[3]!.id)).toEqual(cards[3]);
+    await signIn(mac);
+    expect(mac.store.getSnapshot().answers).toEqual(cards);
+    expect(mac.store.getSnapshot().sessions).toEqual([harmony.session]);
+
+    // As schema 7 left it: the chord-symbol answers and session skipped, the cursor past them.
+    const state = (await mac.db.get('meta', SYNC_STATE_KEY)) as SyncState;
+    await mac.db.clear('answers');
+    await mac.db.delete('sessions', harmony.session.id);
+    await mac.db.put('meta', { ...state, schema: 7 }, SYNC_STATE_KEY);
+    await mac.store.reloadAll();
+    const sync = vi.spyOn(service.api, 'sync');
+    await mac.client.syncNow();
+    expect(SYNC_SCHEMA).toBeGreaterThanOrEqual(8);
+    expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
+    expect(mac.store.getSnapshot().answers).toEqual(cards);
+    expect(mac.store.getSnapshot().sessions).toEqual([harmony.session]);
+  });
 });
 
 describe('rhythm on Read', () => {
@@ -611,7 +642,7 @@ describe('rhythm on Read', () => {
     await mac.store.reloadAll();
     const sync = vi.spyOn(service.api, 'sync');
     await mac.client.syncNow();
-    expect(SYNC_SCHEMA).toBe(7);
+    expect(SYNC_SCHEMA).toBeGreaterThanOrEqual(7);
     expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
     expect(mac.store.getSnapshot().answers).toEqual(rhythm.answers);
     expect(mac.store.getSnapshot().sessions).toEqual([rhythm.session]);

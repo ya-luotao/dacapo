@@ -163,7 +163,7 @@ export const LESSONS: readonly LessonInfo[] = [
     },
     minutes: 20,
     ready: true,
-    practice: '/ear',
+    practice: '/harmony',
   },
   {
     slug: 'practising',

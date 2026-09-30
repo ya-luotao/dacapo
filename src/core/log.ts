@@ -1,6 +1,13 @@
-import { isEarAnswer, isRhythmAnswer, isTheoryAnswer, type Answer } from './answers.ts';
+import {
+  isChordSymbolAnswer,
+  isEarAnswer,
+  isRhythmAnswer,
+  isTheoryAnswer,
+  type Answer,
+} from './answers.ts';
 import { recoverEarSummary, type EarSessionSummary } from './earSession.ts';
 import type { FreePlaySession } from './freePlay.ts';
+import { recoverHarmonySummary, type HarmonySessionSummary } from './harmonySession.ts';
 import type { PieceSession } from './pieceRecords.ts';
 import { recoverRhythmSummary, type RhythmSessionSummary } from './rhythmRead.ts';
 import type { ScaleSession } from './scaleRecords.ts';
@@ -18,6 +25,8 @@ export type EarSessionRecord = EarSessionSummary & { kind: 'ear' };
 export type TheorySessionRecord = TheorySessionSummary & { kind: 'theory' };
 /** A session of rhythm lines on Read (docs/READING.md, "Rhythm (R1)") as stored. */
 export type RhythmSessionRecord = RhythmSessionSummary & { kind: 'rhythm' };
+/** A session of chord symbols on the Harmony page as stored. */
+export type HarmonySessionRecord = HarmonySessionSummary & { kind: 'harmony' };
 export type SessionRecord =
   | ReadSessionRecord
   | FreePlaySessionRecord
@@ -25,7 +34,8 @@ export type SessionRecord =
   | ScaleSessionRecord
   | EarSessionRecord
   | TheorySessionRecord
-  | RhythmSessionRecord;
+  | RhythmSessionRecord
+  | HarmonySessionRecord;
 
 export function byTime(a: Attempt, b: Attempt): number {
   return a.at - b.at || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
@@ -120,6 +130,23 @@ export function recoverRhythmSessions(
   for (const group of orphanGroups(answers.filter(isRhythmAnswer), sessions)) {
     const summary = recoverRhythmSummary(group);
     if (summary) recovered.push({ kind: 'rhythm', ...summary });
+  }
+  return recovered;
+}
+
+/**
+ * Harmony sessions for chord-symbol answers whose session was never stored (the tab closed
+ * mid-session). `answers` must be in the order they happened; the others are left to the
+ * functions above.
+ */
+export function recoverHarmonySessions(
+  answers: readonly Answer[],
+  sessions: readonly SessionRecord[],
+): HarmonySessionRecord[] {
+  const recovered: HarmonySessionRecord[] = [];
+  for (const group of orphanGroups(answers.filter(isChordSymbolAnswer), sessions)) {
+    const summary = recoverHarmonySummary(group);
+    if (summary) recovered.push({ kind: 'harmony', ...summary });
   }
   return recovered;
 }

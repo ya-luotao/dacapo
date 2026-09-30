@@ -39,7 +39,7 @@ export interface DacapoSchema extends DBSchema {
   };
   /** Records written while signed in and not yet sent to the sync service (version 5). */
   outbox: { key: string; value: OutboxEntry };
-  /** Ear-training answers (version 6) and theory answers, by session and by item. */
+  /** Ear-training answers (version 6), theory and chord-symbol answers, by session and item. */
   answers: {
     key: string;
     value: Answer;

@@ -43,6 +43,12 @@
       "url": "./#/ear"
     },
     {
+      "name": "Harmony",
+      "short_name": "Harmony",
+      "description": "Chord symbols to play",
+      "url": "./#/harmony"
+    },
+    {
       "name": "Scales",
       "short_name": "Scales",
       "url": "./#/scales"

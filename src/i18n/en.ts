@@ -9,6 +9,7 @@ export const en = {
   'nav.play': 'Play',
   'nav.read': 'Read',
   'nav.ear': 'Ear',
+  'nav.harmony': 'Harmony',
   'nav.scales': 'Scales',
   'nav.pieces': 'Pieces',
   'nav.metronome': 'Metronome',
@@ -37,6 +38,9 @@ export const en = {
   'home.ear.text':
     'Intervals, chords and short melodies by ear, from the octave to seventh chords and chromatic notes. Play back what you hear on the keys, or name it; the next question favours the ones you miss.',
   'home.ear.meta': '{n} levels',
+  'home.harmony.text':
+    'Chord symbols as songbooks and lead sheets print them over a tune, from the triads of three major keys to seventh, slash and suspended chords. Play each one in any voicing; the next card favours the ones you are slow on.',
+  'home.harmony.meta': '{n} levels',
   'home.scales.text':
     'Scales and arpeggios in every key with Hanon’s fingering, hands together or in contrary motion. Play at your own tempo or with the click, then see how even every note was.',
   'home.scales.meta': '12 keys · 5 scales · arpeggios',
@@ -543,6 +547,42 @@ export const en = {
   'ear.echo.up': '{name} up',
   'ear.echo.down': '{name} down',
 
+  'harmony.title': 'Harmony',
+  'harmony.practice.chords': 'Chords',
+  'harmony.intro.chords':
+    'A chord symbol, as a lead sheet prints it over the tune. Play its notes together, in any octave and any order; for a slash chord, the note after the slash lowest.',
+  'harmony.level.H1': 'Three major keys',
+  'harmony.level.H1.detail': 'The triads of C, G and F major: I ii iii IV V vi',
+  'harmony.level.H2': 'Major and minor triads',
+  'harmony.level.H2.detail': 'On all twelve roots, such as D♭, F♯m and B♭m',
+  'harmony.level.H3': 'Seventh chords',
+  'harmony.level.H3.detail': '7, maj7 and m7 on all twelve roots',
+  'harmony.level.H4': 'Slash chords',
+  'harmony.level.H4.detail': 'Inversions such as C/E and G/B, and bass notes such as Am/G',
+  'harmony.level.H5': 'More chords',
+  'harmony.level.H5.detail': '°, +, sus2, sus4, m7♭5, °7, 6, m6 and add9 on all twelve roots',
+  'harmony.hint': 'Show the notes',
+  'harmony.hint.help':
+    'Names the chord’s notes and marks them lightly on the keyboard. Answers given with the hint count for accuracy, not for time.',
+  'harmony.hint.label': 'The notes: {notes}',
+  'harmony.task': 'Play this chord, in any octave',
+  'harmony.task.slash': 'Play this chord with {bass} lowest',
+  'harmony.bass': 'Now {bass} in the bass: make it the lowest key',
+  'harmony.wrong': '{symbol} is {notes}. Play the marked keys, or the same notes in any octave.',
+  'harmony.wrong.slash':
+    '{symbol} is {notes}, with {bass} lowest. Play the marked keys, or the same notes in any octave.',
+  'harmony.notes.bass': '{notes}, {bass} lowest',
+  'harmony.summary.miss': 'is {notes}; you played {played}',
+  'harmony.latch':
+    'On the screen, a click or a tap holds a key down until you click or tap it again.',
+  'harmony.chord.sus2': 'suspended 2nd chord',
+  'harmony.chord.sus4': 'suspended 4th chord',
+  'harmony.chord.dim7': 'diminished 7th chord',
+  'harmony.chord.maj6': 'major 6th chord',
+  'harmony.chord.min6': 'minor 6th chord',
+  'harmony.chord.add9': 'added 9th chord',
+  'harmony.chord.over': '{chord} over {bass}',
+
   'staff.label': 'Grand staff with one note',
   'staff.loading': 'Loading the music font…',
   'staff.fontFailed': 'The music font could not be loaded. Reload the page to try again.',
@@ -619,6 +659,7 @@ export const en = {
   'progress.kind.keySignature': 'Key signature cards',
   'progress.kind.readChord': 'Chord cards',
   'progress.kind.rhythm': 'Rhythm lines',
+  'progress.kind.chordSymbol': 'Chord symbols',
   'progress.session.exercises': 'Exercises',
   'progress.session.scale': 'Scale',
   'progress.session.scaleOne': '{scale}, {octaves} oct.',
@@ -701,6 +742,7 @@ export const en = {
   'families.family.readInterval': 'Intervals on the staff',
   'families.family.keySignature': 'Key signatures',
   'families.family.readChord': 'Chords on the staff',
+  'families.family.chordSymbol': 'Chord symbols',
   'families.summary': '{answers} · {mastered} of {levels} levels mastered',
   'families.answers.one': '1 answer',
   'families.answers.other': '{n} answers',
@@ -738,6 +780,8 @@ export const en = {
     '“Other” counts keys that make none of the chords here, and the right chord on a wrong root or in a wrong octave.',
   'families.confusion.other.echo':
     '“Other” counts the same key played again, and a leap past the octave.',
+  'families.confusion.other.chordSymbol':
+    '“Other” counts keys that make no chord on the root asked.',
   'families.confusion.label': 'What you answer instead: {family}',
   'families.confusion.asked': 'Asked',
   'families.confusion.answered': 'Answered',

@@ -2887,6 +2887,158 @@ kbd {
   }
 }
 
+/*
+ * Harmony: each practice under its heading, set like a section of a method book; Chords has
+ * Read's setup, session and summary.
+ */
+.harmony-practice-title {
+  margin: 1.5rem 0 0.5rem;
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.harmony-practice-title:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-weight: 600;
+}
+
+.harmony-practice .read-intro {
+  margin-bottom: 1.5rem;
+}
+
+/*
+ * A chord symbol set as a lead sheet sets it: the root in the serif, its sign smaller and a
+ * little raised, the extension raised above the line, and the bass after the slash on the line.
+ */
+.sym {
+  font-family: var(--font-serif);
+  font-variant-numeric: lining-nums;
+  white-space: nowrap;
+}
+
+.sym-sign {
+  display: inline-block;
+  margin-inline: 0.02em 0.04em;
+  font-size: 0.62em;
+  vertical-align: 0.42em;
+  line-height: 1;
+}
+
+.sym-line {
+  margin-inline-start: 0.02em;
+}
+
+/* The serif's degree sign is a large ring: set smaller, at the height of the other signs. */
+.sym-degree {
+  display: inline-block;
+  font-size: 0.7em;
+  vertical-align: 0.3em;
+  line-height: 1;
+}
+
+.sym-raised {
+  display: inline-block;
+  margin-inline-start: 0.04em;
+  font-size: 0.6em;
+  vertical-align: 0.72em;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+
+/* After a raised sign, the extension keeps clear of it. */
+.sym-sign + .sym-raised {
+  margin-inline-start: 0.1em;
+}
+
+.sym-bass {
+  margin-inline-start: 0.04em;
+}
+
+/* The sheet of a card: the symbol, large, and a line kept for its notes under it. */
+.harmony-session {
+  --staff-w: 26rem;
+}
+
+.harmony-card {
+  justify-content: center;
+  min-height: clamp(10rem, 22dvh, 13rem);
+  padding-block: 1rem 0.75rem;
+}
+
+.harmony-symbol {
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(4rem, 3rem + 5vw, 6.5rem);
+  font-weight: 500;
+  line-height: 1.15;
+  transition: color var(--dur) ease-out;
+}
+
+.harmony-card.is-correct .harmony-symbol {
+  color: var(--ok);
+}
+
+.harmony-card.is-wrong .harmony-symbol {
+  color: var(--bad);
+}
+
+.harmony-tones {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 1.375rem;
+  font-variant-numeric: lining-nums;
+  letter-spacing: 0.04em;
+  animation: ink-in var(--dur) ease-out;
+}
+
+/* A small keyboard, three octaves from C3, wide enough to play on and to see a chord. */
+.harmony-piano {
+  --white-min: 15px;
+  max-width: 46rem;
+  margin-inline: auto;
+}
+
+/* Its three octaves keep their shape on a phone rather than a minimum height, as a piece's do. */
+.harmony-piano .piano {
+  min-height: 0;
+}
+
+/* The hint marks the chord's keys lightly: tinted, not outlined like an answer. */
+.key-white.is-hint {
+  background: var(--lk-tint);
+}
+
+.key-black.is-hint {
+  background: color-mix(in srgb, var(--lk-two) 45%, var(--key-black-top));
+  box-shadow: inset 0 0 0 2px var(--lk-tint);
+}
+
+/* Under the keyboard, in its column: how the screen's keys hold, and the computer keyboard's. */
+.harmony-latch,
+.harmony-session .read-keyboard {
+  max-width: 46rem;
+  margin-inline: auto;
+}
+
+.harmony-latch {
+  margin-top: 0.75rem;
+}
+
+.harmony-latch + .read-keyboard {
+  margin-top: 0.25rem;
+}
+
+.harmony-lists li .sym {
+  font-size: 1.25rem;
+}
+
+@media (max-width: 40rem) {
+  .harmony-tones {
+    font-size: 1.125rem;
+  }
+}
+
 /* Storage notice: a footnote-style strip, tinted with the warning colour. */
 
 .storage-notice {
@@ -8621,7 +8773,7 @@ select.is-compact {
 
 @media (max-width: 40rem) {
   .contents-row {
-    grid-template-columns: 2.25rem minmax(0, 1fr) 1rem;
+    grid-template-columns: 2.875rem minmax(0, 1fr) 1rem;
     gap: 0 0.75rem;
     padding-inline-end: 0;
   }

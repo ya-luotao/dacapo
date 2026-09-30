@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { FamilyAnswer as Answer } from './answerProgress.ts';
-import { sampleEchoAnswer, sampleRhythmAnswers } from '../storage/fixtures.ts';
+import {
+  sampleChordSymbolAnswers,
+  sampleEchoAnswer,
+  sampleRhythmAnswers,
+} from '../storage/fixtures.ts';
 import {
   ALL_ANSWERS,
   cellCount,
@@ -23,6 +27,7 @@ import {
 } from './answerProgress.ts';
 import { makePrompt } from './earItems.ts';
 import type { EarAnswer } from './earSession.ts';
+import type { ChordSymbolAnswer } from './harmonySession.ts';
 import { SPEED_BUCKETS } from './heatmap.ts';
 import { seededRng } from './random.ts';
 import type { TheoryAnswer } from './theorySession.ts';
@@ -458,9 +463,112 @@ describe('the confusion table', () => {
 });
 
 describe('which answers the families are made of', () => {
-  it('leaves out rhythm answers, which have figures of their own', () => {
+  it('leaves out rhythm answers, which have figures of their own, and keeps chord symbols', () => {
     const echo = sampleEchoAnswer(0);
     const rhythm = sampleRhythmAnswers(0);
-    expect([echo, ...rhythm].filter(isFamilyAnswer)).toEqual([echo]);
+    const symbols = sampleChordSymbolAnswers(0);
+    expect([echo, ...rhythm, ...symbols].filter(isFamilyAnswer)).toEqual([echo, ...symbols]);
+  });
+});
+
+describe('chord symbols', () => {
+  function symbolAnswer(
+    item: string,
+    answer: number[],
+    patch: Partial<ChordSymbolAnswer> = {},
+  ): ChordSymbolAnswer {
+    const n = ++ids;
+    return {
+      id: `h${n}`,
+      sessionId: 's3',
+      family: 'chordSymbol',
+      level: 'H3',
+      item,
+      by: 'play',
+      prompt: item.slice(4),
+      answer,
+      correct: false,
+      ms: 2200,
+      hinted: false,
+      at: T + n * 1000,
+      ...patch,
+    };
+  }
+
+  it('has Harmony’s levels and its mastery', () => {
+    expect(familyLevelIds('chordSymbol')).toEqual(['H1', 'H2', 'H3', 'H4', 'H5']);
+    expect(isFamilyLevel('chordSymbol', 'H4')).toBe(true);
+    expect(isFamilyLevel('chordSymbol', 'RC4')).toBe(false);
+    const answers = Array.from({ length: 40 }, () =>
+      symbolAnswer('sym:Dm7', [62, 65, 69, 72], { correct: true }),
+    );
+    const h3 = familyLevels('chordSymbol', answers).find((l) => l.level === 'H3')!;
+    expect(h3).toMatchObject({ total: 40, counted: 40, window: 40, accuracy: 1, mastered: true });
+  });
+
+  it('reads the keys held as a symbol on the root asked', () => {
+    // Dm7 asked; D F♯ held: D7 shares most with it.
+    expect(confusionsOf(symbolAnswer('sym:Dm7', [62, 66]))).toEqual([
+      { asked: 'Dm7', answered: 'D7' },
+    ]);
+    // C asked; C E♭ held: a minor triad on C.
+    expect(confusionsOf(symbolAnswer('sym:C', [60, 63], { level: 'H2' }))).toEqual([
+      { asked: 'C', answered: 'Cm' },
+    ]);
+    // B♭maj7 asked; B♭ D F A♭ held.
+    expect(confusionsOf(symbolAnswer('sym:B♭maj7', [58, 62, 65, 68]))).toEqual([
+      { asked: 'B♭maj7', answered: 'B♭7' },
+    ]);
+    // Nothing on the root holds a minor 2nd and a major 3rd.
+    expect(confusionsOf(symbolAnswer('sym:C7', [60, 61, 64]))).toEqual([
+      { asked: 'C7', answered: OTHER },
+    ]);
+    expect(confusionsOf(symbolAnswer('sym:C7', [60, 64, 67, 70], { correct: true }))).toEqual([
+      { asked: 'C7', answered: 'C7' },
+    ]);
+  });
+
+  it('reads a slash chord with the lowest key as its bass', () => {
+    // C/E asked; G B♭ over E: C7 over E.
+    expect(confusionsOf(symbolAnswer('sym:C/E', [52, 67, 70], { level: 'H4' }))).toEqual([
+      { asked: 'C/E', answered: 'C7/E' },
+    ]);
+    // Am/G asked; A C F♯ over G: Am6 shares most with Am (A°7 holds them too).
+    expect(confusionsOf(symbolAnswer('sym:Am/G', [55, 57, 60, 66], { level: 'H4' }))).toEqual([
+      { asked: 'Am/G', answered: 'Am6/G' },
+    ]);
+    // A C F over G: no chord on A holds C and F.
+    expect(confusionsOf(symbolAnswer('sym:Am/G', [55, 57, 60, 65], { level: 'H4' }))).toEqual([
+      { asked: 'Am/G', answered: OTHER },
+    ]);
+    // Am/G asked; A C E♭ with A lowest: a diminished triad on A, no bass named.
+    expect(confusionsOf(symbolAnswer('sym:Am/G', [57, 60, 63], { level: 'H4' }))).toEqual([
+      { asked: 'Am/G', answered: 'A°' },
+    ]);
+  });
+
+  it('orders the symbols by root, then chord, then bass', () => {
+    const labels = ['D7', 'C/E', 'Cm', 'C', 'B♭', OTHER, 'C/G', 'D♭'];
+    expect([...labels].sort((a, b) => compareLabels('chordSymbol', a, b))).toEqual([
+      'C',
+      'C/E',
+      'C/G',
+      'Cm',
+      'D♭',
+      'D7',
+      'B♭',
+      OTHER,
+    ]);
+  });
+
+  it('keeps the items in the order of the levels, and counts a hinted card as an aid', () => {
+    const answers = [
+      symbolAnswer('sym:Dm7', [62, 65, 69, 72], { correct: true }),
+      symbolAnswer('sym:C7', [60, 64, 67, 70], { correct: true, hinted: true }),
+    ];
+    const items = itemFigures('chordSymbol', answers);
+    expect(items.map((i) => i.item)).toEqual(['sym:C7', 'sym:Dm7']);
+    expect(items[0]).toMatchObject({ aids: 1, medianMs: null });
+    expect(items[1]).toMatchObject({ aids: 0, medianMs: 2200 });
   });
 });

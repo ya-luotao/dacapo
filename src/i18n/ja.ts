@@ -9,6 +9,7 @@ export const ja: Dictionary = {
   'nav.play': '演奏',
   'nav.read': '譜読み',
   'nav.ear': '聴音',
+  'nav.harmony': '和声',
   'nav.scales': 'スケール',
   'nav.pieces': '曲',
   'nav.metronome': 'メトロノーム',
@@ -38,6 +39,9 @@ export const ja: Dictionary = {
   'home.ear.text':
     '音程と和音、短い旋律を耳で聴き分けます。オクターブから七の和音、半音階的な音まで。聴こえた音を鍵盤で弾くか、名前で答えます。次の問題は、よく間違えるものから出ます。',
   'home.ear.meta': '{n}レベル',
+  'home.harmony.text':
+    '歌本やリードシートがメロディーの上に書くコードネームを、3つの長調の三和音から、七の和音、分数コード、sus コードまで。どれも好きな配置で弾き、遅いものほど次のカードに出やすくなります。',
+  'home.harmony.meta': '{n}レベル',
   'home.scales.text':
     'すべての調のスケールとアルペジオを、ハノンの運指で。両手の平行・反行も。自分のテンポでもクリックに合わせても弾け、1音1音の粒のそろいを確かめられます。',
   'home.scales.meta': '12の調 · 5種類のスケール · アルペジオ',
@@ -543,6 +547,43 @@ export const ja: Dictionary = {
   'ear.echo.up': '上行{name}',
   'ear.echo.down': '下行{name}',
 
+  'harmony.title': '和声',
+  'harmony.practice.chords': 'コード',
+  'harmony.intro.chords':
+    'リードシートがメロディーの上に書くコードネームです。その音を同時に弾きます。オクターブも順番も自由ですが、分数コードはスラッシュの後の音をいちばん下に。',
+  'harmony.level.H1': '3つの長調',
+  'harmony.level.H1.detail': 'ハ長調・ト長調・ヘ長調の三和音：I ii iii IV V vi',
+  'harmony.level.H2': '長三和音と短三和音',
+  'harmony.level.H2.detail': '12の根音すべて（D♭、F♯m、B♭m など）',
+  'harmony.level.H3': '七の和音',
+  'harmony.level.H3.detail': '12の根音すべての 7・maj7・m7',
+  'harmony.level.H4': '分数コード',
+  'harmony.level.H4.detail': 'C/E や G/B のような転回形と、Am/G のようなベース音',
+  'harmony.level.H5': 'さらに多くのコード',
+  'harmony.level.H5.detail': '12の根音すべての °・+・sus2・sus4・m7♭5・°7・6・m6・add9',
+  'harmony.hint': '構成音を表示',
+  'harmony.hint.help':
+    '和音の構成音を書き、鍵盤にも薄く印をつけます。ヒントありの解答は正答率には数えますが、反応時間には数えません。',
+  'harmony.hint.label': '構成音：{notes}',
+  'harmony.task': 'このコードを弾いてください（オクターブは自由）',
+  'harmony.task.slash': '{bass}をいちばん下にして、このコードを弾いてください',
+  'harmony.bass': 'あとはベース：{bass}をいちばん下の鍵盤に',
+  'harmony.wrong':
+    '{symbol}は{notes}です。印のついた鍵盤か、同じ音を好きなオクターブで弾いてください。',
+  'harmony.wrong.slash':
+    '{symbol}は{notes}で、{bass}がいちばん下です。印のついた鍵盤か、同じ音を好きなオクターブで弾いてください。',
+  'harmony.notes.bass': '{notes}、いちばん下に{bass}',
+  'harmony.summary.miss': 'は{notes}（弾いた音：{played}）',
+  'harmony.latch':
+    '画面の鍵盤は、クリックやタップで押したままになり、もう一度クリックやタップすると離れます。',
+  'harmony.chord.sus2': '掛留2度の和音',
+  'harmony.chord.sus4': '掛留4度の和音',
+  'harmony.chord.dim7': '減七の和音',
+  'harmony.chord.maj6': '付加六の和音',
+  'harmony.chord.min6': '短三和音の付加六の和音',
+  'harmony.chord.add9': '付加九の和音',
+  'harmony.chord.over': '{chord}（ベースは{bass}）',
+
   'staff.label': '音符がひとつ書かれた大譜表',
   'staff.loading': '楽譜用フォントを読み込んでいます…',
   'staff.fontFailed': '楽譜用フォントを読み込めませんでした。ページを再読み込みしてください。',
@@ -619,6 +660,7 @@ export const ja: Dictionary = {
   'progress.kind.keySignature': '調号カード',
   'progress.kind.readChord': '和音カード',
   'progress.kind.rhythm': 'リズム',
+  'progress.kind.chordSymbol': 'コードネーム',
   'progress.session.exercises': '練習数',
   'progress.session.scale': 'スケール',
   'progress.session.scaleOne': '{scale}・{octaves}オクターブ',
@@ -701,6 +743,7 @@ export const ja: Dictionary = {
   'families.family.readInterval': '楽譜の音程',
   'families.family.keySignature': '調号',
   'families.family.readChord': '楽譜の和音',
+  'families.family.chordSymbol': 'コードネーム',
   'families.summary': '{answers} · {levels}レベル中{mastered}レベル習得済み',
   'families.answers.one': '解答1回',
   'families.answers.other': '解答{n}回',
@@ -739,6 +782,8 @@ export const ja: Dictionary = {
     '「その他」は、ここにあるどの和音にもならない鍵盤を弾いた答えと、和音は合っていても根音やオクターブをまちがえた答えです。',
   'families.confusion.other.echo':
     '「その他」は、同じ鍵盤をもう一度弾いた場合と、オクターブを超えて跳躍した場合です。',
+  'families.confusion.other.chordSymbol':
+    '「その他」は、問われた根音の上でどの和音にもならない鍵盤を弾いた答えです。',
   'families.confusion.label': '代わりに何と答えたか：{family}',
   'families.confusion.asked': '出題',
   'families.confusion.answered': '答え',

@@ -4,6 +4,7 @@ import {
   byStartDescending,
   byTime,
   recoverEarSessions,
+  recoverHarmonySessions,
   recoverReadSessions,
   recoverRhythmSessions,
   recoverTheorySessions,
@@ -43,7 +44,7 @@ export interface PracticeData {
   sessions: readonly SessionRecord[];
   /** Imported pieces, newest first. */
   pieces: readonly StoredPiece[];
-  /** Ear-training and theory answers, in the order they happened (small: all loaded at startup). */
+  /** Ear-training, theory and chord-symbol answers, in order (small: all loaded at startup). */
   answers: readonly Answer[];
 }
 
@@ -73,7 +74,7 @@ export interface PracticeStore {
   getStatus: () => StorageStatus;
   subscribeStatus: (onChange: () => void) => () => void;
   recordAttempt: (attempt: Attempt) => void;
-  /** Stores an ear-training or theory answer (one whose id is known already changes nothing). */
+  /** Stores an answer of the answers store (one whose id is known already changes nothing). */
   recordAnswer: (answer: Answer) => void;
   /** Adds or replaces the session with the same id. */
   recordSession: (session: SessionRecord) => void;
@@ -362,8 +363,8 @@ export function createPracticeStore({
 
   /**
    * Loads everything and repairs what a closed tab left behind: free-play sessions still open,
-   * and flashcard attempts, ear-training answers or theory answers whose session summary was
-   * never written. Both are keyed by the id the
+   * and flashcard attempts, ear-training, theory or chord-symbol answers whose session summary
+   * was never written. Both are keyed by the id the
    * other tab uses, so if that tab is in fact still running, its own later write wins. Only at
    * startup: a reload must not finish a run that this or another tab is still playing, nor
    * rebuild the session of answers another device has sent before their session.
@@ -387,6 +388,7 @@ export function createPracticeStore({
       ...recoverEarSessions(stored.answers, sessions),
       ...recoverTheorySessions(stored.answers, sessions),
       ...recoverRhythmSessions(stored.answers, sessions),
+      ...recoverHarmonySessions(stored.answers, sessions),
     ]) {
       await repo.putSession(recovered);
       sessions = upsertSession(sessions, recovered);

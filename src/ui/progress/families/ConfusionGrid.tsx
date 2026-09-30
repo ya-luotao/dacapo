@@ -41,9 +41,11 @@ export function ConfusionGrid({
   const echo = family === 'echo';
   const otherKind = echo
     ? 'echo'
-    : family === 'chord' || family === 'readChord'
-      ? 'chord'
-      : 'interval';
+    : family === 'chordSymbol'
+      ? 'chordSymbol'
+      : family === 'chord' || family === 'readChord'
+        ? 'chord'
+        : 'interval';
 
   /** What a cell counts, in words. */
   const sentence = (asked: string, answered: string, count: number, total: number) =>

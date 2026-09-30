@@ -72,6 +72,11 @@ practising the notes you are slowest at. Progress is visible day by day.
   the staff with yours over it. On the Progress page each kind of question, by ear or on the
   staff, shows its levels, its weakest items and a table of what you answer instead (“minor 6th
   answered as perfect 5th: 4 of 12”) ([docs/EAR.md](docs/EAR.md)).
+- **Harmony: chords from symbols.** A chord symbol as a lead sheet prints it (`Am`, `G7`,
+  `F/A`, `Dm7♭5`); play its notes in any octave and voicing, a slash chord's bass lowest. Five
+  levels from the triads of C, G and F major to every root's triads and seventh chords, slash
+  chords and `°`, `+`, `sus`, `6` and `add9` chords, timed and favouring the ones you are slow on,
+  with the notes shown on request ([docs/HARMONY.md](docs/HARMONY.md)).
 - **Practice log.** Flashcard sessions and free play are saved: minutes today, a daily streak
   (5 minutes a day), a 30-day chart and the list of sessions.
 - **Weakness heatmap.** Every note you have practised, on the grand staff or on the keyboard,

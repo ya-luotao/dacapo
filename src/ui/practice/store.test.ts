@@ -13,6 +13,7 @@ import {
   sampleRun,
   sampleScaleRun,
   sampleScaleSession,
+  sampleChordSymbolAnswers,
   sampleTheoryAnswers,
   sampleRhythmAnswers,
   T0,
@@ -241,6 +242,22 @@ describe('ear-training answers', () => {
       expect.objectContaining({ kind: 'ear', id: 'heard', items: 1 }),
     );
     expect((await onDisk()).sessions.map((s) => s.id).sort()).toEqual(['heard', 'lines']);
+  });
+
+  it('rebuilds a Harmony session from its chord-symbol answers', async () => {
+    const symbols = [
+      ...sampleChordSymbolAnswers(0, 'chords'),
+      ...sampleChordSymbolAnswers(1, 'chords'),
+    ];
+    await seed(async (repo) => {
+      for (const answer of symbols) await repo.addAnswer(answer);
+    });
+    const store = startStore();
+    await loaded(store);
+    expect(store.getSnapshot().sessions).toEqual([
+      expect.objectContaining({ kind: 'harmony', id: 'chords', cards: 4, correct: 2 }),
+    ]);
+    expect((await onDisk()).sessions.map((s) => s.id)).toEqual(['chords']);
   });
 
   it('records answers once, in order, and keeps the other tab in step', async () => {

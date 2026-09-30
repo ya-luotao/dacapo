@@ -31,8 +31,9 @@ export const EXPORT_FORMAT = 'dacapo';
  * sessions and scale runs, version 6 ear-training answers and sessions, version 7 scale runs played
  * with the click (their grid, and the tempo on their session's summary), version 8 the takes of
  * piece runs. New kinds of record in a list the file has (Echo answers, the theory cards' answers
- * and `theory` sessions, Read's rhythm answers and `rhythm` sessions) need no new version: an older build lists them among the records it could
- * not read, and imports the rest.
+ * and `theory` sessions, Read's rhythm answers and `rhythm` sessions, the chord symbols' answers
+ * and `harmony` sessions) need no new version: an older build lists them among the records it
+ * could not read, and imports the rest.
  */
 export const EXPORT_VERSION = 8;
 
@@ -61,7 +62,7 @@ export interface ExportFile {
   pieceSteps: PieceStep[];
   /** Scale runs as played, oldest first. */
   scaleRuns: StoredScaleRun[];
-  /** Ear-training and theory answers, oldest first. */
+  /** Ear-training, theory and chord-symbol answers, oldest first. */
   answers: Answer[];
   /** Takes of piece runs, in chunks, oldest first. */
   takes: TakeChunk[];

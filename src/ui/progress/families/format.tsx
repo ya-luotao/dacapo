@@ -12,10 +12,18 @@ import {
   type ChordQuality,
   type Inversion,
 } from '../../../core/earItems.ts';
+import {
+  formatSymbol,
+  isHarmonyLevelId,
+  parseSymbol,
+  parseSymbolItem,
+} from '../../../core/chordSymbols.ts';
 import { parseSignature, parseTheoryItem, isTheoryLevelId } from '../../../core/theoryItems.ts';
 import { signatureTonic } from '../../../core/scales.ts';
 import { useI18n } from '../../../i18n/index.ts';
 import { useEarFormat } from '../../ear/format.ts';
+import { useHarmonyFormat } from '../../harmony/format.ts';
+import { SymbolText } from '../../harmony/SymbolText.tsx';
 import { useReadFormat } from '../../read/format.ts';
 import { useTheoryFormat } from '../../read/theoryFormat.ts';
 import { tonicName } from '../../scales/format.ts';
@@ -32,6 +40,7 @@ export function useFamilyFormat() {
   const ear = useEarFormat();
   const theory = useTheoryFormat();
   const read = useReadFormat();
+  const harmony = useHarmonyFormat();
   return useMemo(() => {
     /** A chord and its position, the position said unless it is the root position. */
     const chord = (label: string) => {
@@ -74,12 +83,14 @@ export function useFamilyFormat() {
         case 'chord':
         case 'readChord':
           return chord(label);
+        case 'chordSymbol':
+          return harmony.symbolWords(label);
       }
     };
 
     /**
      * A label as a heading of the table: `m6`, `↑P4`, `A2`, `E♭` (a minor key in lower case,
-     * `c♯`), or a chord symbol with its inversion's figures.
+     * `c♯`), a chord symbol with its inversion's figures, or a lead sheet's symbol (`Dm7`).
      */
     const short = (family: AnswerFamily, label: string): ReactNode => {
       if (label === OTHER) return t('families.confusion.other');
@@ -101,16 +112,27 @@ export function useFamilyFormat() {
         case 'chord':
         case 'readChord':
           return <ChordSymbol {...asChord(label)} />;
+        case 'chordSymbol': {
+          const symbol = parseSymbol(label);
+          return symbol ? <SymbolText symbol={symbol} /> : label;
+        }
       }
     };
 
-    /** An item in words: `minor 6th up`, `EC3 · Up to the octave`, `augmented 2nd, harmonic`. */
+    /**
+     * An item in words: `minor 6th up`, `EC3 · Up to the octave`, `augmented 2nd, harmonic`,
+     * `Dm7 · D minor 7th chord`.
+     */
     const item = (family: AnswerFamily, itemKey: string): string => {
       if (family === 'echo') {
         const parsed = parseItem(itemKey);
         return parsed?.family === 'echo' ? ear.level(parsed.level) : itemKey;
       }
       if (family === 'interval' || family === 'chord') return ear.item(itemKey);
+      if (family === 'chordSymbol') {
+        const symbol = parseSymbolItem(itemKey);
+        return symbol ? `${formatSymbol(symbol)} · ${harmony.words(symbol)}` : itemKey;
+      }
       const parsed = parseTheoryItem(itemKey);
       if (!parsed) return itemKey;
       if (parsed.family === 'readChord') {
@@ -126,10 +148,12 @@ export function useFamilyFormat() {
     /** `EC3 · Up to the octave`, `RI2 · Numbers and qualities`. */
     const level = (id: FamilyLevelId) => {
       if (isEarLevelId(id)) return ear.level(id);
+      if (isHarmonyLevelId(id)) return harmony.level(id);
       return isTheoryLevelId(id) ? theory.level(id) : id;
     };
     const levelName = (id: FamilyLevelId) => {
       if (isEarLevelId(id)) return ear.levelName(id);
+      if (isHarmonyLevelId(id)) return harmony.levelName(id);
       return isTheoryLevelId(id) ? theory.levelName(id) : id;
     };
 
@@ -157,7 +181,7 @@ export function useFamilyFormat() {
       ].filter((part) => part !== false);
 
     return { long, short, item, level, levelName, aids, figures };
-  }, [t, ear, theory, read]);
+  }, [t, ear, theory, read, harmony]);
 }
 
 export type FamilyFormat = ReturnType<typeof useFamilyFormat>;

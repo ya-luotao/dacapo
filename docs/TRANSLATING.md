@@ -67,6 +67,11 @@ and no Simplified-only characters in zh-TW.
   button (减 / 二度, 減 / 2度, 감 / 2도). A chord is `theory.chordName`: the root as written, then
   the chord (`ear.chord.*`): F♯ 小三和弦, F♯の短三和音, F♯ 단3화음. `theory.inversion.*` are the
   positions shortened for a button; the full ones are `ear.inversion.*`.
+- **Chord symbols on Harmony** (`harmony.*`) stay exactly as written in every language: `Dm7`,
+  `C/E`, `B♭`, `F♯m7♭5` are never translated, re-spelled or given other letters (not ハ for C,
+  not 다 for C). Only the words around them are. A chord in words is `theory.chordName` with the
+  Ear page's chord (`ear.chord.*`) or Harmony's own (`harmony.chord.*`, the sus, 6th, added 9th
+  and diminished 7th chords), and `harmony.chord.over` adds a slash chord's bass.
 - **Numbers, dates and lists of devices** are formatted by `Intl` in the active locale; do not
   write them into strings.
 
@@ -143,6 +148,10 @@ Chinese and Latin letters, digits and placeholders (`第 {n} 张`, `MIDI 键盘`
 | count (1 trip let) / Show the counts        | 数拍（1 连 音）/ 显示数拍                |
 | tap / pad / extra tap / click               | 按 / 按板 / 多按 / 节拍声                |
 | early, late, missed / rush, drag            | 早了、晚了、漏了 / 抢拍、拖拍            |
+| Harmony (the page) / Chords (its practice)  | 和声 / 和弦                              |
+| chord symbol / slash chord / in the bass    | 和弦记号 / 斜线和弦 / 在最低（低音）     |
+| sus2, sus4 / 6, m6 / add9 / diminished 7th  | 挂二、挂四 / 大六、小六 / 加九 / 减七    |
+| Show the notes (the chord's)                | 显示和弦音                               |
 
 ## Traditional Chinese, Taiwan (`zh-TW`)
 
@@ -214,6 +223,10 @@ terms throughout. Address the learner as 你, as zh-CN does.
 | triplet / count (1 trip let)              | 三連音 / 數拍（1 連 音）             | 数拍（1 连 音）            |
 | tap / pad / extra tap / click             | 按 / 按板 / 多按 / 節拍聲            |                            |
 | early, late, missed / rush, drag          | 早了、晚了、漏了 / 搶拍、拖拍        | 抢拍、拖拍                 |
+| Harmony (the page) / Chords               | 和聲 / 和弦                          | 和声                       |
+| chord symbol / slash chord                | 和弦記號 / 斜線和弦                  | 和弦记号 / 斜线和弦        |
+| sus2, sus4 / diminished 7th               | 掛二、掛四 / 減七                    | 挂二、挂四 / 减七          |
+| Show the notes (the chord's)              | 顯示和弦音                           | 显示和弦音                 |
 
 Keys in titles: `G 大調`, `C 大調`. Composers as Taiwan writes them: 貝多芬, 巴哈 (not 巴赫), 舒曼,
 布爾格彌勒.
@@ -284,6 +297,10 @@ verb phrases for labels and buttons (設定, 開始, もう一度, 補正する)
 | count (1 trip let) / Show the counts        | カウント（1 trip let のまま）/ カウントを表示    |
 | tap / pad / extra tap / click               | タップ / パッド / 余分なタップ / クリック音      |
 | early, late, missed / rush, drag            | 早い、遅い、抜けた / 走る、もたる                |
+| Harmony (the page) / Chords (its practice)  | 和声 / コード                                    |
+| chord symbol / slash chord / lowest (bass)  | コードネーム / 分数コード / いちばん下（ベース） |
+| sus2, sus4 / 6, add9 / diminished 7th       | 掛留2度、掛留4度 / 付加六、付加九 / 減七の和音   |
+| Show the notes (the chord's)                | 構成音を表示                                     |
 
 Keys in titles follow Japanese editions: ハ長調, ト長調. Middle C is 中央C. Scale names on the Scales
 page keep the letter names of the app (`D長音階`, `G♯和声的短音階`), not ニ長音階.
@@ -355,6 +372,10 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 | count (1 trip let) / Show the counts        | 세기 (1 trip let 그대로) / 세는 법 보이기                            |
 | tap / pad / extra tap / click               | 두드리기 / 패드 / 더 누름 / 클릭                                     |
 | early, late, missed / rush, drag            | 빠름, 늦음, 놓침 / 앞질러 가다, 처지다                               |
+| Harmony (the page) / Chords (its practice)  | 화성 / 코드                                                          |
+| chord symbol / slash chord / lowest (bass)  | 코드 기호 / 슬래시 코드 / 가장 아래(베이스)                          |
+| sus2, sus4 / 6, add9 / diminished 7th       | 서스2, 서스4 / 부가6, 부가9 / 감7화음                                |
+| Show the notes (the chord's)                | 구성음 보기                                                          |
 
 Keys in titles use letters: G장조, C장조, matching the letter names in the app. Composer names
 follow the National Institute of Korean Language: 루트비히 판 베토벤, 요한 제바스티안 바흐.
