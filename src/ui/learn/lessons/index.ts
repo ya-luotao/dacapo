@@ -46,6 +46,10 @@ const LOADERS: Readonly<Record<string, Readonly<Record<LessonLanguage, Loader>>>
     en: () => import('./minor-keys.en.tsx'),
     'zh-CN': () => import('./minor-keys.zh-CN.tsx'),
   },
+  dynamics: {
+    en: () => import('./dynamics.en.tsx'),
+    'zh-CN': () => import('./dynamics.zh-CN.tsx'),
+  },
 };
 
 /** The lessons' texts as components that load on first render. */

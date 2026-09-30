@@ -120,6 +120,17 @@ export const LESSONS: readonly LessonInfo[] = [
     ready: true,
     practice: '/scales',
   },
+  {
+    slug: 'dynamics',
+    title: { en: 'Loud and soft, joined and detached', 'zh-CN': '强弱与奏法' },
+    summary: {
+      en: 'Dynamics from pp to ff, crescendo and accents, the tune over its chords, and legato, staccato and tenuto.',
+      'zh-CN': '从 pp 到 ff 的力度记号，渐强、渐弱和重音，让旋律盖过和弦，以及连奏、跳音和保持音。',
+    },
+    minutes: 18,
+    ready: true,
+    practice: '/scales',
+  },
 ];
 
 /**

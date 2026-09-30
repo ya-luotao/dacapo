@@ -5,8 +5,11 @@ import type { Emit, NoteInput } from './types.ts';
 export const POINTER_VELOCITY = 96;
 
 export interface PointerInput extends NoteInput {
-  /** Presses `midi` for `pointerId`; a pointer that slides to another key releases the first. */
-  press: (pointerId: number, midi: number, time: number) => void;
+  /**
+   * Presses `midi` for `pointerId`; a pointer that slides to another key releases the first. A
+   * click always has one touch; `velocity` is for a figure playing a key by itself, soft or loud.
+   */
+  press: (pointerId: number, midi: number, time: number, velocity?: number) => void;
   release: (pointerId: number, time: number) => void;
   /** Whether `pointerId` is currently holding a key (for glissando across keys). */
   isDown: (pointerId: number) => boolean;
@@ -33,11 +36,11 @@ export function createPointerInput(): PointerInput {
         down.clear();
       };
     },
-    press(pointerId, midi, time) {
+    press(pointerId, midi, time, velocity = POINTER_VELOCITY) {
       if (!emit || !isPianoKey(midi) || down.get(pointerId) === midi) return;
       release(pointerId, time);
       down.set(pointerId, midi);
-      emit({ type: 'on', midi, velocity: POINTER_VELOCITY, time }, `p${pointerId}`);
+      emit({ type: 'on', midi, velocity, time }, `p${pointerId}`);
     },
     release,
     isDown: (pointerId) => down.has(pointerId),

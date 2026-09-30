@@ -90,22 +90,41 @@ export function Picture({ src, alt, caption }: { src: string; alt: string; capti
   );
 }
 
+/** A button that plays what a figure shows: Listen, or a label of its own. */
+export function PlayButton({ onClick, label }: { onClick: () => void; label?: string }) {
+  const copy = useCopy();
+  return (
+    <button type="button" className="button is-compact" onClick={onClick}>
+      <svg className="button-glyph" viewBox="0 0 10 12" aria-hidden="true">
+        <path d="M1 1l8 5-8 5z" />
+      </svg>
+      {label ?? copy('listen')}
+    </button>
+  );
+}
+
 /** A row of choices over a figure, drawn as the app's segmented control. */
 export function Choices<T extends string>({
   label,
   value,
   options,
   onChange,
+  className,
 }: {
   /** The group's name for assistive technology, when the options alone do not say it. */
   label?: string;
   value: T;
-  options: readonly { value: T; label: string }[];
+  options: readonly { value: T; label: ReactNode }[];
   onChange: (value: T) => void;
+  className?: string;
 }) {
   const name = useId();
   return (
-    <div className="segmented is-compact plate-choices" role="radiogroup" aria-label={label}>
+    <div
+      className={`segmented is-compact plate-choices${className ? ` ${className}` : ''}`}
+      role="radiogroup"
+      aria-label={label}
+    >
       {options.map((option) => (
         <label key={option.value}>
           <input

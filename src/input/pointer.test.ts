@@ -25,6 +25,13 @@ describe('createPointerInput', () => {
     ]);
   });
 
+  it('presses at a velocity of its own when asked, for a figure playing by itself', () => {
+    const { hub, pointer, events } = setup();
+    pointer.press(-1060, 60, 5, 30);
+    expect(hub.getState().held.get(60)).toBe(30);
+    expect(events[0]).toEqual({ type: 'on', midi: 60, velocity: 30, time: 5 });
+  });
+
   it('slides from key to key with one pointer (glissando)', () => {
     const { hub, pointer, events } = setup();
     pointer.press(1, 60, 1);

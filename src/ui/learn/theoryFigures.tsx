@@ -12,7 +12,7 @@ import { keyAlters, keySignature, MAJOR_TONICS, MINOR_TONICS } from '../../core/
 import { formatMessage } from '../../i18n/locale.ts';
 import { EngravedStaff, type StaffLabel, type StaffNote } from '../engraving/EngravedStaff.tsx';
 import { bodyStart, HEAD_WIDTH } from '../engraving/geometry.ts';
-import { Choices, Picture } from './kit.tsx';
+import { Choices, Picture, PlayButton } from './kit.tsx';
 import { LessonPiano } from './LessonPiano.tsx';
 import { keyName, useCopy, useNoteOn, usePlayKey, usePlaySequence } from './lesson.ts';
 import {
@@ -33,18 +33,6 @@ import {
 
 const STAFF_KEYS: readonly [number, number] = [36, 84]; // C2–C6
 const MIDDLE_KEYS: readonly [number, number] = [48, 83]; // C3–B5
-
-function PlayButton({ onClick, label }: { onClick: () => void; label?: string }) {
-  const copy = useCopy();
-  return (
-    <button type="button" className="button is-compact" onClick={onClick}>
-      <svg className="button-glyph" viewBox="0 0 10 12" aria-hidden="true">
-        <path d="M1 1l8 5-8 5z" />
-      </svg>
-      {label ?? copy('listen')}
-    </button>
-  );
-}
 
 // Lesson 3: landmarks and intervals.
 

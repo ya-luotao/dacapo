@@ -18,6 +18,7 @@ the computer keyboard, a click or a tap, like the Play page.
 | 7   | `posture`          | Posture, hand shape and fingering    | written |
 | 8   | `rhythm-2`         | Dots, ties, triplets and syncopation | written |
 | 9   | `minor-keys`       | Minor scales and minor keys          | written |
+| 10  | `dynamics`         | Loud and soft, joined and detached   | written |
 
 Beside them, not numbered: **Inside the piano** (`inside`), one key of a grand piano's action in
 cross-section, moving as you play. Its motion comes from `src/core/pianoAction.ts`: the key, the
@@ -66,7 +67,21 @@ Fine") are replaced by what works in Chinese.
   spelled by `core/scales.ts`, as on the Scales page; a minor whose harmonic form needs a double
   sharp (G♯) is left out of the figures. Staves are drawn by
   `ui/engraving/EngravedStaff.tsx` from Bravura's outlines (notes of every value, rests, key and
-  time signatures), so no music font is loaded.
+  time signatures), so no music font is loaded; `ui/engraving/marks.tsx` draws what is written
+  around the notes (dynamics in Bravura's letters, hairpins and the words for them, accents,
+  staccato dots and tenuto lines, slurs).
+- `expressionFigures.tsx` has lesson 10's: a phrase at any dynamic from pp to ff, a swell as
+  hairpins or words, accents and sf, the Ode to Joy's tune over its chords (balanced or not),
+  the velocity of each key struck, and a line played legato, non legato, staccato or tenuto with
+  a timeline under it of every note heard, yours or the figure's: how long each was held, and
+  whether it joined the next, left a gap or overlapped it, by the thresholds EXPRESSION.md plans
+  for the Pieces (`expression.ts`). A figure plays its notes with their own times, lengths and
+  loudness (`usePlayNotes`); the built-in piano sounds them at that velocity.
+- An exercise that needs something not everyone has (a keyboard that senses touch, a sustain
+  pedal) says so when no MIDI keyboard is connected and can always be skipped; the lesson is
+  finished by its last exercise, which anyone can do. Lesson 10's crescendo passes when every
+  note is louder than the one before, or when the last is the loudest and at least 19 (15% of the
+  range of velocities) above the first.
 - The rhythm figures use the page's click track; whoever started it last owns it, so one figure
   stopping never silences another.
 - Only one exercise listens at a time: starting one (or clicking a key on it) stops the others, so

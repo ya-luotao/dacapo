@@ -9,6 +9,7 @@ import {
   type PointerEvent,
 } from 'react';
 import { midiName } from '../../core/note.ts';
+import type { HubEvent } from '../../input/index.ts';
 import type { LessonLanguage } from '../../learn/lessons.ts';
 import { formatMessage } from '../../i18n/locale.ts';
 import { useInput } from '../input/context.ts';
@@ -60,6 +61,18 @@ const COPY = {
     wholeStep: 'Whole step',
     countTrip: 'trip',
     countLet: 'let',
+    skip: 'Skip',
+    fixedTouch:
+      'The computer keyboard, a click or a tap always plays at the same loudness, 96 of 127. A MIDI keyboard that senses touch shows how hard you play.',
+    velocity: '{v} of 127',
+    joined: 'joined',
+    gap: 'gap {ms} ms',
+    overlap: 'overlap {ms} ms',
+    joins: '{joined} joined, {gaps} with a gap, {overlaps} overlapping.',
+    lastJoin: 'The last: ',
+    noteProgress: '{n} of {total}',
+    fingersOnly: 'The sustain pedal is down: the sound carries on, but this shows your fingers.',
+    playSome: 'Play a few notes.',
   },
   'zh-CN': {
     plate: '图',
@@ -102,6 +115,18 @@ const COPY = {
     wholeStep: '全音',
     countTrip: '连',
     countLet: '音',
+    skip: '跳过',
+    fixedTouch:
+      '电脑键盘、点击或轻触永远用同一个力度弹，是 127 里的 96。能感应触键的 MIDI 键盘，才能显示你弹得多重。',
+    velocity: '{v} / 127',
+    joined: '连上了',
+    gap: '断开 {ms} 毫秒',
+    overlap: '重叠 {ms} 毫秒',
+    joins: '{joined} 处连上，{gaps} 处断开，{overlaps} 处重叠。',
+    lastJoin: '最后一处：',
+    noteProgress: '第 {n} 个音，共 {total} 个',
+    fingersOnly: '延音踏板踩着：声音还在延续，这里显示的是你的手指。',
+    playSome: '弹几个音试试。',
   },
 } as const satisfies Record<LessonLanguage, Record<string, string>>;
 
@@ -147,10 +172,14 @@ export function keyName(midi: number): string {
 const demoKeys = new Set<number>();
 
 /**
- * Calls `listener` with every key the player presses, from any keyboard, and when
- * (performance.now()). Keys a figure plays by itself are left out.
+ * Calls `listener` with every key the player presses, from any keyboard, when (performance.now())
+ * and how hard (1–127; the computer keys and a click always give the same). Keys a figure plays by
+ * itself are left out.
  */
-export function useNoteOn(listener: (midi: number, time: number) => void, enabled = true): void {
+export function useNoteOn(
+  listener: (midi: number, time: number, velocity: number) => void,
+  enabled = true,
+): void {
   const { hub } = useInput();
   const latest = useRef(listener);
   useEffect(() => {
@@ -159,9 +188,30 @@ export function useNoteOn(listener: (midi: number, time: number) => void, enable
   useEffect(() => {
     if (!enabled) return;
     return hub.onEvent((event) => {
-      if (event.type === 'on' && !demoKeys.has(event.midi)) latest.current(event.midi, event.time);
+      if (event.type === 'on' && !demoKeys.has(event.midi))
+        latest.current(event.midi, event.time, event.velocity);
     });
   }, [hub, enabled]);
+}
+
+/**
+ * Calls `listener` with every key going down and up, and the sustain pedal, as they happen; `demo`
+ * says the key is one a figure is playing by itself.
+ */
+export function useKeyEvents(listener: (event: HubEvent, demo: boolean) => void): void {
+  const { hub } = useInput();
+  const latest = useRef(listener);
+  useEffect(() => {
+    latest.current = listener;
+  });
+  useEffect(
+    () =>
+      hub.onEvent((event) => {
+        // A demo key is still marked as it comes up: it is let go before it is unmarked.
+        latest.current(event, event.type !== 'sustain' && demoKeys.has(event.midi));
+      }),
+    [hub],
+  );
 }
 
 /**
@@ -181,37 +231,48 @@ export function useExercise(): {
   return { id, active: active === id, start, stop };
 }
 
-/** Plays a key for a moment, as if it were clicked: the built-in piano sounds it and it lights. */
-export function usePlayKey(): (midi: number, ms?: number) => void {
+/**
+ * Plays a key for a moment, as if it were clicked: the built-in piano sounds it and it lights. A
+ * figure can play it softly or loudly (`velocity`, 1–127); otherwise it has a click's touch.
+ */
+export function usePlayKey(): (midi: number, ms?: number, velocity?: number) => void {
   const { pointer } = useInput();
-  // Each key sounding, by the timer that lets it go.
-  const sounding = useRef(new Map<ReturnType<typeof setTimeout>, number>());
+  // Each key sounding, and the timer that lets it go.
+  const sounding = useRef(new Map<number, ReturnType<typeof setTimeout>>());
   useEffect(() => {
     const keys = sounding.current;
     // Leaving the page lets go of every key at once: a key never released would stay held, and
     // pressing it for real would then not count as a new note.
     return () => {
-      for (const [timer, id] of keys) {
+      for (const [midi, timer] of keys) {
         clearTimeout(timer);
-        pointer.release(id, performance.now());
-        demoKeys.delete(-1000 - id);
+        pointer.release(-1000 - midi, performance.now());
+        demoKeys.delete(midi);
       }
       keys.clear();
     };
   }, [pointer]);
   return useCallback(
-    (midi, ms = 450) => {
+    (midi, ms = 450, velocity) => {
       // A pointer id of its own, below the ones real pointers use.
       const id = -1000 - midi;
+      const keys = sounding.current;
+      // Played again while it still sounds: let go and struck again, so the first stroke's timer
+      // does not cut the second one short.
+      const before = keys.get(midi);
+      if (before !== undefined) {
+        clearTimeout(before);
+        pointer.release(id, performance.now());
+      }
       // Marked before the press, which reaches the listeners at once.
       demoKeys.add(midi);
-      pointer.press(id, midi, performance.now());
+      pointer.press(id, midi, performance.now(), velocity);
       const timer = setTimeout(() => {
-        sounding.current.delete(timer);
+        keys.delete(midi);
         pointer.release(id, performance.now());
         demoKeys.delete(midi);
       }, ms);
-      sounding.current.set(timer, id);
+      keys.set(midi, timer);
     },
     [pointer],
   );
@@ -287,4 +348,65 @@ export function usePlaySequence(): {
     [playKey],
   );
   return { play, stop, at };
+}
+
+/** A note a figure plays by itself: when (ms from the start), how long, and how hard (1–127). */
+export interface TimedNote {
+  midi: number;
+  at: number;
+  ms: number;
+  velocity?: number;
+}
+
+/**
+ * Plays notes at their own times, lengths and loudness: a phrase getting louder, a chord held into
+ * the next, a trill. Says which notes are sounding (by index) and when the run started, for a
+ * figure that draws it as it goes. Playing again, or leaving, stops the last run.
+ */
+export function usePlayNotes(): {
+  play: (notes: readonly TimedNote[]) => void;
+  stop: () => void;
+  lit: ReadonlySet<number>;
+  /** When the run started (performance.now()), or null when nothing is playing. */
+  started: number | null;
+} {
+  const playKey = usePlayKey();
+  const [lit, setLit] = useState<ReadonlySet<number>>(new Set());
+  const [started, setStarted] = useState<number | null>(null);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const stop = useCallback(() => {
+    for (const t of timers.current) clearTimeout(t);
+    timers.current = [];
+    setLit(new Set());
+    setStarted(null);
+  }, []);
+  useEffect(() => stop, [stop]);
+  const play = useCallback(
+    (notes: readonly TimedNote[]) => {
+      stop();
+      setStarted(performance.now());
+      const later = (ms: number, run: () => void) => timers.current.push(setTimeout(run, ms));
+      notes.forEach((note, i) => {
+        later(note.at, () => {
+          playKey(note.midi, note.ms, note.velocity);
+          setLit((now) => new Set(now).add(i));
+        });
+        later(note.at + note.ms, () =>
+          setLit((now) => {
+            const next = new Set(now);
+            next.delete(i);
+            return next;
+          }),
+        );
+      });
+      const end = Math.max(0, ...notes.map((n) => n.at + n.ms));
+      later(end + 20, () => {
+        timers.current = [];
+        setLit(new Set());
+        setStarted(null);
+      });
+    },
+    [playKey, stop],
+  );
+  return { play, stop, lit, started };
 }
