@@ -64,6 +64,9 @@ Mohit Muthanna Cheppudira and the VexFlow contributors. MIT License.
 - **Source Serif 4** and **Source Sans 3**, Latin subsets in `src/ui/fonts/`. Copyright © Adobe,
   with Reserved Font Name "Source". SIL Open Font License 1.1; the licence text is in
   [`src/ui/fonts/OFL.txt`](src/ui/fonts/OFL.txt).
+- **dacapo Accidentals** (`src/ui/fonts/accidentals.woff2`), the ♭ ♮ ♯ 𝄪 𝄫 of the text fonts: a
+  subset of **Bravura Text** by Steinberg Media Technologies GmbH, renamed because "Bravura" is a
+  Reserved Font Name. SIL Open Font License 1.1.
 
 ## Sounds (the built-in piano)
 

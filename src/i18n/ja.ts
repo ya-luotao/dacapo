@@ -1386,9 +1386,11 @@ export const ja: Dictionary = {
     'Bravura：「譜読み」ページの音楽フォントです。© 2019 Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
   'about.sourceFonts':
     'Source Serif 4とSource Sans 3：本文のフォントです。© Adobe, with Reserved Font Name "Source". SIL Open Font License 1.1.',
-  'about.music.intro': '内蔵の6曲はすべてパブリックドメインの作品です。',
+  'about.accidentals':
+    'dacapo Accidentals：本文中の♭・♮・♯。Bravura Textの5つの字形を、ライセンスが改変版に求めるとおり名前を変えて使っています。© Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
+  'about.music.intro': '内蔵の13曲はすべてパブリックドメインの作品です。',
   'about.music.ours':
-    '「メヌエット ト長調」（ペツォールト）、「エリーゼのために」（ベートーヴェン）、「歓喜の歌」の編曲は、dacapoプロジェクトがMITライセンスで入力したものです。前の2曲はMutopia Projectのパブリックドメイン版にもとづいています。',
+    'そのうち10曲はdacapoプロジェクトがMITライセンスで入力したものです。「歓喜の歌」の編曲と、Mutopia Projectが組んだパブリックドメイン版にもとづく「メヌエット ト長調」「メヌエット ト短調」（ペツォールト）、「ミュゼット ニ長調」（バッハ）、「エリーゼのために」（ベートーヴェン）、「素直な心」（ブルグミュラー）、「古いフランスの歌」「朝の祈り」（チャイコフスキー）、「前奏曲 ハ短調」（ショパン）、「ジムノペディ第1番」（サティ）です。',
   'about.music.pdmx':
     '「アラベスク」（ブルグミュラー）、「兵士の行進」（シューマン）、「前奏曲 ハ長調」（J.S.バッハ）は、MuseScoreに投稿したPianoXML、jadr、OpenGoldbergの各氏がパブリックドメイン（CC0）として公開した楽譜で、dacapoプロジェクトが運指を削除しました。いずれもPhillip Long、Zachary Novack、Julian McAuley、Taylor Berg-KirkpatrickによるPDMXデータセットに収録されており、このデータセットはCC BY 4.0で公開されています。',
   'about.music.hanon':

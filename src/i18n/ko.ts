@@ -1363,9 +1363,11 @@ export const ko: Dictionary = {
     'Bravura: “악보 읽기” 페이지의 음악 글꼴이에요. © 2019 Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
   'about.sourceFonts':
     'Source Serif 4와 Source Sans 3: 본문 글꼴이에요. © Adobe, with Reserved Font Name "Source". SIL Open Font License 1.1.',
-  'about.music.intro': '기본 곡 6곡은 모두 퍼블릭 도메인 작품이에요.',
+  'about.accidentals':
+    'dacapo Accidentals: 본문의 ♭, ♮, ♯. Bravura Text의 글리프 다섯 개를, 라이선스가 수정본에 요구하는 대로 이름을 바꿔 썼어요. © Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
+  'about.music.intro': '기본 곡 13곡은 모두 퍼블릭 도메인 작품이에요.',
   'about.music.ours':
-    '미뉴에트 G장조(페촐트), 엘리제를 위하여(베토벤), 환희의 송가 편곡은 dacapo 프로젝트가 MIT 라이선스로 입력했어요. 앞의 두 곡은 Mutopia Project의 퍼블릭 도메인 판을 바탕으로 했어요.',
+    '그중 10곡은 dacapo 프로젝트가 MIT 라이선스로 입력했어요. 환희의 송가 편곡, 그리고 Mutopia Project가 조판한 퍼블릭 도메인 판을 바탕으로 한 미뉴에트 G장조와 G단조(페촐트), 뮈제트 D장조(바흐), 엘리제를 위하여(베토벤), 순수(부르크뮐러), 옛 프랑스 노래와 아침 기도(차이콥스키), 전주곡 C단조(쇼팽), 짐노페디 제1번(사티)이에요.',
   'about.music.pdmx':
     '아라베스크(부르크뮐러), 병사의 행진(슈만), 전주곡 C장조(바흐)는 MuseScore에 악보를 올린 PianoXML, jadr, OpenGoldberg가 퍼블릭 도메인(CC0)으로 공개한 악보이고, dacapo 프로젝트가 운지 번호를 지웠어요. 모두 Phillip Long, Zachary Novack, Julian McAuley, Taylor Berg-Kirkpatrick의 PDMX 데이터셋에서 가져왔으며, 이 데이터셋은 CC BY 4.0 라이선스를 따라요.',
   'about.music.hanon':

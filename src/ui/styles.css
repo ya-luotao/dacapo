@@ -75,11 +75,11 @@
   --bar-wash: 22%;
 
   --font-serif:
-    'Source Serif 4', 'Songti SC', 'STSong', 'Noto Serif CJK SC', 'Source Han Serif SC', 'SimSun',
-    Georgia, serif;
+    'dacapo Accidentals', 'Source Serif 4', 'Songti SC', 'STSong', 'Noto Serif CJK SC',
+    'Source Han Serif SC', 'SimSun', Georgia, serif;
   --font-sans:
-    'Source Sans 3', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Source Han Sans SC',
-    'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    'dacapo Accidentals', 'Source Sans 3', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC',
+    'Source Han Sans SC', 'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --radius-sm: 2px;
   --radius: 3px;
   --dur-fast: 120ms;
@@ -100,29 +100,31 @@
 /* The same Han character is drawn differently in Japan, Korea, Taiwan and mainland China. */
 :root:lang(zh-TW) {
   --font-serif:
-    'Source Serif 4', 'Songti TC', 'Noto Serif CJK TC', 'Source Han Serif TC', 'PMingLiU', Georgia,
-    serif;
+    'dacapo Accidentals', 'Source Serif 4', 'Songti TC', 'Noto Serif CJK TC', 'Source Han Serif TC',
+    'PMingLiU', Georgia, serif;
   --font-sans:
-    'Source Sans 3', 'PingFang TC', 'Noto Sans CJK TC', 'Source Han Sans TC', 'Microsoft JhengHei',
-    system-ui, -apple-system, 'Segoe UI', sans-serif;
+    'dacapo Accidentals', 'Source Sans 3', 'PingFang TC', 'Noto Sans CJK TC', 'Source Han Sans TC',
+    'Microsoft JhengHei', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
 :root:lang(ja) {
   --font-serif:
-    'Source Serif 4', 'Hiragino Mincho ProN', 'Yu Mincho', 'YuMincho', 'Noto Serif CJK JP',
-    'Noto Serif JP', 'Source Han Serif JP', Georgia, serif;
+    'dacapo Accidentals', 'Source Serif 4', 'Hiragino Mincho ProN', 'Yu Mincho', 'YuMincho',
+    'Noto Serif CJK JP', 'Noto Serif JP', 'Source Han Serif JP', Georgia, serif;
   --font-sans:
-    'Source Sans 3', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'YuGothic',
-    'Noto Sans CJK JP', 'Noto Sans JP', 'Meiryo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    'dacapo Accidentals', 'Source Sans 3', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN',
+    'Yu Gothic', 'YuGothic', 'Noto Sans CJK JP', 'Noto Sans JP', 'Meiryo', system-ui, -apple-system,
+    'Segoe UI', sans-serif;
 }
 
 :root:lang(ko) {
   --font-serif:
-    'Source Serif 4', 'AppleMyungjo', 'Nanum Myeongjo', 'Noto Serif CJK KR', 'Noto Serif KR',
-    'Source Han Serif K', 'Batang', Georgia, serif;
+    'dacapo Accidentals', 'Source Serif 4', 'AppleMyungjo', 'Nanum Myeongjo', 'Noto Serif CJK KR',
+    'Noto Serif KR', 'Source Han Serif K', 'Batang', Georgia, serif;
   --font-sans:
-    'Source Sans 3', 'Apple SD Gothic Neo', 'Noto Sans CJK KR', 'Noto Sans KR', 'Source Han Sans K',
-    'Malgun Gothic', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    'dacapo Accidentals', 'Source Sans 3', 'Apple SD Gothic Neo', 'Noto Sans CJK KR',
+    'Noto Sans KR', 'Source Han Sans K', 'Malgun Gothic', system-ui, -apple-system, 'Segoe UI',
+    sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -5763,7 +5765,7 @@ select.is-compact {
 .pendulum-numbers,
 .pendulum-bands {
   fill: var(--engrave);
-  font-family: 'Source Serif 4', Georgia, serif;
+  font-family: 'dacapo Accidentals', 'Source Serif 4', Georgia, serif;
 }
 
 .pendulum-numbers {

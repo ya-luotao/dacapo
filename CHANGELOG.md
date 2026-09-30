@@ -142,6 +142,9 @@ and sessions (from version 6), and the click's tempo and grid of scale runs play
 
 ### A home page, and a sharper look
 
+- ♭, ♮ and ♯ in the text are set in a small font of their own (five glyphs of Bravura Text), so
+  they sit close to their letter in every language (B♭4, not B ♭4).
+- The About page credits all thirteen built-in pieces.
 - dacapo opens on a **home page**: what it is, the way into each practice as a contents page, and
   a grand staff with a keyboard under it that shows any key you hold on the staff. **Play** moves
   to its own address, `#/play`; old links to `#/` now open the home page.

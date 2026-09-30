@@ -1381,9 +1381,11 @@ export const en = {
     'Bravura, the music font of the Read page. © 2019 Steinberg Media Technologies GmbH, with Reserved Font Name “Bravura”. SIL Open Font License 1.1.',
   'about.sourceFonts':
     'Source Serif 4 and Source Sans 3, the text fonts. © Adobe, with Reserved Font Name “Source”. SIL Open Font License 1.1.',
-  'about.music.intro': 'All six built-in works are in the public domain.',
+  'about.accidentals':
+    'dacapo Accidentals, the ♭, ♮ and ♯ in the text: five glyphs of Bravura Text, renamed as its licence asks of a modified version. © Steinberg Media Technologies GmbH, with Reserved Font Name “Bravura”. SIL Open Font License 1.1.',
+  'about.music.intro': 'All thirteen built-in works are in the public domain.',
   'about.music.ours':
-    'Minuet in G major (Petzold), Für Elise (Beethoven) and the Ode to Joy arrangement are encoded by the dacapo project under the MIT licence; the first two from public-domain editions of the Mutopia Project.',
+    'Ten are encoded by the dacapo project under the MIT licence: the Ode to Joy arrangement, and, from public-domain editions typeset for the Mutopia Project, the Minuets in G major and G minor (Petzold), the Musette in D major (Bach), Für Elise (Beethoven), La Candeur (Burgmüller), Old French Song and Morning Prayer (Tchaikovsky), the Prelude in C minor (Chopin) and Gymnopédie No. 1 (Satie).',
   'about.music.pdmx':
     'Arabesque (Burgmüller), Soldiers’ March (Schumann) and the Prelude in C major (Bach) are encodings from MuseScore that their uploaders PianoXML, jadr and OpenGoldberg dedicated to the public domain (CC0); the dacapo project removed the fingering. They come from the PDMX dataset by Phillip Long, Zachary Novack, Julian McAuley and Taylor Berg-Kirkpatrick, licensed under CC BY 4.0.',
   'about.music.hanon':

@@ -1310,9 +1310,11 @@ export const zhCN: Dictionary = {
     'Bravura，“识谱”页面使用的音乐字体。© 2019 Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
   'about.sourceFonts':
     'Source Serif 4 和 Source Sans 3，正文字体。© Adobe, with Reserved Font Name "Source". SIL Open Font License 1.1.',
-  'about.music.intro': '六首内置作品都属于公有领域。',
+  'about.accidentals':
+    'dacapo Accidentals，正文里的 ♭、♮、♯：取自 Bravura Text 的五个字形，按其许可证对修改版本的要求改了名。© Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
+  'about.music.intro': '十三首内置作品都属于公有领域。',
   'about.music.ours':
-    '《G 大调小步舞曲》（佩措尔德）、《致爱丽丝》（贝多芬）和《欢乐颂》的改编由 dacapo 项目编码，以 MIT 许可证发布；前两首依据 Mutopia 项目的公有领域版本。',
+    '其中十首由 dacapo 项目编码，以 MIT 许可证发布：《欢乐颂》的改编，以及依据 Mutopia 项目排印的公有领域版本编码的《G 大调小步舞曲》《G 小调小步舞曲》（佩措尔德）、《D 大调风笛舞曲》（巴赫）、《致爱丽丝》（贝多芬）、《纯洁》（布格缪勒）、《古老的法国歌曲》《晨祷》（柴可夫斯基）、《C 小调前奏曲》（肖邦）和《裸体歌舞第 1 号》（萨蒂）。',
   'about.music.pdmx':
     '《阿拉伯风格曲》（布格缪勒）、《士兵进行曲》（舒曼）和《C 大调前奏曲》（巴赫）是 MuseScore 上的编码，上传者 PianoXML、jadr 和 OpenGoldberg 已将其贡献到公有领域（CC0）；dacapo 项目删去了其中的指法。它们来自 Phillip Long、Zachary Novack、Julian McAuley 和 Taylor Berg-Kirkpatrick 的 PDMX 数据集，该数据集以 CC BY 4.0 许可发布。',
   'about.music.hanon':

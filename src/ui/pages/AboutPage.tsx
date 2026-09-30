@@ -60,6 +60,11 @@ const FONTS: readonly Credit[] = [
     lines: ['about.sourceFonts'],
     files: [{ name: 'SIL Open Font License 1.1', path: `${LICENCES}source-fonts/OFL.txt` }],
   },
+  {
+    id: 'accidentals',
+    lines: ['about.accidentals'],
+    files: [{ name: 'SIL Open Font License 1.1', path: `${LICENCES}bravura/LICENSE.txt` }],
+  },
 ];
 
 /** Replaces the placeholder `{name}` in a message with `node`. */
