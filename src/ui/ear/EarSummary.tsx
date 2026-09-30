@@ -1,9 +1,5 @@
 import { nextEarLevel } from '../../core/earItems.ts';
-import {
-  EAR_MASTERY_WINDOW,
-  type EarLevelProgress,
-  type EarSessionSummary,
-} from '../../core/earSession.ts';
+import type { EarLevelProgress, EarSessionSummary } from '../../core/earSession.ts';
 import { useT } from '../../i18n/index.ts';
 import { useReadFormat } from '../read/format.ts';
 import { useEarFormat } from './format.ts';
@@ -29,6 +25,7 @@ export function EarSummary({
   const complete = summary.items >= summary.length;
   const next = nextEarLevel(summary.level);
   const level = format.level(summary.level);
+  const echo = summary.family === 'echo';
 
   return (
     <section className="read-summary ear-summary" aria-labelledby="ear-summary-title">
@@ -37,7 +34,7 @@ export function EarSummary({
 
       <dl className="figures ear-figures">
         <div>
-          <dt>{t('ear.summary.questions')}</dt>
+          <dt>{t(echo ? 'ear.summary.melodies' : 'ear.summary.questions')}</dt>
           <dd>{summary.items}</dd>
         </div>
         <div>
@@ -60,10 +57,12 @@ export function EarSummary({
           <ul>
             {summary.missed.map((missed, i) => (
               <li key={i}>
-                {t('ear.summary.answeredAs', {
-                  item: format.capitalize(format.item(missed.item, summary.level)),
-                  answer: format.answer(missed, summary.level),
-                })}
+                {echo
+                  ? format.echoMiss(missed)
+                  : t('ear.summary.answeredAs', {
+                      item: format.capitalize(format.item(missed.item, summary.level)),
+                      answer: format.answer(missed, summary.level),
+                    })}
               </li>
             ))}
           </ul>
@@ -77,12 +76,11 @@ export function EarSummary({
           ? t('read.summary.mastered', { level })
           : t('read.summary.progress', {
               level,
-              stats: t('ear.level.stats', {
-                answers: progress.answers,
-                window: EAR_MASTERY_WINDOW,
-                accuracy: read.percent(progress.accuracy),
-                median: read.seconds(progress.medianMs),
-              }),
+              stats: format.levelStats(
+                progress,
+                read.percent(progress.accuracy),
+                read.seconds(progress.medianMs),
+              ),
             })}
       </p>
 

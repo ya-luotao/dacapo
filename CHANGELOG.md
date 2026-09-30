@@ -11,7 +11,7 @@ sessions and their step records (from version 3), rhythm-mode steps with their t
 version 4), scale sessions with every scale run as played (from version 5), and ear-training
 answers and sessions. Version 1 to 5 files still import.
 
-### Ear training: intervals and chords by ear ([docs/EAR.md](docs/EAR.md))
+### Ear training: intervals, chords and melodies by ear ([docs/EAR.md](docs/EAR.md))
 
 - A new **Ear** page plays two notes or a chord through your instrument or the built-in piano, and
   you answer the way a pianist does: **play it** back on the keyboard (the first note, or the
@@ -30,6 +30,19 @@ answers and sessions. Version 1 to 5 files still import.
   the minutes and the streak (the public profile counts them as reading). Answers sync with an
   account; a device whose update learns a new kind of record pulls everything again once, so
   nothing another device sent before the update is missed.
+- **Echo**, a third family: the chord of a key, a quarter's rest, then a short melody at ♩ = 100,
+  to play back on the keyboard note by note from its first note, which is marked. Seven levels,
+  each a kind of melody drawn fresh every time: three notes by step, steps and thirds, up to the
+  octave, leaps to the fifth and the octave in keys up to two sharps or flats, any leap within the
+  octave, A, E and D minor (natural and harmonic), and chromatic neighbour and passing notes.
+- Dots fill as the notes are played; keys played before "Hear again" stand. The first wrong key
+  ends the melody: it is drawn on the staff that suits it, in its key signature, with the notes
+  you played right in green and the wrong one in red at its pitch, and played once more. The
+  summary names each miss by the interval into it ("Note 3: perfect 4th up (F4), played as
+  perfect 5th up (G4)"). A level is mastered at 90% over its last 20 melodies without a replay;
+  a session is 5, 10 or 20 melodies.
+- Sync learns the new family (`SYNC_SCHEMA` 3): a device that updates pulls everything again
+  once, so the melodies an older build skipped arrive.
 
 ### Seven more pieces
 

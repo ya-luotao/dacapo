@@ -220,6 +220,52 @@ describe('ear controller', () => {
     expect(practice.getSnapshot().sessions).toHaveLength(1);
   });
 
+  it('plays a melody after its tonic chord and takes it back key by key', () => {
+    const { controller, practice, played, card, now, listen, wait, state } = setup();
+    controller.start({ ...INTERVALS, level: 'EC2', by: 'name', directions: [], length: 5 });
+    expect(state().session).toMatchObject({ family: 'echo', by: 'play', length: 5 });
+    const { prompt } = card();
+    // Three keys of the chord, then the four notes of the melody.
+    expect(played[0]!.notes.map((n) => n.midi)).toEqual([...prompt.melody!.chord, ...prompt.notes]);
+    expect(card().opensAt).toBe(now() + FIRST_LEAD_MS + 1500 + 3 * 600);
+    listen();
+    for (const midi of prompt.notes.slice(0, -1)) controller.press(midi, now() + 100);
+    expect(card()).toMatchObject({ status: 'waiting', played: prompt.notes.slice(0, -1) });
+    // Nothing is recorded until the melody is complete.
+    expect(practice.getSnapshot().answers).toEqual([]);
+    controller.press(prompt.notes.at(-1)!, now() + 900);
+    expect(card().status).toBe('correct');
+    expect(practice.getSnapshot().answers).toEqual([
+      expect.objectContaining({ family: 'echo', item: 'echo:EC2', correct: true, ms: 900 }),
+    ]);
+    wait(ADVANCE_DELAY_MS);
+    expect(card()).toMatchObject({ index: 1, status: 'waiting', played: [] });
+  });
+
+  it('after a wrong key plays the melody again alone; Hear again plays the chord too', () => {
+    const { controller, played, card, now, listen } = setup();
+    controller.start({ ...INTERVALS, level: 'EC2', directions: [], length: 5 });
+    listen();
+    const { prompt } = card();
+    controller.press(prompt.notes[0]!, now() + 100);
+    controller.press(prompt.notes[1]! + 1, now() + 200);
+    expect(card()).toMatchObject({
+      status: 'wrong',
+      answer: [prompt.notes[0], prompt.notes[1]! + 1],
+    });
+    // The correction: the melody without its chord, not counted as a replay.
+    expect(played[1]!.notes.map((n) => n.midi)).toEqual(prompt.notes);
+    expect(played[1]!.start).toBe(now() + CORRECTION_LEAD_MS);
+    expect(card().opensAt).toBe(now() + CORRECTION_LEAD_MS + 3 * 600);
+    expect(card().replays).toBe(0);
+    controller.hearAgain();
+    expect(played[2]!.notes.map((n) => n.midi)).toEqual([...prompt.melody!.chord, ...prompt.notes]);
+    expect(card().replays).toBe(0);
+    listen();
+    controller.press(60, now() + 10);
+    expect(card().index).toBe(1);
+  });
+
   it('stops listening when the sound is cut from outside', () => {
     const { controller, state, timers } = setup();
     controller.start(INTERVALS);

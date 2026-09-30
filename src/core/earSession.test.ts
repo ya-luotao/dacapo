@@ -4,9 +4,12 @@ import {
   advanceEar,
   chooseName,
   EAR_MASTERY_WINDOW,
+  ECHO_MASTERY_WINDOW,
+  ECHO_SESSION_LENGTHS,
   earLevelProgress,
   earStats,
   endEarSession,
+  masteryWindow,
   pressKey,
   promptScheduled,
   recoverEarSummary,
@@ -303,6 +306,7 @@ describe('ear figures', () => {
       level,
       total: 40,
       answers: 40,
+      window: 40,
       accuracy: 1,
       medianMs: 900,
       mastered: true,
@@ -318,5 +322,144 @@ describe('ear figures', () => {
       (['C1', 'C2', 'C3', 'C4', 'C5'] as const).map((id) => [id, mastered(id)] as const),
     );
     expect(suggestedEarLevel('chord', all)).toBe('C5');
+  });
+});
+
+describe('an echo session', () => {
+  const melody: Prompt = { item: 'echo:EC2', notes: [64, 62, 60, 62] };
+  const echo = (length = 5) => start('EC2', 'name', length);
+
+  it('plays back only, one melody item per level', () => {
+    const state = echo();
+    expect(state).toMatchObject({ family: 'echo', level: 'EC2', by: 'play', directions: [] });
+    expect(state.items).toEqual(['echo:EC2']);
+    expect(state.card.played).toEqual([]);
+    expect(state.card.prompt.melody).toBeDefined();
+  });
+
+  it('takes the keys in order and scores the melody at its last key', () => {
+    let state = withPrompt(echo(), melody, 1000);
+    // Nothing before the last note-on of the melody.
+    expect(pressKey(state, 64, 900, AT, newId)).toBe(state);
+    state = pressKey(state, 64, 1200, AT, newId);
+    state = pressKey(state, 62, 1500, AT, newId);
+    state = pressKey(state, 60, 1800, AT, newId);
+    expect(state.card).toMatchObject({ status: 'waiting', played: [64, 62, 60] });
+    expect(state.answers).toEqual([]);
+    state = pressKey(state, 62, 2400, AT + 9, () => 'm1');
+    expect(state.card.status).toBe('correct');
+    expect(state.answers).toEqual([
+      {
+        id: 'm1',
+        sessionId: 's1',
+        family: 'echo',
+        level: 'EC2',
+        item: 'echo:EC2',
+        by: 'play',
+        prompt: [64, 62, 60, 62],
+        answer: [64, 62, 60, 62],
+        correct: true,
+        ms: 1400,
+        replays: 0,
+        at: AT + 9,
+      },
+    ]);
+  });
+
+  it('keeps the melody’s key with the answer and the miss, to spell its notes', () => {
+    const inF: Prompt = {
+      item: 'echo:EC2',
+      notes: [65, 69, 67, 65],
+      melody: { tonic: 'F', scale: 'major', fifths: -1, written: [], chord: [65, 69, 72] },
+    };
+    let state = withPrompt(echo(), inF, 1000);
+    state = pressKey(state, 65, 1100, AT, newId);
+    state = pressKey(state, 70, 1200, AT, newId);
+    expect(state.answers[0]).toMatchObject({ key: { tonic: 'F', scale: 'major' } });
+    expect(summarizeEar(state).missed).toEqual([
+      {
+        item: 'echo:EC2',
+        answer: [65, 70],
+        prompt: [65, 69, 67, 65],
+        key: { tonic: 'F', scale: 'major' },
+      },
+    ]);
+  });
+
+  it('ends the attempt at the first wrong key', () => {
+    let state = withPrompt(echo(), melody, 1000);
+    state = pressKey(state, 64, 1100, AT, newId);
+    state = pressKey(state, 60, 1300, AT, newId);
+    expect(state.card).toMatchObject({ status: 'wrong', answer: [64, 60] });
+    expect(state.answers[0]).toMatchObject({ correct: false, answer: [64, 60], ms: 300 });
+    // Only the first attempt is scored.
+    expect(pressKey(state, 62, 1400, AT, newId)).toBe(state);
+  });
+
+  it('keeps the keys played before a replay, and goes on where it was', () => {
+    let state = withPrompt(echo(), melody, 1000);
+    state = pressKey(state, 64, 1100, AT, newId);
+    state = pressKey(state, 62, 1200, AT, newId);
+    state = promptScheduled(state, 0, 6000, true);
+    expect(state.card).toMatchObject({ played: [64, 62], replays: 1, opensAt: 6000 });
+    // The replay closes the window until its last note-on.
+    expect(pressKey(state, 60, 5000, AT, newId)).toBe(state);
+    state = pressKey(state, 60, 6100, AT, newId);
+    state = pressKey(state, 62, 6300, AT, newId);
+    expect(state.answers[0]).toMatchObject({
+      correct: true,
+      answer: [64, 62, 60, 62],
+      replays: 1,
+      ms: 300,
+    });
+  });
+
+  it('goes on from melody to melody, its one item drawn again', () => {
+    let state = withPrompt(echo(3), melody, 1000);
+    for (let i = 0; i < 3; i++) {
+      state = withPrompt(state, { ...melody, item: 'echo:EC2' }, 1000);
+      state = pressKey(state, 65, 1100, AT, newId);
+      state = advanceEar(state, { at: AT, stats: {}, rng: seededRng(i) });
+    }
+    expect(state.phase).toBe('done');
+    expect(state.answers).toHaveLength(3);
+    expect(summarizeEar(state)).toMatchObject({
+      family: 'echo',
+      items: 3,
+      correct: 0,
+      missed: [
+        { item: 'echo:EC2', answer: [65], prompt: [64, 62, 60, 62] },
+        { item: 'echo:EC2', answer: [65], prompt: [64, 62, 60, 62] },
+        { item: 'echo:EC2', answer: [65], prompt: [64, 62, 60, 62] },
+      ],
+    });
+  });
+
+  it('masters an echo level over its last 20 melodies', () => {
+    expect(masteryWindow('EC1')).toBe(ECHO_MASTERY_WINDOW);
+    expect(masteryWindow('I1')).toBe(EAR_MASTERY_WINDOW);
+    const answers: Answer[] = Array.from({ length: ECHO_MASTERY_WINDOW }, (_, i) => ({
+      id: `e${i}`,
+      sessionId: 's',
+      family: 'echo',
+      level: 'EC1',
+      item: 'echo:EC1',
+      by: 'play',
+      prompt: [64, 62, 60],
+      answer: i === 0 ? [65] : [64, 62, 60],
+      correct: i !== 0,
+      ms: 2000,
+      replays: 0,
+      at: AT + i,
+    }));
+    expect(earLevelProgress(answers, 'EC1')).toMatchObject({
+      total: 20,
+      answers: 20,
+      window: 20,
+      accuracy: 0.95,
+      mastered: true,
+    });
+    expect(earLevelProgress(answers.slice(1), 'EC1')).toMatchObject({ mastered: false });
+    expect(ECHO_SESSION_LENGTHS).toEqual([5, 10, 20]);
   });
 });

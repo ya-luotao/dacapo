@@ -41,6 +41,7 @@ export interface EarSound {
 
 export interface EarConfig {
   level: EarLevelId;
+  /** Ignored for Echo: a melody is always played back. */
   by: AnswerMode;
   /** Intervals: the directions to play them in. */
   directions: readonly Direction[];
@@ -135,11 +136,14 @@ export function createEarController({
     notify();
   }
 
-  /** Plays the current card's prompt from `lead` ms on; with `replay`, as "Hear again". */
-  function playPrompt(lead: number, replay: boolean) {
+  /**
+   * Plays the current card's prompt from `lead` ms on; with `replay`, as "Hear again"; as the
+   * `correction` after a wrong answer, a melody without its tonic chord.
+   */
+  function playPrompt(lead: number, replay: boolean, correction = false) {
     if (!view || view.session.phase !== 'running') return;
     const { card } = view.session;
-    const plan = promptPlan(card.prompt, view.chordStyle);
+    const plan = promptPlan(card.prompt, view.chordStyle, correction);
     const start = clock() + lead;
     sound.play(plan.notes, start);
     const opensAt = start + plan.lastOn;
@@ -182,7 +186,7 @@ export function createEarController({
       } else if (next.card.status === 'wrong' && prev.card.status !== 'wrong') {
         // The right answer, played once; keys move on only once it has sounded.
         notify();
-        playPrompt(CORRECTION_LEAD_MS, false);
+        playPrompt(CORRECTION_LEAD_MS, false, true);
         return;
       }
     }

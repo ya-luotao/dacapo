@@ -10,7 +10,9 @@ import {
   Voice,
 } from 'vexflow/core';
 import { MIDDLE_C, pitchToMidi, type Clef, type Pitch } from '../../core/note.ts';
+import type { SpelledPitch } from '../../core/score.ts';
 import { MUSIC_FONT } from './font.ts';
+import { clefIn, melodySystem, positionOn, staffReach, type MelodySystem } from './melodyLayout.ts';
 
 VexFlow.setFonts(MUSIC_FONT);
 
@@ -126,4 +128,199 @@ export function drawGrandStaffNotes(
   formatter.format(voices, treble.getNoteEndX() - treble.getNoteStartX() - 16);
   voices.forEach((voice, i) => voice.draw(context, staves[i]!.stave));
   return finish(host);
+}
+
+// --- A melody -----------------------------------------------------------------------------------
+
+/** A note of a melody drawn after it was played back. */
+export interface MelodyNote {
+  pitch: SpelledPitch;
+  /** The accidental printed before it (0 a natural), or null for none. */
+  accidental: number | null;
+  /** Played right: tinted as right. */
+  right: boolean;
+}
+
+export interface MelodyDrawing {
+  /** The key signature: sharps (+) or flats (−). */
+  fifths: number;
+  notes: readonly MelodyNote[];
+  /** The wrong key, drawn over the melody at its note, tinted as wrong. */
+  wrong: { index: number; pitch: SpelledPitch; accidental: number | null } | null;
+}
+
+/** VexFlow's name of each key signature, by its sharps (+) or flats (−). */
+const KEY_SPECS: Readonly<Record<number, string>> = {
+  [-7]: 'Cb',
+  [-6]: 'Gb',
+  [-5]: 'Db',
+  [-4]: 'Ab',
+  [-3]: 'Eb',
+  [-2]: 'Bb',
+  [-1]: 'F',
+  0: 'C',
+  1: 'G',
+  2: 'D',
+  3: 'A',
+  4: 'E',
+  5: 'B',
+  6: 'F#',
+  7: 'C#',
+};
+
+const SIGN_CODE: Readonly<Record<number, string>> = {
+  [-2]: 'bb',
+  [-1]: 'b',
+  0: 'n',
+  1: '#',
+  2: '##',
+};
+
+/** VexFlow key string of a written note, e.g. `f#/4`: the letter and its sign, as written. */
+const spelledKey = (p: SpelledPitch) =>
+  `${p.step.toLowerCase()}${p.alter === 0 ? '' : (SIGN_CODE[p.alter] ?? '')}/${p.octave}`;
+
+/** Room around the drawing, and between the staves of a grand staff (as the cards have). */
+const PAD = 12;
+const STAFF_SPAN = 40;
+const STAVE_GAP = 60;
+const POSITION = 5;
+/** Room across for each quarter, and for what stands before it. */
+const QUARTER_SPACE = 34;
+const SIGN_SPACE = 12;
+
+/**
+ * Draws a line of quarter notes in a key into `host`, replacing whatever was there: on the one
+ * staff that suits the notes (the wrong key among them), or on the braced grand staff. Notes
+ * played right are in `g.vf-stavenote.is-right` and the wrong key's head in `.is-wrong` (its whole
+ * note when it stands on the other staff), so CSS colours them; the rest is `currentColor`.
+ * Returns the size, which depends on the notes: the SVG scales to its box by its viewBox.
+ */
+export function drawMelody(
+  host: HTMLElement,
+  drawing: MelodyDrawing,
+): { width: number; height: number } {
+  host.replaceChildren();
+  const { notes, wrong } = drawing;
+  const system: MelodySystem = melodySystem(
+    notes.map((n) => n.pitch),
+    wrong?.pitch ?? null,
+  );
+  const clefs: Clef[] = system === 'grand' ? ['treble', 'bass'] : [system];
+  const onStaff = (pitch: SpelledPitch, clef: Clef) => clefIn(system, pitch) === clef;
+
+  // Vertical room: how far each staff's notes reach past it.
+  const reach = clefs.map((clef) =>
+    staffReach(
+      notes.map((note, i) => {
+        const heads = [note, ...(wrong?.index === i ? [wrong] : [])].filter((n) =>
+          onStaff(n.pitch, clef),
+        );
+        return {
+          positions: heads.map((n) => positionOn(n.pitch, clef)),
+          accidental: heads.some((n) => n.accidental !== null),
+        };
+      }),
+    ),
+  );
+  const tops: number[] = [];
+  let y = PAD + reach[0]!.above * POSITION;
+  reach.forEach((r, i) => {
+    if (i > 0) {
+      const gap = (reach[i - 1]!.below + r.above) * POSITION + PAD;
+      y += STAFF_SPAN + Math.max(STAVE_GAP, gap);
+    }
+    tops.push(y);
+  });
+  const height = Math.ceil(tops.at(-1)! + STAFF_SPAN + reach.at(-1)!.below * POSITION + PAD);
+
+  // Across: the clef and key signature, then room for each quarter and its signs.
+  const left = system === 'grand' ? 26 : 6;
+  const staves = clefs.map((clef, i) =>
+    new Stave(left, tops[i]!, 1000, { spaceAboveStaffLn: 0 })
+      .addClef(clef)
+      .addKeySignature(KEY_SPECS[drawing.fifths] ?? 'C'),
+  );
+  const start = Math.max(...staves.map((stave) => stave.getNoteStartX()));
+  const room =
+    notes.length * QUARTER_SPACE +
+    notes.filter((n) => n.accidental !== null).length * SIGN_SPACE +
+    (wrong ? QUARTER_SPACE / 2 + (wrong.accidental !== null ? SIGN_SPACE : 0) : 0);
+  const width = Math.ceil(start + room + 12);
+  for (const stave of staves) stave.setWidth(width - left - 1).setNoteStartX(start);
+
+  const renderer = new Renderer(host as HTMLDivElement, Renderer.Backends.SVG);
+  renderer.resize(width, height);
+  const context = renderer.getContext();
+  context.setFillStyle('currentColor');
+  context.setStrokeStyle('currentColor');
+  for (const stave of staves) {
+    stave.setDefaultLedgerLineStyle({ strokeStyle: 'currentColor', lineWidth: 1.6 });
+    stave.setContext(context).draw();
+  }
+  if (staves.length === 2) {
+    for (const type of ['brace', 'singleLeft', 'singleRight'] as const) {
+      new StaveConnector(staves[0]!, staves[1]!).setType(type).setContext(context).draw();
+    }
+  }
+
+  // One voice per staff: the melody's notes where they are written, silent columns elsewhere.
+  // The wrong key joins its note as a chord on the same staff, or stands alone on the other.
+  const marks: { note: StaveNote; head: number | null; className: string }[] = [];
+  const voices = clefs.map((clef) => {
+    const tickables = notes.map((note, i) => {
+      const heads = [
+        { ...note, wrong: false },
+        ...(wrong?.index === i ? [{ ...wrong, right: false, wrong: true }] : []),
+      ]
+        .filter((n) => onStaff(n.pitch, clef))
+        // Low to high, so a head's index is the same for VexFlow and for its accidental.
+        .sort((a, b) => positionOn(a.pitch, clef) - positionOn(b.pitch, clef));
+      if (heads.length === 0) return new GhostNote({ duration: 'q' });
+      const staveNote = new StaveNote({
+        keys: heads.map((n) => spelledKey(n.pitch)),
+        duration: 'q',
+        clef,
+        autoStem: true,
+      });
+      heads.forEach((n, index) => {
+        if (n.accidental !== null) {
+          staveNote.addModifier(new Accidental(SIGN_CODE[n.accidental] ?? 'n'), index);
+        }
+        if (n.wrong) {
+          // Alone on its staff, the whole note is the wrong one.
+          marks.push({
+            note: staveNote,
+            head: heads.length > 1 ? index : null,
+            className: 'is-wrong',
+          });
+        }
+      });
+      if (heads.some((n) => !n.wrong && n.right)) {
+        marks.push({ note: staveNote, head: null, className: 'is-right' });
+      }
+      return staveNote;
+    });
+    return new Voice({ numBeats: notes.length, beatValue: 4 }).addTickables(tickables);
+  });
+  const formatter = new Formatter();
+  for (const voice of voices) formatter.joinVoices([voice]);
+  formatter.format(voices, room);
+  voices.forEach((voice, i) => voice.draw(context, staves[i]));
+
+  // Tints by class, found by the ids VexFlow gives its groups.
+  for (const { note, head, className } of marks) {
+    const element = head === null ? note : note.noteHeads[head];
+    const id = element?.getAttributes().id;
+    if (id) host.querySelector(`[id="vf-${id}"]`)?.classList.add(className);
+  }
+
+  const svg = host.querySelector('svg')!;
+  svg.removeAttribute('width');
+  svg.removeAttribute('height');
+  svg.removeAttribute('style');
+  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('focusable', 'false');
+  return { width, height };
 }

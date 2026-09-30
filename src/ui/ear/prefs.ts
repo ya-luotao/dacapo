@@ -8,7 +8,13 @@ import {
   type DirectionSetting,
   type EarFamily,
 } from '../../core/earItems.ts';
-import { ANSWER_MODES, type AnswerMode } from '../../core/earSession.ts';
+import {
+  ANSWER_MODES,
+  DEFAULT_ECHO_SESSION_LENGTH,
+  ECHO_SESSION_LENGTHS,
+  type AnswerMode,
+  type EchoSessionLength,
+} from '../../core/earSession.ts';
 import { DEFAULT_SESSION_LENGTH, SESSION_LENGTHS, type SessionLength } from '../../core/session.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
 
@@ -18,7 +24,10 @@ export interface EarPrefs {
   by: AnswerMode;
   direction: DirectionSetting;
   chordStyle: ChordStyle;
+  /** Questions per session of intervals or chords. */
   length: SessionLength;
+  /** Melodies per session of Echo. */
+  echoLength: EchoSessionLength;
 }
 
 export const EAR_PREFS_KEY = 'dacapo.ear';
@@ -29,6 +38,7 @@ export const DEFAULT_EAR_PREFS: EarPrefs = {
   direction: DEFAULT_DIRECTION,
   chordStyle: DEFAULT_CHORD_STYLE,
   length: DEFAULT_SESSION_LENGTH,
+  echoLength: DEFAULT_ECHO_SESSION_LENGTH,
 };
 
 const oneOf = <T>(values: readonly T[], value: unknown, fallback: T): T =>
@@ -50,6 +60,7 @@ export function parseEarPrefs(text: string | null): EarPrefs {
     direction: oneOf(DIRECTION_SETTINGS, stored.direction, d.direction),
     chordStyle: oneOf(CHORD_STYLES, stored.chordStyle, d.chordStyle),
     length: oneOf(SESSION_LENGTHS, stored.length, d.length),
+    echoLength: oneOf(ECHO_SESSION_LENGTHS, stored.echoLength, d.echoLength),
   };
 }
 

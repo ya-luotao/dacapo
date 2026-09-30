@@ -1,7 +1,14 @@
 import { useLayoutEffect, useRef, useSyncExternalStore, type CSSProperties } from 'react';
 import type { Clef, Pitch } from '../../core/note.ts';
 import { useT } from '../../i18n/index.ts';
-import { drawGrandStaff, drawGrandStaffNotes, STAFF_HEIGHT, STAFF_WIDTH } from './draw.ts';
+import {
+  drawGrandStaff,
+  drawGrandStaffNotes,
+  drawMelody,
+  STAFF_HEIGHT,
+  STAFF_WIDTH,
+  type MelodyDrawing,
+} from './draw.ts';
 import { getFontState, subscribeFont } from './font.ts';
 
 export type StaffState = 'neutral' | 'correct' | 'wrong';
@@ -83,6 +90,48 @@ export function NotesStaff({ columns, label, state = 'neutral', className }: Not
       role="img"
       aria-label={label}
       style={{ '--staff-aspect': STAFF_WIDTH / STAFF_HEIGHT } as CSSProperties}
+    >
+      <div className="grand-staff-svg" ref={host} />
+      {font === 'failed' && <p className="grand-staff-error">{t('staff.fontFailed')}</p>}
+    </div>
+  );
+}
+
+interface MelodyStaffProps {
+  drawing: MelodyDrawing;
+  /** What the staff shows, for assistive technology. */
+  label: string;
+  className?: string;
+}
+
+/**
+ * A melody in quarters with its key signature, on the staff that suits it, with the notes played
+ * right and the wrong key tinted. Its size follows the notes: the box takes the drawing's aspect
+ * ratio, and `--melody-units` its width in drawing units for CSS to scale.
+ */
+export function MelodyStaff({ drawing, label, className }: MelodyStaffProps) {
+  const t = useT();
+  const box = useRef<HTMLDivElement>(null);
+  const host = useRef<HTMLDivElement>(null);
+  const font = useSyncExternalStore(subscribeFont, getFontState, getFontState);
+  // Redrawn only when the notes change, not for a new object with the same notes.
+  const key = JSON.stringify(drawing);
+
+  useLayoutEffect(() => {
+    const el = host.current;
+    if (!el || font !== 'ready') return;
+    const { width, height } = drawMelody(el, JSON.parse(key) as MelodyDrawing);
+    box.current?.style.setProperty('--staff-aspect', String(width / height));
+    box.current?.style.setProperty('--melody-units', String(width));
+    return () => el.replaceChildren();
+  }, [font, key]);
+
+  return (
+    <div
+      ref={box}
+      className={className ? `grand-staff melody-staff ${className}` : 'grand-staff melody-staff'}
+      role="img"
+      aria-label={label}
     >
       <div className="grand-staff-svg" ref={host} />
       {font === 'failed' && <p className="grand-staff-error">{t('staff.fontFailed')}</p>}

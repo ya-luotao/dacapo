@@ -8,6 +8,8 @@ import {
   chordItem,
   directionsOf,
   EAR_LEVELS,
+  ECHO_LEVELS,
+  echoItem,
   getEarLevel,
   givenKey,
   HARMONIC_MS,
@@ -51,6 +53,20 @@ describe('ear items', () => {
       expect(parseItem(bad)).toBeNull();
     }
     expect(parseItem('int:M3:up:extra')).toBeNull();
+  });
+
+  it('keys every melody of an Echo level as the level', () => {
+    expect(echoItem('EC3')).toBe('echo:EC3');
+    expect(parseItem('echo:EC3')).toEqual({ family: 'echo', level: 'EC3' });
+    for (const bad of ['echo:EC8', 'echo:I1', 'echo', 'echo:EC1:x', 'echo:EC1:']) {
+      expect(parseItem(bad), bad).toBeNull();
+    }
+    const ec2 = getEarLevel('EC2');
+    expect(levelItems(ec2, ['up'])).toEqual(['echo:EC2']);
+    expect(answerNames(ec2)).toEqual([]);
+    expect(itemInLevel(parseItem('echo:EC2')!, ec2)).toBe(true);
+    expect(itemInLevel(parseItem('echo:EC3')!, ec2)).toBe(false);
+    expect(itemInLevel(parseItem('echo:EC2')!, getEarLevel('I1'))).toBe(false);
   });
 
   it('knows every interval by its size', () => {
@@ -114,12 +130,22 @@ describe('ear items', () => {
       'C3',
       'C4',
       'C5',
+      'EC1',
+      'EC2',
+      'EC3',
+      'EC4',
+      'EC5',
+      'EC6',
+      'EC7',
     ]);
     expect(isEarLevelId('C3')).toBe(true);
+    expect(isEarLevelId('EC7')).toBe(true);
     expect(isEarLevelId('L3')).toBe(false);
     expect(nextEarLevel('I6')).toBe('I7');
     expect(nextEarLevel('I7')).toBeNull();
     expect(nextEarLevel('C5')).toBeNull();
+    expect(nextEarLevel('EC1')).toBe('EC2');
+    expect(nextEarLevel('EC7')).toBeNull();
   });
 });
 
@@ -186,6 +212,21 @@ describe('ear prompts', () => {
     const inverted = parseItem('chord:maj:1st')!;
     expect(promptMatches(inverted, [64, 67, 72])).toBe(true);
     expect(promptMatches(inverted, [60, 64, 67])).toBe(false);
+    const melody = parseItem('echo:EC2')!;
+    expect(promptMatches(melody, [60, 64, 62, 60])).toBe(true);
+    expect(promptMatches(melody, [60, 64, 60])).toBe(false);
+  });
+
+  it('draws a melody with its key, written notes and tonic chord, shown from its first note', () => {
+    const rng = seededRng(5);
+    for (const level of ECHO_LEVELS) {
+      const prompt = makePrompt(echoItem(level.id), rng);
+      expect(prompt.item).toBe(`echo:${level.id}`);
+      expect(prompt.melody?.written).toHaveLength(prompt.notes.length);
+      expect(prompt.melody?.chord).toHaveLength(3);
+      expect(givenKey(prompt)).toBe(prompt.notes[0]);
+      expect(promptMatches(parseItem(prompt.item)!, prompt.notes)).toBe(true);
+    }
   });
 });
 
@@ -224,6 +265,40 @@ describe('the timing of a prompt', () => {
     expect(block.notes).toHaveLength(4);
     expect(block.lastOn).toBe(0);
     expect(block.length).toBe(BLOCK_MS);
+    // A correction plays a chord as before.
+    expect(promptPlan(prompt, 'block', true)).toEqual(block);
+  });
+
+  it('plays a melody after its tonic chord and opens at its last note; again, alone', () => {
+    const prompt: Prompt = {
+      item: 'echo:EC1',
+      notes: [64, 62, 60],
+      melody: {
+        tonic: 'C',
+        scale: 'major',
+        fifths: 0,
+        written: [],
+        chord: [60, 64, 67],
+      },
+    };
+    const plan = promptPlan(prompt, 'broken');
+    expect(plan.notes.map((n) => [n.midi, n.on])).toEqual([
+      [60, 0],
+      [64, 0],
+      [67, 0],
+      [64, 1500],
+      [62, 2100],
+      [60, 2700],
+    ]);
+    expect(plan.lastOn).toBe(2700);
+    expect(plan.length).toBe(3240);
+    const correction = promptPlan(prompt, 'broken', true);
+    expect(correction.notes.map((n) => [n.midi, n.on])).toEqual([
+      [64, 0],
+      [62, 600],
+      [60, 1200],
+    ]);
+    expect(correction.lastOn).toBe(1200);
   });
 });
 
@@ -290,7 +365,8 @@ describe('spelling a prompt for the staff', () => {
 
   it('never needs a double accidental, and always sounds as played', () => {
     const rng = seededRng(11);
-    for (const level of EAR_LEVELS) {
+    // A melody is written when it is drawn (earMelody.test.ts).
+    for (const level of EAR_LEVELS.filter((l) => l.family !== 'echo')) {
       for (const item of levelItems(level, ['up', 'down', 'harm'])) {
         for (let i = 0; i < 40; i++) {
           const prompt = makePrompt(item, rng);

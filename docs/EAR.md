@@ -1,6 +1,6 @@
 # dacapo — Theory and ear training specification
 
-Status: E1 is built (the Ear page: intervals and chords by ear); the instrument checks of E0 are
+Status: E1 and E2 are built (the Ear page: intervals, chords and melodies by ear); the instrument checks of E0 are
 still to do on the MP11SE. This extends [MVP.md](MVP.md) and [PIECES.md](PIECES.md); their
 principles and fixed decisions still apply (staff first, measure don't guess, local data, English of
 record, every UI language, 3-day dependency cooldown, no backend).
@@ -59,6 +59,60 @@ items.
 - Play it back; correct is every key in order. A wrong key ends the attempt and shows where it went
   wrong (the melody is drawn on the staff after the answer, with your notes over it). Timing is not
   judged; rhythm dictation is a later milestone.
+
+### Clarifications (decided during E2)
+
+- **Levels.** Each level is a kind of melody, drawn fresh every time by rules with an injected rng:
+  EC1 3 notes, by step, within degrees 1–5 of C, G or F major · EC2 4 notes, steps and thirds,
+  degrees 1–5 · EC3 5 notes, steps and thirds, degrees 1–8 (the octave, the 7th leading up) · EC4 6
+  notes, leaps up to a fifth and the octave, majors up to two sharps or flats · EC5 8 notes, any
+  leap within the octave · EC6 5–6 notes in natural and harmonic minor (A, E, D minor) · EC7 6–8
+  notes with one or two chromatic neighbour or passing notes. A melody starts on 1, 3 or 5, ends on
+  1 (EC1–EC5) or on any degree of the tonic chord, never repeats a note, and never leaps twice the
+  same way in a row; after a leap of more than a third it turns back or moves by step.
+- **Range and tempo.** The tonic is chosen so the melody lies within G3–E5. The key is set by the
+  tonic triad (block, 900 ms), then a quarter's rest, then the melody in quarters at ♩ = 100 (each
+  note 540 ms of its 600 ms). The answer window opens at the melody's last note-on.
+- **Answering.** The first note is marked on the keyboard and is played too: every note counts, in
+  order. The first wrong key ends the attempt; it is then drawn on the staff (the key signature,
+  the melody in quarters, your notes up to the wrong one tinted over it, the wrong one marked),
+  and the melody is played again once. Right: all keys in order. Hear again replays the chord and
+  the melody and is counted; keys played before it stand (the answer goes on where it was).
+- **Records.** One answer per melody: family `echo`, item `echo:<level>`, prompt the melody's keys,
+  answer the keys played (up to and including the wrong one), `correct`, `ms` from the window
+  opening to the last key, and the melody's key (`key`: its tonic as `scales.ts` names it and its
+  scale, `major`, `naturalMinor` or `harmonicMinor`; required on echo answers, one of the level's
+  keys), so the summary and the confusion table spell notes as the session did (B♭4 in F major,
+  not A♯4). The confusion table (E4) uses the melodic interval into the first wrong note, as asked
+  against as played ("up a 4th played as up a 5th").
+- **Mastery** of an echo level is over its last 20 melodies without a replay, ≥ 90 % right; a
+  session is 5, 10 or 20 melodies.
+- **Words of the rules, as built.** "Never repeats a note" is never the same key twice in a row
+  (EC1 would otherwise have no melody: as written it has exactly two, 1–2–1 and 3–2–1). "Starts
+  on 1, 3 or 5" and "ends on 1" count those degrees in any octave. A **step** is a 2nd, a **skip**
+  a 3rd, a **leap** a 4th or more. Skips may follow each other the same way at most twice, so a
+  triad is outlined (1–3–5, 5–3–1) but three thirds the same way are not. The leap rules are for
+  leaps only: never two leaps the same way in a row, and after a leap the melody turns back or
+  moves by step. The 7th leading up is EC3's rule only.
+- **Where the spec is silent (decided during E2).** From EC4 on a melody spans from the 5th
+  below the tonic to the 3rd above the octave, and the range G3–E5 bounds it further. EC6 leaps
+  as EC4 does, EC7 as EC5 in the keys of EC4. A minor melody is in the natural or the harmonic
+  form throughout (the augmented 2nd of the harmonic form is allowed). No tritone leaps in EC4
+  and EC6, where the leaps are "up to a fifth"; EC5 and EC7 allow any. Chromatic notes: a
+  passing note between two degrees a whole step apart, raised going up and lowered going down
+  (C–C♯–D, D–D♭–C); a neighbour, a semitone from the note it leaves and returns to (G–F♯–G,
+  G–A♭–G); never two side by side; one that would be a white key with a sign is written as that
+  white key (B–C♮–C♯, not B–B♯–C♯). Steps are likelier than leaps.
+- **Sound, as built.** The tonic triad is in root position on the tonic the melody counts from.
+  Hear again plays the chord and the melody; the replay after a wrong answer plays the melody
+  alone.
+- **On screen, as built.** Dots show the melody's notes, filling as they are played. After a
+  wrong key only the note that was asked is marked on the keyboard, and the wrong key flashes.
+  The melody is drawn on the treble or the bass staff, whichever needs fewer ledger lines, or on
+  the grand staff when the wrong key lies on the other staff's side; notes played right are
+  green, the wrong key red, drawn in the same column. The key's accidentals follow the bar rule
+  across the line; the wrong key gets its own sign and does not change what follows. The summary
+  tells each miss by the interval into the wrong note, both named with the key played.
 
 ### Records and figures
 
@@ -163,6 +217,6 @@ flats.
    checks on the MP11SE are still open, and key signatures and double accidentals come with E3.
 2. ✓ **E1 Intervals and chords by ear** — the Ear page, both ways of answering, levels, weakness
    sampling, mastery, the `answers` store, sessions and export.
-3. **E2 Echo** — melodic dictation, drawing the melody with the answer after it.
+3. ✓ **E2 Echo** — melodic dictation, drawing the melody with the answer after it.
 4. **E3 Theory on Read** — interval, key-signature and chord cards.
 5. **E4 Progress** — per-family progress and the confusion table.

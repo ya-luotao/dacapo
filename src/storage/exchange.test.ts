@@ -1,5 +1,7 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { recoverEarSummary } from '../core/earSession.ts';
+import type { SessionRecord } from '../core/log.ts';
 import { openDacapoDB, type DacapoDB } from './db.ts';
 import {
   buildExport,
@@ -16,6 +18,7 @@ import {
   sampleAnswer,
   sampleData,
   sampleEarSession,
+  sampleEchoAnswer,
   sampleHeadline,
   sampleNamedAnswer,
   samplePiece,
@@ -750,6 +753,69 @@ describe('versions', () => {
       { collection: 'answers', index: 14, field: 'level', problem: 'invalid' },
       { collection: 'answers', index: 16, field: 'id', problem: 'duplicate' },
     ]);
+  });
+
+  it('imports melodies played back, judging each again', () => {
+    const right = sampleEchoAnswer(0);
+    const wrong = sampleEchoAnswer(1);
+    const session: SessionRecord = { kind: 'ear', ...recoverEarSummary([right, wrong])! };
+    const file = parsed(
+      fileWith({
+        version: 6,
+        pieces: [],
+        pieceSteps: [],
+        scaleRuns: [],
+        sessions: [
+          session,
+          { ...session, id: 'x1', level: 'I1' },
+          { ...session, id: 'x2', missed: [{ ...session.missed[0]!, prompt: Array(9).fill(60) }] },
+          { ...session, id: 'x3', missed: [{ ...session.missed[0]!, key: undefined }] },
+        ],
+        answers: [
+          right,
+          wrong,
+          // Too many notes for EC2, a key twice in a row, another family's level.
+          { ...right, id: 'y1', prompt: [64, 67, 65, 62, 60], answer: [64, 67, 65, 62, 60] },
+          { ...right, id: 'y2', prompt: [64, 64, 65, 60], answer: [64, 64, 65, 60] },
+          { ...right, id: 'y3', level: 'I1' },
+          // Named, unfinished, a wrong key before the last, and judged wrongly.
+          { ...right, id: 'y4', by: 'name', answer: 'P5' },
+          { ...right, id: 'y5', answer: [64, 67] },
+          { ...wrong, id: 'y6', answer: [64, 66, 65] },
+          { ...wrong, id: 'y7', correct: true },
+          { ...right, id: 'y8', correct: false },
+          // Its key: missing, not one of the level's, a minor scale for a major key, or on an
+          // interval.
+          { ...right, id: 'y9', key: undefined },
+          { ...right, id: 'y10', key: { tonic: 'D', scale: 'major' } },
+          { ...right, id: 'y11', key: { tonic: 'C', scale: 'harmonicMinor' } },
+          { ...right, id: 'y12', key: { tonic: 'C', scale: 'major', mode: 'major' } },
+          sampleAnswer(0, 'e9', { key: { tonic: 'C', scale: 'major' } }),
+        ],
+      }),
+    );
+    expect(file.sessions).toEqual([session]);
+    expect(file.answers).toEqual([right, wrong]);
+    expect(file.invalid).toEqual([
+      { collection: 'sessions', index: 1, field: 'level', problem: 'invalid' },
+      { collection: 'sessions', index: 2, field: 'missed', problem: 'invalid' },
+      { collection: 'sessions', index: 3, field: 'missed', problem: 'invalid' },
+      { collection: 'answers', index: 2, field: 'prompt', problem: 'invalid' },
+      { collection: 'answers', index: 3, field: 'prompt', problem: 'invalid' },
+      { collection: 'answers', index: 4, field: 'level', problem: 'invalid' },
+      { collection: 'answers', index: 5, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 6, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 7, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 8, field: 'correct', problem: 'invalid' },
+      { collection: 'answers', index: 9, field: 'correct', problem: 'invalid' },
+      { collection: 'answers', index: 10, field: 'key', problem: 'invalid' },
+      { collection: 'answers', index: 11, field: 'key', problem: 'invalid' },
+      { collection: 'answers', index: 12, field: 'key', problem: 'invalid' },
+      { collection: 'answers', index: 13, field: 'key', problem: 'invalid' },
+      { collection: 'answers', index: 14, field: 'key', problem: 'invalid' },
+    ]);
+    expect(file.answers[0]!.key).toEqual({ tonic: 'C', scale: 'major' });
+    expect(file.sessions[0]).toMatchObject({ missed: [{ key: { tonic: 'C', scale: 'major' } }] });
   });
 
   it('keeps the facts of a piece and refuses broken ones', () => {

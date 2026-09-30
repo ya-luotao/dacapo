@@ -7,7 +7,11 @@ import {
   type EarLevel,
   type EarLevelId,
 } from '../../core/earItems.ts';
-import { ANSWER_MODES, EAR_MASTERY_WINDOW, type EarLevelProgress } from '../../core/earSession.ts';
+import {
+  ANSWER_MODES,
+  ECHO_SESSION_LENGTHS,
+  type EarLevelProgress,
+} from '../../core/earSession.ts';
 import { SESSION_LENGTHS } from '../../core/session.ts';
 import { useT } from '../../i18n/index.ts';
 import { useReadFormat } from '../read/format.ts';
@@ -39,6 +43,7 @@ export function EarSetup({
   const t = useT();
   const format = useEarFormat();
   const id = useId();
+  const echo = prefs.family === 'echo';
 
   return (
     <form
@@ -77,7 +82,7 @@ export function EarSetup({
             ))}
           </div>
           <p id={`${id}-rule`} className="help">
-            {t('ear.level.rule')}
+            {t(echo ? 'ear.level.rule.echo' : 'ear.level.rule')}
           </p>
         </fieldset>
       </div>
@@ -88,15 +93,20 @@ export function EarSetup({
           <span className="level-id">{level}</span>
           <span>{format.levelName(level)}</span>
         </p>
-        <Segmented
-          legend={t('ear.by')}
-          name={`${id}-by`}
-          options={ANSWER_MODES.map((by) => ({ value: by, label: t(`ear.by.${by}`) }))}
-          value={prefs.by}
-          onChange={(by) => onPrefs({ by })}
-          help={t(`ear.by.${prefs.by}.help`)}
-        />
-        {prefs.family === 'interval' ? (
+        {/* A melody is only ever played back: no choice of how to answer. */}
+        {echo ? (
+          <p className="help ear-echo-help">{t('ear.echo.help')}</p>
+        ) : (
+          <Segmented
+            legend={t('ear.by')}
+            name={`${id}-by`}
+            options={ANSWER_MODES.map((by) => ({ value: by, label: t(`ear.by.${by}`) }))}
+            value={prefs.by}
+            onChange={(by) => onPrefs({ by })}
+            help={t(`ear.by.${prefs.by}.help`)}
+          />
+        )}
+        {prefs.family === 'interval' && (
           <Segmented
             legend={t('ear.direction')}
             name={`${id}-direction`}
@@ -107,7 +117,8 @@ export function EarSetup({
             value={prefs.direction}
             onChange={(direction) => onPrefs({ direction })}
           />
-        ) : (
+        )}
+        {prefs.family === 'chord' && (
           <Segmented
             legend={t('ear.chordStyle')}
             name={`${id}-style`}
@@ -119,13 +130,26 @@ export function EarSetup({
             onChange={(chordStyle) => onPrefs({ chordStyle })}
           />
         )}
-        <Segmented
-          legend={t('ear.length')}
-          name={`${id}-length`}
-          options={SESSION_LENGTHS.map((length) => ({ value: length, label: String(length) }))}
-          value={prefs.length}
-          onChange={(length) => onPrefs({ length })}
-        />
+        {echo ? (
+          <Segmented
+            legend={t('ear.echoLength')}
+            name={`${id}-length`}
+            options={ECHO_SESSION_LENGTHS.map((length) => ({
+              value: length,
+              label: String(length),
+            }))}
+            value={prefs.echoLength}
+            onChange={(echoLength) => onPrefs({ echoLength })}
+          />
+        ) : (
+          <Segmented
+            legend={t('ear.length')}
+            name={`${id}-length`}
+            options={SESSION_LENGTHS.map((length) => ({ value: length, label: String(length) }))}
+            value={prefs.length}
+            onChange={(length) => onPrefs({ length })}
+          />
+        )}
 
         <button type="submit" className="button button-primary read-start" disabled={startDisabled}>
           {t('read.start')}
@@ -224,12 +248,11 @@ function LevelOption({ name, level, checked, suggested, progress, onChange }: Le
         ) : null}
         <span className="level-stats">
           {progress && progress.total > 0
-            ? t('ear.level.stats', {
-                answers: progress.answers,
-                window: EAR_MASTERY_WINDOW,
-                accuracy: read.percent(progress.accuracy),
-                median: read.seconds(progress.medianMs),
-              })
+            ? format.levelStats(
+                progress,
+                read.percent(progress.accuracy),
+                read.seconds(progress.medianMs),
+              )
             : t('read.level.new')}
         </span>
       </span>

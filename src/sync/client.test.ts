@@ -8,6 +8,7 @@ import {
   sampleAttempt,
   sampleData,
   sampleEarSession,
+  sampleEchoAnswer,
   samplePiece,
   sampleRun,
   sampleScaleSession,
@@ -528,6 +529,29 @@ describe('ear training', () => {
     sync.mockClear();
     await mac.client.syncNow();
     expect(sync.mock.calls.map((call) => call[1])).toEqual([state.cursor]);
+  });
+
+  it('pulls again the melodies a build that knew only intervals and chords skipped', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    const echo = [sampleEchoAnswer(0), sampleEchoAnswer(1)];
+    for (const answer of echo) ipad.store.recordAnswer(answer);
+    await ipad.store.settled();
+    await signIn(ipad);
+    await signIn(mac);
+    expect(mac.store.getSnapshot().answers).toEqual(echo);
+
+    // As schema 2 left it: the echo answers skipped, the cursor past them.
+    const state = (await mac.db.get('meta', SYNC_STATE_KEY)) as SyncState;
+    await mac.db.clear('answers');
+    await mac.db.put('meta', { ...state, schema: 2 }, SYNC_STATE_KEY);
+    await mac.store.reloadAll();
+    const sync = vi.spyOn(service.api, 'sync');
+    await mac.client.syncNow();
+    expect(SYNC_SCHEMA).toBe(3);
+    expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
+    expect(mac.store.getSnapshot().answers).toEqual(echo);
   });
 });
 

@@ -1978,6 +1978,27 @@ kbd {
   margin-left: auto;
 }
 
+/* On a phone the bar keeps one row: a long level name gives way (the setup lists it whole). */
+@media (max-width: 40rem) {
+  .ear-session .read-bar {
+    flex-wrap: nowrap;
+    gap: 0.5rem 0.875rem;
+  }
+
+  .ear-session .read-level {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ear-session .read-count,
+  .ear-session .ear-stop {
+    flex: none;
+    white-space: nowrap;
+  }
+}
+
 .ear-card {
   gap: 0.75rem;
   width: min(100%, 36rem);
@@ -2088,6 +2109,82 @@ kbd {
 .ear-staff {
   width: min(100%, 12rem);
   min-width: 0;
+}
+
+/*
+ * Echo: a melody gone wrong, in its key on the staff that suits it. Its box follows the drawing
+ * (`--melody-units` across, `--staff-aspect`), at the size of the cards' notes; the notes played
+ * right in the right colour, the wrong key's head in the wrong one.
+ */
+.ear-staff.ear-melody {
+  width: min(100%, calc(var(--melody-units, 300) * 0.07rem));
+}
+
+.melody-staff .vf-stavenote.is-right {
+  color: var(--ok);
+}
+
+.melody-staff .is-wrong {
+  color: var(--bad);
+}
+
+/* The melody's notes as dots, filled as they are played back. */
+.ear-dots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ear-dots li {
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 1.5px solid var(--text-muted);
+  border-radius: 50%;
+  transition:
+    background-color var(--dur) ease-out,
+    border-color var(--dur) ease-out;
+}
+
+.ear-dots li.is-right {
+  border-color: var(--ok);
+  background: var(--ok);
+}
+
+.ear-dots li.is-wrong {
+  border-color: var(--bad);
+  background: var(--bad);
+}
+
+/* In place of the choice of how to answer: the first thing in the options, like a field. */
+.ear-echo-help {
+  margin: 2.25rem 0 0;
+}
+
+@media (min-width: 64rem) {
+  .read-options > .ear-echo-help:nth-child(2) {
+    margin-top: 0;
+  }
+}
+
+/* A wrong melody note says more than an interval's key: a size smaller, balanced lines. */
+.ear-feedback .read-result.is-long {
+  font-size: clamp(1.1875rem, 1rem + 0.9vw, 1.5rem);
+  text-wrap: balance;
+}
+
+/* Echo's level ids (EC1–EC7) are wider than I1 or C1: every family gets the wider column. */
+.ear-setup .level {
+  grid-template-columns: 1.125rem 2.875rem minmax(0, 1fr) auto;
+}
+
+@media (max-width: 40rem) {
+  .ear-setup .level {
+    grid-template-columns: 1.125rem 2.5rem minmax(0, 1fr);
+  }
 }
 
 /*

@@ -10,6 +10,7 @@ import {
   promptMatches,
   type EarLevelId,
 } from '../core/earItems.ts';
+import { isMelodyKeyOf, judgeEchoAnswer } from '../core/earMelody.ts';
 import type { Answer, MissedItem } from '../core/earSession.ts';
 import type { PlayedNote, RunHeadline } from '../core/evenness.ts';
 import type { OpenFreePlay } from '../core/freePlay.ts';
@@ -393,12 +394,21 @@ function validateScaleSession(value: Fields): Validation<ScaleSessionRecord> {
 
 // --- Ear training ----------------------------------------------------------------------------
 
-const isFamily = (v: unknown) => v === 'interval' || v === 'chord';
+const isFamily = (v: unknown) => v === 'interval' || v === 'chord' || v === 'echo';
 const isAnswerMode = (v: unknown) => v === 'play' || v === 'name';
 const isItemKey = (v: unknown): v is string => typeof v === 'string' && parseItem(v) !== null;
 /** A prompt or a played answer: a few keys (an interval's two, a chord's up to four). */
 const isKeys = (v: unknown, max: number): v is number[] =>
   Array.isArray(v) && v.length > 0 && v.length <= max && v.every(isMidi);
+/** The most keys of a prompt: a melody's eight. Each item's own count is `promptMatches`'. */
+const MAX_PROMPT_KEYS = 8;
+
+/** A melody's key, which every Echo answer and miss keeps (one of its level's); none otherwise. */
+function isKeyOfItem(itemKey: unknown, key: unknown): boolean {
+  const item = typeof itemKey === 'string' ? parseItem(itemKey) : null;
+  if (item?.family !== 'echo') return key === undefined;
+  return isMelodyKeyOf(item.level, key);
+}
 const isAnswerValue = (v: unknown) => isKeys(v, 88) || (typeof v === 'string' && v.length <= 20);
 
 /**
@@ -414,6 +424,10 @@ function judgedAnswer(
 ): boolean | null {
   const item = parseItem(itemKey)!;
   const earLevel = getEarLevel(level);
+  // A melody is played back, key by key, up to and including the first wrong key.
+  if (item.family === 'echo') {
+    return by === 'play' && typeof answer !== 'string' ? judgeEchoAnswer(prompt, answer) : null;
+  }
   if (by === 'name') {
     if (typeof answer !== 'string' || !answerNames(earLevel).includes(answer)) return null;
     return answer === answerNameOf(item);
@@ -441,12 +455,13 @@ export function validateAnswer(value: unknown): Validation<Answer> {
     level: isEarLevelId,
     item: isItemKey,
     by: isAnswerMode,
-    prompt: (v) => isKeys(v, 4),
+    prompt: (v) => isKeys(v, MAX_PROMPT_KEYS),
     answer: isAnswerValue,
     correct: isBool,
     ms: isTime,
     replays: isCount,
     at: isTime,
+    key: (v) => isKeyOfItem(value.item, v),
   });
   if (field) return fail(field);
   const a = value as unknown as Answer;
@@ -473,6 +488,7 @@ export function validateAnswer(value: unknown): Validation<Answer> {
       ms: a.ms,
       replays: a.replays,
       at: a.at,
+      ...(a.key && { key: { tonic: a.key.tonic, scale: a.key.scale } }),
     },
   };
 }
@@ -482,7 +498,12 @@ function isMissed(v: unknown): v is MissedItem[] {
     Array.isArray(v) &&
     v.length <= 10_000 &&
     v.every(
-      (m) => isObject(m) && isItemKey(m.item) && isAnswerValue(m.answer) && isKeys(m.prompt, 4),
+      (m) =>
+        isObject(m) &&
+        isItemKey(m.item) &&
+        isAnswerValue(m.answer) &&
+        isKeys(m.prompt, MAX_PROMPT_KEYS) &&
+        isKeyOfItem(m.item, m.key),
     )
   );
 }
@@ -531,6 +552,7 @@ function validateEarSession(value: Fields): Validation<EarSessionRecord> {
         item: m.item,
         answer: Array.isArray(m.answer) ? [...m.answer] : m.answer,
         prompt: [...m.prompt],
+        ...(m.key && { key: { tonic: m.key.tonic, scale: m.key.scale } }),
       })),
     },
   };

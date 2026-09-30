@@ -312,6 +312,27 @@ export function sampleNamedAnswer(
   };
 }
 
+/** A melody played back (EC2 in C): right on even `i`, wrong at its third note on odd `i`. */
+export function sampleEchoAnswer(i: number, sessionId = 'e3', patch: Partial<Answer> = {}): Answer {
+  const correct = i % 2 === 0;
+  return {
+    id: `${sessionId}:${i}`,
+    sessionId,
+    family: 'echo',
+    level: 'EC2',
+    item: 'echo:EC2',
+    by: 'play',
+    prompt: [64, 67, 65, 60],
+    answer: correct ? [64, 67, 65, 60] : [64, 67, 64],
+    correct,
+    ms: 2400 + i * 100,
+    replays: 0,
+    at: T0 + 10_000_000 + i * 8000,
+    key: { tonic: 'C', scale: 'major' },
+    ...patch,
+  };
+}
+
 /** An ear session of `count` answers (`sampleAnswer`) with its record. */
 export function sampleEarSession(
   sessionId: string,

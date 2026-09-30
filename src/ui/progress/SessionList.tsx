@@ -159,7 +159,7 @@ function SessionRow({ session }: { session: SessionRecord }) {
         ],
         duration,
         [
-          'ear.summary.questions',
+          session.family === 'echo' ? 'ear.summary.melodies' : 'ear.summary.questions',
           session.items < session.length ? `${session.items}/${session.length}` : session.items,
         ],
         ['progress.session.accuracy', read.percent(session.accuracy)],

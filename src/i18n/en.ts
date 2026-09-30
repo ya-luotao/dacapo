@@ -35,7 +35,7 @@ export const en = {
     'One note at a time on the grand staff, from middle C position to ledger lines and accidentals. Every answer is timed, and the next card favours the notes you are slow on.',
   'home.read.meta': '{n} levels',
   'home.ear.text':
-    'Intervals and chords by ear, from the octave to seventh chords. Play back what you hear on the keys, or name it; the next question favours the ones you miss.',
+    'Intervals, chords and short melodies by ear, from the octave to seventh chords and chromatic notes. Play back what you hear on the keys, or name it; the next question favours the ones you miss.',
   'home.ear.meta': '{n} levels',
   'home.scales.text':
     'Major, the three minors and chromatic in every key, with Hanon’s fingering. Play at your own tempo, then see how even every note was.',
@@ -200,7 +200,8 @@ export const en = {
   'read.none': '—',
 
   'ear.title': 'Ear',
-  'ear.intro': 'Hear two notes or a chord, then play it back on your keyboard or name it.',
+  'ear.intro':
+    'Hear two notes, a chord or a short melody, then play it back on your keyboard or name it.',
   'ear.sound.needed':
     'Ear training needs sound: choose your instrument or the built-in piano as the output.',
   'ear.sound.link': 'Choose the sound in Settings',
@@ -305,6 +306,37 @@ export const en = {
   'ear.summary.missed': 'Missed',
   'ear.summary.answeredAs': '{item} — answered as {answer}',
   'ear.summary.played': '{interval} ({keys})',
+  'ear.family.echo': 'Echo',
+  'ear.level.EC1': 'Three notes by step',
+  'ear.level.EC2': 'Steps and thirds',
+  'ear.level.EC3': 'Up to the octave',
+  'ear.level.EC4': 'Leaps to the fifth and octave',
+  'ear.level.EC5': 'Any leap within the octave',
+  'ear.level.EC6': 'Minor keys',
+  'ear.level.EC7': 'Chromatic notes',
+  'ear.level.notes': '{n} notes',
+  'ear.level.notesRange': '{min}–{max} notes',
+  'ear.level.stats.echo': '{answers}/{window} melodies · {accuracy} correct · median {median}',
+  'ear.level.rule.echo':
+    'A level is mastered at 90% correct over its last 20 melodies played back without “Hear again”. Move on whenever you like.',
+  'ear.echo.help':
+    'The chord of the key sounds, then a short melody. Its first note is marked on the keyboard: play the whole melody back, note by note.',
+  'ear.echoLength': 'Melodies per session',
+  'ear.echo.count': 'Melody {n} of {total}',
+  'ear.task.echo': 'Play the melody back, note by note. Its first note is marked.',
+  'ear.echo.progress': '{n} of {total} notes played',
+  'ear.echo.wrong': 'Note {n}: you played {played}, not {expected}',
+  'ear.echo.staff': 'The melody in {key}: {notes}. You played {played} for note {n}.',
+  'ear.echo.key.major': '{tonic} major',
+  'ear.echo.key.naturalMinor': '{tonic} minor (natural)',
+  'ear.echo.key.harmonicMinor': '{tonic} minor (harmonic)',
+  'ear.summary.melodies': 'Melodies',
+  'ear.echo.missed': 'Note {n}: {asked}, played as {answered}',
+  'ear.echo.missed.first': 'Note 1: {expected}, played as {played}',
+  'ear.echo.step': '{interval} ({key})',
+  'ear.echo.same': 'the same note again ({key})',
+  'ear.echo.up': '{name} up',
+  'ear.echo.down': '{name} down',
 
   'staff.label': 'Grand staff with one note',
   'staff.loading': 'Loading the music font…',

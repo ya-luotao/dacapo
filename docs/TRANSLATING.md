@@ -56,6 +56,10 @@ and no Simplified-only characters in zh-TW.
   running text; the app capitalises the first letter on a button or a title. In zh, ja and ko the
   `.short` chord names (the answer buttons) may equal the full ones. The tritone (`TT`) is one item
   whether written as an augmented 4th or a diminished 5th, so name it as a tritone.
+- **Echo** (`ear.echo.*`, `ear.level.EC*`) is the family of melodies played back. Its tab names
+  what is practised, as `Intervals` and `Chords` do: 旋律 (zh, ja), 선율 (ko), not a word for
+  singing back (模唱). A melodic interval with its direction (`ear.echo.up`, `ear.echo.down`) is
+  said as your teaching says it: 上行纯四度, 上行完全4度, 상행 완전4도, perfect 4th up.
 - **Numbers, dates and lists of devices** are formatted by `Intl` in the active locale; do not
   write them into strings.
 
@@ -108,6 +112,10 @@ Chinese and Latin letters, digits and placeholders (`第 {n} 张`, `MIDI 键盘`
 | dominant, major, minor, half-diminished 7th | 属七和弦、大七和弦、小七和弦、半减七和弦 |
 | root position / 1st, 2nd inversion / root   | 原位 / 第一转位、第二转位 / 根音         |
 | broken / block (a chord)                    | 分解 / 柱式                              |
+| Echo (the family) / melody / note 3         | 旋律 / 一段旋律 / 第 3 个音              |
+| step / leap / tonic chord                   | 级进 / 跳进 / 主和弦                     |
+| chromatic (neighbour, passing) notes        | 变化音（辅助音、经过音）                 |
+| played as (a wrong key)                     | 弹成了                                   |
 
 ## Traditional Chinese, Taiwan (`zh-TW`)
 
@@ -156,6 +164,10 @@ terms throughout. Address the learner as 你, as zh-CN does.
 | half-diminished 7th                       | 半減七和弦                           | 半减七和弦                 |
 | root position / 1st, 2nd inversion / root | 原位 / 第一轉位、第二轉位 / 根音     | 第一转位、第二转位         |
 | broken / block (a chord)                  | 分解 / 柱式                          |                            |
+| Echo (the family) / melody / note 3       | 旋律 / 一段旋律 / 第 3 個音          | 第 3 个音                  |
+| step / leap / tonic chord                 | 級進 / 跳進 / 主和弦                 | 级进 / 跳进                |
+| chromatic (neighbour, passing) notes      | 變化音                               | 变化音                     |
+| played as (a wrong key)                   | 彈成了                               | 弹成了                     |
 
 Keys in titles: `G 大調`, `C 大調`. Composers as Taiwan writes them: 貝多芬, 巴哈 (not 巴赫), 舒曼,
 布爾格彌勒.
@@ -202,6 +214,10 @@ verb phrases for labels and buttons (設定, 開始, もう一度, 補正する)
 | dominant, major, minor, half-diminished 7th | 属七の和音・長七の和音・短七の和音・半減七の和音 |
 | root position / 1st, 2nd inversion / root   | 基本形 / 第1転回形・第2転回形 / 根音             |
 | broken / block (a chord)                    | 分散 / 同時                                      |
+| Echo (the family) / melody / note 3         | 旋律 / 旋律 / 3音目                              |
+| step / leap / tonic chord                   | 順次進行 / 跳躍 / 主和音                         |
+| chromatic (neighbour, passing) notes        | 半音階的な音                                     |
+| played as (a wrong key)                     | 〜と弾きました                                   |
 
 Keys in titles follow Japanese editions: ハ長調, ト長調. Middle C is 中央C. Scale names on the Scales
 page keep the letter names of the app (`D長音階`, `G♯和声的短音階`), not ニ長音階.
@@ -249,6 +265,10 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 | dominant, major, minor, half-diminished 7th | 딸림7화음, 장7화음, 단7화음, 반감7화음                               |
 | root position / 1st, 2nd inversion / root   | 기본위치 / 제1전위, 제2전위 / 근음                                   |
 | broken / block (a chord)                    | 펼친 / 동시                                                          |
+| Echo (the family) / melody / note 3         | 선율 / 선율 / 3번째 음                                               |
+| step / leap / tonic chord                   | 순차 진행 / 도약 / 으뜸화음                                          |
+| chromatic (neighbour, passing) notes        | 반음계적인 음                                                        |
+| played as (a wrong key)                     | 친 음은 …                                                            |
 
 Keys in titles use letters: G장조, C장조, matching the letter names in the app. Composer names
 follow the National Institute of Korean Language: 루트비히 판 베토벤, 요한 제바스티안 바흐.

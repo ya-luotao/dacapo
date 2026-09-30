@@ -13,6 +13,7 @@ import {
   type EarLevelId,
   type Prompt,
 } from './earItems.ts';
+import { judgeEchoKey, type MelodyKey } from './earMelody.ts';
 import type { Rng } from './random.ts';
 import { median, TIMEOUT_MS } from './session.ts';
 import { pickItem, statsFromAttempts, type NoteStats, type StatsByKey } from './weakness.ts';
@@ -35,23 +36,27 @@ export interface Answer {
   sessionId: string;
   family: EarFamily;
   level: EarLevelId;
-  /** `int:M3:up`, `chord:min:1st`. */
+  /** `int:M3:up`, `chord:min:1st`, `echo:EC3`. */
   item: string;
+  /** Always `play` for a melody. */
   by: AnswerMode;
   /** The prompt's keys, in the order played (a chord's from low to high). */
   prompt: number[];
   /**
-   * Played: the keys (for an interval the one key, for a chord the keys held, low to high).
+   * Played: the keys (for an interval the one key, for a chord the keys held, low to high, for a
+   * melody the keys in order up to and including the first wrong one).
    * Named: the name chosen (`P5`, `maj:1st`).
    */
   answer: number[] | string;
   correct: boolean;
-  /** From the prompt's last note-on to the answer. */
+  /** From the prompt's last note-on (as last played) to the answer, or a melody's last key. */
   ms: number;
   /** "Hear again" before the answer. */
   replays: number;
   /** Epoch ms of the answer. */
   at: number;
+  /** A melody's key, so its notes are spelled as the session wrote them; only for Echo. */
+  key?: MelodyKey;
 }
 
 export interface EarCard {
@@ -68,6 +73,8 @@ export interface EarCard {
   status: 'waiting' | 'correct' | 'wrong';
   /** Keys pressed since the answer window opened and still held (a chord being played). */
   held: readonly number[];
+  /** A melody being played back: its keys played right so far. They stand through a replay. */
+  played: readonly number[];
   /** The scored answer, once given. */
   answer: number[] | string | null;
 }
@@ -77,7 +84,7 @@ export interface EarSessionState {
   family: EarFamily;
   level: EarLevelId;
   by: AnswerMode;
-  /** The directions intervals are played in; empty for chords. */
+  /** The directions intervals are played in; empty for chords and melodies. */
   directions: readonly Direction[];
   /** Items to answer; normally one of `SESSION_LENGTHS`. */
   length: number;
@@ -109,7 +116,9 @@ function newCard(
   previous: string | null,
   rng: Rng,
 ): EarCard {
-  const item = pickItem(items, stats, previous, rng, EAR_TARGET_MS);
+  // An Echo level is one item, a new melody every time.
+  const item =
+    items.length === 1 ? items[0]! : pickItem(items, stats, previous, rng, EAR_TARGET_MS);
   return {
     index,
     prompt: makePrompt(item, rng),
@@ -117,6 +126,7 @@ function newCard(
     replays: 0,
     status: 'waiting',
     held: [],
+    played: [],
     answer: null,
   };
 }
@@ -127,7 +137,8 @@ export function startEarSession(options: EarStartOptions): EarSessionState {
     id: options.id,
     family: level.family,
     level: level.id,
-    by: options.by,
+    // A melody can only be played back.
+    by: level.family === 'echo' ? 'play' : options.by,
     directions: level.family === 'interval' ? options.directions : [],
     length: options.length,
     items,
@@ -142,7 +153,8 @@ export function startEarSession(options: EarStartOptions): EarSessionState {
 /**
  * The prompt of card `index` (or the correction after a wrong answer) was scheduled; its last
  * note-on is at `opensAt`. Keys held until then do not count until pressed again. With `replay`
- * ("Hear again") before the answer, the replay is counted; one after the answer is not.
+ * ("Hear again") before the answer, the replay is counted; one after the answer is not. The keys
+ * of a melody played back so far stand: the answer goes on where it was.
  */
 export function promptScheduled(
   state: EarSessionState,
@@ -192,6 +204,9 @@ function scored(
     ms: time - card.opensAt!,
     replays: card.replays,
     at,
+    ...(card.prompt.melody && {
+      key: { tonic: card.prompt.melody.tonic, scale: card.prompt.melody.scale },
+    }),
   };
   return {
     ...state,
@@ -202,8 +217,9 @@ function scored(
 
 /**
  * A note-on while answering by playing. An interval is judged by the first key other than the
- * shown one; a chord by the keys held since the window opened (`judgeChordKeys`). Keys before
- * the window opens, and every key once the item is answered, change nothing here.
+ * shown one; a chord by the keys held since the window opened (`judgeChordKeys`); a melody key
+ * by key, in order, the first wrong one ending it (`judgeEchoKey`). Keys before the window
+ * opens, and every key once the item is answered, change nothing here.
  * `newId` is only called for the scored answer.
  */
 export function pressKey(
@@ -215,6 +231,12 @@ export function pressKey(
 ): EarSessionState {
   if (state.by !== 'play' || !open(state, time)) return state;
   const { card } = state;
+  if (state.family === 'echo') {
+    const result = judgeEchoKey(card.prompt.notes, card.played, midi);
+    const played = [...card.played, midi];
+    if (result === 'next') return { ...state, card: { ...card, played } };
+    return scored(state, played, result === 'right', time, at, newId);
+  }
   if (state.family === 'interval') {
     const result = judgeIntervalKey(card.prompt, midi);
     if (result === 'ignored') return state;
@@ -284,8 +306,13 @@ export function isTimedAnswer(answer: Answer): boolean {
 export interface MissedItem {
   item: string;
   answer: number[] | string;
-  /** The prompt's keys: an interval played is told by the key against the given one. */
+  /**
+   * The prompt's keys: an interval played is told by the key against the given one, a melody by
+   * the interval into the wrong note.
+   */
   prompt: number[];
+  /** A melody's key (`Answer.key`), to spell its notes. */
+  key?: MelodyKey;
 }
 
 /** What a finished (or stopped) ear session amounts to. Plain data, so it can be stored as is. */
@@ -342,6 +369,7 @@ export function summarizeEar(state: EarSummaryInput): EarSessionSummary {
         item: a.item,
         answer: Array.isArray(a.answer) ? [...a.answer] : a.answer,
         prompt: [...a.prompt],
+        ...(a.key && { key: { ...a.key } }),
       })),
   };
 }
@@ -387,17 +415,31 @@ export function earStats(answers: readonly Answer[]): Record<string, NoteStats> 
   );
 }
 
+/** Melodies per Echo session: fewer than questions, since a melody takes longer. */
+export const ECHO_SESSION_LENGTHS = [5, 10, 20] as const;
+export type EchoSessionLength = (typeof ECHO_SESSION_LENGTHS)[number];
+export const DEFAULT_ECHO_SESSION_LENGTH: EchoSessionLength = 10;
+
 // --- Mastery ---------------------------------------------------------------------------------
 
 export const EAR_MASTERY_WINDOW = 40;
+/** An Echo level is mastered over fewer answers: each is a whole melody. */
+export const ECHO_MASTERY_WINDOW = 20;
 export const EAR_MASTERY_ACCURACY = 0.9;
+
+/** The answers a level's mastery is over: 20 melodies for Echo, 40 answers otherwise. */
+export function masteryWindow(level: EarLevelId): number {
+  return getEarLevel(level).family === 'echo' ? ECHO_MASTERY_WINDOW : EAR_MASTERY_WINDOW;
+}
 
 export interface EarLevelProgress {
   level: EarLevelId;
   /** Every answer ever given at this level, replayed or not. */
   total: number;
-  /** Answers without a replay in the window (at most `EAR_MASTERY_WINDOW`). */
+  /** Answers without a replay in the window (at most `masteryWindow(level)`). */
   answers: number;
+  /** The window: 40 answers, or 20 melodies. */
+  window: number;
   accuracy: number | null;
   /** Shown, not part of mastery: over the timed answers of the window. */
   medianMs: number | null;
@@ -405,22 +447,23 @@ export interface EarLevelProgress {
 }
 
 /**
- * Mastery over the level's last `EAR_MASTERY_WINDOW` answers given without a replay, in any
+ * Mastery over the level's last `masteryWindow(level)` answers given without a replay, in any
  * direction: a full window at ≥ 90 % right. `answers` must be in the order they happened.
  */
 export function earLevelProgress(answers: readonly Answer[], level: EarLevelId): EarLevelProgress {
+  const size = masteryWindow(level);
   const ofLevel = answers.filter((a) => a.level === level);
-  const window = ofLevel.filter((a) => a.replays === 0).slice(-EAR_MASTERY_WINDOW);
+  const window = ofLevel.filter((a) => a.replays === 0).slice(-size);
   const correct = window.filter((a) => a.correct).length;
   const accuracy = window.length > 0 ? correct / window.length : null;
   return {
     level,
     total: ofLevel.length,
     answers: window.length,
+    window: size,
     accuracy,
     medianMs: median(window.filter(isTimedAnswer).map((a) => a.ms)),
-    mastered:
-      window.length >= EAR_MASTERY_WINDOW && accuracy !== null && accuracy >= EAR_MASTERY_ACCURACY,
+    mastered: window.length >= size && accuracy !== null && accuracy >= EAR_MASTERY_ACCURACY,
   };
 }
 

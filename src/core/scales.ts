@@ -143,7 +143,8 @@ const FLATS: readonly (readonly [Letter, number])[] = [
   ['B', 0],
 ];
 
-function tonicPitch(tonic: Tonic, octave: number): SpelledPitch {
+/** The tonic as written, in `octave`: `Bb` in 3 is B♭3. */
+export function tonicPitch(tonic: Tonic, octave: number): SpelledPitch {
   const match = /^([A-G])(#|b)?$/.exec(tonic);
   if (!match) throw new Error(`not a tonic: ${tonic}`);
   const alter = match[2] === '#' ? 1 : match[2] === 'b' ? -1 : 0;
@@ -175,6 +176,20 @@ function spell(type: ScaleType, tonic: SpelledPitch, position: number, dir: Dire
   const octave = tonic.octave + Math.floor(letterIndex / 7);
   const alter = tonicMidi + semitones - midiOf({ step, alter: 0, octave });
   return { step, alter, octave };
+}
+
+/**
+ * The note `position` scale steps from `tonic` (below it when negative) in a major or minor
+ * scale, spelled as the scale going up is: `scaleDegree('major', D4, -3)` is A3.
+ */
+export function scaleDegree(
+  type: Exclude<ScaleType, 'chromatic'>,
+  tonic: SpelledPitch,
+  position: number,
+): SpelledPitch {
+  const octaves = Math.floor(position / 7);
+  const pitch = spell(type, tonic, position - 7 * octaves, 'up');
+  return { ...pitch, octave: pitch.octave + octaves };
 }
 
 // Range ---------------------------------------------------------------------------------------

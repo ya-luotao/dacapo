@@ -19,10 +19,11 @@ import {
 
 /**
  * What this build understands of what the service carries (docs/SYNC.md, "A build that learns a
- * collection pulls everything again"): 1, the first collections; 2, `answers` and `ear` sessions.
- * Bump it whenever a build learns a collection or a session kind that older builds skipped.
+ * collection pulls everything again"): 1, the first collections; 2, `answers` and `ear` sessions;
+ * 3, echo answers and sessions (a family and levels older builds do not validate). Bump it
+ * whenever a build learns a collection, a session kind, or records that older builds skipped.
  */
-export const SYNC_SCHEMA = 2;
+export const SYNC_SCHEMA = 3;
 
 // Records as the sync service carries them (docs/SYNC.md, "What syncs"): the stored record as it
 // is, except a piece, which goes without its MusicXML (sent as a file named by its hash) and

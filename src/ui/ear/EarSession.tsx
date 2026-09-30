@@ -8,14 +8,17 @@ import {
   spellPrompt,
   type Prompt,
 } from '../../core/earItems.ts';
+import { accidentalMarks, spellInKey } from '../../core/earMelody.ts';
+import type { EarCard } from '../../core/earSession.ts';
 import { formatPitch, pitchToMidi, type Pitch } from '../../core/note.ts';
 import { useT } from '../../i18n/index.ts';
 import { useHubState, useInput, useKeyboardOctave } from '../input/context.ts';
 import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
 import { Piano } from '../piano/Piano.tsx';
 import { useReadFormat } from '../read/format.ts';
-import { NotesStaff } from '../staff/GrandStaff.tsx';
-import { STAFF_HEIGHT, STAFF_WIDTH } from '../staff/draw.ts';
+import { spelledName } from '../scales/format.ts';
+import { MelodyStaff, NotesStaff } from '../staff/GrandStaff.tsx';
+import { STAFF_HEIGHT, STAFF_WIDTH, type MelodyDrawing } from '../staff/draw.ts';
 import type { EarController, EarView } from './controller.ts';
 import { keyNames, useEarFormat } from './format.ts';
 import { earShortcut, nameKey } from './shortcuts.ts';
@@ -25,6 +28,28 @@ const NONE: ReadonlySet<number> = new Set();
 interface EarSessionProps {
   view: EarView;
   controller: EarController;
+}
+
+/**
+ * A melody played back wrong, as drawn: the melody in its key, the notes played right tinted,
+ * and the wrong key at its note. Null for anything else.
+ */
+function melodyDrawing(card: EarCard): MelodyDrawing | null {
+  const { prompt, answer } = card;
+  const melody = prompt.melody;
+  if (!melody || card.status !== 'wrong' || !Array.isArray(answer)) return null;
+  const index = answer.length - 1;
+  const played = spellInKey(answer[index]!, melody);
+  const marks = accidentalMarks(melody.written, melody.fifths, { index, pitch: played });
+  return {
+    fifths: melody.fifths,
+    notes: melody.written.map((pitch, i) => ({
+      pitch,
+      accidental: marks.line[i]!,
+      right: i < index,
+    })),
+    wrong: { index, pitch: played, accidental: marks.extra },
+  };
 }
 
 /** The prompt as written: a melodic interval note after note, the rest stacked. */
@@ -54,6 +79,22 @@ export function EarSession({ view, controller }: EarSessionProps) {
   const answer = session.answers.at(-1);
   const scored = answer && status !== 'waiting' ? answer : null;
   const turn = status === 'waiting' && !listening;
+  const echo = item.family === 'echo';
+  // A melody gone wrong: its note, the key asked for and the key played, each named as the key
+  // of the melody writes it (B♭4 in F major, not A♯4).
+  const miss = useMemo(() => {
+    const { melody } = prompt;
+    if (!echo || !melody || status !== 'wrong' || !Array.isArray(card.answer)) return null;
+    const index = card.answer.length - 1;
+    const played = card.answer[index]!;
+    return {
+      n: index + 1,
+      expected: prompt.notes[index]!,
+      played,
+      expectedName: spelledName(melody.written[index]!),
+      playedName: spelledName(spellInKey(played, melody)),
+    };
+  }, [echo, status, card.answer, prompt]);
 
   // Moving focus off the Start button means Enter or Space cannot trigger a control by accident.
   useEffect(() => region.current?.focus({ preventScroll: true }), []);
@@ -94,30 +135,39 @@ export function EarSession({ view, controller }: EarSessionProps) {
   }, [controller]);
 
   const marked = useMemo(() => {
+    // A melody: its first key to start from, then only the key its wrong note should have been.
+    if (echo) {
+      if (status === 'waiting') return new Set([givenKey(prompt)]);
+      return miss ? new Set([miss.expected]) : NONE;
+    }
     if (status !== 'waiting') return new Set(prompt.notes);
     return session.by === 'play' ? new Set([givenKey(prompt)]) : NONE;
-  }, [status, prompt, session.by]);
-  const wrongKeys = useMemo(
-    () =>
-      status === 'wrong' && Array.isArray(card.answer)
-        ? new Set(card.answer.filter((midi) => !prompt.notes.includes(midi)))
-        : NONE,
-    [status, card.answer, prompt.notes],
-  );
+  }, [echo, status, prompt, session.by, miss]);
+  const wrongKeys = useMemo(() => {
+    if (miss) return new Set([miss.played]);
+    return status === 'wrong' && Array.isArray(card.answer)
+      ? new Set(card.answer.filter((midi) => !prompt.notes.includes(midi)))
+      : NONE;
+  }, [miss, status, card.answer, prompt.notes]);
   const columns = useMemo(() => staffColumns(prompt), [prompt]);
+  const drawing = useMemo(() => melodyDrawing(card), [card]);
 
   const task =
-    session.by === 'name'
-      ? t('ear.task.name')
-      : item.family === 'chord'
-        ? t(level.family === 'chord' && level.bassMatters ? 'ear.task.chordBass' : 'ear.task.chord')
-        : t(item.direction === 'down' ? 'ear.task.down' : 'ear.task.up');
-  const title =
-    status !== 'waiting'
-      ? format.capitalize(format.item(prompt.item, session.level))
-      : listening
-        ? t('ear.listen')
-        : t('ear.turn');
+    item.family === 'echo'
+      ? t('ear.task.echo')
+      : session.by === 'name'
+        ? t('ear.task.name')
+        : item.family === 'chord'
+          ? t(
+              level.family === 'chord' && level.bassMatters
+                ? 'ear.task.chordBass'
+                : 'ear.task.chord',
+            )
+          : t(item.direction === 'down' ? 'ear.task.down' : 'ear.task.up');
+  const answerName = prompt.melody
+    ? format.key(prompt.melody.tonic, prompt.melody.scale)
+    : format.capitalize(format.item(prompt.item, session.level));
+  const title = status !== 'waiting' ? answerName : listening ? t('ear.listen') : t('ear.turn');
 
   return (
     <section
@@ -130,7 +180,7 @@ export function EarSession({ view, controller }: EarSessionProps) {
       <div className="read-bar">
         <p className="read-level">{format.level(session.level)}</p>
         <p className="read-count">
-          {t('ear.count', {
+          {t(echo ? 'ear.echo.count' : 'ear.count', {
             n: Math.min(card.index + 1, session.length),
             total: session.length,
           })}
@@ -154,13 +204,36 @@ export function EarSession({ view, controller }: EarSessionProps) {
             (listening ? <SpeakerIcon className="ear-state-icon is-sounding" /> : <KeyIcon />)}
           <p className="ear-title">{title}</p>
         </div>
+        {echo && (
+          <NoteDots
+            total={prompt.notes.length}
+            right={status === 'correct' ? prompt.notes.length : card.played.length}
+            wrong={status === 'wrong'}
+            label={t('ear.echo.progress', {
+              n: status === 'correct' ? prompt.notes.length : card.played.length,
+              total: prompt.notes.length,
+            })}
+          />
+        )}
         {status === 'waiting' && (
           <>
             <p className="ear-task">{task}</p>
             <HearAgain onClick={controller.hearAgain} />
           </>
         )}
-        {status === 'wrong' && (
+        {drawing && prompt.melody && miss && (
+          <MelodyStaff
+            className="ear-staff ear-melody"
+            drawing={drawing}
+            label={t('ear.echo.staff', {
+              key: answerName,
+              notes: prompt.melody.written.map(spelledName).join(' '),
+              n: miss.n,
+              played: miss.playedName,
+            })}
+          />
+        )}
+        {status === 'wrong' && !echo && (
           <NotesStaff
             className="ear-staff"
             columns={columns}
@@ -187,16 +260,24 @@ export function EarSession({ view, controller }: EarSessionProps) {
         )}
         {status === 'wrong' && scored && (
           <>
-            <p className="read-result">
+            <p className={miss ? 'read-result is-long' : 'read-result'}>
               <ResultIcon ok={false} />
-              {typeof scored.answer === 'string'
-                ? t('ear.wrong.named', { name: format.name(scored.answer, session.level) })
-                : t('read.wrong', { played: keyNames(scored.answer) })}
+              {miss
+                ? t('ear.echo.wrong', {
+                    n: miss.n,
+                    played: miss.playedName,
+                    expected: miss.expectedName,
+                  })
+                : typeof scored.answer === 'string'
+                  ? t('ear.wrong.named', { name: format.name(scored.answer, session.level) })
+                  : t('read.wrong', { played: keyNames(scored.answer) })}
             </p>
             {/* The sheet shows it; this is for screen readers. */}
-            <p className="visually-hidden">
-              {t('ear.wrong.answer', { answer: format.item(prompt.item, session.level) })}
-            </p>
+            {!echo && (
+              <p className="visually-hidden">
+                {t('ear.wrong.answer', { answer: format.item(prompt.item, session.level) })}
+              </p>
+            )}
             <div className="ear-next">
               <button
                 type="button"
@@ -264,6 +345,33 @@ export function EarSession({ view, controller }: EarSessionProps) {
 function nameColumns(count: number): number {
   if (count <= 4) return count;
   return count <= 8 ? Math.ceil(count / 2) : 6;
+}
+
+/**
+ * A melody's notes as dots: filled for each key played right, the next one wrong when it was.
+ * One label says it for assistive technology.
+ */
+function NoteDots({
+  total,
+  right,
+  wrong,
+  label,
+}: {
+  total: number;
+  right: number;
+  wrong: boolean;
+  label: string;
+}) {
+  return (
+    <ol className="ear-dots" role="img" aria-label={label}>
+      {Array.from({ length: total }, (_, i) => (
+        <li
+          key={i}
+          className={i < right ? 'is-right' : wrong && i === right ? 'is-wrong' : undefined}
+        />
+      ))}
+    </ol>
+  );
 }
 
 function HearAgain({ onClick }: { onClick: () => void }) {
