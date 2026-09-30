@@ -4,6 +4,7 @@ for the built-in pieces the dacapo project encodes itself; see README.md.
 Token: PITCH/DUR[flags]  PITCH = c4, fs5, bf3, r (rest), s (invisible spacer), [b3,d4] (chord).
 DUR in sixteenths. Prefix g: = grace (eighth, slashed). Flags: !m mordent, !p inverted mordent,
 ~ tie start. clef:G / clef:F changes the clef of the voice's staff before the next note.
+Piece-level 'clefs', e.g. {1: 'F'}, sets a staff's first clef (default: G on staff 1, F on 2).
 """
 
 from xml.sax.saxutils import escape
@@ -133,10 +134,10 @@ def note_xml(e, staff, voice, beams, acc, stem):
                      f'<octave>{octave}</octave></pitch>')
         if not e['grace']:
             x.append(f'<duration>{e["dur"]}</duration>')
+        if p in e.get('tie_stops', ()):
+            x.append('<tie type="stop"/>')
         if 'tie' in e['flags']:
             x.append('<tie type="start"/>')
-        if e.get('tie_stop'):
-            x.append('<tie type="stop"/>')
         x.append(f'<voice>{voice}</voice>')
         if not e.get('whole_rest'):
             x.append(f'<type>{t}</type>')
@@ -152,10 +153,10 @@ def note_xml(e, staff, voice, beams, acc, stem):
             for level, state in beams:
                 x.append(f'<beam number="{level}">{state}</beam>')
         notations = []
+        if p in e.get('tie_stops', ()):
+            notations.append('<tied type="stop"/>')
         if 'tie' in e['flags']:
             notations.append('<tied type="start"/>')
-        if e.get('tie_stop'):
-            notations.append('<tied type="stop"/>')
         if n == 0 and '!m' in e['flags']:
             notations.append('<ornaments><mordent/></ornaments>')
         if n == 0 and '!p' in e['flags']:
@@ -180,6 +181,7 @@ def voice_events(tokens):
 def build(piece):
     parts = []
     acc = Accidentals(piece['fifths'])
+    clefs = {1: 'G', 2: 'F', **piece.get('clefs', {})}
     ties_open = set()
     for mi, m in enumerate(piece['measures']):
         acc.reset()
@@ -190,8 +192,10 @@ def build(piece):
         if mi == 0:
             x.append(f'<attributes><divisions>{DIV}</divisions><key><fifths>{piece["fifths"]}</fifths>'
                      f'</key><time><beats>{piece["beats"]}</beats><beat-type>{piece["beat_type"]}'
-                     f'</beat-type></time><staves>2</staves><clef number="1"><sign>G</sign><line>2'
-                     f'</line></clef><clef number="2"><sign>F</sign><line>4</line></clef></attributes>')
+                     f'</beat-type></time><staves>2</staves>' + ''.join(
+                         f'<clef number="{n}"><sign>{sign}</sign><line>{2 if sign == "G" else 4}'
+                         f'</line></clef>' for n, sign in ((1, clefs[1]), (2, clefs[2]))) +
+                     '</attributes>')
             if piece.get('tempo_text'):
                 sound = f'<sound tempo="{piece["bpm"]}"/>' if piece.get('bpm') else ''
                 x.append(f'<direction placement="above"><direction-type><words>{escape(piece["tempo_text"])}'
@@ -223,7 +227,7 @@ def build(piece):
                     for p in e['pitches']:
                         key = (staff, voice, p)
                         if key in ties_open:
-                            e['tie_stop'] = True
+                            e.setdefault('tie_stops', set()).add(p)
                             ties_open.discard(key)
                         if 'tie' in e['flags']:
                             ties_open.add(key)

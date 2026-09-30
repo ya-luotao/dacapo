@@ -1,6 +1,7 @@
 // Proofreads a MusicXML file against an independent MIDI rendering of the same edition: every
 // (onset, pitch) the file asks to be played must be in the MIDI file and the other way round.
-// The file is read with dacapo's own parser, so the check covers the parser too.
+// The file is read with dacapo's own parser, so the check covers the parser too. Two voices on
+// one key at the same moment are one key press (as the app and a MIDI rendering treat them).
 //
 //   node --experimental-strip-types scripts/pieces/verify.ts <file.musicxml> <oracle.mid>
 //     [--order document|play|skip] [--bars A-B] [--midi-at Q] [--grid N]
@@ -68,11 +69,20 @@ interface Event {
 }
 
 const ours: Event[] = [];
+const pressed = new Set<string>();
+let unisons = 0;
 for (const p of played) {
   const m = score.measures[p.measure]!;
-  for (const n of score.notes)
-    if (n.measure === p.measure && !n.tieStop)
-      ours.push({ tick: p.start + n.onset - m.start, midi: n.midi, hand: n.hand });
+  for (const n of score.notes) {
+    if (n.measure !== p.measure || n.tieStop) continue;
+    const tick = p.start + n.onset - m.start;
+    if (pressed.has(`${tick}|${n.midi}`)) {
+      unisons++;
+      continue;
+    }
+    pressed.add(`${tick}|${n.midi}`);
+    ours.push({ tick, midi: n.midi, hand: n.hand });
+  }
 }
 
 const grid = Number(values.grid);
@@ -93,7 +103,8 @@ const theirsByTrack = tracks.map((track: MidiTrack) =>
     return [{ tick: windowStart + Math.round(q * TICKS_PER_QUARTER), midi: n.midi }];
   }),
 );
-const theirs = theirsByTrack.flat();
+// The same key struck in both staves at once is one press too.
+const theirs = [...new Map(theirsByTrack.flat().map((e) => [`${e.tick}|${e.midi}`, e])).values()];
 
 const key = (e: { tick: number; midi: number }) => `${e.tick}|${e.midi}`;
 function difference<T extends { tick: number; midi: number }>(
@@ -123,7 +134,8 @@ const graces = (xml.match(/<grace\b/g) ?? []).length;
 console.log(
   `${file}: ${matched}/${ours.length} notes match ${oracle} (${theirs.length} in the oracle; ` +
     `order ${values.order}, bars ${from}-${to}); oracle notes off the grid: ${offGrid.length}; ` +
-    `grace notes in the file: ${graces}`,
+    `grace notes in the file: ${graces}` +
+    (unisons > 0 ? `; unisons merged: ${unisons}` : ''),
 );
 if (offGrid.length > 0) console.log(`  off the grid: ${offGrid.join(', ')}`);
 
