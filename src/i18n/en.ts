@@ -38,8 +38,8 @@ export const en = {
     'Intervals, chords and short melodies by ear, from the octave to seventh chords and chromatic notes. Play back what you hear on the keys, or name it; the next question favours the ones you miss.',
   'home.ear.meta': '{n} levels',
   'home.scales.text':
-    'Major, the three minors and chromatic in every key, with Hanon’s fingering. Play at your own tempo, then see how even every note was.',
-  'home.scales.meta': '12 keys · 5 scales',
+    'Scales and arpeggios in every key with Hanon’s fingering, hands together or in contrary motion. Play at your own tempo or with the click, then see how even every note was.',
+  'home.scales.meta': '12 keys · 5 scales · arpeggios',
   'home.pieces.text':
     'Beethoven, Bach, Schumann and more on the real score. The cursor waits for the right keys, or keeps time in rhythm mode. Or bring your own MusicXML.',
   'home.pieces.meta': '{n} pieces · MusicXML',
@@ -407,6 +407,7 @@ export const en = {
   'progress.session.hands.right': 'Right hand',
   'progress.session.hands.left': 'Left hand',
   'progress.session.hands.both': 'Both hands',
+  'progress.session.hands.contrary': 'Contrary motion',
   'progress.kind.scales': 'Scales',
   'progress.kind.ear': 'Ear training',
   'progress.session.scale': 'Scale',
@@ -914,14 +915,20 @@ export const en = {
   'scales.type.harmonicMinor': 'Harmonic minor',
   'scales.type.melodicMinor': 'Melodic minor',
   'scales.type.chromatic': 'Chromatic',
+  'scales.type.majorArpeggio': 'Major arpeggio',
+  'scales.type.minorArpeggio': 'Minor arpeggio',
   'scales.name.major': '{tonic} major',
   'scales.name.naturalMinor': '{tonic} natural minor',
   'scales.name.harmonicMinor': '{tonic} harmonic minor',
   'scales.name.melodicMinor': '{tonic} melodic minor',
   'scales.name.chromatic': 'Chromatic scale on {tonic}',
+  'scales.name.majorArpeggio': '{tonic} major arpeggio',
+  'scales.name.minorArpeggio': '{tonic} minor arpeggio',
+  'scales.name.inContrary': '{scale} in contrary motion',
   'scales.hand.right': 'Right',
   'scales.hand.left': 'Left',
   'scales.hand.both': 'Both',
+  'scales.hand.contrary': 'Contrary',
   'scales.status.and': ' and ',
   'scales.status.start': 'Play {key} to begin, at your own tempo.',
   'scales.status.playing': '{n} of {total} notes',
@@ -982,6 +989,7 @@ export const en = {
   'scales.chart.finger': 'finger',
   'scales.chart.loud': 'loudness',
   'scales.chart.top': 'top',
+  'scales.chart.bottom': 'bottom',
   'scales.chart.desc':
     'Each dot is a note against a line through the notes around it, so your own tempo is the reference. Crosses are missed or wrong notes; a rule between two notes marks a hesitation.',
   'scales.chart.desc.loud':
@@ -1379,7 +1387,7 @@ export const en = {
   'about.music.pdmx':
     'Arabesque (Burgmüller), Soldiers’ March (Schumann) and the Prelude in C major (Bach) are encodings from MuseScore that their uploaders PianoXML, jadr and OpenGoldberg dedicated to the public domain (CC0); the dacapo project removed the fingering. They come from the PDMX dataset by Phillip Long, Zachary Novack, Julian McAuley and Taylor Berg-Kirkpatrick, licensed under CC BY 4.0.',
   'about.music.hanon':
-    'The fingering of the scales is Charles-Louis Hanon’s, from The Virtuoso Pianist, Nos. 39 and 40 (G. Schirmer, New York, 1900), a public-domain edition transcribed by the dacapo project.',
+    'The fingering of the scales and arpeggios is Charles-Louis Hanon’s, from The Virtuoso Pianist, Nos. 39, 40 and 41 (G. Schirmer, New York, 1900), a public-domain edition transcribed by the dacapo project.',
   'about.sounds': 'Sounds',
   'about.salamander':
     'Salamander Grand Piano V3, the built-in piano’s sound: a Yamaha C5 recorded by Alexander Holm. Creative Commons Attribution 3.0 (CC BY 3.0). The dacapo project took three of its sixteen velocity layers, trimmed them and encoded them as MP3.',

@@ -579,10 +579,12 @@ function summarizeConnection(
 
 /**
  * The hands against each other, pair by pair: the notes of the same index in both runs. Hands
- * together play an octave apart in parallel motion, so both runs have the same length and shape
- * (`scaleNotes`; locked by a test); runs of different lengths are not paired. Every pair counts,
- * the turn included: the hands meet at the top as anywhere. Computed for any run, a scale run or
- * not, as the timing is; only the problem place waits for a scale run.
+ * together play an octave apart in parallel motion or from a unison in contrary motion, so both
+ * runs have the same length (`scaleNotes`; locked by a test); runs of different lengths are not
+ * paired. Every pair counts, the turn included: the hands meet at the top as anywhere. A pair
+ * played as one key (the unison of contrary motion) has no asynchrony: it is one onset, not two
+ * that happened to agree. Computed for any run, a scale run or not, as the timing is; only the
+ * problem place waits for a scale run.
  */
 function handsTogether(
   right: HandAnalysis,
@@ -592,9 +594,11 @@ function handsTogether(
   if (right.notes.length !== left.notes.length) return null;
   const onset = (f: NoteFigures) => (f.outcome === 'played' ? played[f.played!]!.on : null);
   const pairs = right.notes.map((r, i) => {
+    const l = left.notes[i]!;
     const a = onset(r);
-    const b = onset(left.notes[i]!);
-    return { index: i, asynchrony: a === null || b === null ? null : a - b };
+    const b = onset(l);
+    const shared = r.played !== null && r.played === l.played;
+    return { index: i, asynchrony: a === null || b === null || shared ? null : a - b };
   });
   const values = pairs.filter((p) => p.asynchrony !== null).map((p) => p.asynchrony!);
   const enough = values.length >= MIN_PAIRS;

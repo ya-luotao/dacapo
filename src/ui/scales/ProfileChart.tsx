@@ -149,7 +149,7 @@ export function ProfileChart({
             <g className="scale-profile-turn">
               <line x1={x(turn.index)} x2={x(turn.index)} y1={TOP - 6} y2={MARK_Y + 4} />
               <text x={x(turn.index)} y={TOP - 8} textAnchor="middle">
-                {t('scales.chart.top')}
+                {t(turn.direction === 'down' ? 'scales.chart.bottom' : 'scales.chart.top')}
               </text>
             </g>
           )}

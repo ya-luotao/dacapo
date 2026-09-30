@@ -1,8 +1,9 @@
 # Scale fingerings from Hanon
 
 The fingering the Scales page shows (see [docs/SCALES.md](../../../docs/SCALES.md)) comes from
-Charles-Louis Hanon, _The Virtuoso Pianist_, Nos. 39 (the major and minor scales) and 40 (the
-chromatic scales), transcribed digit by digit from a public-domain scan. This folder holds the
+Charles-Louis Hanon, _The Virtuoso Pianist_, Nos. 39 (the major and minor scales), 40 (the
+chromatic scales) and 41 (the arpeggios on the triads), transcribed digit by digit from a
+public-domain scan. This folder holds the
 transcription and the tools that check and expand it. Every command runs from this folder.
 
 ## Source
@@ -13,7 +14,8 @@ transcription and the tools that check and expand it. Every command runs from th
 - **Scan:** IMSLP #91547, 600 dpi,
   <https://imslp.org/wiki/The_Virtuoso_Pianist_(Hanon,_Charles-Louis)> (file
   `PMLP03129-Hanon_Final.pdf`, sha1 `f53906b31b484493f8fd3433c6496cf073bac239`). No. 39 is on
-  printed pages 50–61 (PDF 51–62), No. 40 on printed pages 62–64 (PDF 63–65).
+  printed pages 50–61 (PDF 51–62), No. 40 on printed pages 62–64 (PDF 63–65), No. 41 on printed
+  pages 65–68 (PDF 66–69).
 - **Second copy of the same plate:** IMSLP #00875 (Part II, 300 dpi), used only to settle damaged
   glyphs.
 
@@ -26,6 +28,12 @@ transcription and the tools that check and expand it. Every command runs from th
 - No. 40: the chromatic scale at the octave (four octaves), at a minor third, a major sixth and a
   minor sixth, in contrary motion from the octave, the minor third and the major third, and "another
   fingering … for legato passages", every note fingered.
+
+- No. 41, "Arpeggios on the Triads, in the 24 Keys": the twelve majors in fourths, each followed by
+  its relative minor, four octaves of the root-position triad, hands an octave apart, sixteenths
+  in 3/4 (25 notes a hand: the top on the first beat of the second bar, the closing root a half
+  note in a bar of its own). He prints the first octave and the crossings, the top, and the
+  closing root in most keys.
 
 ## Files
 
@@ -41,6 +49,15 @@ transcription and the tools that check and expand it. Every command runs from th
 - `../fingering.ts` — writes `src/core/scaleFingering.ts` from `hanon.json` through the pure
   transform in `src/core/hanonData.ts`, the correction applied: run
   `node --experimental-strip-types scripts/scales/fingering.ts` from the repository root.
+- `pass1/data41.py`, `pass2/data41_A.py`, `data41_B.py`, `diff41.py`, `build41.py`,
+  `hanon41.json` — the same for No. 41: the first reading of all 24 keys by one reader, the second
+  by two others who did not see it (pages 66–67 and 68–69), and `python3 diff41.py` finds no
+  difference. `python3 build41.py pass1 hanon41.json` fills the digits Hanon did not print by the
+  rules in its header and checks them against what he does print (by the octave, by the same key
+  the other way, the top when the hand takes the root with the thumb: the right hand's 5, as in all
+  14 keys that start the right hand on the thumb and print the top, the left hand's 1, as in all 15
+  keys that put the left thumb on the root and print it; the closing root the starting finger, as
+  in all 36 hand-runs that print both). Each filled digit is marked with its rule in `inferred`.
 - `uncertain.md` — the doubtful digits and how each was read. The crop images it names were made
   from the scan during the transcription and are not kept; any page can be cut again from the PDF.
 - `differences.md` — where Hanon differs from the fingering commonly taught (from memory of the
@@ -57,3 +74,7 @@ Decided in S0 (the reasons are in `docs/SCALES.md`, Clarifications):
 - F♯ major takes Hanon's G♭ major (the same keys, so the same fingering).
 - Natural minor has no fingering (Hanon prints none).
 - Chromatic scales take the fingering at the octave from No. 40.
+- Arpeggios take No. 41 as printed and filled, cut to fewer octaves where his fingering repeats
+  (every pair of neighbouring fingers is one he prints on the same notes); F♯ major takes his G♭
+  major. Contrary motion (decided in S5) plays each hand's own runs: the right hand as in parallel
+  motion, the left hand his descent from the top and then his ascent.

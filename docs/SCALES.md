@@ -1,7 +1,7 @@
 # dacapo — Scales specification
 
-Status: S0–S4 are built (S1 stays open until the loudness thresholds and the reference bands are
-set from runs recorded on real instruments); S5 is next. This extends [MVP.md](MVP.md) and
+Status: S0–S5 are built (S1 stays open until the loudness thresholds and the reference bands are
+set from runs recorded on real instruments). This extends [MVP.md](MVP.md) and
 [PIECES.md](PIECES.md); their principles and fixed decisions still apply (staff first, measure
 don't guess, local data, English of record, every UI language, 3-day dependency cooldown, no
 backend).
@@ -25,7 +25,7 @@ rank against onset time and separated the mean deviation of each note from the l
 ## Exercises (`core/scales.ts`, pure)
 
 - **Scale types.** Major; natural, harmonic and melodic minor (melodic: raised 6th and 7th going up,
-  natural going down); chromatic. Arpeggios (major and minor triads, root position) follow in S4.
+  natural going down); chromatic. Arpeggios (major and minor triads, root position), since S5.
 - **Keys.** One spelling each, as graded exam syllabuses list them: majors on C G D A E B F♯ D♭ A♭
   E♭ B♭ F; minors on A E B F♯ C♯ G♯ E♭ B♭ F C G D. Notes are spelled from the key signature (seven
   letters from the tonic), so harmonic G♯ minor has F𝄪: the model uses `SpelledPitch` (`alter` −2…2)
@@ -34,12 +34,12 @@ rank against onset time and separated the mean deviation of each note from the l
   once). The right hand starts on the lowest tonic at or above C4 for one and two octaves, at or
   above C3 for three and four; the left hand an octave lower.
 - **Hands.** Right, left, or together an octave apart (parallel motion). Contrary motion from a
-  unison tonic is S4.
+  unison tonic, since S5.
 - **Fingering.** Standard fingering per scale and hand, drawn on the score and used to mark the
   crossings (thumb under, finger over). Taken from a public-domain edition we can cite and check
-  against a scan — Hanon, _The Virtuoso Pianist_ Nos. 39 (major and minor scales) and 40 (chromatic)
-  — with the edition recorded per scale and locked by a test. Scales without a sourced fingering are
-  offered without one. Fingering is shown, never enforced: MIDI cannot see fingers.
+  against a scan — Hanon, _The Virtuoso Pianist_ Nos. 39 (major and minor scales), 40 (chromatic)
+  and 41 (arpeggios) — with the edition recorded per scale and locked by a test. Scales without a
+  sourced fingering are offered without one. Fingering is shown, never enforced: MIDI cannot see fingers.
 - An exercise is a value (`{ type, tonic, octaves, hands }`) with a stable key (`major:D:2:both`),
   so records and trends group by it.
 
@@ -407,6 +407,49 @@ reads σ for a steady player.
   place named over the last runs (the note of it with the largest mean deviation), and from every
   row of a hand's per-note table.
 
+## Clarifications (decided during S5)
+
+- **Arpeggios** are two more types, major and minor arpeggio, in the keys of the major and the
+  minor scales: the root-position triad spelled from its key (the 1st, 3rd and 5th degrees), one to
+  four octaves, starting where the scale of that key starts, with the key signature. Free, they
+  are drawn three to the beat (triplets, each beat one octave of the triad from its root); with the
+  click, at the grid chosen. A degree is 0–2 (root, third, fifth), so places over runs group by it.
+- **Arpeggio fingering: Hanon No. 41, transcribed as S0 did.** "Arpeggios on the Triads, in the 24
+  Keys" (printed pp. 65–68 of the same G. Schirmer edition) was read twice independently — one
+  reader for all 24 keys, two others for half each who did not see the first reading — and the
+  two readings agree on every digit, key and starting note. Two doubtful digits were settled on
+  the second copy of the plate (IMSLP #00875) and by position; they are listed in
+  `scripts/scales/hanon/uncertain.md`. Hanon prints the first octave, the crossings, the top and
+  most closing roots; `build41.py` fills the rest by rules that his printed digits obey wherever he
+  prints them (the same finger an octave on; a key takes the same finger each way through the
+  middle; the top of a hand that takes the root with the thumb is the right hand's 5 or the left
+  hand's 1; the close is the starting finger), marks every filled digit and checks the rules
+  against the printed ones. Fewer octaves are cut as the scales are (`shortenRun`, period 3): every
+  pair of neighbouring fingers is one he prints on the same notes (tested). F♯ major takes his G♭
+  major. His right hand plays the all-black triads of G♭ major and E♭ minor with the thumb on black
+  keys, as printed.
+- **Contrary motion** is a fourth choice of hands, offered for the majors, the harmonic minors and
+  the chromatic scale (graded exams set these; melodic minor and arpeggios in contrary motion are
+  not offered), one to three octaves: both hands start on one tonic, the one from A3 to G♯4, so
+  three octaves either way stay within A0–C8 (tested), the right hand going up while the left goes
+  down, and both come back to it. Its records are its own exercise (`major:C:2:contrary`), so its
+  progress stays apart from parallel motion's. The left hand's run goes down first: its notes say
+  so (`direction`), its lowest note is its turn (the chart marks it "bottom"), and crossings,
+  hesitations, places over runs and every figure follow its own direction.
+- **Contrary-motion fingering** is each hand's own: the right hand's as in parallel motion, the left
+  hand's descent from its top and then its ascent, as parallel motion fingers them (Hanon's runs
+  cut to the octaves; for the chromatic scale his runs from C, elsewhere No. 40's per-key table).
+  This is a composition of his runs, not something he prints for a
+  unison start (No. 40's contrary forms start from the octave and the thirds): every pair of
+  neighbouring fingers is one he prints on the same notes in the same direction, and the one new
+  joint, the left hand's turn at its lowest tonic, is his close meeting his start on the same key.
+- **The unison.** Both thumbs share one key at the start and the end, and a key struck once sounds
+  once: the hands-together DP gains a move that takes one key-down for both hands where both
+  hands' next notes are that key at the same place (only the unison of contrary motion, never in
+  parallel motion, where the hands are an octave apart). Struck twice, each hand takes its own. A
+  pair played as one key has no asynchrony and is left out of the hands' figures; the cursor takes
+  both notes of the step from one key-down, and so does a focus loop.
+
 ## Milestones
 
 1. ✓ **S0 Spike** — generate the scale MusicXML and draw it with fingering and per-note tints in
@@ -424,4 +467,5 @@ reads σ for a steady player.
 5. ✓ **S4 The click and focus loops** — click mode through rhythm mode's plan and matcher, with the
    count-in and the latency calibration; focus loops on a named place (a drill: not analysed or
    recorded).
-6. **S5 More shapes** — arpeggios, contrary motion, chromatic in contrary motion if there is demand.
+6. ✓ **S5 More shapes** — arpeggios, contrary motion, chromatic in contrary motion if there is
+   demand.

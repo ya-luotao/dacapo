@@ -9,13 +9,20 @@ export const SCALE_TYPES = [
   'harmonicMinor',
   'melodicMinor',
   'chromatic',
+  'majorArpeggio',
+  'minorArpeggio',
 ] as const;
+/** The scales, and the arpeggios of the major and minor triad in root position (S5). */
 export type ScaleType = (typeof SCALE_TYPES)[number];
 
 export const SCALE_OCTAVES = [1, 2, 3, 4] as const;
 export type ScaleOctaves = (typeof SCALE_OCTAVES)[number];
 
-export type ScaleHands = Hand | 'both';
+/**
+ * One hand; both an octave apart (parallel motion); or both from one unison tonic in contrary
+ * motion, the right hand going up while the left goes down (S5).
+ */
+export type ScaleHands = Hand | 'both' | 'contrary';
 
 /** A tonic as a letter and an accidental, e.g. `C`, `F#`, `Eb`. */
 export type Tonic = string;
@@ -46,11 +53,17 @@ export interface ScaleNote {
   midi: number;
   /** 1–5, or null when the scale has no sourced fingering. */
   finger: number | null;
-  /** The top note is the last note going up; the notes after it go down. */
+  /**
+   * The top note is the last note going up; the notes after it go down. In contrary motion the
+   * left hand goes down first: its lowest note is the last going down, and it turns there.
+   */
   direction: Direction;
-  /** The top note, where the run turns. */
+  /** Where the run turns: its top note, or the left hand's lowest in contrary motion. */
   turn: boolean;
-  /** Scale degree from the tonic, 0-based: 0–6, or 0–11 for the chromatic scale. */
+  /**
+   * Degree from the tonic, 0-based: 0–6 in a scale, 0–11 in the chromatic scale, 0–2 in an
+   * arpeggio (root, third, fifth).
+   */
   degree: number;
   crossing: Crossing;
 }

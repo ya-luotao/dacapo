@@ -1,12 +1,10 @@
 import { useId, useState } from 'react';
 import { CLICK_MAX_BPM, CLICK_MIN_BPM, NOTES_PER_BEAT } from '../../core/scaleClick.ts';
-import { tonicsOf } from '../../core/scales.ts';
+import { handsAllowed, SCALE_HANDS, tonicsOf } from '../../core/scales.ts';
 import { SCALE_OCTAVES, SCALE_TYPES, type ScaleExercise } from '../../core/scaleTypes.ts';
 import { useT } from '../../i18n/index.ts';
 import { tonicName } from './format.ts';
 import { clampTempo, type ClickPrefs } from './prefs.ts';
-
-const HANDS: readonly ScaleExercise['hands'][] = ['right', 'left', 'both'];
 
 /**
  * The choice of scale — type, key, octaves, hands — and of tempo: free, or with the click at a
@@ -45,7 +43,15 @@ export function ScalePicker({
     const tonic = after.includes(exercise.tonic)
       ? exercise.tonic
       : (after[Math.max(0, before.indexOf(exercise.tonic))] ?? after[0]!);
-    onChange({ ...exercise, type, tonic });
+    // Contrary motion where the new type has it, else both hands in parallel.
+    const hands = handsAllowed({ ...exercise, type }, exercise.hands) ? exercise.hands : 'both';
+    onChange({ ...exercise, type, tonic, hands });
+  }
+
+  /** Contrary motion goes up to three octaves: choosing it from four takes three. */
+  function setHands(hands: ScaleExercise['hands']) {
+    const octaves = handsAllowed(exercise, hands) ? exercise.octaves : 3;
+    onChange({ ...exercise, hands, octaves });
   }
 
   return (
@@ -95,6 +101,7 @@ export function ScalePicker({
                 type="radio"
                 name={`${id}-octaves`}
                 checked={exercise.octaves === octaves}
+                disabled={!handsAllowed({ ...exercise, octaves }, exercise.hands)}
                 onChange={() => onChange({ ...exercise, octaves })}
               />
               <span>{octaves}</span>
@@ -105,13 +112,15 @@ export function ScalePicker({
       <fieldset className="field" disabled={disabled}>
         <legend>{t('scales.pick.hand')}</legend>
         <div className="segmented">
-          {HANDS.map((hand) => (
+          {SCALE_HANDS.map((hand) => (
             <label key={hand}>
               <input
                 type="radio"
                 name={`${id}-hand`}
                 checked={exercise.hands === hand}
-                onChange={() => onChange({ ...exercise, hands: hand })}
+                // Contrary motion is offered for the majors, harmonic minors and chromatic.
+                disabled={!handsAllowed({ ...exercise, octaves: 1 }, hand)}
+                onChange={() => setHands(hand)}
               />
               <span>{t(`scales.hand.${hand}`)}</span>
             </label>

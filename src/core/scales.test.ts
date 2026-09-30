@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { readHanon, type HanonEntry, type HanonRun } from './hanonData.ts';
 import hanonJson from '../../scripts/scales/hanon/hanon.json?raw';
 import { isBlack } from './note.ts';
-import { HANON_CORRECTIONS } from './scaleFingering.ts';
+import { HANON_ARPEGGIOS, HANON_CORRECTIONS } from './scaleFingering.ts';
 import {
   CHROMATIC_FINGERS,
   CHROMATIC_TONICS,
@@ -10,6 +10,8 @@ import {
   FINGERING_SOURCE,
   isScaleExercise,
   keyAlters,
+  notesPerOctave,
+  SCALE_HANDS,
   keySignature,
   MAJOR_TONICS,
   MINOR_TONICS,
@@ -99,13 +101,22 @@ describe('keys', () => {
       'major:D:2:both',
     );
     const keys = new Set<string>();
-    for (const e of exercises()) {
-      const key = exerciseKey(e);
-      keys.add(key);
-      expect(parseExerciseKey(key)).toEqual(e);
-      expect(isScaleExercise(e)).toBe(true);
-    }
-    expect(keys.size).toBe((12 + 36 + 12) * 4 * 3);
+    for (const type of SCALE_TYPES)
+      for (const tonic of tonicsOf(type))
+        for (const octaves of SCALE_OCTAVES)
+          for (const hands of SCALE_HANDS) {
+            const e: ScaleExercise = { type, tonic, octaves, hands };
+            const key = exerciseKey(e);
+            if (!isScaleExercise(e)) {
+              expect(parseExerciseKey(key)).toBeNull();
+              continue;
+            }
+            keys.add(key);
+            expect(parseExerciseKey(key)).toEqual(e);
+          }
+    // Scales, chromatic and arpeggios, 1–4 octaves, three ways each; contrary motion for majors,
+    // harmonic minors and chromatic scales, 1–3 octaves.
+    expect(keys.size).toBe((12 + 36 + 12 + 24) * 4 * 3 + 36 * 3);
   });
 
   it.each([
@@ -329,7 +340,7 @@ describe('range', () => {
 describe('scaleNotes', () => {
   it('runs up and back down, the top note once, for the hands played', () => {
     for (const e of exercises()) {
-      const period = e.type === 'chromatic' ? 12 : 7;
+      const period = notesPerOctave(e.type);
       const top = period * e.octaves;
       const { right, left } = scaleNotes(e);
       expect(right.length).toBe(e.hands === 'left' ? 0 : 2 * top + 1);
@@ -559,3 +570,177 @@ describe('chromatic fingering (Hanon No. 40, at the octave)', () => {
       }
   });
 });
+
+describe('arpeggios', () => {
+  const spelled = (e: ScaleExercise) =>
+    scaleNotes(e)
+      .right.map((n) => name(n.pitch))
+      .join(' ');
+  const one = (type: ScaleType, tonic: string): ScaleExercise => ({
+    type,
+    tonic,
+    octaves: 1,
+    hands: 'right',
+  });
+
+  it('spells the root-position triad from the key', () => {
+    expect(spelled(one('majorArpeggio', 'C'))).toBe('C E G C G E C');
+    expect(spelled(one('majorArpeggio', 'F#'))).toBe('F# A# C# F# C# A# F#');
+    expect(spelled(one('majorArpeggio', 'Db'))).toBe('Db F Ab Db Ab F Db');
+    expect(spelled(one('minorArpeggio', 'G#'))).toBe('G# B D# G# D# B G#');
+    expect(spelled(one('minorArpeggio', 'Eb'))).toBe('Eb Gb Bb Eb Bb Gb Eb');
+    expect(spelled(one('minorArpeggio', 'D'))).toBe('D F A D A F D');
+    expect(keySignature('majorArpeggio', 'Eb')).toEqual({ fifths: -3, mode: 'major' });
+    expect(keySignature('minorArpeggio', 'F#')).toEqual({ fifths: 3, mode: 'minor' });
+    const two = scaleNotes({ type: 'minorArpeggio', tonic: 'A', octaves: 2, hands: 'right' });
+    expect(two.right.map((n) => n.midi)).toEqual([
+      69, 72, 76, 81, 84, 88, 93, 88, 84, 81, 76, 72, 69,
+    ]);
+    expect(two.right.map((n) => n.degree)).toEqual([0, 1, 2, 0, 1, 2, 0, 2, 1, 0, 2, 1, 0]);
+  });
+
+  it('is Hanon No. 41 exactly at four octaves, on his keys (F♯ major on G♭’s)', () => {
+    const digits = (run: string) => [...run.replace(/ /g, '')].map(Number);
+    for (const type of ['majorArpeggio', 'minorArpeggio'] as const)
+      for (const tonic of tonicsOf(type)) {
+        const key = type === 'majorArpeggio' && tonic === 'F#' ? 'Gb' : tonic;
+        const mode = type === 'majorArpeggio' ? 'major' : 'minor';
+        const h = HANON_ARPEGGIOS.find((a) => a.key === key && a.mode === mode)!;
+        const notes = scaleNotes({ type, tonic, octaves: 4, hands: 'both' });
+        for (const hand of ['right', 'left'] as const) {
+          const { up, down } = halves(notes[hand]);
+          const [upRun, downRun] = runsOf(hand);
+          expect(up.map((n) => n.finger)).toEqual(digits(h[upRun]));
+          expect(down.map((n) => n.finger)).toEqual(digits(h[downRun]));
+        }
+      }
+  });
+
+  it('cuts only where his octaves repeat, every pair of neighbours one he prints', () => {
+    for (const type of ['majorArpeggio', 'minorArpeggio'] as const)
+      for (const tonic of tonicsOf(type))
+        for (const octaves of SCALE_OCTAVES) {
+          const four = scaleNotes({ type, tonic, octaves: 4, hands: 'both' });
+          const notes = scaleNotes({ type, tonic, octaves, hands: 'both' });
+          for (const hand of ['right', 'left'] as const) {
+            const his = halves(four[hand]);
+            const ours = halves(notes[hand]);
+            for (const half of ['up', 'down'] as const) {
+              const run = his[half];
+              const pairs = new Set(
+                run.slice(1).map((n, i) => `${run[i]!.degree}:${run[i]!.finger}${n.finger}`),
+              );
+              const mine = ours[half];
+              mine.slice(1).forEach((n, i) => {
+                const pair = `${mine[i]!.degree}:${mine[i]!.finger}${n.finger}`;
+                expect(pairs, `${type} ${tonic} ${octaves} ${hand} ${half} ${i}`).toContain(pair);
+                expect(n.finger).not.toBe(mine[i]!.finger);
+              });
+              expect(mine[0]!.finger).toBe(run[0]!.finger);
+              expect(mine.at(-1)!.finger).toBe(run.at(-1)!.finger);
+            }
+          }
+        }
+  });
+
+  it('marks crossings: the thumb under going up, a finger over coming down', () => {
+    const { right } = scaleNotes({ ...one('majorArpeggio', 'C'), octaves: 2 });
+    expect(right.map(fingerMark).join(' ')).toBe('1 2 3 1u 2 3 5 3 2 1 3o 2 1');
+  });
+});
+
+describe('contrary motion', () => {
+  const contrary = (type: ScaleType, tonic: string, octaves: ScaleExercise['octaves']) =>
+    scaleNotes({ type, tonic, octaves, hands: 'contrary' });
+  const CONTRARY = ['major', 'harmonicMinor', 'chromatic'] as const;
+
+  it('is offered for majors, harmonic minors and chromatic scales, up to three octaves', () => {
+    for (const type of SCALE_TYPES)
+      for (const octaves of SCALE_OCTAVES) {
+        const e: ScaleExercise = { type, tonic: tonicsOf(type)[0]!, octaves, hands: 'contrary' };
+        expect(isScaleExercise(e), exerciseKey(e)).toBe(
+          (CONTRARY as readonly string[]).includes(type) && octaves <= 3,
+        );
+      }
+    expect(parseExerciseKey('major:D:2:contrary')).toEqual({
+      type: 'major',
+      tonic: 'D',
+      octaves: 2,
+      hands: 'contrary',
+    });
+    expect(parseExerciseKey('majorArpeggio:D:2:contrary')).toBeNull();
+    expect(parseExerciseKey('melodicMinor:D:2:contrary')).toBeNull();
+    expect(parseExerciseKey('major:D:4:contrary')).toBeNull();
+  });
+
+  it('starts both hands on one tonic near middle C, out and back', () => {
+    const { right, left } = contrary('major', 'C', 2);
+    const alone = scaleNotes({ type: 'major', tonic: 'C', octaves: 2, hands: 'right' }).right;
+    expect(right.map((n) => n.midi)).toEqual(alone.map((n) => n.midi));
+    expect([right[0]!.midi, left[0]!.midi, left[14]!.midi, left.at(-1)!.midi]).toEqual([
+      60, 60, 36, 60,
+    ]);
+    left.forEach((n, i) => {
+      expect(n.direction).toBe(i <= 14 ? 'down' : 'up');
+      expect(n.turn).toBe(i === 14);
+      if (i > 0) expect(Math.sign(n.midi - left[i - 1]!.midi)).toBe(i <= 14 ? -1 : 1);
+    });
+    expect(
+      left
+        .map((n) => name(n.pitch))
+        .slice(0, 8)
+        .join(' '),
+    ).toBe('C B A G F E D C');
+  });
+
+  it('takes the unison tonic from A3 to G♯4 and stays within A0–C8', () => {
+    for (const type of CONTRARY)
+      for (const tonic of tonicsOf(type))
+        for (const octaves of [1, 2, 3] as const) {
+          const { right, left } = contrary(type, tonic, octaves);
+          expect(right.length).toBe(left.length);
+          expect(right[0]!.midi).toBe(left[0]!.midi);
+          expect(right.at(-1)!.midi).toBe(left.at(-1)!.midi);
+          expect(right[0]!.midi).toBeGreaterThanOrEqual(57);
+          expect(right[0]!.midi).toBeLessThanOrEqual(68);
+          expect(startingTonics({ tonic, octaves, hands: 'contrary' }).left).toEqual(
+            right[0]!.pitch,
+          );
+          for (const n of [...right, ...left]) {
+            expect(n.midi).toBeGreaterThanOrEqual(21);
+            expect(n.midi).toBeLessThanOrEqual(108);
+          }
+        }
+  });
+
+  it('fingers each hand as it plays that way in parallel: the left hand down, then up', () => {
+    for (const type of CONTRARY)
+      for (const tonic of tonicsOf(type))
+        for (const octaves of [1, 2, 3] as const) {
+          const { right, left } = contrary(type, tonic, octaves);
+          const parallel = scaleNotes({ type, tonic, octaves, hands: 'both' });
+          expect(right.map((n) => n.finger)).toEqual(parallel.right.map((n) => n.finger));
+          const { up, down } = halves(parallel.left);
+          const both = [...down, ...up.slice(1)];
+          expect(left.map((n) => n.finger)).toEqual(both.map((n) => n.finger));
+          expect(left.map((n) => n.midi % 12)).toEqual(both.map((n) => n.midi % 12));
+          expect(left.map((n) => n.degree)).toEqual(both.map((n) => n.degree));
+        }
+  });
+
+  it('marks the left hand’s crossings by its own direction', () => {
+    const { left } = contrary('major', 'C', 1);
+    expect(left.map(fingerMark).join(' ')).toBe('1 2 3 1u 2 3 4 5 4 3 2 1 3o 2 1');
+  });
+
+  it('spells the chromatic scale with flats going down and sharps going up, either hand', () => {
+    const { right, left } = contrary('chromatic', 'D', 1);
+    expect(right.slice(0, 3).map((n) => name(n.pitch))).toEqual(['D', 'D#', 'E']);
+    expect(left.slice(0, 3).map((n) => name(n.pitch))).toEqual(['D', 'Db', 'C']);
+    expect(left.slice(-3).map((n) => name(n.pitch))).toEqual(['C', 'C#', 'D']);
+  });
+});
+
+function fingerMark(n: ScaleNote): string {
+  return `${n.finger}${n.crossing === 'thumbUnder' ? 'u' : n.crossing === 'fingerOver' ? 'o' : ''}`;
+}

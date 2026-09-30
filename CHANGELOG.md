@@ -12,6 +12,20 @@ version 4), scale sessions with every scale run as played (from version 5), ear-
 and sessions (from version 6), and the click's tempo and grid of scale runs played with it. Version
 1 to 6 files still import.
 
+### Arpeggios and contrary motion (S5)
+
+- **Arpeggios**: the major and minor triad in root position in every key, one to four octaves,
+  either hand or both, drawn three notes to the beat with **Hanon's fingering** from The Virtuoso
+  Pianist, No. 41 (G. Schirmer 1900), transcribed twice independently and checked digit by digit:
+  no difference between the two readings. The digits he left unprinted are filled by rules his
+  printed ones follow, each marked in the transcription.
+- **Contrary motion** for the majors, the harmonic minors and the chromatic scales, one to three
+  octaves: both hands start on one tonic near middle C, the right hand going up while the left
+  goes down, each hand fingered as it plays that way in parallel motion. The shared key at the
+  start and the end is struck once for both hands, and the analysis, the hands-apart figure, the
+  cursor and the loops know it; the left hand's figures follow its own direction, and its chart
+  marks its turn at the bottom. Contrary motion keeps its own records and progress.
+
 ### Scales with the click, and focus loops (S4)
 
 - **With the click**: beside free tempo, a scale can be played with the click at ♩ = 40–160, two,

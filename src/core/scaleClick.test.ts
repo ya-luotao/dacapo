@@ -9,7 +9,7 @@ import {
   scaleRhythmPlan,
   type NotesPerBeat,
 } from './scaleClick.ts';
-import { scaleNotes } from './scales.ts';
+import { handsPlaying, scaleNotes } from './scales.ts';
 import type { ScaleExercise } from './scaleTypes.ts';
 import { scaleHands, scaleMusicXml } from './scaleXml.ts';
 
@@ -18,7 +18,7 @@ function planOf(e: ScaleExercise, bpm: number, perBeat: NotesPerBeat) {
   const score = parseMusicXml(new DOMParser().parseFromString(xml, 'application/xml'), {
     hands: scaleHands(e),
   });
-  return scaleRhythmPlan(score, e.hands, bpm)!;
+  return scaleRhythmPlan(score, handsPlaying(e.hands), bpm)!;
 }
 
 const C_ONE: ScaleExercise = { type: 'major', tonic: 'C', octaves: 1, hands: 'right' };

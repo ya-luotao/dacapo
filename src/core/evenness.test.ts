@@ -763,3 +763,46 @@ describe('hands together', () => {
     expect(analyzeRun({ expected: [], played: [], velocityMeasured: false }).together).toBeNull();
   });
 });
+
+describe('contrary motion', () => {
+  const e = { type: 'major', tonic: 'C', octaves: 2, hands: 'contrary' } as const;
+  const { right, left } = scaleNotes(e);
+  const expected = [...right, ...left];
+  /** Both hands in time, the unison at both ends struck once (or twice when asked). */
+  function played(twice = false, lag = 0) {
+    const keys = [...right, ...left].flatMap((n) => {
+      const unison = n.index === 0 || n.index === right.length - 1;
+      if (unison && n.hand === 'left' && !twice) return [];
+      return [
+        {
+          midi: n.midi,
+          on:
+            250 * n.index + (n.hand === 'right' ? lag : 0) + (unison && n.hand === 'left' ? 3 : 0),
+          off: 250 * n.index + 240,
+          velocity: 70,
+        },
+      ];
+    });
+    return keys.sort((a, b) => a.on - b.on);
+  }
+
+  it('takes a unison struck once for both hands: a clean run, the pair unmeasured', () => {
+    const a = analyzeRun({ expected, played: played(), velocityMeasured: false });
+    expect(a.quality).toBe('ok');
+    expect(a.counts).toMatchObject({ matched: 58, wrong: 0, missed: 0, extra: 0 });
+    const t = a.together!;
+    expect(t.pairs[0]!.asynchrony).toBeNull();
+    expect(t.pairs.at(-1)!.asynchrony).toBeNull();
+    expect(t.pairs.slice(1, -1).every((p) => p.asynchrony === 0)).toBe(true);
+  });
+
+  it('measures each hand in its own direction, and a late hand as leading', () => {
+    const a = analyzeRun({ expected, played: played(true, 25), velocityMeasured: false });
+    expect(a.counts).toMatchObject({ matched: 58, missed: 0, extra: 0 });
+    expect(a.together!.leads).toBe('left');
+    const lh = a.hands.find((h) => h.hand === 'left')!;
+    expect(lh.notes[14]!.turn).toBe(true);
+    expect(lh.notes.slice(0, 14).every((n) => n.direction === 'down')).toBe(true);
+    expect(lh.timing.spread).toBeLessThan(2);
+  });
+});

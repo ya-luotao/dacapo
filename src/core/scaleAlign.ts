@@ -81,6 +81,7 @@ const MISS = 3;
 const WRONG = 4;
 const MATCH_R = 1;
 const MATCH_L = 6;
+const MATCH_BOTH = 7;
 const MISS_R = 4;
 const MISS_L = 5;
 
@@ -156,12 +157,15 @@ export function alignHand(played: readonly number[], expected: readonly number[]
 }
 
 /**
- * Both hands, in parallel motion: a DP over (played note, right-hand note, left-hand note). A
- * played note matches the next note of its key in either hand or is extra; either hand's next
- * note can be missed; every move of a hand while the hands are more than one note apart costs
- * `DRIFT` per note of difference. Of equally cheap alignments, the one chosen prefers, from the end
- * backwards, a right-hand match, a left-hand match, an extra note, a right-hand miss, a left-hand
- * miss.
+ * Both hands, in parallel or contrary motion: a DP over (played note, right-hand note, left-hand
+ * note). A played note matches the next note of its key in either hand or is extra; either hand's
+ * next note can be missed; every move of a hand while the hands are more than one note apart costs
+ * `DRIFT` per note of difference. The hands' runs are paired by index, whichever way each goes, so
+ * the DP is the same for contrary motion. Where both hands' next notes are the same key at the same
+ * place (the unison of contrary motion, where the two thumbs share a key), one key-down matches
+ * both, since a key struck once cannot sound twice; struck twice, each hand takes its own. Of
+ * equally cheap alignments, the one chosen prefers, from the end backwards, a unison match, a
+ * right-hand match, a left-hand match, an extra note, a right-hand miss, a left-hand miss.
  *
  * Only states with the hands at most `HANDS_BAND` notes apart are kept (more when the hands' runs
  * differ in length, so that the end is in the band): (played + 1)(right + 1)(2 · band + 1)
@@ -208,6 +212,21 @@ export function alignHands(
         const down = k > 0 && d > 0;
         let best = BIG;
         let how = 0;
+        // The same key due in both hands at the same place: one key-down for both. (j, k) and
+        // (j − 1, k − 1) share the band's column d.
+        if (
+          i > 0 &&
+          j === k &&
+          j > 0 &&
+          right[j - 1] === left[k - 1] &&
+          played[i - 1] === right[j - 1]
+        ) {
+          const c = before[at - w]!;
+          if (c < best) {
+            best = c;
+            how = MATCH_BOTH;
+          }
+        }
         if (i > 0 && up && played[i - 1] === right[j - 1]) {
           const c = before[at - w + 1]! + move;
           if (c < best) {
@@ -261,7 +280,11 @@ export function alignHands(
   let k = L;
   while (i > 0 || j > 0 || k > 0) {
     const how = from[i * row + j * w + (k - j - lo)];
-    if (how === MATCH_R) matchR[--j] = --i;
+    if (how === MATCH_BOTH) {
+      i--;
+      matchR[--j] = i;
+      matchL[--k] = i;
+    } else if (how === MATCH_R) matchR[--j] = --i;
     else if (how === MATCH_L) matchL[--k] = --i;
     else if (how === EXTRA) extra.push(--i);
     else if (how === MISS_R) missedR.push(--j);

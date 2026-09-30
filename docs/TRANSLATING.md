@@ -102,6 +102,8 @@ Chinese and Latin letters, digits and placeholders (`第 {n} 张`, `MIDI 键盘`
 | Scales (the page) / key (tonic)             | 音阶 / 主音                              |
 | major / natural, harmonic, melodic minor    | 大调 / 自然、和声、旋律小调              |
 | chromatic / fingering / thumb under         | 半音阶 / 指法 / 拇指穿过                 |
+| arpeggio / contrary motion / focus loop     | 琶音 / 反向（双手反向）/ 循环练          |
+| free tempo / with the click                 | 自由 / 跟节拍器                          |
 | timing spread / hesitation / loudness       | 时间波动 / 迟疑 / 力度                   |
 | Ear (the page) / question / Hear again      | 练耳 / 题 / 再听一遍                     |
 | interval / chord / triad / seventh chord    | 音程 / 和弦 / 三和弦 / 七和弦            |
@@ -155,6 +157,8 @@ terms throughout. Address the learner as 你, as zh-CN does.
 | Scales (the page) / key (tonic)           | 音階 / 主音                          | 音阶 / 主音                |
 | major / harmonic, melodic minor           | 大調 / 和聲小調、旋律小調            | 大调 / 和声小调、旋律小调  |
 | chromatic / fingering / hesitation        | 半音階 / 指法 / 遲疑                 | 半音阶 / 指法 / 迟疑       |
+| arpeggio / contrary motion / focus loop   | 琶音 / 反向（雙手反向）/ 循環練      | 双手反向、循环练           |
+| free tempo / with the click               | 自由 / 跟節拍器                      | 跟节拍器                   |
 | Ear (the page) / question / Hear again    | 練耳 / 題 / 再聽一次                 | 练耳 / 题 / 再听一遍       |
 | interval / chord / triad / seventh chord  | 音程 / 和弦 / 三和弦 / 七和弦        |                            |
 | minor, major, perfect 2nd … 12th          | 小、大、純（小二度、大三度、純五度） | 纯五度                     |
@@ -205,6 +209,8 @@ verb phrases for labels and buttons (設定, 開始, もう一度, 補正する)
 | Scales (the page) / key (tonic)             | スケール / 主音                                  |
 | major / harmonic, melodic minor             | 長音階 / 和声的短音階・旋律的短音階              |
 | chromatic / fingering / evenness            | 半音階 / 運指（指番号） / 粒のそろい             |
+| arpeggio / contrary motion / focus loop     | アルペジオ / 反行 / 部分ループ                   |
+| free tempo / with the click                 | 自由 / クリックに合わせて                        |
 | Ear (the page) / question / Hear again      | 聴音 / 問 / もう一度聴く                         |
 | interval / chord / triad / seventh chord    | 音程 / 和音 / 三和音 / 七の和音                  |
 | minor, major, perfect 2nd … 12th            | 短・長・完全（短2度、長3度、完全5度）            |
@@ -256,6 +262,8 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 | Scales (the page) / key (tonic)             | 스케일 / 으뜸음                                                      |
 | major / harmonic, melodic minor             | 장음계 / 화성 단음계, 가락 단음계                                    |
 | chromatic / fingering / loudness            | 반음계 / 손가락 번호 / 음량                                          |
+| arpeggio / contrary motion / focus loop     | 아르페지오 / 반진행 / 부분 반복                                      |
+| free tempo / with the click                 | 자유 / 클릭에 맞춰                                                   |
 | Ear (the page) / question / Hear again      | 청음 / 문제 / 다시 듣기                                              |
 | interval / chord / triad / seventh chord    | 음정 / 화음 / 3화음 / 7화음                                          |
 | minor, major, perfect 2nd … 12th            | 단, 장, 완전 (단2도, 장3도, 완전5도)                                 |

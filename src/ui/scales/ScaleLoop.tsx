@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useReducer, useState, type CSSProperties } from 'react';
 import { parseMusicXml } from '../../core/musicxml.ts';
-import { scaleNotes } from '../../core/scales.ts';
+import { handsPlaying, scaleNotes } from '../../core/scales.ts';
 import type { ScaleExercise } from '../../core/scaleTypes.ts';
 import { scaleHands, scaleMusicXml } from '../../core/scaleXml.ts';
 import { buildSteps, keyRange, type Hand } from '../../core/score.ts';
@@ -12,7 +12,7 @@ import { Piano } from '../piano/Piano.tsx';
 import { keyboardRange, whiteKeys } from '../piano/range.ts';
 import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
 import { useFocusState } from '../focus/focus.ts';
-import { spelledName, useExerciseName } from './format.ts';
+import { spelledName, useExerciseTitle } from './format.ts';
 import { loopKey, loopNotes, loopSpan, startLoop, type LoopPlace } from './loop.ts';
 
 /** A loop is a few notes: drawn as large as one octave of a scale. */
@@ -36,11 +36,11 @@ export function ScaleLoop({
   onStop: () => void;
 }) {
   const t = useT();
-  const name = useExerciseName();
+  const title = useExerciseTitle();
   const focus = useFocusState();
   const { hub, pointer } = useInput();
   const { held, sustained } = useHubState();
-  const hands = exercise.hands;
+  const hands = handsPlaying(exercise.hands);
   const notes = useMemo(() => scaleNotes(exercise), [exercise]);
   const run = notes[place.hand];
   const span = useMemo(() => loopSpan(run.length, place.index), [run.length, place.index]);
@@ -114,7 +114,7 @@ export function ScaleLoop({
     <div className="scale-session scale-loop">
       <div className="scale-head">
         <h2 className="scale-title">
-          {t('scales.loop.title', { scale: name(exercise), key: where })}
+          {t('scales.loop.title', { scale: title(exercise), key: where })}
         </h2>
         <p className="scale-status" role="status">
           {loop.rounds === 0 && loop.next === 0 && loop.played.length === 0
@@ -133,7 +133,7 @@ export function ScaleLoop({
         <ScoreView
           xml={xml}
           score={score}
-          title={t('scales.loop.title', { scale: name(exercise), key: where })}
+          title={t('scales.loop.title', { scale: title(exercise), key: where })}
           step={step}
           pressed={[]}
           hands={hands}

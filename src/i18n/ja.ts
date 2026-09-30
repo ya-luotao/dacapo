@@ -39,8 +39,8 @@ export const ja: Dictionary = {
     '音程と和音、短い旋律を耳で聴き分けます。オクターブから七の和音、半音階的な音まで。聴こえた音を鍵盤で弾くか、名前で答えます。次の問題は、よく間違えるものから出ます。',
   'home.ear.meta': '{n}レベル',
   'home.scales.text':
-    'すべての調の長音階、3種類の短音階、半音階を、ハノンの運指で。自分のテンポで弾いたあと、1音1音の粒のそろいを確かめられます。',
-  'home.scales.meta': '12の調 · 5種類のスケール',
+    'すべての調のスケールとアルペジオを、ハノンの運指で。両手の平行・反行も。自分のテンポでもクリックに合わせても弾け、1音1音の粒のそろいを確かめられます。',
+  'home.scales.meta': '12の調 · 5種類のスケール · アルペジオ',
   'home.pieces.text':
     'ベートーヴェン、バッハ、シューマンなどを本物の楽譜で。カーソルは正しい鍵盤を弾くまで待ち、リズムモードではテンポどおりに進みます。手持ちのMusicXMLもインポートできます。',
   'home.pieces.meta': '{n}曲 · MusicXML',
@@ -406,6 +406,7 @@ export const ja: Dictionary = {
   'progress.session.hands.right': '右手',
   'progress.session.hands.left': '左手',
   'progress.session.hands.both': '両手',
+  'progress.session.hands.contrary': '反行',
   'progress.kind.scales': 'スケール',
   'progress.kind.ear': '聴音',
   'progress.session.scale': 'スケール',
@@ -919,14 +920,20 @@ export const ja: Dictionary = {
   'scales.type.harmonicMinor': '和声的短音階',
   'scales.type.melodicMinor': '旋律的短音階',
   'scales.type.chromatic': '半音階',
+  'scales.type.majorArpeggio': '長三和音のアルペジオ',
+  'scales.type.minorArpeggio': '短三和音のアルペジオ',
   'scales.name.major': '{tonic}長音階',
   'scales.name.naturalMinor': '{tonic}自然的短音階',
   'scales.name.harmonicMinor': '{tonic}和声的短音階',
   'scales.name.melodicMinor': '{tonic}旋律的短音階',
   'scales.name.chromatic': '{tonic}から始まる半音階',
+  'scales.name.majorArpeggio': '{tonic}長調のアルペジオ',
+  'scales.name.minorArpeggio': '{tonic}短調のアルペジオ',
+  'scales.name.inContrary': '{scale}（反行）',
   'scales.hand.right': '右手',
   'scales.hand.left': '左手',
   'scales.hand.both': '両手',
+  'scales.hand.contrary': '反行',
   'scales.status.and': 'と',
   'scales.status.start': '{key}を弾くと始まります。テンポは自由です。',
   'scales.status.playing': '{total}音中{n}音',
@@ -983,6 +990,7 @@ export const ja: Dictionary = {
   'scales.chart.finger': '指',
   'scales.chart.loud': '強さ',
   'scales.chart.top': '頂点',
+  'scales.chart.bottom': '最低音',
   'scales.chart.desc':
     '点は1音ずつで、前後の音を結んだ線と比べています。基準はあなた自身のテンポです。×は弾き逃しかミスタッチ、音と音の間の縦線は迷いです。',
   'scales.chart.desc.loud':
@@ -1384,7 +1392,7 @@ export const ja: Dictionary = {
   'about.music.pdmx':
     '「アラベスク」（ブルグミュラー）、「兵士の行進」（シューマン）、「前奏曲 ハ長調」（J.S.バッハ）は、MuseScoreに投稿したPianoXML、jadr、OpenGoldbergの各氏がパブリックドメイン（CC0）として公開した楽譜で、dacapoプロジェクトが運指を削除しました。いずれもPhillip Long、Zachary Novack、Julian McAuley、Taylor Berg-KirkpatrickによるPDMXデータセットに収録されており、このデータセットはCC BY 4.0で公開されています。',
   'about.music.hanon':
-    'スケールの運指は、シャルル＝ルイ・ハノン『ハノン ピアノ教本』第39番・第40番（G. Schirmer、ニューヨーク、1900年）によるものです。パブリックドメインの版をdacapoプロジェクトが書き起こしました。',
+    'スケールとアルペジオの運指は、シャルル＝ルイ・ハノン『ハノン ピアノ教本』第39番・第40番・第41番（G. Schirmer、ニューヨーク、1900年）によるものです。パブリックドメインの版をdacapoプロジェクトが書き起こしました。',
   'about.sounds': '音源',
   'about.salamander':
     'Salamander Grand Piano V3（内蔵ピアノの音）：Alexander Holmが録音したヤマハC5。クリエイティブ・コモンズ 表示 3.0（CC BY 3.0）。16あるベロシティレイヤーのうち3つを、dacapoプロジェクトが切り詰めてMP3にエンコードしました。',

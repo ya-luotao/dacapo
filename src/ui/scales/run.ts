@@ -162,15 +162,18 @@ export function runStep(state: ScaleRunState, event: RunEvent): ScaleRunState {
       return { ...state, pedalAtStart: event.down, pedalDown: event.down };
     if (event.type !== 'on') return state;
     // Only the scale's first key (of either hand) starts it: whatever is played before is not the run.
-    const first = state.steps[0]?.notes.find((n) => state.expected[n]!.midi === event.midi);
-    if (first === undefined) return { ...state, wrongKey: event.midi };
+    // In contrary motion both hands' first notes are that key: one key-down plays both.
+    const first = (state.steps[0]?.notes ?? []).filter(
+      (n) => state.expected[n]!.midi === event.midi,
+    );
+    if (first.length === 0) return { ...state, wrongKey: event.midi };
     const started = advance({
       ...state,
       phase: 'playing',
       origin: event.time,
       startedAt: event.at,
       wrongKey: null,
-      played: [first],
+      played: first,
       keys: [{ midi: event.midi, velocity: event.velocity, on: 0, off: null }],
       lastKeyAt: 0,
     });
@@ -190,6 +193,7 @@ export function runStep(state: ScaleRunState, event: RunEvent): ScaleRunState {
         steps[at]!.notes.find((n) => expected[n]!.midi === event.midi && !played.includes(n));
       const started = (at: number) => steps[at]!.notes.some((n) => played.includes(n));
       let hit: number | null = null;
+      let hitStep = next;
       let at = next;
       for (let d = 0; d < LOOKAHEAD && hit === null; d++) {
         const behind = next - d;
@@ -197,6 +201,7 @@ export function runStep(state: ScaleRunState, event: RunEvent): ScaleRunState {
           const note = noteIn(behind);
           if (note !== undefined) {
             hit = note;
+            hitStep = behind;
             at = next;
             break;
           }
@@ -206,6 +211,7 @@ export function runStep(state: ScaleRunState, event: RunEvent): ScaleRunState {
           const note = noteIn(ahead);
           if (note !== undefined) {
             hit = note;
+            hitStep = ahead;
             at = ahead;
           }
         }
@@ -219,7 +225,14 @@ export function runStep(state: ScaleRunState, event: RunEvent): ScaleRunState {
               lastKeyAt: on,
               wrongKey: null,
               next: at,
-              played: [...played, hit],
+              // The unison of contrary motion: the step's other note of this key goes with it.
+              played: [
+                ...played,
+                hit,
+                ...steps[hitStep]!.notes.filter(
+                  (n) => n !== hit && expected[n]!.midi === event.midi && !played.includes(n),
+                ),
+              ],
             });
       return moved.next >= steps.length ? finish(moved, 'finished') : moved;
     }

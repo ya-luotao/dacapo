@@ -21,7 +21,7 @@ export function tonicName(tonic: string): string {
   return tonic.replace('b', '♭').replace('#', '♯');
 }
 
-export type ScaleKind = Exclude<ScaleType, 'chromatic'>;
+export type ScaleKind = Exclude<ScaleType, 'chromatic' | 'majorArpeggio' | 'minorArpeggio'>;
 
 export interface ScaleStep {
   pitch: Pitch;

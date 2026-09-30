@@ -471,3 +471,53 @@ describe('alignHands in a band', () => {
 function interleaveShort(right: readonly number[], left: readonly number[]): number[] {
   return right.flatMap((x, i) => (i < left.length ? [x, left[i]!] : [x]));
 }
+
+describe('alignHands in contrary motion', () => {
+  // C4 up to C6 and back in the right hand; C4 down to C2 and back in the left.
+  const rh = upDown(60, 2);
+  const low = upDown(36, 2); // C2–C4–C2
+  const left = [...low.slice(14), ...low.slice(1, 15)];
+
+  it('has the hands start and end on one key', () => {
+    expect([rh[0], left[0], rh.at(-1), left.at(-1)]).toEqual([60, 60, 60, 60]);
+    expect(left[14]).toBe(36);
+  });
+
+  it('gives a unison key struck once to both hands', () => {
+    // Pairs in order, the unison at both ends struck once.
+    const played = rh.flatMap((r, i) => (i === 0 || i === rh.length - 1 ? [r] : [r, left[i]!]));
+    const a = alignHands(played, rh, left);
+    expect(a.right.played[0]).toBe(0);
+    expect(a.left.played[0]).toBe(0);
+    expect(a.right.played.at(-1)).toBe(played.length - 1);
+    expect(a.left.played.at(-1)).toBe(played.length - 1);
+    expect([a.right.missed, a.left.missed, a.extra]).toEqual([[], [], []]);
+    rh.forEach((_, i) => {
+      if (i === 0 || i === rh.length - 1) return;
+      expect(a.right.played[i]).toBe(2 * i - 1);
+      expect(a.left.played[i]).toBe(2 * i);
+    });
+  });
+
+  it('gives each hand its own key-down when the unison is struck twice', () => {
+    const played = rh.flatMap((r, i) => [r, left[i]!]);
+    const a = alignHands(played, rh, left);
+    // Each key-down to one hand; which hand takes which of the two unison strikes is a tie.
+    rh.forEach((_, i) => {
+      expect([a.right.played[i], a.left.played[i]].sort((x, y) => x! - y!)).toEqual([
+        2 * i,
+        2 * i + 1,
+      ]);
+    });
+    expect([a.right.missed, a.left.missed, a.extra]).toEqual([[], [], []]);
+  });
+
+  it('never takes one key-down for both hands where their keys differ', () => {
+    // Parallel motion: the same key in both hands, never at the same index.
+    const lh8 = upDown(48, 2);
+    const played = rh.flatMap((r, i) => [r, lh8[i]!]);
+    const a = alignHands(played, rh, lh8);
+    const shared = a.right.played.filter((p, i) => p !== null && p === a.left.played[i]);
+    expect(shared).toEqual([]);
+  });
+});

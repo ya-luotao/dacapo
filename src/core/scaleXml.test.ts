@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
 import { parseMusicXml } from './musicxml.ts';
-import { keyAlters, keySignature, scaleNotes, tonicsOf } from './scales.ts';
+import { isScaleExercise, keyAlters, keySignature, scaleNotes, tonicsOf } from './scales.ts';
 import {
   clefs,
   octaveShifts,
@@ -36,7 +36,10 @@ function* allExercises(hands: ScaleExercise['hands'][] = ['both']): Generator<Sc
   for (const type of SCALE_TYPES)
     for (const tonic of tonicsOf(type))
       for (const octaves of SCALE_OCTAVES)
-        for (const h of hands) yield { type, tonic, octaves, hands: h };
+        for (const h of hands) {
+          const e: ScaleExercise = { type, tonic, octaves, hands: h };
+          if (isScaleExercise(e)) yield e;
+        }
 }
 
 const label = (e: ScaleExercise, o?: ScaleXmlOptions) =>
@@ -194,7 +197,7 @@ describe('scaleMusicXml', () => {
   // scale, and reads as written (accidentals, octave signs, clefs). One test per type, as a parse
   // is slow (jsdom).
   it.each(SCALE_TYPES)('holds for every %s exercise', { timeout: 60_000 }, (type) => {
-    for (const e of allExercises(['both', 'right', 'left']))
+    for (const e of allExercises(['both', 'right', 'left', 'contrary']))
       for (const notesPerBeat of perBeatFor(e)) {
         if (e.type !== type) continue;
         const where = label(e, { notesPerBeat });

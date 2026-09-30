@@ -102,8 +102,8 @@ in `<identification>`.
 ## Music (the fingering of the scales)
 
 The fingering shown on the Scales page is Charles-Louis Hanon's, from _The Virtuoso Pianist_,
-Nos. 39 (the major and minor scales) and 40 (the chromatic scales), G. Schirmer, New York, n.d.
-[1900], plate 15538, in the public domain (IMSLP #91547,
+Nos. 39 (the major and minor scales), 40 (the chromatic scales) and 41 (the arpeggios on the
+triads), G. Schirmer, New York, n.d. [1900], plate 15538, in the public domain (IMSLP #91547,
 <https://imslp.org/wiki/The_Virtuoso_Pianist_(Hanon,_Charles-Louis)>). The dacapo project
 transcribed it digit by digit; the transcription, its checks and the one correction are in
 `scripts/scales/hanon/`.

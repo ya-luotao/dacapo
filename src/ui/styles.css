@@ -666,7 +666,7 @@ select {
 }
 
 @media (hover: hover) {
-  .segmented input:not(:checked):hover + span {
+  .segmented input:not(:checked, :disabled):hover + span {
     background: var(--sunk);
   }
 }
@@ -674,6 +674,16 @@ select {
 .segmented input:focus-visible + span {
   outline: 2px solid var(--focus);
   outline-offset: -4px;
+}
+
+/* A choice not open for this setting (four octaves in contrary motion, say). */
+.segmented input:disabled {
+  cursor: not-allowed;
+}
+
+.segmented input:disabled:not(:checked) + span {
+  color: var(--text-muted);
+  opacity: 0.5;
 }
 
 .check,

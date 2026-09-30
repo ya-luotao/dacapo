@@ -79,8 +79,9 @@ practising the notes you are slowest at. Progress is visible day by day.
   sped up or slowed down. "Weak bars" tints each bar by how long you hesitated there, or how far
   off the beat you were, in your last runs, and one click loops the weakest ones. If the file has
   fingering, the keys marked on the keyboard show which finger to use.
-- **Scales, measured for evenness.** Major, the three minors and chromatic in every key, one to
-  four octaves, one hand or both, drawn with Hanon's fingering. Play at your own tempo or with the
+- **Scales, measured for evenness.** Major, the three minors, chromatic and the major and minor
+  arpeggios in every key, one to four octaves, one hand, both, or in contrary motion from one
+  tonic, drawn with Hanon's fingering. Play at your own tempo or with the
   click (♩ = 40–160, two, three or four notes to the beat, after a bar of count-in): afterwards you
   see how even the notes were in time (against the 8–9 ms of professional pianists), in loudness
   and in legato, note by note on a chart and in colour on the score, including where the thumb
@@ -179,7 +180,6 @@ static file host without rewrite rules. To serve it below the site root, build w
 
 These are deliberately out of scope for the MVP and are the candidates once it is used daily:
 
-- Arpeggios and contrary motion on the Scales page
 - More theory: intervals, key signatures and chords on the staff ([docs/EAR.md](docs/EAR.md))
 - AI coaching
 

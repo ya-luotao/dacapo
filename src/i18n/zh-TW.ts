@@ -38,8 +38,8 @@ export const zhTW: Dictionary = {
     '用耳朵分辨音程、和弦與短旋律，從八度到七和弦和變化音。把聽到的在琴上彈出來，或是選出名稱；下一題會優先出你常答錯的。',
   'home.ear.meta': '{n} 個等級',
   'home.scales.text':
-    '所有調的大調、三種小調和半音階，採用哈農的指法。用自己的速度彈，彈完看看每個音有多均勻。',
-  'home.scales.meta': '12 個調 · 5 種音階',
+    '所有調的音階和琶音，採用哈農的指法，可雙手同向或反向。用自己的速度或跟著節拍器彈，彈完看看每個音有多均勻。',
+  'home.scales.meta': '12 個調 · 5 種音階 · 琶音',
   'home.pieces.text':
     '貝多芬、巴哈、舒曼等名家作品，在真正的樂譜上彈。游標會等你彈對，節奏模式下則跟著拍子走。也可以匯入你自己的 MusicXML。',
   'home.pieces.meta': '{n} 首樂曲 · MusicXML',
@@ -399,6 +399,7 @@ export const zhTW: Dictionary = {
   'progress.session.hands.right': '右手',
   'progress.session.hands.left': '左手',
   'progress.session.hands.both': '雙手',
+  'progress.session.hands.contrary': '雙手反向',
   'progress.kind.scales': '音階',
   'progress.kind.ear': '練耳',
   'progress.session.scale': '音階',
@@ -874,14 +875,20 @@ export const zhTW: Dictionary = {
   'scales.type.harmonicMinor': '和聲小調',
   'scales.type.melodicMinor': '旋律小調',
   'scales.type.chromatic': '半音階',
+  'scales.type.majorArpeggio': '大調琶音',
+  'scales.type.minorArpeggio': '小調琶音',
   'scales.name.major': '{tonic} 大調音階',
   'scales.name.naturalMinor': '{tonic} 自然小調音階',
   'scales.name.harmonicMinor': '{tonic} 和聲小調音階',
   'scales.name.melodicMinor': '{tonic} 旋律小調音階',
   'scales.name.chromatic': '從 {tonic} 開始的半音階',
+  'scales.name.majorArpeggio': '{tonic} 大調琶音',
+  'scales.name.minorArpeggio': '{tonic} 小調琶音',
+  'scales.name.inContrary': '{scale}（雙手反向）',
   'scales.hand.right': '右手',
   'scales.hand.left': '左手',
   'scales.hand.both': '雙手',
+  'scales.hand.contrary': '反向',
   'scales.status.and': ' 和 ',
   'scales.status.start': '彈 {key} 開始，速度由你決定。',
   'scales.status.playing': '已彈 {n} / {total} 個音',
@@ -936,6 +943,7 @@ export const zhTW: Dictionary = {
   'scales.chart.finger': '指法',
   'scales.chart.loud': '力度',
   'scales.chart.top': '頂',
+  'scales.chart.bottom': '底',
   'scales.chart.desc':
     '每個點是一個音，和它前後幾個音連成的線相比，所以以你自己的速度為準。叉號是漏彈或彈錯的音；兩個音之間的直線表示遲疑。',
   'scales.chart.desc.loud':
@@ -1311,7 +1319,7 @@ export const zhTW: Dictionary = {
   'about.music.pdmx':
     '〈阿拉貝斯克〉（布爾格彌勒）、〈士兵進行曲〉（舒曼）和〈C 大調前奏曲〉（巴哈）是 MuseScore 上的樂譜，上傳者 PianoXML、jadr 和 OpenGoldberg 已將它們貢獻到公有領域（CC0）；dacapo 專案刪去了其中的指法。它們來自 Phillip Long、Zachary Novack、Julian McAuley 和 Taylor Berg-Kirkpatrick 的 PDMX 資料集，該資料集以 CC BY 4.0 授權釋出。',
   'about.music.hanon':
-    '音階的指法出自夏爾-路易‧哈農的《鋼琴技巧練習》第 39、40 首（G. Schirmer，紐約，1900 年）。這是公有領域的版本，由 dacapo 專案轉錄。',
+    '音階和琶音的指法出自夏爾-路易‧哈農的《鋼琴技巧練習》第 39、40、41 首（G. Schirmer，紐約，1900 年）。這是公有領域的版本，由 dacapo 專案轉錄。',
   'about.sounds': '音色',
   'about.salamander':
     'Salamander Grand Piano V3，內建鋼琴的音色：Alexander Holm 錄製的山葉 C5。創用 CC 姓名標示 3.0（CC BY 3.0）。dacapo 專案從它的 16 個力度層中選用 3 層，裁剪後編碼為 MP3。',

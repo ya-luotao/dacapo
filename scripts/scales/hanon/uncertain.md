@@ -61,3 +61,20 @@ turning points (all filled by the thumb-crossing rule, see `build.py`):
   needs a different fingering (C♯ and F♯ RH, G♯ LH), and (c) D major LH 55 (item 2).
 - **Note counts:** No. 39 = 29 notes up + 27 down + inferred tonic per hand; No. 40 = 12 notes per bar in
   every bar of every form.
+
+## No. 41 (arpeggios, PDF pp. 66–69)
+
+Read twice independently: `pass1/data41.py` (all 24 keys) and `pass2/data41_A.py`,
+`data41_B.py` (two readers, pages 66–67 and 68–69); `diff41.py` finds **no difference** in any digit,
+key, mode or starting note. The doubtful digits, each read the same way by both passes:
+
+| #   | Scale               | Hand, index (note)         | Reading | Why doubtful                                                                                                                                                                                                                                                    |
+| --- | ------------------- | -------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | C minor (p. 66)     | LH 21 (C3, bar 2)          | **1**   | Damaged glyph in #91547: a stray diagonal on the left and a gap across the middle, so a broken 4 could not be ruled out at 600 dpi. Clean **1** in the second copy (IMSLP #00875, PDF p. 45), and 1 is the finger of C through every other octave both ways.    |
+| 2   | B minor (p. 68)     | RH 3 (B3)                  | 1       | Sits above the right end of the first beam, just left of the next group; given to B3 by position, and the thumb on the root fits every other octave.                                                                                                            |
+| 3   | E♭ major (p. 66)    | LH 4 (G3) and 5 (B♭3)      | –, 4    | No digit under G3; the 4 stands under B♭3. Both readers agree. The filled G3 takes 1 by the octave, as every other G of the run.                                                                                                                                |
+| 4   | several (pp. 66–69) | digits on or across a line | as read | 1s crossed by a staff or ledger line (they can look like 4s); each was zoomed and has the notched top and no diagonal of a 1, and the 4s their diagonal: C major LH 15; F major LH 18; D minor LH 12–15, 18; B♭ major LH 9, 12–16; B major RH 3; E major LH 18. |
+
+Notable places with no printed digit (filled by the rules of `build41.py`): D minor and A major
+RH 12–15 (the top group), C major LH 12, G minor LH 13–14, the closing root of the majors G♭, B,
+E, A, D and G, and D♭ major RH 11.

@@ -69,7 +69,7 @@ export function ScaleProgress({
       ? t(`scales.places.${p.crossing}.${p.direction}`, { keys, timing, runs: p.runs })
       : t(`scales.places.notes.${p.direction}`, { keys, timing, runs: p.runs });
     // Hands together, each hand has its own places: say which.
-    return exercise.hands === 'both'
+    return exercise.hands === 'both' || exercise.hands === 'contrary'
       ? t('scales.result.forHand', { hand: t(`scales.hand.${p.hand}`), text })
       : text;
   };

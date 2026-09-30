@@ -258,3 +258,23 @@ describe('with the click', () => {
     expect(again).toMatchObject({ phase: 'waiting', keys: [], grid: { origin: T0 + 9000 } });
   });
 });
+
+describe('contrary motion', () => {
+  const { right, left } = scaleNotes({ type: 'major', tonic: 'C', octaves: 1, hands: 'contrary' });
+  const expected = [...right, ...left];
+
+  it('takes the unison tonic struck once for both hands, at the start and at the end', () => {
+    let state = sessionStep(waitingRun(expected), on(60, 0));
+    expect(state.phase).toBe('playing');
+    expect(state.played).toHaveLength(2);
+    expect(state.next).toBe(1);
+    right.slice(1, -1).forEach((r, i) => {
+      state = sessionStep(state, on(r.midi, (i + 1) * 250));
+      state = sessionStep(state, on(left[i + 1]!.midi, (i + 1) * 250 + 5));
+    });
+    expect(state.phase).toBe('playing');
+    state = sessionStep(state, on(60, 14 * 250));
+    expect(state.end).toBe('finished');
+    expect(state.played).toHaveLength(expected.length);
+  });
+});

@@ -15,8 +15,14 @@ import {
   type ScaleType,
   type Tonic,
 } from './scaleTypes.ts';
-import { HANON_CHROMATIC, HANON_EDITION, HANON_SCALES, type HanonRuns } from './scaleFingering.ts';
-import type { Hand, SpelledPitch } from './score.ts';
+import {
+  HANON_ARPEGGIOS,
+  HANON_CHROMATIC,
+  HANON_EDITION,
+  HANON_SCALES,
+  type HanonRuns,
+} from './scaleFingering.ts';
+import type { Hand, HandSelection, SpelledPitch } from './score.ts';
 
 /** Where the fingering comes from, for the page and the credits. */
 export const FINGERING_SOURCE = HANON_EDITION;
@@ -66,10 +72,38 @@ export const CHROMATIC_TONICS = [
   'B',
 ] as const;
 
-export const SCALE_HANDS: readonly ScaleHands[] = ['right', 'left', 'both'];
+export const SCALE_HANDS: readonly ScaleHands[] = ['right', 'left', 'both', 'contrary'];
+
+/**
+ * Contrary motion from a unison tonic is offered for the majors, the harmonic minors and the
+ * chromatic scale, as graded exams set it; up to three octaves, since from a tonic near middle C
+ * a fourth would leave the keyboard (docs/SCALES.md, "Clarifications (decided during S5)").
+ */
+export const CONTRARY_TYPES: readonly ScaleType[] = ['major', 'harmonicMinor', 'chromatic'];
+export const CONTRARY_MAX_OCTAVES = 3;
+
+/** An arpeggio: the root-position triad of the key, up and down. */
+export function isArpeggio(type: ScaleType): boolean {
+  return type === 'majorArpeggio' || type === 'minorArpeggio';
+}
+
+/** Whether the exercise can be played so: contrary motion only for some scales and octaves. */
+export function handsAllowed(
+  e: Pick<ScaleExercise, 'type' | 'octaves'>,
+  hands: ScaleHands,
+): boolean {
+  return (
+    hands !== 'contrary' || (CONTRARY_TYPES.includes(e.type) && e.octaves <= CONTRARY_MAX_OCTAVES)
+  );
+}
+
+/** The hands that play, for the score and the keyboard: contrary motion is both. */
+export function handsPlaying(hands: ScaleHands): HandSelection {
+  return hands === 'contrary' ? 'both' : hands;
+}
 
 export function tonicsOf(type: ScaleType): readonly Tonic[] {
-  if (type === 'major') return MAJOR_TONICS;
+  if (type === 'major' || type === 'majorArpeggio') return MAJOR_TONICS;
   if (type === 'chromatic') return CHROMATIC_TONICS;
   return MINOR_TONICS;
 }
@@ -88,7 +122,8 @@ export function isScaleExercise(value: unknown): value is ScaleExercise {
     typeof e.tonic === 'string' &&
     tonicsOf(e.type as ScaleType).includes(e.tonic) &&
     (SCALE_OCTAVES as readonly unknown[]).includes(e.octaves) &&
-    (SCALE_HANDS as readonly unknown[]).includes(e.hands)
+    (SCALE_HANDS as readonly unknown[]).includes(e.hands) &&
+    handsAllowed(e as unknown as ScaleExercise, e.hands as ScaleHands)
   );
 }
 
@@ -105,7 +140,10 @@ export function parseExerciseKey(key: string): ScaleExercise | null {
 // Spelling ------------------------------------------------------------------------------------
 
 /** Semitones from each degree to the next, from the tonic round to the octave. */
-const STEPS: Record<Exclude<ScaleType, 'chromatic'>, { up: number[]; down: number[] }> = {
+const STEPS: Record<
+  Exclude<ScaleType, 'chromatic' | 'majorArpeggio' | 'minorArpeggio'>,
+  { up: number[]; down: number[] }
+> = {
   major: { up: [2, 2, 1, 2, 2, 2, 1], down: [2, 2, 1, 2, 2, 2, 1] },
   naturalMinor: { up: [2, 1, 2, 2, 1, 2, 2], down: [2, 1, 2, 2, 1, 2, 2] },
   harmonicMinor: { up: [2, 1, 2, 2, 1, 3, 1], down: [2, 1, 2, 2, 1, 3, 1] },
@@ -151,13 +189,23 @@ export function tonicPitch(tonic: Tonic, octave: number): SpelledPitch {
   return { step: match[1] as Letter, alter, octave };
 }
 
-/** Notes per octave: 7, or 12 for the chromatic scale. */
+/** Notes per octave: 7, 12 for the chromatic scale, 3 for an arpeggio. */
 export function notesPerOctave(type: ScaleType): number {
-  return type === 'chromatic' ? 12 : 7;
+  return type === 'chromatic' ? 12 : isArpeggio(type) ? 3 : 7;
 }
 
 /** The note `position` steps above the tonic, spelled for the given direction. */
-function spell(type: ScaleType, tonic: SpelledPitch, position: number, dir: Direction) {
+function spell(
+  type: ScaleType,
+  tonic: SpelledPitch,
+  position: number,
+  dir: Direction,
+): SpelledPitch {
+  // An arpeggio's notes are the 1st, 3rd and 5th degrees of its key's scale.
+  if (type === 'majorArpeggio' || type === 'minorArpeggio') {
+    const scale = type === 'majorArpeggio' ? 'major' : 'naturalMinor';
+    return spell(scale, tonic, 7 * Math.floor(position / 3) + 2 * (position % 3), dir);
+  }
   const tonicMidi = midiOf(tonic);
   if (type === 'chromatic') {
     const offset = position % 12;
@@ -203,13 +251,28 @@ export function rightHandFloor(octaves: number): number {
 }
 
 /**
- * The tonic each hand starts on: the right hand on the lowest tonic at or above its floor, the
- * left an octave lower. Hands separate start where they would in hands together.
+ * Contrary motion starts both hands on one tonic, the one from A3 to G♯4: near middle C, and three
+ * octaves either way from it stay within A0–C8.
  */
-export function startingTonics(e: Pick<ScaleExercise, 'tonic' | 'octaves'>): {
+export const UNISON_FLOOR = 57;
+
+/**
+ * The tonic each hand starts on: the right hand on the lowest tonic at or above its floor, the
+ * left an octave lower. Hands separate start where they would in hands together. In contrary
+ * motion both start on the same tonic, the lowest at or above `UNISON_FLOOR`.
+ */
+export function startingTonics(
+  e: Pick<ScaleExercise, 'tonic' | 'octaves'> & { hands?: ScaleHands },
+): {
   right: SpelledPitch;
   left: SpelledPitch;
 } {
+  if (e.hands === 'contrary') {
+    let unison = tonicPitch(e.tonic, 4);
+    while (midiOf(unison) < UNISON_FLOOR) unison = { ...unison, octave: unison.octave + 1 };
+    while (midiOf(unison) >= UNISON_FLOOR + 12) unison = { ...unison, octave: unison.octave - 1 };
+    return { right: unison, left: unison };
+  }
   const floor = rightHandFloor(e.octaves);
   let right = tonicPitch(e.tonic, 4);
   while (midiOf(right) < floor) right = { ...right, octave: right.octave + 1 };
@@ -261,6 +324,12 @@ export function shortenRun(run: readonly number[], period: number, octaves: numb
 }
 
 function hanonScale(type: ScaleType, tonic: Tonic): Runs | null {
+  if (type === 'majorArpeggio' || type === 'minorArpeggio') {
+    // F♯ major as G♭, as for the scale; No. 41 has every other key under our spelling.
+    const key = type === 'majorArpeggio' && tonic === 'F#' ? 'Gb' : tonic;
+    const mode = type === 'majorArpeggio' ? 'major' : 'minor';
+    return HANON_ARPEGGIOS.find((a) => a.key === key && a.mode === mode) ?? null;
+  }
   if (type === 'naturalMinor' || type === 'chromatic') return null;
   // F♯ major is played on the keys of Hanon's G♭ major.
   const key = type === 'major' && tonic === 'F#' ? 'Gb' : tonic;
@@ -312,9 +381,10 @@ export function scaleFingering(
   }
   const runs = hanonScale(e.type, e.tonic);
   if (!runs) return null;
+  const period = notesPerOctave(e.type);
   return {
-    up: shortenRun(digits(runs[upRun]), 7, e.octaves),
-    down: shortenRun(digits(runs[downRun]), 7, e.octaves),
+    up: shortenRun(digits(runs[upRun]), period, e.octaves),
+    down: shortenRun(digits(runs[downRun]), period, e.octaves),
   };
 }
 
@@ -329,20 +399,34 @@ function crossingOf(hand: Hand, dir: Direction, finger: number | null, previous:
   return finger >= 3 && previous === 1 ? 'fingerOver' : null;
 }
 
-function handRun(e: ScaleExercise, hand: Hand, tonic: SpelledPitch): ScaleNote[] {
+/**
+ * One hand's run from `tonic`: up and back down, or, `descending` (the left hand in contrary
+ * motion), down to the tonic `octaves` below and back up. The fingering is the hand's own each
+ * way (`scaleFingering`'s up from the lowest tonic, down from the top), so the left hand in
+ * contrary motion plays its descent and then its ascent: every pair of neighbouring fingers is one
+ * Hanon prints on the same notes in the same direction.
+ */
+function handRun(
+  e: ScaleExercise,
+  hand: Hand,
+  tonic: SpelledPitch,
+  descending = false,
+): ScaleNote[] {
   const period = notesPerOctave(e.type);
   const top = period * e.octaves;
   const fingering = scaleFingering(e, hand);
+  const lowest = descending ? { ...tonic, octave: tonic.octave - e.octaves } : tonic;
   const notes: ScaleNote[] = [];
   for (let index = 0; index <= 2 * top; index++) {
-    const direction: Direction = index <= top ? 'up' : 'down';
-    // Steps above the tonic.
-    const position = index <= top ? index : 2 * top - index;
-    const pitch = spell(e.type, tonic, position, direction);
+    const first = index <= top;
+    const direction: Direction = first === !descending ? 'up' : 'down';
+    // Steps above the lowest tonic.
+    const position = descending ? Math.abs(top - index) : first ? index : 2 * top - index;
+    const pitch = spell(e.type, lowest, position, direction);
     const finger = fingering
-      ? direction === 'up'
-        ? fingering.up[index]!
-        : fingering.down[index - top]!
+      ? direction === 'down'
+        ? fingering.down[descending ? index : index - top]!
+        : fingering.up[descending ? index - top : index]!
       : null;
     const crossing: Crossing = crossingOf(hand, direction, finger, notes.at(-1)?.finger ?? null);
     notes.push({
@@ -360,13 +444,16 @@ function handRun(e: ScaleExercise, hand: Hand, tonic: SpelledPitch): ScaleNote[]
   return notes;
 }
 
-/** Each hand's run, up and back down, the top note once; empty for a hand not played. */
+/**
+ * Each hand's run, up and back down (the left hand down and back up in contrary motion), the
+ * turning note once; empty for a hand not played.
+ */
 export function scaleNotes(e: ScaleExercise): { right: ScaleNote[]; left: ScaleNote[] } {
   if (!isScaleExercise(e)) throw new Error(`not a scale exercise: ${JSON.stringify(e)}`);
   const tonics = startingTonics(e);
   return {
     right: e.hands === 'left' ? [] : handRun(e, 'right', tonics.right),
-    left: e.hands === 'right' ? [] : handRun(e, 'left', tonics.left),
+    left: e.hands === 'right' ? [] : handRun(e, 'left', tonics.left, e.hands === 'contrary'),
   };
 }
 
@@ -382,7 +469,9 @@ export function keySignature(
   if (type === 'chromatic') return { fifths: 0, mode: 'major' };
   const t = tonicPitch(tonic, 4);
   const major = LETTER_FIFTHS[t.step] + 7 * t.alter;
-  return type === 'major' ? { fifths: major, mode: 'major' } : { fifths: major - 3, mode: 'minor' };
+  return type === 'major' || type === 'majorArpeggio'
+    ? { fifths: major, mode: 'major' }
+    : { fifths: major - 3, mode: 'minor' };
 }
 
 /** The alteration the key signature gives each letter. */

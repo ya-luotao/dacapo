@@ -6,7 +6,7 @@
 // Verovio draws what the file says and infers nothing, so the file spells out the accidentals,
 // the beams, the clef changes and the octave signs.
 
-import { keyAlters, keySignature, scaleNotes } from './scales.ts';
+import { isArpeggio, keyAlters, keySignature, scaleNotes } from './scales.ts';
 import type { ScaleExercise, ScaleNote } from './scaleTypes.ts';
 import { staffKey, type Hand, type StaffHands } from './score.ts';
 
@@ -295,23 +295,32 @@ function noteXml(
 }
 
 /**
- * MusicXML 4.0 (partwise) for the exercise. One hand is drawn on one staff (treble for the right
- * hand, bass for the left), which the page can draw larger; the part is named after the hand so
- * that parseMusicXml (hands.ts) gives its notes to that hand.
- */
-/**
  * Which hand each staff of the exercise's score is, for `parseMusicXml`'s `hands`: one hand is one
  * staff, both hands a grand staff. Given explicitly, so the scale never depends on how an imported
  * piece's hands are guessed.
  */
 export function scaleHands(e: Pick<ScaleExercise, 'hands'>): StaffHands {
-  return e.hands === 'both'
+  return e.hands === 'both' || e.hands === 'contrary'
     ? { [staffKey(0, 1)]: 'right', [staffKey(0, 2)]: 'left' }
     : { [staffKey(0, 1)]: e.hands };
 }
 
+/**
+ * Notes to the beat when the tempo is free: sixteenths for a scale, triplets for an arpeggio, so
+ * each beat is one octave of the triad from its root (the click sets its own).
+ */
+export function freePerBeat(type: ScaleExercise['type']): 3 | 4 {
+  return isArpeggio(type) ? 3 : 4;
+}
+
+/**
+ * MusicXML 4.0 (partwise) for the exercise. One hand is drawn on one staff (treble for the right
+ * hand, bass for the left), which the page can draw larger; both hands, in parallel or contrary
+ * motion, on a grand staff. The part is named after the hand so that parseMusicXml (hands.ts)
+ * gives its notes to that hand.
+ */
 export function scaleMusicXml(e: ScaleExercise, options: ScaleXmlOptions = {}): string {
-  const perBeat = options.notesPerBeat ?? 4;
+  const perBeat = options.notesPerBeat ?? freePerBeat(e.type);
   const whole = scaleNotes(e);
   const { loop } = options;
   const cut = (notes: ScaleNote[]) => (loop ? notes.slice(loop.from, loop.to + 1) : notes);

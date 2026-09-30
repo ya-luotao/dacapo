@@ -15,9 +15,9 @@ import { clickTimings, scaleRhythmPlan, type ClickSettings } from '../../core/sc
 import { scaleProgress } from '../../core/scaleProgress.ts';
 import { dayKey } from '../../core/streak.ts';
 import type { ScaleSession } from '../../core/scaleRecords.ts';
-import { exerciseKey, scaleNotes } from '../../core/scales.ts';
+import { exerciseKey, handsPlaying, scaleNotes } from '../../core/scales.ts';
 import type { ScaleExercise } from '../../core/scaleTypes.ts';
-import { scaleHands, scaleMusicXml } from '../../core/scaleXml.ts';
+import { freePerBeat, scaleHands, scaleMusicXml } from '../../core/scaleXml.ts';
 import { buildSteps, keyRange, type Hand } from '../../core/score.ts';
 import { useT } from '../../i18n/index.ts';
 import type { MidiStatus } from '../../input/index.ts';
@@ -37,7 +37,7 @@ import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
 import { FocusBar, FocusEnter } from '../focus/FocusBar.tsx';
 import { useFocusState } from '../focus/focus.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
-import { spelledName, useExerciseName } from './format.ts';
+import { spelledName, useExerciseTitle } from './format.ts';
 import { KeyboardHint } from './KeyboardHint.tsx';
 import type { LoopPlace } from './loop.ts';
 import {
@@ -77,12 +77,10 @@ const ENGRAVING: Engraving = { lastJustification: 0.35, ottavaText: true };
 const GUIDE_PREF = 'dacapo.scales.guide';
 /** Offered once per browser, before the first run with the click (shared with Pieces). */
 const CALIBRATION_OFFERED_PREF = 'dacapo.latency.offered';
-/** Free tempo draws sixteenths, four to the beat. */
-const FREE_PER_BEAT = 4;
 
 export function ScalesPage() {
   const t = useT();
-  const name = useExerciseName();
+  const title = useExerciseTitle();
   const [exercise, setExerciseState] = useState(readExercise);
   const [click, setClickState] = useState(readClickPrefs);
   const [loop, setLoop] = useState<LoopPlace | null>(null);
@@ -146,7 +144,7 @@ export function ScalesPage() {
       <h1 className="visually-hidden">{t('scales.title')}</h1>
       {focus.on && (
         <FocusBar
-          heading={<h2 className="focus-title">{name(exercise)}</h2>}
+          heading={<h2 className="focus-title">{title(exercise)}</h2>}
           settings={{
             open: settingsOpen,
             onToggle: () => setSettingsOpen((open) => !open),
@@ -171,7 +169,7 @@ export function ScalesPage() {
             key={`${exerciseKey(exercise)}:${loop.hand}:${loop.index}`}
             exercise={exercise}
             place={loop}
-            perBeat={FREE_PER_BEAT}
+            perBeat={freePerBeat(exercise.type)}
             onStop={() => {
               setLoop(null);
               stage.current?.focus({ preventScroll: true });
@@ -239,7 +237,7 @@ function ScaleSession({
   onClicking: (on: boolean) => void;
 }) {
   const t = useT();
-  const name = useExerciseName();
+  const title = useExerciseTitle();
   const focus = useFocusState();
   const [guide, setGuideState] = useState(() => readPref(GUIDE_PREF) !== '0');
   const { hub, pointer, midi, output } = useInput();
@@ -247,8 +245,9 @@ function ScaleSession({
   const { held, sustained } = useHubState();
   const metronome = useMetronome();
   const { settings: metronomeSettings } = useMetronomeState();
-  const hands = exercise.hands;
-  const perBeat = click?.perBeat ?? FREE_PER_BEAT;
+  // Contrary motion is both hands, as the score, the steps and the keyboard see it.
+  const hands = handsPlaying(exercise.hands);
+  const perBeat = click?.perBeat ?? freePerBeat(exercise.type);
   const notes = useMemo(() => scaleNotes(exercise), [exercise]);
   // The run: one hand's notes, or the right hand's then the left's (what the analysis takes).
   const expected = useMemo(
@@ -442,7 +441,10 @@ function ScaleSession({
   const wrong = useMemo(() => new Set(run.wrongKey === null ? [] : [run.wrongKey]), [run.wrongKey]);
   // The keys to start on: the tonic of each hand played.
   const startNotes = run.steps[0]?.notes ?? [];
-  const first = startNotes.map((n) => names[expected[n]!.hand][0]).join(t('scales.status.and'));
+  // The unison of contrary motion is one key to name.
+  const first = [...new Set(startNotes.map((n) => names[expected[n]!.hand][0]))].join(
+    t('scales.status.and'),
+  );
   const waiting = run.phase === 'waiting';
   // The keyboard marks the keys to start on, and with the guide each next key as the run goes,
   // with the finger to take it; a crossing just ahead is named too.
@@ -514,7 +516,7 @@ function ScaleSession({
   return (
     <div className="scale-session">
       <div className="scale-head">
-        {!focus.on && <h2 className="scale-title">{name(exercise)}</h2>}
+        {!focus.on && <h2 className="scale-title">{title(exercise)}</h2>}
         <p className="scale-status" role="status">
           {statusText}
         </p>
@@ -583,7 +585,7 @@ function ScaleSession({
         <ScoreView
           xml={xml}
           score={score}
-          title={name(exercise)}
+          title={title(exercise)}
           step={step}
           pressed={[]}
           hands={hands}

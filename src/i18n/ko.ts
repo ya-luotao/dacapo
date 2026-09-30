@@ -38,8 +38,8 @@ export const ko: Dictionary = {
     '음정과 화음, 짧은 선율을 귀로 구별해요. 옥타브부터 7화음과 반음계적인 음까지. 들은 것을 건반으로 치거나 이름으로 답하면, 다음 문제는 자주 틀리는 것부터 나와요.',
   'home.ear.meta': '레벨 {n}개',
   'home.scales.text':
-    '모든 조의 장음계, 세 가지 단음계, 반음계를 하농의 손가락 번호로. 원하는 빠르기로 치고 나면 음 하나하나가 얼마나 고른지 보여 줘요.',
-  'home.scales.meta': '12개 조 · 스케일 5종',
+    '모든 조의 스케일과 아르페지오를 하농의 손가락 번호로, 양손 평행이나 반진행으로도. 원하는 빠르기나 클릭에 맞춰 치고 나면 음 하나하나가 얼마나 고른지 보여 줘요.',
+  'home.scales.meta': '12개 조 · 스케일 5종 · 아르페지오',
   'home.pieces.text':
     '베토벤, 바흐, 슈만 등의 곡을 진짜 악보로. 커서가 맞는 건반을 칠 때까지 기다려 주고, 리듬 모드에서는 박자대로 움직여요. 가지고 있는 MusicXML도 가져올 수 있어요.',
   'home.pieces.meta': '{n}곡 · MusicXML',
@@ -402,6 +402,7 @@ export const ko: Dictionary = {
   'progress.session.hands.right': '오른손',
   'progress.session.hands.left': '왼손',
   'progress.session.hands.both': '양손',
+  'progress.session.hands.contrary': '반진행',
   'progress.kind.scales': '스케일',
   'progress.kind.ear': '청음',
   'progress.session.scale': '스케일',
@@ -904,14 +905,20 @@ export const ko: Dictionary = {
   'scales.type.harmonicMinor': '화성 단음계',
   'scales.type.melodicMinor': '가락 단음계',
   'scales.type.chromatic': '반음계',
+  'scales.type.majorArpeggio': '장3화음 아르페지오',
+  'scales.type.minorArpeggio': '단3화음 아르페지오',
   'scales.name.major': '{tonic} 장음계',
   'scales.name.naturalMinor': '{tonic} 자연 단음계',
   'scales.name.harmonicMinor': '{tonic} 화성 단음계',
   'scales.name.melodicMinor': '{tonic} 가락 단음계',
   'scales.name.chromatic': '{tonic}에서 시작하는 반음계',
+  'scales.name.majorArpeggio': '{tonic} 장조 아르페지오',
+  'scales.name.minorArpeggio': '{tonic} 단조 아르페지오',
+  'scales.name.inContrary': '{scale} (반진행)',
   'scales.hand.right': '오른손',
   'scales.hand.left': '왼손',
   'scales.hand.both': '양손',
+  'scales.hand.contrary': '반진행',
   'scales.status.and': ', ',
   'scales.status.start': '{key}부터 치면 시작해요. 빠르기는 자유예요.',
   'scales.status.playing': '{total}음 중 {n}음',
@@ -972,6 +979,7 @@ export const ko: Dictionary = {
   'scales.chart.finger': '손가락',
   'scales.chart.loud': '음량',
   'scales.chart.top': '꼭대기',
+  'scales.chart.bottom': '맨 아래',
   'scales.chart.desc':
     '점 하나가 한 음이에요. 앞뒤 음을 잇는 선과 비교하므로 기준은 자신의 빠르기예요. ×는 놓치거나 틀린 음이고, 음 사이의 세로선은 망설임이에요.',
   'scales.chart.desc.loud':
@@ -1361,7 +1369,7 @@ export const ko: Dictionary = {
   'about.music.pdmx':
     '아라베스크(부르크뮐러), 병사의 행진(슈만), 전주곡 C장조(바흐)는 MuseScore에 악보를 올린 PianoXML, jadr, OpenGoldberg가 퍼블릭 도메인(CC0)으로 공개한 악보이고, dacapo 프로젝트가 운지 번호를 지웠어요. 모두 Phillip Long, Zachary Novack, Julian McAuley, Taylor Berg-Kirkpatrick의 PDMX 데이터셋에서 가져왔으며, 이 데이터셋은 CC BY 4.0 라이선스를 따라요.',
   'about.music.hanon':
-    '스케일의 손가락 번호는 샤를루이 하농의 「하농 피아노 교본」 39번과 40번(G. Schirmer, 뉴욕, 1900년)을 따랐어요. 퍼블릭 도메인 판본을 dacapo 프로젝트가 옮겨 적었어요.',
+    '스케일과 아르페지오의 손가락 번호는 샤를루이 하농의 「하농 피아노 교본」 39번, 40번, 41번(G. Schirmer, 뉴욕, 1900년)을 따랐어요. 퍼블릭 도메인 판본을 dacapo 프로젝트가 옮겨 적었어요.',
   'about.sounds': '음원',
   'about.salamander':
     'Salamander Grand Piano V3, 내장 피아노의 소리: Alexander Holm이 녹음한 야마하 C5. 크리에이티브 커먼즈 저작자표시 3.0(CC BY 3.0). 16개 벨로시티 레이어 중 3개를 dacapo 프로젝트가 다듬어 MP3로 인코딩했어요.',

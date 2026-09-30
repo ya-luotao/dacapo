@@ -38,8 +38,8 @@ export const zhCN: Dictionary = {
     '靠耳朵分辨音程、和弦与短旋律，从八度到七和弦和变化音。把听到的在琴上弹出来，或者选出名称；下一题会优先出你常答错的。',
   'home.ear.meta': '{n} 个级别',
   'home.scales.text':
-    '所有调的大调、三种小调和半音阶，采用哈农的指法。按自己的速度弹，弹完看看每个音有多均匀。',
-  'home.scales.meta': '12 个调 · 5 种音阶',
+    '所有调的音阶和琶音，采用哈农的指法，可双手同向或反向。按自己的速度或跟着节拍器弹，弹完看看每个音有多均匀。',
+  'home.scales.meta': '12 个调 · 5 种音阶 · 琶音',
   'home.pieces.text':
     '贝多芬、巴赫、舒曼等名家作品，在真正的乐谱上弹。光标会等你弹对，节奏模式下则跟着拍子走。也可以导入你自己的 MusicXML。',
   'home.pieces.meta': '{n} 首曲目 · MusicXML',
@@ -398,6 +398,7 @@ export const zhCN: Dictionary = {
   'progress.session.hands.right': '右手',
   'progress.session.hands.left': '左手',
   'progress.session.hands.both': '双手',
+  'progress.session.hands.contrary': '双手反向',
   'progress.kind.scales': '音阶',
   'progress.kind.ear': '练耳',
   'progress.session.scale': '音阶',
@@ -871,14 +872,20 @@ export const zhCN: Dictionary = {
   'scales.type.harmonicMinor': '和声小调',
   'scales.type.melodicMinor': '旋律小调',
   'scales.type.chromatic': '半音阶',
+  'scales.type.majorArpeggio': '大调琶音',
+  'scales.type.minorArpeggio': '小调琶音',
   'scales.name.major': '{tonic} 大调音阶',
   'scales.name.naturalMinor': '{tonic} 自然小调音阶',
   'scales.name.harmonicMinor': '{tonic} 和声小调音阶',
   'scales.name.melodicMinor': '{tonic} 旋律小调音阶',
   'scales.name.chromatic': '从 {tonic} 开始的半音阶',
+  'scales.name.majorArpeggio': '{tonic} 大调琶音',
+  'scales.name.minorArpeggio': '{tonic} 小调琶音',
+  'scales.name.inContrary': '{scale}（双手反向）',
   'scales.hand.right': '右手',
   'scales.hand.left': '左手',
   'scales.hand.both': '双手',
+  'scales.hand.contrary': '反向',
   'scales.status.and': ' 和 ',
   'scales.status.start': '弹 {key} 开始，速度由你决定。',
   'scales.status.playing': '已弹 {n} / {total} 个音',
@@ -933,6 +940,7 @@ export const zhCN: Dictionary = {
   'scales.chart.finger': '指法',
   'scales.chart.loud': '力度',
   'scales.chart.top': '顶',
+  'scales.chart.bottom': '底',
   'scales.chart.desc':
     '每个点是一个音，和它前后几个音连成的线相比，所以以你自己的速度为准。叉号是漏掉或弹错的音；两个音之间的竖线表示迟疑。',
   'scales.chart.desc.loud':
@@ -1308,7 +1316,7 @@ export const zhCN: Dictionary = {
   'about.music.pdmx':
     '《阿拉伯风格曲》（布格缪勒）、《士兵进行曲》（舒曼）和《C 大调前奏曲》（巴赫）是 MuseScore 上的编码，上传者 PianoXML、jadr 和 OpenGoldberg 已将其贡献到公有领域（CC0）；dacapo 项目删去了其中的指法。它们来自 Phillip Long、Zachary Novack、Julian McAuley 和 Taylor Berg-Kirkpatrick 的 PDMX 数据集，该数据集以 CC BY 4.0 许可发布。',
   'about.music.hanon':
-    '音阶的指法来自夏尔-路易·哈农的《钢琴技巧练习》第 39、40 首（G. Schirmer，纽约，1900 年）。这是公有领域的版本，由 dacapo 项目转录。',
+    '音阶和琶音的指法来自夏尔-路易·哈农的《钢琴技巧练习》第 39、40、41 首（G. Schirmer，纽约，1900 年）。这是公有领域的版本，由 dacapo 项目转录。',
   'about.sounds': '音色',
   'about.salamander':
     'Salamander Grand Piano V3，内置钢琴的音色：Alexander Holm 录制的雅马哈 C5。知识共享署名 3.0（CC BY 3.0）。dacapo 项目从它的 16 个力度层中选取 3 层，剪裁后编码为 MP3。',

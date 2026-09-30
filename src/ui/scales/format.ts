@@ -20,3 +20,11 @@ export function useExerciseName() {
   return (e: Pick<ScaleExercise, 'type' | 'tonic'>) =>
     t(`scales.name.${e.type}`, { tonic: tonicName(e.tonic) });
 }
+
+/** The scale as a page heading names it: its name, and "in contrary motion" when it is. */
+export function useExerciseTitle() {
+  const t = useT();
+  const name = useExerciseName();
+  return (e: Pick<ScaleExercise, 'type' | 'tonic' | 'hands'>) =>
+    e.hands === 'contrary' ? t('scales.name.inContrary', { scale: name(e) }) : name(e);
+}
