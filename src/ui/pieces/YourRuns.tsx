@@ -5,6 +5,7 @@ import type { Score } from '../../core/score.ts';
 import { useT } from '../../i18n/index.ts';
 import { useLogFormat } from '../progress/format.ts';
 import { ExpressionPanel } from './ExpressionPanel.tsx';
+import type { ExpressionAspect } from './expressionPrefs.ts';
 import type { PieceFormat } from './format.ts';
 import { RunList } from './RunList.tsx';
 import { usePieceRuns, useRunFacts, useRunTake } from './runs.ts';
@@ -19,6 +20,7 @@ export function YourRuns({
   score,
   format,
   melody,
+  aspects,
   onMelody,
   onLoopBars,
   onClose,
@@ -28,6 +30,8 @@ export function YourRuns({
   score: Score;
   format: PieceFormat;
   melody: Melody;
+  /** The aspects judged; with none, a run offers no expression. */
+  aspects: readonly ExpressionAspect[];
   onMelody: (melody: Melody) => void;
   onLoopBars: (from: number, to: number) => void;
   onClose: () => void;
@@ -74,17 +78,20 @@ export function YourRuns({
           score={score}
           format={format}
           melody={melody}
+          aspects={aspects}
           onMelody={onMelody}
           onLoopBars={onLoopBars}
         />
       ) : (
         <RunList
           runs={runs}
-          actions={(run) => (
-            <button type="button" className="button is-compact" onClick={() => setOpen(run)}>
-              {t('pieces.expression')}
-            </button>
-          )}
+          actions={(run) =>
+            aspects.length > 0 && (
+              <button type="button" className="button is-compact" onClick={() => setOpen(run)}>
+                {t('pieces.expression')}
+              </button>
+            )
+          }
         />
       )}
     </section>
@@ -97,6 +104,7 @@ function PastRun({
   score,
   format,
   melody,
+  aspects,
   onMelody,
   onLoopBars,
 }: {
@@ -105,6 +113,7 @@ function PastRun({
   score: Score;
   format: PieceFormat;
   melody: Melody;
+  aspects: readonly ExpressionAspect[];
   onMelody: (melody: Melody) => void;
   onLoopBars: (from: number, to: number) => void;
 }) {
@@ -137,6 +146,7 @@ function PastRun({
       format={format}
       hands={run.hands}
       melody={melody}
+      aspects={aspects}
       onMelody={onMelody}
       onLoopBars={onLoopBars}
     />

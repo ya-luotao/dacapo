@@ -1,8 +1,11 @@
 import { useMemo } from 'react';
 import type {
+  ArticulationSlip,
+  ArticulationVerdict,
   BalanceVerdict,
   DynamicsJudgement,
   DynamicsProblem,
+  Touch,
   Verdict,
 } from '../../core/expression.ts';
 import type { Hand } from '../../core/score.ts';
@@ -11,7 +14,9 @@ import type { PieceFormat } from './format.ts';
 
 // Every judged marking in words (docs/EXPRESSION.md, "UI": colour is never the only sign): what
 // the marking is, and whether it was played right, too little, too much, the wrong way round or
-// missed. The arrow says which way the marking asks to go.
+// missed. The arrow says which way the marking asks to go. And how each note was held against its
+// touch: legato joined, broken or smudged, staccato short or held too long, tenuto held or not, a
+// plain note held or cut short.
 
 /** The glyph of a bar's balance, beside its words in the legend and the table. */
 export const BALANCE_GLYPH: Record<BalanceVerdict, string> = {
@@ -89,7 +94,27 @@ export function createExpressionWords(t: Translate, format: PieceFormat) {
         })
       : t('pieces.expression.problem.balance', { verdict: balance(p.bar.verdict) });
 
-  return { hand, marking, verdict, bars, balance, problem };
+  /** A bar played, for a table row: with its round when a loop went round. */
+  const barRow = (bar: { measure: number; round: number }, rounds: number) =>
+    rounds > 1
+      ? t('pieces.rhythm.table.round', { bar: format.barShort(bar.measure), n: bar.round + 1 })
+      : format.barShort(bar.measure);
+
+  const touch = (x: Touch) => t(`pieces.expression.touch.${x}`);
+
+  const held = (v: ArticulationVerdict): VerdictLabel =>
+    v === 'right'
+      ? { text: t('pieces.expression.verdict.right'), tone: 'ok' }
+      : { text: t(`pieces.expression.held.${v}`), tone: 'warn' };
+
+  const slip = (x: ArticulationSlip) =>
+    t(x.count === 1 ? 'pieces.expression.slip.one' : 'pieces.expression.slip.other', {
+      touch: touch(x.touch),
+      verdict: held(x.verdict).text,
+      n: x.count,
+    });
+
+  return { hand, marking, verdict, bars, balance, problem, barRow, touch, held, slip };
 }
 
 export type ExpressionWords = ReturnType<typeof createExpressionWords>;

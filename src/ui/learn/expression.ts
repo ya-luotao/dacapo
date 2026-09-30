@@ -1,7 +1,9 @@
 // What the lessons on touch and the pedals hear in your playing: whether five notes get louder,
 // how each note joins the next, and whether the pedal changes just after each new chord. The
-// numbers are the ones docs/EXPRESSION.md plans for the Pieces (its X2 and X3), so a lesson and the
-// Pieces will agree; the Pieces' own analysis will live in core/expression.ts.
+// numbers are the Pieces' (docs/EXPRESSION.md, X2 and X3), so a lesson and the Pieces agree; the
+// legato ones are core/expression.ts's own.
+
+import { LEGATO_GAP_MS, LEGATO_OVERLAP_MS } from '../../core/expression.ts';
 
 /** A note as played: when the key went down and came up (null while held), and how hard. */
 export interface Stroke {
@@ -50,10 +52,8 @@ export function isCrescendo(verdict: CrescendoVerdict): boolean {
 
 // Joined and detached.
 
-/** A note let go this long before the next begins has left a gap (EXPRESSION.md, X2). */
-export const LEGATO_GAP_MS = 20;
-/** A note held this long into the next smudges it. */
-export const LEGATO_OVERLAP_MS = 80;
+/** How legato is judged, the same as the Pieces' (EXPRESSION.md, X2): a gap, and an overlap. */
+export { LEGATO_GAP_MS, LEGATO_OVERLAP_MS };
 
 export type Join =
   /** Let go as the next note began, give or take a little: legato. */

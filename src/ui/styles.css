@@ -5760,11 +5760,11 @@ select.is-compact {
   margin: 1rem 0 0;
 }
 
-.dynamics-chart {
+.expression-chart {
   margin: 1rem 0 0;
 }
 
-.dynamics-chart figcaption {
+.expression-chart figcaption {
   color: var(--text-muted);
   font-size: 0.8125rem;
   font-weight: 600;
@@ -5772,12 +5772,12 @@ select.is-compact {
   text-transform: uppercase;
 }
 
-.dynamics-chart figcaption:is(:lang(zh), :lang(ja), :lang(ko)) {
+.expression-chart figcaption:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
   letter-spacing: 0.04em;
 }
 
-.dynamics-legend {
+.expression-legend {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem 1.25rem;
@@ -5788,24 +5788,24 @@ select.is-compact {
   list-style: none;
 }
 
-.dynamics-legend li {
+.expression-legend li {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
 }
 
-.dynamics-legend svg {
+.expression-legend svg {
   width: 1.75rem;
   height: 0.625rem;
   overflow: visible;
 }
 
-.dynamics-legend-balance {
+.expression-legend-glyphs {
   flex-wrap: wrap;
   column-gap: 0.875rem !important;
 }
 
-.dynamics-frame {
+.expression-frame {
   position: relative;
   margin-top: 0.25rem;
   overflow-x: auto;
@@ -5813,7 +5813,7 @@ select.is-compact {
 }
 
 /* On a phone the chart keeps a readable size and scrolls sideways. */
-.dynamics-frame svg {
+.expression-frame svg {
   display: block;
   width: 100%;
   min-width: 34rem;
@@ -5823,24 +5823,24 @@ select.is-compact {
   touch-action: pan-y;
 }
 
-.dynamics-band {
+.expression-band {
   fill: color-mix(in oklab, var(--text) 7%, var(--surface));
 }
 
-.dynamics-axis,
-.dynamics-bar text,
+.chart-axis,
+.chart-bar text,
 .dynamics-words text {
   fill: var(--text-muted);
   font-size: 11px;
   font-variant-numeric: tabular-nums;
 }
 
-.dynamics-bar line {
+.chart-bar line {
   stroke: var(--border);
   stroke-width: 1;
 }
 
-.dynamics-bar.is-round line {
+.chart-bar.is-round line {
   stroke: var(--text-muted);
   stroke-dasharray: 3 3;
 }
@@ -5853,9 +5853,8 @@ select.is-compact {
   font-weight: 700;
 }
 
-.dynamics-hairpin,
-.dynamics-words line,
-.dynamics-accent {
+.chart-mark-line,
+.dynamics-words line {
   fill: none;
   stroke: var(--text);
   stroke-width: 1.25;
@@ -5900,7 +5899,7 @@ select.is-compact {
   stroke-width: 1.25;
 }
 
-.dynamics-hover {
+.chart-hover {
   stroke: var(--text);
   stroke-width: 1;
   stroke-dasharray: 2 2;
@@ -5922,7 +5921,29 @@ select.is-compact {
   fill: var(--bad);
 }
 
-.dynamics-chart .help {
+.articulation-dot {
+  fill: var(--text);
+}
+
+.articulation-track {
+  fill: none;
+  stroke: var(--control);
+  stroke-width: 1;
+}
+
+.articulation-share {
+  fill: var(--accent);
+}
+
+.articulation-bar.is-hover .articulation-share {
+  fill: var(--text);
+}
+
+.articulation-bar.is-hover .articulation-track {
+  stroke: var(--text);
+}
+
+.expression-chart .help {
   margin: 0.25rem 0 0;
   font-size: 0.875rem;
 }

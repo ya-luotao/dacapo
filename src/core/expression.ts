@@ -1,5 +1,6 @@
 // How a run of a piece was played beyond its notes and timing (docs/EXPRESSION.md): its loudness
-// and balance against the score's dynamics (X1). Everything is recomputed from the run's take
+// and balance against the score's dynamics (X1), and how long each note was held against its
+// articulation, slurs, staccato and tenuto (X2). Everything is recomputed from the run's take
 // (takes.ts) and the score, and every loudness threshold is a share of the run's own range of
 // velocities, since velocity curves differ between instruments. The fractions are provisional
 // until runs recorded on real instruments set them (the Pieces page's development-only "Save this
@@ -244,7 +245,6 @@ export interface DynamicsAnalysis {
   step: number;
   accentStep: number;
   balanceStep: number;
-  slots: BeatSlot[];
   /** Per hand, per slot: the median velocity of the notes begun in it, or null. */
   curve: Record<Hand, (number | null)[]>;
   /** The bars played, in order, for the table. */
@@ -266,10 +266,96 @@ export interface DynamicsAnalysis {
 
 export interface ExpressionAnalysis {
   version: number;
+  /** How the run was timed: held lengths are against the tempo (rhythm) or the run's own pace. */
+  mode: 'wait' | 'rhythm';
   notes: PlayedNote[];
   /** Rounds of a loop that were played (1 without a loop). */
   rounds: number;
+  /** The beats of the bars played, in order: the charts' x axis. */
+  slots: BeatSlot[];
   dynamics: DynamicsAnalysis;
+  articulation: ArticulationAnalysis;
+}
+
+// --- Articulation (X2) ----------------------------------------------------------------------------
+
+/** Legato: a note let go this long before the next begins has left a gap ("broken")... */
+export const LEGATO_GAP_MS = 20;
+/** ...and one held this long into the next smudges it. */
+export const LEGATO_OVERLAP_MS = 80;
+/** A staccato (or spiccato) note is held at most this share of its written length... */
+export const STACCATO_MAX = 0.5;
+/** ...a staccatissimo at most this share. */
+export const STACCATISSIMO_MAX = 1 / 3;
+/** A tenuto is held at least this share of its length. */
+export const TENUTO_MIN = 0.9;
+/** A plain note let go before this share of its length is cut short (unless it may breathe). */
+export const CUT_SHORT = 0.7;
+
+/** How a note is marked to be played. */
+export type Touch = 'legato' | 'staccato' | 'staccatissimo' | 'tenuto' | 'plain';
+
+export type ArticulationVerdict =
+  | 'right'
+  /** Legato: a gap before the next note. */
+  | 'broken'
+  /** Legato: held too far into the next note. */
+  | 'smudged'
+  /** Staccato: held too long. */
+  | 'long'
+  /** Tenuto: not held its length. */
+  | 'short'
+  /** A plain note let go early. */
+  | 'cut-short';
+
+export type ArticulationProblem = Exclude<ArticulationVerdict, 'right'>;
+export const ARTICULATION_PROBLEMS: readonly ArticulationProblem[] = [
+  'broken',
+  'smudged',
+  'long',
+  'short',
+  'cut-short',
+];
+
+export interface NoteArticulation {
+  played: PlayedNote;
+  touch: Touch;
+  /** Held, ms. */
+  held: number;
+  /** The written length at the tempo played (or, in wait mode, as the run went), ms; legato: none. */
+  written: number | null;
+  /** Legato: the next note's start less this one's release (+ a gap, − an overlap), ms. */
+  join: number | null;
+  verdict: ArticulationVerdict;
+}
+
+export interface ArticulationBar {
+  round: number;
+  played: number;
+  measure: number;
+  judged: number;
+  right: number;
+  problems: Record<ArticulationProblem, number>;
+}
+
+export interface ArticulationMarks {
+  /** Slurs played, in performance ticks from their first note to their last. */
+  slurs: { tick: number; end: number }[];
+  /** Notes marked short (staccato, staccatissimo, spiccato) and held (tenuto). */
+  short: { tick: number }[];
+  held: { tick: number }[];
+}
+
+export interface ArticulationAnalysis {
+  /** The notes judged, in the order played. */
+  notes: NoteArticulation[];
+  /** Notes let go while the sustain pedal was down: the pedal hides their release. */
+  pedalled: number;
+  judged: number;
+  right: number;
+  /** The bars played, in order. */
+  bars: ArticulationBar[];
+  marks: ArticulationMarks;
 }
 
 // --- Reconstruction ---------------------------------------------------------------------------------
@@ -957,6 +1043,285 @@ function balanceOf(ctx: Context, melody: Melody, step: number): DynamicsAnalysis
   };
 }
 
+// --- Articulation: the analysis ---------------------------------------------------------------------
+
+/** A note's written length with the notes tied to it, in ticks. */
+function tiedLength(note: ScoreNote, continuations: ReadonlyMap<string, ScoreNote>): number {
+  let length = note.duration;
+  let current = note;
+  for (let guard = 0; current.tieStart && guard < 64; guard++) {
+    const next = continuations.get(
+      `${current.part}:${current.staff}:${current.midi}:${current.onset + current.duration}`,
+    );
+    if (!next) break;
+    length += next.duration;
+    current = next;
+  }
+  return length;
+}
+
+/** Each voice's struck notes (tied continuations left out), by part, staff and voice. */
+function voicesOf(score: Score): Map<string, ScoreNote[]> {
+  const out = new Map<string, ScoreNote[]>();
+  for (const n of score.notes) {
+    if (n.tieStop || n.hand === null) continue;
+    const id = `${n.part}:${n.staff}:${n.voice}`;
+    const list = out.get(id) ?? [];
+    list.push(n);
+    out.set(id, list);
+  }
+  return out;
+}
+
+/** The onset of the voice's next struck note after `onset`; null at the voice's end. */
+function nextOnset(voice: readonly ScoreNote[], onset: number): number | null {
+  let best: number | null = null;
+  for (const n of voice) if (n.onset > onset && (best === null || n.onset < best)) best = n.onset;
+  return best;
+}
+
+function judgeHeld(touch: Touch, share: number): ArticulationVerdict {
+  switch (touch) {
+    case 'staccato':
+      return share <= STACCATO_MAX ? 'right' : 'long';
+    case 'staccatissimo':
+      return share <= STACCATISSIMO_MAX ? 'right' : 'long';
+    case 'tenuto':
+      return share >= TENUTO_MIN ? 'right' : 'short';
+    default:
+      return share < CUT_SHORT ? 'cut-short' : 'right';
+  }
+}
+
+function analyzeArticulation(
+  ctx: Context,
+  clock: RunClock | null,
+  slots: readonly BeatSlot[],
+): ArticulationAnalysis {
+  const { score, notes } = ctx;
+  const continuations = new Map(
+    score.notes
+      .filter((n) => n.tieStop)
+      .map((n) => [`${n.part}:${n.staff}:${n.midi}:${n.onset}`, n] as const),
+  );
+  const voices = voicesOf(score);
+  const voiceOf = (n: ScoreNote) => voices.get(`${n.part}:${n.staff}:${n.voice}`) ?? [];
+
+  // Slurs: the notes that join the next (to the slur's last onset), and the last ones.
+  const slurredTo = new Map<string, number>();
+  const slurEnd = new Set<string>();
+  for (const slur of score.markings.slurs) {
+    const from = ctx.byId.get(slur.from);
+    const to = ctx.byId.get(slur.to);
+    if (!from || !to || to.onset <= from.onset) continue;
+    for (const n of voices.get(`${slur.part}:${slur.staff}:${slur.voice}`) ?? []) {
+      if (n.onset >= from.onset && n.onset < to.onset)
+        slurredTo.set(n.id, Math.max(slurredTo.get(n.id) ?? 0, to.onset));
+      if (n.onset === to.onset) slurEnd.add(n.id);
+    }
+  }
+  const fermatas = new Set(score.markings.fermatas.map((f) => `${f.part}:${f.staff}:${f.tick}`));
+
+  const touchOf = (n: ScoreNote): Touch | null => {
+    const arts = n.articulations ?? [];
+    const short = arts.find((a) => a === 'staccato' || a === 'spiccato' || a === 'staccatissimo');
+    // Portato (detached-legato, or tenuto and staccato together) is not judged.
+    if (arts.includes('detached-legato') || (short && arts.includes('tenuto'))) return null;
+    if (short) return short === 'staccatissimo' ? 'staccatissimo' : 'staccato';
+    if (arts.includes('tenuto')) return 'tenuto';
+    if (slurredTo.has(n.id)) return 'legato';
+    // The last note of a slur may be shorter.
+    if (slurEnd.has(n.id)) return null;
+    return 'plain';
+  };
+
+  // Wait mode: when each step was reached (its first key), per round, to time lengths by.
+  const occurrences = new Map<string, PlayedNote[]>();
+  for (const n of notes) {
+    const id = `${n.round}:${n.step}`;
+    const list = occurrences.get(id) ?? [];
+    list.push(n);
+    occurrences.set(id, list);
+  }
+  const anchors = new Map<number, { tick: number; time: number }[]>();
+  for (const list of occurrences.values()) {
+    const first = list[0]!;
+    const round = anchors.get(first.round) ?? [];
+    round.push({ tick: first.tick, time: Math.min(...list.map((n) => n.on)) });
+    anchors.set(first.round, round);
+  }
+  for (const list of anchors.values()) list.sort((a, b) => a.tick - b.tick);
+  /** When the run reached `tick` in a round: at a step's first key, or between two steps. */
+  const reached = (round: number, tick: number): number | null => {
+    const list = anchors.get(round) ?? [];
+    for (let k = 0; k < list.length; k++) {
+      const b = list[k]!;
+      if (b.tick < tick) continue;
+      if (b.tick === tick) return b.time;
+      const a = list[k - 1];
+      return a ? a.time + ((tick - a.tick) / (b.tick - a.tick)) * (b.time - a.time) : null;
+    }
+    return null;
+  };
+  /** A written length in ms: at the run's tempo (rhythm mode), or as the run went (wait mode). */
+  const writtenMs = (p: PlayedNote, length: number): number | null => {
+    if (clock) return clock.ms(p.tick + length) - clock.ms(p.tick);
+    const end = reached(p.round, p.tick + length);
+    return end === null ? null : end - p.on;
+  };
+
+  const out: NoteArticulation[] = [];
+  let pedalled = 0;
+  const lastStep = ctx.last;
+  for (const p of notes) {
+    const touch = touchOf(p.note);
+    if (touch === null || p.off === null) continue;
+    const held = p.off - p.on;
+    const length = tiedLength(p.note, continuations);
+    const voice = voiceOf(p.note);
+    const next = nextOnset(voice, p.note.onset);
+    if (touch === 'legato') {
+      // The next note of the slur's voice, played in the same round after this step. A key
+      // struck again cannot be joined.
+      if (next === null || next > slurredTo.get(p.note.id)!) continue;
+      const nextStep = ctx.steps.find((s) => s.index > p.step && s.writtenTick === next);
+      if (!nextStep) continue;
+      const nextNotes = voice.filter((n) => n.onset === next);
+      if (nextNotes.some((n) => n.midi === p.note.midi)) continue;
+      const heard = notes.filter(
+        (n) => n.round === p.round && n.step === nextStep.index && nextNotes.includes(n.note),
+      );
+      if (heard.length === 0) continue;
+      if (p.pedalled) {
+        pedalled++;
+        continue;
+      }
+      const join = Math.min(...heard.map((n) => n.on)) - p.off;
+      out.push({
+        played: p,
+        touch,
+        held,
+        written: null,
+        join,
+        verdict: join > LEGATO_GAP_MS ? 'broken' : -join > LEGATO_OVERLAP_MS ? 'smudged' : 'right',
+      });
+      continue;
+    }
+    // A plain note may breathe before a rest, under a fermata and at the end of the run.
+    if (
+      touch === 'plain' &&
+      (next === null ||
+        next > p.note.onset + length ||
+        fermatas.has(`${p.note.part}:${p.note.staff}:${p.note.onset}`) ||
+        p.step === lastStep)
+    )
+      continue;
+    const written = writtenMs(p, length);
+    if (written === null || written <= 0) continue;
+    if (p.pedalled) {
+      pedalled++;
+      continue;
+    }
+    out.push({
+      played: p,
+      touch,
+      held,
+      written,
+      join: null,
+      verdict: judgeHeld(touch, held / written),
+    });
+  }
+
+  // Per bar played.
+  const bars: ArticulationBar[] = [];
+  const barOf = new Map<string, ArticulationBar>();
+  for (const slot of slots) {
+    const id = `${slot.round}:${slot.played}`;
+    if (barOf.has(id)) continue;
+    const bar: ArticulationBar = {
+      round: slot.round,
+      played: slot.played,
+      measure: slot.measure,
+      judged: 0,
+      right: 0,
+      problems: { broken: 0, smudged: 0, long: 0, short: 0, 'cut-short': 0 },
+    };
+    barOf.set(id, bar);
+    bars.push(bar);
+  }
+  for (const a of out) {
+    const bar = barOf.get(`${a.played.round}:${a.played.played}`);
+    if (!bar) continue;
+    bar.judged++;
+    if (a.verdict === 'right') bar.right++;
+    else bar.problems[a.verdict]++;
+  }
+
+  // What the chart draws above the bars: the slurs, and the notes marked short or held.
+  const played = new Set(notes.map((n) => n.step));
+  const marks: ArticulationMarks = { slurs: [], short: [], held: [] };
+  for (let i = ctx.first; i <= ctx.last; i++) {
+    if (!played.has(i)) continue;
+    const s = ctx.steps[i]!;
+    const touches = s.noteIds
+      .map((id) => ctx.byId.get(id)!)
+      .filter((n) => ctx.practised(n.hand))
+      .map(touchOf);
+    if (touches.some((t) => t === 'staccato' || t === 'staccatissimo'))
+      marks.short.push({ tick: s.tick });
+    if (touches.includes('tenuto')) marks.held.push({ tick: s.tick });
+    for (const slur of score.markings.slurs) {
+      if (!s.noteIds.includes(slur.from)) continue;
+      const from = ctx.byId.get(slur.from)!;
+      const to = ctx.byId.get(slur.to);
+      if (to && to.onset > from.onset)
+        marks.slurs.push({ tick: s.tick, end: s.tick + to.onset - from.onset });
+    }
+  }
+
+  return {
+    notes: out,
+    pedalled,
+    judged: out.length,
+    right: out.filter((a) => a.verdict === 'right').length,
+    bars,
+    marks,
+  };
+}
+
+/** What went wrong in a bar: how many notes of a touch were played how. */
+export interface ArticulationSlip {
+  touch: Touch;
+  verdict: ArticulationProblem;
+  count: number;
+}
+
+/** The articulation's three bars to look at: the most notes not played as written. */
+export function articulationToLookAt(a: ArticulationAnalysis): LookAt<ArticulationSlip>[] {
+  const slips = new Map<string, ArticulationSlip & { measure: number }>();
+  for (const n of a.notes) {
+    if (n.verdict === 'right') continue;
+    const id = `${n.played.measure}:${n.touch}:${n.verdict}`;
+    const slip = slips.get(id) ?? {
+      measure: n.played.measure,
+      touch: n.touch,
+      verdict: n.verdict,
+      count: 0,
+    };
+    slip.count++;
+    slips.set(id, slip);
+  }
+  return worstPlaces(
+    [...slips.values()]
+      .sort((x, y) => x.measure - y.measure)
+      .map(({ measure, ...slip }) => ({
+        bars: { from: measure, to: measure },
+        weight: slip.count,
+        problem: slip,
+      })),
+  );
+}
+
 // --- The analysis ---------------------------------------------------------------------------------
 
 export function analyzeExpression(input: ExpressionInput): ExpressionAnalysis {
@@ -1033,15 +1398,17 @@ export function analyzeExpression(input: ExpressionInput): ExpressionAnalysis {
   const balanceStep = stepOf(range, BALANCE_STEP, BALANCE_STEP_MIN);
   return {
     version: ANALYSIS_VERSION,
+    mode,
     notes,
     rounds: Math.max(1, rounds.length),
+    slots,
+    articulation: analyzeArticulation(ctx, clock, slots),
     dynamics: {
       velocityMeasured: measured,
       range,
       step,
       accentStep: stepOf(range, ACCENT_STEP, ACCENT_STEP_MIN),
       balanceStep,
-      slots,
       curve: range ? loudnessCurve(slots, notes) : { right: [], left: [] },
       bars: range ? barLoudness(slots, notes) : [],
       marked,

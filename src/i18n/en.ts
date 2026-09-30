@@ -985,6 +985,45 @@ export const en = {
 
   'pieces.expression': 'Expression',
   'pieces.expression.dynamics': 'Dynamics',
+  'pieces.expression.articulation': 'Articulation',
+  'pieces.expression.judge.dynamics': 'Judge dynamics',
+  'pieces.expression.judge.articulation': 'Judge articulation',
+  'pieces.expression.judge.help':
+    'After each run, the Expression panel shows the aspects checked here.',
+  'pieces.expression.touch.legato': 'Legato (under a slur)',
+  'pieces.expression.touch.staccato': 'Staccato',
+  'pieces.expression.touch.staccatissimo': 'Staccatissimo',
+  'pieces.expression.touch.tenuto': 'Tenuto',
+  'pieces.expression.touch.plain': 'Unmarked notes',
+  'pieces.expression.held.broken': 'Broken',
+  'pieces.expression.held.smudged': 'Smudged',
+  'pieces.expression.held.long': 'Held too long',
+  'pieces.expression.held.short': 'Not held its length',
+  'pieces.expression.held.cut-short': 'Cut short',
+  'pieces.expression.slip.one': '{touch}: {verdict}, 1 note',
+  'pieces.expression.slip.other': '{touch}: {verdict}, {n} notes',
+  'pieces.expression.articulation.none':
+    'No note could be judged: each was let go under the sustain pedal, or had nothing to measure its length against.',
+  'pieces.expression.articulation.pedalled.one':
+    '1 note was let go under the sustain pedal, which hides its release, so it is not judged.',
+  'pieces.expression.articulation.pedalled.other':
+    '{n} notes were let go under the sustain pedal, which hides their release, so they are not judged.',
+  'pieces.expression.articulation.asWritten': 'As written',
+  'pieces.expression.articulation.judged': 'Notes judged',
+  'pieces.expression.articulation.pedal': 'Under the pedal',
+  'pieces.expression.articulation.wrong': 'What went wrong',
+  'pieces.expression.articulation.allRight': 'Every note judged was held as written.',
+  'pieces.expression.articulation.notes.one': '1 note',
+  'pieces.expression.articulation.notes.other': '{n} notes',
+  'pieces.expression.articulation.help.rhythm':
+    'Each note’s length is against its written length at the run’s tempo: staccato at most half of it, staccatissimo a third, tenuto at least nine tenths, other notes at least seven tenths (before a rest or at the end of a slur a note may breathe). Under a slur each note is let go at most 20 ms before the next begins, or 80 ms after it.',
+  'pieces.expression.articulation.help.wait':
+    'In wait mode a note’s written length runs until you reached the step where it ends: staccato at most half of that, staccatissimo a third, tenuto at least nine tenths, other notes at least seven tenths (before a rest or at the end of a slur a note may breathe). Under a slur each note is let go at most 20 ms before the next begins, or 80 ms after it.',
+  'pieces.expression.articulation.chart': 'Held as written, bar by bar',
+  'pieces.expression.articulation.chart.desc':
+    'Each bar’s share of the notes held as written, from none at the bottom to all at the top; a bar with nothing to judge has no column. The slurs, staccato dots and tenuto lines are above the bar numbers.',
+  'pieces.expression.articulation.chart.bar': '{bar}: {n} of {total} as written',
+  'pieces.expression.articulation.chart.nothing': '{bar}: nothing to judge',
   'pieces.expression.hand.right': 'right hand',
   'pieces.expression.hand.left': 'left hand',
   'pieces.expression.noVelocity':

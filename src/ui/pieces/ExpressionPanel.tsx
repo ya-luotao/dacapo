@@ -2,33 +2,31 @@ import { useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } 
 import {
   dynamicsToLookAt,
   MELODIES,
-  type DynamicsAnalysis,
   type ExpressionAnalysis,
-  type LookAt,
   type Melody,
 } from '../../core/expression.ts';
 import type { HandSelection } from '../../core/score.ts';
 import { useI18n } from '../../i18n/index.ts';
+import { ArticulationTab } from './ArticulationTab.tsx';
 import { DynamicsChart } from './DynamicsChart.tsx';
-import {
-  BALANCE_GLYPH,
-  useExpressionWords,
-  type ExpressionWords,
-  type VerdictLabel,
-} from './expressionWords.ts';
+import { LookAtList, Verdict } from './ExpressionParts.tsx';
+import type { ExpressionAspect } from './expressionPrefs.ts';
+import { BALANCE_GLYPH, useExpressionWords, type ExpressionWords } from './expressionWords.ts';
 import type { PieceFormat } from './format.ts';
 
 // The Expression panel of a run (docs/EXPRESSION.md, "UI"): a tab per aspect measured, each with
 // its chart under the bar numbers, its figures, every judged marking in words, the bars to look
 // at (each loopable) and a table view. Shown in the summary of a run and for a past run.
 
-export type ExpressionAspect = 'dynamics';
+export type { ExpressionAspect } from './expressionPrefs.ts';
 
 interface ExpressionPanelProps {
   analysis: ExpressionAnalysis;
   format: PieceFormat;
   hands: HandSelection;
   melody: Melody;
+  /** The aspects judged (a per-browser choice); at least one. */
+  aspects: readonly ExpressionAspect[];
   /** Changes the piece's melody (for the balance); absent: not offered. */
   onMelody?: (melody: Melody) => void;
   /** Loops written bars; absent: the bars are listed without a button. */
@@ -42,23 +40,42 @@ export function ExpressionPanel({
   format,
   hands,
   melody,
+  aspects,
   onMelody,
   onLoopBars,
   footer,
 }: ExpressionPanelProps) {
   const { t } = useI18n();
   const id = useId();
-  const aspects: ExpressionAspect[] = ['dynamics'];
-  const [aspect, setAspect] = useState<ExpressionAspect>('dynamics');
+  // Without measured velocity there is nothing to see under Dynamics: open on the next aspect.
+  const [chosen, setAspect] = useState<ExpressionAspect>(
+    () =>
+      aspects.find((a) => a !== 'dynamics' || analysis.dynamics.velocityMeasured) ??
+      aspects[0] ??
+      'dynamics',
+  );
+  const aspect = aspects.includes(chosen) ? chosen : aspects[0]!;
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const words = useExpressionWords(format);
 
+  // Arrow keys move between the tabs (and wrap), Home and End go to the first and the last.
   function onTabKey(e: KeyboardEvent, index: number) {
-    const move =
-      e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : e.key === 'Home' ? -index : 0;
+    const last = aspects.length - 1;
     const to =
-      e.key === 'End' ? aspects.length - 1 : (index + move + aspects.length) % aspects.length;
-    if (move === 0 && e.key !== 'End') return;
+      e.key === 'ArrowRight'
+        ? index === last
+          ? 0
+          : index + 1
+        : e.key === 'ArrowLeft'
+          ? index === 0
+            ? last
+            : index - 1
+          : e.key === 'Home'
+            ? 0
+            : e.key === 'End'
+              ? last
+              : null;
+    if (to === null) return;
     e.preventDefault();
     setAspect(aspects[to]!);
     tabs.current[to]?.focus();
@@ -96,29 +113,32 @@ export function ExpressionPanel({
         aria-labelledby={`${id}-tab-${aspect}`}
         className="expression-panel"
       >
-        <DynamicsTab
-          dynamics={analysis.dynamics}
-          rounds={analysis.rounds}
-          format={format}
-          words={words}
-          hands={hands}
-          melody={melody}
-          onMelody={onMelody}
-          onLoopBars={onLoopBars}
-        />
+        {aspect === 'dynamics' ? (
+          <DynamicsTab
+            analysis={analysis}
+            format={format}
+            words={words}
+            hands={hands}
+            melody={melody}
+            onMelody={onMelody}
+            onLoopBars={onLoopBars}
+          />
+        ) : (
+          <ArticulationTab
+            analysis={analysis}
+            format={format}
+            words={words}
+            onLoopBars={onLoopBars}
+          />
+        )}
       </div>
       {footer}
     </section>
   );
 }
 
-function Verdict({ label }: { label: VerdictLabel }) {
-  return <span className={`expression-verdict is-${label.tone}`}>{label.text}</span>;
-}
-
 function DynamicsTab({
-  dynamics,
-  rounds,
+  analysis,
   format,
   words,
   hands,
@@ -126,8 +146,7 @@ function DynamicsTab({
   onMelody,
   onLoopBars,
 }: {
-  dynamics: DynamicsAnalysis;
-  rounds: number;
+  analysis: ExpressionAnalysis;
   format: PieceFormat;
   words: ExpressionWords;
   hands: HandSelection;
@@ -136,7 +155,7 @@ function DynamicsTab({
   onLoopBars?: (from: number, to: number) => void;
 }) {
   const { t, locale } = useI18n();
-  const id = useId();
+  const { dynamics, rounds } = analysis;
   const percent = new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 0 });
   const places = useMemo(() => dynamicsToLookAt(dynamics), [dynamics]);
 
@@ -173,7 +192,7 @@ function DynamicsTab({
         )}
       </dl>
 
-      <DynamicsChart dynamics={dynamics} format={format} words={words} />
+      <DynamicsChart slots={analysis.slots} dynamics={dynamics} format={format} words={words} />
 
       <div className="expression-section">
         <h4>{t('pieces.expression.markings')}</h4>
@@ -290,14 +309,7 @@ function DynamicsTab({
                 const verdict = balance?.bars.find((b) => b.measure === bar.measure)?.verdict;
                 return (
                   <tr key={`${bar.round}:${bar.played}`}>
-                    <th scope="row">
-                      {rounds > 1
-                        ? t('pieces.rhythm.table.round', {
-                            bar: format.barShort(bar.measure),
-                            n: bar.round + 1,
-                          })
-                        : format.barShort(bar.measure)}
-                    </th>
+                    <th scope="row">{words.barRow(bar, rounds)}</th>
                     <td>{bar.right === null ? '–' : Math.round(bar.right)}</td>
                     <td>{bar.left === null ? '–' : Math.round(bar.left)}</td>
                     {balance && (
@@ -318,71 +330,10 @@ function DynamicsTab({
             </tbody>
           </table>
         </div>
-        <p className="help" id={`${id}-units`}>
-          {t('pieces.expression.table.help')}
-        </p>
+        <p className="help">{t('pieces.expression.table.help')}</p>
       </details>
     </>
   );
 }
 
 const signed = (v: number) => (Math.round(v) > 0 ? `+${Math.round(v)}` : String(Math.round(v)));
-
-/** The worst three places, each with what went wrong and a button to loop it. */
-export function LookAtList<T>({
-  places,
-  format,
-  describe,
-  none,
-  onLoopBars,
-}: {
-  places: readonly LookAt<T>[];
-  format: PieceFormat;
-  describe: (problem: T) => string;
-  none: string;
-  onLoopBars?: (from: number, to: number) => void;
-}) {
-  const { t } = useI18n();
-  return (
-    <div className="expression-section">
-      <h4>{t('pieces.expression.lookAt')}</h4>
-      {places.length === 0 ? (
-        <p className="expression-note">{none}</p>
-      ) : (
-        <ol className="expression-look">
-          {places.map((place) => (
-            <li key={`${place.bars.from}-${place.bars.to}`}>
-              <div>
-                <strong>
-                  {place.bars.from === place.bars.to
-                    ? format.barTitle(place.bars.from)
-                    : capitalise(format.barSpan(place.bars.from, place.bars.to))}
-                </strong>
-                <ul>
-                  {place.problems.map((p, i) => (
-                    <li key={i}>{describe(p)}</li>
-                  ))}
-                </ul>
-              </div>
-              {onLoopBars && (
-                <button
-                  type="button"
-                  className="button is-compact"
-                  onClick={() => onLoopBars(place.bars.from, place.bars.to)}
-                >
-                  {place.bars.from === place.bars.to
-                    ? t('pieces.done.loopBar', { bar: format.barLabel(place.bars.from) })
-                    : t('pieces.rhythm.loopBars', {
-                        bars: format.barSpan(place.bars.from, place.bars.to),
-                      })}
-                </button>
-              )}
-            </li>
-          ))}
-        </ol>
-      )}
-    </div>
-  );
-}
-
-const capitalise = (s: string) => s.charAt(0).toLocaleUpperCase() + s.slice(1);

@@ -1,7 +1,9 @@
 import { useId, useMemo, useState, type PointerEvent } from 'react';
-import { slotOf, type BeatSlot, type DynamicsAnalysis } from '../../core/expression.ts';
+import type { BeatSlot, DynamicsAnalysis } from '../../core/expression.ts';
 import type { Hand } from '../../core/score.ts';
 import { useT } from '../../i18n/index.ts';
+import { CHART_LEFT, CHART_WIDTH, createBarGrid } from './barGrid.ts';
+import { BarLines } from './BarLines.tsx';
 import { BALANCE_GLYPH, type ExpressionWords } from './expressionWords.ts';
 import type { PieceFormat } from './format.ts';
 
@@ -11,61 +13,35 @@ import type { PieceFormat } from './format.ts';
 // squares, named in the legend, so colour is never the only sign. Below, per bar, whether the
 // melody sounded over the accompaniment. The same figures are in a table.
 
-const WIDTH = 640;
-const LEFT = 36;
-const RIGHT = 8;
 /** Rows above the plot: the dynamics, then hairpins and accents, then the bar numbers. */
 const DYN_Y = 13;
 const WEDGE_Y = 26;
 const BARS_Y = 44;
 const PLOT_TOP = 52;
-/** A dynamic's letters are about this wide each, so one that would run into the last is left out. */
-const LETTER_WIDTH = 8;
 const PLOT_HEIGHT = 112;
 const BALANCE_Y = PLOT_TOP + PLOT_HEIGHT + 16;
-/** Bar numbers at least this far apart (in the chart's units), and never over the one before. */
-const LABEL_GAP = 26;
+/** A dynamic's letters are about this wide each, so one that would run into the last is left out. */
+const LETTER_WIDTH = 8;
 
 const HANDS: readonly Hand[] = ['right', 'left'];
 
-/** About how wide a label is at the chart's 11px: CJK characters twice a Latin one. */
-function textWidth(text: string): number {
-  let width = 0;
-  for (const c of text) width += c.codePointAt(0)! >= 0x2e80 ? 11 : 6;
-  return width;
-}
-
 export function DynamicsChart({
+  slots,
   dynamics,
   format,
   words,
 }: {
+  slots: readonly BeatSlot[];
   dynamics: DynamicsAnalysis;
   format: PieceFormat;
   words: ExpressionWords;
 }) {
   const t = useT();
   const id = useId();
-  const { slots, curve, range, marks, balance } = dynamics;
+  const { curve, range, marks, balance } = dynamics;
   const [hover, setHover] = useState<number | null>(null);
-  const plotWidth = WIDTH - LEFT - RIGHT;
-  const unit = plotWidth / Math.max(1, slots.length);
-  const cx = (i: number) => LEFT + (i + 0.5) * unit;
-
-  /** x of a performance tick in a round, between the slots' centres' edges. */
-  const xAt = (round: number, tick: number) => {
-    const i = slotOf(slots, round, tick);
-    if (i < 0) return null;
-    const s = slots[i]!;
-    return LEFT + (i + (tick - s.tick) / s.length) * unit;
-  };
-  /** The end of a span: its last tick's place, or the right edge when it runs past the slots. */
-  const xEnd = (round: number, tick: number) => {
-    const inside = xAt(round, tick);
-    if (inside !== null) return inside;
-    const last = slots.findLastIndex((s) => s.round === round);
-    return last >= 0 && tick > slots[last]!.tick ? LEFT + (last + 1) * unit : null;
-  };
+  const grid = useMemo(() => createBarGrid(slots, format), [slots, format]);
+  const { cx, xAt, xEnd, unit } = grid;
 
   const [lo, hi] = useMemo(() => {
     const values = [...curve.right, ...curve.left].filter((v): v is number => v !== null);
@@ -75,20 +51,9 @@ export function DynamicsChart({
   }, [curve, range]);
   const y = (v: number) => PLOT_TOP + ((hi - v) / Math.max(1, hi - lo)) * PLOT_HEIGHT;
 
-  const rounds = [...new Set(slots.map((s) => s.round))];
-  // Bar starts, with every label far enough from the one before.
-  const barStarts = slots.flatMap((s, i) => (s.beat === 0 || i === 0 ? [i] : []));
-  let labelEnd = -Infinity;
-  const labelled = new Set<number>();
-  for (const i of barStarts) {
-    const x = LEFT + i * unit;
-    if (x < labelEnd) continue;
-    labelled.add(i);
-    labelEnd = x + Math.max(LABEL_GAP, textWidth(format.barShort(slots[i]!.measure)) + 8);
-  }
   // The dynamics' letters in the order played, each clear of the one before.
   const letters: { x: number; dynamic: string }[] = [];
-  for (const round of rounds) {
+  for (const round of grid.rounds) {
     for (const d of marks.dynamics) {
       const x = xAt(round, d.tick);
       const previous = letters.at(-1);
@@ -115,13 +80,13 @@ export function DynamicsChart({
 
   function onPointer(e: PointerEvent<SVGSVGElement>) {
     const box = e.currentTarget.getBoundingClientRect();
-    const px = ((e.clientX - box.left) / box.width) * WIDTH;
-    const i = Math.floor((px - LEFT) / unit);
+    const px = ((e.clientX - box.left) / box.width) * CHART_WIDTH;
+    const i = Math.floor((px - CHART_LEFT) / unit);
     setHover(i >= 0 && i < slots.length ? i : null);
   }
 
   const slotLabel = (i: number) => {
-    const s: BeatSlot = slots[i]!;
+    const s = slots[i]!;
     const values = HANDS.flatMap((h) => {
       const v = curve[h][i];
       return v === null || v === undefined
@@ -130,18 +95,19 @@ export function DynamicsChart({
     });
     return t('pieces.expression.chart.beat', {
       bar:
-        rounds.length > 1
+        grid.rounds.length > 1
           ? t('pieces.rhythm.barsRound', { bars: format.barTitle(s.measure), n: s.round + 1 })
           : format.barTitle(s.measure),
       beat: s.beat + 1,
       values: values.length > 0 ? values.join(' · ') : t('pieces.expression.chart.silent'),
     });
   };
+  const dot = unit > 6 ? 2.5 : 1.5;
 
   return (
-    <figure className="dynamics-chart">
+    <figure className="expression-chart">
       <figcaption id={`${id}-title`}>{t('pieces.expression.chart')}</figcaption>
-      <ul className="dynamics-legend">
+      <ul className="expression-legend">
         <li>
           <svg viewBox="0 0 28 10" aria-hidden="true">
             <path className="dynamics-line is-right" d="M1 5H27" />
@@ -157,7 +123,7 @@ export function DynamicsChart({
           {words.hand('left')}
         </li>
         {balance && (
-          <li className="dynamics-legend-balance">
+          <li className="expression-legend-glyphs">
             {(['balanced', 'equal', 'under'] as const).map((v) => (
               <span key={v}>
                 <span aria-hidden="true">{BALANCE_GLYPH[v]}</span> {words.balance(v)}
@@ -166,9 +132,9 @@ export function DynamicsChart({
           </li>
         )}
       </ul>
-      <div className="dynamics-frame">
+      <div className="expression-frame">
         <svg
-          viewBox={`0 0 ${WIDTH} ${balance ? BALANCE_Y + 10 : PLOT_TOP + PLOT_HEIGHT + 6}`}
+          viewBox={`0 0 ${CHART_WIDTH} ${balance ? BALANCE_Y + 10 : PLOT_TOP + PLOT_HEIGHT + 6}`}
           role="img"
           aria-labelledby={`${id}-title`}
           aria-describedby={`${id}-desc`}
@@ -177,43 +143,33 @@ export function DynamicsChart({
         >
           {range && (
             <rect
-              className="dynamics-band"
-              x={LEFT}
-              width={plotWidth}
+              className="expression-band"
+              x={CHART_LEFT}
+              width={grid.plotWidth}
               y={y(range.high)}
               height={Math.max(1, y(range.low) - y(range.high))}
             />
           )}
-          <text className="dynamics-axis" x={LEFT - 6} y={PLOT_TOP + 4} textAnchor="end">
+          <text className="chart-axis" x={CHART_LEFT - 6} y={PLOT_TOP + 4} textAnchor="end">
             {t('pieces.expression.chart.loud')}
           </text>
-          <text className="dynamics-axis" x={LEFT - 6} y={PLOT_TOP + PLOT_HEIGHT} textAnchor="end">
+          <text
+            className="chart-axis"
+            x={CHART_LEFT - 6}
+            y={PLOT_TOP + PLOT_HEIGHT}
+            textAnchor="end"
+          >
             {t('pieces.expression.chart.soft')}
           </text>
-          {barStarts.map((i) => (
-            <g
-              key={i}
-              className={
-                slots[i]!.round > 0 && slots[i - 1]?.round !== slots[i]!.round
-                  ? 'dynamics-bar is-round'
-                  : 'dynamics-bar'
-              }
-            >
-              <line
-                x1={LEFT + i * unit}
-                x2={LEFT + i * unit}
-                y1={BARS_Y + 4}
-                y2={PLOT_TOP + PLOT_HEIGHT}
-              />
-              {labelled.has(i) && (
-                <text x={LEFT + i * unit + 2} y={BARS_Y}>
-                  {format.barShort(slots[i]!.measure)}
-                </text>
-              )}
-            </g>
-          ))}
-          {rounds.map((round) => (
-            <g key={round} className="dynamics-marks">
+          <BarLines
+            grid={grid}
+            format={format}
+            labelY={BARS_Y}
+            top={BARS_Y + 4}
+            bottom={PLOT_TOP + PLOT_HEIGHT}
+          />
+          {grid.rounds.map((round) => (
+            <g key={round}>
               {marks.hairpins.map((h, k) => {
                 const x1 = xAt(round, h.tick);
                 const x2 = xEnd(round, h.end);
@@ -231,7 +187,7 @@ export function DynamicsChart({
                 return (
                   <path
                     key={`h${k}`}
-                    className="dynamics-hairpin"
+                    className="chart-mark-line"
                     d={`M${open} ${WEDGE_Y - 4}L${closed} ${WEDGE_Y}L${open} ${WEDGE_Y + 4}`}
                   />
                 );
@@ -241,7 +197,7 @@ export function DynamicsChart({
                 return x === null ? null : (
                   <path
                     key={`a${k}`}
-                    className="dynamics-accent"
+                    className="chart-mark-line"
                     d={`M${x - 3} ${WEDGE_Y - 3}l6 3l-6 3`}
                   />
                 );
@@ -258,21 +214,15 @@ export function DynamicsChart({
               <path className={`dynamics-line is-${h}`} d={path(curve[h])} />
               {curve[h].map((v, i) =>
                 v === null ? null : h === 'right' ? (
-                  <circle
-                    key={i}
-                    className="dynamics-dot is-right"
-                    cx={cx(i)}
-                    cy={y(v)}
-                    r={unit > 6 ? 2.5 : 1.5}
-                  />
+                  <circle key={i} className="dynamics-dot is-right" cx={cx(i)} cy={y(v)} r={dot} />
                 ) : (
                   <rect
                     key={i}
                     className="dynamics-dot is-left"
-                    x={cx(i) - (unit > 6 ? 2.5 : 1.5)}
-                    y={y(v) - (unit > 6 ? 2.5 : 1.5)}
-                    width={unit > 6 ? 5 : 3}
-                    height={unit > 6 ? 5 : 3}
+                    x={cx(i) - dot}
+                    y={y(v) - dot}
+                    width={2 * dot}
+                    height={2 * dot}
                   />
                 ),
               )}
@@ -280,7 +230,7 @@ export function DynamicsChart({
           ))}
           {hover !== null && (
             <line
-              className="dynamics-hover"
+              className="chart-hover"
               x1={cx(hover)}
               x2={cx(hover)}
               y1={PLOT_TOP}
@@ -288,17 +238,14 @@ export function DynamicsChart({
             />
           )}
           {balance &&
-            barStarts.map((i) => {
-              const s = slots[i]!;
-              const verdict = balanceOf.get(s.measure);
+            grid.bars.map((i) => {
+              const verdict = balanceOf.get(slots[i]!.measure);
               if (!verdict) return null;
-              const end = slots.findIndex((x, k) => k > i && (x.beat === 0 || x.round !== s.round));
-              const mid = LEFT + ((i + (end < 0 ? slots.length : end)) / 2) * unit;
               return (
                 <text
                   key={i}
                   className={`dynamics-balance is-${verdict}`}
-                  x={mid}
+                  x={(grid.x(i) + grid.x(grid.barEnd(i))) / 2}
                   y={BALANCE_Y}
                   textAnchor="middle"
                 >
@@ -310,7 +257,7 @@ export function DynamicsChart({
         {hover !== null && (
           <p
             className="deviation-tip"
-            style={{ left: `${(cx(hover) / WIDTH) * 100}%` }}
+            style={{ left: `${(cx(hover) / CHART_WIDTH) * 100}%` }}
             aria-hidden="true"
           >
             {slotLabel(hover)}

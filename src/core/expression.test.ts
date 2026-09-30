@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ACCENT_STEP_MIN,
   analyzeExpression,
+  articulationToLookAt,
   dynamicsToLookAt,
   DYNAMIC_STEP,
   playedNotes,
@@ -199,7 +200,8 @@ describe('the loudness curve', () => {
       s,
       take(s, 'both', { velocity: (n, tick) => (n.hand === 'right' ? 70 : 50) + tick / Q }),
     );
-    const { slots, curve } = analysis.dynamics;
+    const { slots } = analysis;
+    const { curve } = analysis.dynamics;
     expect(slots).toHaveLength(8);
     expect(curve.right).toEqual([70, 71, 72, 73, 74, 75, 76, 77]);
     expect(curve.left).toEqual([50, 51, 52, 53, 54, 55, 56, 57]);
@@ -214,7 +216,7 @@ describe('the loudness curve', () => {
     const notes = Array.from({ length: 6 }, (_, k) => note(0, (k * Q) / 2, Q / 2, 60 + k));
     const s = { ...makeScore(bars(1, 6, 8), notes), hands: { '0.1': 'right' as const } };
     const analysis = run(s, take(s, 'right', { velocity: (n) => n.midi }), { hands: 'right' });
-    expect(analysis.dynamics.slots).toHaveLength(2);
+    expect(analysis.slots).toHaveLength(2);
     expect(analysis.dynamics.curve.right).toEqual([61, 64]);
   });
 
@@ -475,5 +477,222 @@ describe('balance', () => {
     expect(run(s, events).dynamics.balance).toBeNull();
     const one = run(s, take(s, 'right', { velocity: jitter }), { hands: 'right' });
     expect(one.dynamics.balance).toBeNull();
+  });
+});
+
+describe('articulation', () => {
+  /** A right-hand line: quarters C D E F (a slur over them), G and A halves, one bar each. */
+  function line(
+    options: { slur?: boolean; arts?: Partial<Record<number, ScoreNote['articulations']>> } = {},
+  ) {
+    const notes = [
+      note(0, 0, Q, 60),
+      note(0, Q, Q, 62),
+      note(0, 2 * Q, Q, 64),
+      note(0, 3 * Q, Q, 65),
+      note(1, 4 * Q, 2 * Q, 67),
+      note(1, 6 * Q, 2 * Q, 69),
+      note(2, 8 * Q, 4 * Q, 72),
+    ];
+    for (const n of notes) {
+      const arts = options.arts?.[n.midi];
+      if (arts) n.articulations = arts;
+    }
+    const s = piano(notes, 3);
+    if (options.slur !== false)
+      s.markings.slurs.push({
+        part: 0,
+        staff: 1,
+        voice: '1',
+        from: notes[0]!.id,
+        to: notes[3]!.id,
+      });
+    return s;
+  }
+  const judged = (s: Score, held: (n: ScoreNote) => number, extra: Partial<ExpressionInput> = {}) =>
+    run(s, take(s, 'right', { velocity: jitter, held }), { hands: 'right', ...extra }).articulation;
+  const verdicts = (a: ReturnType<typeof judged>) =>
+    a.notes.map((n) => [n.played.note.midi, n.touch, n.verdict]);
+
+  it('joins a slur: let go within 20 ms before the next note, or 80 ms after', () => {
+    // 1.06 of a 500 ms quarter: 30 ms into the next note. 0.9: a 50 ms gap. 1.2: 100 ms over.
+    const a = judged(line(), (n) => (n.midi === 62 ? 0.9 : n.midi === 64 ? 1.2 : 1.06));
+    expect(verdicts(a).slice(0, 3)).toEqual([
+      [60, 'legato', 'right'],
+      [62, 'legato', 'broken'],
+      [64, 'legato', 'smudged'],
+    ]);
+    expect(a.notes[1]!.join).toBe(50);
+    // The slur's last note (F) may be shorter: not judged.
+    expect(a.notes.some((n) => n.played.note.midi === 65)).toBe(false);
+  });
+
+  it('holds plain notes at least seven tenths, except before a rest or at the end', () => {
+    const a = judged(line({ slur: false }), (n) => (n.midi === 67 ? 0.6 : 0.8));
+    expect(verdicts(a)).toEqual([
+      [60, 'plain', 'right'],
+      [62, 'plain', 'right'],
+      [64, 'plain', 'right'],
+      [65, 'plain', 'right'],
+      [67, 'plain', 'cut-short'],
+      [69, 'plain', 'right'],
+    ]);
+    // The last note is the run's end, and may breathe.
+    const rest = piano([note(0, 0, Q, 60), note(0, 2 * Q, Q, 62), note(0, 3 * Q, Q, 64)], 1);
+    const b = judged(rest, () => 0.3);
+    expect(verdicts(b)).toEqual([[62, 'plain', 'cut-short']]);
+  });
+
+  it('keeps staccato short, staccatissimo shorter and tenuto held', () => {
+    const s = line({
+      slur: false,
+      arts: {
+        60: ['staccato'],
+        62: ['staccatissimo'],
+        64: ['tenuto'],
+        65: ['spiccato'],
+        67: ['staccato', 'tenuto'],
+      },
+    });
+    expect(verdicts(judged(s, () => 0.45)).slice(0, 4)).toEqual([
+      [60, 'staccato', 'right'],
+      [62, 'staccatissimo', 'long'],
+      [64, 'tenuto', 'short'],
+      [65, 'staccato', 'right'],
+    ]);
+    expect(verdicts(judged(s, () => 0.3)).slice(0, 3)).toEqual([
+      [60, 'staccato', 'right'],
+      [62, 'staccatissimo', 'right'],
+      [64, 'tenuto', 'short'],
+    ]);
+    const long = judged(s, () => 0.95);
+    expect(verdicts(long).slice(0, 3)).toEqual([
+      [60, 'staccato', 'long'],
+      [62, 'staccatissimo', 'long'],
+      [64, 'tenuto', 'right'],
+    ]);
+    // Portato (tenuto and staccato together) is not judged.
+    expect(long.notes.some((n) => n.played.note.midi === 67)).toBe(false);
+  });
+
+  it('does not judge a note let go under the sustain pedal, and counts it', () => {
+    const s = line({ slur: false });
+    const events = take(s, 'right', { velocity: jitter, held: () => 0.5 });
+    // The pedal down from 200 to 1400 ms: the first three notes are let go under it.
+    events.push([200, 64, 127], [1400, 64, 0]);
+    events.sort((a, b) => a[0]! - b[0]!);
+    const a = run(s, events, { hands: 'right' }).articulation;
+    expect(a.pedalled).toBe(3);
+    expect(verdicts(a).map((v) => v[0])).toEqual([65, 67, 69]);
+  });
+
+  it('skips a slurred key struck again, and a next note never played', () => {
+    const notes = [
+      note(0, 0, Q, 60),
+      note(0, Q, Q, 60),
+      note(0, 2 * Q, Q, 62),
+      note(0, 3 * Q, Q, 64),
+    ];
+    const s = piano(notes, 1);
+    s.markings.slurs.push({ part: 0, staff: 1, voice: '1', from: notes[0]!.id, to: notes[3]!.id });
+    const events = take(s, 'right', {
+      velocity: jitter,
+      held: (n) => (n.onset === 0 ? 0.9 : 1.02),
+    }).filter((e) => !(e[1] === 1 && e[2] === 64) && !(e[1] === 0 && e[2] === 64));
+    const a = run(s, events, { hands: 'right' }).articulation;
+    // C to C cannot be joined; C to D can; D's next note (E) was never played.
+    expect(verdicts(a)).toEqual([[60, 'legato', 'right']]);
+    expect(a.notes[0]!.played.step).toBe(1);
+  });
+
+  it('joins a note tied over the barline into one length', () => {
+    const first = note(0, 3 * Q, Q, 67);
+    first.tieStart = true;
+    const second = note(1, 4 * Q, Q, 67);
+    second.tieStop = true;
+    const s = piano([note(0, 0, 3 * Q, 60), first, second, note(1, 5 * Q, 3 * Q, 64)], 2);
+    // G held for 900 of its 1000 ms (tied), then E.
+    const events: TakeEvent[] = [
+      [0, 1, 60, 60, 0],
+      [1400, 0, 60],
+      [1500, 1, 67, 62, 1],
+      [2400, 0, 67],
+      [2500, 1, 64, 64, 2],
+    ];
+    const a = run(s, events, { hands: 'right' }).articulation;
+    expect(a.notes.map((n) => [n.played.note.midi, Math.round(n.written!), n.verdict])).toEqual([
+      [60, 1500, 'right'],
+      [67, 1000, 'right'],
+    ]);
+  });
+
+  it('times a written length in wait mode by when the run reached its end', () => {
+    // A right-hand half note over left-hand quarters: it ends where the third left-hand note is.
+    const s = piano(
+      [
+        note(0, 0, 2 * Q, 72),
+        note(0, 2 * Q, 2 * Q, 74),
+        ...[0, 1, 2, 3].map((k) => note(0, k * Q, Q, 48, 'left')),
+      ],
+      1,
+    );
+    const events: TakeEvent[] = [
+      [0, 1, 72, 70, 0],
+      [0, 1, 48, 50, 0],
+      [300, 0, 48],
+      [800, 1, 48, 50, 1],
+      [1100, 0, 48],
+      [1350, 0, 72],
+      [2000, 1, 74, 70, 2],
+      [2000, 1, 48, 50, 2],
+    ];
+    const a = run(s, events).articulation;
+    const half = a.notes.find((n) => n.played.note.midi === 72)!;
+    expect(half.written).toBe(2000);
+    expect(half.verdict).toBe('cut-short');
+    // Between two steps, the time is shared out by the ticks: bar 1's second left-hand note ends
+    // halfway from 800 to 2000.
+    const lh = a.notes.find((n) => n.played.note.midi === 48 && n.played.step === 1)!;
+    expect(lh.written).toBe(1200);
+  });
+
+  it('times a written length in rhythm mode at the run’s tempo', () => {
+    const s = line({ slur: false, arts: { 60: ['staccato'] } });
+    s.tempos.push({ tick: 0, bpm: 120 });
+    // Held 400 ms: at ♩ = 120 a quarter is 500 ms (too long), at half speed 1000 ms.
+    const events: TakeEvent[] = [
+      [0, 1, 60, 60, 0],
+      [400, 0, 60],
+      [500, 1, 62, 60, 1],
+    ];
+    const at = (scale: number) =>
+      run(s, events, { hands: 'right', mode: 'rhythm', scale }).articulation.notes[0]!;
+    expect([Math.round(at(1).written!), at(1).verdict]).toEqual([500, 'long']);
+    expect([Math.round(at(0.5).written!), at(0.5).verdict]).toEqual([1000, 'right']);
+  });
+
+  it('counts each bar played, and ranks the bars to look at', () => {
+    const a = judged(line(), (n) =>
+      n.midi === 62 || n.midi === 64 ? 0.8 : n.midi === 67 ? 0.5 : 1.06,
+    );
+    expect(
+      a.bars.map((b) => [b.measure, b.judged, b.right, b.problems.broken, b.problems['cut-short']]),
+    ).toEqual([
+      [0, 3, 1, 2, 0],
+      [1, 2, 1, 0, 1],
+      [2, 0, 0, 0, 0],
+    ]);
+    expect(articulationToLookAt(a).map((p) => [p.bars.from, p.problems])).toEqual([
+      [0, [{ touch: 'legato', verdict: 'broken', count: 2 }]],
+      [1, [{ touch: 'plain', verdict: 'cut-short', count: 1 }]],
+    ]);
+  });
+
+  it('judges held lengths without velocities', () => {
+    const s = line();
+    const events = take(s, 'right', { velocity: () => 96, held: () => 0.8 });
+    const analysis = run(s, events, { hands: 'right' });
+    expect(analysis.dynamics.velocityMeasured).toBe(false);
+    expect(analysis.articulation.judged).toBeGreaterThan(0);
   });
 });

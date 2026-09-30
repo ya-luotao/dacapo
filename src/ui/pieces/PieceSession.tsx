@@ -68,6 +68,12 @@ import { FocusBar, FocusEnter } from '../focus/FocusBar.tsx';
 import { useFocusState } from '../focus/focus.ts';
 import { BarTargets, BarTints, WeakBarsBar, WeakBarsTable } from './WeakBars.tsx';
 import { ExpressionPanel } from './ExpressionPanel.tsx';
+import {
+  EXPRESSION_ASPECTS,
+  readExpressionAspects,
+  writeExpressionAspects,
+  type ExpressionAspect,
+} from './expressionPrefs.ts';
 import { SaveTake } from './SaveTake.tsx';
 import { YourRuns } from './YourRuns.tsx';
 import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
@@ -111,6 +117,8 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
   const [scoreStatus, setScoreStatus] = useState<ScoreStatus>({ state: 'loading' });
   const [tempo, setTempo] = useState(prefs.tempo);
   const [melody, setMelodyState] = useState<Melody>(prefs.melody);
+  /** The aspects of expression judged, per browser. */
+  const [aspects, setAspectsState] = useState<ExpressionAspect[]>(readExpressionAspects);
   /** "Your runs", laid over the score. */
   const [runsOpen, setRunsOpen] = useState(false);
   const [weakBars, setWeakBarsState] = useState(() => readPref(WEAK_BARS_PREF) === '1');
@@ -492,6 +500,12 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
     settle();
   }
 
+  function setAspect(aspect: ExpressionAspect, on: boolean) {
+    const next = EXPRESSION_ASPECTS.filter((a) => (a === aspect ? on : aspects.includes(a)));
+    setAspectsState(next);
+    writeExpressionAspects(next);
+  }
+
   function setMelody(next: Melody) {
     setMelodyState(next);
     writePiecePrefs(piece.id, { melody: next });
@@ -578,12 +592,14 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
     take: TakeState | null,
     mode: PracticeMode,
   ) =>
-    analysis && (
+    analysis &&
+    aspects.length > 0 && (
       <ExpressionPanel
         analysis={analysis}
         format={format}
         hands={settings.hands}
         melody={melody}
+        aspects={aspects}
         onMelody={setMelody}
         onLoopBars={loopBars}
         footer={
@@ -948,6 +964,20 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
               <span id={`${showKeysId}-weak`} className="visually-hidden">
                 {t('pieces.weak.help')}
               </span>
+              {EXPRESSION_ASPECTS.map((aspect) => (
+                <label key={aspect} className="check">
+                  <input
+                    type="checkbox"
+                    checked={aspects.includes(aspect)}
+                    onChange={(e) => setAspect(aspect, e.target.checked)}
+                    aria-describedby={`${showKeysId}-judge`}
+                  />
+                  <span>{t(`pieces.expression.judge.${aspect}`)}</span>
+                </label>
+              ))}
+              <span id={`${showKeysId}-judge`} className="visually-hidden">
+                {t('pieces.expression.judge.help')}
+              </span>
             </div>
 
             <p className="piece-option">
@@ -1088,6 +1118,7 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
             score={score}
             format={format}
             melody={melody}
+            aspects={aspects}
             onMelody={setMelody}
             onLoopBars={loopBars}
             onClose={() => {

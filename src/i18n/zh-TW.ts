@@ -941,6 +941,44 @@ export const zhTW: Dictionary = {
 
   'pieces.expression': '表情',
   'pieces.expression.dynamics': '力度',
+  'pieces.expression.articulation': '奏法',
+  'pieces.expression.judge.dynamics': '判斷力度',
+  'pieces.expression.judge.articulation': '判斷奏法',
+  'pieces.expression.judge.help': '每彈完一遍，「表情」會顯示這裡勾選的項目。',
+  'pieces.expression.touch.legato': '連奏（圓滑線下）',
+  'pieces.expression.touch.staccato': '斷奏',
+  'pieces.expression.touch.staccatissimo': '短斷奏',
+  'pieces.expression.touch.tenuto': '持音',
+  'pieces.expression.touch.plain': '沒有記號的音',
+  'pieces.expression.held.broken': '斷開了',
+  'pieces.expression.held.smudged': '黏在一起',
+  'pieces.expression.held.long': '按得太長',
+  'pieces.expression.held.short': '沒有保持足時值',
+  'pieces.expression.held.cut-short': '放得太早',
+  'pieces.expression.slip.one': '{touch}：{verdict}，1 個音',
+  'pieces.expression.slip.other': '{touch}：{verdict}，{n} 個音',
+  'pieces.expression.articulation.none':
+    '沒有能判斷的音：每個音都是在延音踏板踩下時放開的，或是沒有可以比較長短的依據。',
+  'pieces.expression.articulation.pedalled.one':
+    '有 1 個音是在延音踏板踩下時放開的，踏板蓋住了它的放開，所以不判斷。',
+  'pieces.expression.articulation.pedalled.other':
+    '有 {n} 個音是在延音踏板踩下時放開的，踏板蓋住了它們的放開，所以不判斷。',
+  'pieces.expression.articulation.asWritten': '照譜彈奏',
+  'pieces.expression.articulation.judged': '判斷的音',
+  'pieces.expression.articulation.pedal': '踏板下',
+  'pieces.expression.articulation.wrong': '哪裡沒彈好',
+  'pieces.expression.articulation.allRight': '判斷的每個音都照記譜的長短彈了。',
+  'pieces.expression.articulation.notes.one': '1 個音',
+  'pieces.expression.articulation.notes.other': '{n} 個音',
+  'pieces.expression.articulation.help.rhythm':
+    '每個音按住的時間和它在這一遍速度下的記譜時值相比：斷奏最多一半，短斷奏最多三分之一，持音至少十分之九，其他音至少十分之七（休止符前或圓滑線結尾處的音可以稍短）。圓滑線下，每個音最早在下一個音前 20 毫秒放開，最晚在它之後 80 毫秒放開。',
+  'pieces.expression.articulation.help.wait':
+    '在等待模式下，一個音的記譜時值算到你彈到它結束處那一步為止：斷奏最多一半，短斷奏最多三分之一，持音至少十分之九，其他音至少十分之七（休止符前或圓滑線結尾處的音可以稍短）。圓滑線下，每個音最早在下一個音前 20 毫秒放開，最晚在它之後 80 毫秒放開。',
+  'pieces.expression.articulation.chart': '每個小節照譜彈奏的比例',
+  'pieces.expression.articulation.chart.desc':
+    '每個小節裡照記譜長短彈的音所占的比例，下面是沒有，上面是全部；沒有可判斷的音的小節不畫柱。圓滑線、斷奏點和持音橫線在小節號上方。',
+  'pieces.expression.articulation.chart.bar': '{bar}：{total} 個中 {n} 個照譜',
+  'pieces.expression.articulation.chart.nothing': '{bar}：沒有可判斷的音',
   'pieces.expression.hand.right': '右手',
   'pieces.expression.hand.left': '左手',
   'pieces.expression.noVelocity':

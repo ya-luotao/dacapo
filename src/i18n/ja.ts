@@ -990,6 +990,45 @@ export const ja: Dictionary = {
 
   'pieces.expression': '表現',
   'pieces.expression.dynamics': '強弱',
+  'pieces.expression.articulation': 'アーティキュレーション',
+  'pieces.expression.judge.dynamics': '強弱を判定',
+  'pieces.expression.judge.articulation': 'アーティキュレーションを判定',
+  'pieces.expression.judge.help':
+    '弾き終えるたびに、ここでチェックした項目を「表現」に表示します。',
+  'pieces.expression.touch.legato': 'レガート（スラーの中）',
+  'pieces.expression.touch.staccato': 'スタッカート',
+  'pieces.expression.touch.staccatissimo': 'スタッカーティッシモ',
+  'pieces.expression.touch.tenuto': 'テヌート',
+  'pieces.expression.touch.plain': '記号のない音',
+  'pieces.expression.held.broken': '途切れた',
+  'pieces.expression.held.smudged': '重なりすぎ',
+  'pieces.expression.held.long': '長すぎ',
+  'pieces.expression.held.short': '保ちきれていない',
+  'pieces.expression.held.cut-short': '短く切れた',
+  'pieces.expression.slip.one': '{touch}：{verdict}、1音',
+  'pieces.expression.slip.other': '{touch}：{verdict}、{n}音',
+  'pieces.expression.articulation.none':
+    '判定できる音がありません。どの音もダンパーペダルを踏んだまま離したか、長さを比べる基準がありませんでした。',
+  'pieces.expression.articulation.pedalled.one':
+    '1音はダンパーペダルを踏んだまま離したため、離したタイミングが聞こえず、判定していません。',
+  'pieces.expression.articulation.pedalled.other':
+    '{n}音はダンパーペダルを踏んだまま離したため、離したタイミングが聞こえず、判定していません。',
+  'pieces.expression.articulation.asWritten': '楽譜どおり',
+  'pieces.expression.articulation.judged': '判定した音',
+  'pieces.expression.articulation.pedal': 'ペダルの中',
+  'pieces.expression.articulation.wrong': 'うまくいかなかったところ',
+  'pieces.expression.articulation.allRight': '判定した音はすべて楽譜どおりの長さで弾けました。',
+  'pieces.expression.articulation.notes.one': '1音',
+  'pieces.expression.articulation.notes.other': '{n}音',
+  'pieces.expression.articulation.help.rhythm':
+    '各音を押さえていた長さを、この回のテンポでの楽譜上の長さと比べます。スタッカートは半分以下、スタッカーティッシモは3分の1以下、テヌートは10分の9以上、ほかの音は10分の7以上です（休符の前やスラーの終わりの音は短くてもかまいません）。スラーの中では、次の音の20ミリ秒前から80ミリ秒後までに離します。',
+  'pieces.expression.articulation.help.wait':
+    '待機モードでは、楽譜上の長さは、その音が終わるステップを弾くまでの時間です。スタッカートは半分以下、スタッカーティッシモは3分の1以下、テヌートは10分の9以上、ほかの音は10分の7以上です（休符の前やスラーの終わりの音は短くてもかまいません）。スラーの中では、次の音の20ミリ秒前から80ミリ秒後までに離します。',
+  'pieces.expression.articulation.chart': '小節ごとの楽譜どおりの割合',
+  'pieces.expression.articulation.chart.desc':
+    '各小節で楽譜どおりの長さで弾けた音の割合で、下が0、上が全部です。判定する音がない小節には柱がありません。スラー、スタッカートの点、テヌートの線は小節番号の上にあります。',
+  'pieces.expression.articulation.chart.bar': '{bar}：{total}音中{n}音が楽譜どおり',
+  'pieces.expression.articulation.chart.nothing': '{bar}：判定する音なし',
   'pieces.expression.hand.right': '右手',
   'pieces.expression.hand.left': '左手',
   'pieces.expression.noVelocity':

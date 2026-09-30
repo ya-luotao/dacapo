@@ -1,7 +1,8 @@
 # dacapo — Expression specification
 
-Status: X0 is built (the markings, their sound in playback, takes, the library's markings) and X1
-(dynamics and balance, the Expression panel, a piece's past runs); X2–X4 are planned. This extends [MVP.md](MVP.md) and
+Status: X0 is built (the markings, their sound in playback, takes, the library's markings), X1
+(dynamics and balance, the Expression panel, a piece's past runs) and X2 (articulation); X3–X4
+are planned. This extends [MVP.md](MVP.md) and
 [PIECES.md](PIECES.md); their principles and fixed decisions still apply (staff first, measure don't
 guess, local data, English of record, every UI language, 3-day dependency cooldown, no backend).
 
@@ -303,11 +304,50 @@ page has the development-only "Save this run" button that Scales has.
 - **Thresholds are provisional**: the shares above wait for runs recorded on real instruments (the
   MP11SE first), as S1's do.
 
+## Clarifications (decided during X2)
+
+- **Which touch a note has.** Staccato, staccatissimo and spiccato (spiccato as staccato), then
+  tenuto, then a slur, then none. A note marked with both a tenuto and a staccato, or
+  `detached-legato` (portato), is not judged; a staccato under a slur is judged as staccato. Every
+  note of a chord is judged on its own.
+- **Slurs.** A slur holds the struck notes of its voice (part, staff, voice) from its first note's
+  onset to before its last's; each is joined to the voice's next struck note (a chord: its first
+  key), played on a later step of the same round. The slur's last notes are not judged (they may
+  be shorter), unless they carry a staccato or a tenuto. Not judged either: a pair whose next note
+  has the same key (it has to be struck again), a next note not played, and a join a loop's end
+  cuts. The join is the next note's key down less this key's up: over 20 ms **broken**, below
+  −80 ms **smudged**.
+- **Written lengths.** A note's length includes the notes tied to it (same part, staff and key,
+  each starting where the one before ends). In rhythm mode it is taken at the tempo the run was
+  started with (the click's), not the player's own drift. In wait mode it runs until the run
+  reached the note's written end: the first key of the step there, or, between two steps, the time
+  shared out by their ticks; a note whose end comes after the round's last step played is not
+  judged. The shares against it are as specified: staccato at most ½ (else **held too long**),
+  staccatissimo ⅓, tenuto at least 0.9 (else **not held**), a plain note at least 0.7 (else **cut
+  short**).
+- **A plain note may breathe** (it is not judged) when its voice has no next note, rests before
+  it (the next struck note starts after this one's written end), a fermata is on it, or it is on
+  the run's last step.
+- **The pedal.** A note whose key comes up while CC 64 is at 64 or over is not judged, and counted
+  ("under the pedal"): the pedal hides its release.
+- **Per bar**: each bar played (and round) has its share of the notes judged that were right, and
+  its counts of each fault. The bars to look at add up the faults per written bar, passes and rounds
+  together, so looping it covers them all; each lists what went wrong ("Legato (under a slur):
+  broken, 2 notes").
+- **No velocity needed.** Articulation is judged from key downs and ups alone, so it works with the
+  computer keyboard too; the chart draws the slurs, staccato dots and tenuto lines over the bars.
+- **Aspects.** Options has "Judge dynamics" and "Judge articulation", kept in this browser (the
+  aspects turned off, `dacapo.expression.off`, so an aspect added later starts on). An aspect off
+  has no tab; with none on, the summary has no Expression panel and "Your runs" offers no
+  expression.
+- **The lessons agree**: `LEGATO_GAP_MS` and `LEGATO_OVERLAP_MS` live in `core/expression.ts` and
+  the lesson on touch (`ui/learn/expression.ts`) takes them from there.
+
 ## Milestones
 
 1. ✓ **X0 Markings and takes** — markings in the parser and score, grace notes and ornaments
    realised in playback, the `takes` store (synced, exported), the library's markings.
 2. ✓ **X1 Dynamics and balance** — curve, markings, balance, the Expression panel.
-3. **X2 Articulation** — held lengths, slurs, staccato, tenuto.
+3. ✓ **X2 Articulation** — held lengths, slurs, staccato, tenuto.
 4. **X3 Pedal** — the pedal line, changes, gaps and blurs.
 5. **X4 Ornaments** — accepted in wait and rhythm mode, the keyboard hint.

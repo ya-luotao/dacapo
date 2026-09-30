@@ -974,6 +974,44 @@ export const ko: Dictionary = {
 
   'pieces.expression': '표현',
   'pieces.expression.dynamics': '셈여림',
+  'pieces.expression.articulation': '아티큘레이션',
+  'pieces.expression.judge.dynamics': '셈여림 판단',
+  'pieces.expression.judge.articulation': '아티큘레이션 판단',
+  'pieces.expression.judge.help': '연주를 마칠 때마다 여기에서 고른 항목을 “표현”에 보여 줘요.',
+  'pieces.expression.touch.legato': '레가토(이음줄 안)',
+  'pieces.expression.touch.staccato': '스타카토',
+  'pieces.expression.touch.staccatissimo': '스타카티시모',
+  'pieces.expression.touch.tenuto': '테누토',
+  'pieces.expression.touch.plain': '기호 없는 음',
+  'pieces.expression.held.broken': '끊김',
+  'pieces.expression.held.smudged': '겹침',
+  'pieces.expression.held.long': '너무 길게',
+  'pieces.expression.held.short': '길이를 못 채움',
+  'pieces.expression.held.cut-short': '짧게 끊김',
+  'pieces.expression.slip.one': '{touch}: {verdict}, 1음',
+  'pieces.expression.slip.other': '{touch}: {verdict}, {n}음',
+  'pieces.expression.articulation.none':
+    '판단할 수 있는 음이 없어요. 모든 음을 댐퍼 페달을 밟은 채 뗐거나, 길이를 비교할 기준이 없었어요.',
+  'pieces.expression.articulation.pedalled.one':
+    '1음은 댐퍼 페달을 밟은 채 떼서 뗀 순간이 들리지 않으므로 판단하지 않았어요.',
+  'pieces.expression.articulation.pedalled.other':
+    '{n}음은 댐퍼 페달을 밟은 채 떼서 뗀 순간이 들리지 않으므로 판단하지 않았어요.',
+  'pieces.expression.articulation.asWritten': '악보대로',
+  'pieces.expression.articulation.judged': '판단한 음',
+  'pieces.expression.articulation.pedal': '페달 안',
+  'pieces.expression.articulation.wrong': '잘 안 된 곳',
+  'pieces.expression.articulation.allRight': '판단한 음을 모두 악보대로의 길이로 쳤어요.',
+  'pieces.expression.articulation.notes.one': '1음',
+  'pieces.expression.articulation.notes.other': '{n}음',
+  'pieces.expression.articulation.help.rhythm':
+    '음마다 누른 시간을 이번 연주 템포에서의 악보상 길이와 비교해요. 스타카토는 절반 이하, 스타카티시모는 3분의 1 이하, 테누토는 10분의 9 이상, 다른 음은 10분의 7 이상이에요(쉼표 앞이나 이음줄 끝의 음은 짧아도 돼요). 이음줄 안에서는 다음 음이 시작되기 20ms 전부터 시작된 뒤 80ms까지 사이에 떼요.',
+  'pieces.expression.articulation.help.wait':
+    '기다리기 모드에서는 악보상 길이가 그 음이 끝나는 스텝을 칠 때까지의 시간이에요. 스타카토는 절반 이하, 스타카티시모는 3분의 1 이하, 테누토는 10분의 9 이상, 다른 음은 10분의 7 이상이에요(쉼표 앞이나 이음줄 끝의 음은 짧아도 돼요). 이음줄 안에서는 다음 음이 시작되기 20ms 전부터 시작된 뒤 80ms까지 사이에 떼요.',
+  'pieces.expression.articulation.chart': '마디별 악보대로 친 비율',
+  'pieces.expression.articulation.chart.desc':
+    '마디마다 악보대로의 길이로 친 음의 비율로, 아래가 없음, 위가 전부예요. 판단할 음이 없는 마디에는 막대가 없어요. 이음줄, 스타카토 점, 테누토 선은 마디 번호 위에 있어요.',
+  'pieces.expression.articulation.chart.bar': '{bar}: {total}음 중 {n}음 악보대로',
+  'pieces.expression.articulation.chart.nothing': '{bar}: 판단할 음 없음',
   'pieces.expression.hand.right': '오른손',
   'pieces.expression.hand.left': '왼손',
   'pieces.expression.noVelocity':

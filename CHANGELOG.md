@@ -56,6 +56,21 @@ click's tempo and grid of scale runs played with it (from version 7), and the ta
   open is rebuilt from its answers. Sync learns them (`SYNC_SCHEMA` 6): a device that updates
   pulls everything again once. The export file needs no new version for them.
 
+### Articulation (X2, [docs/EXPRESSION.md](docs/EXPRESSION.md))
+
+- The Expression panel gains an **Articulation** tab: how long you held each note against what
+  the score asks. Under a slur each note should be let go as the next one begins (a gap is
+  "broken", holding on too long "smudged"); a staccato note at most half its length (a
+  staccatissimo a third), a tenuto at least nine tenths, and an unmarked note at least seven tenths,
+  unless a rest or the end of a slur lets it breathe. Lengths are taken at the run's tempo in
+  rhythm mode and as you went in wait mode. A note let go under the sustain pedal is not judged,
+  since the pedal hides its release.
+- Per bar, the share of notes held as written, drawn under the bar numbers with the slurs,
+  staccatos and tenutos above; what went wrong, the three bars to look at (each loopable) and a
+  table. It needs no velocity, so it works with the computer keyboard too.
+- Options can turn the judging of dynamics or of articulation off, in this browser.
+- The lesson on touch and the Pieces now share their legato thresholds.
+
 ### Dynamics and balance (X1, [docs/EXPRESSION.md](docs/EXPRESSION.md))
 
 - **Expression** after every run of a piece, in wait and rhythm mode: the Dynamics tab draws how
