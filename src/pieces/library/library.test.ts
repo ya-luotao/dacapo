@@ -114,8 +114,17 @@ describe('built-in pieces', () => {
     expect(score.measures.every((m) => m.duration === 3 * Q)).toBe(true);
     expect(score.notes.filter((n) => n.hand === 'right')).toHaveLength(128);
     expect(score.notes.filter((n) => n.hand === 'left')).toHaveLength(75);
-    expect(score.warnings).toEqual(expect.arrayContaining(['grace-notes', 'ornaments']));
+    // Grace notes and ornaments are kept since X0: no warning.
+    expect(score.warnings).toEqual([]);
     expect(score.tempos).toEqual([]);
+    // Bar 8: the slashed B4 leads to the right hand's A4, and is no step of its own.
+    const graced = score.notes.filter((n) => n.graces);
+    expect(graced.map((n) => [n.measure, n.midi, n.graces])).toEqual([
+      [7, 69, [expect.objectContaining({ midi: 71, slash: true, chord: false })]],
+    ]);
+    // Bar 3: a mordent on C5 goes down to B4, in G major.
+    const bar3 = score.notes.find((n) => n.measure === 2 && n.ornaments)!;
+    expect(bar3).toMatchObject({ midi: 72, ornaments: [{ kind: 'mordent', lower: 71 }] });
     expect(runs(score)).toBe('0-15,0-31,16-31');
     const right = buildSteps(score, 'right');
     expect(right.slice(0, 6).map((s) => s.midis)).toEqual([[74], [67], [69], [71], [72], [74]]);
@@ -196,7 +205,10 @@ describe('built-in pieces', () => {
     expect(score.measures).toHaveLength(32);
     expect(score.measures.every((m) => m.duration === 3 * Q)).toBe(true);
     expect(runs(score)).toBe('0-15,0-31,16-31');
-    expect(score.warnings).toEqual(['ornaments']);
+    expect(score.warnings).toEqual([]);
+    // Bar 13: the mordent on F5 goes down to E♭5, in the key of G minor.
+    const bar13 = score.notes.find((n) => n.measure === 12 && n.ornaments)!;
+    expect(bar13).toMatchObject({ midi: 77, ornaments: [{ kind: 'mordent', lower: 75 }] });
     // B♭5 A5 G5, then A5 D5 D5.
     expect(
       buildSteps(score, 'right')

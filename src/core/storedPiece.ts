@@ -54,6 +54,19 @@ export function isScoreWarning(value: unknown): value is ScoreWarning {
   return SCORE_WARNINGS.includes(value as ScoreWarning);
 }
 
+/**
+ * Warnings the parser no longer gives: grace notes and ornaments are kept since X0. A piece
+ * imported before still stores them (and syncs them as stored); they are not shown.
+ */
+const RETIRED_WARNINGS = ['grace-notes', 'ornaments'] as const;
+export type ShownWarning = Exclude<ScoreWarning, (typeof RETIRED_WARNINGS)[number]>;
+
+export function shownWarnings(warnings: readonly ScoreWarning[]): ShownWarning[] {
+  return warnings.filter(
+    (w): w is ShownWarning => !(RETIRED_WARNINGS as readonly string[]).includes(w),
+  );
+}
+
 /** Newest first. */
 export function byImportedDescending(a: StoredPiece, b: StoredPiece): number {
   return b.importedAt - a.importedAt || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);

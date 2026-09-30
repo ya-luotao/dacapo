@@ -590,8 +590,6 @@ export const zhCN: Dictionary = {
   'pieces.import.error.type': '只能导入 .musicxml、.xml 和 .mxl 文件。',
   'pieces.import.error.read': '无法读取这个文件。',
   'pieces.warning.finer-than-ticks': '有些音符的时值比 dacapo 能计的更细，已四舍五入。',
-  'pieces.warning.grace-notes': '暂不练习倚音，已省略。',
-  'pieces.warning.ornaments': '颤音、波音等装饰音只按主音计算。',
   'pieces.warning.unknown-step': '有一个音高无法识别的音符被省略了。',
   'pieces.warning.microtones': '微分音已按最近的琴键处理。',
   'pieces.warning.tie-mismatch': '有一处连音线和前面的音对不上，这个音按单独弹奏处理。',

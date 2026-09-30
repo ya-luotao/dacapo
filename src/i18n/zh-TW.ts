@@ -591,8 +591,6 @@ export const zhTW: Dictionary = {
   'pieces.import.error.type': '只能匯入 .musicxml、.xml 和 .mxl 檔案。',
   'pieces.import.error.read': '無法讀取這個檔案。',
   'pieces.warning.finer-than-ticks': '有些音符的時值比 dacapo 能計算的更細，已經四捨五入。',
-  'pieces.warning.grace-notes': '目前還不練習倚音，已經省略。',
-  'pieces.warning.ornaments': '顫音、漣音等裝飾音只算主要音。',
   'pieces.warning.unknown-step': '有一個無法辨識音高的音符已經省略。',
   'pieces.warning.microtones': '微分音已調整成最接近的琴鍵。',
   'pieces.warning.tie-mismatch': '有一條連結線和前一個音對不上，這個音會照常彈奏。',

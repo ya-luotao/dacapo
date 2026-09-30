@@ -617,8 +617,6 @@ export const en = {
   'pieces.import.error.read': 'The file could not be read.',
   'pieces.warning.finer-than-ticks':
     'Some note lengths were finer than dacapo counts; they were rounded.',
-  'pieces.warning.grace-notes': 'Grace notes are not practised yet; they are left out.',
-  'pieces.warning.ornaments': 'Ornaments such as trills and mordents count as their main note.',
   'pieces.warning.unknown-step': 'A note with an unreadable pitch was left out.',
   'pieces.warning.microtones': 'Microtones were rounded to the nearest key.',
   'pieces.warning.tie-mismatch': 'A tie did not match the note before it; that note is played.',

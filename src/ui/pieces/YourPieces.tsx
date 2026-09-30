@@ -2,8 +2,13 @@ import { useEffect, useId, useRef, useState, type DragEvent } from 'react';
 import { Link } from 'wouter';
 import type { ScoreErrorKind } from '../../core/musicxml.ts';
 import { pieceFacts } from '../../core/pieceRecords.ts';
-import type { ScoreWarning } from '../../core/score.ts';
-import { nextPieceVersion, titleFromFile, type StoredPiece } from '../../core/storedPiece.ts';
+import {
+  nextPieceVersion,
+  shownWarnings,
+  titleFromFile,
+  type ShownWarning,
+  type StoredPiece,
+} from '../../core/storedPiece.ts';
 import { useT } from '../../i18n/index.ts';
 import {
   isPieceFileName,
@@ -197,6 +202,7 @@ function ImportReport({
   onClose: () => void;
 }) {
   const t = useT();
+  const warnings = shownWarnings(piece.warnings);
   return (
     <section
       className="import-preview pieces-report"
@@ -211,7 +217,7 @@ function ImportReport({
             ? t('pieces.import.placed')
             : t('pieces.import.unplaced', { n: unplaced })}
       </p>
-      {piece.warnings.length > 0 && <Warnings warnings={piece.warnings} />}
+      {warnings.length > 0 && <Warnings warnings={warnings} />}
       <div className="actions">
         <Link href={`/pieces/${piece.id}`} className="button button-primary">
           {t('pieces.import.open')}
@@ -224,7 +230,7 @@ function ImportReport({
   );
 }
 
-export function Warnings({ warnings }: { warnings: readonly ScoreWarning[] }) {
+export function Warnings({ warnings }: { warnings: readonly ShownWarning[] }) {
   const t = useT();
   return (
     <div className="pieces-warnings">

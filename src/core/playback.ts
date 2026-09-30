@@ -12,6 +12,7 @@ import {
   type ScoreNote,
   type Step,
 } from './score.ts';
+import { realise, type Sounding } from './ornaments.ts';
 import type { BarLoop } from './wait.ts';
 
 /** Quarter notes per minute when the score gives no tempo: moderate, easy to follow. */
@@ -121,6 +122,11 @@ export interface PerformedNote {
   off: number;
 }
 
+/** A performed note with the written note it starts from (its grace notes and ornaments). */
+interface SourcedNote extends PerformedNote {
+  note: ScoreNote;
+}
+
 /**
  * The notes `include` selects, as played over positions `first`–`last` of the order. A tie joins
  * its notes into one; a tied continuation whose start is not played (the loop begins inside the
@@ -133,6 +139,20 @@ export function performedNotes(
   first = 0,
   last = order.length - 1,
 ): PerformedNote[] {
+  return sourcedNotes(score, order, include, first, last).map(({ midi, on, off }) => ({
+    midi,
+    on,
+    off,
+  }));
+}
+
+function sourcedNotes(
+  score: Pick<Score, 'measures' | 'notes'>,
+  order: readonly PlayedMeasure[],
+  include: (note: ScoreNote) => boolean,
+  first: number,
+  last: number,
+): SourcedNote[] {
   const byMeasure = new Map<number, ScoreNote[]>();
   for (const note of score.notes) {
     if (!include(note)) continue;
@@ -140,8 +160,8 @@ export function performedNotes(
     list.push(note);
     byMeasure.set(note.measure, list);
   }
-  const out: PerformedNote[] = [];
-  const ties = new Map<string, PerformedNote>();
+  const out: SourcedNote[] = [];
+  const ties = new Map<string, SourcedNote>();
   for (let p = first; p <= last; p++) {
     const played = order[p]!;
     const measure = score.measures[played.measure]!;
@@ -159,23 +179,58 @@ export function performedNotes(
         }
         continue;
       }
-      const performed = { midi: note.midi, on, off };
+      const performed = { midi: note.midi, on, off, note };
       out.push(performed);
       if (note.tieStart) ties.set(key, performed);
       else ties.delete(key);
     }
   }
   out.sort((a, b) => a.on - b.on || a.midi - b.midi);
-  const merged: PerformedNote[] = [];
+  const merged: SourcedNote[] = [];
   for (const note of out) {
     const previous = merged.at(-1);
     if (previous && previous.on === note.on && previous.midi === note.midi) {
       previous.off = Math.max(previous.off, note.off);
+      // Of two voices on one key, the one with grace notes or ornaments says how it sounds.
+      if (!decorated(previous.note) && decorated(note.note)) previous.note = note.note;
     } else {
       merged.push(note);
     }
   }
   return merged;
+}
+
+const decorated = (note: ScoreNote) => Boolean(note.graces?.length || note.ornaments?.length);
+
+/** A thirty-second note in performance ticks. */
+const THIRTY_SECOND = TICKS_PER_QUARTER / 8;
+
+/**
+ * The keys a performed note sounds, in ms on the timeline: itself, or with its grace notes and
+ * ornaments realised (`core/ornaments.ts`), nothing before `floor`.
+ */
+function sounding(n: SourcedNote, ms: Timeline, floor: number, end: number): Sounding[] {
+  const plain = { midi: n.midi, on: ms(n.on), off: Math.min(ms(n.off), end) };
+  if (!decorated(n.note)) return [plain];
+  const { duration } = n.note;
+  // A dotted note's length is 3/2 of a plain note value: an appoggiatura takes two thirds of it.
+  const dotted = isDotted(duration);
+  return realise(
+    {
+      ...plain,
+      thirtySecond: ms(n.on + THIRTY_SECOND) - ms(n.on),
+      appoggiatura: ms(n.on + (dotted ? (duration * 2) / 3 : duration / 2)) - ms(n.on),
+      ornaments: n.note.ornaments,
+      graces: n.note.graces,
+    },
+    floor,
+  ).map((s) => ({ ...s, off: Math.min(s.off, end) }));
+}
+
+/** Whether a length in ticks is a dotted note value (3/2 of a power-of-two fraction of a whole). */
+export function isDotted(duration: number): boolean {
+  const base = (duration * 2) / 3 / (4 * TICKS_PER_QUARTER);
+  return base > 0 && Number.isFinite(base) && Math.log2(base) % 1 === 0;
 }
 
 export interface DemoNote {
@@ -222,11 +277,11 @@ export function demoPlan(options: {
   const zero = ms(span.from);
   const length = ms(span.to) - zero;
   const include = options.include ?? demoIncludes(hands);
-  const notes = performedNotes(score, order, include, span.first, span.last).map((n) => ({
-    midi: n.midi,
-    on: ms(n.on) - zero,
-    off: Math.min(ms(n.off), ms(span.to)) - zero,
-  }));
+  const end = ms(span.to);
+  const notes = sourcedNotes(score, order, include, span.first, span.last)
+    .flatMap((n) => sounding(n, ms, zero, end))
+    .map((n) => ({ midi: n.midi, on: n.on - zero, off: n.off - zero }))
+    .sort((a, b) => a.on - b.on || a.midi - b.midi);
   separateRepeatedKeys(notes, loop ? length : null);
   const inSpan = steps.filter((s) => s.played >= span.first && s.played <= span.last);
   if (inSpan.length === 0) return null;
@@ -294,7 +349,8 @@ export function accompanimentPlan(options: {
   if (inSpan.length === 0) return null;
   const ms = timeline(score, order, scale);
   const lapTicks = span.to - span.from;
-  const others = performedNotes(score, order, otherHand(hand), span.first, span.last).map((n) => ({
+  const end = ms(span.to);
+  const others = sourcedNotes(score, order, otherHand(hand), span.first, span.last).map((n) => ({
     ...n,
     off: Math.min(n.off, span.to),
   }));
@@ -302,30 +358,36 @@ export function accompanimentPlan(options: {
   const plan: AccompanimentPlan = { lapTicks, steps: new Map() };
   let k = 0;
   // Before the first step: the lead-in of the next time round, if the span loops.
-  const leadIn: PerformedNote[] = [];
+  const leadIn: SourcedNote[] = [];
   while (k < others.length && others[k]!.on < inSpan[0]!.tick) leadIn.push(others[k++]!);
   inSpan.forEach((step, i) => {
     const next = inSpan[i + 1]?.tick ?? span.to;
     const notes: AccompanimentNote[] = [];
     const origin = ms(step.tick);
+    // A grace note before the beat of a note on this step sounds from the step, not before it.
     for (; k < others.length && others[k]!.on < next; k++) {
       const n = others[k]!;
-      notes.push({
-        midi: n.midi,
-        at: ms(n.on) - origin,
-        length: ms(n.off) - ms(n.on),
-        until: n.off - step.tick,
-      });
+      for (const s of sounding(n, ms, origin, end)) {
+        notes.push({
+          midi: s.midi,
+          at: s.on - origin,
+          length: s.off - s.on,
+          until: n.off - step.tick,
+        });
+      }
     }
     if (i === inSpan.length - 1 && loop) {
-      const toEnd = ms(span.to) - origin;
+      const toEnd = end - origin;
+      const from = ms(span.from);
       for (const n of leadIn) {
-        notes.push({
-          midi: n.midi,
-          at: toEnd + ms(n.on) - ms(span.from),
-          length: ms(n.off) - ms(n.on),
-          until: span.to - step.tick + n.off - span.from,
-        });
+        for (const s of sounding(n, ms, from, end)) {
+          notes.push({
+            midi: s.midi,
+            at: toEnd + s.on - from,
+            length: s.off - s.on,
+            until: span.to - step.tick + n.off - span.from,
+          });
+        }
       }
     }
     plan.steps.set(step.index, { pos: step.tick - span.from, notes });

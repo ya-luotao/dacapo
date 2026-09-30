@@ -608,8 +608,6 @@ export const ko: Dictionary = {
   'pieces.import.error.read': '파일을 읽지 못했어요.',
   'pieces.warning.finer-than-ticks':
     '일부 음의 길이가 dacapo가 셀 수 있는 단위보다 짧아서 반올림했어요.',
-  'pieces.warning.grace-notes': '앞꾸밈음은 아직 연습할 수 없어서 뺐어요.',
-  'pieces.warning.ornaments': '트릴이나 모르덴트 같은 꾸밈음은 원래 음 하나로 쳐요.',
   'pieces.warning.unknown-step': '음높이를 읽을 수 없는 음 하나를 뺐어요.',
   'pieces.warning.microtones': '미분음은 가장 가까운 건반으로 반올림했어요.',
   'pieces.warning.tie-mismatch':

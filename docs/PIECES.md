@@ -30,8 +30,10 @@ for drawing.
   MIDI pitch, spelled pitch, staff, hand (`right` / `left`; staff 1 = right, staff 2 = left by
   default, overridable per piece), voice, tie flags. A tied continuation is not a new key press.
 - **Steps**: the ordered list of distinct onsets per hand selection (right, left, both); a step
-  is the set of pitches that start together. Grace notes and ornaments are skipped in the first
-  version (documented), repeats handled as decided in the spike.
+  is the set of pitches that start together. Grace notes and ornaments are no steps of their own
+  (since X0 the parser keeps them on their note and the demo and the other hand play them, see
+  [EXPRESSION.md](EXPRESSION.md); accepting them when played is X4), repeats handled as decided in
+  the spike.
 - Mapping from steps to renderer positions so the cursor and highlights line up.
 
 ## Practice modes

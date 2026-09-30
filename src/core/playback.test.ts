@@ -9,6 +9,7 @@ import {
   RELEASE_GAP_MS,
   timeline,
 } from './playback.ts';
+import { emptyMarkings, type GraceNote } from './markings.ts';
 import { performanceOrder, writtenOrder } from './repeats.ts';
 import {
   buildSteps,
@@ -73,7 +74,17 @@ function bars(count: number, repeatFrom: number | null = null): Measure[] {
 
 function score(measures: Measure[], notes: ScoreNote[], tempos: Score['tempos'] = []): Score {
   notes.sort((a, b) => a.onset - b.onset || a.midi - b.midi);
-  return { title: '', composer: '', parts: [], hands: {}, measures, notes, tempos, warnings: [] };
+  return {
+    title: '',
+    composer: '',
+    parts: [],
+    hands: {},
+    measures,
+    notes,
+    tempos,
+    markings: emptyMarkings(),
+    warnings: [],
+  };
 }
 
 /** Two bars, the second repeated: right C5 D5 per bar, left a C3–G3 half-note chord, and a voice. */
@@ -379,5 +390,100 @@ describe('accompanimentPlan', () => {
   it('includes parts nobody practises', () => {
     const p = plan(song(), 'left');
     expect(p.steps.get(0)!.notes.map((n) => n.midi)).toEqual([72, 74, 76]);
+  });
+});
+
+describe('grace notes and ornaments in playback', () => {
+  const g = (midi: number, slash = true): GraceNote => ({
+    id: `g${midi}`,
+    midi,
+    pitch: { step: 'D', alter: 0, octave: 5 },
+    slash,
+    chord: false,
+  });
+  const decorate = (n: ScoreNote, extra: Pick<ScoreNote, 'graces' | 'ornaments'>): ScoreNote => ({
+    ...n,
+    ...extra,
+  });
+  /** A thirty-second at the default tempo. */
+  const T = MSQ / 8;
+
+  it('realises them in the demo, leaving the steps alone', () => {
+    const s = score(bars(1), [
+      decorate(note(0, 0, Q, 72, 'right'), { graces: [g(74)] }),
+      decorate(note(0, Q, Q, 72, 'right'), {
+        ornaments: [{ kind: 'mordent', upper: 74, lower: 71 }],
+      }),
+      decorate(note(0, 2 * Q, 2 * Q, 76, 'right'), { graces: [g(77, false)] }),
+    ]);
+    const plan = demo(s, 'right');
+    expect(plan.steps.map((st) => round(st.at))).toEqual([0, round(MSQ), round(2 * MSQ)]);
+    expect(times(plan)).toEqual([
+      // The acciaccatura before the first note cannot come before the start: the note waits.
+      '74:0-80',
+      `72:80-${round(MSQ - RELEASE_GAP_MS)}`,
+      // The mordent: 70 ms notes (a thirty-second is longer at ♩ = 90).
+      `72:${round(MSQ)}-${round(MSQ + 70)}`,
+      `71:${round(MSQ + 70)}-${round(MSQ + 140)}`,
+      `72:${round(MSQ + 140)}-${round(2 * MSQ)}`,
+      // The appoggiatura takes half the half note.
+      `77:${round(2 * MSQ)}-${round(3 * MSQ)}`,
+      `76:${round(3 * MSQ)}-${round(4 * MSQ)}`,
+    ]);
+  });
+
+  it('trills over the whole of a tied note', () => {
+    const s = score(bars(2), [
+      decorate(note(0, 3 * Q, Q, 72, 'right', { tieStart: true }), {
+        ornaments: [{ kind: 'trill', upper: 74, lower: 71 }],
+      }),
+      note(1, 0, Q, 72, 'right', { tieStop: true }),
+    ]);
+    const trill = demo(s, 'right').notes;
+    // Two quarters: sixteen thirty-seconds, the last upper one dropped.
+    expect(trill.map((n) => n.midi)).toEqual([
+      72, 74, 72, 74, 72, 74, 72, 74, 72, 74, 72, 74, 72, 74, 72,
+    ]);
+    expect(trill[0]!.on).toBeCloseTo(3 * MSQ);
+    expect(trill[1]!.on).toBeCloseTo(3 * MSQ + T);
+    expect(trill.at(-1)!.off).toBeCloseTo(5 * MSQ);
+  });
+
+  it('realises the other hand in rhythm mode and in wait mode, graces from the step on', () => {
+    const s = score(bars(1), [
+      note(0, 0, Q, 72, 'right'),
+      note(0, Q, Q, 74, 'right'),
+      decorate(note(0, Q, Q, 48, 'left'), { graces: [g(50)] }),
+    ]);
+    const order = performanceOrder(s.measures);
+    const steps = buildSteps(s, 'right', order);
+    const backing = demoPlan({
+      score: s,
+      order,
+      steps,
+      hands: 'right',
+      loop: null,
+      startBar: 0,
+      scale: 1,
+      include: (n) => n.hand !== 'right',
+    })!;
+    // In time, the acciaccatura comes just before the beat.
+    expect(times(backing)).toEqual([
+      `50:${round(MSQ - 80)}-${round(MSQ)}`,
+      `48:${round(MSQ)}-${round(2 * MSQ)}`,
+    ]);
+    // In wait mode the step is completed first: the grace note sounds from then on.
+    const plan = accompanimentPlan({
+      score: s,
+      order,
+      steps,
+      hand: 'right',
+      loop: null,
+      scale: 1,
+    })!;
+    expect(plan.steps.get(1)!.notes.map((n) => [n.midi, round(n.at), round(n.length)])).toEqual([
+      [50, 0, 80],
+      [48, 80, round(MSQ - 80)],
+    ]);
   });
 });

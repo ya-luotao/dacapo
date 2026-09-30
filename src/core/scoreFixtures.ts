@@ -1,5 +1,6 @@
 // Small hand-made scores for the tests of rhythm mode.
 
+import { emptyMarkings } from './markings.ts';
 import { TICKS_PER_QUARTER, type Hand, type Measure, type Score, type ScoreNote } from './score.ts';
 
 export const Q = TICKS_PER_QUARTER;
@@ -64,7 +65,17 @@ export function score(
   tempos: Score['tempos'] = [],
 ): Score {
   notes.sort((a, b) => a.onset - b.onset || a.midi - b.midi);
-  return { title: '', composer: '', parts: [], hands: {}, measures, notes, tempos, warnings: [] };
+  return {
+    title: '',
+    composer: '',
+    parts: [],
+    hands: {},
+    measures,
+    notes,
+    tempos,
+    markings: emptyMarkings(),
+    warnings: [],
+  };
 }
 
 /** Quarter notes on every beat of `count` 4/4 bars, the right hand, keys from `keys` in turn. */

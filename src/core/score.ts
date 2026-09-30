@@ -2,6 +2,7 @@
 // from MusicXML (musicxml.ts). The renderer only draws; everything that counts or compares uses
 // this model.
 
+import type { Articulation, GraceNote, Markings, Ornament } from './markings.ts';
 import type { Letter } from './note.ts';
 import { performanceOrder, type PlayedMeasure } from './repeats.ts';
 
@@ -52,6 +53,12 @@ export interface ScoreNote {
   tieStop: boolean;
   /** The finger printed for this note (1 = thumb … 5), if the file gives one. */
   finger: number | null;
+  /** Its articulations, as printed; absent when none. */
+  articulations?: Articulation[];
+  /** Its ornaments, as printed; absent when none. */
+  ornaments?: Ornament[];
+  /** The grace notes leading to it, in order; absent when none. They are no step of their own. */
+  graces?: GraceNote[];
 }
 
 export interface Repeat {
@@ -88,6 +95,10 @@ export interface TempoMark {
 /** Which hand plays each staff, keyed by `staffKey`; null: not practised. */
 export type StaffHands = Readonly<Record<string, Hand | null>>;
 
+/**
+ * What the parser left out or had to guess. `grace-notes` and `ornaments` are no longer reported
+ * (both are kept since X0), but pieces imported before still carry them.
+ */
 export type ScoreWarning =
   | 'finer-than-ticks'
   | 'grace-notes'
@@ -105,9 +116,14 @@ export interface Score {
   /** The hands in effect: detected, with the piece's override applied. */
   hands: StaffHands;
   measures: Measure[];
-  /** Sorted by onset, then staff, then pitch. Grace notes, rests and unpitched notes are absent. */
+  /**
+   * Sorted by onset, then staff, then pitch. Rests and unpitched notes are absent, and grace notes
+   * are kept on the note they lead to (`ScoreNote.graces`).
+   */
   notes: ScoreNote[];
   tempos: TempoMark[];
+  /** Dynamics, hairpins, slurs, fermatas and pedal marks (docs/EXPRESSION.md). */
+  markings: Markings;
   /** What the parser left out or had to guess, for the import report. */
   warnings: ScoreWarning[];
 }

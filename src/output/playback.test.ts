@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { accompanimentPlan, DEFAULT_BPM, demoPlan } from '../core/playback.ts';
+import { emptyMarkings } from '../core/markings.ts';
 import { performanceOrder } from '../core/repeats.ts';
 import { buildSteps, type Hand, type Measure, type Score, type ScoreNote } from '../core/score.ts';
 import { createAccompanist } from './accompany.ts';
@@ -67,6 +68,7 @@ function piece(count = 2): Score {
     measures: bars(count),
     notes,
     tempos: [],
+    markings: emptyMarkings(),
     warnings: [],
   };
 }

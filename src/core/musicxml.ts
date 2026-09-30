@@ -3,6 +3,8 @@
 
 import { unzipSync } from 'fflate';
 import { applyHands, detectHands } from './hands.ts';
+import type { GraceNote, Ornament, OrnamentKind } from './markings.ts';
+import { createMarkingReader, type SlurEnd } from './musicxmlMarkings.ts';
 import { LETTERS, type Letter } from './note.ts';
 import {
   staffKey,
@@ -98,6 +100,8 @@ interface PartState {
   divisions: number;
   staves: number;
   transpose: number;
+  /** Key signature per staff; 0: every staff without its own. */
+  fifths: Map<number, number>;
 }
 
 /** Parses `score-partwise` MusicXML. Throws `ScoreError` if the document is not usable. */
@@ -153,25 +157,33 @@ export function parseMusicXml(doc: Document, options: ParseOptions = {}): Score 
     }
   }
 
-  // Notes and tempo marks are collected per written measure and anchored on the shared frame
-  // afterwards, so a part whose measures are too short or too long cannot shift the others.
+  // Notes, tempo marks and markings are collected per written measure and anchored on the shared
+  // frame afterwards, so a part whose measures are too short or too long cannot shift the others.
   const pending: { measure: number; within: number; note: Omit<ScoreNote, 'onset'> }[] = [];
   const pendingTempos: { measure: number; within: number; bpm: number }[] = [];
+  const marks = createMarkingReader();
 
   parts.forEach((part, partIndex) => {
-    const state: PartState = { divisions: 1, staves: 1, transpose: 0 };
+    const state: PartState = { divisions: 1, staves: 1, transpose: 0, fifths: new Map() };
     // Open ties per (staff, voice, midi) so a tie-stop is matched to its start.
     const openTies = new Set<string>();
+    // Grace notes waiting for the next note of their voice, with the ends of slurs on them.
+    const waiting = new Map<string, { grace: GraceNote; slur: SlurEnd }[]>();
     childrenNamed(part, 'measure').forEach((m, measureIndex) => {
       let cursor = 0;
       let furthest = 0;
       let previousOnset = 0;
       let noteOrder = 0;
+      // Every pitch of the bar where it sounds, for the accidentals in force at an ornament.
+      const sounded: { staff: number; pitch: SpelledPitch; within: number }[] = [];
+      const ornamented: { note: Omit<ScoreNote, 'onset'>; within: number; els: Element[] }[] = [];
       const ticks = (divs: number) => {
         const exact = (divs * TICKS_PER_QUARTER) / state.divisions;
         if (!Number.isInteger(exact)) warnings.add('finer-than-ticks');
         return Math.round(exact);
       };
+      const staffOf = (el: Element) =>
+        Math.min(num(child(el, 'staff'), 1), Math.max(1, state.staves));
       for (const el of m.children) {
         switch (el.localName) {
           case 'attributes': {
@@ -182,6 +194,13 @@ export function parseMusicXml(doc: Document, options: ParseOptions = {}): Score 
               state.transpose =
                 num(child(transpose, 'chromatic'), 0) +
                 12 * num(child(transpose, 'octave-change'), 0);
+            for (const key of childrenNamed(el, 'key')) {
+              if (!child(key, 'fifths')) continue;
+              const staff = Number(key.getAttribute('number'));
+              const fifths = num(child(key, 'fifths'), 0);
+              if (Number.isInteger(staff) && staff > 0) state.fifths.set(staff, fifths);
+              else state.fifths = new Map([[0, fifths]]);
+            }
             break;
           }
           case 'backup':
@@ -195,17 +214,41 @@ export function parseMusicXml(doc: Document, options: ParseOptions = {}): Score 
           case 'sound': {
             const sound = el.localName === 'sound' ? el : child(el, 'sound');
             const tempo = sound ? Number(sound.getAttribute('tempo')) : NaN;
+            const offset = el.localName === 'direction' ? ticks(num(child(el, 'offset'), 0)) : 0;
             if (partIndex === 0 && Number.isFinite(tempo) && tempo > 0) {
-              const offset = el.localName === 'direction' ? ticks(num(child(el, 'offset'), 0)) : 0;
               pendingTempos.push({ measure: measureIndex, within: cursor + offset, bpm: tempo });
+            }
+            if (el.localName === 'direction') {
+              marks.direction(el, {
+                part: partIndex,
+                staff: staffOf(el),
+                measure: measureIndex,
+                within: Math.max(0, cursor + offset),
+              });
             }
             break;
           }
           case 'note': {
             const order = noteOrder++;
             const isChord = child(el, 'chord') !== null;
-            if (child(el, 'grace')) {
-              warnings.add('grace-notes');
+            const graceEl = child(el, 'grace');
+            if (graceEl) {
+              if (child(el, 'cue')) break;
+              const grace = readGrace(el, graceEl, `g${partIndex}.${measureIndex}.${order}`);
+              if (grace === 'unknown-step') warnings.add('unknown-step');
+              if (!grace || grace === 'unknown-step') break;
+              grace.midi += state.transpose;
+              const voice = text(child(el, 'voice')) || '1';
+              const slur: SlurEnd = { id: null };
+              const place = {
+                part: partIndex,
+                staff: staffOf(el),
+                measure: measureIndex,
+                within: cursor,
+              };
+              marks.notations(el, place, { voice, end: slur });
+              sounded.push({ staff: place.staff, pitch: grace.pitch, within: cursor });
+              waiting.set(voice, [...(waiting.get(voice) ?? []), { grace, slur }]);
               break;
             }
             const onset = isChord ? previousOnset : cursor;
@@ -216,8 +259,15 @@ export function parseMusicXml(doc: Document, options: ParseOptions = {}): Score 
               furthest = Math.max(furthest, cursor);
             }
             if (child(el, 'cue')) break;
+            const staff = staffOf(el);
+            const voice = text(child(el, 'voice')) || '1';
+            const place = { part: partIndex, staff, measure: measureIndex, within: onset };
             const pitchEl = child(el, 'pitch');
-            if (!pitchEl) break; // rest or unpitched percussion
+            if (!pitchEl) {
+              // A rest (or unpitched percussion): only its fermata counts.
+              marks.notations(el, place, null);
+              break;
+            }
             const step = text(child(pitchEl, 'step')).toUpperCase() as Letter;
             if (!LETTERS.includes(step)) {
               warnings.add('unknown-step');
@@ -230,14 +280,12 @@ export function parseMusicXml(doc: Document, options: ParseOptions = {}): Score 
             };
             if (!Number.isInteger(pitch.alter)) warnings.add('microtones');
             const midi = midiOf(pitch) + state.transpose;
-            const staff = Math.min(num(child(el, 'staff'), 1), Math.max(1, state.staves));
-            const voice = text(child(el, 'voice')) || '1';
             // `<tie>` is the sound, `<notations><tied>` the drawing; exporters differ in which
             // they write, so either counts.
-            const notations = child(el, 'notations');
+            const notations = childrenNamed(el, 'notations');
             const tieTypes = [
               ...childrenNamed(el, 'tie'),
-              ...(notations ? childrenNamed(notations, 'tied') : []),
+              ...notations.flatMap((n) => childrenNamed(n, 'tied')),
             ].map((t) => t.getAttribute('type'));
             const tieKey = `${staff}|${voice}|${midi}`;
             const tieStop = tieTypes.includes('stop') && openTies.has(tieKey);
@@ -245,30 +293,56 @@ export function parseMusicXml(doc: Document, options: ParseOptions = {}): Score 
             if (tieStop) openTies.delete(tieKey);
             else if (tieTypes.includes('stop')) warnings.add('tie-mismatch');
             if (tieStart) openTies.add(tieKey);
-            if (notations && child(notations, 'ornaments')) warnings.add('ornaments');
-            pending.push({
+            const id = `n${partIndex}.${measureIndex}.${order}`;
+            const articulations = marks.notations(el, place, { voice, end: { id } });
+            const note: Omit<ScoreNote, 'onset'> = {
+              id,
+              part: partIndex,
               measure: measureIndex,
-              within: onset,
-              note: {
-                id: `n${partIndex}.${measureIndex}.${order}`,
-                part: partIndex,
-                measure: measureIndex,
-                duration,
-                midi,
-                pitch,
-                staff,
-                hand: hands[staffKey(partIndex, staff)] ?? null,
-                voice,
-                tieStart,
-                tieStop,
-                finger: readFinger(el),
-              },
-            });
+              duration,
+              midi,
+              pitch,
+              staff,
+              hand: hands[staffKey(partIndex, staff)] ?? null,
+              voice,
+              tieStart,
+              tieStop,
+              finger: readFinger(el),
+            };
+            if (articulations.length > 0) note.articulations = articulations;
+            // Grace notes lead to the next note of their voice (the first of a chord).
+            const graces = isChord ? undefined : waiting.get(voice);
+            if (graces) {
+              waiting.delete(voice);
+              note.graces = graces.map((g) => g.grace);
+              for (const g of graces) g.slur.id = id;
+            }
+            const ornaments = notations.flatMap((n) => childrenNamed(n, 'ornaments'));
+            if (ornaments.length > 0) ornamented.push({ note, within: onset, els: ornaments });
+            sounded.push({ staff, pitch, within: onset });
+            pending.push({ measure: measureIndex, within: onset, note });
             break;
           }
           default:
             break;
         }
+      }
+      for (const { note, within, els } of ornamented) {
+        const inForce = (letter: Letter, octave: number): number => {
+          let alter: number | null = null;
+          let at = -1;
+          for (const s of sounded) {
+            if (s.staff !== note.staff || s.within >= within || s.within < at) continue;
+            if (s.pitch.step !== letter || s.pitch.octave !== octave) continue;
+            alter = s.pitch.alter;
+            at = s.within;
+          }
+          return (
+            alter ?? keyAlter(state.fifths.get(note.staff) ?? state.fifths.get(0) ?? 0, letter)
+          );
+        };
+        const found = readOrnaments(els, note.pitch, inForce, state.transpose);
+        if (found.length > 0) note.ornaments = found;
       }
       lengths[measureIndex] = Math.max(lengths[measureIndex] ?? 0, furthest);
     });
@@ -322,6 +396,7 @@ export function parseMusicXml(doc: Document, options: ParseOptions = {}): Score 
     measures,
     notes,
     tempos,
+    markings: marks.finish(measures),
     warnings: [...warnings],
   };
 }
@@ -369,6 +444,105 @@ function readFinger(note: Element): number | null {
         if (digit) return Number(digit[0]);
       }
   return null;
+}
+
+/** A grace note (without its transposition); null for a rest, `unknown-step` for a bad pitch. */
+function readGrace(el: Element, grace: Element, id: string): GraceNote | 'unknown-step' | null {
+  const pitchEl = child(el, 'pitch');
+  if (!pitchEl) return null;
+  const step = text(child(pitchEl, 'step')).toUpperCase() as Letter;
+  if (!LETTERS.includes(step)) return 'unknown-step';
+  const pitch: SpelledPitch = {
+    step,
+    alter: num(child(pitchEl, 'alter'), 0),
+    octave: num(child(pitchEl, 'octave'), 4),
+  };
+  return {
+    id,
+    midi: midiOf(pitch),
+    pitch,
+    slash: grace.getAttribute('slash') === 'yes',
+    chord: child(el, 'chord') !== null,
+  };
+}
+
+const SHARPS = 'FCGDAEB';
+
+/** The alteration a key signature (in fifths) gives a letter. */
+export function keyAlter(fifths: number, letter: Letter): number {
+  if (fifths > 0) return SHARPS.indexOf(letter) < fifths ? 1 : 0;
+  if (fifths < 0) return [...SHARPS].reverse().indexOf(letter) < -fifths ? -1 : 0;
+  return 0;
+}
+
+const ACCIDENTAL_MARKS: Readonly<Record<string, number>> = {
+  sharp: 1,
+  natural: 0,
+  flat: -1,
+  'double-sharp': 2,
+  'sharp-sharp': 2,
+  'flat-flat': -2,
+  'natural-sharp': 1,
+  'natural-flat': -1,
+};
+
+const ORNAMENT_ELEMENTS: Readonly<Record<string, OrnamentKind>> = {
+  'trill-mark': 'trill',
+  mordent: 'mordent',
+  'inverted-mordent': 'inverted-mordent',
+  turn: 'turn',
+  'inverted-turn': 'inverted-turn',
+  'delayed-turn': 'delayed-turn',
+  'delayed-inverted-turn': 'delayed-inverted-turn',
+};
+
+/**
+ * The ornaments of a note from its `<ornaments>` elements, with their neighbouring keys: the next
+ * letter up and down, altered as `inForce` says (the bar's accidentals, else the key), or as an
+ * `<accidental-mark>` in the same element says (above: the upper note, below: the lower; without a
+ * placement, the upper one, except under a mordent, and a second mark is the other one).
+ */
+function readOrnaments(
+  els: readonly Element[],
+  pitch: SpelledPitch,
+  inForce: (letter: Letter, octave: number) => number,
+  transpose: number,
+): Ornament[] {
+  const index = LETTERS.indexOf(pitch.step);
+  const neighbour = (direction: 1 | -1, alter: number | undefined): number => {
+    const i = index + direction;
+    const octave = pitch.octave + (i > 6 ? 1 : i < 0 ? -1 : 0);
+    const letter = LETTERS[(i + 7) % 7]!;
+    return midiOf({ step: letter, alter: alter ?? inForce(letter, octave), octave }) + transpose;
+  };
+  const out: Ornament[] = [];
+  for (const el of els) {
+    const found = [...el.children].flatMap((c) => {
+      const kind = ORNAMENT_ELEMENTS[c.localName];
+      return kind ? [{ kind, el: c }] : [];
+    });
+    if (found.length === 0) continue;
+    let upper: number | undefined;
+    let lower: number | undefined;
+    for (const mark of childrenNamed(el, 'accidental-mark')) {
+      const alter = ACCIDENTAL_MARKS[text(mark)];
+      if (alter === undefined) continue;
+      const placement = mark.getAttribute('placement');
+      const unplacedBelow =
+        found[0]!.kind === 'mordent' ? lower === undefined : upper !== undefined;
+      if (placement === 'below' || (placement !== 'above' && unplacedBelow)) lower = alter;
+      else upper = alter;
+    }
+    const wavyLine = childrenNamed(el, 'wavy-line').some((w) => w.getAttribute('type') === 'start');
+    for (const { kind, el: mark } of found) {
+      const ornament: Ornament = { kind, upper: neighbour(1, upper), lower: neighbour(-1, lower) };
+      if (kind === 'trill' && wavyLine) ornament.wavyLine = true;
+      const mordent = kind === 'mordent' || kind === 'inverted-mordent';
+      if (mordent && mark.getAttribute('long') === 'yes') ornament.long = true;
+      out.push(ornament);
+    }
+  }
+  return out;
 }
 
 function readJumps(m: Element): string[] {

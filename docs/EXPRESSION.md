@@ -130,6 +130,48 @@ page has the development-only "Save this run" button that Scales has.
 - Colour is never the only sign: every judged marking says right, too little, too much or missed
   in words, and the charts have a table view.
 
+## Clarifications (decided during X0)
+
+- **The model.** Articulations, ornaments and grace notes stay on their note (`ScoreNote`
+  `articulations`, `ornaments`, `graces`, absent when there are none); dynamics, hairpins, pedal
+  marks, slurs (by note ids) and fermatas are in `Score.markings` (`core/markings.ts`), with their
+  part and staff, in written ticks like note onsets. `performedMarks` and `performedSpans` lay them
+  out in performance ticks through the repeats; a hairpin whose written end is not reached before
+  the play order jumps (a repeat, a skipped first ending) ends where it jumps. The checksum covers
+  the notes only, so every record made before stays valid, and grace notes are no step in wait or
+  rhythm mode until X4.
+- **Grace notes** lead to the next note of their voice in the part, across barlines and over rests;
+  a grace chord (`<chord/>` on grace notes) is struck at once. Grace notes after the last note of
+  their voice lead to nothing and are dropped.
+- **Ornament neighbours** are the next letter up and down from the note, altered as the bar's
+  earlier notes on that staff and octave alter it, else as the key signature does; an
+  `<accidental-mark>` in the same `<ornaments>` wins (above: the upper note, below: the lower;
+  without a placement the upper one, but the lower one under a mordent). A long mordent
+  (`long="yes"`) alternates twice. `delayed-turn` and `delayed-inverted-turn` are read too; other
+  ornaments (a shake, a schleifer, a tremolo) sound as their note, as before, without a warning.
+- **Words.** _cresc._ and _dim._ (also _decresc._, _diminuendo_, anywhere in the text: "poco a poco
+  cresc.") start a span to their `<dashes>` stop, from the same direction or one at the same place
+  right after it; without one, to the next dynamic of the part on the same staff, else on any
+  staff, else to the end. _Una corda_ (_u.c._) and _tre corde_ (_tutte le corde_, _t.c._) are the
+  left pedal's start and stop.
+- **Pedal.** `start` and `resume` put the sustain pedal down, `sostenuto` the middle one; `stop` and
+  `discontinue` lift the sostenuto only when it is down under that `number` and the sustain is not,
+  otherwise the sustain. `change` and `continue` are kept as marked.
+- **Realising them.** Timed on the tempo there (a thirty-second is an eighth of a quarter at that
+  point of the timeline, at the demo's tempo), as "Ornaments and grace notes" says. Decided too: a
+  group of two or more grace notes is played before the beat like acciaccaturas, a thirty-second
+  (at most 80 ms) each, even unslashed (the appoggiatura is a single unslashed grace note or chord);
+  mordents and turns use at most a third (a quarter, a fifth) of a short note per short note, so the
+  principal always sounds last; a trill too short for three thirty-seconds is an inverted mordent,
+  and a turn written with a trill closes it (lower–principal). **Nothing sounds before the start of
+  what is played**: a grace note that would come before the demo's first bar, or (in wait mode's
+  other hand) before the step it belongs to has been completed, starts there and its note comes
+  after it. A grace note or ornament on a tied continuation is not realised (the tie's first note
+  carries it). The trill starts on the principal; `realise` takes a `trillStart` for X4's
+  per-piece setting. The velocity stays the demo's: dynamics do not change how it plays.
+- **Import report.** `grace-notes` and `ornaments` are no longer reported. Pieces imported before
+  keep them in their stored warnings (so their synced copies stay the same) and they are not shown.
+
 ## Milestones
 
 1. **X0 Markings and takes** — markings in the parser and score, grace notes and ornaments

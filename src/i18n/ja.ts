@@ -615,9 +615,6 @@ export const ja: Dictionary = {
   'pieces.import.error.read': 'ファイルを読み取れませんでした。',
   'pieces.warning.finer-than-ticks':
     '一部の音価がdacapoで扱える細かさを超えていたため、丸めました。',
-  'pieces.warning.grace-notes': '装飾音符はまだ練習の対象外のため、省いています。',
-  'pieces.warning.ornaments':
-    'トリルやモルデントなどの装飾記号は、もとの音を1回弾けばよいものとして扱います。',
   'pieces.warning.unknown-step': '音の高さを読み取れない音符は省きました。',
   'pieces.warning.microtones': '微分音は、いちばん近い鍵盤の音に丸めました。',
   'pieces.warning.tie-mismatch':

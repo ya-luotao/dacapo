@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { emptyMarkings } from '../../core/markings.ts';
 import { performanceOrder } from '../../core/repeats.ts';
 import { buildSteps, type HandSelection, type Score, type ScoreNote } from '../../core/score.ts';
 import { waitRange } from '../../core/wait.ts';
@@ -50,6 +51,7 @@ function score(): Score {
     measures: [bar(0, null), bar(1, 2)],
     notes,
     tempos: [],
+    markings: emptyMarkings(),
     warnings: [],
   };
 }

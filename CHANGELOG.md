@@ -12,6 +12,20 @@ version 4), scale sessions with every scale run as played (from version 5), ear-
 and sessions (from version 6), and the click's tempo and grid of scale runs played with it. Version
 1 to 6 files still import.
 
+### The score's markings, and takes (X0, [docs/EXPRESSION.md](docs/EXPRESSION.md))
+
+- Pieces now keep what the score marks besides the notes: dynamics and hairpins (and _cresc._ or
+  _dim._ written out), slurs, staccato, tenuto and accents, fermatas, the pedal marks (sustain,
+  sostenuto, _una corda_ and _tre corde_), ornaments and grace notes, by staff. Nothing is judged
+  on them yet; they are what the expression figures to come compare a run with. The notes, and so
+  every piece's records, are unchanged.
+- **Listen and the other hand play the ornaments**: an acciaccatura just before the beat, an
+  appoggiatura on it, mordents, turns and trills in thirty-seconds, each with the neighbouring
+  notes of the key and the bar (or the accidental printed with the ornament). In wait mode a grace
+  note of the other hand sounds once you complete the step. Grace notes are still no step to play:
+  accepting ornaments when you play them comes later (X4).
+- The import report no longer says that grace notes and ornaments are left out.
+
 ### Arpeggios and contrary motion (S5)
 
 - **Arpeggios**: the major and minor triad in root position in every key, one to four octaves,

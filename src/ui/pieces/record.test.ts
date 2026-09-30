@@ -3,6 +3,7 @@ import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { PieceSessionRecord } from '../../core/log.ts';
+import { emptyMarkings } from '../../core/markings.ts';
 import { performanceOrder } from '../../core/repeats.ts';
 import { buildSteps, type Score, type ScoreNote } from '../../core/score.ts';
 import { waitRange } from '../../core/wait.ts';
@@ -50,6 +51,7 @@ function score(): Score {
     measures: [measure(0), measure(1)],
     notes,
     tempos: [],
+    markings: emptyMarkings(),
     warnings: [],
   };
 }
