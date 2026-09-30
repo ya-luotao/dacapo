@@ -34,6 +34,7 @@ import {
   type RhythmCounts,
 } from '../core/pieceRecords.ts';
 import type { NoteTiming } from '../core/rhythm.ts';
+import { isClickTempo, isNotesPerBeat, type ScaleClick } from '../core/scaleClick.ts';
 import type { PedalChange, ScaleRunSummary, StoredScaleRun } from '../core/scaleRecords.ts';
 import { parseExerciseKey } from '../core/scales.ts';
 import type { Attempt } from '../core/session.ts';
@@ -323,6 +324,21 @@ function isRunHeadline(v: unknown): v is RunHeadline {
   );
 }
 
+/** A clicked run's tempo and notes per beat (S4); absent at free tempo. */
+const isClickSettings = (v: unknown): v is { bpm: number; perBeat: 2 | 3 | 4 } =>
+  isObject(v) && isClickTempo(v.bpm) && isNotesPerBeat(v.perBeat);
+
+/** Latencies beyond this are no latency (rhythmPrefs.ts refuses them too). */
+const MAX_LATENCY_MS = 500;
+
+/** A clicked run's grid, on the run's clock (scaleClick.ts). */
+const isScaleClick = (v: unknown): v is ScaleClick =>
+  isClickSettings(v) &&
+  isFiniteNumber((v as Fields).latency) &&
+  Math.abs((v as Fields).latency as number) <= MAX_LATENCY_MS &&
+  isFiniteNumber((v as Fields).zero) &&
+  isFiniteOrNull((v as Fields).stoppedAt);
+
 function isRunSummary(v: unknown): v is ScaleRunSummary {
   return (
     isObject(v) &&
@@ -332,6 +348,7 @@ function isRunSummary(v: unknown): v is ScaleRunSummary {
       startedAt: isTime,
       endedAt: isTime,
       headline: isRunHeadline,
+      click: (c) => c === undefined || isClickSettings(c),
     }) === null &&
     (v.endedAt as number) >= (v.startedAt as number)
   );
@@ -387,6 +404,7 @@ function validateScaleSession(value: Fields): Validation<ScaleSessionRecord> {
         startedAt: r.startedAt,
         endedAt: r.endedAt,
         headline: cleanHeadline(r.headline),
+        ...(r.click && { click: { bpm: r.click.bpm, perBeat: r.click.perBeat } }),
       })),
     },
   };
@@ -601,9 +619,11 @@ export function validateScaleRun(value: unknown): Validation<StoredScaleRun> {
     pedalAtStart: isBool,
     velocityMeasured: isBool,
     inputs: isInputs,
+    click: (c) => c === undefined || isScaleClick(c),
   });
   if (field) return fail(field);
   const r = value as unknown as StoredScaleRun;
+  const { click } = r;
   return {
     ok: true,
     value: {
@@ -617,6 +637,15 @@ export function validateScaleRun(value: unknown): Validation<StoredScaleRun> {
       pedalAtStart: r.pedalAtStart,
       velocityMeasured: r.velocityMeasured,
       inputs: [...r.inputs],
+      ...(click && {
+        click: {
+          bpm: click.bpm,
+          perBeat: click.perBeat,
+          latency: click.latency,
+          zero: click.zero,
+          stoppedAt: click.stoppedAt,
+        },
+      }),
     },
   };
 }

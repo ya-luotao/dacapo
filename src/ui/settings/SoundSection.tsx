@@ -79,6 +79,7 @@ export function SoundSection() {
     const track = sharedClickTrack();
     if (!track) return;
     track.setVolume(volume / 100);
+    track.setSound('click');
     const at = performance.now() + 150;
     const clicks = [0, 1, 2, 3].map((i) => ({ time: at + i * 500, accent: i === 0 }));
     track.start((from, to) => clicks.filter((c) => c.time >= from && c.time < to));

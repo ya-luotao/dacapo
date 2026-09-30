@@ -646,7 +646,7 @@ describe('versions', () => {
     ]);
   });
 
-  it('writes version 6 with pieces, piece sessions, step records, scale runs and answers', async () => {
+  it('writes version 7 with pieces, piece sessions, step records, scale runs and answers', async () => {
     const repo = await freshRepository();
     await repo.putPiece(samplePiece(1));
     const { steps, session } = sampleRun('r1', 2);
@@ -658,8 +658,8 @@ describe('versions', () => {
     for (const answer of [...ear.answers].reverse()) await repo.addAnswer(answer);
     await repo.putSession(ear.session);
     const file = await exportOf(repo);
-    expect(EXPORT_VERSION).toBe(6);
-    expect(file.version).toBe(6);
+    expect(EXPORT_VERSION).toBe(7);
+    expect(file.version).toBe(7);
     expect(file.pieces).toEqual([samplePiece(1)]);
     expect(file.pieceSteps).toEqual(steps);
     expect(file.scaleRuns).toEqual(scales.runs);
@@ -671,6 +671,51 @@ describe('versions', () => {
     expect(back.scaleRuns).toEqual(scales.runs);
     expect(back.answers).toEqual(ear.answers);
     expect(back.sessions).toEqual([scales.session, session, ear.session]);
+  });
+
+  it('imports scale runs played with the click, their grid and their session’s tempo', () => {
+    const click = { bpm: 72, perBeat: 3 as const, latency: 18, zero: -12.5, stoppedAt: null };
+    const { runs, session } = sampleScaleSession('c1', 2, { click });
+    const withTempo = {
+      ...session,
+      runs: session.runs.map((r) => ({ ...r, click: { bpm: 72, perBeat: 3 } })),
+    };
+    const run = runs[0]!;
+    const file = parsed(
+      fileWith({
+        version: 7,
+        pieces: [],
+        pieceSteps: [],
+        answers: [],
+        sessions: [
+          withTempo,
+          { ...withTempo, id: 'x1', runs: [{ ...withTempo.runs[0], click: { bpm: 200 } }] },
+          {
+            ...withTempo,
+            id: 'x2',
+            runs: [{ ...withTempo.runs[0], click: { bpm: 72, perBeat: 5 } }],
+          },
+        ],
+        scaleRuns: [
+          { ...run, click: { ...click, extra: true } },
+          { ...runs[1]!, click: { ...click, stoppedAt: 1500 } },
+          { ...run, id: 'y1', click: { ...click, bpm: 30 } },
+          { ...run, id: 'y2', click: { ...click, latency: 900 } },
+          { ...run, id: 'y3', click: { ...click, zero: 'soon' } },
+          { ...run, id: 'y4', click: { bpm: 72, perBeat: 3 } },
+        ],
+      }),
+    );
+    expect(file.sessions).toEqual([withTempo]);
+    expect(file.scaleRuns).toEqual([run, { ...runs[1]!, click: { ...click, stoppedAt: 1500 } }]);
+    expect(file.invalid).toEqual([
+      { collection: 'sessions', index: 1, field: 'runs', problem: 'invalid' },
+      { collection: 'sessions', index: 2, field: 'runs', problem: 'invalid' },
+      { collection: 'scaleRuns', index: 2, field: 'click', problem: 'invalid' },
+      { collection: 'scaleRuns', index: 3, field: 'click', problem: 'invalid' },
+      { collection: 'scaleRuns', index: 4, field: 'click', problem: 'invalid' },
+      { collection: 'scaleRuns', index: 5, field: 'click', problem: 'invalid' },
+    ]);
   });
 
   it('imports a version 5 file, which has no answers', () => {

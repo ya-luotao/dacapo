@@ -13,6 +13,11 @@ import { staffKey, type Hand, type StaffHands } from './score.ts';
 export interface ScaleXmlOptions {
   /** 2: eighths, 3: triplet eighths, 4: sixteenths (default). */
   notesPerBeat?: 2 | 3 | 4;
+  /**
+   * Only these notes of each hand's run (indexes, inclusive), between repeat signs: a focus loop
+   * (docs/SCALES.md, "After a run"). The notes keep their ids (`r5` is the right hand's note 5).
+   */
+  loop?: { from: number; to: number };
 }
 
 /** Beats to the bar (the time signature is not shown; bars only break the lines). */
@@ -307,7 +312,11 @@ export function scaleHands(e: Pick<ScaleExercise, 'hands'>): StaffHands {
 
 export function scaleMusicXml(e: ScaleExercise, options: ScaleXmlOptions = {}): string {
   const perBeat = options.notesPerBeat ?? 4;
-  const { right, left } = scaleNotes(e);
+  const whole = scaleNotes(e);
+  const { loop } = options;
+  const cut = (notes: ScaleNote[]) => (loop ? notes.slice(loop.from, loop.to + 1) : notes);
+  const right = cut(whole.right);
+  const left = cut(whole.left);
   const key = keySignature(e.type, e.tonic);
   const barLength = BEATS_PER_BAR * perBeat;
   const played = right.length > 0 ? right : left;
@@ -339,7 +348,16 @@ export function scaleMusicXml(e: ScaleExercise, options: ScaleXmlOptions = {}): 
     const content = staves
       .map((s) => s.bars[m]!.join(''))
       .join(`<backup><duration>${duration}</duration></backup>`);
-    measures.push(`<measure number="${m + 1}">${attributes}${content}</measure>`);
+    // A loop is played round and round: repeat signs around it.
+    const forward =
+      loop && m === 0 ? '<barline location="left"><repeat direction="forward"/></barline>' : '';
+    const backward =
+      loop && m === barCount - 1
+        ? '<barline location="right"><bar-style>light-heavy</bar-style><repeat direction="backward"/></barline>'
+        : '';
+    measures.push(
+      `<measure number="${m + 1}">${forward}${attributes}${content}${backward}</measure>`,
+    );
   }
   const name = staves.length === 2 ? 'Piano' : `Piano, ${staves[0]!.hand} hand`;
   return (

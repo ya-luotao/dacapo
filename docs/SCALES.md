@@ -1,8 +1,10 @@
 # dacapo — Scales specification
 
-Status: planned (after Pieces). This extends [MVP.md](MVP.md) and [PIECES.md](PIECES.md); their
-principles and fixed decisions still apply (staff first, measure don't guess, local data, English of
-record, every UI language, 3-day dependency cooldown, no backend).
+Status: S0–S4 are built (S1 stays open until the loudness thresholds and the reference bands are
+set from runs recorded on real instruments); S5 is next. This extends [MVP.md](MVP.md) and
+[PIECES.md](PIECES.md); their principles and fixed decisions still apply (staff first, measure
+don't guess, local data, English of record, every UI language, 3-day dependency cooldown, no
+backend).
 
 Goal: play scales and see, note by note, how even they are — in time, in loudness and in connection
 — where the unevenness sits (a thumb crossing, the turn at the top, one hand against the other),
@@ -366,6 +368,45 @@ reads σ for a steady player.
   than four are counted, fewer are named. With the pedal down the summary says the sound joins where
   the fingers may not. The 30 ms thresholds await recorded runs, with the loudness ones.
 
+## Clarifications (decided during S4)
+
+- **With the click.** Free or with the click is a choice beside the scale's, remembered with it: a
+  tempo (♩ = 40–160, typed) and 2, 3 or 4 notes to the beat. The score is drawn at that grid
+  (eighths, triplet eighths, sixteenths) and is the `Score` rhythm mode plays: `rhythmPlan` over it
+  at the tempo, `createMatcher` for the keys, rhythm mode's player for the count-in (one bar, four
+  clicks, the scale's bars being 4/4), the click on every beat with the bar's first accented, and
+  the calibrated latency taken off every key, all unchanged. Start begins a run (no key does), and
+  the metronome pauses meanwhile; the calibration is offered once before the first run with the
+  click in this browser, as in Pieces (the same offer and the same stored latency). The click
+  sounds with the metronome's own sound and volume (the Metronome page sets them); rhythm mode on
+  Pieces keeps its click, and every start of the shared click track says which it wants.
+- **Which keys are the run.** Only the keys rhythm mode's matcher takes as the run's go to it:
+  keys in the count-in (before the first note's window) and after the last beat are not the run.
+  The run still starts at the scale's first key, as at free tempo, and lasts until the click has
+  played the whole scale (no idle end), or Stop; a note never played is then missed.
+- **Two analyses of one run.** Evenness is unchanged: judged against the run's own line, never
+  against the grid, so a player steadily late and a player even on average compare. Against the
+  click the figures are rhythm mode's (`summarizeRhythm`): the tendency (20 %-trimmed mean,
+  within 10 ms is "on the beat") and the share of notes within ±50 ms. Both are recomputed from the
+  raw keys: the record keeps the grid (tempo, notes per beat, the latency taken off, where the
+  first note was due on the run's clock and, if Stop ended it, when), and `clickTimings` runs the
+  matcher over the keys again; a test holds it to the live matcher's deviations. The summary's
+  sentences put the tendency second, after the clearest problem place.
+- **Records.** A clicked run is a scale run like any other and counts in its exercise's progress
+  (evenness is measured the same way); its session's summary keeps its tempo and notes per beat.
+  Export format 7 adds both (formats 1–6 still import): an older app refuses the file rather than
+  drop the grid.
+- **Focus loops.** A loop is centred on one note of one hand's run and takes three notes either
+  side (seven, shifted at the ends of the run); hands together, the same indexes of both hands. It
+  is drawn as its own short score between repeat signs (the scale's MusicXML cut to the span, the
+  notes keeping their ids), and played in wait mode's sense: the cursor waits for each step's keys
+  (both hands' keys, in either order), a wrong key flashes, and after the last step it goes round
+  again until "Back to the scale", counting the rounds. It has no click, and is neither analysed
+  nor recorded: the run and its recorder are not mounted while it lasts. It is offered from the
+  run's clearest problem place (the note of it furthest off; else the first hesitation), from each
+  place named over the last runs (the note of it with the largest mean deviation), and from every
+  row of a hand's per-note table.
+
 ## Milestones
 
 1. ✓ **S0 Spike** — generate the scale MusicXML and draw it with fingering and per-note tints in
@@ -380,7 +421,7 @@ reads σ for a steady player.
    instability over runs, progress per exercise.
 4. ✓ **S3 Hands together and connection** — hands together with asynchrony, legato analysis, the
    hands-together alignment restricted to a band, the degree threshold for two hands.
-5. **S4 The click and focus loops** — click mode through rhythm mode's plan and matcher, with the
+5. ✓ **S4 The click and focus loops** — click mode through rhythm mode's plan and matcher, with the
    count-in and the latency calibration; focus loops on a named place (a drill: not analysed or
    recorded).
 6. **S5 More shapes** — arpeggios, contrary motion, chromatic in contrary motion if there is demand.

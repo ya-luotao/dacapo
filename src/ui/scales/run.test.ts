@@ -4,6 +4,7 @@ import type { ScaleNote } from '../../core/scaleTypes.ts';
 import {
   allReleased,
   IDLE_END_MS,
+  runClick,
   runStep,
   sessionStep,
   usedPedal,
@@ -216,5 +217,44 @@ describe('hands together', () => {
   it('starts the next run at either tonic once one is done', () => {
     const done = playPairs();
     expect(sessionStep(done, on(pairs[0]![1], 9000)).phase).toBe('playing');
+  });
+});
+
+describe('with the click', () => {
+  const grid = { bpm: 60, perBeat: 4 as const, origin: T0 - 1000, latency: 12 };
+  const armed = () => runStep(waitingRun(EXPECTED), { type: 'arm', grid });
+
+  it('keeps the grid, lasts as long as the click and never ends idle', () => {
+    const started = runStep(armed(), on(60, 0));
+    expect(started.grid).toEqual(grid);
+    const later = runStep(started, { type: 'tick', time: T0 + IDLE_END_MS * 3 });
+    expect(later.phase).toBe('playing');
+    const over = runStep(later, { type: 'over' });
+    expect(over).toMatchObject({ phase: 'done', end: 'finished', stoppedAt: null });
+  });
+
+  it('gives the record the grid on the run’s clock, and when Stop ended it', () => {
+    // The first key 1004.37 ms after the grid's zero: the zero is at −1004.4 on the run's clock.
+    const started = runStep(armed(), on(60, 4.37));
+    expect(runClick(started)).toEqual({
+      bpm: 60,
+      perBeat: 4,
+      latency: 12,
+      zero: -1004.4,
+      stoppedAt: null,
+    });
+    const stopped = runStep(started, { type: 'stop', time: T0 + 1500 });
+    expect(stopped.end).toBe('stopped');
+    expect(runClick(stopped)!.stoppedAt).toBe(1495.6);
+    expect(runClick(play([on(60, 0)]))).toBeNull();
+    expect(runClick(armed())).toBeNull();
+  });
+
+  it('needs Start again after a run: the first key does not start the next', () => {
+    const done = MIDIS.map((midi, i) => on(midi, i * 250)).reduce(sessionStep, armed());
+    expect(done.phase).toBe('done');
+    expect(sessionStep(done, on(60, 6000))).toBe(done);
+    const again = sessionStep(done, { type: 'arm', grid: { ...grid, origin: T0 + 9000 } });
+    expect(again).toMatchObject({ phase: 'waiting', keys: [], grid: { origin: T0 + 9000 } });
   });
 });

@@ -1,33 +1,65 @@
-import { useEffect, useId, useMemo, useReducer, useRef, useState, type CSSProperties } from 'react';
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 import { analyzeRun, type RunAnalysis } from '../../core/evenness.ts';
 import { parseMusicXml } from '../../core/musicxml.ts';
+import { summarizeRhythm } from '../../core/rhythmRun.ts';
+import { clickTimings, scaleRhythmPlan, type ClickSettings } from '../../core/scaleClick.ts';
 import { scaleProgress } from '../../core/scaleProgress.ts';
 import { dayKey } from '../../core/streak.ts';
 import type { ScaleSession } from '../../core/scaleRecords.ts';
-import { exerciseKey, scaleNotes, tonicsOf } from '../../core/scales.ts';
-import { SCALE_OCTAVES, SCALE_TYPES, type ScaleExercise } from '../../core/scaleTypes.ts';
+import { exerciseKey, scaleNotes } from '../../core/scales.ts';
+import type { ScaleExercise } from '../../core/scaleTypes.ts';
 import { scaleHands, scaleMusicXml } from '../../core/scaleXml.ts';
 import { buildSteps, keyRange, type Hand } from '../../core/score.ts';
 import { useT } from '../../i18n/index.ts';
 import type { MidiStatus } from '../../input/index.ts';
-import { useHubState, useInput, useKeyboardOctave } from '../input/context.ts';
+import { useHubState, useInput } from '../input/context.ts';
+import { useMetronome, useMetronomeState } from '../metronome/context.ts';
 import { usePractice, usePracticeStore } from '../practice/context.ts';
 import { useNow } from '../progress/useNow.ts';
-import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
 import { ScoreView, type ScoreStatus } from '../notation/ScoreView.tsx';
 import { prefetchVerovio, type Engraving } from '../notation/verovio.ts';
 import { Piano } from '../piano/Piano.tsx';
 import { keyboardRange, whiteKeys } from '../piano/range.ts';
+import { CalibrationSheet, TimingMark } from '../pieces/RhythmParts.tsx';
+import type { LastNote } from '../pieces/rhythm.ts';
+import { readLatency, type Latency } from '../pieces/rhythmPrefs.ts';
+import { useRhythmPlayer } from '../pieces/useRhythmPlayer.ts';
 import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
 import { FocusBar, FocusEnter } from '../focus/FocusBar.tsx';
 import { useFocusState } from '../focus/focus.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
-import { spelledName, tonicName, useExerciseName } from './format.ts';
-import { readExercise, writeExercise } from './prefs.ts';
+import { spelledName, useExerciseName } from './format.ts';
+import { KeyboardHint } from './KeyboardHint.tsx';
+import type { LoopPlace } from './loop.ts';
+import {
+  readClickPrefs,
+  readExercise,
+  writeClickPrefs,
+  writeExercise,
+  type ClickPrefs,
+} from './prefs.ts';
 import { scaleRunRecord, useScaleRecorder, type SessionSlot } from './record.ts';
-import { runInput, sessionStep, usedPedal, waitingRun, type ScaleRunState } from './run.ts';
+import {
+  runClick,
+  runInput,
+  sessionStep,
+  usedPedal,
+  waitingRun,
+  type ScaleRunState,
+} from './run.ts';
+import { ScaleLoop } from './ScaleLoop.tsx';
+import { ScalePicker } from './ScalePicker.tsx';
 import { ScaleProgress, YourScales } from './ScaleProgress.tsx';
-import { ScaleSummary } from './ScaleSummary.tsx';
+import { ScaleSummary, type ClickResult } from './ScaleSummary.tsx';
 
 /** How often a running run looks at the clock, for its idle end. */
 const TICK_MS = 250;
@@ -41,14 +73,21 @@ const ZOOM: Record<ScaleExercise['octaves'], number> = { 1: 1.6, 2: 1.3, 3: 1.15
  * bar alone on a line (about a quarter) is not. Octave lines read "8va", clear of the fingering.
  */
 const ENGRAVING: Engraving = { lastJustification: 0.35, ottavaText: true };
-const HANDS: readonly ScaleExercise['hands'][] = ['right', 'left', 'both'];
 /** Off: the keyboard marks only the keys to start on, not each next key. */
 const GUIDE_PREF = 'dacapo.scales.guide';
+/** Offered once per browser, before the first run with the click (shared with Pieces). */
+const CALIBRATION_OFFERED_PREF = 'dacapo.latency.offered';
+/** Free tempo draws sixteenths, four to the beat. */
+const FREE_PER_BEAT = 4;
 
 export function ScalesPage() {
   const t = useT();
   const name = useExerciseName();
   const [exercise, setExerciseState] = useState(readExercise);
+  const [click, setClickState] = useState(readClickPrefs);
+  const [loop, setLoop] = useState<LoopPlace | null>(null);
+  // A clicked run is on: its settings stay put until it ends.
+  const [clicking, setClicking] = useState(false);
   const focus = useFocusState();
   // In focus mode the choice of scale folds away until asked for.
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -81,7 +120,26 @@ export function ScalesPage() {
   function setExercise(next: ScaleExercise) {
     setExerciseState(next);
     writeExercise(next);
+    setLoop(null);
   }
+
+  function setClick(next: ClickPrefs) {
+    setClickState(next);
+    writeClickPrefs(next);
+    setLoop(null);
+  }
+
+  function startLoop(place: LoopPlace) {
+    setLoop(place);
+    stage.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    stage.current?.focus({ preventScroll: true });
+  }
+
+  const clickSettings: ClickSettings | null = click.on
+    ? { bpm: click.bpm, perBeat: click.perBeat }
+    : null;
+  // A new session view for another scale or another grid: its run and result belong to those.
+  const sessionKey = `${exerciseKey(exercise)}:${clickSettings ? `${clickSettings.bpm}:${clickSettings.perBeat}` : 'free'}`;
 
   return (
     <section className={focus.on ? 'scales is-focus' : 'scales'}>
@@ -101,11 +159,34 @@ export function ScalesPage() {
         hidden={focus.on && !settingsOpen}
         exercise={exercise}
         onChange={setExercise}
+        click={click}
+        onClick={setClick}
+        disabled={clicking}
         // Selects take the computer keyboard's letters; after a choice, the keys play notes again.
         onChosen={() => stage.current?.focus({ preventScroll: true })}
       />
       <div className="scale-stage" ref={stage} tabIndex={-1}>
-        <ScaleSession key={exerciseKey(exercise)} exercise={exercise} slot={slot} />
+        {loop ? (
+          <ScaleLoop
+            key={`${exerciseKey(exercise)}:${loop.hand}:${loop.index}`}
+            exercise={exercise}
+            place={loop}
+            perBeat={FREE_PER_BEAT}
+            onStop={() => {
+              setLoop(null);
+              stage.current?.focus({ preventScroll: true });
+            }}
+          />
+        ) : (
+          <ScaleSession
+            key={sessionKey}
+            exercise={exercise}
+            click={clickSettings}
+            slot={slot}
+            onLoop={startLoop}
+            onClicking={setClicking}
+          />
+        )}
       </div>
       {!focus.on && (
         <>
@@ -113,6 +194,7 @@ export function ScalesPage() {
             exercise={exercise}
             progress={progress.find((p) => p.exercise === exerciseKey(exercise)) ?? null}
             now={now}
+            onLoop={startLoop}
           />
           <YourScales
             list={progress}
@@ -130,105 +212,6 @@ export function ScalesPage() {
   );
 }
 
-function ScalePicker({
-  id: pickerId,
-  hidden,
-  exercise,
-  onChange,
-  onChosen,
-}: {
-  id: string;
-  hidden: boolean;
-  exercise: ScaleExercise;
-  onChange: (next: ScaleExercise) => void;
-  /** A choice was made in a select. */
-  onChosen: () => void;
-}) {
-  const t = useT();
-  const id = useId();
-
-  function setType(type: ScaleExercise['type']) {
-    // The same tonic if the new type has it, else the one at the same place in the circle.
-    const before = tonicsOf(exercise.type);
-    const after = tonicsOf(type);
-    const tonic = after.includes(exercise.tonic)
-      ? exercise.tonic
-      : (after[Math.max(0, before.indexOf(exercise.tonic))] ?? after[0]!);
-    onChange({ ...exercise, type, tonic });
-  }
-
-  return (
-    <div className="scale-picker" id={pickerId} hidden={hidden}>
-      <div className="field">
-        <label htmlFor={`${id}-type`}>{t('scales.pick.type')}</label>
-        <select
-          id={`${id}-type`}
-          value={exercise.type}
-          onChange={(e) => {
-            setType(e.target.value as ScaleExercise['type']);
-            onChosen();
-          }}
-        >
-          {SCALE_TYPES.map((type) => (
-            <option key={type} value={type}>
-              {t(`scales.type.${type}`)}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="field">
-        <label htmlFor={`${id}-tonic`}>{t('scales.pick.tonic')}</label>
-        <select
-          id={`${id}-tonic`}
-          value={exercise.tonic}
-          onChange={(e) => {
-            onChange({ ...exercise, tonic: e.target.value });
-            onChosen();
-          }}
-        >
-          {tonicsOf(exercise.type).map((tonic) => (
-            <option key={tonic} value={tonic}>
-              {tonicName(tonic)}
-            </option>
-          ))}
-        </select>
-      </div>
-      <fieldset className="field">
-        <legend>{t('scales.pick.octaves')}</legend>
-        <div className="segmented">
-          {SCALE_OCTAVES.map((octaves) => (
-            <label key={octaves}>
-              <input
-                type="radio"
-                name={`${id}-octaves`}
-                checked={exercise.octaves === octaves}
-                onChange={() => onChange({ ...exercise, octaves })}
-              />
-              <span>{octaves}</span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
-      <fieldset className="field">
-        <legend>{t('scales.pick.hand')}</legend>
-        <div className="segmented">
-          {HANDS.map((hand) => (
-            <label key={hand}>
-              <input
-                type="radio"
-                name={`${id}-hand`}
-                checked={exercise.hands === hand}
-                onChange={() => onChange({ ...exercise, hands: hand })}
-              />
-              <span>{t(`scales.hand.${hand}`)}</span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
-    </div>
-  );
-}
-
 /** How far a note was from the line through its neighbours, as a class for its ink on the score. */
 function deviationMark(deviation: number | null): string | null {
   if (deviation === null) return null;
@@ -240,15 +223,32 @@ function deviationMark(deviation: number | null): string | null {
   return 'is-dev-4';
 }
 
-function ScaleSession({ exercise, slot }: { exercise: ScaleExercise; slot: SessionSlot }) {
+function ScaleSession({
+  exercise,
+  click,
+  slot,
+  onLoop,
+  onClicking,
+}: {
+  exercise: ScaleExercise;
+  /** With the click: its tempo and notes per beat; null at free tempo. */
+  click: ClickSettings | null;
+  slot: SessionSlot;
+  onLoop: (place: LoopPlace) => void;
+  /** A clicked run starts or ends. */
+  onClicking: (on: boolean) => void;
+}) {
   const t = useT();
   const name = useExerciseName();
   const focus = useFocusState();
   const [guide, setGuideState] = useState(() => readPref(GUIDE_PREF) !== '0');
-  const { hub, pointer, midi } = useInput();
+  const { hub, pointer, midi, output } = useInput();
   const store = usePracticeStore();
   const { held, sustained } = useHubState();
+  const metronome = useMetronome();
+  const { settings: metronomeSettings } = useMetronomeState();
   const hands = exercise.hands;
+  const perBeat = click?.perBeat ?? FREE_PER_BEAT;
   const notes = useMemo(() => scaleNotes(exercise), [exercise]);
   // The run: one hand's notes, or the right hand's then the left's (what the analysis takes).
   const expected = useMemo(
@@ -262,7 +262,10 @@ function ScaleSession({ exercise, slot }: { exercise: ScaleExercise; slot: Sessi
     }),
     [notes],
   );
-  const xml = useMemo(() => scaleMusicXml(exercise), [exercise]);
+  const xml = useMemo(
+    () => scaleMusicXml(exercise, { notesPerBeat: perBeat }),
+    [exercise, perBeat],
+  );
   const score = useMemo(
     () =>
       parseMusicXml(new DOMParser().parseFromString(xml, 'application/xml'), {
@@ -271,6 +274,11 @@ function ScaleSession({ exercise, slot }: { exercise: ScaleExercise; slot: Sessi
     [xml, exercise],
   );
   const steps = useMemo(() => buildSteps(score, hands), [score, hands]);
+  // With the click, the scale in time: rhythm mode's plan of the same score.
+  const plan = useMemo(
+    () => (click ? scaleRhythmPlan(score, hands, click.bpm) : null),
+    [click, score, hands],
+  );
   // The run's notes on the score: each hand's notes in the order played are its run, note for
   // note (scaleXml.test.ts holds it), and each belongs to the step at its onset.
   const noteIds = useMemo(() => {
@@ -298,34 +306,117 @@ function ScaleSession({ exercise, slot }: { exercise: ScaleExercise; slot: Sessi
     waitingRun(notes, hub.getState().sustain),
   );
   useScaleRecorder(run, exercise, slot, store, () => inputNames(midi.getStatus()));
-  // From the first run on; the page alone does not keep the screen on.
-  useKeepAwake(run.phase !== 'waiting', KEEP_AWAKE_IDLE_MS);
 
+  // With the click: rhythm mode's player (the count-in, the click, the notes against the grid),
+  // the metronome paused meanwhile, the latency from the calibration.
+  const { player: rhythm, snapshot: beat } = useRhythmPlayer(
+    output.scheduler,
+    output.onInterrupt,
+    () => metronome.block('scales'),
+  );
+  const clicking = beat.state !== 'stopped';
+  const [last, setLast] = useState<LastNote | null>(null);
+  const [latency, setLatency] = useState<Latency | null>(readLatency);
+  const [calibration, setCalibration] = useState<'offer' | 'open' | null>(null);
+  const [calibrating, setCalibrating] = useState(false);
+  useEffect(() => onClicking(clicking), [clicking, onClicking]);
+  useEffect(() => () => onClicking(false), [onClicking]);
+
+  // From the first run on; the page alone does not keep the screen on.
+  useKeepAwake(run.phase !== 'waiting' || clicking, KEEP_AWAKE_IDLE_MS);
+
+  // Keys go to the run; with the click, only those rhythm mode takes as the run's (not the
+  // count-in's, not after the last beat), each also timed for the quiet mark.
+  const keysTo = useRef({ click: click !== null, calibrating });
+  useEffect(() => {
+    keysTo.current = { click: click !== null, calibrating };
+  });
   useEffect(
     () =>
       hub.onEvent((event) => {
         if (event.type === 'sustain')
           dispatch({ type: 'pedal', down: event.down, time: event.time });
-        else if (event.type === 'on') dispatch({ ...event, type: 'on', at: Date.now() });
-        else dispatch({ type: 'off', midi: event.midi, time: event.time });
+        else if (event.type === 'on') {
+          if (keysTo.current.calibrating) return;
+          if (keysTo.current.click) {
+            const result = rhythm.press(event.midi, event.time);
+            if (result.kind === 'ignored') return;
+            setLast(
+              result.kind === 'hit'
+                ? { kind: 'hit', deviation: result.deviation }
+                : { kind: 'extra' },
+            );
+          }
+          dispatch({ ...event, type: 'on', at: Date.now() });
+        } else dispatch({ type: 'off', midi: event.midi, time: event.time });
       }),
-    [hub],
+    [hub, rhythm],
   );
   const playing = run.phase === 'playing';
   useEffect(() => {
-    if (!playing) return;
+    if (!playing || click) return;
     const id = setInterval(() => dispatch({ type: 'tick', time: performance.now() }), TICK_MS);
     return () => clearInterval(id);
-  }, [playing]);
+  }, [playing, click]);
+
+  /** Starts a run with the click (from a click or a key: the sound needs a user gesture). */
+  function startClicked() {
+    if (!plan || !click) return;
+    setCalibration(null);
+    const offset = readLatency()?.offset ?? 0;
+    setLast(null);
+    const origin = rhythm.start({
+      plan,
+      backing: null,
+      velocity: 0,
+      clickMode: 'on',
+      volume: metronomeSettings.volume,
+      sound: metronomeSettings.sound,
+      latency: offset,
+      onSettled: () => {},
+      onEnd: (reason) =>
+        dispatch(reason === 'done' ? { type: 'over' } : { type: 'stop', time: performance.now() }),
+    });
+    dispatch({ type: 'arm', grid: { ...click, origin, latency: offset } });
+  }
+
+  function onStart() {
+    if (rhythm.getSnapshot().state !== 'stopped') {
+      rhythm.stop();
+      return;
+    }
+    // Offered once, before the first run with the click in this browser.
+    if (!readLatency() && readPref(CALIBRATION_OFFERED_PREF) !== '1') {
+      writePref(CALIBRATION_OFFERED_PREF, '1');
+      setCalibration('offer');
+      return;
+    }
+    startClicked();
+  }
 
   const analysis = useMemo(() => (run.phase === 'done' ? analyze(run) : null), [run]);
   const ok = analysis?.quality === 'ok';
+  // With the click, the run against it, recomputed from its keys as its record would give it.
+  const clickResult = useMemo((): ClickResult | null => {
+    const grid = runClick(run);
+    if (!plan || !grid || run.phase !== 'done') return null;
+    return {
+      settings: { bpm: grid.bpm, perBeat: grid.perBeat },
+      summary: summarizeRhythm(clickTimings(plan, run.keys, grid)),
+    };
+  }, [plan, run]);
 
-  // The score: the note to play next, the notes played green; after a run, each note inked by
-  // how far off the line it was, and the wrong and missed ones in the error colour.
+  // The score: the note to play next (with the click, the note due now), the notes played green;
+  // after a run, each note inked by how far off the line it was, and the wrong and missed ones in
+  // the error colour.
   const nextNote = run.steps[run.next]?.notes[0];
   const next = nextNote === undefined ? undefined : idOf(nextNote);
-  const step = run.phase === 'done' || next === undefined ? null : (stepOfNote.get(next) ?? null);
+  const step =
+    clicking && beat.step !== null
+      ? (steps[beat.step] ?? null)
+      : run.phase === 'done' || next === undefined
+        ? null
+        : (stepOfNote.get(next) ?? null);
   const marks = useMemo(() => {
     const out = new Map<string, string>();
     if (analysis && ok) {
@@ -387,18 +478,45 @@ function ScaleSession({ exercise, slot }: { exercise: ScaleExercise; slot: Sessi
     writePref(GUIDE_PREF, next ? null : '0');
   }
 
+  let statusText: ReactNode;
+  if (click) {
+    const tempo = t('pieces.tempo.bpm', { bpm: click.bpm });
+    if (beat.state === 'counting')
+      statusText = (
+        <>
+          <strong className="piece-count">
+            {beat.count === null ? '' : t('pieces.status.countIn', { beat: beat.count })}
+          </strong>{' '}
+          <span className="muted">{tempo}</span>
+        </>
+      );
+    else if (clicking)
+      statusText = (
+        <>
+          {t('scales.status.playing', { n: run.played.length, total: expected.length })}{' '}
+          <TimingMark last={last} />
+        </>
+      );
+    else if (run.phase === 'done')
+      statusText = ok ? t('scales.status.clickAgain') : t('scales.status.clickNotARun');
+    else statusText = t('scales.status.clickStart', { key: first });
+  } else {
+    statusText =
+      run.phase === 'waiting'
+        ? t('scales.status.start', { key: first })
+        : run.phase === 'playing'
+          ? t('scales.status.playing', { n: run.played.length, total: expected.length })
+          : ok
+            ? t('scales.status.again', { key: first })
+            : t('scales.status.notARun', { key: first });
+  }
+
   return (
     <div className="scale-session">
       <div className="scale-head">
         {!focus.on && <h2 className="scale-title">{name(exercise)}</h2>}
         <p className="scale-status" role="status">
-          {run.phase === 'waiting'
-            ? t('scales.status.start', { key: first })
-            : run.phase === 'playing'
-              ? t('scales.status.playing', { n: run.played.length, total: expected.length })
-              : ok
-                ? t('scales.status.again', { key: first })
-                : t('scales.status.notARun', { key: first })}
+          {statusText}
         </p>
         {crossings.length > 0 && (
           <p className="scale-cue">
@@ -410,18 +528,56 @@ function ScaleSession({ exercise, slot }: { exercise: ScaleExercise; slot: Sessi
             <input type="checkbox" checked={guide} onChange={(e) => setGuide(e.target.checked)} />
             <span>{t('scales.guide')}</span>
           </label>
-          {playing && (
+          {click ? (
             <button
               type="button"
-              className="button is-compact"
-              onClick={() => dispatch({ type: 'stop', time: performance.now() })}
+              className={
+                clicking
+                  ? 'button is-compact piece-go'
+                  : 'button button-primary is-compact piece-go'
+              }
+              disabled={!plan || calibrating}
+              onClick={onStart}
             >
-              {t('scales.stop')}
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                {clicking ? (
+                  <rect x="4" y="4" width="8" height="8" rx="1" className="is-filled" />
+                ) : (
+                  <circle cx="8" cy="8" r="4.5" className="is-filled" />
+                )}
+              </svg>
+              <span>{clicking ? t('pieces.rhythm.stop') : t('pieces.rhythm.start')}</span>
             </button>
+          ) : (
+            playing && (
+              <button
+                type="button"
+                className="button is-compact"
+                onClick={() => dispatch({ type: 'stop', time: performance.now() })}
+              >
+                {t('scales.stop')}
+              </button>
+            )
           )}
           {!focus.on && <FocusEnter />}
         </div>
       </div>
+      {click && (
+        <p className="scale-latency">
+          <span>
+            {latency ? t('pieces.latency', { ms: latency.offset }) : t('pieces.latency.none')}
+          </span>
+          <button
+            type="button"
+            className="button is-compact"
+            disabled={clicking}
+            onClick={() => setCalibration('open')}
+          >
+            {t('pieces.latency.calibrate')}
+          </button>
+          <span className="muted">{t('scales.click.sound')}</span>
+        </p>
+      )}
 
       <div className="scale-sheet">
         <ScoreView
@@ -467,20 +623,29 @@ function ScaleSession({ exercise, slot }: { exercise: ScaleExercise; slot: Sessi
 
       <KeyboardHint />
 
-      {analysis && (
-        <ScaleSummary analysis={analysis} names={names} end={run.end} pedal={usedPedal(run)} />
+      {calibration && (
+        <CalibrationSheet
+          offer={calibration === 'offer'}
+          onCalibrate={() => setCalibration('open')}
+          onStart={startClicked}
+          onRunning={setCalibrating}
+          onChange={setLatency}
+          onClose={() => setCalibration(null)}
+        />
+      )}
+      {analysis && !calibration && (
+        <ScaleSummary
+          analysis={analysis}
+          names={names}
+          end={run.end}
+          pedal={usedPedal(run)}
+          click={clickResult}
+          onLoop={onLoop}
+        />
       )}
       {import.meta.env.DEV && run.phase === 'done' && <SaveRun exercise={exercise} run={run} />}
     </div>
   );
-}
-
-/** Without a MIDI keyboard: which octave the computer keyboard plays, and how to change it. */
-function KeyboardHint() {
-  const t = useT();
-  const octave = useKeyboardOctave();
-  if (!useKeyboardFallback()) return null;
-  return <p className="muted scale-keyboard">{t('read.keyboard', { octave })}</p>;
 }
 
 function analyze(run: ScaleRunState): RunAnalysis {

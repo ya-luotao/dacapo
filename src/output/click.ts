@@ -143,6 +143,12 @@ export interface ClickTrack {
   stop: () => void;
   /** 0–1. */
   setVolume: (volume: number) => void;
+  /**
+   * The sound of the clicks from the next start on: rhythm mode's short `click` unless a page
+   * asks for the metronome's own (the Scales page does). Every start sets it, so one page's
+   * choice never reaches another's.
+   */
+  setSound: (sound: ClickSound) => void;
 }
 
 export interface ClickTrackOptions {
@@ -160,6 +166,9 @@ export function createClickTrack(
   const lookahead = options.lookahead ?? CLICK_LOOKAHEAD_MS;
   const audio = createAudioClock(context);
   let volume = 0.7;
+  let sound: ClickSound = 'click';
+  /** Clicks scheduled since the start: the mechanical sound alternates tick and tock. */
+  let count = 0;
   let source: ClickSource | null = null;
   let until = 0;
   let startedAt = 0;
@@ -177,9 +186,10 @@ export function createClickTrack(
       context,
       context.destination,
       when,
-      'click',
+      sound,
       click.accent ? 'accent' : click.sub ? 'sub' : 'normal',
       volume,
+      count++,
     );
     sounding.add(node);
     // Forget it once it has sounded.
@@ -216,6 +226,7 @@ export function createClickTrack(
     start(next) {
       stop();
       source = next;
+      count = 0;
       startedAt = clock.now();
       until = startedAt - LATE_MS;
       audio.sample(clock.now());
@@ -225,6 +236,9 @@ export function createClickTrack(
     stop,
     setVolume(next) {
       volume = Math.min(1, Math.max(0, next));
+    },
+    setSound(next) {
+      sound = next;
     },
   };
 }

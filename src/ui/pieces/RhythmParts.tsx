@@ -142,7 +142,7 @@ export function RhythmStatus({
 }
 
 /** The last note's timing: a short scale with a tick, and the words. Static: nothing flashes. */
-function TimingMark({ last }: { last: LastNote | null }) {
+export function TimingMark({ last }: { last: LastNote | null }) {
   const t = useT();
   const timing = useTimingWords();
   if (!last) return null;

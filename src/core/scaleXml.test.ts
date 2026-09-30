@@ -426,4 +426,23 @@ describe('scaleMusicXml', () => {
     expect(at(40, 34, 30, 34, 40)).toEqual([0, -1, -1, -1, 0]);
     expect(at(34, 40)).toEqual([0, 0]);
   });
+
+  it('draws a focus loop: the span of each hand between repeat signs, notes keeping their ids', () => {
+    const e: ScaleExercise = { type: 'major', tonic: 'C', octaves: 2, hands: 'both' };
+    const xml = scaleMusicXml(e, { loop: { from: 11, to: 17 } });
+    const score = parseMusicXml(domParse(xml), { hands: scaleHands(e) });
+    const { right, left } = scaleNotes(e);
+    for (const [hand, run] of [
+      ['right', right],
+      ['left', left],
+    ] as const) {
+      const notes = score.notes.filter((n) => n.hand === hand).sort((a, b) => a.onset - b.onset);
+      expect(notes.map((n) => n.midi)).toEqual(run.slice(11, 18).map((n) => n.midi));
+      for (const n of run.slice(11, 18)) expect(xml).toContain(`<note id="${hand[0]}${n.index}">`);
+    }
+    expect(xml).not.toContain('<note id="r10">');
+    expect(xml.match(/<repeat direction="forward"\/>/g)).toHaveLength(1);
+    expect(xml.match(/<repeat direction="backward"\/>/g)).toHaveLength(1);
+    expect(score.measures.at(-1)!.repeat.backwardTimes).not.toBeNull();
+  });
 });

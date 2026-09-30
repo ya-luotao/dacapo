@@ -4839,6 +4839,60 @@ select.is-compact {
   font-weight: 600;
 }
 
+/* With the click: the tempo typed as ♩ = n, and the latency with its calibration. */
+.scale-tempo-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  font-family: var(--font-serif);
+  font-size: 1.0625rem;
+}
+
+.scale-tempo-input input {
+  width: 5rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid var(--control);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+
+.scale-tempo-input input:disabled,
+.scale-picker select:disabled,
+.scale-picker fieldset:disabled .segmented {
+  opacity: 0.6;
+}
+
+.scale-picker fieldset:disabled .segmented label {
+  cursor: default;
+}
+
+.scale-latency {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.scale-latency .muted {
+  flex-basis: 100%;
+}
+
+@media (min-width: 48rem) {
+  .scale-latency .muted {
+    flex-basis: auto;
+  }
+}
+
 /* As tall as the score: a scale is one or two systems. */
 .scale-sheet {
   position: relative;
@@ -4925,6 +4979,27 @@ select.is-compact {
   margin: 0.75rem 0 1rem;
   font-size: 1.0625rem;
   line-height: 1.5;
+}
+
+/* With the click, a second row of figures: the run against it. */
+.scale-summary .scale-click-figures {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 0;
+  border-top: 0;
+}
+
+/* The weakest place, offered as a focus loop. */
+.scale-loop-offer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin: 0 0 1rem;
+  font-size: 0.9375rem;
+}
+
+.scale-loop-help {
+  margin: 0;
 }
 
 .scale-profile .deviation-dot.is-crossing {

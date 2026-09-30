@@ -4,6 +4,7 @@
 
 import { activeTime, IDLE_MS } from './activity.ts';
 import type { PlayedNote, RunHeadline } from './evenness.ts';
+import type { ClickSettings, ScaleClick } from './scaleClick.ts';
 
 export interface PedalChange {
   down: boolean;
@@ -30,6 +31,8 @@ export interface ScaleRun {
   velocityMeasured: boolean;
   /** The MIDI inputs connected, by name (velocity curves differ); empty without one. */
   inputs: string[];
+  /** Played with the click (S4): its grid, so the timing against it can be recomputed. */
+  click?: ScaleClick;
 }
 
 /** A run as stored (S2): the run, and where it belongs. */
@@ -48,6 +51,8 @@ export interface ScaleRunSummary {
   startedAt: number;
   endedAt: number;
   headline: RunHeadline;
+  /** Played with the click: its tempo and notes per beat. Absent: at free tempo. */
+  click?: ClickSettings;
 }
 
 /**

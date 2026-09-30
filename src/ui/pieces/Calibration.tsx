@@ -93,6 +93,7 @@ export function Calibration({
     const times = calibrationClicks(first);
     taps.current = [];
     track.setVolume(readClickVolume() / 100);
+    track.setSound('click');
     track.start((from, to) =>
       times.flatMap((time, i) =>
         time >= from && time < to ? [{ time, accent: i % 4 === 0 }] : [],

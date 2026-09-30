@@ -13,6 +13,7 @@ import { SENTENCE_GAP, useI18n } from '../../i18n/index.ts';
 import { useScaleRuns } from '../practice/context.ts';
 import { useLogFormat } from '../progress/format.ts';
 import { spelledName, useExerciseName } from './format.ts';
+import type { LoopPlace } from './loop.ts';
 import { TrendChart } from './TrendChart.tsx';
 
 /**
@@ -23,11 +24,14 @@ export function ScaleProgress({
   exercise,
   progress,
   now,
+  onLoop,
 }: {
   exercise: ScaleExercise;
   /** Null: never recorded. */
   progress: ExerciseProgress | null;
   now: number;
+  /** A focus loop round a place found over the runs. */
+  onLoop?: (place: LoopPlace) => void;
 }) {
   const { t, locale } = useI18n();
   const format = useLogFormat();
@@ -70,14 +74,30 @@ export function ScaleProgress({
       : text;
   };
 
+  /** Of a place's notes, the one furthest off over the runs: where its loop is centred. */
+  const loopPlace = (p: IrregularPlace): LoopPlace => {
+    let best = p.indexes[0]!;
+    let most = -1;
+    for (const index of p.indexes) {
+      const figures = places?.places.find((f) => f.hand === p.hand && f.index === index);
+      const off = figures ? Math.abs(figures.irregularity) : 0;
+      if (off > most) {
+        most = off;
+        best = index;
+      }
+    }
+    return { hand: p.hand, index: best };
+  };
+
   let placesText: string | null;
+  const named = places && places.runs >= MIN_RUNS ? places.irregular.slice(0, 2) : [];
   // While the runs are read there is nothing to say yet.
   if (runs === null) placesText = null;
   else if (!places || places.runs < MIN_RUNS)
     placesText = t('scales.places.notYet', { min: MIN_RUNS });
   else if (places.irregular.length === 0)
     placesText = t('scales.places.none', { runs: places.runs });
-  else placesText = places.irregular.slice(0, 2).map(place).join(gap);
+  else placesText = named.map(place).join(gap);
 
   return (
     <section className="scale-progress" aria-labelledby={`${id}-title`}>
@@ -106,6 +126,23 @@ export function ScaleProgress({
         </div>
       </dl>
       {placesText && <p className="scale-verdict">{placesText}</p>}
+      {onLoop && runs !== null && named.length > 0 && (
+        <p className="scale-loop-offer">
+          {named.map((p) => {
+            const at = loopPlace(p);
+            return (
+              <button
+                key={`${p.hand}:${p.direction}:${p.crossing ?? p.degree}`}
+                type="button"
+                className="button is-compact"
+                onClick={() => onLoop(at)}
+              >
+                {t('scales.loop.around', { key: names[at.hand][at.index] ?? '' })}
+              </button>
+            );
+          })}
+        </p>
+      )}
       {progress.days.length > 0 && <TrendChart days={progress.days} today={dayKey(now)} />}
     </section>
   );

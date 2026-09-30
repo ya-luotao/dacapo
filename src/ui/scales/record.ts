@@ -11,7 +11,7 @@ import {
 import { exerciseKey } from '../../core/scales.ts';
 import type { ScaleExercise } from '../../core/scaleTypes.ts';
 import type { PracticeStore } from '../practice/store.ts';
-import { allReleased, runInput, velocityMeasured, type ScaleRunState } from './run.ts';
+import { allReleased, runClick, runInput, velocityMeasured, type ScaleRunState } from './run.ts';
 
 /** After its last note, a run waits this long for its keys to come up before it is recorded. */
 export const RELEASE_WAIT_MS = 1500;
@@ -28,6 +28,7 @@ export function scaleRunRecord(
   run: ScaleRunState,
   inputs: readonly string[],
 ): ScaleRun {
+  const click = runClick(run);
   return {
     exercise: exerciseKey(exercise),
     startedAt: run.startedAt ?? Date.now(),
@@ -37,6 +38,7 @@ export function scaleRunRecord(
     pedalAtStart: run.pedalAtStart,
     velocityMeasured: velocityMeasured(run.keys),
     inputs: [...inputs],
+    ...(click && { click }),
   };
 }
 
@@ -89,6 +91,7 @@ export function useScaleRecorder(
       startedAt: stored.startedAt,
       endedAt: stored.startedAt + Math.max(...stored.keys.map((key) => key.on)),
       headline: runHeadline(analysis),
+      ...(stored.click && { click: { bpm: stored.click.bpm, perBeat: stored.click.perBeat } }),
     });
     latest.current.slot.set(next);
     store.recordScaleRun(stored, next);

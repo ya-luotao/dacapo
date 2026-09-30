@@ -1,4 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
+import type { ClickSound } from '../../core/metronomeSettings.ts';
 import type { DemoPlan } from '../../core/playback.ts';
 import type { PlayResult, RhythmPlan, StepTiming } from '../../core/rhythm.ts';
 import { audioContext } from '../../output/audio.ts';
@@ -39,6 +40,8 @@ export interface RhythmStart {
   clickMode: ClickMode;
   /** 0–100. */
   volume: number;
+  /** The click's sound: rhythm mode's own `click` unless given (the Scales page uses the metronome's). */
+  sound?: ClickSound;
   latency: number;
   onSettled: (timings: StepTiming[]) => void;
   onEnd: (reason: RhythmEnd) => void;
@@ -84,6 +87,7 @@ export function createRhythmPlayer(
       unsubscribe?.();
       const clicks = options.clickMode === 'off' ? null : sharedClickTrack();
       clicks?.setVolume(options.volume / 100);
+      clicks?.setSound(options.sound ?? 'click');
       release?.();
       release = hold();
       run = createRhythmRun({

@@ -16,8 +16,11 @@ const EXPECTED = scaleNotes(EXERCISE).right;
 const T0 = 10_000;
 
 /** The whole scale, evenly, each key let go 20 ms after the next one goes down (legato). */
-function playScale(holdLast: boolean): { state: ScaleRunState; lastOff: RunEvent } {
-  let state = waitingRun(EXPECTED);
+function playScale(
+  holdLast: boolean,
+  start: ScaleRunState = waitingRun(EXPECTED),
+): { state: ScaleRunState; lastOff: RunEvent } {
+  let state = start;
   const step = (e: RunEvent) => (state = sessionStep(state, e));
   EXPECTED.forEach((note, i) => {
     const time = T0 + i * 200;
@@ -144,5 +147,27 @@ describe('useScaleRecorder', () => {
       recorded[0]!.run.id,
       recorded[1]!.run.id,
     ]);
+  });
+
+  it('keeps the grid of a run with the click, and its tempo on the session', () => {
+    const grid = { bpm: 75, perBeat: 4 as const, origin: T0 - 3.2, latency: 9 };
+    const armed = sessionStep(waitingRun(EXPECTED), { type: 'arm', grid });
+    const { state } = playScale(false, armed);
+    render(state);
+    expect(recorded).toHaveLength(1);
+    expect(recorded[0]!.run.click).toEqual({
+      bpm: 75,
+      perBeat: 4,
+      latency: 9,
+      zero: -3.2,
+      stoppedAt: null,
+    });
+    expect(recorded[0]!.session.runs[0]!.click).toEqual({ bpm: 75, perBeat: 4 });
+  });
+
+  it('records a run at free tempo without a grid', () => {
+    render(playScale(false).state);
+    expect(recorded[0]!.run).not.toHaveProperty('click');
+    expect(recorded[0]!.session.runs[0]).not.toHaveProperty('click');
   });
 });

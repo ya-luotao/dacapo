@@ -5,6 +5,7 @@
 // Framework-free, so it is testable.
 
 import type { PlayedNote, RunInput } from '../../core/evenness.ts';
+import type { ClickSettings, ScaleClick } from '../../core/scaleClick.ts';
 import type { PedalChange, RunEnd } from '../../core/scaleRecords.ts';
 import type { ScaleNote } from '../../core/scaleTypes.ts';
 
@@ -34,6 +35,14 @@ export function runSteps(expected: readonly ScaleNote[]): RunStep[] {
 /** A key as played, on the run's clock (ms from its first key); `off` null while it is down. */
 export type RunKey = PlayedNote;
 
+/** A run with the click: its grid, fixed when Start is pressed. */
+export interface RunGrid extends ClickSettings {
+  /** `performance.now()` of the moment the first note is due. */
+  origin: number;
+  /** The calibrated latency taken off every key, ms. */
+  latency: number;
+}
+
 export interface ScaleRunState {
   phase: 'waiting' | 'playing' | 'done';
   /** The notes of the run: one hand's, or the right hand's then the left's. */
@@ -58,17 +67,29 @@ export interface ScaleRunState {
   /** On the run's clock, for the idle end. */
   lastKeyAt: number | null;
   end: RunEnd | null;
+  /** With the click: the grid of this run (the next run needs Start again); null at free tempo. */
+  grid: RunGrid | null;
+  /** When Stop ended it, on the run's clock. */
+  stoppedAt: number | null;
 }
 
 export type RunEvent =
   | { type: 'on'; midi: number; velocity: number; time: number; at: number }
   | { type: 'off'; midi: number; time: number }
   | { type: 'pedal'; down: boolean; time: number }
-  /** Time passes; ends the run once it has been idle for `IDLE_END_MS`. */
+  /** Time passes; ends the run once it has been idle for `IDLE_END_MS` (at free tempo only). */
   | { type: 'tick'; time: number }
-  | { type: 'stop'; time: number };
+  | { type: 'stop'; time: number }
+  /** With the click: its last beat has gone by. */
+  | { type: 'over' }
+  /** With the click: Start, a new run on this grid. */
+  | { type: 'arm'; grid: RunGrid };
 
-export function waitingRun(expected: readonly ScaleNote[], pedalDown = false): ScaleRunState {
+export function waitingRun(
+  expected: readonly ScaleNote[],
+  pedalDown = false,
+  grid: RunGrid | null = null,
+): ScaleRunState {
   return {
     phase: 'waiting',
     expected,
@@ -84,6 +105,8 @@ export function waitingRun(expected: readonly ScaleNote[], pedalDown = false): S
     startedAt: null,
     lastKeyAt: null,
     end: null,
+    grid,
+    stoppedAt: null,
   };
 }
 
@@ -127,6 +150,7 @@ export function allReleased(state: Pick<ScaleRunState, 'keys'>): boolean {
 }
 
 export function runStep(state: ScaleRunState, event: RunEvent): ScaleRunState {
+  if (event.type === 'arm') return waitingRun(state.expected, state.pedalDown, event.grid);
   if (state.phase === 'done') {
     if (event.type === 'pedal') return { ...state, pedalDown: event.down };
     // The keys still down at the end are let go after it: their releases belong to the run.
@@ -208,11 +232,17 @@ export function runStep(state: ScaleRunState, event: RunEvent): ScaleRunState {
         pedal: [...state.pedal, { down: event.down, time: clock(state, event.time) }],
       };
     case 'tick':
-      return state.lastKeyAt !== null && clock(state, event.time) - state.lastKeyAt >= IDLE_END_MS
+      // With the click the run lasts as long as its grid.
+      return state.grid === null &&
+        state.lastKeyAt !== null &&
+        clock(state, event.time) - state.lastKeyAt >= IDLE_END_MS
         ? finish(state, 'idle')
         : state;
     case 'stop':
-      return finish(state, 'stopped');
+      return { ...finish(state, 'stopped'), stoppedAt: clock(state, event.time) };
+    case 'over':
+      // The click has played the whole scale: whatever was not played is missed.
+      return finish(state, 'finished');
   }
 }
 
@@ -231,16 +261,31 @@ export function velocityMeasured(keys: readonly Pick<RunKey, 'velocity'>[]): boo
 
 /**
  * Runs one after another: once a run is done, the scale's first key starts the next, so the
- * player plays again without a button. Everything else after the end is ignored.
+ * player plays again without a button. Everything else after the end is ignored. With the click a
+ * run needs Start (and its count-in), so a done run waits for that instead.
  */
 export function sessionStep(state: ScaleRunState, event: RunEvent): ScaleRunState {
   if (
     state.phase === 'done' &&
+    state.grid === null &&
     event.type === 'on' &&
     state.steps[0]?.notes.some((n) => state.expected[n]!.midi === event.midi)
   )
     return runStep(waitingRun(state.expected, state.pedalDown), event);
   return runStep(state, event);
+}
+
+/** A clicked run's grid as its record keeps it, on the run's clock; null at free tempo. */
+export function runClick(state: ScaleRunState): ScaleClick | null {
+  const { grid } = state;
+  if (grid === null || state.origin === null) return null;
+  return {
+    bpm: grid.bpm,
+    perBeat: grid.perBeat,
+    latency: grid.latency,
+    zero: Math.round((grid.origin - state.origin) * 10) / 10,
+    stoppedAt: state.stoppedAt,
+  };
 }
 
 /** What the analysis takes of a run: its notes, its keys, the pedal, whether loudness counts. */

@@ -26,9 +26,10 @@ export const EXPORT_FORMAT = 'dacapo';
  * Bump when the file shape changes; older files must keep importing. Version 2 adds pieces,
  * version 3 piece sessions and step records, version 4 rhythm-mode steps and sessions (a `mode`
  * and their timings; records without a mode are wait mode's, as in version 3), version 5 scale
- * sessions and scale runs, version 6 ear-training answers and sessions.
+ * sessions and scale runs, version 6 ear-training answers and sessions, version 7 scale runs played
+ * with the click (their grid, and the tempo on their session's summary).
  */
-export const EXPORT_VERSION = 6;
+export const EXPORT_VERSION = 7;
 
 export interface Preferences {
   /** null follows the browser language. */

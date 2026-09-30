@@ -1,6 +1,9 @@
 import type { HandAnalysis, ProblemPlace, RunAnalysis } from '../../core/evenness.ts';
+import { IN_TIME_MS, TENDENCY_MS, type RhythmSummary } from '../../core/rhythmRun.ts';
+import type { ClickSettings } from '../../core/scaleClick.ts';
 import type { Hand } from '../../core/score.ts';
 import { SENTENCE_GAP, useI18n } from '../../i18n/index.ts';
+import { weakestPlace, type LoopPlace } from './loop.ts';
 import { ProfileChart } from './ProfileChart.tsx';
 import type { RunEnd } from './run.ts';
 
@@ -14,17 +17,27 @@ const APART_OFTEN = 0.25;
 
 export type NamesByHand = Readonly<Record<Hand, readonly string[]>>;
 
+/** With the click: the run against it (rhythm mode's figures) and the grid it was played on. */
+export interface ClickResult {
+  settings: ClickSettings;
+  summary: RhythmSummary;
+}
+
 /**
  * After a run: how even it was (the spread of each hand, against the published professional
- * figure), how far apart the hands were, the tempo and the wrong notes; then in a few sentences,
- * the most telling first, where it went uneven, whether the hands and the fingers kept together,
- * whether the tempo moved and what the loudness did; then every note of each hand on a chart.
+ * figure), how far apart the hands were, the tempo and the wrong notes, and with the click how the
+ * notes sat against it; then in a few sentences, the most telling first, where it went uneven,
+ * whether the notes came early or late, whether the hands and the fingers kept together, whether
+ * the tempo moved and what the loudness did; then every note of each hand on a chart, and the
+ * weakest place offered as a focus loop.
  */
 export function ScaleSummary({
   analysis,
   names,
   end,
   pedal,
+  click = null,
+  onLoop,
 }: {
   analysis: RunAnalysis;
   /** Each note's name as the scale spells it, per hand, by index. */
@@ -32,6 +45,10 @@ export function ScaleSummary({
   end: RunEnd | null;
   /** The sustain pedal was down during the run. */
   pedal: boolean;
+  /** Played with the click. */
+  click?: ClickResult | null;
+  /** A focus loop round a place of the run. */
+  onLoop?: (place: LoopPlace) => void;
 }) {
   const { t, locale } = useI18n();
   const gap = SENTENCE_GAP[locale];
@@ -104,6 +121,18 @@ export function ScaleSummary({
   // Most telling first; at most three are shown.
   const sentences: string[] = end === 'stopped' ? [t('scales.result.stopped')] : [];
   if (analysis.problem) sentences.push(problemSentence(analysis.problem));
+  // With the click, whether the notes sat on it: what the click is there for.
+  const tendency = click?.summary.tendency ?? null;
+  if (click)
+    sentences.push(
+      tendency === null
+        ? t('pieces.rhythm.noTendency')
+        : Math.abs(tendency) < TENDENCY_MS
+          ? t('scales.result.onBeat', { ms: TENDENCY_MS })
+          : t(tendency > 0 ? 'scales.result.late' : 'scales.result.early', {
+              ms: Math.round(Math.abs(tendency)),
+            }),
+    );
   for (const hand of hands)
     if (hand.timing.hesitations.length > 0)
       sentences.push(
@@ -170,6 +199,8 @@ export function ScaleSummary({
       ? '–'
       : t('scales.result.percent', { percent: whole.format(hand.timing.spreadShare) });
   const rough = hands.some((h) => h.timing.rough);
+  const weakest = onLoop ? weakestPlace(analysis) : null;
+  const clicked = click?.summary;
 
   return (
     <section className="scale-summary" aria-labelledby="scale-summary-title">
@@ -206,14 +237,58 @@ export function ScaleSummary({
           <dd>{counts.wrong + counts.missed + counts.extra}</dd>
         </div>
       </dl>
+      {click && clicked && (
+        <dl className="figures scale-click-figures">
+          <div>
+            <dt>{t('scales.result.clickTendency')}</dt>
+            <dd>
+              {tendency === null
+                ? '–'
+                : Math.abs(tendency) < TENDENCY_MS
+                  ? t('scales.result.onTheBeat')
+                  : t(tendency > 0 ? 'scales.problem.late' : 'scales.problem.early', {
+                      ms: Math.round(Math.abs(tendency)),
+                    })}
+            </dd>
+          </div>
+          <div>
+            <dt>{t('pieces.rhythm.inTime', { ms: IN_TIME_MS })}</dt>
+            <dd>
+              {clicked.notes === 0
+                ? '–'
+                : t('scales.result.percent', {
+                    percent: whole.format((100 * clicked.inTime) / clicked.notes),
+                  })}
+            </dd>
+          </div>
+          <div>
+            <dt>{t('scales.result.clickTempo')}</dt>
+            <dd>
+              {t('scales.result.clickGrid', {
+                bpm: click.settings.bpm,
+                n: click.settings.perBeat,
+              })}
+            </dd>
+          </div>
+        </dl>
+      )}
       <p className="help">{t('scales.result.reference')}</p>
       <p className="scale-verdict">{sentences.slice(0, MAX_SENTENCES).join(gap)}</p>
+      {weakest && onLoop && (
+        <p className="scale-loop-offer">
+          <button type="button" className="button is-compact" onClick={() => onLoop(weakest)}>
+            {t('scales.loop.around', { key: names[weakest.hand][weakest.index] ?? '' })}
+          </button>
+          <span className="muted">{t('scales.loop.offer')}</span>
+        </p>
+      )}
       {hands.map((hand) => (
         <ProfileChart
           key={hand.hand}
           hand={hand}
           names={names[hand.hand]}
           caption={two ? t('scales.chart.hand', { hand: handWord(hand.hand) }) : undefined}
+          onLoop={onLoop && ((index) => onLoop({ hand: hand.hand, index }))}
         />
       ))}
     </section>

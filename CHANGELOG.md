@@ -6,10 +6,25 @@ which is noted when it changes.
 
 ## Unreleased
 
-Export format version 6: the file now includes imported pieces (from version 2), piece practice
+Export format version 7: the file now includes imported pieces (from version 2), piece practice
 sessions and their step records (from version 3), rhythm-mode steps with their timings (from
-version 4), scale sessions with every scale run as played (from version 5), and ear-training
-answers and sessions. Version 1 to 5 files still import.
+version 4), scale sessions with every scale run as played (from version 5), ear-training answers
+and sessions (from version 6), and the click's tempo and grid of scale runs played with it. Version
+1 to 6 files still import.
+
+### Scales with the click, and focus loops (S4)
+
+- **With the click**: beside free tempo, a scale can be played with the click at ♩ = 40–160, two,
+  three or four notes to the beat (drawn as eighths, triplets or sixteenths). Start gives one bar
+  of count-in, and the click sounds with the metronome's own sound and volume while the metronome
+  pauses. It is rhythm mode's plan, matcher and latency calibration, unchanged.
+- After a clicked run, the evenness figures as before (the run against its own line) and, beside
+  them, the run against the click: whether you came early or late on average and how many notes
+  fell within ±50 ms. Both are recomputed from the run's raw keys and the grid it keeps.
+- **Focus loops**: the weakest place of a run, any place named over your last runs and any note of
+  the per-note table can be looped: three notes either side, drawn between repeat signs, the
+  cursor waiting for each key, round and round until you go back to the scale. A drill: nothing is
+  timed or recorded.
 
 ### Ear training: intervals, chords and melodies by ear ([docs/EAR.md](docs/EAR.md))
 

@@ -34,12 +34,15 @@ export function ProfileChart({
   hand,
   names,
   caption,
+  onLoop,
 }: {
   hand: HandAnalysis;
   /** Each note's name as the scale spells it (F𝄪, not G), by index. */
   names: readonly string[];
   /** Instead of the usual caption, e.g. which hand (hands together draws one chart per hand). */
   caption?: string;
+  /** A focus loop round a note of the table (by index), when offered. */
+  onLoop?: (index: number) => void;
 }) {
   const t = useT();
   const id = useId();
@@ -261,6 +264,11 @@ export function ProfileChart({
                 <th scope="col">{t('scales.table.timing')}</th>
                 {loud && <th scope="col">{t('scales.table.velocity')}</th>}
                 {legato && <th scope="col">{t('scales.table.legato')}</th>}
+                {onLoop && (
+                  <th scope="col">
+                    <span className="visually-hidden">{t('scales.loop.column')}</span>
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -276,6 +284,18 @@ export function ProfileChart({
                   </td>
                   {loud && <td>{loudness(note) || '–'}</td>}
                   {legato && <td>{connection(note) || '–'}</td>}
+                  {onLoop && (
+                    <td>
+                      <button
+                        type="button"
+                        className="button is-compact"
+                        aria-label={t('scales.loop.around', { key: names[note.index] ?? '' })}
+                        onClick={() => onLoop(note.index)}
+                      >
+                        {t('scales.loop.short')}
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
