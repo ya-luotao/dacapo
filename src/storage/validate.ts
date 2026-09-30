@@ -1,8 +1,22 @@
+import {
+  answerNameOf,
+  answerNames,
+  getEarLevel,
+  isEarLevelId,
+  itemInLevel,
+  judgeChordKeys,
+  judgeIntervalKey,
+  parseItem,
+  promptMatches,
+  type EarLevelId,
+} from '../core/earItems.ts';
+import type { Answer, MissedItem } from '../core/earSession.ts';
 import type { PlayedNote, RunHeadline } from '../core/evenness.ts';
 import type { OpenFreePlay } from '../core/freePlay.ts';
 import { isStaffHands } from '../core/hands.ts';
 import { isLevelId, parseNoteKey } from '../core/levels.ts';
 import type {
+  EarSessionRecord,
   FreePlaySessionRecord,
   PieceSessionRecord,
   ReadSessionRecord,
@@ -377,12 +391,158 @@ function validateScaleSession(value: Fields): Validation<ScaleSessionRecord> {
   };
 }
 
+// --- Ear training ----------------------------------------------------------------------------
+
+const isFamily = (v: unknown) => v === 'interval' || v === 'chord';
+const isAnswerMode = (v: unknown) => v === 'play' || v === 'name';
+const isItemKey = (v: unknown): v is string => typeof v === 'string' && parseItem(v) !== null;
+/** A prompt or a played answer: a few keys (an interval's two, a chord's up to four). */
+const isKeys = (v: unknown, max: number): v is number[] =>
+  Array.isArray(v) && v.length > 0 && v.length <= max && v.every(isMidi);
+const isAnswerValue = (v: unknown) => isKeys(v, 88) || (typeof v === 'string' && v.length <= 20);
+
+/**
+ * Whether a played or named `answer` to `prompt` of `item` at `level` is judged `correct`, by the
+ * rules the session judged it with; null when it is not an answer the session could record.
+ */
+function judgedAnswer(
+  level: EarLevelId,
+  itemKey: string,
+  by: 'play' | 'name',
+  prompt: readonly number[],
+  answer: number[] | string,
+): boolean | null {
+  const item = parseItem(itemKey)!;
+  const earLevel = getEarLevel(level);
+  if (by === 'name') {
+    if (typeof answer !== 'string' || !answerNames(earLevel).includes(answer)) return null;
+    return answer === answerNameOf(item);
+  }
+  if (typeof answer === 'string') return null;
+  const card = { item: itemKey, notes: prompt };
+  if (item.family === 'interval') {
+    if (answer.length !== 1) return null;
+    const result = judgeIntervalKey(card, answer[0]!);
+    return result === 'ignored' ? null : result === 'right';
+  }
+  // Held keys, low to high, each once.
+  if (answer.some((midi, i) => i > 0 && midi <= answer[i - 1]!)) return null;
+  const bassMatters = earLevel.family === 'chord' && earLevel.bassMatters;
+  const result = judgeChordKeys(card, answer, bassMatters);
+  return result === 'pending' ? null : result === 'right';
+}
+
+export function validateAnswer(value: unknown): Validation<Answer> {
+  if (!isObject(value)) return fail('record');
+  const field = firstInvalid(value, {
+    id: isId,
+    sessionId: isId,
+    family: isFamily,
+    level: isEarLevelId,
+    item: isItemKey,
+    by: isAnswerMode,
+    prompt: (v) => isKeys(v, 4),
+    answer: isAnswerValue,
+    correct: isBool,
+    ms: isTime,
+    replays: isCount,
+    at: isTime,
+  });
+  if (field) return fail(field);
+  const a = value as unknown as Answer;
+  const item = parseItem(a.item)!;
+  const level = getEarLevel(a.level);
+  if (level.family !== a.family) return fail('level');
+  if (!itemInLevel(item, level)) return fail('item');
+  if (!promptMatches(item, a.prompt)) return fail('prompt');
+  const judged = judgedAnswer(a.level, a.item, a.by, a.prompt, a.answer);
+  if (judged === null) return fail('answer');
+  if (judged !== a.correct) return fail('correct');
+  return {
+    ok: true,
+    value: {
+      id: a.id,
+      sessionId: a.sessionId,
+      family: a.family,
+      level: a.level,
+      item: a.item,
+      by: a.by,
+      prompt: [...a.prompt],
+      answer: Array.isArray(a.answer) ? [...a.answer] : a.answer,
+      correct: a.correct,
+      ms: a.ms,
+      replays: a.replays,
+      at: a.at,
+    },
+  };
+}
+
+function isMissed(v: unknown): v is MissedItem[] {
+  return (
+    Array.isArray(v) &&
+    v.length <= 10_000 &&
+    v.every(
+      (m) => isObject(m) && isItemKey(m.item) && isAnswerValue(m.answer) && isKeys(m.prompt, 4),
+    )
+  );
+}
+
+function validateEarSession(value: Fields): Validation<EarSessionRecord> {
+  const field = firstInvalid(value, {
+    id: isId,
+    family: isFamily,
+    level: isEarLevelId,
+    by: isAnswerMode,
+    startedAt: isTime,
+    endedAt: isTime,
+    activeMs: isTime,
+    length: (v) => isCount(v) && v > 0,
+    items: isCount,
+    correct: isCount,
+    accuracy: isRatio,
+    medianMs: isTimeOrNull,
+    replays: isCount,
+    missed: isMissed,
+  });
+  if (field) return fail(field);
+  const s = value as unknown as EarSessionRecord;
+  if (getEarLevel(s.level).family !== s.family) return fail('level');
+  if (s.endedAt < s.startedAt) return fail('endedAt');
+  if (s.correct > s.items) return fail('correct');
+  if ((s.accuracy === null) !== (s.items === 0)) return fail('accuracy');
+  return {
+    ok: true,
+    value: {
+      kind: 'ear',
+      id: s.id,
+      family: s.family,
+      level: s.level,
+      by: s.by,
+      startedAt: s.startedAt,
+      endedAt: s.endedAt,
+      activeMs: s.activeMs,
+      length: s.length,
+      items: s.items,
+      correct: s.correct,
+      accuracy: s.accuracy,
+      medianMs: s.medianMs,
+      replays: s.replays,
+      missed: s.missed.map((m) => ({
+        item: m.item,
+        answer: Array.isArray(m.answer) ? [...m.answer] : m.answer,
+        prompt: [...m.prompt],
+      })),
+    },
+  };
+}
+
 export function validateSession(value: unknown): Validation<SessionRecord> {
   if (!isObject(value)) return fail('record');
   if (value.kind === 'read') return validateReadSession(value);
   if (value.kind === 'free') return validateFreeSession(value);
   if (value.kind === 'piece') return validatePieceSession(value);
   if (value.kind === 'scale') return validateScaleSession(value);
+  if (value.kind === 'ear') return validateEarSession(value);
   return fail('kind');
 }
 

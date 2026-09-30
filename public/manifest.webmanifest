@@ -2,7 +2,7 @@
   "name": "dacapo",
   "short_name": "dacapo",
   "id": "./",
-  "description": "Sight-reading, scales, real pieces and a metronome for your MIDI keyboard.",
+  "description": "Sight-reading, ear training, scales, real pieces and a metronome for your MIDI keyboard.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -35,6 +35,12 @@
       "short_name": "Read",
       "description": "Sight-reading flashcards on the grand staff",
       "url": "./#/read"
+    },
+    {
+      "name": "Ear",
+      "short_name": "Ear",
+      "description": "Intervals and chords by ear",
+      "url": "./#/ear"
     },
     {
       "name": "Scales",

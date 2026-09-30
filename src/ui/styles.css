@@ -1936,6 +1936,285 @@ kbd {
   }
 }
 
+/* Ear: setup. The family chooses which levels are listed, like the tab of a method book. */
+
+.ear-choose > .ear-family {
+  margin-top: 1.75rem;
+}
+
+/* The options share the card's width, so four directions stay on one row. */
+.ear-setup .read-options .segmented {
+  display: flex;
+  width: 100%;
+}
+
+.ear-setup .read-options .segmented label {
+  flex: 1 1 auto;
+}
+
+.ear-setup .read-options .segmented span {
+  min-width: 0;
+  padding-inline: 0.625rem;
+}
+
+/* No output: the one thing to fix before starting, in the storage notice's warning tint. */
+.ear-sound {
+  max-width: 46rem;
+  margin: 1.25rem 0 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--warn-rule);
+  border-radius: var(--radius);
+  background: var(--warn-soft);
+  text-wrap: pretty;
+}
+
+.ear-sound a {
+  font-weight: 600;
+}
+
+/* Ear: session. The Read session's music stand, with a sheet that says what to do. */
+
+.ear-session .read-bar .ear-stop {
+  margin-left: auto;
+}
+
+.ear-card {
+  gap: 0.75rem;
+  width: min(100%, 36rem);
+  min-height: 12.5rem;
+  justify-content: center;
+  padding-block: 1.25rem 1rem;
+  text-align: center;
+}
+
+.ear-card.is-wrong {
+  gap: 0.375rem;
+  padding-block: 1rem 0.75rem;
+}
+
+/* With the answer buttons below, the drawn answer is smaller, so the keyboard stays in view. */
+.ear-session:has(.ear-names) .ear-staff {
+  width: min(100%, 10.5rem);
+}
+
+.ear-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 3rem;
+}
+
+.ear-title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(1.75rem, 1.4rem + 1.5vw, 2.5rem);
+  font-weight: 500;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.ear-title:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-weight: 600;
+}
+
+.ear-state-icon,
+.ear-icon {
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ear-state-icon {
+  width: 2rem;
+  height: 2rem;
+  color: var(--text-muted);
+}
+
+.ear-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.ear-state-icon .ear-black-key {
+  fill: currentColor;
+}
+
+/* While the prompt sounds, its waves pulse; still for reduced motion. */
+.ear-state-icon.is-sounding {
+  color: var(--accent);
+}
+
+.ear-state-icon.is-sounding .ear-wave {
+  animation: ear-wave 1.2s ease-in-out infinite;
+}
+
+.ear-state-icon.is-sounding .ear-wave + .ear-wave {
+  animation-delay: 0.2s;
+}
+
+@keyframes ear-wave {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.ear-task {
+  max-width: 28rem;
+  min-height: 1.5em;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 1.0625rem;
+  text-wrap: balance;
+}
+
+.ear-again kbd,
+.ear-next kbd,
+.ear-name kbd {
+  margin-inline-start: 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.75em;
+}
+
+.button-primary kbd {
+  border-color: currentColor;
+  background: transparent;
+  color: inherit;
+}
+
+.ear-staff {
+  width: min(100%, 12rem);
+  min-width: 0;
+}
+
+/*
+ * The sheet names the answer in large type already: the result line is a size smaller. Room for
+ * that line is kept, so a right answer moves nothing; after a wrong one the answer buttons are
+ * inactive when the Next row pushes them down.
+ */
+.read-feedback.ear-feedback {
+  min-height: 2.75rem;
+}
+
+.ear-feedback .read-result {
+  font-size: clamp(1.375rem, 1.2rem + 0.75vw, 1.75rem);
+}
+
+.ear-next {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.ear-feedback .ear-next-help {
+  margin-top: 0.375rem;
+  font-size: 0.875rem;
+}
+
+/* Name it: the level's names in the order of the levels, 1–9 and 0 on the first ten. */
+/* As many columns as keeps the rows even (`--columns`, set from the number of names). */
+.ear-names {
+  display: grid;
+  grid-template-columns: repeat(var(--columns), minmax(0, 1fr));
+  gap: 0.5rem;
+  max-width: min(60rem, calc(var(--columns) * 15rem));
+  margin: 0 auto 1rem;
+}
+
+.ear-name {
+  justify-content: space-between;
+  padding-inline: 0.875rem 0.625rem;
+  background: var(--surface);
+  font-weight: 500;
+  text-align: start;
+}
+
+.ear-name > span {
+  flex: 1;
+}
+
+.ear-name .read-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.ear-name[aria-disabled='true'] {
+  cursor: default;
+}
+
+.ear-name.is-right {
+  border-color: var(--ok);
+  background: var(--ok-soft);
+  color: var(--ok);
+  font-weight: 600;
+}
+
+.ear-name.is-chosen {
+  border-color: var(--bad);
+  background: var(--bad-soft);
+  color: var(--bad);
+  font-weight: 600;
+}
+
+@media (hover: hover) {
+  .ear-name:not([aria-disabled='true']):hover {
+    background: var(--sunk);
+  }
+}
+
+@media (max-width: 40rem) {
+  .ear-card {
+    min-height: 11rem;
+    padding-inline: 1rem;
+  }
+
+  .ear-names {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ear-name kbd {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ear-state-icon.is-sounding .ear-wave {
+    animation: none;
+  }
+}
+
+/* Ear: summary. Four figures, two by two on a phone. */
+
+.ear-figures {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  max-width: 46rem;
+}
+
+@media (max-width: 40rem) {
+  .ear-figures {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ear-figures div:nth-child(3) {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+  }
+
+  .ear-figures div:nth-child(n + 3) {
+    border-top: 1px solid var(--border);
+  }
+}
+
+.ear-missed li + li {
+  margin-top: 0.25rem;
+}
+
 /* Storage notice: a footnote-style strip, tinted with the warning colour. */
 
 .storage-notice {

@@ -1,6 +1,7 @@
 import {
   Accidental,
   Formatter,
+  GhostNote,
   Renderer,
   Stave,
   StaveConnector,
@@ -8,7 +9,7 @@ import {
   VexFlow,
   Voice,
 } from 'vexflow/core';
-import type { Clef, Pitch } from '../../core/note.ts';
+import { MIDDLE_C, pitchToMidi, type Clef, type Pitch } from '../../core/note.ts';
 import { MUSIC_FONT } from './font.ts';
 
 VexFlow.setFonts(MUSIC_FONT);
@@ -29,12 +30,8 @@ export function vexKey(pitch: Pitch): string {
   return `${pitch.letter.toLowerCase()}${ACCIDENTAL_CODE[pitch.accidental]}/${pitch.octave}`;
 }
 
-/**
- * Draws a braced grand staff with one whole note into `host`, replacing whatever was there.
- * Everything is drawn in `currentColor`, so CSS decides the colours; the note is in its own
- * `g.vf-stavenote` group.
- */
-export function drawGrandStaff(host: HTMLElement, pitch: Pitch, clef: Clef): SVGSVGElement {
+/** An empty braced grand staff in `host`, replacing whatever was there, drawn in `currentColor`. */
+function grandStaff(host: HTMLElement) {
   host.replaceChildren();
   const renderer = new Renderer(host as HTMLDivElement, Renderer.Backends.SVG);
   renderer.resize(STAFF_WIDTH, STAFF_HEIGHT);
@@ -53,15 +50,11 @@ export function drawGrandStaff(host: HTMLElement, pitch: Pitch, clef: Clef): SVG
   for (const type of ['brace', 'singleLeft', 'singleRight'] as const) {
     new StaveConnector(treble, bass).setType(type).setContext(context).draw();
   }
+  return { context, treble, bass };
+}
 
-  const note = new StaveNote({ keys: [vexKey(pitch)], duration: 'w', clef, alignCenter: true });
-  if (pitch.accidental !== 0)
-    note.addModifier(new Accidental(ACCIDENTAL_CODE[pitch.accidental]), 0);
-  const stave = clef === 'treble' ? treble : bass;
-  const voice = new Voice({ numBeats: 4, beatValue: 4 }).addTickables([note]);
-  new Formatter().joinVoices([voice]).formatToStave([voice], stave);
-  voice.draw(context, stave);
-
+/** The drawn SVG, scaled by CSS and hidden from assistive technology (the host labels it). */
+function finish(host: HTMLElement): SVGSVGElement {
   const svg = host.querySelector('svg')!;
   svg.removeAttribute('width');
   svg.removeAttribute('height');
@@ -70,4 +63,67 @@ export function drawGrandStaff(host: HTMLElement, pitch: Pitch, clef: Clef): SVG
   svg.setAttribute('aria-hidden', 'true');
   svg.setAttribute('focusable', 'false');
   return svg;
+}
+
+/**
+ * Draws a braced grand staff with one whole note into `host`, replacing whatever was there.
+ * Everything is drawn in `currentColor`, so CSS decides the colours; the note is in its own
+ * `g.vf-stavenote` group.
+ */
+export function drawGrandStaff(host: HTMLElement, pitch: Pitch, clef: Clef): SVGSVGElement {
+  const { context, treble, bass } = grandStaff(host);
+  const note = new StaveNote({ keys: [vexKey(pitch)], duration: 'w', clef, alignCenter: true });
+  if (pitch.accidental !== 0)
+    note.addModifier(new Accidental(ACCIDENTAL_CODE[pitch.accidental]), 0);
+  const stave = clef === 'treble' ? treble : bass;
+  const voice = new Voice({ numBeats: 4, beatValue: 4 }).addTickables([note]);
+  new Formatter().joinVoices([voice]).formatToStave([voice], stave);
+  voice.draw(context, stave);
+  return finish(host);
+}
+
+/** The staff a pitch is written on when a chord is split over the grand staff. */
+export const clefOf = (pitch: Pitch): Clef => (pitchToMidi(pitch) >= MIDDLE_C ? 'treble' : 'bass');
+
+/**
+ * Draws a braced grand staff with whole notes into `host`: one column per entry of `columns`,
+ * each a chord of the pitches sounding together (a melodic interval is two columns, a chord
+ * one). Middle C and above go on the treble staff, the rest on the bass staff, so a chord may
+ * be split over both. Drawn in `currentColor`, like `drawGrandStaff`.
+ */
+export function drawGrandStaffNotes(
+  host: HTMLElement,
+  columns: readonly (readonly Pitch[])[],
+): SVGSVGElement {
+  const { context, treble, bass } = grandStaff(host);
+  const staves = [
+    { clef: 'treble' as const, stave: treble },
+    { clef: 'bass' as const, stave: bass },
+  ];
+  const single = columns.length === 1;
+  const voices = staves.map(({ clef }) => {
+    const notes = columns.map((column) => {
+      const pitches = column
+        .filter((p) => clefOf(p) === clef)
+        .sort((a, b) => pitchToMidi(a) - pitchToMidi(b));
+      if (pitches.length === 0) return new GhostNote({ duration: 'w' });
+      const note = new StaveNote({
+        keys: pitches.map(vexKey),
+        duration: 'w',
+        clef,
+        alignCenter: single,
+      });
+      pitches.forEach((p, i) => {
+        if (p.accidental !== 0) note.addModifier(new Accidental(ACCIDENTAL_CODE[p.accidental]), i);
+      });
+      return note;
+    });
+    return new Voice({ numBeats: 4 * columns.length, beatValue: 4 }).addTickables(notes);
+  });
+  // One formatter for both staves, so the columns line up across them.
+  const formatter = new Formatter();
+  for (const voice of voices) formatter.joinVoices([voice]);
+  formatter.format(voices, treble.getNoteEndX() - treble.getNoteStartX() - 16);
+  voices.forEach((voice, i) => voice.draw(context, staves[i]!.stave));
+  return finish(host);
 }

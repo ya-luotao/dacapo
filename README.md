@@ -56,6 +56,11 @@ practising the notes you are slowest at. Progress is visible day by day.
   middle C position to ledger lines and sharps and flats. You press the key in the right
   octave; every answer records whether it was right and how fast. The next card favours the
   notes you are slow or unsure on.
+- **Ear training.** Intervals and chords by ear, in twelve levels from the octave, fifth and
+  major third to compound intervals, inversions and seventh chords. Your instrument or the
+  built-in piano plays the question; play it back on the keys (the first note or the root is
+  marked) or name it. The next question favours what you miss, and every answer is kept
+  ([docs/EAR.md](docs/EAR.md)).
 - **Practice log.** Flashcard sessions and free play are saved: minutes today, a daily streak
   (5 minutes a day), a 30-day chart and the list of sessions.
 - **Weakness heatmap.** Every note you have practised, on the grand staff or on the keyboard,
@@ -170,7 +175,8 @@ static file host without rewrite rules. To serve it below the site root, build w
 These are deliberately out of scope for the MVP and are the candidates once it is used daily:
 
 - Scales with a click, and focus loops on a weak spot
-- Theory and ear training ([docs/EAR.md](docs/EAR.md))
+- More ear training and theory: melodic dictation, and intervals, key signatures and chords on
+  the staff ([docs/EAR.md](docs/EAR.md))
 - AI coaching
 
 ## Contributing

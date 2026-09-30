@@ -6,6 +6,7 @@ import {
   resetIndexedDB,
   sampleAttempt,
   sampleData,
+  sampleEarSession,
   sampleHeader,
   samplePiece,
   sampleRun,
@@ -39,6 +40,7 @@ const nothing: PulledRecords = {
   deletions: [],
   pieceSteps: [],
   scaleRuns: [],
+  answers: [],
 };
 
 describe('signing in and out', () => {
@@ -51,7 +53,14 @@ describe('signing in and out', () => {
 
   it('puts every stored record and deletion in the outbox when signing in', async () => {
     const { sessions, attempts } = sampleData();
-    await repo.merge({ sessions, attempts, pieces: [], pieceSteps: [], scaleRuns: [] });
+    await repo.merge({
+      sessions,
+      attempts,
+      pieces: [],
+      pieceSteps: [],
+      scaleRuns: [],
+      answers: [],
+    });
     await repo.putPiece(samplePiece(1));
     await repo.putPiece(samplePiece(2));
     await repo.deletePiece('p2', { steps: true, at: T0 });
@@ -59,17 +68,21 @@ describe('signing in and out', () => {
     for (const step of run.steps) await repo.addPieceStep(step, null);
     const scales = sampleScaleSession('k1', 1);
     await repo.addScaleRun(scales.runs[0]!, scales.session);
+    const ear = sampleEarSession('e1', 2);
+    for (const answer of ear.answers) await repo.addAnswer(answer);
+    await repo.putSession(ear.session);
 
     await sync.signIn(account, 'token-1');
     expect(await sync.state()).toEqual({ account, token: 'token-1', cursor: 0, lastSyncAt: null });
     expect(await outboxKeys()).toEqual(
       [
         ...attempts.map((a) => `attempts/${a.id}`),
-        ...[...sessions, scales.session].map((s) => `sessions/${s.id}`),
+        ...[...sessions, scales.session, ear.session].map((s) => `sessions/${s.id}`),
         'pieces/p1',
         'pieces/p2',
         ...run.steps.map((s) => `pieceSteps/${s.id}`),
         ...scales.runs.map((r) => `scaleRuns/${r.id}`),
+        ...ear.answers.map((a) => `answers/${a.id}`),
       ].sort(),
     );
     expect((await db.get('outbox', 'pieces/p2'))!.deletion).toEqual({
@@ -131,9 +144,13 @@ describe('the outbox while signed in', () => {
     for (const r of scales.runs) await repo.addScaleRun(r, scales.session);
     await repo.putPiece(samplePiece(1));
     await repo.finishOpenFreePlay('f1', null);
+    const ear = sampleEarSession('e1', 1);
+    await repo.addAnswer(ear.answers[0]!);
+    await repo.addAnswer(ear.answers[0]!); // stored already
     expect(await outboxKeys()).toEqual(
       [
         `attempts/${sampleAttempt(0).id}`,
+        `answers/${ear.answers[0]!.id}`,
         ...run.steps.map((s) => `pieceSteps/${s.id}`),
         'sessions/r1',
         'sessions/k1',
@@ -233,6 +250,7 @@ describe('the outbox while signed in', () => {
       pieces: [],
       pieceSteps: [],
       scaleRuns: [],
+      answers: [],
     });
     expect(await outboxKeys()).toEqual(
       [
@@ -363,6 +381,7 @@ describe('applying pulled records', () => {
       deleted: 0,
       pieceSteps: 0,
       scaleRuns: 0,
+      answers: 0,
     });
     expect(await db.get('meta', 'deleted:piece:p1')).toMatchObject({ withSteps: true });
   });
@@ -370,6 +389,58 @@ describe('applying pulled records', () => {
   it('never puts pulled records in the outbox', async () => {
     await sync.signIn(account, 't');
     await sync.apply({ ...nothing, attempts: [sampleAttempt(0)], pieces: [samplePiece(1)] });
+    expect(await outboxKeys()).toEqual([]);
+  });
+
+  it('adds answers once, and never changes a stored one', async () => {
+    const { answers } = sampleEarSession('e1', 3);
+    await repo.addAnswer(answers[0]!);
+    const counts = await sync.apply({
+      ...nothing,
+      answers: [{ ...answers[0]!, ms: 1 }, ...answers.slice(1), answers[2]!],
+    });
+    expect(counts).toMatchObject({ answers: 2, attempts: 0, sessions: 0 });
+    expect((await repo.load()).answers).toEqual(answers);
+  });
+
+  it('pulling every stored record again changes nothing (a new schema restarts at 0)', async () => {
+    const { sessions, attempts } = sampleData();
+    await repo.merge({
+      sessions,
+      attempts,
+      pieces: [],
+      pieceSteps: [],
+      scaleRuns: [],
+      answers: [],
+    });
+    await repo.putPiece(samplePiece(1));
+    await repo.putPiece(samplePiece(2));
+    await repo.deletePiece('p2', { steps: true, at: T0 });
+    const run = sampleRun('r1', 2, { pieceId: 'p1' });
+    for (const step of run.steps) await repo.addPieceStep(step, null);
+    await repo.finishPieceRun('r1', run.session);
+    const scales = sampleScaleSession('k1', 2);
+    for (const r of scales.runs) await repo.addScaleRun(r, scales.session);
+    const ear = sampleEarSession('e1', 3);
+    for (const answer of ear.answers) await repo.addAnswer(answer);
+    await repo.putSession(ear.session);
+    await sync.signIn(account, 't');
+    await db.clear('outbox');
+    const before = await repo.load();
+    const stats = await db.getAll('noteStats');
+
+    const counts = await sync.apply({
+      attempts,
+      sessions: (await repo.load()).sessions,
+      pieces: [samplePiece(1)],
+      deletions: [{ id: 'p2', deletion: { deleted: true, at: T0, withSteps: true } }],
+      pieceSteps: run.steps,
+      scaleRuns: scales.runs,
+      answers: ear.answers,
+    });
+    expect(Object.values(counts).every((n) => n === 0)).toBe(true);
+    expect(await repo.load()).toEqual(before);
+    expect(await db.getAll('noteStats')).toEqual(stats);
     expect(await outboxKeys()).toEqual([]);
   });
 

@@ -67,12 +67,27 @@ export function errorRate(stats: NoteStats): number {
 /**
  * `novelty × (1 + errorRate × 3) × clamp(ewmaMs / targetMs, 0.5, 3)`.
  * Unseen notes get `UNSEEN_NOVELTY`; a note without a timely answer yet counts as on target speed.
+ * The model is keyed by any string: a written note on Read, an ear-training item (with its own
+ * `targetMs`) on Ear.
  */
-export function noteWeight(stats: NoteStats | undefined): number {
+export function noteWeight(stats: NoteStats | undefined, targetMs = TARGET_MS): number {
   if (!stats || stats.attempts === 0) return UNSEEN_NOVELTY;
   const speed =
-    stats.ewmaMs === null ? 1 : Math.min(SPEED_MAX, Math.max(SPEED_MIN, stats.ewmaMs / TARGET_MS));
+    stats.ewmaMs === null ? 1 : Math.min(SPEED_MAX, Math.max(SPEED_MIN, stats.ewmaMs / targetMs));
   return (1 + errorRate(stats) * ERROR_FACTOR) * speed;
+}
+
+/** Draws one of `pool` with probability proportional to its weight. `pool` must not be empty. */
+export function pickWeighted<T>(pool: readonly T[], weight: (item: T) => number, rng: Rng): T {
+  if (pool.length === 0) throw new RangeError('Nothing to pick from');
+  const weights = pool.map(weight);
+  const total = weights.reduce((sum, w) => sum + w, 0);
+  let r = rng() * total;
+  for (let i = 0; i < pool.length; i++) {
+    r -= weights[i]!;
+    if (r < 0) return pool[i]!;
+  }
+  return pool.at(-1)!;
 }
 
 /**
@@ -87,14 +102,23 @@ export function pickNext(
 ): StaffNote {
   const pool = previous ? candidates.filter((note) => note.midi !== previous.midi) : candidates;
   if (pool.length === 0) throw new RangeError('No candidate note differs from the previous one');
-  const weights = pool.map((note) => noteWeight(stats[note.key]));
-  const total = weights.reduce((sum, w) => sum + w, 0);
-  let r = rng() * total;
-  for (let i = 0; i < pool.length; i++) {
-    r -= weights[i]!;
-    if (r < 0) return pool[i]!;
-  }
-  return pool.at(-1)!;
+  return pickWeighted(pool, (note) => noteWeight(stats[note.key]), rng);
+}
+
+/**
+ * Draws the next item of a pool keyed by string (the ear-training items), favouring weak and
+ * unseen ones by the same formula with `targetMs`. Never `previous` again.
+ */
+export function pickItem(
+  items: readonly string[],
+  stats: StatsByKey,
+  previous: string | null,
+  rng: Rng,
+  targetMs: number,
+): string {
+  const pool = items.filter((item) => item !== previous);
+  if (pool.length === 0) throw new RangeError('No candidate item differs from the previous one');
+  return pickWeighted(pool, (item) => noteWeight(stats[item], targetMs), rng);
 }
 
 /**

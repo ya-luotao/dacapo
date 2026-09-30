@@ -1,7 +1,9 @@
+import { byAnswerTime, type Answer } from '../../core/earSession.ts';
 import { closeFreePlay, type FreePlaySession, type OpenFreePlay } from '../../core/freePlay.ts';
 import {
   byStartDescending,
   byTime,
+  recoverEarSessions,
   recoverReadSessions,
   type SessionRecord,
 } from '../../core/log.ts';
@@ -37,6 +39,8 @@ export interface PracticeData {
   sessions: readonly SessionRecord[];
   /** Imported pieces, newest first. */
   pieces: readonly StoredPiece[];
+  /** Ear-training answers, in the order they happened (small: all loaded at startup). */
+  answers: readonly Answer[];
 }
 
 /**
@@ -65,6 +69,8 @@ export interface PracticeStore {
   getStatus: () => StorageStatus;
   subscribeStatus: (onChange: () => void) => () => void;
   recordAttempt: (attempt: Attempt) => void;
+  /** Stores an ear-training answer (one whose id is known already changes nothing). */
+  recordAnswer: (answer: Answer) => void;
   /** Adds or replaces the session with the same id. */
   recordSession: (session: SessionRecord) => void;
   /** Saves a free-play session in progress, so it survives the tab being closed. */
@@ -133,6 +139,7 @@ export interface SyncChannel {
 
 export type SyncMessage =
   | { type: 'attempt'; attempt: Attempt; stats: NoteStats }
+  | { type: 'answer'; answer: Answer }
   | { type: 'session'; session: SessionRecord }
   | { type: 'piece'; piece: StoredPiece }
   | { type: 'pieceDeleted'; id: string; steps: boolean }
@@ -157,7 +164,13 @@ export interface PracticeStoreOptions {
 
 export const SYNC_CHANNEL = 'dacapo';
 
-export const EMPTY_PRACTICE: PracticeData = { attempts: [], stats: {}, sessions: [], pieces: [] };
+export const EMPTY_PRACTICE: PracticeData = {
+  attempts: [],
+  stats: {},
+  sessions: [],
+  pieces: [],
+  answers: [],
+};
 
 const openInMemory = (): Promise<OpenResult> =>
   Promise.resolve({ repository: createMemoryRepository(), failure: null });
@@ -166,6 +179,12 @@ function insertAttempt(attempts: readonly Attempt[], attempt: Attempt): Attempt[
   const last = attempts.at(-1);
   if (!last || byTime(last, attempt) <= 0) return [...attempts, attempt];
   return [...attempts, attempt].sort(byTime);
+}
+
+function insertAnswer(answers: readonly Answer[], answer: Answer): Answer[] {
+  const last = answers.at(-1);
+  if (!last || byAnswerTime(last, answer) <= 0) return [...answers, answer];
+  return [...answers, answer].sort(byAnswerTime);
 }
 
 function upsertSession(sessions: readonly SessionRecord[], session: SessionRecord) {
@@ -322,12 +341,17 @@ export function createPracticeStore({
     for (const session of early.sessions) sessions = upsertSession(sessions, session);
     let pieces: StoredPiece[] = stored.pieces;
     for (const piece of early.pieces) pieces = upsertPiece(pieces, piece);
-    return { attempts, stats, sessions, pieces };
+    const answerIds = new Set(stored.answers.map((a) => a.id));
+    let answers: Answer[] = stored.answers;
+    for (const answer of early.answers) {
+      if (!answerIds.has(answer.id)) answers = insertAnswer(answers, answer);
+    }
+    return { attempts, stats, sessions, pieces, answers };
   }
 
   /**
    * Loads everything and repairs what a closed tab left behind: free-play sessions still open,
-   * and flashcard attempts whose session summary was never written. Both are keyed by the id the
+   * and flashcard attempts or ear-training answers whose session summary was never written. Both are keyed by the id the
    * other tab uses, so if that tab is in fact still running, its own later write wins. Only at
    * startup: a reload must not finish a run that this or another tab is still playing, nor
    * rebuild the session of answers another device has sent before their session.
@@ -344,6 +368,10 @@ export function createPracticeStore({
       if (keep) sessions = upsertSession(sessions, keep);
     }
     for (const recovered of recoverReadSessions(stored.attempts, sessions)) {
+      await repo.putSession(recovered);
+      sessions = upsertSession(sessions, recovered);
+    }
+    for (const recovered of recoverEarSessions(stored.answers, sessions)) {
       await repo.putSession(recovered);
       sessions = upsertSession(sessions, recovered);
     }
@@ -368,6 +396,7 @@ export function createPracticeStore({
         stats: stored.stats,
         sessions: stored.sessions,
         pieces: stored.pieces,
+        answers: stored.answers,
       });
       // Loaded again when next asked for.
       stepCache = new Map();
@@ -396,6 +425,10 @@ export function createPracticeStore({
           attempts: insertAttempt(data.attempts, m.attempt),
           stats: { ...data.stats, [m.stats.key]: m.stats },
         });
+        return;
+      case 'answer':
+        if (data.answers.some((a) => a.id === m.answer.id)) return;
+        set({ ...data, answers: insertAnswer(data.answers, m.answer) });
         return;
       case 'session':
         set({ ...data, sessions: upsertSession(data.sessions, m.session) });
@@ -456,6 +489,14 @@ export function createPracticeStore({
           set({ ...data, stats: { ...data.stats, [attempt.note]: stored } });
         }
         broadcast({ type: 'attempt', attempt, stats: stored });
+      });
+    },
+    recordAnswer(answer) {
+      if (data.answers.some((a) => a.id === answer.id)) return;
+      set({ ...data, answers: insertAnswer(data.answers, answer) });
+      void enqueue(async (repo) => {
+        await repo.addAnswer(answer);
+        broadcast({ type: 'answer', answer });
       });
     },
     recordSession(session) {

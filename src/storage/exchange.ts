@@ -1,3 +1,4 @@
+import { byAnswerTime, type Answer } from '../core/earSession.ts';
 import { byStartDescending, byTime, type SessionRecord } from '../core/log.ts';
 import { byStepTime, type PieceStep } from '../core/pieceRecords.ts';
 import { byRunTime, type StoredScaleRun } from '../core/scaleRecords.ts';
@@ -8,6 +9,7 @@ import type { NoteStats } from '../core/weakness.ts';
 import { isLocale, type Locale } from '../i18n/locale.ts';
 import { isThemePreference, type ThemePreference } from '../lib/themePreference.ts';
 import {
+  validateAnswer,
   validateAttempt,
   validatePiece,
   validatePieceStep,
@@ -24,9 +26,9 @@ export const EXPORT_FORMAT = 'dacapo';
  * Bump when the file shape changes; older files must keep importing. Version 2 adds pieces,
  * version 3 piece sessions and step records, version 4 rhythm-mode steps and sessions (a `mode`
  * and their timings; records without a mode are wait mode's, as in version 3), version 5 scale
- * sessions and scale runs.
+ * sessions and scale runs, version 6 ear-training answers and sessions.
  */
-export const EXPORT_VERSION = 5;
+export const EXPORT_VERSION = 6;
 
 export interface Preferences {
   /** null follows the browser language. */
@@ -53,6 +55,8 @@ export interface ExportFile {
   pieceSteps: PieceStep[];
   /** Scale runs as played, oldest first. */
   scaleRuns: StoredScaleRun[];
+  /** Ear-training answers, oldest first. */
+  answers: Answer[];
 }
 
 export interface ExportInput {
@@ -62,6 +66,7 @@ export interface ExportInput {
   pieces: readonly StoredPiece[];
   pieceSteps: readonly PieceStep[];
   scaleRuns: readonly StoredScaleRun[];
+  answers: readonly Answer[];
 }
 
 export function buildExport(
@@ -81,6 +86,7 @@ export function buildExport(
     pieces: [...data.pieces].sort((a, b) => byImportedDescending(b, a)),
     pieceSteps: [...data.pieceSteps].sort(byStepTime),
     scaleRuns: [...data.scaleRuns].sort(byRunTime),
+    answers: [...data.answers].sort(byAnswerTime),
   };
 }
 
@@ -92,7 +98,8 @@ export function exportFileName(now: number, timeZone?: string): string {
 export type ImportError =
   { kind: 'malformed' } | { kind: 'wrong-format' } | { kind: 'future-version'; version: number };
 
-export type Collection = 'sessions' | 'attempts' | 'pieces' | 'pieceSteps' | 'scaleRuns';
+export type Collection =
+  'sessions' | 'attempts' | 'pieces' | 'pieceSteps' | 'scaleRuns' | 'answers';
 
 export interface InvalidRecord {
   collection: Collection | 'preferences';
@@ -115,6 +122,8 @@ export interface ParsedImport {
   pieceSteps: PieceStep[];
   /** Empty before version 5. */
   scaleRuns: StoredScaleRun[];
+  /** Empty before version 6. */
+  answers: Answer[];
   /** null when the file has none or they are invalid (then listed in `invalid`). */
   preferences: Preferences | null;
   invalid: InvalidRecord[];
@@ -185,6 +194,10 @@ export function parseImport(text: string): ParseResult {
   if (version >= 5 && !Array.isArray(json.scaleRuns)) {
     return { ok: false, error: { kind: 'wrong-format' } };
   }
+  // Ear-training answers with version 6.
+  if (version >= 6 && !Array.isArray(json.answers)) {
+    return { ok: false, error: { kind: 'wrong-format' } };
+  }
 
   const invalid: InvalidRecord[] = [];
   const sessions = validateAll('sessions', json.sessions, validateSession, invalid);
@@ -197,6 +210,9 @@ export function parseImport(text: string): ParseResult {
     : [];
   const scaleRuns = Array.isArray(json.scaleRuns)
     ? validateAll('scaleRuns', json.scaleRuns, validateScaleRun, invalid)
+    : [];
+  const answers = Array.isArray(json.answers)
+    ? validateAll('answers', json.answers, validateAnswer, invalid)
     : [];
   let preferences: Preferences | null = null;
   if (json.preferences !== undefined) {
@@ -219,6 +235,7 @@ export function parseImport(text: string): ParseResult {
       pieces,
       pieceSteps,
       scaleRuns,
+      answers,
       preferences,
       invalid,
     },
@@ -243,6 +260,7 @@ export function planImport(
     pieceIds: ReadonlySet<string>;
     pieceStepIds: ReadonlySet<string>;
     scaleRunIds: ReadonlySet<string>;
+    answerIds: ReadonlySet<string>;
   },
 ): ImportPlan {
   const count = (
@@ -263,5 +281,6 @@ export function planImport(
     pieces: count(parsed.pieces, existing.pieceIds, 'pieces'),
     pieceSteps: count(parsed.pieceSteps, existing.pieceStepIds, 'pieceSteps'),
     scaleRuns: count(parsed.scaleRuns, existing.scaleRunIds, 'scaleRuns'),
+    answers: count(parsed.answers, existing.answerIds, 'answers'),
   };
 }

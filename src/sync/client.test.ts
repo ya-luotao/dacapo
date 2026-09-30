@@ -7,6 +7,7 @@ import { openDacapoDB, type DacapoDB } from '../storage/db.ts';
 import {
   sampleAttempt,
   sampleData,
+  sampleEarSession,
   samplePiece,
   sampleRun,
   sampleScaleSession,
@@ -16,7 +17,8 @@ import { createIndexedDbRepository } from '../storage/repository.ts';
 import { createPracticeStore, type PracticeStore } from '../ui/practice/store.ts';
 import { ApiError, type SyncApi } from './api.ts';
 import { CHANGE_DELAY_MS, createSyncClient, START_DELAY_MS, type SyncClient } from './client.ts';
-import { sha256Hex } from './records.ts';
+import { SYNC_STATE_KEY, type SyncState } from '../storage/syncTypes.ts';
+import { sha256Hex, SYNC_SCHEMA } from './records.ts';
 
 /**
  * The service's protocol in memory, with its rules (docs/SYNC.md): one row per record, a `seq`
@@ -463,6 +465,69 @@ describe('two devices', () => {
     expect(ipad.store.getSnapshot().sessions).toEqual([session]);
     expect(restarted.getSnapshot().sessions).toEqual([session]);
     expect(service.body('sessions', 's1')).toEqual(JSON.parse(JSON.stringify(session)));
+  });
+});
+
+describe('ear training', () => {
+  it('brings answers and ear sessions to the other device', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    const ear = sampleEarSession('e1', 4);
+    for (const answer of ear.answers) ipad.store.recordAnswer(answer);
+    ipad.store.recordSession(ear.session);
+    await ipad.store.settled();
+    await signIn(ipad);
+    expect(service.body('answers', ear.answers[0]!.id)).toEqual(ear.answers[0]);
+    await signIn(mac);
+    expect(mac.store.getSnapshot().answers).toEqual(ear.answers);
+    expect(mac.store.getSnapshot().sessions).toEqual([ear.session]);
+  });
+
+  it('pulls everything again once after an update that understands more, and applies it once', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    const ear = sampleEarSession('e1', 3);
+    ipad.store.recordAttempt(sampleAttempt(0));
+    ipad.store.savePiece(samplePiece(1));
+    for (const answer of ear.answers) ipad.store.recordAnswer(answer);
+    ipad.store.recordSession(ear.session);
+    await ipad.store.settled();
+    await signIn(ipad);
+    await signIn(mac);
+    expect((await mac.store.withSync((sync) => sync.state()))!.schema).toBe(SYNC_SCHEMA);
+
+    // The Mac as an older build left it: the answers and the ear session skipped, the cursor
+    // past them, and no schema in its state.
+    const state = (await mac.db.get('meta', SYNC_STATE_KEY)) as SyncState;
+    await mac.db.clear('answers');
+    await mac.db.delete('sessions', ear.session.id);
+    await mac.db.put('meta', { ...state, schema: undefined }, SYNC_STATE_KEY);
+    await mac.store.reloadAll();
+    expect(mac.store.getSnapshot().answers).toEqual([]);
+    const before = mac.store.getSnapshot();
+
+    const sync = vi.spyOn(service.api, 'sync');
+    const getFile = vi.spyOn(service.api, 'getFile');
+    await mac.client.syncNow();
+    expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
+    // The piece is stored here already: its file is not downloaded again.
+    expect(getFile).not.toHaveBeenCalled();
+    const after = mac.store.getSnapshot();
+    expect(after.answers).toEqual(ear.answers);
+    expect(after.sessions).toEqual([ear.session]);
+    expect(after.attempts).toEqual(before.attempts);
+    expect(after.stats).toEqual(before.stats);
+    expect(after.pieces).toEqual(before.pieces);
+    expect(await mac.db.count('outbox')).toBe(0);
+    const saved = (await mac.store.withSync((s) => s.state()))!;
+    expect(saved).toMatchObject({ schema: SYNC_SCHEMA, cursor: state.cursor });
+
+    // From then on it goes on from its cursor.
+    sync.mockClear();
+    await mac.client.syncNow();
+    expect(sync.mock.calls.map((call) => call[1])).toEqual([state.cursor]);
   });
 });
 

@@ -109,11 +109,11 @@ later wins, so every device picks the same. **When the copy here wins over a dif
 one, it goes in the outbox again**, so the service, and through it every device, ends up with the
 winner.
 
-| Collection                            | Body                                                    | On pull                                                   |
-| ------------------------------------- | ------------------------------------------------------- | --------------------------------------------------------- |
-| `attempts`, `pieceSteps`, `scaleRuns` | the record as stored                                    | added when its id is not stored; never changed afterwards |
-| `sessions`                            | the record as stored                                    | the later copy wins (below)                               |
-| `pieces`                              | `StoredPiece` without `xml` and `facts`, plus `xmlHash` | the later copy wins (below); a deletion is final          |
+| Collection                                       | Body                                                    | On pull                                                   |
+| ------------------------------------------------ | ------------------------------------------------------- | --------------------------------------------------------- |
+| `attempts`, `pieceSteps`, `scaleRuns`, `answers` | the record as stored                                    | added when its id is not stored; never changed afterwards |
+| `sessions`                                       | the record as stored                                    | the later copy wins (below)                               |
+| `pieces`                                         | `StoredPiece` without `xml` and `facts`, plus `xmlHash` | the later copy wins (below); a deletion is final          |
 
 - **Sessions.** A session grows while it is played, so of two copies the one with more runs (a
   scale session), or else the one that ended later, wins. That matters because a device can hold
@@ -134,6 +134,14 @@ winner.
   record of it, that arrives later (from a device that practised it offline) is dropped, and so
   is one in an import file. (Importing the same MusicXML file again makes a new piece with a new
   id.)
+- **Answers** (ear training and theory cards, [EAR.md](EAR.md)) sync as `answers`, like
+  `attempts`: added when the id is not stored, never changed afterwards.
+- **A build that learns a collection pulls everything again.** An older build skips records it does
+  not know (a collection, or a session kind) but still moves its cursor past them, so after an
+  update it would never see them. `SYNC_SCHEMA` in `src/sync/records.ts` counts what a build
+  understands (1: the collections above without `answers`; 2: `answers` and `ear` sessions), and
+  the sync state keeps the schema its cursor was reached with. When the build's is higher, the next
+  round starts again from cursor 0; every rule above makes pulling a record already stored a no-op.
 - **Not synced:** `noteStats` (rebuilt from attempts), the free-play sessions and piece runs still
   in progress in `meta` (they become sessions when they end), the preferences (language and theme
   stay per device), the settings in `localStorage`, the token.

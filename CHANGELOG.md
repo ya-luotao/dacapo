@@ -6,9 +6,30 @@ which is noted when it changes.
 
 ## Unreleased
 
-Export format version 5: the file now includes imported pieces (from version 2), piece practice
+Export format version 6: the file now includes imported pieces (from version 2), piece practice
 sessions and their step records (from version 3), rhythm-mode steps with their timings (from
-version 4), and scale sessions with every scale run as played. Version 1 to 4 files still import.
+version 4), scale sessions with every scale run as played (from version 5), and ear-training
+answers and sessions. Version 1 to 5 files still import.
+
+### Ear training: intervals and chords by ear ([docs/EAR.md](docs/EAR.md))
+
+- A new **Ear** page plays two notes or a chord through your instrument or the built-in piano, and
+  you answer the way a pianist does: **play it** back on the keyboard (the first note, or the
+  chord's root, is marked; any voicing and octave of a chord counts, with the right bass in the
+  inversion level), or **name it** with buttons and the number keys.
+- Twelve levels: seven of intervals, from the octave, fifth and major third to the tritone and
+  compound intervals, played up, down, together or mixed; five of chords, from major and minor
+  triads to inversions and the four seventh chords, played broken then block, or block.
+- Keys count from the prompt's last note-on, so the prompt is never the answer; "Hear again"
+  (Space) replays it, and replays are counted but left out of the times. A wrong answer is marked
+  on the keyboard, drawn on the staff and played once, until Next (Enter) or any key.
+- The next question favours the items you miss or answer slowly, as the note model does on Read. A
+  level is mastered at 90% over its last 40 answers without a replay; the first one not mastered
+  is suggested. The summary lists what was missed and what was answered instead.
+- Every answer is kept (IndexedDB version 6, an `answers` store), and ear sessions join the log,
+  the minutes and the streak (the public profile counts them as reading). Answers sync with an
+  account; a device whose update learns a new kind of record pulls everything again once, so
+  nothing another device sent before the update is missed.
 
 ### Seven more pieces
 

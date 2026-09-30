@@ -5,6 +5,7 @@ import type { SessionRecord } from '../../core/log.ts';
 import { DB_NAME, DB_VERSION, openDacapoDB } from '../../storage/db.ts';
 import {
   resetIndexedDB,
+  sampleAnswer,
   sampleAttempt,
   sampleData,
   sampleHeader,
@@ -87,7 +88,7 @@ describe('loading', () => {
   it('reports loading, then the stored data', async () => {
     const { sessions, attempts } = sampleData();
     await seed((repo) =>
-      repo.merge({ sessions, attempts, pieces: [], pieceSteps: [], scaleRuns: [] }),
+      repo.merge({ sessions, attempts, pieces: [], pieceSteps: [], scaleRuns: [], answers: [] }),
     );
     const store = startStore();
     expect(store.getStatus()).toEqual({ state: 'loading', loaded: false, persisted: null });
@@ -177,6 +178,51 @@ describe('loading', () => {
       expect.objectContaining({ kind: 'read', id: 'lost', cards: 2, endedAt: attempts[1]!.at }),
     ]);
     expect((await onDisk()).sessions.map((s) => s.id)).toEqual(['lost']);
+  });
+});
+
+describe('ear-training answers', () => {
+  it('rebuilds an ear session whose summary was never written', async () => {
+    const answers = [sampleAnswer(0, 'lost'), sampleAnswer(1, 'lost'), sampleAnswer(2, 'kept')];
+    await seed(async (repo) => {
+      for (const answer of answers) await repo.addAnswer(answer);
+      await repo.putSession({ ...freeSession('kept', T0) });
+    });
+    const store = startStore();
+    await loaded(store);
+    expect(store.getSnapshot().answers).toEqual(answers);
+    expect(store.getSnapshot().sessions).toContainEqual(
+      expect.objectContaining({ kind: 'ear', id: 'lost', items: 2, endedAt: answers[1]!.at }),
+    );
+    expect((await onDisk()).sessions.map((s) => s.id).sort()).toEqual(['kept', 'lost']);
+  });
+
+  it('records answers once, in order, and keeps the other tab in step', async () => {
+    const tabA = startStore();
+    const tabB = startStore();
+    await loaded(tabA);
+    await loaded(tabB);
+    tabA.recordAnswer(sampleAnswer(1));
+    tabA.recordAnswer(sampleAnswer(0));
+    tabA.recordAnswer(sampleAnswer(0));
+    expect(tabA.getSnapshot().answers).toEqual([sampleAnswer(0), sampleAnswer(1)]);
+    await tabA.settled();
+    expect((await onDisk()).answers).toEqual([sampleAnswer(0), sampleAnswer(1)]);
+    await vi.waitFor(() =>
+      expect(tabB.getSnapshot().answers).toEqual([sampleAnswer(0), sampleAnswer(1)]),
+    );
+  });
+
+  it('keeps answers recorded before loading finished', async () => {
+    await seed((repo) => repo.addAnswer(sampleAnswer(0)));
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    const store = startStore({ open: (handlers) => gate.then(() => openRepository(handlers)) });
+    store.recordAnswer(sampleAnswer(1));
+    release();
+    await loaded(store);
+    await store.settled();
+    expect(store.getSnapshot().answers).toEqual([sampleAnswer(0), sampleAnswer(1)]);
   });
 });
 
@@ -272,6 +318,7 @@ describe('several tabs', () => {
       pieces: [samplePiece(3)],
       pieceSteps: [],
       scaleRuns: [],
+      answers: [],
     });
     await vi.waitFor(() => expect(tabB.getSnapshot()).toEqual(tabA.getSnapshot()));
     expect(tabB.getSnapshot().pieces.map((p) => p.id)).toEqual(['p3']);
@@ -445,6 +492,7 @@ describe('piece runs', () => {
       pieces: [],
       pieceSteps: [...more.steps, ...sampleRun('r3', 1, { pieceId: 'p1' }).steps],
       scaleRuns: [],
+      answers: [],
     });
     await vi.waitFor(() => expect(tabB.getPieceSteps('p1')).toBeNull());
     tabB.loadPieceSteps('p2');
@@ -475,6 +523,7 @@ describe('reloads', () => {
       pieces: [],
       pieceSteps: [],
       scaleRuns: [],
+      answers: [],
     });
     await new Promise((resolve) => setTimeout(resolve, 50));
     expect(tabB.getSnapshot().sessions).toEqual([]);
@@ -582,6 +631,7 @@ describe('scale runs', () => {
       pieces: [],
       pieceSteps: [],
       scaleRuns: more.runs,
+      answers: [],
     });
     await vi.waitFor(() => expect(tabB.getScaleRuns('major:C:1:right')).toBeNull());
     expect(tabB.getSnapshot().sessions).toEqual([more.session, two.session]);

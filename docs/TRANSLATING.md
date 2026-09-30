@@ -51,6 +51,11 @@ and no Simplified-only characters in zh-TW.
   full labels when an end has a volta. English labels are lower case (`bar 12`); the app capitalises
   the first letter where a label starts a line. `src/ui/pieces/format.test.ts` shows the composed
   results in every language.
+- **Interval and chord names** (`ear.interval.*`, `ear.chord.*`) are the theory terms your
+  language's teaching uses: 大三度, 長3度, 장3도, major 3rd. English writes them in lower case in
+  running text; the app capitalises the first letter on a button or a title. In zh, ja and ko the
+  `.short` chord names (the answer buttons) may equal the full ones. The tritone (`TT`) is one item
+  whether written as an augmented 4th or a diminished 5th, so name it as a tritone.
 - **Numbers, dates and lists of devices** are formatted by `Intl` in the active locale; do not
   write them into strings.
 
@@ -76,24 +81,33 @@ and no Simplified-only characters in zh-TW.
 Address the learner as 你. Full-width punctuation, “ ” quotes, 《》 for works; a space between
 Chinese and Latin letters, digits and placeholders (`第 {n} 张`, `MIDI 键盘`); `、` for lists.
 
-| English                                  | zh-CN                        |
-| ---------------------------------------- | ---------------------------- |
-| Read / flashcards                        | 识谱 / 识谱卡片              |
-| grand staff / treble staff / bass staff  | 大谱表 / 高音谱表 / 低音谱表 |
-| ledger lines / sharps and flats          | 加线 / 升号和降号            |
-| bar / right, left, both hands            | 小节 / 右手、左手、双手      |
-| sustain pedal / metronome / count-in     | 延音踏板 / 节拍器 / 预备拍   |
-| tap tempo / subdivide / tempo trainer    | 敲击测速 / 细分 / 速度训练   |
-| accented / muted beat / time signature   | 重音 / 静音 / 拍号           |
-| wait mode / rhythm mode / weak bars      | 等待 / 节奏 / 薄弱小节       |
-| loop / repeat / run                      | 循环 / 反复 / 遍             |
-| latency calibration                      | 延迟校准                     |
-| built-in piano / sound out through       | 内置钢琴 / 声音输出到        |
-| export / import                          | 导出 / 导入                  |
-| Scales (the page) / key (tonic)          | 音阶 / 主音                  |
-| major / natural, harmonic, melodic minor | 大调 / 自然、和声、旋律小调  |
-| chromatic / fingering / thumb under      | 半音阶 / 指法 / 拇指穿过     |
-| timing spread / hesitation / loudness    | 时间波动 / 迟疑 / 力度       |
+| English                                     | zh-CN                                    |
+| ------------------------------------------- | ---------------------------------------- |
+| Read / flashcards                           | 识谱 / 识谱卡片                          |
+| grand staff / treble staff / bass staff     | 大谱表 / 高音谱表 / 低音谱表             |
+| ledger lines / sharps and flats             | 加线 / 升号和降号                        |
+| bar / right, left, both hands               | 小节 / 右手、左手、双手                  |
+| sustain pedal / metronome / count-in        | 延音踏板 / 节拍器 / 预备拍               |
+| tap tempo / subdivide / tempo trainer       | 敲击测速 / 细分 / 速度训练               |
+| accented / muted beat / time signature      | 重音 / 静音 / 拍号                       |
+| wait mode / rhythm mode / weak bars         | 等待 / 节奏 / 薄弱小节                   |
+| loop / repeat / run                         | 循环 / 反复 / 遍                         |
+| latency calibration                         | 延迟校准                                 |
+| built-in piano / sound out through          | 内置钢琴 / 声音输出到                    |
+| export / import                             | 导出 / 导入                              |
+| Scales (the page) / key (tonic)             | 音阶 / 主音                              |
+| major / natural, harmonic, melodic minor    | 大调 / 自然、和声、旋律小调              |
+| chromatic / fingering / thumb under         | 半音阶 / 指法 / 拇指穿过                 |
+| timing spread / hesitation / loudness       | 时间波动 / 迟疑 / 力度                   |
+| Ear (the page) / question / Hear again      | 练耳 / 题 / 再听一遍                     |
+| interval / chord / triad / seventh chord    | 音程 / 和弦 / 三和弦 / 七和弦            |
+| minor, major, perfect 2nd … 12th            | 小、大、纯（小二度、大三度、纯五度）     |
+| tritone / octave / compound interval        | 三全音 / 纯八度 / 复音程                 |
+| up / down / together (an interval)          | 上行 / 下行 / 和声（同时）               |
+| major, minor, diminished, augmented triad   | 大三和弦、小三和弦、减三和弦、增三和弦   |
+| dominant, major, minor, half-diminished 7th | 属七和弦、大七和弦、小七和弦、半减七和弦 |
+| root position / 1st, 2nd inversion / root   | 原位 / 第一转位、第二转位 / 根音         |
+| broken / block (a chord)                    | 分解 / 柱式                              |
 
 ## Traditional Chinese, Taiwan (`zh-TW`)
 
@@ -110,29 +124,38 @@ terms throughout. Address the learner as 你, as zh-CN does.
   個 notes, 筆 records.
 - Enharmonic spellings are 同音異名; the Schumann collection is 《青少年曲集》.
 
-| English                                 | zh-TW                        | zh-CN, where different     |
-| --------------------------------------- | ---------------------------- | -------------------------- |
-| Read / flashcards                       | 識譜 / 音符閃卡              | 识谱 / 识谱卡片            |
-| level / mastered                        | 等級 / 已熟練                | 级别 / 已掌握              |
-| grand staff / treble staff / bass staff | 大譜表 / 高音譜表 / 低音譜表 |                            |
-| treble clef / bass clef                 | 高音譜號 / 低音譜號          |                            |
-| ledger lines / sharps and flats         | 加線 / 升降記號              |                            |
-| bar / both hands                        | 小節 / 雙手                  |                            |
-| sustain pedal / metronome / count-in    | 延音踏板 / 節拍器 / 預備拍   |                            |
-| tap tempo / subdivide / tempo trainer   | 點按測速 / 細分 / 速度訓練   | 敲击测速 / 细分 / 速度训练 |
-| speed up / silent bars / time signature | 漸快 / 靜音小節 / 拍號       | 逐渐加快 / 静音小节 / 拍号 |
-| repeat / volta                          | 反覆 / {n} 房                | 反复                       |
-| tie / mordent                           | 連結線 / 漣音                | 连音线 / 波音              |
-| weak bars / calibrate                   | 弱點小節 / 校正              | 薄弱小节 / 校准            |
-| cursor / speakers                       | 游標 / 喇叭                  | 光标 / 音箱                |
-| piece / library                         | 樂曲 / 曲庫                  | 曲目 / 曲库                |
-| export / import / file / data           | 匯出 / 匯入 / 檔案 / 資料    | 导出 / 导入 / 文件 / 数据  |
-| settings / tab / private window         | 設定 / 分頁 / 無痕視窗       | 设置 / 标签页 / 无痕窗口   |
-| save / reload / font                    | 儲存 / 重新整理 / 字型       | 保存 / 刷新 / 字体         |
-| built-in piano / grand piano            | 內建鋼琴 / 平台鋼琴          | 内置钢琴 / 三角钢琴        |
-| Scales (the page) / key (tonic)         | 音階 / 主音                  | 音阶 / 主音                |
-| major / harmonic, melodic minor         | 大調 / 和聲小調、旋律小調    | 大调 / 和声小调、旋律小调  |
-| chromatic / fingering / hesitation      | 半音階 / 指法 / 遲疑         | 半音阶 / 指法 / 迟疑       |
+| English                                   | zh-TW                                | zh-CN, where different     |
+| ----------------------------------------- | ------------------------------------ | -------------------------- |
+| Read / flashcards                         | 識譜 / 音符閃卡                      | 识谱 / 识谱卡片            |
+| level / mastered                          | 等級 / 已熟練                        | 级别 / 已掌握              |
+| grand staff / treble staff / bass staff   | 大譜表 / 高音譜表 / 低音譜表         |                            |
+| treble clef / bass clef                   | 高音譜號 / 低音譜號                  |                            |
+| ledger lines / sharps and flats           | 加線 / 升降記號                      |                            |
+| bar / both hands                          | 小節 / 雙手                          |                            |
+| sustain pedal / metronome / count-in      | 延音踏板 / 節拍器 / 預備拍           |                            |
+| tap tempo / subdivide / tempo trainer     | 點按測速 / 細分 / 速度訓練           | 敲击测速 / 细分 / 速度训练 |
+| speed up / silent bars / time signature   | 漸快 / 靜音小節 / 拍號               | 逐渐加快 / 静音小节 / 拍号 |
+| repeat / volta                            | 反覆 / {n} 房                        | 反复                       |
+| tie / mordent                             | 連結線 / 漣音                        | 连音线 / 波音              |
+| weak bars / calibrate                     | 弱點小節 / 校正                      | 薄弱小节 / 校准            |
+| cursor / speakers                         | 游標 / 喇叭                          | 光标 / 音箱                |
+| piece / library                           | 樂曲 / 曲庫                          | 曲目 / 曲库                |
+| export / import / file / data             | 匯出 / 匯入 / 檔案 / 資料            | 导出 / 导入 / 文件 / 数据  |
+| settings / tab / private window           | 設定 / 分頁 / 無痕視窗               | 设置 / 标签页 / 无痕窗口   |
+| save / reload / font                      | 儲存 / 重新整理 / 字型               | 保存 / 刷新 / 字体         |
+| built-in piano / grand piano              | 內建鋼琴 / 平台鋼琴                  | 内置钢琴 / 三角钢琴        |
+| Scales (the page) / key (tonic)           | 音階 / 主音                          | 音阶 / 主音                |
+| major / harmonic, melodic minor           | 大調 / 和聲小調、旋律小調            | 大调 / 和声小调、旋律小调  |
+| chromatic / fingering / hesitation        | 半音階 / 指法 / 遲疑                 | 半音阶 / 指法 / 迟疑       |
+| Ear (the page) / question / Hear again    | 練耳 / 題 / 再聽一次                 | 练耳 / 题 / 再听一遍       |
+| interval / chord / triad / seventh chord  | 音程 / 和弦 / 三和弦 / 七和弦        |                            |
+| minor, major, perfect 2nd … 12th          | 小、大、純（小二度、大三度、純五度） | 纯五度                     |
+| tritone / octave / compound interval      | 三全音 / 純八度 / 複音程             | 纯八度 / 复音程            |
+| up / down / together (an interval)        | 上行 / 下行 / 和聲（同時）           | 和声（同时）               |
+| diminished triad / dominant 7th           | 減三和弦 / 屬七和弦                  | 减三和弦 / 属七和弦        |
+| half-diminished 7th                       | 半減七和弦                           | 半减七和弦                 |
+| root position / 1st, 2nd inversion / root | 原位 / 第一轉位、第二轉位 / 根音     | 第一转位、第二转位         |
+| broken / block (a chord)                  | 分解 / 柱式                          |                            |
 
 Keys in titles: `G 大調`, `C 大調`. Composers as Taiwan writes them: 貝多芬, 巴哈 (not 巴赫), 舒曼,
 布爾格彌勒.
@@ -148,28 +171,37 @@ verb phrases for labels and buttons (設定, 開始, もう一度, 補正する)
   for books and collections; `、` for lists; ranges with `〜` (`{from}〜{to}小節`).
 - Counters: 枚 cards, 曲 pieces, 回 runs and wrong notes, 件 records, 小節 bars (`{bar}小節目`).
 
-| English                               | ja                                               |
-| ------------------------------------- | ------------------------------------------------ |
-| Read (the feature and its page)       | 譜読み (not 読譜)                                |
-| grand staff / staff                   | 大譜表 / 譜表                                    |
-| treble staff / bass staff             | ト音記号 / ヘ音記号 (`C4（ト音記号）`)           |
-| ledger lines / sharps and flats       | 加線 / シャープとフラット                        |
-| bar / right, left, both hands         | 小節 / 右手・左手・両手                          |
-| sustain pedal / metronome / count-in  | ダンパーペダル / メトロノーム / 予備カウント     |
-| tap tempo / subdivide / tempo trainer | タップ / 細分 / テンポトレーナー                 |
-| time signature / accent / mute        | 拍子 / アクセント / ミュート                     |
-| flashcards / level / mastered         | フラッシュカード / レベル / 習得済み             |
-| grade                                 | グレード{n} (not 級, which counts down in Japan) |
-| wrong note / missed note / extra note | ミスタッチ / 弾き逃し / 余分な音                 |
-| wait mode / rhythm mode               | 待機モード / リズムモード                        |
-| loop / repeat / volta                 | ループ / くり返し / {n}番カッコ                  |
-| weak bars / hesitation / steady       | 苦手な小節 / 迷い / 安定                         |
-| latency calibration / demo            | 遅延の補正 / お手本                              |
-| built-in piano                        | 内蔵ピアノ                                       |
-| import / export                       | インポート / エクスポート                        |
-| Scales (the page) / key (tonic)       | スケール / 主音                                  |
-| major / harmonic, melodic minor       | 長音階 / 和声的短音階・旋律的短音階              |
-| chromatic / fingering / evenness      | 半音階 / 運指（指番号） / 粒のそろい             |
+| English                                     | ja                                               |
+| ------------------------------------------- | ------------------------------------------------ |
+| Read (the feature and its page)             | 譜読み (not 読譜)                                |
+| grand staff / staff                         | 大譜表 / 譜表                                    |
+| treble staff / bass staff                   | ト音記号 / ヘ音記号 (`C4（ト音記号）`)           |
+| ledger lines / sharps and flats             | 加線 / シャープとフラット                        |
+| bar / right, left, both hands               | 小節 / 右手・左手・両手                          |
+| sustain pedal / metronome / count-in        | ダンパーペダル / メトロノーム / 予備カウント     |
+| tap tempo / subdivide / tempo trainer       | タップ / 細分 / テンポトレーナー                 |
+| time signature / accent / mute              | 拍子 / アクセント / ミュート                     |
+| flashcards / level / mastered               | フラッシュカード / レベル / 習得済み             |
+| grade                                       | グレード{n} (not 級, which counts down in Japan) |
+| wrong note / missed note / extra note       | ミスタッチ / 弾き逃し / 余分な音                 |
+| wait mode / rhythm mode                     | 待機モード / リズムモード                        |
+| loop / repeat / volta                       | ループ / くり返し / {n}番カッコ                  |
+| weak bars / hesitation / steady             | 苦手な小節 / 迷い / 安定                         |
+| latency calibration / demo                  | 遅延の補正 / お手本                              |
+| built-in piano                              | 内蔵ピアノ                                       |
+| import / export                             | インポート / エクスポート                        |
+| Scales (the page) / key (tonic)             | スケール / 主音                                  |
+| major / harmonic, melodic minor             | 長音階 / 和声的短音階・旋律的短音階              |
+| chromatic / fingering / evenness            | 半音階 / 運指（指番号） / 粒のそろい             |
+| Ear (the page) / question / Hear again      | 聴音 / 問 / もう一度聴く                         |
+| interval / chord / triad / seventh chord    | 音程 / 和音 / 三和音 / 七の和音                  |
+| minor, major, perfect 2nd … 12th            | 短・長・完全（短2度、長3度、完全5度）            |
+| tritone / octave / compound interval        | 三全音 / 完全8度 / 複音程                        |
+| up / down / together (an interval)          | 上行 / 下行 / 和声的（同時）                     |
+| major, minor, diminished, augmented triad   | 長三和音・短三和音・減三和音・増三和音           |
+| dominant, major, minor, half-diminished 7th | 属七の和音・長七の和音・短七の和音・半減七の和音 |
+| root position / 1st, 2nd inversion / root   | 基本形 / 第1転回形・第2転回形 / 根音             |
+| broken / block (a chord)                    | 分散 / 同時                                      |
 
 Keys in titles follow Japanese editions: ハ長調, ト長調. Middle C is 中央C. Scale names on the Scales
 page keep the letter names of the app (`D長音階`, `G♯和声的短音階`), not ニ長音階.
@@ -184,30 +216,39 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 - Latin punctuation; quotes “ ”; 「 」 for books and collections; `, ` for lists; ranges with `–`.
 - Bars as `마디 {n}` in labels, `{m}마디 중 {n}마디` in counts.
 
-| English                               | ko                                                               |
-| ------------------------------------- | ---------------------------------------------------------------- |
-| Read (the feature and its page)       | 악보 읽기                                                        |
-| grand staff / staff                   | 큰보표 / 보표 (오선보 for the heatmap view)                      |
-| treble staff / bass staff             | 높은음자리표 / 낮은음자리표                                      |
-| ledger lines / sharps and flats       | 덧줄 / 올림표와 내림표                                           |
-| bar / right, left, both hands         | 마디 / 오른손·왼손·양손                                          |
-| sustain pedal / metronome / count-in  | 댐퍼 페달 / 메트로놈 / 예비 박                                   |
-| tap tempo / subdivide / tempo trainer | 두드리기 (not 탭, which reads as “tab”) / 세분 / 빠르기 트레이너 |
-| time signature / accent / mute        | 박자 / 강세 (not 셈여림) / 음소거                                |
-| flashcards / level / mastered         | 플래시 카드 / 레벨 / 마스터 완료                                 |
-| middle C                              | 가운데 C                                                         |
-| wait mode / rhythm mode               | 기다리기 모드 / 리듬 모드                                        |
-| loop / repeats / volta                | 구간 반복 / 도돌이표 / {n}번 괄호                                |
-| run / step                            | 연주 ({n}회) / 스텝                                              |
-| weak bars / hesitation / timing       | 약한 마디 / 망설임 / 타이밍                                      |
-| latency calibration / demo            | 지연 보정 / 들어 보기                                            |
-| built-in piano                        | 내장 피아노                                                      |
-| import / export                       | 가져오기 / 내보내기                                              |
-| session list / answers (records)      | 연습 내역 / 응답 (연습 기록 is the whole log)                    |
-| library (built-in pieces)             | 기본 곡                                                          |
-| Scales (the page) / key (tonic)       | 스케일 / 으뜸음                                                  |
-| major / harmonic, melodic minor       | 장음계 / 화성 단음계, 가락 단음계                                |
-| chromatic / fingering / loudness      | 반음계 / 손가락 번호 / 음량                                      |
+| English                                     | ko                                                                   |
+| ------------------------------------------- | -------------------------------------------------------------------- |
+| Read (the feature and its page)             | 악보 읽기                                                            |
+| grand staff / staff                         | 큰보표 / 보표 (오선보 for the heatmap view)                          |
+| treble staff / bass staff                   | 높은음자리표 / 낮은음자리표                                          |
+| ledger lines / sharps and flats             | 덧줄 / 올림표와 내림표                                               |
+| bar / right, left, both hands               | 마디 / 오른손·왼손·양손                                              |
+| sustain pedal / metronome / count-in        | 댐퍼 페달 / 메트로놈 / 예비 박                                       |
+| tap tempo / subdivide / tempo trainer       | 두드리기 (not 탭, which reads as “tab”) / 세분 / 빠르기 트레이너     |
+| time signature / accent / mute              | 박자 / 강세 (not 셈여림) / 음소거                                    |
+| flashcards / level / mastered               | 플래시 카드 / 레벨 / 마스터 완료                                     |
+| middle C                                    | 가운데 C                                                             |
+| wait mode / rhythm mode                     | 기다리기 모드 / 리듬 모드                                            |
+| loop / repeats / volta                      | 구간 반복 / 도돌이표 / {n}번 괄호                                    |
+| run / step                                  | 연주 ({n}회) / 스텝                                                  |
+| weak bars / hesitation / timing             | 약한 마디 / 망설임 / 타이밍                                          |
+| latency calibration / demo                  | 지연 보정 / 들어 보기                                                |
+| built-in piano                              | 내장 피아노                                                          |
+| import / export                             | 가져오기 / 내보내기                                                  |
+| session list / answers (records)            | 연습 내역 / 응답 (연습 기록 is the whole log)                        |
+| library (built-in pieces)                   | 기본 곡                                                              |
+| Scales (the page) / key (tonic)             | 스케일 / 으뜸음                                                      |
+| major / harmonic, melodic minor             | 장음계 / 화성 단음계, 가락 단음계                                    |
+| chromatic / fingering / loudness            | 반음계 / 손가락 번호 / 음량                                          |
+| Ear (the page) / question / Hear again      | 청음 / 문제 / 다시 듣기                                              |
+| interval / chord / triad / seventh chord    | 음정 / 화음 / 3화음 / 7화음                                          |
+| minor, major, perfect 2nd … 12th            | 단, 장, 완전 (단2도, 장3도, 완전5도)                                 |
+| tritone / octave / compound interval        | 트라이톤 (not 증4도: the item is either spelling) / 완전8도 / 겹음정 |
+| up / down / together (an interval)          | 상행 / 하행 / 화성 (동시)                                            |
+| major, minor, diminished, augmented triad   | 장3화음, 단3화음, 감3화음, 증3화음                                   |
+| dominant, major, minor, half-diminished 7th | 딸림7화음, 장7화음, 단7화음, 반감7화음                               |
+| root position / 1st, 2nd inversion / root   | 기본위치 / 제1전위, 제2전위 / 근음                                   |
+| broken / block (a chord)                    | 펼친 / 동시                                                          |
 
 Keys in titles use letters: G장조, C장조, matching the letter names in the app. Composer names
 follow the National Institute of Korean Language: 루트비히 판 베토벤, 요한 제바스티안 바흐.

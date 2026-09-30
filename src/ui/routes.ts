@@ -14,6 +14,7 @@ export const NAV_ITEMS: readonly {
   { path: '/learn', label: 'nav.learn', priority: 4 },
   { path: '/play', label: 'nav.play', priority: Infinity, practice: true },
   { path: '/read', label: 'nav.read', priority: Infinity, practice: true },
+  { path: '/ear', label: 'nav.ear', priority: 4.5, practice: true },
   { path: '/scales', label: 'nav.scales', priority: 5, practice: true },
   { path: '/pieces', label: 'nav.pieces', priority: 6, practice: true },
   { path: '/metronome', label: 'nav.metronome', priority: 2 },

@@ -1,3 +1,4 @@
+import { recoverEarSummary, type Answer, type EarSessionSummary } from './earSession.ts';
 import type { FreePlaySession } from './freePlay.ts';
 import type { PieceSession } from './pieceRecords.ts';
 import type { ScaleSession } from './scaleRecords.ts';
@@ -8,8 +9,14 @@ export type ReadSessionRecord = SessionSummary & { kind: 'read' };
 export type FreePlaySessionRecord = FreePlaySession;
 export type PieceSessionRecord = PieceSession;
 export type ScaleSessionRecord = ScaleSession;
+/** An ear-training session as stored: its summary. */
+export type EarSessionRecord = EarSessionSummary & { kind: 'ear' };
 export type SessionRecord =
-  ReadSessionRecord | FreePlaySessionRecord | PieceSessionRecord | ScaleSessionRecord;
+  | ReadSessionRecord
+  | FreePlaySessionRecord
+  | PieceSessionRecord
+  | ScaleSessionRecord
+  | EarSessionRecord;
 
 export function byTime(a: Attempt, b: Attempt): number {
   return a.at - b.at || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
@@ -40,6 +47,30 @@ export function recoverReadSessions(
   for (const group of orphans.values()) {
     const summary = recoverSummary(group);
     if (summary) recovered.push({ kind: 'read', ...summary });
+  }
+  return recovered;
+}
+
+/**
+ * Ear sessions for answers whose session was never stored (the tab closed mid-session).
+ * `answers` must be in the order they happened.
+ */
+export function recoverEarSessions(
+  answers: readonly Answer[],
+  sessions: readonly SessionRecord[],
+): EarSessionRecord[] {
+  const known = new Set(sessions.map((s) => s.id));
+  const orphans = new Map<string, Answer[]>();
+  for (const answer of answers) {
+    if (known.has(answer.sessionId)) continue;
+    let group = orphans.get(answer.sessionId);
+    if (!group) orphans.set(answer.sessionId, (group = []));
+    group.push(answer);
+  }
+  const recovered: EarSessionRecord[] = [];
+  for (const group of orphans.values()) {
+    const summary = recoverEarSummary(group);
+    if (summary) recovered.push({ kind: 'ear', ...summary });
   }
   return recovered;
 }

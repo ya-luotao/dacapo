@@ -1,4 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
+import type { Answer } from '../core/earSession.ts';
 import type { SessionRecord } from '../core/log.ts';
 import type { PieceStep } from '../core/pieceRecords.ts';
 import type { StoredScaleRun } from '../core/scaleRecords.ts';
@@ -9,7 +10,7 @@ import type { OutboxEntry } from './syncTypes.ts';
 
 export const DB_NAME = 'dacapo';
 /** Bump when the schema changes and add a `case` to `upgrade`. */
-export const DB_VERSION = 5;
+export const DB_VERSION = 6;
 
 export interface DacapoSchema extends DBSchema {
   noteStats: { key: string; value: NoteStats };
@@ -37,6 +38,12 @@ export interface DacapoSchema extends DBSchema {
   };
   /** Records written while signed in and not yet sent to the sync service (version 5). */
   outbox: { key: string; value: OutboxEntry };
+  /** Ear-training answers (version 6), by session and by item. */
+  answers: {
+    key: string;
+    value: Answer;
+    indexes: { 'by-session': string; 'by-item': string };
+  };
 }
 
 export type DacapoDB = IDBPDatabase<DacapoSchema>;
@@ -79,6 +86,12 @@ export function upgrade(db: DacapoDB, oldVersion: number, newVersion = DB_VERSIO
       }
       case 4: {
         db.createObjectStore('outbox', { keyPath: 'key' });
+        break;
+      }
+      case 5: {
+        const answers = db.createObjectStore('answers', { keyPath: 'id' });
+        answers.createIndex('by-session', 'sessionId');
+        answers.createIndex('by-item', 'item');
         break;
       }
     }

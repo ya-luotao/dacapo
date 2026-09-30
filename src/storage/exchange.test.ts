@@ -13,8 +13,11 @@ import {
 } from './exchange.ts';
 import {
   resetIndexedDB,
+  sampleAnswer,
   sampleData,
+  sampleEarSession,
   sampleHeadline,
+  sampleNamedAnswer,
   samplePiece,
   sampleRhythmRun,
   sampleRun,
@@ -74,7 +77,14 @@ describe('export', () => {
   it('writes the versioned file with preferences and every record', async () => {
     const repo = await freshRepository();
     const { sessions, attempts } = sampleData();
-    await repo.merge({ sessions, attempts, pieces: [], pieceSteps: [], scaleRuns: [] });
+    await repo.merge({
+      sessions,
+      attempts,
+      pieces: [],
+      pieceSteps: [],
+      scaleRuns: [],
+      answers: [],
+    });
     const file = await exportOf(repo);
     expect(file).toMatchObject({
       format: 'dacapo',
@@ -148,6 +158,7 @@ describe('export → import', () => {
       pieces: 2,
       pieceSteps: 15,
       scaleRuns: 5,
+      answers: 0,
     });
     expect(await exportOf(target)).toEqual(exported);
     expect(await target.load()).toEqual(await source.load());
@@ -167,6 +178,7 @@ describe('export → import', () => {
       pieces: 0,
       pieceSteps: 0,
       scaleRuns: 0,
+      answers: 0,
     });
     expect(await repo.load()).toEqual(once);
   });
@@ -312,6 +324,7 @@ describe('planImport', () => {
       pieceIds: new Set(),
       pieceStepIds: new Set(),
       scaleRunIds: new Set(),
+      answerIds: new Set(),
     });
     expect(plan).toEqual({
       sessions: { new: sessions.length - 1, present: 1, invalid: 0 },
@@ -319,6 +332,7 @@ describe('planImport', () => {
       pieces: { new: 0, present: 0, invalid: 0 },
       pieceSteps: { new: 0, present: 0, invalid: 0 },
       scaleRuns: { new: 0, present: 0, invalid: 0 },
+      answers: { new: 0, present: 0, invalid: 0 },
     });
   });
 
@@ -331,6 +345,7 @@ describe('planImport', () => {
       pieceIds: new Set(),
       pieceStepIds: new Set([steps[0]!.id]),
       scaleRunIds: new Set(),
+      answerIds: new Set(),
     });
     expect(plan.pieceSteps).toEqual({ new: 3, present: 1, invalid: 0 });
   });
@@ -344,6 +359,7 @@ describe('planImport', () => {
         pieceSteps: [],
         sessions: [session],
         scaleRuns: [...runs, { ...runs[0]!, id: 'bad', keys: [] }],
+        answers: [],
       }),
     );
     const plan = planImport(file, {
@@ -352,6 +368,7 @@ describe('planImport', () => {
       pieceIds: new Set(),
       pieceStepIds: new Set(),
       scaleRunIds: new Set([runs[2]!.id]),
+      answerIds: new Set(),
     });
     expect(plan.sessions).toEqual({ new: 1, present: 0, invalid: 0 });
     expect(plan.scaleRuns).toEqual({ new: 2, present: 1, invalid: 1 });
@@ -367,6 +384,7 @@ describe('planImport', () => {
       pieceIds: new Set(['p2']),
       pieceStepIds: new Set(),
       scaleRunIds: new Set(),
+      answerIds: new Set(),
     });
     expect(plan.pieces).toEqual({ new: 1, present: 1, invalid: 1 });
   });
@@ -625,7 +643,7 @@ describe('versions', () => {
     ]);
   });
 
-  it('writes version 5 with pieces, piece sessions, step records and scale runs', async () => {
+  it('writes version 6 with pieces, piece sessions, step records, scale runs and answers', async () => {
     const repo = await freshRepository();
     await repo.putPiece(samplePiece(1));
     const { steps, session } = sampleRun('r1', 2);
@@ -633,17 +651,105 @@ describe('versions', () => {
     await repo.putSession(session);
     const scales = sampleScaleSession('k1', 2);
     for (const run of scales.runs) await repo.addScaleRun(run, scales.session);
+    const ear = sampleEarSession('e1', 5);
+    for (const answer of [...ear.answers].reverse()) await repo.addAnswer(answer);
+    await repo.putSession(ear.session);
     const file = await exportOf(repo);
-    expect(file.version).toBe(5);
+    expect(EXPORT_VERSION).toBe(6);
+    expect(file.version).toBe(6);
     expect(file.pieces).toEqual([samplePiece(1)]);
     expect(file.pieceSteps).toEqual(steps);
     expect(file.scaleRuns).toEqual(scales.runs);
+    expect(file.answers).toEqual(ear.answers);
     const back = parsed(JSON.stringify(file));
     expect(back.invalid).toEqual([]);
     expect(back.pieces).toEqual([samplePiece(1)]);
     expect(back.pieceSteps).toEqual(steps);
     expect(back.scaleRuns).toEqual(scales.runs);
-    expect(back.sessions).toEqual([scales.session, session]);
+    expect(back.answers).toEqual(ear.answers);
+    expect(back.sessions).toEqual([scales.session, session, ear.session]);
+  });
+
+  it('imports a version 5 file, which has no answers', () => {
+    const file = parsed(
+      fileWith({ version: 5, pieces: [], pieceSteps: [], scaleRuns: [], answers: 'x' }),
+    );
+    expect(file).toMatchObject({ version: 5, answers: [], invalid: [] });
+  });
+
+  it('refuses a version 6 file without a list of answers', () => {
+    expect(
+      parseImport(fileWith({ version: 6, pieces: [], pieceSteps: [], scaleRuns: [] })),
+    ).toEqual({ ok: false, error: { kind: 'wrong-format' } });
+  });
+
+  it('imports ear answers and sessions of a version 6 file and reports bad ones', () => {
+    const { answers, session } = sampleEarSession('e1', 2);
+    const good = answers[0]!;
+    const named = sampleNamedAnswer(1);
+    const chord = sampleAnswer(9, 'e1', {
+      family: 'chord',
+      level: 'C3',
+      item: 'chord:maj:1st',
+      prompt: [64, 67, 72],
+      answer: [52, 60, 67],
+      correct: true,
+    });
+    const file = parsed(
+      fileWith({
+        version: 6,
+        pieces: [],
+        pieceSteps: [],
+        scaleRuns: [],
+        sessions: [
+          { ...session, extra: 1, missed: session.missed.map((m) => ({ ...m, extra: 1 })) },
+          { ...session, id: 'x1', level: 'C1' },
+          { ...session, id: 'x2', missed: [{ item: 'int:A4:up', answer: 'P5', prompt: [60] }] },
+          { ...session, id: 'x3', accuracy: null },
+          { ...session, id: 'x4', kind: 'hearing' },
+        ],
+        answers: [
+          { ...good, extra: 1 },
+          named,
+          chord,
+          { ...good, id: 'y1', level: 'C1' },
+          { ...good, id: 'y2', item: 'int:P4:up', prompt: [60, 65], answer: [65] },
+          { ...good, id: 'y3', prompt: [60, 66] },
+          { ...good, id: 'y4', answer: [good.prompt[0]!] },
+          { ...good, id: 'y5', correct: !good.correct },
+          { ...named, id: 'y6', answer: 'aug:root' },
+          { ...chord, id: 'y7', answer: [60, 64, 67] },
+          { ...chord, id: 'y8', answer: [64, 60, 67] },
+          { ...chord, id: 'y9', answer: [60, 64] },
+          { ...good, id: 'y10', by: 'hum' },
+          { ...good, id: 'y11', replays: -1 },
+          { ...good, id: 'y12', family: 'chord' },
+          answers[1],
+          answers[1],
+        ],
+      }),
+    );
+    expect(file.sessions).toEqual([session]);
+    expect(file.answers).toEqual([good, named, chord, answers[1]]);
+    expect(file.invalid).toEqual([
+      { collection: 'sessions', index: 1, field: 'level', problem: 'invalid' },
+      { collection: 'sessions', index: 2, field: 'missed', problem: 'invalid' },
+      { collection: 'sessions', index: 3, field: 'accuracy', problem: 'invalid' },
+      { collection: 'sessions', index: 4, field: 'kind', problem: 'invalid' },
+      { collection: 'answers', index: 3, field: 'level', problem: 'invalid' },
+      { collection: 'answers', index: 4, field: 'item', problem: 'invalid' },
+      { collection: 'answers', index: 5, field: 'prompt', problem: 'invalid' },
+      { collection: 'answers', index: 6, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 7, field: 'correct', problem: 'invalid' },
+      { collection: 'answers', index: 8, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 9, field: 'correct', problem: 'invalid' },
+      { collection: 'answers', index: 10, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 11, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 12, field: 'by', problem: 'invalid' },
+      { collection: 'answers', index: 13, field: 'replays', problem: 'invalid' },
+      { collection: 'answers', index: 14, field: 'level', problem: 'invalid' },
+      { collection: 'answers', index: 16, field: 'id', problem: 'duplicate' },
+    ]);
   });
 
   it('keeps the facts of a piece and refuses broken ones', () => {

@@ -5,12 +5,19 @@ import { useLogFormat } from '../progress/format.ts';
 
 /** Invalid records listed by name; the rest are counted. */
 const INVALID_LISTED = 10;
-const COLLECTIONS = ['sessions', 'attempts', 'pieces', 'pieceSteps', 'scaleRuns'] as const;
+const COLLECTIONS = [
+  'sessions',
+  'attempts',
+  'pieces',
+  'pieceSteps',
+  'scaleRuns',
+  'answers',
+] as const;
 /**
  * How many of the collections a file of version 1, 2, … can hold: pieces from 2, steps from 3,
- * scale runs from 5.
+ * scale runs from 5, ear-training answers from 6.
  */
-const COLLECTIONS_BY_VERSION = [2, 3, 4, 4, 5];
+const COLLECTIONS_BY_VERSION = [2, 3, 4, 4, 5, 6];
 
 interface ImportPreviewProps {
   fileName: string;

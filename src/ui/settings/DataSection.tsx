@@ -128,6 +128,7 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
         pieces: parsed.pieces,
         pieceSteps: parsed.pieceSteps,
         scaleRuns: parsed.scaleRuns,
+        answers: parsed.answers,
       });
       if (applyPreferences && parsed.preferences) onApplyPreferences(parsed.preferences);
       setState({ step: 'done', added });
@@ -204,6 +205,7 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
             pieceIds: new Set(data.pieces.map((p) => p.id)),
             pieceStepIds: state.stored.pieceSteps,
             scaleRunIds: state.stored.scaleRuns,
+            answerIds: new Set(data.answers.map((a) => a.id)),
           })}
           working={state.working}
           onApply={(applyPreferences) =>
@@ -220,6 +222,7 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
             pieces: state.added.pieces,
             steps: state.added.pieceSteps,
             scaleRuns: state.added.scaleRuns,
+            ear: state.added.answers,
           })}
         </p>
       )}

@@ -1,3 +1,4 @@
+import type { Answer } from '../core/earSession.ts';
 import type { SessionRecord } from '../core/log.ts';
 import { canonical } from '../lib/canonical.ts';
 import type { PieceStep } from '../core/pieceRecords.ts';
@@ -7,6 +8,7 @@ import type { StoredPiece } from '../core/storedPiece.ts';
 import type { PendingRecord } from '../storage/syncStorage.ts';
 import type { PieceDeletion, SyncCollection } from '../storage/syncTypes.ts';
 import {
+  validateAnswer,
   validateAttempt,
   validatePiece,
   validatePieceStep,
@@ -14,6 +16,13 @@ import {
   validateSession,
   type Validation,
 } from '../storage/validate.ts';
+
+/**
+ * What this build understands of what the service carries (docs/SYNC.md, "A build that learns a
+ * collection pulls everything again"): 1, the first collections; 2, `answers` and `ear` sessions.
+ * Bump it whenever a build learns a collection or a session kind that older builds skipped.
+ */
+export const SYNC_SCHEMA = 2;
 
 // Records as the sync service carries them (docs/SYNC.md, "What syncs"): the stored record as it
 // is, except a piece, which goes without its MusicXML (sent as a file named by its hash) and
@@ -80,6 +89,7 @@ export type Incoming =
   | { collection: 'sessions'; record: SessionRecord }
   | { collection: 'pieceSteps'; record: PieceStep }
   | { collection: 'scaleRuns'; record: StoredScaleRun }
+  | { collection: 'answers'; record: Answer }
   | { collection: 'pieces'; id: string; deletion: PieceDeletion }
   | { collection: 'pieces'; id: string; piece: PieceBody };
 
@@ -145,6 +155,12 @@ export function incoming(value: unknown): Incoming | null {
       const checked = validateScaleRun(body);
       return checked.ok && matches(checked.value)
         ? { collection: 'scaleRuns', record: checked.value }
+        : null;
+    }
+    case 'answers': {
+      const checked = validateAnswer(body);
+      return checked.ok && matches(checked.value)
+        ? { collection: 'answers', record: checked.value }
         : null;
     }
     case 'pieces': {

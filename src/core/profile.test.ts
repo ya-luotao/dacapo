@@ -121,6 +121,36 @@ describe('buildProfile', () => {
     expect(document).not.toHaveProperty('activity');
   });
 
+  it('counts ear training as reading, the only day kind the service knows for it', () => {
+    const ear = {
+      kind: 'ear',
+      id: 'e',
+      family: 'interval',
+      level: 'I1',
+      by: 'play',
+      startedAt: NOW,
+      endedAt: NOW + 4 * MIN,
+      activeMs: 4 * MIN,
+      length: 10,
+      items: 10,
+      correct: 9,
+      accuracy: 0.9,
+      medianMs: 1200,
+      replays: 0,
+      missed: [],
+    } satisfies SessionRecord;
+    const read = {
+      ...free('r', NOW + 10 * MIN, 2 * MIN),
+      kind: 'read',
+    } as unknown as SessionRecord;
+    const document = build({
+      sessions: [ear, read],
+      settings: { visibility: 'public', titles: false },
+    })!;
+    expect(document.activity!['2026-09-29']!.kinds).toEqual({ read: 6 * MIN });
+    expect(document.days['2026-09-29']).toBe(6 * MIN);
+  });
+
   it('starts the grid on the first day of its first week', () => {
     // 2026-09-29 is a Tuesday: with weeks from Monday, the grid starts on Monday 2025-09-29.
     const first = Date.UTC(2025, 8, 29, 10);

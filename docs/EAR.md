@@ -1,6 +1,7 @@
 # dacapo — Theory and ear training specification
 
-Status: planned (after Pieces). This extends [MVP.md](MVP.md) and [PIECES.md](PIECES.md); their
+Status: E1 is built (the Ear page: intervals and chords by ear); the instrument checks of E0 are
+still to do on the MP11SE. This extends [MVP.md](MVP.md) and [PIECES.md](PIECES.md); their
 principles and fixed decisions still apply (staff first, measure don't guess, local data, English of
 record, every UI language, 3-day dependency cooldown, no backend).
 
@@ -65,6 +66,48 @@ items.
   table** of what was played against what was answered ("m6 answered as P5 in 4 of 12"), with the
   colour-plus-text rules of the note heatmap and a table view.
 
+### Clarifications (decided during E1)
+
+- **When answers count.** Keys count from the prompt's **last note-on**, not its end: a learner
+  echoes while the note still rings, and the case the rule guards against (our own notes coming
+  back) is the echo guard's. A key already held at that moment does not count until it is pressed
+  again. The answer clock starts at the last note-on. "Hear again" closes the answer window until
+  its own last note-on; a replay started after a wrong answer is not counted.
+- **Directions** are a setting for intervals — Up, Down, Together or Mixed (default Up) — and part
+  of the item key (`int:M3:up`, `int:M3:down`, `int:M3:harm`). A level is mastered over its answers
+  in any direction.
+- **Interval levels.** I1 P8 P5 M3 · I2 + P4 m3 · I3 + M2 m2 · I4 + M6 m6 · I5 + M7 m7 · I6 +
+  tritone (every simple interval but the unison) · I7 compound: the whole of I6 plus m9 M9 m10 M10
+  P11 P12. The lower note is uniformly random in C3–C5 with the upper note at most C6. Names use
+  the tritone as `TT`; on the staff (E3) it is spelled as A4 or d5.
+- **Chord levels.** C1 major and minor triads · C2 + diminished and augmented · C3 major and minor
+  triads in root position, first and second inversion (augmented inversions sound like another
+  augmented triad, so they are left out) · C4 dominant, major, minor and half-diminished sevenths in
+  root position · C5 all of C2 and C4. The root is random with the lowest note at or above C3 and
+  the highest at most C5 (triads) or C6 (sevenths). Voicing is close position.
+  A setting plays chords **block** or **broken, then block** (default broken, then block).
+- **Playing an interval.** The key shown is neither right nor wrong (a learner often plays it
+  first, or with the answer); the first other key is the answer.
+- **Playing a chord.** Correct as soon as the keys held down (not the pedal) have exactly the
+  chord's pitch classes, with the right bass in C3. Wrong as soon as a key outside those pitch
+  classes is pressed, or, in C3, when all pitch classes are held over the wrong bass.
+- **Naming.** Buttons for the level's items only, in the order of the levels; digits 1–9 and 0 press
+  the first ten. In C3 the buttons name quality and position together ("Major, 1st inversion").
+- **After an answer.** Right: the next item after about 400 ms. Wrong: the answer is marked on the
+  keyboard and drawn on a small staff, played once, and the item stays until **Next** (Enter) or any
+  key; only the first answer is scored.
+- **Mastery** is over the level's last 40 answers given without a replay, ≥ 90 % right; the time is
+  shown but not part of mastery. The weight of an item is the note model's formula over its answers,
+  with `targetMs` 2000 ms.
+- **Levels only grow.** Stored answers are checked against the levels (an item must belong to
+  its level, and `correct` must agree with the rules), so an item once in a level stays in it.
+- **Records.** Ear answers and sessions sync as the collection `answers` and as sessions of kind
+  `ear` (see [SYNC.md](SYNC.md)). The public profile has no day kind for ear training yet: its time
+  counts as reading until the service learns an `ear` kind.
+- **Instrument checks still open** (E0's hardware half, to do on the MP11SE): echoes of prompts sent
+  to the instrument, a key held from before a prompt, and whether answering from the last note-on
+  feels right.
+
 ## Theory on the staff — new kinds of card on **Read**
 
 Read already drills single notes. It gains a choice of what to read; each is a set of levels with
@@ -114,8 +157,11 @@ flats.
    prompt), and whether the answer may start at the prompt's last note-on rather than its end (a
    learner echoes while the note still rings); VexFlow drawing of intervals, chords and key
    signatures with double accidentals; the answer buttons at 375 px in all five languages; the item
-   keys and levels written out. Report; no production UI.
-2. **E1 Intervals and chords by ear** — the Ear page, both ways of answering, levels, weakness
+   keys and levels written out. Report; no production UI. The software half is done with E1 (the
+   item keys and levels, prompts through the scheduler to the instrument or the built-in piano,
+   the answer buttons in every language, intervals and chords drawn with single accidentals); the
+   checks on the MP11SE are still open, and key signatures and double accidentals come with E3.
+2. ✓ **E1 Intervals and chords by ear** — the Ear page, both ways of answering, levels, weakness
    sampling, mastery, the `answers` store, sessions and export.
 3. **E2 Echo** — melodic dictation, drawing the melody with the answer after it.
 4. **E3 Theory on Read** — interval, key-signature and chord cards.

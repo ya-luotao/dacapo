@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useSyncExternalStore, type CSSProperties } from 'react';
 import type { Clef, Pitch } from '../../core/note.ts';
 import { useT } from '../../i18n/index.ts';
-import { drawGrandStaff, STAFF_HEIGHT, STAFF_WIDTH } from './draw.ts';
+import { drawGrandStaff, drawGrandStaffNotes, STAFF_HEIGHT, STAFF_WIDTH } from './draw.ts';
 import { getFontState, subscribeFont } from './font.ts';
 
 export type StaffState = 'neutral' | 'correct' | 'wrong';
@@ -41,6 +41,47 @@ export function GrandStaff({ pitch, clef, state = 'neutral', onPainted }: GrandS
       data-state={state}
       role="img"
       aria-label={t('staff.label')}
+      style={{ '--staff-aspect': STAFF_WIDTH / STAFF_HEIGHT } as CSSProperties}
+    >
+      <div className="grand-staff-svg" ref={host} />
+      {font === 'failed' && <p className="grand-staff-error">{t('staff.fontFailed')}</p>}
+    </div>
+  );
+}
+
+interface NotesStaffProps {
+  /** One column of whole notes per entry: the pitches sounding together. */
+  columns: readonly (readonly Pitch[])[];
+  /** What the staff shows, for assistive technology. */
+  label: string;
+  state?: StaffState;
+  className?: string;
+}
+
+/**
+ * A braced grand staff with several whole notes, one column after another (a melodic interval)
+ * or stacked (a chord), split between the staves at middle C. Colours come from CSS.
+ */
+export function NotesStaff({ columns, label, state = 'neutral', className }: NotesStaffProps) {
+  const t = useT();
+  const host = useRef<HTMLDivElement>(null);
+  const font = useSyncExternalStore(subscribeFont, getFontState, getFontState);
+  // Redrawn only when the notes change, not for a new array with the same notes.
+  const key = JSON.stringify(columns);
+
+  useLayoutEffect(() => {
+    const el = host.current;
+    if (!el || font !== 'ready') return;
+    drawGrandStaffNotes(el, JSON.parse(key) as Pitch[][]);
+    return () => el.replaceChildren();
+  }, [font, key]);
+
+  return (
+    <div
+      className={className ? `grand-staff ${className}` : 'grand-staff'}
+      data-state={state}
+      role="img"
+      aria-label={label}
       style={{ '--staff-aspect': STAFF_WIDTH / STAFF_HEIGHT } as CSSProperties}
     >
       <div className="grand-staff-svg" ref={host} />

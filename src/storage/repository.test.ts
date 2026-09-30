@@ -7,8 +7,10 @@ import { statsFromAttempts } from '../core/weakness.ts';
 import { DB_NAME, DB_VERSION, openDacapoDB, upgrade, type DacapoDB } from './db.ts';
 import {
   resetIndexedDB,
+  sampleAnswer,
   sampleAttempt,
   sampleData,
+  sampleEarSession,
   sampleHeader,
   samplePiece,
   sampleRhythmRun,
@@ -43,11 +45,12 @@ afterEach(() => {
 });
 
 describe('schema', () => {
-  it('creates the eight stores with their keys and indexes', async () => {
+  it('creates the nine stores with their keys and indexes', async () => {
     const db = await openDb();
     expect(db.version).toBe(DB_VERSION);
-    expect(DB_VERSION).toBe(5);
+    expect(DB_VERSION).toBe(6);
     expect([...db.objectStoreNames].sort()).toEqual([
+      'answers',
       'attempts',
       'meta',
       'noteStats',
@@ -92,6 +95,12 @@ describe('schema', () => {
     expect(runs.index('by-session').keyPath).toBe('sessionId');
     await tx.done;
     expect(db.transaction('outbox').objectStore('outbox').keyPath).toBe('key');
+    const answers = db.transaction('answers').objectStore('answers');
+    expect(answers.keyPath).toBe('id');
+    expect(answers.autoIncrement).toBe(false);
+    expect([...answers.indexNames].sort()).toEqual(['by-item', 'by-session']);
+    expect(answers.index('by-session').keyPath).toBe('sessionId');
+    expect(answers.index('by-item').keyPath).toBe('item');
   });
 
   /** Version 1 exactly as release 0.1.0 created it. */
@@ -240,7 +249,7 @@ describe('schema', () => {
     old.close();
 
     const db = await openDb();
-    expect(db.version).toBe(5);
+    expect(db.version).toBe(DB_VERSION);
     const repo = createIndexedDbRepository(db);
     expect((await repo.load()).sessions).toEqual([session]);
     expect(await repo.allScaleRuns()).toEqual(runs);
@@ -254,6 +263,39 @@ describe('schema', () => {
       at: T0,
       withSteps: true,
     });
+  });
+
+  it('migrates a version 5 database to version 6: its records and outbox stay, answers are stored', async () => {
+    const old = await openDB(DB_NAME, 5, {
+      upgrade: (database, oldVersion) => upgrade(database as DacapoDB, oldVersion, 5),
+    });
+    const { sessions, attempts } = sampleData();
+    const tx = old.transaction(['sessions', 'attempts', 'outbox'], 'readwrite');
+    for (const session of sessions) void tx.objectStore('sessions').put(session);
+    for (const attempt of attempts) void tx.objectStore('attempts').put(attempt);
+    void tx.objectStore('outbox').put({
+      key: 'attempts/a0',
+      collection: 'attempts',
+      id: 'a0',
+      rev: 'r',
+    });
+    await tx.done;
+    old.close();
+
+    const db = await openDb();
+    expect(db.version).toBe(6);
+    const repo = createIndexedDbRepository(db);
+    const data = await repo.load();
+    expect(data.attempts).toEqual(attempts);
+    expect(data.sessions).toHaveLength(sessions.length);
+    expect(data.answers).toEqual([]);
+    expect(await db.count('outbox')).toBe(1);
+    const ear = sampleEarSession('e1', 3);
+    for (const answer of ear.answers) await repo.addAnswer(answer);
+    await repo.putSession(ear.session);
+    expect((await repo.load()).answers).toEqual(ear.answers);
+    expect(await db.countFromIndex('answers', 'by-session', 'e1')).toBe(3);
+    expect(await db.countFromIndex('answers', 'by-item', 'int:P5:up')).toBe(3);
   });
 
   it('never reads scale runs at startup', async () => {
@@ -361,6 +403,35 @@ describe.each([
     expect((await repo.load()).openFreePlay).toEqual([]);
   });
 
+  it('stores ear-training answers once each, and loads them in order', async () => {
+    const repo = await create();
+    const answers = [sampleAnswer(2), sampleAnswer(0), sampleAnswer(1)];
+    for (const answer of answers) await repo.addAnswer(answer);
+    await repo.addAnswer({ ...sampleAnswer(0), ms: 99_999 });
+    const data = await repo.load();
+    expect(data.answers).toEqual([sampleAnswer(0), sampleAnswer(1), sampleAnswer(2)]);
+    const { session } = sampleEarSession('e1', 3);
+    await repo.putSession(session);
+    expect((await repo.load()).sessions).toEqual([session]);
+  });
+
+  it('merges ear-training answers by id', async () => {
+    const repo = await create();
+    const { answers, session } = sampleEarSession('e1', 4);
+    await repo.addAnswer(answers[0]!);
+    const input = {
+      sessions: [session],
+      attempts: [],
+      pieces: [],
+      pieceSteps: [],
+      scaleRuns: [],
+      answers: [{ ...answers[0]!, ms: 1 }, ...answers.slice(1)],
+    };
+    expect(await repo.merge(input)).toMatchObject({ sessions: 1, answers: 3 });
+    expect((await repo.load()).answers).toEqual(answers);
+    expect(await repo.merge(input)).toMatchObject({ sessions: 0, answers: 0 });
+  });
+
   it('replaces a session with the same id', async () => {
     const repo = await create();
     const [session] = sampleData().sessions;
@@ -384,6 +455,7 @@ describe.each([
       pieces: [],
       pieceSteps: [],
       scaleRuns: [],
+      answers: [],
     });
     expect(added).toEqual({
       sessions: 2,
@@ -391,6 +463,7 @@ describe.each([
       pieces: 0,
       pieceSteps: 0,
       scaleRuns: 0,
+      answers: 0,
     });
     const data = await repo.load();
     expect(data.attempts).toEqual(attempts);
@@ -401,16 +474,31 @@ describe.each([
   it('merging the same records again changes nothing', async () => {
     const repo = await create();
     const { sessions, attempts } = sampleData();
-    await repo.merge({ sessions, attempts, pieces: [], pieceSteps: [], scaleRuns: [] });
+    await repo.merge({
+      sessions,
+      attempts,
+      pieces: [],
+      pieceSteps: [],
+      scaleRuns: [],
+      answers: [],
+    });
     const before = await repo.load();
     expect(
-      await repo.merge({ sessions, attempts, pieces: [], pieceSteps: [], scaleRuns: [] }),
+      await repo.merge({
+        sessions,
+        attempts,
+        pieces: [],
+        pieceSteps: [],
+        scaleRuns: [],
+        answers: [],
+      }),
     ).toEqual({
       sessions: 0,
       attempts: 0,
       pieces: 0,
       pieceSteps: 0,
       scaleRuns: 0,
+      answers: 0,
     });
     expect(await repo.load()).toEqual(before);
   });
@@ -441,8 +529,16 @@ describe.each([
       pieces: [samplePiece(1), samplePiece(2)],
       pieceSteps: [],
       scaleRuns: [],
+      answers: [],
     });
-    expect(added).toEqual({ sessions: 0, attempts: 0, pieces: 1, pieceSteps: 0, scaleRuns: 0 });
+    expect(added).toEqual({
+      sessions: 0,
+      attempts: 0,
+      pieces: 1,
+      pieceSteps: 0,
+      scaleRuns: 0,
+      answers: 0,
+    });
     const { pieces } = await repo.load();
     expect(pieces.map((p) => [p.id, p.title])).toEqual([
       ['p2', 'Piece 2'],
@@ -510,8 +606,16 @@ describe.each([
       pieces: [samplePiece(1), samplePiece(2), samplePiece(3)],
       pieceSteps: [...one.steps, ...two.steps],
       scaleRuns: [],
+      answers: [],
     });
-    expect(added).toEqual({ sessions: 0, attempts: 0, pieces: 1, pieceSteps: 2, scaleRuns: 0 });
+    expect(added).toEqual({
+      sessions: 0,
+      attempts: 0,
+      pieces: 1,
+      pieceSteps: 2,
+      scaleRuns: 0,
+      answers: 0,
+    });
     expect((await repo.load()).pieces.map((p) => p.id)).toEqual(['p3']);
     expect(await repo.pieceSteps({ pieceId: 'p1' })).toEqual([]);
     expect(await repo.pieceSteps({ pieceId: 'p2' })).toEqual(two.steps);
@@ -527,8 +631,16 @@ describe.each([
       pieces: [],
       pieceSteps: steps,
       scaleRuns: [],
+      answers: [],
     });
-    expect(added).toEqual({ sessions: 1, attempts: 0, pieces: 0, pieceSteps: 4, scaleRuns: 0 });
+    expect(added).toEqual({
+      sessions: 1,
+      attempts: 0,
+      pieces: 0,
+      pieceSteps: 4,
+      scaleRuns: 0,
+      answers: 0,
+    });
     expect((await repo.pieceSteps({ sessionId: 'r1' }))[0]!.ms).toBe(5);
   });
 
@@ -576,9 +688,17 @@ describe.each([
       pieces: [],
       pieceSteps: [],
       scaleRuns: runs,
+      answers: [],
     });
     // The imported session has more runs, so it replaces the stored one.
-    expect(added).toEqual({ sessions: 1, attempts: 0, pieces: 0, pieceSteps: 0, scaleRuns: 3 });
+    expect(added).toEqual({
+      sessions: 1,
+      attempts: 0,
+      pieces: 0,
+      pieceSteps: 0,
+      scaleRuns: 3,
+      answers: 0,
+    });
     const stored = await repo.scaleRuns({ sessionId: 'k1' });
     expect(stored.map((r) => r.id)).toEqual(runs.map((r) => r.id));
     expect(stored[0]!.end).toBe('idle');
@@ -594,19 +714,30 @@ describe.each([
       ...input,
       sessions: [long.session, { ...long.session, runs: long.session.runs.slice(0, 3) }],
       scaleRuns: long.runs,
+      answers: [],
     });
     // Counted with the sessions taken from the file.
-    expect(added).toEqual({ sessions: 1, attempts: 0, pieces: 0, pieceSteps: 0, scaleRuns: 2 });
+    expect(added).toEqual({
+      sessions: 1,
+      attempts: 0,
+      pieces: 0,
+      pieceSteps: 0,
+      scaleRuns: 2,
+      answers: 0,
+    });
     expect((await repo.load()).sessions).toEqual([long.session]);
     expect(await repo.scaleRuns({ sessionId: 'k1' })).toEqual(long.runs);
     // A copy with fewer runs, or as many, is not taken.
     for (const session of [short.session, { ...long.session, activeMs: 1 }]) {
-      expect(await repo.merge({ ...input, sessions: [session], scaleRuns: [] })).toEqual({
+      expect(
+        await repo.merge({ ...input, sessions: [session], scaleRuns: [], answers: [] }),
+      ).toEqual({
         sessions: 0,
         attempts: 0,
         pieces: 0,
         pieceSteps: 0,
         scaleRuns: 0,
+        answers: 0,
       });
     }
     expect((await repo.load()).sessions).toEqual([long.session]);
@@ -623,6 +754,7 @@ describe.each([
       pieces: [],
       pieceSteps: [],
       scaleRuns: [],
+      answers: [],
     });
     expect(added.sessions).toBe(0);
     expect((await repo.load()).sessions).toEqual([free]);
@@ -639,6 +771,7 @@ describe.each([
       pieces: [],
       pieceSteps: [],
       scaleRuns: [],
+      answers: [],
     });
     expect((await rebuilt.load()).stats).toEqual((await incremental.load()).stats);
   });
@@ -670,6 +803,7 @@ describe('transactions', () => {
         pieces: [],
         pieceSteps: [],
         scaleRuns: [],
+        answers: [],
       }),
     ).rejects.toThrow();
     const data = await repo.load();

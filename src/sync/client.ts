@@ -13,6 +13,7 @@ import {
   outgoing,
   pieceWithXml,
   sha256Hex,
+  SYNC_SCHEMA,
   type Change,
   type Incoming,
 } from './records.ts';
@@ -278,6 +279,7 @@ export function createSyncClient({
       ),
       pieceSteps: parsed.flatMap((c) => (c.collection === 'pieceSteps' ? [c.record] : [])),
       scaleRuns: parsed.flatMap((c) => (c.collection === 'scaleRuns' ? [c.record] : [])),
+      answers: parsed.flatMap((c) => (c.collection === 'answers' ? [c.record] : [])),
     };
     return storage((sync) => sync.apply(pulled));
   }
@@ -287,7 +289,10 @@ export function createSyncClient({
     const state = await readState();
     if (!state) return false;
     setStatus({ phase: 'syncing' });
-    let cursor = state.cursor;
+    // A cursor reached by a build that understood less skipped what this one would keep: start
+    // again from the beginning (pulling a stored record is a no-op), and from then on the cursor
+    // is this build's.
+    let cursor = (state.schema ?? 1) < SYNC_SCHEMA ? 0 : state.cursor;
     let changed = false;
     let completed = false;
     try {
@@ -307,7 +312,10 @@ export function createSyncClient({
         await storage((sync) => sync.acknowledge(done));
         cursor = page.cursor;
         // Signed out or in again meanwhile: this round is over.
-        if (!(await storage((sync) => sync.saveProgress(state.token, { cursor })))) return false;
+        const saved = await storage((sync) =>
+          sync.saveProgress(state.token, { cursor, schema: SYNC_SCHEMA }),
+        );
+        if (!saved) return false;
         const drained =
           pending.length < PUSH_LIMIT && sent.length + skipped.length === pending.length;
         if (!page.more && rejected.size === 0 && drained) break;

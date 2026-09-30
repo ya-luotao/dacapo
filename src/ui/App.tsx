@@ -14,6 +14,7 @@ import { useDocumentTitle } from './useDocumentTitle.ts';
 
 // Notation (VexFlow and its font) is only downloaded when the Read route is opened.
 const ReadPage = lazy(() => import('./pages/ReadPage.tsx').then((m) => ({ default: m.ReadPage })));
+const EarPage = lazy(() => import('./pages/EarPage.tsx').then((m) => ({ default: m.EarPage })));
 // Pieces load Verovio on their own, later still (ui/notation/verovio.ts).
 const PiecesPage = lazy(() =>
   import('./pieces/PiecesPage.tsx').then((m) => ({ default: m.PiecesPage })),
@@ -58,6 +59,7 @@ function Shell() {
             <Route path="/learn/:slug">{({ slug }) => <LessonPage key={slug} slug={slug} />}</Route>
             <Route path="/play" component={PlayPage} />
             <Route path="/read" component={ReadPage} />
+            <Route path="/ear" component={EarPage} />
             <Route path="/scales" component={ScalesPage} />
             <Route path="/pieces" component={PiecesPage} />
             <Route path="/pieces/:id">{({ id }) => <PiecePage key={id} id={id} />}</Route>

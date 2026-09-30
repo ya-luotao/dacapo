@@ -1,0 +1,322 @@
+import { describe, expect, it } from 'vitest';
+import { getEarLevel, levelItems, type EarLevelId, type Prompt } from './earItems.ts';
+import {
+  advanceEar,
+  chooseName,
+  EAR_MASTERY_WINDOW,
+  earLevelProgress,
+  earStats,
+  endEarSession,
+  pressKey,
+  promptScheduled,
+  recoverEarSummary,
+  releaseKey,
+  startEarSession,
+  suggestedEarLevel,
+  summarizeEar,
+  type Answer,
+  type AnswerMode,
+  type EarSessionState,
+} from './earSession.ts';
+import { recoverEarSessions, type SessionRecord } from './log.ts';
+import { seededRng } from './random.ts';
+
+const AT = 1_700_000_000_000;
+
+function start(level: EarLevelId, by: AnswerMode, length = 10, seed = 1): EarSessionState {
+  const earLevel = getEarLevel(level);
+  const directions = ['up'] as const;
+  return startEarSession({
+    id: 's1',
+    level: earLevel,
+    by,
+    directions,
+    items: levelItems(earLevel, directions),
+    length,
+    at: AT,
+    stats: {},
+    rng: seededRng(seed),
+  });
+}
+
+/** The session with its current card's prompt replaced, scheduled to open at `opensAt`. */
+function withPrompt(state: EarSessionState, prompt: Prompt, opensAt = 1000): EarSessionState {
+  const next = { ...state, card: { ...state.card, prompt } };
+  return promptScheduled(next, next.card.index, opensAt, false);
+}
+
+let ids = 0;
+const newId = () => `a${++ids}`;
+
+describe('an ear session', () => {
+  it('starts with a waiting card whose window is not open yet', () => {
+    const state = start('I1', 'play');
+    expect(state).toMatchObject({ family: 'interval', level: 'I1', phase: 'running' });
+    expect(state.card).toMatchObject({ index: 0, opensAt: null, replays: 0, status: 'waiting' });
+    expect(state.items).toEqual(['int:P8:up', 'int:P5:up', 'int:M3:up']);
+    // Nothing counts before the prompt is scheduled.
+    expect(pressKey(state, 60, 5000, AT, newId)).toBe(state);
+  });
+
+  it('counts keys only from the last note-on, and times from there', () => {
+    let state = withPrompt(start('I1', 'play'), { item: 'int:M3:up', notes: [60, 64] }, 1000);
+    expect(pressKey(state, 64, 999, AT, newId)).toBe(state);
+    state = pressKey(state, 64, 1600, AT + 5, () => 'the-answer');
+    expect(state.card.status).toBe('correct');
+    expect(state.answers).toEqual([
+      {
+        id: 'the-answer',
+        sessionId: 's1',
+        family: 'interval',
+        level: 'I1',
+        item: 'int:M3:up',
+        by: 'play',
+        prompt: [60, 64],
+        answer: [64],
+        correct: true,
+        ms: 600,
+        replays: 0,
+        at: AT + 5,
+      },
+    ]);
+    // Only the first answer is scored.
+    expect(pressKey(state, 65, 1700, AT, newId)).toBe(state);
+  });
+
+  it('passes over the key shown and scores a wrong key', () => {
+    let state = withPrompt(start('I1', 'play'), { item: 'int:P5:down', notes: [67, 60] });
+    expect(pressKey(state, 67, 1200, AT, newId)).toBe(state);
+    state = pressKey(state, 59, 1300, AT, newId);
+    expect(state.card).toMatchObject({ status: 'wrong', answer: [59] });
+    expect(state.answers[0]).toMatchObject({ correct: false, answer: [59], ms: 300 });
+  });
+
+  it('counts a replay before the answer, not one after it', () => {
+    let state = start('I1', 'play');
+    state = promptScheduled(state, 0, 1000, false);
+    state = promptScheduled(state, 0, 4000, true);
+    expect(state.card).toMatchObject({ opensAt: 4000, replays: 1 });
+    // The replay closes the window until its own last note-on.
+    const target = state.card.prompt.notes[1]!;
+    expect(pressKey(state, target, 3000, AT, newId)).toBe(state);
+    state = pressKey(state, target, 4500, AT, newId);
+    expect(state.answers[0]).toMatchObject({ replays: 1, ms: 500 });
+    state = promptScheduled(state, 0, 9000, true);
+    expect(state.card.replays).toBe(1);
+    // A stale card index changes nothing.
+    expect(promptScheduled(state, 3, 1, true)).toBe(state);
+  });
+
+  it('judges a chord by the keys held since the window opened', () => {
+    const prompt = { item: 'chord:maj:root', notes: [60, 64, 67] };
+    let state = withPrompt(start('C1', 'play'), prompt, 1000);
+    state = pressKey(state, 48, 1100, AT, newId);
+    state = pressKey(state, 55, 1150, AT, newId);
+    expect(state.card).toMatchObject({ status: 'waiting', held: [48, 55] });
+    state = releaseKey(state, 48);
+    expect(state.card.held).toEqual([55]);
+    state = pressKey(state, 64, 1300, AT, newId);
+    expect(state.card.status).toBe('waiting');
+    state = pressKey(state, 72, 1400, AT, newId);
+    expect(state.card.status).toBe('correct');
+    expect(state.answers[0]).toMatchObject({ answer: [55, 64, 72], correct: true, ms: 400 });
+  });
+
+  it('marks a chord wrong at the first key outside it', () => {
+    let state = withPrompt(start('C1', 'play'), { item: 'chord:min:root', notes: [57, 60, 64] });
+    state = pressKey(state, 57, 1100, AT, newId);
+    state = pressKey(state, 61, 1200, AT, newId);
+    expect(state.card.status).toBe('wrong');
+    expect(state.answers[0]).toMatchObject({ answer: [57, 61], correct: false });
+  });
+
+  it('forgets keys held when a replay starts', () => {
+    const prompt = { item: 'chord:maj:root', notes: [60, 64, 67] };
+    let state = withPrompt(start('C1', 'play'), prompt, 1000);
+    state = pressKey(state, 60, 1100, AT, newId);
+    state = pressKey(state, 64, 1100, AT, newId);
+    state = promptScheduled(state, 0, 5000, true);
+    expect(state.card.held).toEqual([]);
+    state = pressKey(state, 67, 5100, AT, newId);
+    expect(state.card).toMatchObject({ status: 'waiting', held: [67] });
+  });
+
+  it('wants the bass in the inversion level', () => {
+    const prompt = { item: 'chord:maj:2nd', notes: [67, 72, 76] };
+    let state = withPrompt(start('C3', 'play'), prompt);
+    for (const midi of [60, 64, 67]) state = pressKey(state, midi, 1200, AT, newId);
+    expect(state.card.status).toBe('wrong');
+    let again = withPrompt(start('C3', 'play'), prompt);
+    for (const midi of [55, 60, 64]) again = pressKey(again, midi, 1200, AT, newId);
+    expect(again.card.status).toBe('correct');
+  });
+
+  it('answers by name: the interval, whatever its direction', () => {
+    let state = withPrompt(start('I2', 'name'), { item: 'int:m3:up', notes: [60, 63] });
+    expect(pressKey(state, 63, 1500, AT, newId)).toBe(state);
+    expect(chooseName(state, 'm3', 900, AT, newId)).toBe(state);
+    state = chooseName(state, 'M3', 1800, AT, newId);
+    expect(state.answers[0]).toMatchObject({ answer: 'M3', correct: false, ms: 800 });
+    expect(chooseName(state, 'm3', 2000, AT, newId)).toBe(state);
+    const right = chooseName(
+      withPrompt(start('C3', 'name'), { item: 'chord:min:1st', notes: [63, 67, 72] }),
+      'min:1st',
+      1100,
+      AT,
+      newId,
+    );
+    expect(right.answers[0]).toMatchObject({ answer: 'min:1st', correct: true });
+  });
+
+  it('moves on after any answer, never to the same item, and ends after the last', () => {
+    let state = start('I1', 'play', 3, 4);
+    const rng = seededRng(8);
+    const items: string[] = [];
+    for (let i = 0; i < 3; i++) {
+      items.push(state.card.prompt.item);
+      state = promptScheduled(state, i, 1000 * i, false);
+      expect(advanceEar(state, { at: AT, stats: {}, rng })).toBe(state);
+      state = pressKey(
+        state,
+        state.card.prompt.notes[1]! + (i === 1 ? 1 : 0),
+        1000 * i + 500,
+        AT + i,
+        newId,
+      );
+      state = advanceEar(state, { at: AT + i + 1, stats: {}, rng });
+    }
+    expect(items[0]).not.toBe(items[1]);
+    expect(items[1]).not.toBe(items[2]);
+    expect(state).toMatchObject({ phase: 'done', endedAt: AT + 3 });
+    expect(state.answers.map((a) => a.correct)).toEqual([true, false, true]);
+  });
+
+  it('can be stopped at any time', () => {
+    const state = endEarSession(start('I1', 'play'), AT + 10);
+    expect(state).toMatchObject({ phase: 'done', endedAt: AT + 10 });
+    expect(endEarSession(state, AT + 20)).toBe(state);
+  });
+});
+
+const answer = (i: number, patch: Partial<Answer> = {}): Answer => ({
+  id: `x${i}`,
+  sessionId: 's1',
+  family: 'interval',
+  level: 'I1',
+  item: 'int:P5:up',
+  by: 'play',
+  prompt: [60, 67],
+  answer: [67],
+  correct: true,
+  ms: 1000 + i,
+  replays: 0,
+  at: AT + i * 1000,
+  ...patch,
+});
+
+describe('ear figures', () => {
+  it('summarizes a session: times over right answers without a replay', () => {
+    const answers = [
+      answer(0, { ms: 1200 }),
+      answer(1, { ms: 800, replays: 2 }),
+      answer(2, { correct: false, answer: [66], ms: 500 }),
+      answer(3, { ms: 1600 }),
+      answer(4, { ms: 40_000 }),
+    ];
+    const summary = summarizeEar({
+      id: 's1',
+      family: 'interval',
+      level: 'I1',
+      by: 'play',
+      length: 10,
+      startedAt: AT - 2000,
+      endedAt: AT + 5000,
+      answers,
+    });
+    expect(summary).toEqual({
+      id: 's1',
+      family: 'interval',
+      level: 'I1',
+      by: 'play',
+      startedAt: AT - 2000,
+      endedAt: AT + 5000,
+      activeMs: 7000,
+      length: 10,
+      items: 5,
+      correct: 4,
+      accuracy: 0.8,
+      medianMs: 1400,
+      replays: 2,
+      missed: [{ item: 'int:P5:up', answer: [66], prompt: [60, 67] }],
+    });
+  });
+
+  it('recovers the session of answers whose session was never stored', () => {
+    const answers = [answer(0), answer(1), answer(2, { sessionId: 'known' })];
+    const sessions = [{ kind: 'free', id: 'known' }] as unknown as SessionRecord[];
+    const [recovered, ...rest] = recoverEarSessions(answers, sessions);
+    expect(rest).toEqual([]);
+    expect(recovered).toMatchObject({
+      kind: 'ear',
+      id: 's1',
+      items: 2,
+      length: 2,
+      startedAt: AT - 1000,
+      endedAt: AT + 1000,
+    });
+    expect(recoverEarSummary([])).toBeNull();
+  });
+
+  it('keeps per-item stats from the answers, a replay counting for accuracy only', () => {
+    const stats = earStats([
+      answer(0, { ms: 1000 }),
+      answer(1, { ms: 9000, replays: 1 }),
+      answer(2, { item: 'int:M3:up', prompt: [60, 64], answer: [65], correct: false }),
+    ]);
+    expect(stats['int:P5:up']).toMatchObject({ attempts: 2, correct: 2, ewmaMs: 1000 });
+    expect(stats['int:M3:up']).toMatchObject({ attempts: 1, errors: 1, ewmaMs: null });
+  });
+
+  it('masters a level at 90 % over its last 40 answers without a replay', () => {
+    const answers: Answer[] = [];
+    for (let i = 0; i < EAR_MASTERY_WINDOW; i++) {
+      answers.push(answer(i, { correct: i % 10 !== 0, answer: i % 10 !== 0 ? [67] : [66] }));
+    }
+    expect(earLevelProgress(answers, 'I1')).toMatchObject({
+      total: 40,
+      answers: 40,
+      accuracy: 0.9,
+      mastered: true,
+    });
+    // Replayed answers are left out of the window: 39 is not a full one.
+    const replayed = answers.map((a, i) => (i === 5 ? { ...a, replays: 1 } : a));
+    expect(earLevelProgress(replayed, 'I1')).toMatchObject({ answers: 39, mastered: false });
+    // Two more wrong answers push out a wrong and a right one: 35 of 40 is below 90 %.
+    const wrong = { correct: false, answer: [66] };
+    const worse = [...answers, answer(99, wrong), answer(100, wrong)];
+    expect(earLevelProgress(worse, 'I1')).toMatchObject({ accuracy: 0.875, mastered: false });
+    expect(earLevelProgress(answers, 'I2')).toMatchObject({ total: 0, accuracy: null });
+  });
+
+  it('suggests the first level of the family not mastered', () => {
+    const mastered = (level: EarLevelId) => ({
+      level,
+      total: 40,
+      answers: 40,
+      accuracy: 1,
+      medianMs: 900,
+      mastered: true,
+    });
+    const progress = new Map([
+      ['I1', mastered('I1')],
+      ['C1', mastered('C1')],
+      ['C2', mastered('C2')],
+    ] as const);
+    expect(suggestedEarLevel('interval', progress)).toBe('I2');
+    expect(suggestedEarLevel('chord', progress)).toBe('C3');
+    const all = new Map(
+      (['C1', 'C2', 'C3', 'C4', 'C5'] as const).map((id) => [id, mastered(id)] as const),
+    );
+    expect(suggestedEarLevel('chord', all)).toBe('C5');
+  });
+});

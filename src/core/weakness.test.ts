@@ -6,6 +6,7 @@ import {
   errorRate,
   EWMA_ALPHA,
   noteWeight,
+  pickItem,
   pickNext,
   RECENT_LENGTH,
   statsFromAttempts,
@@ -225,5 +226,43 @@ describe('statsFromAttempts', () => {
 
   it('is empty without attempts', () => {
     expect(statsFromAttempts([])).toEqual({});
+  });
+});
+
+describe('items keyed by string (ear training)', () => {
+  it('weighs speed against the target given', () => {
+    const slow = apply([{ ms: 3000 }], 'int:M3:up');
+    expect(noteWeight(slow)).toBeCloseTo(2);
+    expect(noteWeight(slow, 2000)).toBeCloseTo(1.5);
+    expect(noteWeight(undefined, 2000)).toBe(UNSEEN_NOVELTY);
+  });
+
+  it('never draws the previous item and favours the weak ones', () => {
+    const items = ['int:P8:up', 'int:P5:up', 'int:M3:up'];
+    const stats: StatsByKey = {
+      'int:P8:up': apply(
+        Array.from({ length: 10 }, () => ({ ms: 1000 })),
+        'int:P8:up',
+      ),
+      'int:P5:up': apply(
+        Array.from({ length: 10 }, () => ({ ms: 1000 })),
+        'int:P5:up',
+      ),
+      'int:M3:up': apply(
+        Array.from({ length: 10 }, (_, i) => ({ ms: 1000, correct: i % 2 === 0 })),
+        'int:M3:up',
+      ),
+    };
+    const rng = seededRng(2);
+    const seen = new Map<string, number>(items.map((item) => [item, 0]));
+    let previous: string | null = null;
+    for (let i = 0; i < 3000; i++) {
+      const item = pickItem(items, stats, previous, rng, 2000);
+      expect(item).not.toBe(previous);
+      seen.set(item, seen.get(item)! + 1);
+      previous = item;
+    }
+    expect(seen.get('int:M3:up')!).toBeGreaterThan(seen.get('int:P8:up')!);
+    expect(() => pickItem(['int:P8:up'], {}, 'int:P8:up', rng, 2000)).toThrow(RangeError);
   });
 });

@@ -6,6 +6,7 @@ import { runFigures } from '../../core/scaleProgress.ts';
 import { parseExerciseKey } from '../../core/scales.ts';
 import type { ScaleExercise } from '../../core/scaleTypes.ts';
 import { median } from '../../core/session.ts';
+import { useEarFormat } from '../ear/format.ts';
 import { useReadFormat } from '../read/format.ts';
 import { useExerciseName } from '../scales/format.ts';
 import { useLogFormat } from './format.ts';
@@ -68,6 +69,7 @@ function SessionRow({ session }: { session: SessionRecord }) {
   const t = useT();
   const log = useLogFormat();
   const read = useReadFormat();
+  const ear = useEarFormat();
   const exerciseName = useExerciseName();
   const scaleName = (e: ScaleExercise | null) => (e ? exerciseName(e) : none);
   const none = t('read.none');
@@ -145,6 +147,23 @@ function SessionRow({ session }: { session: SessionRecord }) {
             ]
           : ['progress.session.wrong', t('progress.session.wrongNotes', { n: session.wrong })],
         ['progress.session.hands', t(`progress.session.hands.${session.hands}`)],
+      ];
+      break;
+    case 'ear':
+      cells = [
+        when,
+        ['progress.session.kind', t('progress.kind.ear')],
+        [
+          'progress.session.level',
+          <abbr title={ear.levelName(session.level)}>{session.level}</abbr>,
+        ],
+        duration,
+        [
+          'ear.summary.questions',
+          session.items < session.length ? `${session.items}/${session.length}` : session.items,
+        ],
+        ['progress.session.accuracy', read.percent(session.accuracy)],
+        ['ear.summary.median', read.seconds(session.medianMs)],
       ];
       break;
     case 'scale': {

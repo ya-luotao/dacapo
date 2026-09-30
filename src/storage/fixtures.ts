@@ -1,7 +1,8 @@
 // Sample records for storage tests. Not imported by the app.
 import { IDBFactory } from 'fake-indexeddb';
+import { recoverEarSummary, type Answer } from '../core/earSession.ts';
 import type { RunHeadline } from '../core/evenness.ts';
-import type { SessionRecord } from '../core/log.ts';
+import type { EarSessionRecord, SessionRecord } from '../core/log.ts';
 import { parseNoteKey } from '../core/levels.ts';
 import {
   pieceSession,
@@ -261,4 +262,61 @@ export function sampleScaleSession(
     });
   }
   return { runs, session: session! };
+}
+
+/**
+ * Answer `i` of ear session `sessionId`: a perfect 5th up played on the keyboard, every fourth
+ * one a key too low; 4 s apart, a replay on every fifth.
+ */
+export function sampleAnswer(i: number, sessionId = 'e1', patch: Partial<Answer> = {}): Answer {
+  const lower = 48 + (i % 12);
+  const correct = i % 4 !== 3;
+  return {
+    id: `${sessionId}:${i}`,
+    sessionId,
+    family: 'interval',
+    level: 'I1',
+    item: 'int:P5:up',
+    by: 'play',
+    prompt: [lower, lower + 7],
+    answer: [correct ? lower + 7 : lower + 6],
+    correct,
+    ms: 900 + ((i * 373) % 2400),
+    replays: i % 5 === 4 ? 1 : 0,
+    at: T0 + 7_200_000 + i * 4000,
+    ...patch,
+  };
+}
+
+/** A chord named by its buttons: a major triad in root position answered as minor on odd `i`. */
+export function sampleNamedAnswer(
+  i: number,
+  sessionId = 'e2',
+  patch: Partial<Answer> = {},
+): Answer {
+  const correct = i % 2 === 0;
+  return {
+    id: `${sessionId}:${i}`,
+    sessionId,
+    family: 'chord',
+    level: 'C1',
+    item: 'chord:maj:root',
+    by: 'name',
+    prompt: [55, 59, 62],
+    answer: correct ? 'maj:root' : 'min:root',
+    correct,
+    ms: 1500,
+    replays: 0,
+    at: T0 + 9_000_000 + i * 4000,
+    ...patch,
+  };
+}
+
+/** An ear session of `count` answers (`sampleAnswer`) with its record. */
+export function sampleEarSession(
+  sessionId: string,
+  count: number,
+): { answers: Answer[]; session: EarSessionRecord } {
+  const answers = Array.from({ length: count }, (_, i) => sampleAnswer(i, sessionId));
+  return { answers, session: { kind: 'ear', ...recoverEarSummary(answers)! } };
 }

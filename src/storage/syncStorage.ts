@@ -1,3 +1,4 @@
+import type { Answer } from '../core/earSession.ts';
 import { byTime, type SessionRecord } from '../core/log.ts';
 import type { PieceStep } from '../core/pieceRecords.ts';
 import type { StoredScaleRun } from '../core/scaleRecords.ts';
@@ -36,6 +37,7 @@ export interface PulledRecords {
   deletions: readonly { id: string; deletion: PieceDeletion }[];
   pieceSteps: readonly PieceStep[];
   scaleRuns: readonly StoredScaleRun[];
+  answers: readonly Answer[];
 }
 
 /** What applying changed here. */
@@ -47,6 +49,7 @@ export interface AppliedCounts {
   deleted: number;
   pieceSteps: number;
   scaleRuns: number;
+  answers: number;
 }
 
 export const nothingApplied = (counts: AppliedCounts) =>
@@ -74,7 +77,7 @@ export interface SyncStorage {
    */
   saveProgress: (
     token: string,
-    progress: Partial<Pick<SyncState, 'cursor' | 'lastSyncAt' | 'profile'>>,
+    progress: Partial<Pick<SyncState, 'cursor' | 'schema' | 'lastSyncAt' | 'profile'>>,
     when?: (state: SyncState) => boolean,
   ) => Promise<boolean>;
   /** Up to `limit` outbox entries with their records. */
@@ -240,6 +243,7 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
           'pieces',
           'pieceSteps',
           'scaleRuns',
+          'answers',
           'meta',
           'outbox',
         ],
@@ -250,6 +254,7 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
       const pieces = tx.objectStore('pieces');
       const steps = tx.objectStore('pieceSteps');
       const runs = tx.objectStore('scaleRuns');
+      const answers = tx.objectStore('answers');
       const meta = tx.objectStore('meta');
 
       const [
@@ -260,6 +265,7 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
         storedPieces,
         stepKeys,
         runKeys,
+        answerKeys,
       ] = await Promise.all([
         deletedPieces(meta),
         meta.getKey(SYNC_STATE_KEY).then((key) => key !== undefined),
@@ -268,6 +274,7 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
         Promise.all(pulled.pieces.map((p) => pieces.get(p.id))),
         Promise.all(pulled.pieceSteps.map((s) => steps.getKey(s.id))),
         Promise.all(pulled.scaleRuns.map((r) => runs.getKey(r.id))),
+        Promise.all(pulled.answers.map((a) => answers.getKey(a.id))),
       ]);
 
       // Records whose copy here wins over a different pulled one: sent again.
@@ -339,6 +346,9 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
       const addedRuns = pulled.scaleRuns.filter(
         (run, i) => runKeys[i] === undefined && first(run, 'r:'),
       );
+      const addedAnswers = pulled.answers.filter(
+        (answer, i) => answerKeys[i] === undefined && first(answer, 'an:'),
+      );
 
       // Note stats depend on the order of answers: rebuilt from all attempts, only when some
       // were added.
@@ -357,6 +367,7 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
         ...addedPieces.map((piece) => () => pieces.put(piece)),
         ...addedSteps.map((step) => () => steps.add(step)),
         ...addedRuns.map((run) => () => runs.add(run)),
+        ...addedAnswers.map((answer) => () => answers.add(answer)),
         ...(stats
           ? [() => noteStats.clear(), ...Object.values(stats).map((s) => () => noteStats.put(s))]
           : []),
@@ -371,6 +382,7 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
         deleted: piecesToDelete.length,
         pieceSteps: addedSteps.length,
         scaleRuns: addedRuns.length,
+        answers: addedAnswers.length,
       };
     },
   };

@@ -4,7 +4,8 @@ import type { ProfileSettings } from '../core/profile.ts';
 // to send, and the pieces deleted here or on another device.
 
 /** The collections sent to the sync service, named as the stores that hold them. */
-export type SyncCollection = 'attempts' | 'sessions' | 'pieces' | 'pieceSteps' | 'scaleRuns';
+export type SyncCollection =
+  'attempts' | 'sessions' | 'pieces' | 'pieceSteps' | 'scaleRuns' | 'answers';
 
 export const SYNC_COLLECTIONS: readonly SyncCollection[] = [
   'attempts',
@@ -12,6 +13,7 @@ export const SYNC_COLLECTIONS: readonly SyncCollection[] = [
   'pieces',
   'pieceSteps',
   'scaleRuns',
+  'answers',
 ];
 
 /** A deleted piece, sent under the piece's id. A deletion is final. */
@@ -46,6 +48,11 @@ export interface SyncState {
   token: string;
   /** The service's `seq` up to which everything is applied here. */
   cursor: number;
+  /**
+   * The `SYNC_SCHEMA` of the build that reached `cursor`; absent means 1. A build that understands
+   * more pulls everything again (docs/SYNC.md, "A build that learns a collection").
+   */
+  schema?: number;
   /** Epoch ms of the last round that finished; null before the first. */
   lastSyncAt: number | null;
   /** The public profile (docs/PROFILE.md) as last heard from the service; absent until then. */

@@ -90,6 +90,15 @@ function longest<T extends { ms: number }>(
   return { top: sorted.slice(0, DAY_ITEMS), more: Math.max(0, sorted.length - DAY_ITEMS) };
 }
 
+/**
+ * The day kind a session counts as. The service accepts these kinds only and rejects a document
+ * with any other, so ear training counts as reading (the nearest: drills by level, away from the
+ * pieces) until the service learns an `ear` kind (docs/EAR.md, "Clarifications").
+ */
+function activityKind(session: SessionRecord): ActivityKind {
+  return session.kind === 'ear' ? 'read' : session.kind;
+}
+
 function dayActivity(
   sessions: readonly SessionRecord[],
   titles: ReadonlyMap<string, string>,
@@ -100,7 +109,8 @@ function dayActivity(
   const scales = new Map<string, { type: ScaleType; tonic: Tonic; ms: number }>();
   for (const session of sessions) {
     if (session.activeMs > 0) {
-      kinds[session.kind] = (kinds[session.kind] ?? 0) + session.activeMs;
+      const kind = activityKind(session);
+      kinds[kind] = (kinds[kind] ?? 0) + session.activeMs;
     }
     if (session.kind === 'piece') {
       const piece = pieces.get(session.pieceId) ?? {

@@ -1,3 +1,4 @@
+import { byAnswerTime, type Answer } from '../core/earSession.ts';
 import type { FreePlaySession, OpenFreePlay } from '../core/freePlay.ts';
 import { byStartDescending, byTime, type SessionRecord } from '../core/log.ts';
 import {
@@ -36,6 +37,8 @@ export interface StoredData {
   pieces: StoredPiece[];
   /** Wait-mode runs whose session was not recorded yet (their tab may have gone away). */
   openPieceRuns: PieceRunHeader[];
+  /** Ear-training answers, in the order they happened. */
+  answers: Answer[];
 }
 
 export interface MergeResult {
@@ -45,6 +48,7 @@ export interface MergeResult {
   pieces: number;
   pieceSteps: number;
   scaleRuns: number;
+  answers: number;
 }
 
 /** What an import adds; records whose id is stored already are kept as they are. */
@@ -54,6 +58,7 @@ export interface MergeInput {
   pieces: readonly StoredPiece[];
   pieceSteps: readonly PieceStep[];
   scaleRuns: readonly StoredScaleRun[];
+  answers: readonly Answer[];
 }
 
 /** Which step records to read: those of a piece or of one session. */
@@ -107,6 +112,8 @@ export interface PracticeRepository {
   /** Every scale run, in order: for the export file. */
   allScaleRuns: () => Promise<StoredScaleRun[]>;
   scaleRunIds: () => Promise<string[]>;
+  /** Stores an ear-training answer; one whose id is stored already changes nothing. */
+  addAnswer: (answer: Answer) => Promise<void>;
   /**
    * Adds the records whose id is not stored yet (stored ones are kept as they are, except a scale
    * session, which gives way to a copy with more runs), then rebuilds every note's stats from all
@@ -192,6 +199,7 @@ function sorted(data: StoredData): StoredData {
     attempts: data.attempts.sort(byTime),
     sessions: data.sessions.sort(byStartDescending),
     pieces: data.pieces.sort(byImportedDescending),
+    answers: data.answers.sort(byAnswerTime),
   };
 }
 
@@ -199,14 +207,15 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
   return {
     kind: 'indexeddb',
     async load() {
-      const tx = db.transaction(['attempts', 'noteStats', 'sessions', 'meta', 'pieces']);
-      const [attempts, stats, sessions, meta, runs, pieces] = await Promise.all([
+      const tx = db.transaction(['attempts', 'noteStats', 'sessions', 'meta', 'pieces', 'answers']);
+      const [attempts, stats, sessions, meta, runs, pieces, answers] = await Promise.all([
         tx.objectStore('attempts').getAll(),
         tx.objectStore('noteStats').getAll(),
         tx.objectStore('sessions').getAll(),
         tx.objectStore('meta').getAll(openFreePlayRange()),
         tx.objectStore('meta').getAll(openPieceRunRange()),
         tx.objectStore('pieces').getAll(),
+        tx.objectStore('answers').getAll(),
         tx.done,
       ]);
       return sorted({
@@ -216,6 +225,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         openFreePlay: meta.filter(isOpenFreePlay),
         pieces,
         openPieceRuns: validHeaders(runs),
+        answers,
       });
     },
     async addAttempt(attempt) {
@@ -352,6 +362,22 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
       return (await db.getAll('scaleRuns')).sort(byRunTime);
     },
     scaleRunIds: () => db.getAllKeys('scaleRuns'),
+    async addAnswer(answer) {
+      const tx = db.transaction(['answers', 'meta', 'outbox'], 'readwrite');
+      const answers = tx.objectStore('answers');
+      const [known, syncing] = await Promise.all([
+        answers.getKey(answer.id),
+        isSyncing(tx.objectStore('meta')),
+      ]);
+      if (known !== undefined) {
+        await tx.done;
+        return;
+      }
+      await writeAll(tx, [
+        () => answers.add(answer),
+        ...track(tx.objectStore('outbox'), syncing, [['answers', answer.id]]),
+      ]);
+    },
     async merge(input) {
       const tx = db.transaction(
         [
@@ -361,6 +387,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
           'pieces',
           'pieceSteps',
           'scaleRuns',
+          'answers',
           'meta',
           'outbox',
         ],
@@ -372,17 +399,27 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
       const pieces = tx.objectStore('pieces');
       const pieceSteps = tx.objectStore('pieceSteps');
       const scaleRuns = tx.objectStore('scaleRuns');
+      const answers = tx.objectStore('answers');
       const meta = tx.objectStore('meta');
-      const [storedSessions, storedAttempts, pieceIds, stepIds, runIds, deletions, syncing] =
-        await Promise.all([
-          sessions.getAll(),
-          attempts.getAll(),
-          pieces.getAllKeys(),
-          pieceSteps.getAllKeys(),
-          scaleRuns.getAllKeys(),
-          deletedPieces(meta),
-          isSyncing(meta),
-        ]);
+      const [
+        storedSessions,
+        storedAttempts,
+        pieceIds,
+        stepIds,
+        runIds,
+        answerIds,
+        deletions,
+        syncing,
+      ] = await Promise.all([
+        sessions.getAll(),
+        attempts.getAll(),
+        pieces.getAllKeys(),
+        pieceSteps.getAllKeys(),
+        scaleRuns.getAllKeys(),
+        answers.getAllKeys(),
+        deletedPieces(meta),
+        isSyncing(meta),
+      ]);
       const byId = new Map(storedSessions.map((s) => [s.id, s]));
       const addedSessions = notStored(input.sessions, byId.keys());
       const longerSessions = longerScaleSessions(input.sessions, (id) => byId.get(id));
@@ -395,6 +432,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         (step) => !deletions.get(step.pieceId)?.withSteps,
       );
       const addedRuns = notStored(input.scaleRuns, runIds);
+      const addedAnswers = notStored(input.answers, answerIds);
       const stats = statsFromAttempts([...storedAttempts, ...addedAttempts]);
       const tracked: Tracked[] = [
         ...[...addedSessions, ...longerSessions].map((r) => ['sessions', r.id] as const),
@@ -402,6 +440,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         ...addedPieces.map((r) => ['pieces', r.id] as const),
         ...addedSteps.map((r) => ['pieceSteps', r.id] as const),
         ...addedRuns.map((r) => ['scaleRuns', r.id] as const),
+        ...addedAnswers.map((r) => ['answers', r.id] as const),
       ];
       await writeAll(tx, [
         ...addedSessions.map((session) => () => sessions.add(session)),
@@ -410,6 +449,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         ...addedPieces.map((piece) => () => pieces.add(piece)),
         ...addedSteps.map((step) => () => pieceSteps.add(step)),
         ...addedRuns.map((run) => () => scaleRuns.add(run)),
+        ...addedAnswers.map((answer) => () => answers.add(answer)),
         () => noteStats.clear(),
         ...Object.values(stats).map((s) => () => noteStats.put(s)),
         ...track(tx.objectStore('outbox'), syncing, tracked),
@@ -420,6 +460,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         pieces: addedPieces.length,
         pieceSteps: addedSteps.length,
         scaleRuns: addedRuns.length,
+        answers: addedAnswers.length,
       };
     },
     sync: createSyncStorage(db),
@@ -436,6 +477,7 @@ export function createMemoryRepository(): PracticeRepository {
   const steps = new Map<string, PieceStep>();
   const openRuns = new Map<string, PieceRunHeader>();
   const scaleRuns = new Map<string, StoredScaleRun>();
+  const answers = new Map<string, Answer>();
   const deletions = new Map<string, PieceDeletion>();
   let stats: Record<string, NoteStats> = {};
   const copy = <T>(value: T): T => structuredClone(value);
@@ -451,6 +493,7 @@ export function createMemoryRepository(): PracticeRepository {
           openFreePlay: [...openFreePlay.values()].map(copy),
           pieces: [...pieces.values()].map(copy),
           openPieceRuns: [...openRuns.values()].map(copy),
+          answers: [...answers.values()].map(copy),
         }),
       ),
     addAttempt(attempt) {
@@ -518,6 +561,10 @@ export function createMemoryRepository(): PracticeRepository {
     },
     allScaleRuns: () => Promise.resolve([...scaleRuns.values()].map(copy).sort(byRunTime)),
     scaleRunIds: () => Promise.resolve([...scaleRuns.keys()]),
+    addAnswer(answer) {
+      if (!answers.has(answer.id)) answers.set(answer.id, copy(answer));
+      return Promise.resolve();
+    },
     merge(input) {
       const addedSessions = notStored(input.sessions, sessions.keys());
       const longerSessions = longerScaleSessions(input.sessions, (id) => sessions.get(id));
@@ -529,6 +576,7 @@ export function createMemoryRepository(): PracticeRepository {
         (step) => !deletions.get(step.pieceId)?.withSteps,
       );
       const addedRuns = notStored(input.scaleRuns, scaleRuns.keys());
+      const addedAnswers = notStored(input.answers, answers.keys());
       for (const session of [...addedSessions, ...longerSessions]) {
         sessions.set(session.id, copy(session));
       }
@@ -536,6 +584,7 @@ export function createMemoryRepository(): PracticeRepository {
       for (const piece of addedPieces) pieces.set(piece.id, copy(piece));
       for (const step of addedSteps) steps.set(step.id, copy(step));
       for (const run of addedRuns) scaleRuns.set(run.id, copy(run));
+      for (const answer of addedAnswers) answers.set(answer.id, copy(answer));
       stats = statsFromAttempts([...attempts.values()]);
       return Promise.resolve({
         sessions: addedSessions.length + longerSessions.length,
@@ -543,6 +592,7 @@ export function createMemoryRepository(): PracticeRepository {
         pieces: addedPieces.length,
         pieceSteps: addedSteps.length,
         scaleRuns: addedRuns.length,
+        answers: addedAnswers.length,
       });
     },
     sync: null,
