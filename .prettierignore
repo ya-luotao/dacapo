@@ -2,6 +2,7 @@ dist
 coverage
 pnpm-lock.yaml
 .lane
+.claude
 # The spec is maintained by hand; keep its source tables diff-friendly.
 docs/MVP.md
 apple/build
