@@ -50,8 +50,9 @@ describe('the lessons', () => {
     expect(neighbours('pedals').next?.slug).toBe('ornaments');
     expect(neighbours('ornaments').next?.slug).toBe('chords');
     expect(neighbours('chords').next?.slug).toBe('practising');
-    expect(neighbours('practising')).toMatchObject({
-      previous: { slug: 'chords' },
+    expect(neighbours('practising').next?.slug).toBe('styles');
+    expect(neighbours('styles')).toMatchObject({
+      previous: { slug: 'practising' },
       next: undefined,
     });
     expect(neighbours('unknown')).toEqual({});

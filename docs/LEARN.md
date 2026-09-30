@@ -23,6 +23,7 @@ the computer keyboard, a click or a tap, like the Play page.
 | 12  | `ornaments`        | Ornaments                            | written |
 | 13  | `chords`           | Chords and harmony                   | written |
 | 14  | `practising`       | Practising well                      | written |
+| 15  | `styles`           | Styles and forms                     | written |
 
 Beside them, not numbered: **Inside the piano** (`inside`), one key of a grand piano's action in
 cross-section, moving as you play. Its motion comes from `src/core/pianoAction.ts`: the key, the
@@ -119,6 +120,17 @@ Fine") are replaced by what works in Chinese.
   to what exists (the Pieces' loop, weak bars, hands, tempo and modes; the Metronome's tempo
   trainer and silent bars; the Progress page's streak and daily goal), and recording yourself is
   done on a phone.
+- `styleFigures.tsx` has lesson 15's: the periods on a line of years (Baroque, Classical,
+  Romantic, and Impressionism and after) over the lives of the library's composers, drawn a unit to
+  a pixel; a passage of a library piece (`Excerpt`), read from its own MusicXML when the figure first
+  needs it and played both hands, repeats unrolled, at a tempo of the lesson's choosing, since four
+  of the files give none and the Pieces' 90 is too fast for the Gymnopédie; and a piece's form as a
+  row of its sections in the order they are played (`formSegments` in `styles.ts`), each as long as
+  its bars, any one heard alone or all in turn with the one sounding lit: the Ode to Joy (a a′ b
+  a′), the Minuet in G (two halves, each repeated), the Old French Song (a a b a) and Für Elise's A
+  section (‖: a :‖: b a :‖). The exercise's excerpts sit in `ChoiceQuiz`'s figure. Every built-in
+  piece names its period and form beside its note in the library (`library.<id>.style`, in every
+  language).
 - An exercise that needs something not everyone has (a keyboard that senses touch, a sustain
   pedal) says so when no MIDI keyboard is connected and can always be skipped; the lesson is
   finished by its last exercise, which anyone can do. Lesson 10's crescendo passes when every

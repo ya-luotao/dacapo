@@ -29,7 +29,7 @@ export const zhCN: Dictionary = {
   'home.welcome.link': '查看进度',
   'home.contents': '目录',
   'home.learn.text':
-    '十四节给初学者的短课：键盘、五线谱、地标音、节奏、升降号、大调音阶、坐姿手型，以及附点、延音线、三连音、小调、强弱奏法、踏板、装饰音、和弦，还有怎样练琴，配有可以动手弹的图示。',
+    '十五节给初学者的短课：键盘、五线谱、地标音、节奏、升降号、大调音阶、坐姿手型，以及附点、延音线、三连音、小调、强弱奏法、踏板、装饰音、和弦，还有怎样练琴、风格与曲式，配有可以动手弹的图示。',
   'home.learn.meta': '{n} 课',
   'home.read.text':
     '大谱表上一次一个音，从中央 C 位置一直到加线和升号、降号。每次作答都会计时，下一张卡片会优先出你反应慢的音。',
@@ -477,50 +477,65 @@ export const zhCN: Dictionary = {
   'library.beethoven-ode-to-joy.composer': '贝多芬',
   'library.beethoven-ode-to-joy.note':
     '第九交响曲中的主题，C 大调，配简单的左手。右手基本在中央 C 附近。',
+  'library.beethoven-ode-to-joy.style': '古典主义 · 由四个乐句组成的主题：a a′ b a′',
   'library.petzold-minuet-in-g.title': 'G 大调小步舞曲',
   'library.petzold-minuet-in-g.composer': '佩措尔德',
   'library.petzold-minuet-in-g.note':
     '出自《安娜·玛格达莱娜·巴赫曲集》，长期被当作巴赫的作品。左手有时出现第二个声部。',
+  'library.petzold-minuet-in-g.style': '巴洛克 · 二部曲式：前后两半各反复一次',
   'library.burgmuller-arabesque.title': '阿拉伯风格曲，作品 100 第 2 首',
   'library.burgmuller-arabesque.composer': '布格缪勒',
   'library.burgmuller-arabesque.note': '双手接力的快速五音跑动，由短促的断奏和弦来应答。',
+  'library.burgmuller-arabesque.style': '浪漫主义 · 练习曲，A B A 三部曲式，带引子和尾声',
   'library.schumann-soldiers-march.title': '士兵进行曲，作品 68 第 2 首',
   'library.schumann-soldiers-march.composer': '舒曼',
   'library.schumann-soldiers-march.note': '选自《少年曲集》：双手都有附点节奏和饱满的和弦。',
+  'library.schumann-soldiers-march.style': '浪漫主义 · 性格小品，a a b a，后半的 b a 反复',
   'library.beethoven-fur-elise.title': '致爱丽丝（A 段）',
   'library.beethoven-fur-elise.composer': '贝多芬',
   'library.beethoven-fur-elise.note': '著名的主题、一小段插部和主题再现，包含两处反复。',
+  'library.beethoven-fur-elise.style': '古典主义 · 回旋曲（A B A C A）的 A 段，本身是 a b a',
   'library.bach-prelude-in-c.title': 'C 大调前奏曲，BWV 846',
   'library.bach-prelude-in-c.composer': '巴赫',
   'library.bach-prelude-in-c.note':
     '选自《平均律钢琴曲集》的分解和弦：每小节同一个音型，和声一小节一变。',
+  'library.bach-prelude-in-c.style': '巴洛克 · 前奏曲：一个分解和弦音型贯穿始终',
   'library.petzold-minuet-in-g-minor.title': 'G 小调小步舞曲',
   'library.petzold-minuet-in-g-minor.composer': '佩措尔德',
   'library.petzold-minuet-in-g-minor.note':
     '《安娜·玛格达莱娜·巴赫曲集》中 G 大调小步舞曲的姊妹篇，换成小调，前后两段各反复一次。',
+  'library.petzold-minuet-in-g-minor.style': '巴洛克 · 二部曲式：前后两半各反复一次',
   'library.bach-musette-in-d.title': 'D 大调风笛舞曲',
   'library.bach-musette-in-d.composer': '巴赫',
   'library.bach-musette-in-d.note':
     '风笛舞曲模仿风笛：左手的持续低音以八度跳跃，先在 D 上，再到 A 和 E，上方是明亮的旋律。',
+  'library.bach-musette-in-d.style':
+    '巴洛克 · 前后两半各反复一次；按传统，最后再把前一半弹一遍（从头反复）',
   'library.burgmuller-candeur.title': '纯洁，作品 100 第 1 首',
   'library.burgmuller-candeur.composer': '布格缪勒',
   'library.burgmuller-candeur.note':
     '布格缪勒练习曲的第一首：平稳均匀的八分音符，大多在右手，配简单的和弦。',
+  'library.burgmuller-candeur.style': '浪漫主义 · 练习曲，前后两半各反复一次，再加尾声',
   'library.tchaikovsky-old-french-song.title': '古老的法国歌曲，作品 39 第 16 首',
   'library.tchaikovsky-old-french-song.composer': '柴可夫斯基',
   'library.tchaikovsky-old-french-song.note':
     '选自《儿童曲集》：G 小调的哀婉旋律，左手有一条内声部和一个持续的 G 音。',
+  'library.tchaikovsky-old-french-song.style': '浪漫主义 · 性格小品，歌曲形式 a a b a',
   'library.tchaikovsky-morning-prayer.title': '晨祷，作品 39 第 1 首',
   'library.tchaikovsky-morning-prayer.composer': '柴可夫斯基',
   'library.tchaikovsky-morning-prayer.note':
     '选自《儿童曲集》：安静的四声部圣咏，由双手分担缓慢的和弦。',
+  'library.tchaikovsky-morning-prayer.style':
+    '浪漫主义 · 性格小品：两个乐句的圣咏，再在持续的低音 G 上结尾',
   'library.chopin-prelude-in-c-minor.title': 'C 小调前奏曲，作品 28 第 20 首',
   'library.chopin-prelude-in-c-minor.composer': '肖邦',
   'library.chopin-prelude-in-c-minor.note':
     '十三小节缓慢而饱满的双手和弦；第 5–8 小节轻声再现，然后是最后的和弦。',
+  'library.chopin-prelude-in-c-minor.style': '浪漫主义 · 前奏曲，三个乐句，最后一句是第二句的回声',
   'library.satie-gymnopedie-1.title': '裸体歌舞第 1 号',
   'library.satie-gymnopedie-1.composer': '萨蒂',
   'library.satie-gymnopedie-1.note': '缓慢而宁静的旋律，左手每小节在低音和和弦之间来回摆动。',
+  'library.satie-gymnopedie-1.style': '印象主义及以后 · 同一个旋律弹两遍，两次结尾不同',
 
   'pieces.yours': '我的曲目',
   'pieces.yours.help':

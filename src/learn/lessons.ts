@@ -177,6 +177,18 @@ export const LESSONS: readonly LessonInfo[] = [
     ready: true,
     practice: '/pieces',
   },
+  {
+    slug: 'styles',
+    title: { en: 'Styles and forms', 'zh-CN': '风格与曲式' },
+    summary: {
+      en: 'The Baroque, Classical, Romantic and Impressionist periods and how to play each, and the forms music is built in: phrases, binary, ternary, rondo and variations.',
+      'zh-CN':
+        '巴洛克、古典主义、浪漫主义和印象主义几个时期，每个时期怎么弹，以及音乐的几种曲式：乐句、二部曲式、三部曲式、回旋曲式和变奏曲。',
+    },
+    minutes: 18,
+    ready: true,
+    practice: '/pieces',
+  },
 ];
 
 /**

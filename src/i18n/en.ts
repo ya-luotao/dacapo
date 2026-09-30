@@ -29,7 +29,7 @@ export const en = {
   'home.welcome.link': 'See your progress',
   'home.contents': 'Contents',
   'home.learn.text':
-    'Fourteen short lessons for your first weeks: the keyboard, the staff, landmarks, rhythm, sharps and flats, the major scale, posture, then dots, ties and triplets, minor keys, loud and soft, joined and detached, the pedals, ornaments, chords and how to practise, with figures to play with.',
+    'Fifteen short lessons for your first weeks: the keyboard, the staff, landmarks, rhythm, sharps and flats, the major scale, posture, then dots, ties and triplets, minor keys, loud and soft, joined and detached, the pedals, ornaments, chords, how to practise, and styles and forms, with figures to play with.',
   'home.learn.meta': '{n} lessons',
   'home.read.text':
     'One note at a time on the grand staff, from middle C position to ledger lines and accidentals. Every answer is timed, and the next card favours the notes you are slow on.',
@@ -491,54 +491,75 @@ export const en = {
   'library.beethoven-ode-to-joy.composer': 'Ludwig van Beethoven',
   'library.beethoven-ode-to-joy.note':
     'The theme from the Ninth Symphony, in C major with a simple left hand. The right hand stays around middle C.',
+  'library.beethoven-ode-to-joy.style': 'Classical · a theme in four phrases, a a′ b a′',
   'library.petzold-minuet-in-g.title': 'Minuet in G major',
   'library.petzold-minuet-in-g.composer': 'Christian Petzold',
   'library.petzold-minuet-in-g.note':
     'From Anna Magdalena Bach’s notebook, long thought to be by Bach. A second voice appears in the left hand.',
+  'library.petzold-minuet-in-g.style': 'Baroque · binary form: two halves, each repeated',
   'library.burgmuller-arabesque.title': 'Arabesque, Op. 100 No. 2',
   'library.burgmuller-arabesque.composer': 'Friedrich Burgmüller',
   'library.burgmuller-arabesque.note':
     'Quick five-note runs passed between the hands, answered by short staccato chords.',
+  'library.burgmuller-arabesque.style':
+    'Romantic · étude in A B A form, with an introduction and a coda',
   'library.schumann-soldiers-march.title': 'Soldiers’ March, Op. 68 No. 2',
   'library.schumann-soldiers-march.composer': 'Robert Schumann',
   'library.schumann-soldiers-march.note':
     'From the Album for the Young: dotted rhythms and full chords in both hands.',
+  'library.schumann-soldiers-march.style':
+    'Romantic · character piece in a a b a form, the b a repeated',
   'library.beethoven-fur-elise.title': 'Für Elise (A section)',
   'library.beethoven-fur-elise.composer': 'Ludwig van Beethoven',
   'library.beethoven-fur-elise.note':
     'The famous theme, the short episode and the theme’s return, with both repeats.',
+  'library.beethoven-fur-elise.style':
+    'Classical · the A section of a rondo (A B A C A), itself a b a',
   'library.bach-prelude-in-c.title': 'Prelude in C major, BWV 846',
   'library.bach-prelude-in-c.composer': 'Johann Sebastian Bach',
   'library.bach-prelude-in-c.note':
     'Broken chords from the Well-Tempered Clavier: one pattern in every bar, a new harmony each time.',
+  'library.bach-prelude-in-c.style':
+    'Baroque · prelude: one broken-chord pattern from start to end',
   'library.petzold-minuet-in-g-minor.title': 'Minuet in G minor',
   'library.petzold-minuet-in-g-minor.composer': 'Christian Petzold',
   'library.petzold-minuet-in-g-minor.note':
     'The Minuet in G’s companion in Anna Magdalena Bach’s notebook, in the minor, with both halves repeated.',
+  'library.petzold-minuet-in-g-minor.style': 'Baroque · binary form: two halves, each repeated',
   'library.bach-musette-in-d.title': 'Musette in D major',
   'library.bach-musette-in-d.composer': 'Johann Sebastian Bach',
   'library.bach-musette-in-d.note':
     'A musette imitates the bagpipe: the left hand’s drone leaps in octaves, on D, then A and E, under a bright tune.',
+  'library.bach-musette-in-d.style':
+    'Baroque · two repeated halves; by tradition the first is played again to end (da capo)',
   'library.burgmuller-candeur.title': 'La Candeur, Op. 100 No. 1',
   'library.burgmuller-candeur.composer': 'Friedrich Burgmüller',
   'library.burgmuller-candeur.note':
     'The first of Burgmüller’s studies: smooth, even eighth notes, mostly in the right hand, over simple chords.',
+  'library.burgmuller-candeur.style': 'Romantic · étude in two repeated halves and a coda',
   'library.tchaikovsky-old-french-song.title': 'Old French Song, Op. 39 No. 16',
   'library.tchaikovsky-old-french-song.composer': 'Pyotr Ilyich Tchaikovsky',
   'library.tchaikovsky-old-french-song.note':
     'From the Album for the Young: a sad tune in G minor over an inner voice and a held G in the left hand.',
+  'library.tchaikovsky-old-french-song.style': 'Romantic · character piece in song form, a a b a',
   'library.tchaikovsky-morning-prayer.title': 'Morning Prayer, Op. 39 No. 1',
   'library.tchaikovsky-morning-prayer.composer': 'Pyotr Ilyich Tchaikovsky',
   'library.tchaikovsky-morning-prayer.note':
     'From the Album for the Young: a quiet hymn in four parts, in slow chords shared by the hands.',
+  'library.tchaikovsky-morning-prayer.style':
+    'Romantic · character piece: a hymn in two phrases, then a coda over a held G',
   'library.chopin-prelude-in-c-minor.title': 'Prelude in C minor, Op. 28 No. 20',
   'library.chopin-prelude-in-c-minor.composer': 'Frédéric Chopin',
   'library.chopin-prelude-in-c-minor.note':
     'Thirteen bars of slow, full chords in both hands; bars 5–8 come back softly before the last chord.',
+  'library.chopin-prelude-in-c-minor.style':
+    'Romantic · prelude in three phrases, the last an echo of the second',
   'library.satie-gymnopedie-1.title': 'Gymnopédie No. 1',
   'library.satie-gymnopedie-1.composer': 'Erik Satie',
   'library.satie-gymnopedie-1.note':
     'A slow, still melody over a left hand that swings between a low note and a chord in every bar.',
+  'library.satie-gymnopedie-1.style':
+    'Impressionism and after · one tune played twice, with two endings',
 
   'pieces.yours': 'Your pieces',
   'pieces.yours.help':

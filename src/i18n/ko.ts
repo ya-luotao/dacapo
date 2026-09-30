@@ -29,7 +29,7 @@ export const ko: Dictionary = {
   'home.welcome.link': '기록 보기',
   'home.contents': '차례',
   'home.learn.text':
-    '초보자를 위한 짧은 레슨 열네 개. 건반, 오선보, 기준음, 리듬, 올림표와 내림표, 장음계, 자세와 손 모양, 그리고 점음표·붙임줄·셋잇단음표, 단조, 셈여림과 아티큘레이션, 페달, 꾸밈음, 화음, 연습하는 법을 직접 쳐 볼 수 있는 그림으로 배워요.',
+    '초보자를 위한 짧은 레슨 열다섯 개. 건반, 오선보, 기준음, 리듬, 올림표와 내림표, 장음계, 자세와 손 모양, 그리고 점음표·붙임줄·셋잇단음표, 단조, 셈여림과 아티큘레이션, 페달, 꾸밈음, 화음, 연습하는 법, 양식과 형식을 직접 쳐 볼 수 있는 그림으로 배워요.',
   'home.learn.meta': '레슨 {n}개',
   'home.read.text':
     '큰보표의 음을 하나씩, 가운데 C 자리부터 덧줄, 올림표와 내림표까지. 모든 답의 시간을 재고, 느리게 찾는 음일수록 다음 카드에 더 자주 나와요.',
@@ -487,54 +487,70 @@ export const ko: Dictionary = {
   'library.beethoven-ode-to-joy.composer': '루트비히 판 베토벤',
   'library.beethoven-ode-to-joy.note':
     '교향곡 9번의 주제를 C장조로 옮기고 왼손 반주를 간단히 붙였어요. 오른손은 가운데 C 근처에 머물러요.',
+  'library.beethoven-ode-to-joy.style': '고전파 · 네 프레이즈로 된 주제, a a′ b a′',
   'library.petzold-minuet-in-g.title': '미뉴에트 G장조',
   'library.petzold-minuet-in-g.composer': '크리스티안 페촐트',
   'library.petzold-minuet-in-g.note':
     '「안나 막달레나 바흐를 위한 음악 수첩」에 실린 곡으로, 오랫동안 바흐의 작품으로 알려졌어요. 왼손에 두 번째 성부가 나와요.',
+  'library.petzold-minuet-in-g.style': '바로크 · 두도막 형식: 앞뒤 절반을 각각 반복',
   'library.burgmuller-arabesque.title': '아라베스크, Op. 100 No. 2',
   'library.burgmuller-arabesque.composer': '프리드리히 부르크뮐러',
   'library.burgmuller-arabesque.note':
     '양손이 주고받는 빠른 다섯 음 패시지에 짧은 스타카토 화음이 대답해요.',
+  'library.burgmuller-arabesque.style': '낭만파 · 서주와 코다가 있는 A B A 형식의 연습곡',
   'library.schumann-soldiers-march.title': '병사의 행진, Op. 68 No. 2',
   'library.schumann-soldiers-march.composer': '로베르트 슈만',
   'library.schumann-soldiers-march.note':
     '「어린이를 위한 앨범」에 실린 곡으로, 양손 모두 점음표 리듬과 꽉 찬 화음이 나와요.',
+  'library.schumann-soldiers-march.style': '낭만파 · 성격 소품, a a b a 형식으로 뒤의 b a를 반복',
   'library.beethoven-fur-elise.title': '엘리제를 위하여 (A 부분)',
   'library.beethoven-fur-elise.composer': '루트비히 판 베토벤',
   'library.beethoven-fur-elise.note':
     '잘 알려진 주제, 짧은 에피소드, 주제의 재현까지. 도돌이표 두 곳을 모두 포함해요.',
+  'library.beethoven-fur-elise.style': '고전파 · 론도(A B A C A)의 A 부분으로, 그 자체가 a b a',
   'library.bach-prelude-in-c.title': '전주곡 C장조, BWV 846',
   'library.bach-prelude-in-c.composer': '요한 제바스티안 바흐',
   'library.bach-prelude-in-c.note':
     '「평균율 클라비어 곡집」에 실린 분산화음 곡이에요. 마디마다 같은 음형이 이어지고 화성만 바뀌어요.',
+  'library.bach-prelude-in-c.style': '바로크 · 전주곡: 하나의 분산화음 음형이 처음부터 끝까지',
   'library.petzold-minuet-in-g-minor.title': '미뉴에트 G단조',
   'library.petzold-minuet-in-g-minor.composer': '크리스티안 페촐트',
   'library.petzold-minuet-in-g-minor.note':
     '「안나 막달레나 바흐를 위한 음악 수첩」에서 미뉴에트 G장조와 짝을 이루는 단조 곡이에요. 앞뒤 두 부분을 각각 반복해요.',
+  'library.petzold-minuet-in-g-minor.style': '바로크 · 두도막 형식: 앞뒤 절반을 각각 반복',
   'library.bach-musette-in-d.title': '뮈제트 D장조',
   'library.bach-musette-in-d.composer': '요한 제바스티안 바흐',
   'library.bach-musette-in-d.note':
     '뮈제트는 백파이프를 흉내 낸 곡이에요. 왼손의 지속음이 옥타브로 뛰며 D에서 A, E로 옮겨 가고, 그 위로 밝은 선율이 흘러요.',
+  'library.bach-musette-in-d.style':
+    '바로크 · 앞뒤 절반을 각각 반복하고, 관례대로 끝에 앞 절반을 다시 연주(다 카포)',
   'library.burgmuller-candeur.title': '순수 (La Candeur), Op. 100 No. 1',
   'library.burgmuller-candeur.composer': '프리드리히 부르크뮐러',
   'library.burgmuller-candeur.note':
     '부르크뮐러 연습곡의 첫 곡이에요. 고르고 매끄러운 8분음표가 주로 오른손에 나오고, 왼손은 간단한 화음이에요.',
+  'library.burgmuller-candeur.style': '낭만파 · 앞뒤 절반을 각각 반복하고 코다로 끝나는 연습곡',
   'library.tchaikovsky-old-french-song.title': '옛 프랑스 노래, Op. 39 No. 16',
   'library.tchaikovsky-old-french-song.composer': '표트르 일리치 차이콥스키',
   'library.tchaikovsky-old-french-song.note':
     '「어린이를 위한 앨범」에 실린 곡으로, G단조의 애잔한 선율 아래 왼손이 안쪽 성부와 길게 이어지는 G음을 연주해요.',
+  'library.tchaikovsky-old-french-song.style': '낭만파 · 성격 소품, a a b a 가요 형식',
   'library.tchaikovsky-morning-prayer.title': '아침 기도, Op. 39 No. 1',
   'library.tchaikovsky-morning-prayer.composer': '표트르 일리치 차이콥스키',
   'library.tchaikovsky-morning-prayer.note':
     '「어린이를 위한 앨범」에 실린 곡으로, 조용한 4성부 코랄의 느린 화음을 양손이 나누어 연주해요.',
+  'library.tchaikovsky-morning-prayer.style':
+    '낭만파 · 성격 소품: 두 프레이즈의 찬송가 선율과, 낮은 G를 지속하는 코다',
   'library.chopin-prelude-in-c-minor.title': '전주곡 C단조, Op. 28 No. 20',
   'library.chopin-prelude-in-c-minor.composer': '프레데리크 쇼팽',
   'library.chopin-prelude-in-c-minor.note':
     '양손의 느리고 꽉 찬 화음이 이어지는 13마디예요. 5~8마디가 여리게 한 번 더 나온 뒤 마지막 화음으로 끝나요.',
+  'library.chopin-prelude-in-c-minor.style':
+    '낭만파 · 세 프레이즈로 된 전주곡으로, 마지막은 두 번째 프레이즈의 메아리',
   'library.satie-gymnopedie-1.title': '짐노페디 제1번',
   'library.satie-gymnopedie-1.composer': '에리크 사티',
   'library.satie-gymnopedie-1.note':
     '느리고 고요한 선율 아래, 왼손이 마디마다 낮은 음과 화음을 오가요.',
+  'library.satie-gymnopedie-1.style': '인상주의 이후 · 같은 선율을 두 번, 끝을 다르게',
 
   'pieces.yours': '내 곡',
   'pieces.yours.help':

@@ -86,12 +86,12 @@ and sessions (from version 6), and the click's tempo and grid of scale runs play
 
 ### The basics: lessons for beginners ([docs/LEARN.md](docs/LEARN.md))
 
-- **Learn** has fourteen short lessons for your first weeks at the piano, in English and
+- **Learn** has fifteen short lessons for your first weeks at the piano, in English and
   Simplified Chinese: finding your way around the keyboard; the staff and the clefs; landmark
   notes and intervals; rhythm and the beat; sharps, flats, whole and half steps; the major scale
   and key signatures; posture, hand shape and fingering; dots, ties, triplets and syncopation;
   minor scales and minor keys; loud and soft, joined and detached; the pedals; ornaments;
-  chords and harmony; and practising well.
+  chords and harmony; practising well; and styles and forms.
 - The second rhythm lesson reads the rhythms of most beginners' pieces: the dotted quarter and its
   eighth, ties over the beat and the barline, sixteenths and the dotted eighth, triplets against
   straight eighths, syncopation, and 6/8 set beside 3/4. Every rhythm is engraved with its beams,
@@ -140,6 +140,15 @@ and sessions (from version 6), and the click's tempo and grid of scale runs play
   split into its parts; learning a piece by heart in several ways at once, with a plan; playing for
   others, recording yourself and going on after a slip; playing without strain; and what an app
   cannot hear, which a teacher can. Nine questions on its ideas finish it.
+- The lesson on styles and forms sets the Baroque, Classical, Romantic, and Impressionism and after
+  on a line of years with the lives of the library's composers, and says how each sounds and how
+  to play it, with a passage of a library piece from each played from its own file: the Minuet in
+  G, Für Elise, the Old French Song and the Gymnopédie. It explains phrases and periods, binary,
+  ternary and rondo form, theme and variations, the prelude, the étude and the character piece,
+  and sonata form in two sentences, and draws four pieces as rows of their sections, repeats and
+  all, each section heard alone or the whole in turn. Six passages to place in their period and
+  four forms to name finish it. Every piece in the library now names its period and form beside
+  its note, in every language.
 - Every figure is the app's own keyboard or an engraved staff: colour the black-key groups, point
   at a line to hear its note, hold keys to see where they are written, build a major scale from
   any key, tap along with a beat and see how early or late you are. Each lesson ends with

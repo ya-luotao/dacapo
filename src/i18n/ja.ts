@@ -30,7 +30,7 @@ export const ja: Dictionary = {
   'home.welcome.link': '記録を見る',
   'home.contents': '目次',
   'home.learn.text':
-    '初心者のための14の短いレッスン。鍵盤、五線譜、目印の音、リズム、シャープとフラット、長音階、姿勢と手の形、そして付点・タイ・三連符、短調、強弱とアーティキュレーション、ペダル、装飾音、和音、練習のしかたを、実際に弾ける図で学べます。',
+    '初心者のための15の短いレッスン。鍵盤、五線譜、目印の音、リズム、シャープとフラット、長音階、姿勢と手の形、そして付点・タイ・三連符、短調、強弱とアーティキュレーション、ペダル、装飾音、和音、練習のしかた、様式と形式を、実際に弾ける図で学べます。',
   'home.learn.meta': '{n}レッスン',
   'home.read.text':
     '大譜表の音符を1つずつ。中央Cのポジションから、加線、シャープとフラットまで。すべての解答の時間を計り、反応の遅い音ほど次のカードに出やすくなります。',
@@ -491,54 +491,73 @@ export const ja: Dictionary = {
   'library.beethoven-ode-to-joy.composer': 'ベートーヴェン',
   'library.beethoven-ode-to-joy.note':
     '交響曲第9番の主題を、ハ長調でシンプルな左手をつけてアレンジしています。右手はずっと中央Cのあたりで弾けます。',
+  'library.beethoven-ode-to-joy.style': '古典派 · 四つのフレーズからなる主題、a a′ b a′',
   'library.petzold-minuet-in-g.title': 'メヌエット ト長調',
   'library.petzold-minuet-in-g.composer': 'ペツォールト',
   'library.petzold-minuet-in-g.note':
     '『アンナ・マグダレーナ・バッハのための音楽帳』より。長くバッハの作品とされてきました。左手に2つ目の声部が現れます。',
+  'library.petzold-minuet-in-g.style': 'バロック · 二部形式：前半と後半をそれぞれくり返す',
   'library.burgmuller-arabesque.title': 'アラベスク（25の練習曲 Op.100-2）',
   'library.burgmuller-arabesque.composer': 'ブルグミュラー',
   'library.burgmuller-arabesque.note':
     '両手で受け渡す速い5音の音型に、短いスタッカートの和音が応えます。',
+  'library.burgmuller-arabesque.style': 'ロマン派 · 序奏とコーダの付いた A B A 形式の練習曲',
   'library.schumann-soldiers-march.title': '兵士の行進（Op.68-2）',
   'library.schumann-soldiers-march.composer': 'シューマン',
   'library.schumann-soldiers-march.note':
     '『子供のためのアルバム（ユーゲントアルバム）』より。付点のリズムと、両手の厚い和音が特徴です。',
+  'library.schumann-soldiers-march.style':
+    'ロマン派 · 性格的小品、a a b a 形式で後半の b a をくり返す',
   'library.beethoven-fur-elise.title': 'エリーゼのために（Aの部分）',
   'library.beethoven-fur-elise.composer': 'ベートーヴェン',
   'library.beethoven-fur-elise.note':
     'おなじみの主題、短いエピソード、そして主題の再現まで。2つのくり返しも含みます。',
+  'library.beethoven-fur-elise.style':
+    '古典派 · ロンド（A B A C A）の A の部分で、それ自体が a b a',
   'library.bach-prelude-in-c.title': '前奏曲 ハ長調 BWV 846',
   'library.bach-prelude-in-c.composer': 'J.S.バッハ',
   'library.bach-prelude-in-c.note':
     '『平均律クラヴィーア曲集 第1巻』より、分散和音の曲。どの小節も同じ音型で、和声が小節ごとに変わります。',
+  'library.bach-prelude-in-c.style': 'バロック · 前奏曲：一つの分散和音の型が最初から最後まで続く',
   'library.petzold-minuet-in-g-minor.title': 'メヌエット ト短調',
   'library.petzold-minuet-in-g-minor.composer': 'ペツォールト',
   'library.petzold-minuet-in-g-minor.note':
     '『アンナ・マグダレーナ・バッハのための音楽帳』で、ト長調のメヌエットと対になる短調の曲。前半と後半をそれぞれくり返します。',
+  'library.petzold-minuet-in-g-minor.style': 'バロック · 二部形式：前半と後半をそれぞれくり返す',
   'library.bach-musette-in-d.title': 'ミュゼット ニ長調',
   'library.bach-musette-in-d.composer': 'J.S.バッハ',
   'library.bach-musette-in-d.note':
     'ミュゼットはバグパイプをまねた曲。左手の持続音がオクターブで跳びながらニ、イ、ホと移り、その上で明るい旋律が歌います。',
+  'library.bach-musette-in-d.style':
+    'バロック · 前半と後半をそれぞれくり返す。伝統的には最後に前半をもう一度弾く（ダ・カーポ）',
   'library.burgmuller-candeur.title': '素直な心（25の練習曲 Op.100-1）',
   'library.burgmuller-candeur.composer': 'ブルグミュラー',
   'library.burgmuller-candeur.note':
     'ブルグミュラーの練習曲の第1曲。なめらかでむらのない8分音符がおもに右手に続き、左手はシンプルな和音です。',
+  'library.burgmuller-candeur.style':
+    'ロマン派 · 前半と後半をそれぞれくり返し、コーダで終わる練習曲',
   'library.tchaikovsky-old-french-song.title': '古いフランスの歌（Op.39-16）',
   'library.tchaikovsky-old-french-song.composer': 'チャイコフスキー',
   'library.tchaikovsky-old-french-song.note':
     '『子供のためのアルバム』より。ト短調のもの悲しい旋律の下で、左手は内声とのばしたトの音を弾きます。',
+  'library.tchaikovsky-old-french-song.style': 'ロマン派 · 性格的小品、a a b a の歌謡形式',
   'library.tchaikovsky-morning-prayer.title': '朝の祈り（Op.39-1）',
   'library.tchaikovsky-morning-prayer.composer': 'チャイコフスキー',
   'library.tchaikovsky-morning-prayer.note':
     '『子供のためのアルバム』より。静かな4声のコラールを、両手でゆっくりとした和音に分けて弾きます。',
+  'library.tchaikovsky-morning-prayer.style':
+    'ロマン派 · 性格的小品：二つのフレーズの聖歌と、低音の G を保ったコーダ',
   'library.chopin-prelude-in-c-minor.title': '前奏曲 ハ短調 Op.28-20',
   'library.chopin-prelude-in-c-minor.composer': 'ショパン',
   'library.chopin-prelude-in-c-minor.note':
     'ゆっくりとした厚い和音が両手で続く13小節。第5〜8小節が弱い音でもう一度現れ、最後の和音で終わります。',
+  'library.chopin-prelude-in-c-minor.style':
+    'ロマン派 · 三つのフレーズの前奏曲で、最後のフレーズは二つ目のこだま',
   'library.satie-gymnopedie-1.title': 'ジムノペディ第1番',
   'library.satie-gymnopedie-1.composer': 'サティ',
   'library.satie-gymnopedie-1.note':
     'ゆっくりと静かな旋律。左手は小節ごとに、低い音と和音のあいだを行き来します。',
+  'library.satie-gymnopedie-1.style': '印象派以降 · 同じ旋律を二度、それぞれ違う終わり方で',
 
   'pieces.yours': 'インポートした曲',
   'pieces.yours.help':

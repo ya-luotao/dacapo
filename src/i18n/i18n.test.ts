@@ -43,7 +43,7 @@ describe('dictionaries', () => {
 
   it.each(LOCALES)('%s names, describes and credits every built-in piece', (locale) => {
     for (const id of BUILT_IN_IDS) {
-      for (const field of ['title', 'composer', 'note'] as const) {
+      for (const field of ['title', 'composer', 'note', 'style'] as const) {
         const key = `library.${id}.${field}` as MessageKey;
         expect(DICTIONARIES[locale][key], key).toBeTruthy();
       }

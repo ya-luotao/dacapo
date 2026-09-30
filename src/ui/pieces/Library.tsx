@@ -52,6 +52,7 @@ function LevelGroup({
             <Link href={`/pieces/${piece.id}`} className="library-piece">
               <span className="library-piece-title">{t(`library.${piece.id}.title`)}</span>
               <span className="library-piece-composer">{t(`library.${piece.id}.composer`)}</span>
+              <span className="library-piece-style">{t(`library.${piece.id}.style`)}</span>
               <span className="library-piece-note">{t(`library.${piece.id}.note`)}</span>
               <PieceProgress pieceId={piece.id} facts={piece.facts} />
             </Link>

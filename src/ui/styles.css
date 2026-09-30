@@ -3695,6 +3695,18 @@ kbd {
   line-height: 1.5;
 }
 
+/* Its period and form: Baroque · binary form. */
+.library-piece-style {
+  /* A line of its own, however short: capping its width would let it join the title's line. */
+  flex-basis: 100%;
+  margin-top: 0.125rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+}
+
 .library-piece-note {
   flex-basis: 100%;
   max-width: 40rem;
@@ -8974,4 +8986,242 @@ select.is-compact {
 /* The Ode to Joy's first four bars: a longer line than most, so a wider plate. */
 .plate-staff.is-phrase {
   max-width: 40rem;
+}
+
+/* Lesson 15: a passage of a library piece, the periods on a line of years, and a piece's form as
+   a row of its sections. */
+.excerpt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+.excerpt-source {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+
+.excerpt-track {
+  flex-basis: 100%;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--border);
+}
+
+.excerpt-track span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transform-origin: left;
+  animation: excerpt-fill linear forwards;
+}
+
+@keyframes excerpt-fill {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .excerpt-track span {
+    animation: none;
+  }
+}
+
+.choice-figure .excerpt {
+  justify-content: center;
+}
+
+.period-timeline {
+  margin: 0 0 0.5rem;
+}
+
+.period-timeline svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.period-rule {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.period-year {
+  fill: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.period-band {
+  cursor: pointer;
+}
+
+.period-band rect {
+  opacity: 0.25;
+  transition: opacity var(--dur-fast) ease-out;
+}
+
+.period-band.is-on rect {
+  opacity: 0.85;
+}
+
+.period-band text {
+  fill: var(--surface);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+.period-band:not(.is-on) text {
+  fill: var(--text-muted);
+}
+
+.period-band.is-0 rect {
+  fill: var(--lk-three);
+}
+
+.period-band.is-1 rect {
+  fill: var(--ok);
+}
+
+.period-band.is-2 rect {
+  fill: var(--accent);
+}
+
+.period-band.is-3 rect {
+  fill: var(--lk-two);
+}
+
+/* Each period's colour beside its name in the choices, as on the line of years. */
+.period-swatch {
+  display: inline-block;
+  width: 0.625rem;
+  height: 0.625rem;
+  margin-right: 0.4375rem;
+  border-radius: 2px;
+  vertical-align: 0.0625rem;
+}
+
+.period-swatch.is-0 {
+  background: var(--lk-three);
+}
+
+.period-swatch.is-1 {
+  background: var(--ok);
+}
+
+.period-swatch.is-2 {
+  background: var(--accent);
+}
+
+.period-swatch.is-3 {
+  background: var(--lk-two);
+}
+
+.period-life {
+  opacity: 0.35;
+  transition: opacity var(--dur-fast) ease-out;
+}
+
+.period-life.is-on {
+  opacity: 1;
+}
+
+.period-life line {
+  stroke: var(--text);
+  stroke-width: 2;
+}
+
+.period-life circle {
+  fill: var(--text);
+}
+
+.period-life text {
+  fill: var(--text);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  dominant-baseline: central;
+}
+
+.form-row {
+  display: flex;
+  gap: 3px;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.form-part {
+  flex-basis: 0;
+  min-width: 2rem;
+}
+
+.form-part button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 3.25rem;
+  padding: 0.25rem 0.125rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) ease-out,
+    border-color var(--dur-fast) ease-out;
+}
+
+.form-part b {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.form-part span {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.form-part.is-0 button {
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+}
+
+.form-part.is-1 button {
+  background: color-mix(in srgb, var(--lk-three) 22%, var(--surface));
+}
+
+.form-part.is-2 button {
+  background: color-mix(in srgb, var(--ok) 20%, var(--surface));
+}
+
+.form-part.is-3 button {
+  background: color-mix(in srgb, var(--lk-two) 20%, var(--surface));
+}
+
+.form-part.is-current button {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.form-part button:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
 }
