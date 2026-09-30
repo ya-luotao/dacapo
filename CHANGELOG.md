@@ -14,6 +14,26 @@ sessions go in the same lists), the
 click's tempo and grid of scale runs played with it (from version 7), and the takes of piece runs
 (from version 8). Version 1 to 7 files still import.
 
+### Technique II (S7)
+
+- The rest of the **Technique** group, from Hanon's The Virtuoso Pianist as printed: the
+  **diminished and dominant sevenths** in arpeggios (Nos. 42 and 43, a section on each of seven
+  roots), **repeated notes** (Nos. 44 and 47, and No. 45 in each of its six fingerings), the
+  **trill** (No. 46's first six bars), **thirds** (No. 50's scale in legato thirds and its
+  chromatic scale in minor thirds) and **octaves** (No. 51's preparatory lines, and No. 53's scales
+  in octaves in the 24 keys, with his footnote's fourth finger on the black keys). Each was
+  transcribed twice independently from the scan and diffed, and the drawn scores compared with the
+  plates; one digit both readings took for a 4 is a 1 on a staff line, and No. 50's chromatic scale
+  takes the three naturals its plate leaves out and ends on its printed rest.
+- A **trill on any pair of fingers** (1–2 to 4–5, and 1–3, 2–4, 3–5) in any major key, for 4, 8 or
+  16 bars, either hand or both with the mirror fingers. After a trill: its rate in notes a second,
+  and over time on a small chart; whether it slowed or hurried; and whether the two fingers were
+  even, or which key the next note comes late after.
+- After repeated notes: how long each key was up before it was struck again, typically and at the
+  shortest, and before which note.
+- Thirds and octaves are measured as chords: how far apart each one's keys came, the top key's
+  balance, and the legato of each voice.
+
 ### Technique I (S6)
 
 - **Technique** on the Scales page, a second group in the list of exercises: the **five-finger

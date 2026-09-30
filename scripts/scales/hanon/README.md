@@ -3,8 +3,9 @@
 The fingering the Scales page shows (see [docs/SCALES.md](../../../docs/SCALES.md)) comes from
 Charles-Louis Hanon, _The Virtuoso Pianist_, Nos. 39 (the major and minor scales), 40 (the
 chromatic scales) and 41 (the arpeggios on the triads), transcribed digit by digit from a
-public-domain scan; and its technique exercises Hanon Nos. 1–20 are his Part I, transcribed note
-by note and digit by digit from the same scan (`part1/`). This folder holds the transcriptions and
+public-domain scan; and its technique exercises are his, transcribed note by note and digit by
+digit from the same scan: Part I, Nos. 1–20 (`part1/`), and the parts of Nos. 42–53 the page offers
+(`s7/`). This folder holds the transcriptions and
 the tools that check and expand them. Every command runs from this folder (Part I's from
 `part1/`).
 
@@ -75,6 +76,17 @@ the tools that check and expand them. Every command runs from this folder (Part 
   from the scan during the transcription and are not kept; any page can be cut again from the PDF.
 - `differences.md` — where Hanon differs from the fingering commonly taught (from memory of the
   ABRSM and RCM books, not checked against one).
+- `s7/` — Nos. 42–53: No. 42's and No. 43's seven sections and closing bars, Nos. 44 and 47,
+  No. 45's six fingerings and its close, No. 46's first six bars, No. 50's scale in legato thirds
+  and chromatic scale in minor thirds, No. 51's first three systems, No. 53's twenty-four keys and
+  its close. `passA/` and `passB/` are two independent readings (six readers each): every bar of
+  both hands as steps (a note, or a chord's keys joined by `+`, at sounding pitch, `X*k` for a
+  repeat) and every digit by bar, hand, step and key. `python3 diff_s7.py` compares them (one
+  difference, a digit, settled in `resolved.py`, which also reads one digit both passes misread
+  and adds No. 50's closing rest); `python3 build_s7.py passA s7.json` expands the
+  settled reading and checks every bar's steps against the time signature and that both hands step
+  together. `../hanonTechnique.ts` writes `src/core/hanonTechnique.ts` from `s7.json`, adding No.
+  53's footnote 4 on each black-key octave; a test rebuilds and compares, and a checksum locks it.
 - `part1/` — Part I. `passA/` and `passB/` are two independent readings, four readers each, who
   did not see the other reading: per exercise the first bar of each half in full (both hands, at
   sounding pitch), the first note of every bar, every bar that is not its half's first bar moved
@@ -106,3 +118,9 @@ Decided in S0 (the reasons are in `docs/SCALES.md`, Clarifications):
   motion, the left hand his descent from the top and then his ascent.
 - Part I (decided in S6): every note as printed, and his digits as printed and nowhere else (a
   note he leaves unfingered has no finger), with no correction.
+- Nos. 42–53 (decided in S7): every note and digit as printed, played once through without his
+  repeats. One digit is read against both passes (No. 45, 5th fingering, bar 1, the left hand's E:
+  a 1 on a staff line, not a 4, `s7/resolved.py`); in No. 50's chromatic scale the three naturals
+  the plate leaves out are read, as the bars before print them; No. 50's chromatic scale ends on
+  his half note and quarter rest. No. 53's footnote ("the black keys are to be taken with the 4th finger of either hand")
+  puts a 4 on each black-key octave, on the right hand's upper key and the left hand's lower.

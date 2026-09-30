@@ -78,7 +78,12 @@ import {
   type RhythmLevelId,
 } from '../core/rhythmCells.ts';
 import { isRhythmFamily, judgeCell, type RhythmAnswer } from '../core/rhythmRead.ts';
-import { isClickTempo, isGridPerBeat, type ScaleClick } from '../core/scaleClick.ts';
+import {
+  isClickTempo,
+  isGridPerBeat,
+  type GridPerBeat,
+  type ScaleClick,
+} from '../core/scaleClick.ts';
 import type { PedalChange, ScaleRunSummary, StoredScaleRun } from '../core/scaleRecords.ts';
 import { parseExerciseKey } from '../core/scales.ts';
 import type { Attempt } from '../core/session.ts';
@@ -370,7 +375,7 @@ function isRunHeadline(v: unknown): v is RunHeadline {
 }
 
 /** A clicked run's tempo and notes per beat (S4); absent at free tempo. */
-const isClickSettings = (v: unknown): v is { bpm: number; perBeat: 1 | 2 | 3 | 4 } =>
+const isClickSettings = (v: unknown): v is { bpm: number; perBeat: GridPerBeat } =>
   isObject(v) && isClickTempo(v.bpm) && isGridPerBeat(v.perBeat);
 
 /** Latencies beyond this are no latency (rhythmPrefs.ts refuses them too). */

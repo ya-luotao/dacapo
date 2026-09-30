@@ -1,6 +1,6 @@
 # dacapo — Scales specification
 
-Status: S0–S6 are built (S1 stays open until the loudness thresholds and the reference bands are
+Status: S0–S7 are built (S1 stays open until the loudness thresholds and the reference bands are
 set from runs recorded on real instruments). This extends [MVP.md](MVP.md) and
 [PIECES.md](PIECES.md); their principles and fixed decisions still apply (staff first, measure
 don't guess, local data, English of record, every UI language, 3-day dependency cooldown, no
@@ -472,10 +472,10 @@ checked as S0 and S5 did); nothing is invented.
 | **Hanon 1–20** (Part I) | Each exercise's group of eight sixteenths (one bar of 2/4), a step higher each bar for two octaves, then its mirror a step lower each bar, and the closing bar, as printed | C (as printed)                    | Hanon's, as printed: in full in the first bars, then only the fingers it trains |
 | **Block chords**        | The key's triad in root position and both inversions, up two or three octaves and back                                                                                     | every major/minor                 | none                                                                            |
 | **Broken chords**       | The same chords broken low–middle–high–middle, one or two octaves, closing on the root                                                                                     | every major/minor                 | none                                                                            |
-| **Sevenths**            | Hanon No. 42 (the diminished sevenths) and No. 43 (the dominant sevenths), in arpeggios: per chord a bar of stretching, then the arpeggio up and down                      | as printed                        | Hanon's                                                                         |
+| **Sevenths**            | Hanon No. 42 (the diminished sevenths) and No. 43 (the dominant sevenths), in arpeggios: per chord a bar of stretching, then the arpeggio up and down                      | on C D E F G A B, as printed      | Hanon's                                                                         |
 | **Repeated notes**      | Hanon Nos. 44 (in groups of three), 45 (in groups of two, in six fingerings) and 47 (in groups of four)                                                                    | C (as printed)                    | Hanon's                                                                         |
 | **Trills**              | Hanon No. 46 (the trill for all five fingers, the pair changing as printed), then any pair of fingers held for 4, 8 or 16 bars                                             | C (as printed); any key for pairs | Hanon's; the pair chosen                                                        |
-| **Thirds**              | The scale in legato thirds printed after No. 50 ("Scales in Legato Thirds", unnumbered, after No. 50's legato-thirds exercise)                                             | C (as printed)                    | Hanon's                                                                         |
+| **Thirds**              | The scale in legato thirds and the chromatic scale in minor thirds printed after No. 50's legato-thirds exercise (unnumbered)                                              | C (as printed)                    | Hanon's                                                                         |
 | **Octaves**             | Hanon No. 51 (preparatory: each degree repeated in octaves, the first three lines he sets apart) and No. 53 (the scales in octaves in the 24 keys, the minors melodic)     | C; the 24 keys                    | Hanon's (No. 53: his footnote, the black keys with the fourth finger)           |
 
 Hanon's numbers are those of the G. Schirmer edition already transcribed (IMSLP #91547). Where the
@@ -595,6 +595,78 @@ an unnumbered part of No. 50; No. 51 repeats each degree in octaves.
   hand) keeps at least 6 px between notes and scrolls sideways. A technique exercise's score is drawn
   as large as a scale of as many beats; Hanon's thirty bars take several systems.
 
+## Clarifications (decided during S7)
+
+- **Hanon's later plates, transcribed** (`scripts/scales/hanon/s7/`). The parts offered — No. 42's
+  and No. 43's seven sections (a seventh on each of C, D, E, F, G, A and B) and their closing bars,
+  Nos. 44 and 47 whole, No. 45's six fingerings and its close, No. 46's first six bars, No. 50's
+  scale in legato thirds and its chromatic scale in minor thirds, No. 51's first three systems, and
+  No. 53's twenty-four keys and its close — were read twice, independently (six readers a pass),
+  every bar of both hands as steps (a note, or a chord's keys) and every digit by bar, hand, step
+  and key. `diff_s7.py` compares the readings: they differed in one digit only (No. 45, first
+  fingering, bar 1, a 1 on the bass staff's top line that one reader took for a 4; the clean
+  digits of the page settle it as a 1, `resolved.py`). `build_s7.py` checks that every bar's steps
+  fill it at the part's value and both hands step together, and the module `hanonTechnique.ts` is
+  generated from `s7.json` and locked by a checksum. The drawn scores were compared with the
+  plates as Part I's were: no difference but three, settled from the plate (`uncertain.md`). One digit both passes read 4 is a 1 on a staff line, measured as the others
+  (No. 45, 5th fingering, bar 1, the left hand's E, in the printed 3 1 3 1 3 1); No. 50's chromatic
+  scale reads three naturals the plate leaves out (it prints them in the bars before, and the
+  thirds stay minor); and its closing bar is his half note and quarter rest (`HanonPart.rest`,
+  drawn as a rest; a loop drops it).
+- **The types.** Sevenths (No. 42 diminished, No. 43 dominant) by the chord's root; repeated notes
+  by number (44, 47, and No. 45 by fingering: `45.3`); the trill (Hanon's No. 46, bars 1–6, in C,
+  or a pair of fingers); the thirds (the scale, or the chromatic scale); No. 51's octaves; and No.
+  53's scales in octaves, major and minor, in his keys and spelling (G♭ major, E♭ and G♯ minor).
+  Each is played once through as printed: the repeats Hanon prints (No. 42's stretch "4 times", a
+  section's arpeggio between repeat signs, the whole of No. 44) are his practice instructions and
+  are not drawn — a focus loop repeats any place. A part that ends an exercise takes its closing
+  bar (No. 42's last section its close, No. 45's sixth fingering its whole note, No. 53's E minor
+  the C it ends on); No. 53's other keys end where the page runs on into the next key, off their
+  tonic, as printed.
+- **His values and bars**: each part in its time signature (2/4, 4/4, No. 50's chromatic scale
+  3/4), shown, and its value (sixteenths; No. 44 triplet eighths, drawn in threes); a bar's steps
+  share it equally (a closing whole note fills its bar). With the click the notes to the beat are
+  his.
+- **Fingering as printed.** Every digit he prints, and no other, but No. 53's: its footnote ("In
+  all scales in Octaves, the black keys are to be taken with the 4th finger of either hand") is
+  his rule for all twenty-four keys, printed once, so each black-key octave carries a 4 — on the
+  right hand's upper key, the left hand's lower — and nothing else (the thumbs he leaves unsaid).
+  A chord's digits are per key, lowest first.
+- **A trill on a pair** is the tonic and the next degree of its major key, sixteen sixteenths a bar
+  for 4, 8 or 16 bars and the tonic to close, in any major key, one hand or both an octave apart.
+  The pairs are the neighbouring fingers and those one apart (1–2, 2–3, 3–4, 4–5, 1–3, 2–4, 3–5),
+  the right hand's lower key first; the left hand plays the mirror pair (1 for 5, 2 for 4), as No.
+  46 pairs its hands. The pair is chosen, so every note has its finger (on the keyboard); the score
+  writes it at the start of each bar, as Hanon writes his. A trill starts on its lower key and ends
+  as a scale does (the last note, 3 s without a key, or Stop); it is aligned as any run is, the
+  alternation being its notes, so a missed or extra note costs that note.
+- **The trill figures** (`core/trill.ts`), from the intervals between notes played right with
+  nothing between, hesitations apart: its **rate** (notes a second, from the median interval) and
+  the rate over time (every eight intervals, drawn with its table); whether it **slows or hurries**
+  (a Theil–Sen line through the intervals: the fitted rate at the end at least 10 % off the start,
+  the scales' drift); its **steadiness**, the timing spread; and the **two fingers** — the median
+  interval after the lower key against after the upper, uneven when 10 ms and 10 % of the median
+  apart (provisional), said as the key after which the next comes late (the finger on it hands
+  over late). A trill's notes are a pattern that never turns (its places over runs are "note 1"
+  and "note 2" of each group, the group being the pair).
+- **Repeated notes** (`core/repeatedNotes.ts`): the median time between repeats of one key, the
+  time the key was up before each repeat (its onset − the key's release before it), typically and
+  at the shortest, and before which note. The spec's "whether the key came fully up" is not a
+  figure: the input hub passes on a key's onset only after its release, and a MIDI keyboard sends
+  the release where the key resets — on one that repeats from half-way, before it is fully up — so
+  every repeat that reaches a run was released first; a key barely let rise shows as a short time
+  up, and one struck again with no release at all is not heard (a missed note). The figures need
+  6 repeats. A note's degree is its place in its group of repeats (a pattern: "note 1 of each
+  group" is the first of the three, two or four).
+- **Sevenths** are lines with a closing chord (No. 43's), aligned note by note, the chord's keys
+  attached as No. 20's are; a note's degree is its place in the chord (root, third, fifth,
+  seventh). **Thirds and octaves** are runs of chords (two keys, or four hands together), measured as
+  S6's chords: each step's spread and balance, and the connection voice by voice — the legato of
+  each voice of the thirds, the figure No. 50 is for. Their degrees are the scale degree of the
+  lower key (the semitone from C in the chromatic scale).
+- **The keys of the run** move as printed: the turn is where the run reaches its highest step, so
+  directions and places follow the plate's own shape.
+
 ## Milestones
 
 1. ✓ **S0 Spike** — generate the scale MusicXML and draw it with fingering and per-note tints in
@@ -616,5 +688,5 @@ an unnumbered part of No. 50; No. 51 repeats each degree in octaves.
    demand.
 7. ✓ **S6 Technique I** — the Technique group, five-finger patterns, Hanon 1–20 (transcribed),
    block and broken chords, chord spread and balance.
-8. **S7 Technique II** — sevenths, repeated notes, trills (with the trill figures), thirds and
+8. ✓ **S7 Technique II** — sevenths, repeated notes, trills (with the trill figures), thirds and
    octaves, each with Hanon's fingering transcribed.

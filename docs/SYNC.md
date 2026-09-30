@@ -150,14 +150,15 @@ winner.
   older builds skip; 7: rhythm on Read, answers of the family `rhythm` and sessions of kind
   `rhythm`, which older builds skip; 8: the chord symbols of the Harmony page, answers of the family
   `chordSymbol` and sessions of kind `harmony`, which older builds skip; 9: the technique
-  exercises' runs and sessions, whose exercise keys older builds do not validate), and the sync
-  state keeps the schema its cursor was reached with. When the build's is higher, the next round
-  starts again from cursor 0. Pulling a record already stored changes nothing, except where the
-  stored copy differs: an older build that did not know a field kept the record without it. A
-  record that never changes (`attempts`, `pieceSteps`, `scaleRuns`, `answers`, `takes`) is then
-  replaced by the pulled copy, and where two copies of a session or a piece tie by the rules above,
-  the longer text wins before the text's order decides, so the copy with the field is kept and sent
-  again, never the one without it.
+  exercises' runs and sessions, whose exercise keys older builds do not validate; 10: the same for
+  S7's — the sevenths, repeated notes, trills, thirds and octaves), and the sync state keeps the
+  schema its cursor was reached with. When the build's is higher, the next round starts again from
+  cursor 0. Pulling a record already stored changes nothing, except where the stored copy differs:
+  an older build that did not know a field kept the record without it. A record that never changes
+  (`attempts`, `pieceSteps`, `scaleRuns`, `answers`, `takes`) is then replaced by the pulled copy,
+  and where two copies of a session or a piece tie by the rules above, the longer text wins before
+  the text's order decides, so the copy with the field is kept and sent again, never the one
+  without it.
 - **Not synced:** `noteStats` (rebuilt from attempts), the free-play sessions and piece runs still
   in progress in `meta` (they become sessions when they end), the preferences (language and theme
   stay per device), the settings in `localStorage`, the token.

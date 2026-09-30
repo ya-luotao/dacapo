@@ -1,4 +1,5 @@
 import { octavesOf } from '../../core/scales.ts';
+import { trillForm } from '../../core/technique.ts';
 import type { SpelledPitch } from '../../core/score.ts';
 import { stepsOf, type ScaleExercise, type ScaleNote, type Tonic } from '../../core/scaleTypes.ts';
 import { useT } from '../../i18n/index.ts';
@@ -29,8 +30,45 @@ export function stepNames(notes: readonly ScaleNote[]): string[] {
  */
 export function useExerciseName() {
   const t = useT();
-  return (e: Pick<ScaleExercise, 'type' | 'tonic' | 'variant'>) =>
-    t(`scales.name.${e.type}`, { tonic: tonicName(e.tonic), n: e.variant ?? '' });
+  return (e: Pick<ScaleExercise, 'type' | 'tonic' | 'variant'>) => {
+    const tonic = tonicName(e.tonic);
+    // A form of the exercise that its name says: a trill's fingers and bars, No. 45's fingering,
+    // the thirds' chromatic form.
+    if (e.type === 'trill') {
+      const form = trillForm(e.variant);
+      return form.hanon
+        ? t('scales.name.trillHanon')
+        : t('scales.name.trill', {
+            tonic,
+            fingers: `${form.lower}–${form.upper}`,
+            bars: form.bars,
+          });
+    }
+    if (e.type === 'repeatedNotes') {
+      const [n, k] = (e.variant ?? '').split('.');
+      return k
+        ? t('scales.name.repeatedFingering', { n: n ?? '', k })
+        : t('scales.name.repeatedNotes', { n: n ?? '' });
+    }
+    if (e.type === 'thirds' && e.variant === 'chromatic') return t('scales.name.thirdsChromatic');
+    return t(`scales.name.${e.type}`, { tonic, n: e.variant ?? '' });
+  };
+}
+
+/** A form of an exercise as its list of forms names it (Hanon's number, No. 45's fingering). */
+export function useVariantName() {
+  const t = useT();
+  return (type: ScaleExercise['type'], variant: string) => {
+    if (type === 'repeatedNotes') {
+      const [n, k] = variant.split('.');
+      return k
+        ? t('scales.variant.fingering', { n: n ?? '', k })
+        : t('scales.variant.number', { n: n ?? '' });
+    }
+    if (type === 'thirds')
+      return t(variant === 'chromatic' ? 'scales.variant.chromatic' : 'scales.variant.scale');
+    return variant;
+  };
 }
 
 /** The scale as a page heading names it: its name, and "in contrary motion" when it is. */

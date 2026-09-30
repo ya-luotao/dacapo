@@ -18,7 +18,8 @@ export type ScaleType = (typeof SCALE_TYPES)[number];
 /**
  * The technique exercises (docs/SCALES.md, "Technique"): the five-finger pattern, Hanon's Part I
  * (Nos. 1–20), and the key's triad in block and broken chords, each in major and minor where it
- * has a key (S6).
+ * has a key (S6); Hanon's sevenths, repeated notes, trills, thirds and octaves, and a trill on any
+ * pair of fingers (S7).
  */
 export const TECHNIQUE_TYPES = [
   'majorFiveFinger',
@@ -28,6 +29,14 @@ export const TECHNIQUE_TYPES = [
   'minorChords',
   'majorBrokenChords',
   'minorBrokenChords',
+  'diminishedSevenths',
+  'dominantSevenths',
+  'repeatedNotes',
+  'trill',
+  'thirds',
+  'octaves',
+  'majorOctaves',
+  'minorOctaves',
 ] as const;
 export type TechniqueType = (typeof TECHNIQUE_TYPES)[number];
 
@@ -100,6 +109,11 @@ export interface ScaleNote {
    * as a scale's is by its crossings (docs/SCALES.md, "Clarifications (decided during S6)").
    */
   pattern?: true;
+  /**
+   * The finger is known but not written on the score: a trill on a chosen pair of fingers marks
+   * them at the start of each bar, as Hanon marks his (the keyboard still shows every one).
+   */
+  unmarked?: true;
 }
 
 /**

@@ -1,4 +1,6 @@
-import type { HandAnalysis, ProblemPlace, RunAnalysis } from '../../core/evenness.ts';
+import type { HandAnalysis, PlayedNote, ProblemPlace, RunAnalysis } from '../../core/evenness.ts';
+import { repeatFigures, type RepeatFigures } from '../../core/repeatedNotes.ts';
+import { trillFigures, type TrillFigures } from '../../core/trill.ts';
 import { IN_TIME_MS, TENDENCY_MS, type RhythmSummary } from '../../core/rhythmRun.ts';
 import type { ClickSettings } from '../../core/scaleClick.ts';
 import type { Hand } from '../../core/score.ts';
@@ -6,6 +8,7 @@ import { SENTENCE_GAP, useI18n } from '../../i18n/index.ts';
 import { fewKeys } from './format.ts';
 import { weakestPlace, type LoopPlace } from './loop.ts';
 import { ProfileChart } from './ProfileChart.tsx';
+import { RateChart } from './RateChart.tsx';
 import type { RunEnd } from './run.ts';
 
 /** A tempo that moved less than this from the start to the end of the run is steady. */
@@ -39,8 +42,17 @@ export function ScaleSummary({
   pedal,
   click = null,
   onLoop,
+  kind = null,
+  played = [],
 }: {
   analysis: RunAnalysis;
+  /**
+   * The figures of a kind of exercise beside the scales': a trill's rate and fingers, the
+   * repeated notes' releases (docs/SCALES.md, "Clarifications (decided during S7)").
+   */
+  kind?: 'trill' | 'repeats' | null;
+  /** The keys of the run, for those figures. */
+  played?: readonly PlayedNote[];
   /** Each note's name as the scale spells it, per hand, by index. */
   names: NamesByHand;
   end: RunEnd | null;
@@ -167,8 +179,70 @@ export function ScaleSummary({
     return forHand(hand.hand, text);
   }
 
+  // A trill: how fast and whether it held its rate, and whether its two fingers were even.
+  const trills: { hand: HandAnalysis; figures: TrillFigures }[] =
+    kind === 'trill' ? hands.map((hand) => ({ hand, figures: trillFigures(hand, played) })) : [];
+  // Repeated notes: how long each key was up before it was struck again.
+  const repeats: { hand: HandAnalysis; figures: RepeatFigures }[] =
+    kind === 'repeats'
+      ? hands.map((hand) => ({ hand, figures: repeatFigures(hand, played, analysis.extra) }))
+      : [];
+  /** A trill's lower and upper key, by name. */
+  const trillKeys = (hand: HandAnalysis) => {
+    const at = (degree: number) => hand.notes.find((n) => n.degree === degree)?.index;
+    const lower = at(0);
+    const upper = at(1);
+    return {
+      lower: lower === undefined ? '' : (names[hand.hand][lower] ?? ''),
+      upper: upper === undefined ? '' : (names[hand.hand][upper] ?? ''),
+    };
+  };
+
   // Most telling first; at most three are shown.
   const sentences: string[] = end === 'stopped' ? [t('scales.result.stopped')] : [];
+  for (const { hand, figures } of trills) {
+    const keys = trillKeys(hand);
+    if (figures.drift && figures.startRate !== null && figures.endRate !== null)
+      sentences.push(
+        forHand(
+          hand.hand,
+          t(figures.drift === 'slows' ? 'scales.trill.slows' : 'scales.trill.hurries', {
+            from: tenth.format(figures.startRate),
+            to: tenth.format(figures.endRate),
+          }),
+        ),
+      );
+    if (figures.afterLower !== null && figures.afterUpper !== null)
+      sentences.push(
+        forHand(
+          hand.hand,
+          figures.lingers
+            ? t('scales.trill.lingers', {
+                key: figures.lingers === 'upper' ? keys.upper : keys.lower,
+                ms: Math.round(Math.abs(figures.afterUpper - figures.afterLower)),
+              })
+            : t('scales.trill.even', {
+                lower: keys.lower,
+                upper: keys.upper,
+                a: Math.round(figures.afterLower),
+                b: Math.round(figures.afterUpper),
+              }),
+        ),
+      );
+  }
+  for (const { hand, figures } of repeats) {
+    if (figures.up !== null && figures.shortest)
+      sentences.push(
+        forHand(
+          hand.hand,
+          t('scales.repeats.upFor', {
+            ms: Math.round(figures.up),
+            least: Math.round(figures.shortest.ms),
+            key: names[hand.hand][figures.shortest.index] ?? '',
+          }),
+        ),
+      );
+  }
   if (analysis.problem) sentences.push(problemSentence(analysis.problem));
   // Chords: whether they were struck together is what the exercise is for.
   for (const hand of hands) {
@@ -320,6 +394,73 @@ export function ScaleSummary({
             </dd>
           </div>
         )}
+        {/* One hand shows its tempo above: the same figure. */}
+        {trills.length > 0 && two && (
+          <div>
+            <dt>{t('scales.trill.rate')}</dt>
+            <dd>
+              <PerHandValues
+                items={trills.map(({ hand, figures }) => ({
+                  hand: hand.hand,
+                  value:
+                    figures.rate === null
+                      ? '–'
+                      : t('scales.result.perSecond', { n: tenth.format(figures.rate) }),
+                }))}
+                word={two ? handWord : null}
+              />
+            </dd>
+          </div>
+        )}
+        {trills.length > 0 && (
+          <div>
+            <dt>{t('scales.trill.fingers')}</dt>
+            <dd className="scale-figure-small">
+              <PerHandValues
+                items={trills.map(({ hand, figures }) => ({
+                  hand: hand.hand,
+                  value:
+                    figures.afterLower === null || figures.afterUpper === null
+                      ? '–'
+                      : t('scales.trill.after', {
+                          ...trillKeys(hand),
+                          a: Math.round(figures.afterLower),
+                          b: Math.round(figures.afterUpper),
+                        }),
+                }))}
+                word={two ? handWord : null}
+              />
+            </dd>
+          </div>
+        )}
+        {repeats.length > 0 && (
+          <div>
+            <dt>{t('scales.repeats.up')}</dt>
+            <dd>
+              <PerHandValues
+                items={repeats.map(({ hand, figures }) => ({
+                  hand: hand.hand,
+                  value: figures.up === null ? '–' : ms(figures.up),
+                }))}
+                word={two ? handWord : null}
+              />
+            </dd>
+          </div>
+        )}
+        {repeats.length > 0 && (
+          <div>
+            <dt>{t('scales.repeats.shortest')}</dt>
+            <dd>
+              <PerHandValues
+                items={repeats.map(({ hand, figures }) => ({
+                  hand: hand.hand,
+                  value: figures.shortest ? ms(figures.shortest.ms) : '–',
+                }))}
+                word={two ? handWord : null}
+              />
+            </dd>
+          </div>
+        )}
         {chordRun && analysis.velocityMeasured && (
           <div>
             <dt>{t('scales.result.topNote')}</dt>
@@ -374,6 +515,13 @@ export function ScaleSummary({
           <span className="muted">{t('scales.loop.offer')}</span>
         </p>
       )}
+      {trills.map(({ hand, figures }) => (
+        <RateChart
+          key={`rate-${hand.hand}`}
+          trill={figures}
+          caption={two ? t('scales.trill.chart.hand', { hand: handWord(hand.hand) }) : undefined}
+        />
+      ))}
       {hands.map((hand) => (
         <ProfileChart
           key={hand.hand}
@@ -390,6 +538,26 @@ export function ScaleSummary({
         />
       ))}
     </section>
+  );
+}
+
+/** A figure per hand (with its hand's word when both play), each on its own line. */
+function PerHandValues({
+  items,
+  word,
+}: {
+  items: readonly { hand: Hand; value: string }[];
+  word: ((hand: Hand) => string) | null;
+}) {
+  if (!word || items.length === 1) return <>{items[0]?.value ?? '–'}</>;
+  return (
+    <span className="scale-per-hand">
+      {items.map((item) => (
+        <span key={item.hand}>
+          <span className="scale-per-hand-word">{word(item.hand)}</span> {item.value}
+        </span>
+      ))}
+    </span>
   );
 }
 

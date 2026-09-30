@@ -1,6 +1,6 @@
 import { useId, useState } from 'react';
 import { CLICK_MAX_BPM, CLICK_MIN_BPM, NOTES_PER_BEAT } from '../../core/scaleClick.ts';
-import { handsAllowed, octavesOf, SCALE_HANDS, tonicsOf } from '../../core/scales.ts';
+import { handsAllowed, octavesOf, SCALE_HANDS, tonicsFor, tonicsOf } from '../../core/scales.ts';
 import {
   SCALE_OCTAVES,
   SCALE_TYPES,
@@ -9,9 +9,16 @@ import {
   type ScaleExercise,
 } from '../../core/scaleTypes.ts';
 import { takesPerBeat } from '../../core/scaleXml.ts';
-import { isTechnique, techniqueRules } from '../../core/technique.ts';
+import {
+  HANON_TRILL,
+  isTechnique,
+  techniqueRules,
+  TRILL_BARS,
+  TRILL_PAIRS,
+  trillForm,
+} from '../../core/technique.ts';
 import { useT } from '../../i18n/index.ts';
-import { tonicName } from './format.ts';
+import { tonicName, useVariantName } from './format.ts';
 import { clampTempo, type ClickPrefs } from './prefs.ts';
 
 /**
@@ -44,8 +51,21 @@ export function ScalePicker({
   const id = useId();
   // The tempo as typed: taken when it is a tempo, put right when the field is left.
   const [typed, setTyped] = useState<string | null>(null);
+  const variantName = useVariantName();
   const variants = isTechnique(exercise.type) ? techniqueRules(exercise.type).variants : [];
   const octaves = octavesOf(exercise.type);
+  const tonics = tonicsFor(exercise.type, exercise.variant);
+  const trill = exercise.type === 'trill' ? trillForm(exercise.variant) : null;
+
+  /** A form of the exercise, and a key it is offered in (Hanon's trill is in C). */
+  function setVariant(variant: string) {
+    const keys = tonicsFor(exercise.type, variant);
+    onChange({
+      ...exercise,
+      variant,
+      tonic: keys.includes(exercise.tonic) ? exercise.tonic : keys[0]!,
+    });
+  }
 
   function setType(type: ExerciseType) {
     // The same tonic if the new type has it, else the one at the same place in the circle.
@@ -65,11 +85,14 @@ export function ScalePicker({
     const hands = handsAllowed({ type, octaves: length }, exercise.hands) ? exercise.hands : 'both';
     const forms = isTechnique(type) ? techniqueRules(type).variants : [];
     const next: ScaleExercise = { type, tonic, octaves: length, hands };
-    if (forms.length > 0)
+    if (forms.length > 0) {
       next.variant =
         exercise.variant !== undefined && forms.includes(exercise.variant)
           ? exercise.variant
           : forms[0]!;
+      const keys = tonicsFor(type, next.variant);
+      if (!keys.includes(next.tonic)) next.tonic = keys[0]!;
+    }
     onChange(next);
   }
 
@@ -108,25 +131,73 @@ export function ScalePicker({
           </optgroup>
         </select>
       </div>
-      {variants.length > 0 && (
-        <div className="field">
-          <label htmlFor={`${id}-variant`}>{t('scales.pick.number')}</label>
-          <select
-            id={`${id}-variant`}
-            value={exercise.variant}
-            disabled={disabled}
-            onChange={(e) => {
-              onChange({ ...exercise, variant: e.target.value });
-              onChosen();
-            }}
-          >
-            {variants.map((variant) => (
-              <option key={variant} value={variant}>
-                {variant}
-              </option>
-            ))}
-          </select>
-        </div>
+      {trill ? (
+        <>
+          {/* A trill: Hanon's No. 46, or a pair of fingers held for a number of bars. */}
+          <div className="field">
+            <label htmlFor={`${id}-fingers`}>{t('scales.pick.fingers')}</label>
+            <select
+              id={`${id}-fingers`}
+              value={trill.hanon ? HANON_TRILL : `${trill.lower}${trill.upper}`}
+              disabled={disabled}
+              onChange={(e) => {
+                const value = e.target.value;
+                setVariant(
+                  value === HANON_TRILL ? HANON_TRILL : `${value}-${trill.hanon ? 8 : trill.bars}`,
+                );
+                onChosen();
+              }}
+            >
+              <option value={HANON_TRILL}>{t('scales.pick.trillHanon')}</option>
+              {TRILL_PAIRS.map((pair) => (
+                <option key={pair} value={pair}>
+                  {`${pair[0]}–${pair[1]}`}
+                </option>
+              ))}
+            </select>
+          </div>
+          {!trill.hanon && (
+            <fieldset className="field" disabled={disabled}>
+              <legend>{t('scales.pick.bars')}</legend>
+              <div className="segmented">
+                {TRILL_BARS.map((bars) => (
+                  <label key={bars}>
+                    <input
+                      type="radio"
+                      name={`${id}-bars`}
+                      checked={trill.bars === bars}
+                      onChange={() => setVariant(`${trill.lower}${trill.upper}-${bars}`)}
+                    />
+                    <span>{bars}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )}
+        </>
+      ) : (
+        variants.length > 0 && (
+          <div className="field">
+            <label htmlFor={`${id}-variant`}>
+              {t(exercise.type === 'thirds' ? 'scales.pick.form' : 'scales.pick.number')}
+            </label>
+            <select
+              id={`${id}-variant`}
+              value={exercise.variant}
+              disabled={disabled}
+              onChange={(e) => {
+                setVariant(e.target.value);
+                onChosen();
+              }}
+            >
+              {variants.map((variant) => (
+                <option key={variant} value={variant}>
+                  {variantName(exercise.type, variant)}
+                </option>
+              ))}
+            </select>
+          </div>
+        )
       )}
       <div className="field">
         <label htmlFor={`${id}-tonic`}>{t('scales.pick.tonic')}</label>
@@ -134,13 +205,13 @@ export function ScalePicker({
           id={`${id}-tonic`}
           value={exercise.tonic}
           // Hanon's Part I is in C only.
-          disabled={disabled || tonicsOf(exercise.type).length < 2}
+          disabled={disabled || tonics.length < 2}
           onChange={(e) => {
             onChange({ ...exercise, tonic: e.target.value });
             onChosen();
           }}
         >
-          {tonicsOf(exercise.type).map((tonic) => (
+          {tonics.map((tonic) => (
             <option key={tonic} value={tonic}>
               {tonicName(tonic)}
             </option>

@@ -92,6 +92,47 @@ C2+C3); and specks taken for dirt (Nos. 2, 3, 6, 7, 9, 10, 11, 17). Digits print
 recorded as printed, not filled in: No. 7 bar 14 RH 3 where bars 3–13 have 4, No. 8 bar 28 LH none,
 No. 12 bar 20 LH no 3, No. 17 bar 7 RH no 5, No. 18 bar 7 LH only 1, No. 20 bar 7 RH 1 2 4 and a 4.
 
+## Nos. 42–53 (PDF pp. 70–95)
+
+Read twice independently (`s7/passA/`, `s7/passB/`, six readers each). `s7/diff_s7.py` found one
+difference in every note, value and digit of the 54 parts: No. 45, first fingering, bar 1, the
+left hand's fourth step, which passA read 1 and passB 4. It sits on the bass staff's top line,
+which closes a 1's flag into a 4's counter (as Part I's Nos. 9 and 13); matched against the clean
+digits of the page at 1200 dpi, the line masked, it is a 1 (overlap 0.83 with the 1s, 0.48 with the
+4s), the 1 of the printed 2 1 2 1 2 1. The places the readers marked doubtful and read alike are in
+their files' `uncertain` lists; the notable ones: No. 50's legato scale, whose held half notes are
+steps like the others (the keys held are named in its marks); No. 53's sections, each running on
+into the next key without its tonic; the one printed 4 of No. 53 (A minor's G♯) and its footnote.
+
+Four more readers compared every drawn score with its plate bar by bar (at 300 dpi, 600 where in
+doubt): no difference in Nos. 42–44, 46, 47, 51 and 53, and these, each settled in `s7/resolved.py`
+or here:
+
+- **No. 45, 5th fingering, bar 1, LH step 3 (E3).** Both passes and the verifier read **4**,
+  seeing a 4's closed counter above the bass staff's top line, where the printed pattern 3 1 3 1
+  3 1 needs a 1. Measured at 1200 dpi it is a **1**: the tip of its flag touches the line and closes
+  the gap under the flag into that counter. It is 88 px tall and 63 wide, as the page's clean 1s
+  (82–90 by 54–62) and not its 4s (92–96 by 84–90); its part above the line is 42 px wide, as a
+  1's; matched against the clean digits with the line masked, overlap 0.81–0.87 with the 1s and at
+  most 0.51 with the 4s. Corrected to 1 (`resolved.py`), the one digit changed from both readings.
+- **No. 50, chromatic scale in minor thirds: three naturals the plate leaves out.** Bar 3, step 7
+  (both hands): only the flat is printed, after the G♯ of step 5, where bars 1 and 2 print the
+  natural (G+B♭); bar 6, step 11 (both hands): only the sharp on C, after the E♭ of step 9, where
+  bars 4 and 5 print the natural (C♯+E); bar 6, right hand step 8, E+G on the bass staff after the
+  left hand's E♭ at step 0, where bars 4 and 5 print a natural in both hands. Both passes read the
+  naturals, and so does dacapo: the scale is in minor thirds throughout, and the plate prints each
+  of these naturals in the two bars before.
+- **No. 50, chromatic scale, closing bar.** A half-note chord and a quarter rest in each hand
+  (3/4); both passes name the rest in the bar's marks, which the steps cannot carry, so
+  `resolved.py` adds it and the score draws it (the first version drew a dotted half).
+- **No. 42 on F, bar 4, the left hand's first digit** is a damaged glyph; it is read 1, as every
+  other section prints there. **No. 43's closing chord** splits E3 G3 C4 (right hand, 1 2 5) and
+  C2 E2 G2 C3 (left hand) by the stems and the digits beside the heads; the stems are partly hidden
+  by the heads.
+- Digits read as 1 though they look like 4s on a staff line, as above (verified at 600 dpi): No. 50's
+  legato scale bar 1 RH step 6, and its chromatic scale bar 1 RH step 9, bar 2 RH step 0 and bar 3
+  LH step 1.
+
 ## No. 41 (arpeggios, PDF pp. 66–69)
 
 Read twice independently: `pass1/data41.py` (all 24 keys) and `pass2/data41_A.py`,

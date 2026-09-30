@@ -11,8 +11,8 @@ import {
   tonicsOf,
 } from './scales.ts';
 import { layoutOf, scaleHands, scaleMusicXml, takesPerBeat } from './scaleXml.ts';
-import { TECHNIQUE_TYPES, type ScaleExercise, type ScaleNote } from './scaleTypes.ts';
-import { type Hand } from './score.ts';
+import { stepsOf, TECHNIQUE_TYPES, type ScaleExercise, type ScaleNote } from './scaleTypes.ts';
+import { TICKS_PER_QUARTER, type Hand } from './score.ts';
 import { HANON_NUMBERS, techniqueRules } from './technique.ts';
 
 const domParse = (s: string) => new DOMParser().parseFromString(s, 'application/xml');
@@ -24,10 +24,10 @@ function* techniqueExercises(): Generator<ScaleExercise> {
   for (const type of TECHNIQUE_TYPES) {
     const rules = techniqueRules(type);
     const variants = rules.variants.length > 0 ? rules.variants : [undefined];
-    for (const tonic of rules.tonics)
-      for (const octaves of rules.octaves)
-        for (const hands of rules.hands)
-          for (const variant of variants)
+    for (const variant of variants)
+      for (const tonic of rules.tonicsOf ? rules.tonicsOf(variant) : rules.tonics)
+        for (const octaves of rules.octaves)
+          for (const hands of rules.hands)
             yield { type, tonic, octaves, hands, ...(variant !== undefined && { variant }) };
   }
 }
@@ -41,15 +41,19 @@ function steps(notes: readonly ScaleNote[]): string[] {
 
 describe('technique exercises: keys and rules', () => {
   it('round-trips every exercise offered through its key, and nothing else', () => {
-    let count = 0;
+    const count: Record<string, number> = {};
     for (const e of techniqueExercises()) {
-      count++;
+      count[e.type] = (count[e.type] ?? 0) + 1;
       expect(isScaleExercise(e), exerciseKey(e)).toBe(true);
       expect(parseExerciseKey(exerciseKey(e))).toEqual(e);
     }
-    // 12 keys × 2 modes × 3 hands for the five-finger patterns; × 2 lengths for each kind of
-    // chord; Hanon's twenty numbers × 3 hands.
-    expect(count).toBe(72 + 144 + 144 + 3 * HANON_NUMBERS.length);
+    // 12 keys × 3 hands for each five-finger pattern; × 2 lengths for each kind of chord;
+    // Hanon's twenty numbers × 3 hands; the trill Hanon's in C and 7 pairs × 3 lengths in 12 keys.
+    expect(count.majorFiveFinger).toBe(36);
+    expect(count.majorChords).toBe(72);
+    expect(count.minorBrokenChords).toBe(72);
+    expect(count.hanon).toBe(3 * HANON_NUMBERS.length);
+    expect(count.trill).toBe(3 + 7 * 3 * 12 * 3);
   });
 
   it('refuses what is not offered', () => {
@@ -195,6 +199,22 @@ describe('technique exercises as MusicXML', () => {
       hands: 'both' as const,
       variant,
     })),
+    // Hanon's later plates, every part both hands.
+    ...[...techniqueExercises()].filter(
+      (e) =>
+        e.hands === 'both' &&
+        [
+          'diminishedSevenths',
+          'dominantSevenths',
+          'repeatedNotes',
+          'thirds',
+          'octaves',
+          'majorOctaves',
+          'minorOctaves',
+        ].includes(e.type),
+    ),
+    { type: 'trill', tonic: 'C', octaves: 1, hands: 'both', variant: '46' },
+    { type: 'trill', tonic: 'Ab', octaves: 1, hands: 'both', variant: '35-4' },
   ];
 
   it.each(samples.map((e) => [exerciseKey(e), e] as const))(
@@ -210,15 +230,18 @@ describe('technique exercises as MusicXML', () => {
           .sort((a, b) => a.onset - b.onset || a.midi - b.midi);
         const run = expected[hand];
         expect(ours.map((n) => n.midi)).toEqual(run.map((n) => n.midi));
-        expect(ours.map((n) => n.finger)).toEqual(run.map((n) => n.finger));
+        // Every finger drawn but those the score leaves unmarked (a trill marks its pair a bar).
+        expect(ours.map((n) => n.finger)).toEqual(run.map((n) => (n.unmarked ? null : n.finger)));
         // A step's keys at one onset, the steps one division apart.
         const onsets = [...new Set(ours.map((n) => n.onset))];
         expect(onsets).toHaveLength(steps(run).length);
       }
-      // Bars of whole beats, the run ending with the last bar.
+      // Bars of whole beats, the run ending with the last bar (or its closing rest).
       const last = score.notes.at(-1)!;
       const end = score.measures.at(-1)!;
-      expect(end.start + end.duration).toBe(last.onset + last.duration);
+      const layout = layoutOf(e);
+      const rest = ((layout.restAfter ?? 0) * TICKS_PER_QUARTER) / layout.perBeat;
+      expect(end.start + end.duration).toBe(last.onset + last.duration + rest);
     },
   );
 
@@ -253,5 +276,88 @@ describe('technique exercises as MusicXML', () => {
     expect(xml).toContain('<note id="r2">');
     expect(xml).toContain('<note id="r2.2">');
     expect(xml).not.toContain('<note id="r9">');
+  });
+});
+
+describe('Hanon’s later plates', () => {
+  const both = (type: ScaleExercise['type'], tonic: string, octaves: 1 | 2 | 3, variant?: string) =>
+    scaleNotes({ type, tonic, octaves, hands: 'both', ...(variant && { variant }) });
+
+  it('offers No. 42’s and No. 43’s sections on seven roots, No. 53 in its 24 keys', () => {
+    expect(tonicsOf('diminishedSevenths')).toEqual(['C', 'D', 'E', 'F', 'G', 'A', 'B']);
+    expect(tonicsOf('dominantSevenths')).toEqual(['C', 'D', 'E', 'F', 'G', 'A', 'B']);
+    expect(tonicsOf('majorOctaves')).toHaveLength(12);
+    expect(tonicsOf('majorOctaves')).toContain('Gb');
+    expect(tonicsOf('minorOctaves')).toEqual(expect.arrayContaining(['A', 'Eb', 'G#', 'C#']));
+    expect(techniqueRules('repeatedNotes').variants).toEqual([
+      '44',
+      '45.1',
+      '45.2',
+      '45.3',
+      '45.4',
+      '45.5',
+      '45.6',
+      '47',
+    ]);
+  });
+
+  it('gives a seventh’s notes their place in the chord, and the last section the close', () => {
+    const c = both('diminishedSevenths', 'C', 3).right;
+    // C E♭ G♭/F♯ A: root, third, fifth, seventh.
+    const byClass = new Map(c.map((n) => [n.midi % 12, n.degree]));
+    expect([0, 3, 6, 9].map((pc) => byClass.get(pc))).toEqual([0, 1, 2, 3]);
+    const b = both('dominantSevenths', 'B', 3).right;
+    const g = both('dominantSevenths', 'G', 3).right;
+    // B, the last section, carries No. 43's closing bars, a chord to end.
+    expect(b.length).toBeGreaterThan(g.length);
+    const last = b.at(-1)!.index;
+    expect(b.filter((n) => n.index === last).length).toBeGreaterThan(1);
+  });
+
+  it('counts repeated notes in their groups: No. 44 in threes, No. 45 in twos, No. 47 in fours', () => {
+    for (const [variant, group] of [
+      ['44', 3],
+      ['45.1', 2],
+      ['47', 4],
+    ] as const) {
+      const run = both('repeatedNotes', 'C', 2, variant).right;
+      expect(Math.max(...run.map((n) => n.degree)), variant).toBe(group - 1);
+      expect(run.every((n) => n.pattern)).toBe(true);
+    }
+  });
+
+  it('closes No. 50’s chromatic scale as printed: a half-note chord and a quarter rest', () => {
+    const e = { type: 'thirds', tonic: 'C', octaves: 2, hands: 'both', variant: 'chromatic' };
+    const xml = scaleMusicXml(e as ScaleExercise);
+    const measures = xml.split('<measure ').slice(1);
+    const last = measures.at(-1)!;
+    // Each hand: the chord's two keys as halves (8 sixteenths in 3/4), then a quarter rest.
+    expect(last.match(/<type>half<\/type>/g)).toHaveLength(4);
+    expect(last.match(/<rest\/><duration>4<\/duration>/g)).toHaveLength(2);
+    expect(last).not.toContain('<dot/>');
+    expect(last).not.toContain('<time');
+    // A loop goes round with no rest.
+    const steps = stepsOf(scaleNotes(e as ScaleExercise).right).length;
+    expect(
+      scaleMusicXml(e as ScaleExercise, { loop: { from: steps - 4, to: steps - 1 } }),
+    ).not.toContain('<rest/>');
+  });
+
+  it('writes No. 53’s footnote: a 4 on each black-key octave, the right hand’s upper key', () => {
+    const { right, left } = both('majorOctaves', 'E', 2);
+    for (const run of [right, left]) {
+      const fingered = run.filter((n) => n.finger !== null);
+      expect(fingered.length).toBeGreaterThan(0);
+      for (const n of fingered) {
+        expect(n.finger).toBe(4);
+        expect([1, 3, 6, 8, 10]).toContain(n.midi % 12);
+      }
+    }
+    const top = (run: typeof right, n: (typeof right)[number]) =>
+      run.filter((m) => m.index === n.index).map((m) => m.midi);
+    for (const n of right.filter((x) => x.finger === 4))
+      expect(n.midi).toBe(Math.max(...top(right, n)));
+    for (const n of left.filter((x) => x.finger === 4))
+      expect(n.midi).toBe(Math.min(...top(left, n)));
   });
 });

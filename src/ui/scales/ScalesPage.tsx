@@ -676,6 +676,14 @@ function ScaleSession({
           pedal={usedPedal(run)}
           click={clickResult}
           onLoop={onLoop}
+          kind={
+            exercise.type === 'trill'
+              ? 'trill'
+              : exercise.type === 'repeatedNotes'
+                ? 'repeats'
+                : null
+          }
+          played={run.keys}
         />
       )}
       {import.meta.env.DEV && run.phase === 'done' && <SaveRun exercise={exercise} run={run} />}

@@ -20,9 +20,9 @@ export type NotesPerBeat = (typeof NOTES_PER_BEAT)[number];
 
 /**
  * Notes to the beat of a grid as played: the 2, 3 or 4 chosen, or a technique exercise's own
- * rhythm (a block chord to the beat is 1; Hanon's sixteenths 4).
+ * rhythm (a block chord to the beat is 1; Hanon's sixteenths 4, his trill's 32nds 8).
  */
-export type GridPerBeat = 1 | 2 | 3 | 4;
+export type GridPerBeat = 1 | 2 | 3 | 4 | 8;
 
 /** What the player sets: the tempo of the beat and how many notes go to it. */
 export interface ClickSettings {
@@ -48,7 +48,7 @@ export function isClickTempo(bpm: unknown): bpm is number {
 
 /** A grid's notes to the beat, as a record keeps it (`GridPerBeat`). */
 export function isGridPerBeat(value: unknown): value is GridPerBeat {
-  return value === 1 || isNotesPerBeat(value);
+  return value === 1 || value === 8 || isNotesPerBeat(value);
 }
 
 export function isNotesPerBeat(value: unknown): value is NotesPerBeat {

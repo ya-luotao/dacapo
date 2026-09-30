@@ -6588,6 +6588,12 @@ select.is-compact {
   padding-block: 0.375rem 0.5rem;
 }
 
+/* Each row of figures starts at the edge, as the first does (chords and trills have a second). */
+.scale-summary .figures div:nth-child(4n + 1) {
+  padding-inline-start: 0;
+  border-inline-start: 0;
+}
+
 .scale-summary .figures dt {
   font-size: 0.75rem;
 }
@@ -6796,6 +6802,20 @@ select.is-compact {
   stroke-linejoin: round;
 }
 
+.scale-rate-fit {
+  stroke: var(--text-muted);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+}
+
+/* A figure of several words (the time after each of a trill's keys) in the body size. */
+.figures dd.scale-figure-small {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
 .scale-trend-reference line {
   stroke: var(--text-muted);
   stroke-width: 1;
@@ -6818,7 +6838,7 @@ select.is-compact {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .scale-summary .figures div:nth-child(3) {
+  .scale-summary .figures div:nth-child(2n + 1) {
     padding-inline-start: 0;
     border-inline-start: 0;
   }

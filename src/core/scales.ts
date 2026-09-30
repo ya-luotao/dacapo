@@ -118,6 +118,15 @@ export function handsPlaying(hands: ScaleHands): HandSelection {
   return hands === 'contrary' ? 'both' : hands;
 }
 
+/** The keys an exercise's form is offered in: a technique form may take fewer (Hanon's trill: C). */
+export function tonicsFor(type: ExerciseType, variant: string | undefined): readonly Tonic[] {
+  if (isTechnique(type)) {
+    const rules = techniqueRules(type);
+    return rules.tonicsOf ? rules.tonicsOf(variant) : rules.tonics;
+  }
+  return tonicsOf(type);
+}
+
 export function tonicsOf(type: ExerciseType): readonly Tonic[] {
   if (isTechnique(type)) return techniqueRules(type).tonics;
   if (type === 'major' || type === 'majorArpeggio') return MAJOR_TONICS;
@@ -508,13 +517,19 @@ export function keySignature(
   type: ExerciseType,
   tonic: Tonic,
 ): { fifths: number; mode: 'major' | 'minor' } {
-  if (type === 'chromatic') return { fifths: 0, mode: 'major' };
+  // The chromatic scale has none; Hanon writes his sevenths in C with accidentals.
+  if (type === 'chromatic' || type === 'diminishedSevenths' || type === 'dominantSevenths')
+    return { fifths: 0, mode: 'major' };
   const t = tonicPitch(tonic, 4);
   const major = LETTER_FIFTHS[t.step] + 7 * t.alter;
-  // Hanon's Part I is in C major; the other technique types say their mode in their name.
-  return type === 'hanon' || type.startsWith('major')
-    ? { fifths: major, mode: 'major' }
-    : { fifths: major - 3, mode: 'minor' };
+  // The minors say so in their names; everything else is in its major key (Hanon's other
+  // technique in C, a trill on a pair in the key of its tonic).
+  const minor =
+    type === 'naturalMinor' ||
+    type === 'harmonicMinor' ||
+    type === 'melodicMinor' ||
+    type.startsWith('minor');
+  return minor ? { fifths: major - 3, mode: 'minor' } : { fifths: major, mode: 'major' };
 }
 
 /** The circle of fifths from seven flats (C♭ major, A♭ minor) to seven sharps (C♯, A♯ minor). */

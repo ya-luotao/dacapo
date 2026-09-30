@@ -5,6 +5,7 @@
 
 import { midiOf } from './musicxml.ts';
 import { HANON_PART_ONE, type HanonPartOne } from './hanonPartOne.ts';
+import { partsOf, plateParts, plateRun, type PlateDegree } from './techniquePlates.ts';
 import { MAJOR_TONICS, MINOR_TONICS, scaleDegree, startingTonics } from './scales.ts';
 import type {
   Direction,
@@ -33,16 +34,57 @@ export interface TechniqueRules {
   /**
    * Notes to the beat as drawn at free tempo, and whether the click keeps it (the rhythm is the
    * exercise's own: Hanon's as printed, a broken chord's four notes, a block chord to the beat)
-   * rather than taking the 2, 3 or 4 chosen for the scales.
+   * rather than taking the 2, 3 or 4 chosen for the scales. Hanon's later plates set their own
+   * (`plateLayout`).
    */
   perBeat: 1 | 2 | 3 | 4;
   fixedRhythm: boolean;
+  /** The keys a form is offered in, where it is not every key of `tonics` (Hanon's trill: C). */
+  tonicsOf?: (variant: string | undefined) => readonly Tonic[];
 }
 
 const HANDS: readonly ScaleHands[] = ['right', 'left', 'both'];
 
 /** Hanon's Part I, by number: the exercises transcribed (all twenty). */
 export const HANON_NUMBERS: readonly string[] = HANON_PART_ONE.map((h) => String(h.number));
+
+/**
+ * The trill on a pair of fingers (the right hand's, lower key first; the left hand plays the
+ * mirror pair, 1 for 5 and 2 for 4, as Hanon's No. 46 pairs them): the neighbouring pairs and those
+ * a finger apart.
+ */
+export const TRILL_PAIRS = ['12', '23', '34', '45', '13', '24', '35'] as const;
+/** Bars of the trill on a pair, sixteen sixteenths a bar. */
+export const TRILL_BARS = [4, 8, 16] as const;
+/** Hanon's No. 46 as a form of the trill: its first six bars. */
+export const HANON_TRILL = '46';
+const TRILL_VARIANTS = [
+  HANON_TRILL,
+  ...TRILL_PAIRS.flatMap((pair) => TRILL_BARS.map((bars) => `${pair}-${bars}`)),
+];
+
+/** A trill's form read: Hanon's, or a pair of fingers and a length. */
+export function trillForm(
+  variant: string | undefined,
+): { hanon: true } | { hanon: false; lower: number; upper: number; bars: number } {
+  if (variant === HANON_TRILL) return { hanon: true };
+  const match = /^([1-5])([1-5])-(\d+)$/.exec(variant ?? '');
+  if (!match) throw new Error(`not a trill: ${variant}`);
+  return { hanon: false, lower: Number(match[1]), upper: Number(match[2]), bars: Number(match[3]) };
+}
+
+/** The parts of a Hanon plate a type offers by key: No. 42's sections, No. 53's keys. */
+const partTonics = (number: number, suffix = '') =>
+  plateParts(number)
+    .filter((p) => p.part.endsWith(suffix))
+    .map((p) => p.part.slice(0, p.part.length - suffix.length));
+
+/** No. 45's fingerings as forms: `45.1` … `45.6`. */
+const repeatVariants = () => [
+  ...plateParts(44).map(() => '44'),
+  ...plateParts(45).map((p) => `45.${p.part}`),
+  ...plateParts(47).map(() => '47'),
+];
 
 export function techniqueRules(type: TechniqueType): TechniqueRules {
   switch (type) {
@@ -87,6 +129,91 @@ export function techniqueRules(type: TechniqueType): TechniqueRules {
         perBeat: 4,
         fixedRhythm: true,
       };
+    case 'diminishedSevenths':
+    case 'dominantSevenths':
+      return {
+        tonics: partTonics(type === 'diminishedSevenths' ? 42 : 43),
+        octaves: [3],
+        hands: HANDS,
+        variants: [],
+        perBeat: 4,
+        fixedRhythm: true,
+      };
+    case 'repeatedNotes':
+      return {
+        tonics: ['C'],
+        octaves: [2],
+        hands: HANDS,
+        variants: repeatVariants(),
+        perBeat: 4,
+        fixedRhythm: true,
+      };
+    case 'trill':
+      return {
+        tonics: MAJOR_TONICS,
+        octaves: [1],
+        hands: HANDS,
+        variants: TRILL_VARIANTS,
+        perBeat: 4,
+        fixedRhythm: true,
+        tonicsOf: (variant) => (variant === HANON_TRILL ? ['C'] : MAJOR_TONICS),
+      };
+    case 'thirds':
+      return {
+        tonics: ['C'],
+        octaves: [2],
+        hands: HANDS,
+        variants: plateParts(50).map((p) => p.part),
+        perBeat: 4,
+        fixedRhythm: true,
+      };
+    case 'octaves':
+      return {
+        tonics: ['C'],
+        octaves: [2],
+        hands: HANDS,
+        variants: [],
+        perBeat: 4,
+        fixedRhythm: true,
+      };
+    case 'majorOctaves':
+    case 'minorOctaves':
+      return {
+        tonics: partTonics(53, type === 'majorOctaves' ? ' major' : ' minor'),
+        octaves: [2],
+        hands: HANDS,
+        variants: [],
+        perBeat: 4,
+        fixedRhythm: true,
+      };
+  }
+}
+
+/** The Hanon plate and part an exercise plays, for the types drawn from his later plates. */
+export function plateOf(
+  e: Pick<ScaleExercise, 'type' | 'tonic' | 'variant'>,
+): { number: number; part: string } | null {
+  switch (e.type) {
+    case 'diminishedSevenths':
+      return { number: 42, part: e.tonic };
+    case 'dominantSevenths':
+      return { number: 43, part: e.tonic };
+    case 'repeatedNotes': {
+      const [number, part] = (e.variant ?? '').split('.');
+      return { number: Number(number), part: part ?? '' };
+    }
+    case 'trill':
+      return e.variant === HANON_TRILL ? { number: 46, part: '1-6' } : null;
+    case 'thirds':
+      return { number: 50, part: e.variant ?? '' };
+    case 'octaves':
+      return { number: 51, part: '1-3' };
+    case 'majorOctaves':
+      return { number: 53, part: `${e.tonic} major` };
+    case 'minorOctaves':
+      return { number: 53, part: `${e.tonic} minor` };
+    default:
+      return null;
   }
 }
 
@@ -99,8 +226,9 @@ export function isTechniqueExercise(e: {
   variant?: unknown;
 }): boolean {
   const rules = techniqueRules(e.type);
+  const tonics = rules.tonicsOf ? rules.tonicsOf(e.variant as string | undefined) : rules.tonics;
   return (
-    (rules.tonics as readonly unknown[]).includes(e.tonic) &&
+    (tonics as readonly unknown[]).includes(e.tonic) &&
     (rules.octaves as readonly unknown[]).includes(e.octaves) &&
     (rules.hands as readonly unknown[]).includes(e.hands) &&
     (rules.variants.length === 0
@@ -282,6 +410,69 @@ function hanonRun(h: HanonPartOne, hand: Hand): ScaleNote[] {
   return notes;
 }
 
+/** The chord members of a seventh, in semitones from its root. */
+const SEVENTHS = { diminishedSevenths: [0, 3, 6, 9], dominantSevenths: [0, 4, 7, 10] } as const;
+
+/** How many times each key is struck in a row: No. 44 in threes, No. 45 in twos, No. 47 in fours. */
+const REPEAT_GROUP: Record<number, number> = { 44: 3, 45: 2, 47: 4 };
+
+/** What a note's degree is in each of Hanon's later plates (see `plateRun`). */
+function plateDegree(e: ScaleExercise & { type: TechniqueType }): PlateDegree {
+  switch (e.type) {
+    case 'diminishedSevenths':
+    case 'dominantSevenths':
+      return { kind: 'chord', root: tonicAt(e.tonic), intervals: SEVENTHS[e.type] };
+    case 'repeatedNotes':
+      return { kind: 'repeat', group: REPEAT_GROUP[plateOf(e)!.number] ?? 1 };
+    case 'trill':
+      return { kind: 'trill' };
+    case 'thirds':
+      return e.variant === 'chromatic'
+        ? { kind: 'chromatic', tonic: tonicAt('C') }
+        : { kind: 'scale', tonic: tonicAt('C') };
+    default:
+      return { kind: 'scale', tonic: tonicAt(e.tonic) };
+  }
+}
+
+/** A tonic as a pitch (its octave does not matter to a degree). */
+function tonicAt(tonic: Tonic): SpelledPitch {
+  const match = /^([A-G])(#|b)?$/.exec(tonic);
+  if (!match) throw new Error(`not a tonic: ${tonic}`);
+  return {
+    step: match[1] as Letter,
+    alter: match[2] === '#' ? 1 : match[2] === 'b' ? -1 : 0,
+    octave: 4,
+  };
+}
+
+/**
+ * A trill on a pair of fingers: the tonic and the next degree of its major scale, lower key
+ * first, sixteen sixteenths a bar for `bars` bars and the tonic to close; the right hand from the
+ * tonic at or above C4, the left an octave lower with the mirror fingers (1 for 5, 2 for 4). The
+ * fingers are the pair chosen, so every note has one, written at the start of each bar.
+ */
+function pairTrill(e: ScaleExercise, hand: Hand, lower: number, upper: number, bars: number) {
+  const tonic = startingTonics(e)[hand];
+  const second = scaleDegree('major', tonic, 1);
+  const fingers = hand === 'right' ? [lower, upper] : [6 - lower, 6 - upper];
+  const count = 16 * bars;
+  const notes: ScaleNote[] = [];
+  for (let index = 0; index <= count; index++) {
+    const place = index === count ? 0 : index % 2;
+    notes.push(
+      note(hand, index, place === 0 ? tonic : second, {
+        direction: 'up',
+        degree: place,
+        pattern: true,
+        finger: fingers[place]!,
+        ...(index % 16 > 1 && { unmarked: true as const }),
+      }),
+    );
+  }
+  return notes;
+}
+
 /** Each hand's notes of a technique exercise; empty for a hand not played. */
 export function techniqueNotes(e: ScaleExercise & { type: TechniqueType }): {
   right: ScaleNote[];
@@ -290,6 +481,12 @@ export function techniqueNotes(e: ScaleExercise & { type: TechniqueType }): {
   const run = (hand: Hand): ScaleNote[] => {
     if (e.hands !== 'both' && e.hands !== hand) return [];
     if (e.type === 'hanon') return hanonRun(hanonPartOne(e.variant), hand);
+    if (e.type === 'trill') {
+      const form = trillForm(e.variant);
+      if (!form.hanon) return pairTrill(e, hand, form.lower, form.upper, form.bars);
+    }
+    const plate = plateOf(e);
+    if (plate) return plateRun(partsOf(plate.number, plate.part), hand, plateDegree(e));
     const tonic = startingTonics(e)[hand];
     switch (e.type) {
       case 'majorFiveFinger':
@@ -301,6 +498,8 @@ export function techniqueNotes(e: ScaleExercise & { type: TechniqueType }): {
       case 'majorBrokenChords':
       case 'minorBrokenChords':
         return brokenChords(e.type, hand, tonic, e.octaves);
+      default:
+        throw new Error(`no notes for ${e.type}`);
     }
   };
   return { right: run('right'), left: run('left') };

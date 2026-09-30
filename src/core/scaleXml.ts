@@ -10,7 +10,8 @@ import { isArpeggio, keyAlters, keySignature, scaleNotes } from './scales.ts';
 import { stepsOf, type ExerciseType, type ScaleExercise, type ScaleNote } from './scaleTypes.ts';
 import { LETTERS } from './note.ts';
 import { staffKey, type Hand, type SpelledPitch, type StaffHands } from './score.ts';
-import { hanonPartOne, isTechnique, techniqueRules } from './technique.ts';
+import { hanonPartOne, isTechnique, plateOf, techniqueRules } from './technique.ts';
+import { partDurations, partsOf } from './techniquePlates.ts';
 
 export interface ScaleXmlOptions {
   /**
@@ -80,6 +81,13 @@ export interface Layout {
    * plates change clef; the scales choose it per beat group (`clefs`).
    */
   clefByBar: boolean;
+  /**
+   * Each step's length in divisions, where the steps are not all one (Hanon's later plates: a bar
+   * of repeated notes and its closing chord); the last step then lasts as long as it says.
+   */
+  durations?: readonly number[];
+  /** Divisions of rest after the last step, as a plate prints it (No. 50's chromatic scale). */
+  restAfter?: number;
 }
 
 /**
@@ -102,7 +110,7 @@ export function takesPerBeat(type: ExerciseType): boolean {
 
 /** How the exercise is written: its notes to the beat, bars and close (see `Layout`). */
 export function layoutOf(
-  e: Pick<ScaleExercise, 'type' | 'variant'>,
+  e: Pick<ScaleExercise, 'type' | 'variant'> & { tonic?: string },
   notesPerBeat?: number,
 ): Layout {
   const perBeat =
@@ -115,6 +123,21 @@ export function layoutOf(
       closeBar: true,
       clefByBar: true,
     };
+  // Hanon's later plates: his metre and his values, bar by bar.
+  const plate = isTechnique(e.type) ? plateOf({ tonic: 'C', ...e }) : null;
+  if (plate) {
+    const parts = partsOf(plate.number, plate.part);
+    const { perBeat: division, beatsPerBar, durations, restAfter } = partDurations(parts);
+    return {
+      perBeat: division,
+      beatsPerBar,
+      showTime: true,
+      closeBar: false,
+      clefByBar: true,
+      durations,
+      ...(restAfter > 0 && { restAfter }),
+    };
+  }
   const chords = e.type === 'majorChords' || e.type === 'minorChords';
   return {
     perBeat,
@@ -167,20 +190,28 @@ function lastDuration(at: number, layout: Layout): number {
  */
 function place(steps: readonly (readonly ScaleNote[])[], layout: Layout): Placed[] {
   const last = steps.length - 1;
+  let onset = 0;
   return steps.map((notes, i) => {
-    const duration = i < last ? 1 : lastDuration(i, layout);
-    return {
+    const duration = layout.durations
+      ? layout.durations[i]!
+      : i < last
+        ? 1
+        : lastDuration(i, layout);
+    const placed: Placed = {
       notes,
-      onset: i,
+      onset,
       duration,
-      group: Math.floor(i / layout.perBeat),
+      group: Math.floor(onset / layout.perBeat),
       ...noteType(duration, layout.perBeat),
     };
+    onset += duration;
+    return placed;
   });
 }
 
 /** Divisions from the first step to the end of the last (see place()). */
 function runLength(steps: number, layout: Layout): number {
+  if (layout.durations) return layout.durations.slice(0, steps).reduce((a, d) => a + d, 0);
   return steps - 1 + lastDuration(steps - 1, layout);
 }
 
@@ -395,6 +426,15 @@ function staffXml(
         out.push(octaveShiftXml(shifted[g]!, number, 'stop'));
     });
   });
+  // A closing rest, as the plate prints it, in the last step's bar.
+  if (layout.restAfter) {
+    const end = placed.at(-1)!;
+    const { type, dots } = noteType(layout.restAfter, layout.perBeat);
+    (bars[Math.floor((end.onset + end.duration) / barLength)] ??= []).push(
+      `<note><rest/><duration>${layout.restAfter}</duration><voice>${number}</voice>` +
+        `<type>${type}</type>${'<dot/>'.repeat(dots)}<staff>${number}</staff></note>`,
+    );
+  }
   return { hand, number, bars, firstClef };
 }
 
@@ -435,7 +475,7 @@ function noteXml(
     );
   }
   if (first && p.triplet && inGroup === groupSize - 1) notations.push('<tuplet type="stop"/>');
-  if (note.finger !== null)
+  if (note.finger !== null && !note.unmarked)
     notations.push(
       `<technical><fingering placement="${right ? 'above' : 'below'}">${note.finger}</fingering></technical>`,
     );
@@ -483,10 +523,10 @@ export function scaleMusicXml(e: ScaleExercise, options: ScaleXmlOptions = {}): 
   const left = cut(whole.left);
   const key = keySignature(e.type, e.tonic);
   // A loop's last step fills its beat, whatever the exercise's close.
-  const drawn: Layout = loop ? { ...layout, closeBar: false } : layout;
+  const drawn: Layout = loop ? loopLayout(layout, loop) : layout;
   const barLength = beatsPerBar * perBeat;
   const played = right.length > 0 ? right : left;
-  const length = runLength(played.length, drawn);
+  const length = runLength(played.length, drawn) + (drawn.restAfter ?? 0);
   const barCount = Math.ceil(length / barLength);
   const staves: Staff[] = [];
   if (right.length > 0) staves.push(staffXml(right, 'right', 1, drawn, key.fifths));
@@ -531,6 +571,21 @@ export function scaleMusicXml(e: ScaleExercise, options: ScaleXmlOptions = {}): 
     `<part id="P1">${measures.join('\n')}</part>` +
     '</score-partwise>\n'
   );
+}
+
+/**
+ * A loop's layout: its steps' own lengths where the exercise has them, the last filling its beat
+ * (a loop ends where it goes round), whatever the exercise's close.
+ */
+function loopLayout(layout: Layout, loop: { from: number; to: number }): Layout {
+  if (!layout.durations) return { ...layout, closeBar: false };
+  const durations = layout.durations.slice(loop.from, loop.to + 1);
+  const onset = durations.slice(0, -1).reduce((a, d) => a + d, 0);
+  const rest = onset % layout.perBeat;
+  durations[durations.length - 1] = rest === 0 ? layout.perBeat : layout.perBeat - rest;
+  // No closing rest: the loop goes round.
+  const { perBeat, beatsPerBar, showTime, clefByBar } = layout;
+  return { perBeat, beatsPerBar, showTime, clefByBar, closeBar: false, durations };
 }
 
 /** How many beats the exercise's score lasts (at `notesPerBeat`, as `scaleMusicXml` draws it). */

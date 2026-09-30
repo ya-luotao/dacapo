@@ -106,11 +106,13 @@ in `<identification>`.
 
 The fingering shown on the Scales page is Charles-Louis Hanon's, from _The Virtuoso Pianist_,
 Nos. 39 (the major and minor scales), 40 (the chromatic scales) and 41 (the arpeggios on the
-triads), and the technique exercises Hanon Nos. 1–20 are his, notes and fingering, from Part I of
-the same edition: G. Schirmer, New York, n.d. [1900], plate 15538, in the public domain (IMSLP
-#91547, <https://imslp.org/wiki/The_Virtuoso_Pianist_(Hanon,_Charles-Louis)>). The dacapo project
-transcribed them note by note and digit by digit; the transcriptions, their checks and the one
-correction are in `scripts/scales/hanon/`.
+triads), and the technique exercises Hanon Nos. 1–20 (Part I), the sevenths (Nos. 42 and 43),
+the repeated notes (Nos. 44, 45 and 47), the trill (No. 46), the thirds (No. 50) and the octaves
+(Nos. 51 and 53) are his, notes and fingering, from the same edition: G. Schirmer, New York,
+n.d. [1900], plate 15538, in the public domain (IMSLP #91547,
+<https://imslp.org/wiki/The_Virtuoso_Pianist_(Hanon,_Charles-Louis)>). The dacapo project
+transcribed them note by note and digit by digit; the transcriptions, their checks and the
+corrections are in `scripts/scales/hanon/`.
 
 ## Checks only, never shipped
 
