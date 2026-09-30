@@ -369,6 +369,34 @@ export const ja: Dictionary = {
   'library.bach-prelude-in-c.composer': 'J.S.バッハ',
   'library.bach-prelude-in-c.note':
     '『平均律クラヴィーア曲集 第1巻』より、分散和音の曲。どの小節も同じ音型で、和声が小節ごとに変わります。',
+  'library.petzold-minuet-in-g-minor.title': 'メヌエット ト短調',
+  'library.petzold-minuet-in-g-minor.composer': 'ペツォールト',
+  'library.petzold-minuet-in-g-minor.note':
+    '『アンナ・マグダレーナ・バッハのための音楽帳』で、ト長調のメヌエットと対になる短調の曲。前半と後半をそれぞれくり返します。',
+  'library.bach-musette-in-d.title': 'ミュゼット ニ長調',
+  'library.bach-musette-in-d.composer': 'J.S.バッハ',
+  'library.bach-musette-in-d.note':
+    'ミュゼットはバグパイプをまねた曲。左手の持続音がオクターブで跳びながらニ、イ、ホと移り、その上で明るい旋律が歌います。',
+  'library.burgmuller-candeur.title': '素直な心（25の練習曲 Op.100-1）',
+  'library.burgmuller-candeur.composer': 'ブルグミュラー',
+  'library.burgmuller-candeur.note':
+    'ブルグミュラーの練習曲の第1曲。なめらかでむらのない8分音符がおもに右手に続き、左手はシンプルな和音です。',
+  'library.tchaikovsky-old-french-song.title': '古いフランスの歌（Op.39-16）',
+  'library.tchaikovsky-old-french-song.composer': 'チャイコフスキー',
+  'library.tchaikovsky-old-french-song.note':
+    '『子供のためのアルバム』より。ト短調のもの悲しい旋律の下で、左手は内声とのばしたトの音を弾きます。',
+  'library.tchaikovsky-morning-prayer.title': '朝の祈り（Op.39-1）',
+  'library.tchaikovsky-morning-prayer.composer': 'チャイコフスキー',
+  'library.tchaikovsky-morning-prayer.note':
+    '『子供のためのアルバム』より。静かな4声のコラールを、両手でゆっくりとした和音に分けて弾きます。',
+  'library.chopin-prelude-in-c-minor.title': '前奏曲 ハ短調 Op.28-20',
+  'library.chopin-prelude-in-c-minor.composer': 'ショパン',
+  'library.chopin-prelude-in-c-minor.note':
+    'ゆっくりとした厚い和音が両手で続く13小節。第5〜8小節が弱い音でもう一度現れ、最後の和音で終わります。',
+  'library.satie-gymnopedie-1.title': 'ジムノペディ第1番',
+  'library.satie-gymnopedie-1.composer': 'サティ',
+  'library.satie-gymnopedie-1.note':
+    'ゆっくりと静かな旋律。左手は小節ごとに、低い音と和音のあいだを行き来します。',
 
   'pieces.yours': 'インポートした曲',
   'pieces.yours.help':

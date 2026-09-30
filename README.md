@@ -61,7 +61,7 @@ practising the notes you are slowest at. Progress is visible day by day.
 - **Weakness heatmap.** Every note you have practised, on the grand staff or on the keyboard,
   coloured by how fast you usually find it and marked with how often you missed it lately,
   with the three weakest notes named and a table view.
-- **Pieces, in wait mode and in rhythm.** Six public-domain pieces from Initial to about grade 5,
+- **Pieces, in wait mode and in rhythm.** Thirteen public-domain pieces from Initial to about grade 5,
   plus your own MusicXML (`.musicxml`, `.xml` or `.mxl`, for example from MuseScore). The cursor waits on
   the real score until you have played the right keys. You can practise one hand or both, loop a
   few bars, start anywhere, and play or skip the repeats. Your instrument (over USB MIDI) or the

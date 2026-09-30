@@ -365,6 +365,34 @@ export const ko: Dictionary = {
   'library.bach-prelude-in-c.composer': '요한 제바스티안 바흐',
   'library.bach-prelude-in-c.note':
     '「평균율 클라비어 곡집」에 실린 분산화음 곡이에요. 마디마다 같은 음형이 이어지고 화성만 바뀌어요.',
+  'library.petzold-minuet-in-g-minor.title': '미뉴에트 G단조',
+  'library.petzold-minuet-in-g-minor.composer': '크리스티안 페촐트',
+  'library.petzold-minuet-in-g-minor.note':
+    '「안나 막달레나 바흐를 위한 음악 수첩」에서 미뉴에트 G장조와 짝을 이루는 단조 곡이에요. 앞뒤 두 부분을 각각 반복해요.',
+  'library.bach-musette-in-d.title': '뮈제트 D장조',
+  'library.bach-musette-in-d.composer': '요한 제바스티안 바흐',
+  'library.bach-musette-in-d.note':
+    '뮈제트는 백파이프를 흉내 낸 곡이에요. 왼손의 지속음이 옥타브로 뛰며 D에서 A, E로 옮겨 가고, 그 위로 밝은 선율이 흘러요.',
+  'library.burgmuller-candeur.title': '순수 (La Candeur), Op. 100 No. 1',
+  'library.burgmuller-candeur.composer': '프리드리히 부르크뮐러',
+  'library.burgmuller-candeur.note':
+    '부르크뮐러 연습곡의 첫 곡이에요. 고르고 매끄러운 8분음표가 주로 오른손에 나오고, 왼손은 간단한 화음이에요.',
+  'library.tchaikovsky-old-french-song.title': '옛 프랑스 노래, Op. 39 No. 16',
+  'library.tchaikovsky-old-french-song.composer': '표트르 일리치 차이콥스키',
+  'library.tchaikovsky-old-french-song.note':
+    '「어린이를 위한 앨범」에 실린 곡으로, G단조의 애잔한 선율 아래 왼손이 안쪽 성부와 길게 이어지는 G음을 연주해요.',
+  'library.tchaikovsky-morning-prayer.title': '아침 기도, Op. 39 No. 1',
+  'library.tchaikovsky-morning-prayer.composer': '표트르 일리치 차이콥스키',
+  'library.tchaikovsky-morning-prayer.note':
+    '「어린이를 위한 앨범」에 실린 곡으로, 조용한 4성부 코랄의 느린 화음을 양손이 나누어 연주해요.',
+  'library.chopin-prelude-in-c-minor.title': '전주곡 C단조, Op. 28 No. 20',
+  'library.chopin-prelude-in-c-minor.composer': '프레데리크 쇼팽',
+  'library.chopin-prelude-in-c-minor.note':
+    '양손의 느리고 꽉 찬 화음이 이어지는 13마디예요. 5~8마디가 여리게 한 번 더 나온 뒤 마지막 화음으로 끝나요.',
+  'library.satie-gymnopedie-1.title': '짐노페디 제1번',
+  'library.satie-gymnopedie-1.composer': '에리크 사티',
+  'library.satie-gymnopedie-1.note':
+    '느리고 고요한 선율 아래, 왼손이 마디마다 낮은 음과 화음을 오가요.',
 
   'pieces.yours': '내 곡',
   'pieces.yours.help':

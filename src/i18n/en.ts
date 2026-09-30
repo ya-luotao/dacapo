@@ -366,6 +366,34 @@ export const en = {
   'library.bach-prelude-in-c.composer': 'Johann Sebastian Bach',
   'library.bach-prelude-in-c.note':
     'Broken chords from the Well-Tempered Clavier: one pattern in every bar, a new harmony each time.',
+  'library.petzold-minuet-in-g-minor.title': 'Minuet in G minor',
+  'library.petzold-minuet-in-g-minor.composer': 'Christian Petzold',
+  'library.petzold-minuet-in-g-minor.note':
+    'The Minuet in G’s companion in Anna Magdalena Bach’s notebook, in the minor, with both halves repeated.',
+  'library.bach-musette-in-d.title': 'Musette in D major',
+  'library.bach-musette-in-d.composer': 'Johann Sebastian Bach',
+  'library.bach-musette-in-d.note':
+    'A musette imitates the bagpipe: the left hand’s drone leaps in octaves, on D, then A and E, under a bright tune.',
+  'library.burgmuller-candeur.title': 'La Candeur, Op. 100 No. 1',
+  'library.burgmuller-candeur.composer': 'Friedrich Burgmüller',
+  'library.burgmuller-candeur.note':
+    'The first of Burgmüller’s studies: smooth, even eighth notes, mostly in the right hand, over simple chords.',
+  'library.tchaikovsky-old-french-song.title': 'Old French Song, Op. 39 No. 16',
+  'library.tchaikovsky-old-french-song.composer': 'Pyotr Ilyich Tchaikovsky',
+  'library.tchaikovsky-old-french-song.note':
+    'From the Album for the Young: a sad tune in G minor over an inner voice and a held G in the left hand.',
+  'library.tchaikovsky-morning-prayer.title': 'Morning Prayer, Op. 39 No. 1',
+  'library.tchaikovsky-morning-prayer.composer': 'Pyotr Ilyich Tchaikovsky',
+  'library.tchaikovsky-morning-prayer.note':
+    'From the Album for the Young: a quiet hymn in four parts, in slow chords shared by the hands.',
+  'library.chopin-prelude-in-c-minor.title': 'Prelude in C minor, Op. 28 No. 20',
+  'library.chopin-prelude-in-c-minor.composer': 'Frédéric Chopin',
+  'library.chopin-prelude-in-c-minor.note':
+    'Thirteen bars of slow, full chords in both hands; bars 5–8 come back softly before the last chord.',
+  'library.satie-gymnopedie-1.title': 'Gymnopédie No. 1',
+  'library.satie-gymnopedie-1.composer': 'Erik Satie',
+  'library.satie-gymnopedie-1.note':
+    'A slow, still melody over a left hand that swings between a low note and a chord in every bar.',
 
   'pieces.yours': 'Your pieces',
   'pieces.yours.help':

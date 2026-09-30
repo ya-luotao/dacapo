@@ -69,7 +69,8 @@ scripts/pieces/verify-library.sh <dir with the oracle MIDI files>
 ```
 
 `verify.ts` reads the file with dacapo's own parser and compares every key press (onset and
-pitch; tied continuations are not presses) with the MIDI file, which is independent of both the
+pitch; tied continuations are not presses, and two voices sounding one key together are one
+press) with the MIDI file, which is independent of both the
 encoding and the parser. `--order document` (the default) takes every written bar once with all
 its endings, as a LilyPond MIDI file without `\unfoldRepeats` plays them; `--order play` unrolls
 the repeats. `--bars` and `--midi-at` compare part of a file with another part of the oracle.
@@ -86,8 +87,8 @@ oracles; they are not in the repository.
 2. Encode it: a `sources/<id>.py` for `generate.py`, or a `pdmx/<id>.json` for `prepare-pdmx.ts`.
 3. Run `verify.ts` until it matches; settle every difference against the edition and note any
    editorial decision in the file's comment.
-4. Add the piece to `src/pieces/library/index.ts` (metadata, level) and its strings to both
-   dictionaries in `src/i18n/`.
+4. Add the piece to `src/pieces/library/index.ts` (metadata, level) and its strings to every
+   dictionary in `src/i18n/`.
 5. Add it to `library.test.ts`: a checksum line and a test of its structure (bars, repeats).
 6. Add the oracle to `verify-library.sh`, and a line to `THIRD_PARTY_NOTICES.md` if the encoding
    is not ours.

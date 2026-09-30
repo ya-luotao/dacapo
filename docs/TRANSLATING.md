@@ -223,14 +223,21 @@ settled name for the mark, the gloss starts with it (zh: 行板, 快板 …), th
 Each piece's title, composer and one-sentence note are in every dictionary
 (`library.<id>.title`, `.composer`, `.note`), under the name learners know it by:
 
-| Piece                         | zh-CN          | zh-TW          | ja                | ko              |
-| ----------------------------- | -------------- | -------------- | ----------------- | --------------- |
-| Ode to Joy                    | 欢乐颂         | 快樂頌         | 歓喜の歌          | 환희의 송가     |
-| Minuet in G major             | G 大调小步舞曲 | G 大調小步舞曲 | メヌエット ト長調 | 미뉴에트 G장조  |
-| Arabesque, Op. 100 No. 2      | 阿拉伯风格曲   | 阿拉貝斯克     | アラベスク        | 아라베스크      |
-| Soldiers' March, Op. 68 No. 2 | 士兵进行曲     | 士兵進行曲     | 兵士の行進        | 병사의 행진     |
-| Für Elise                     | 致爱丽丝       | 給愛麗絲       | エリーゼのために  | 엘리제를 위하여 |
-| Prelude in C major, BWV 846   | C 大调前奏曲   | C 大調前奏曲   | 前奏曲 ハ長調     | 전주곡 C장조    |
+| Piece                             | zh-CN           | zh-TW           | ja                | ko                |
+| --------------------------------- | --------------- | --------------- | ----------------- | ----------------- |
+| Ode to Joy                        | 欢乐颂          | 快樂頌          | 歓喜の歌          | 환희의 송가       |
+| Minuet in G major                 | G 大调小步舞曲  | G 大調小步舞曲  | メヌエット ト長調 | 미뉴에트 G장조    |
+| Arabesque, Op. 100 No. 2          | 阿拉伯风格曲    | 阿拉貝斯克      | アラベスク        | 아라베스크        |
+| Soldiers' March, Op. 68 No. 2     | 士兵进行曲      | 士兵進行曲      | 兵士の行進        | 병사의 행진       |
+| Für Elise                         | 致爱丽丝        | 給愛麗絲        | エリーゼのために  | 엘리제를 위하여   |
+| Prelude in C major, BWV 846       | C 大调前奏曲    | C 大調前奏曲    | 前奏曲 ハ長調     | 전주곡 C장조      |
+| Minuet in G minor                 | G 小调小步舞曲  | G 小調小步舞曲  | メヌエット ト短調 | 미뉴에트 G단조    |
+| Musette in D major                | D 大调风笛舞曲  | D 大調風笛舞曲  | ミュゼット ニ長調 | 뮈제트 D장조      |
+| La Candeur, Op. 100 No. 1         | 纯洁            | 純潔            | 素直な心          | 순수 (La Candeur) |
+| Old French Song, Op. 39 No. 16    | 古老的法国歌曲  | 古老的法國歌曲  | 古いフランスの歌  | 옛 프랑스 노래    |
+| Morning Prayer, Op. 39 No. 1      | 晨祷            | 晨禱            | 朝の祈り          | 아침 기도         |
+| Prelude in C minor, Op. 28 No. 20 | C 小调前奏曲    | C 小調前奏曲    | 前奏曲 ハ短調     | 전주곡 C단조      |
+| Gymnopédie No. 1                  | 裸体歌舞第 1 号 | 裸體歌舞第 1 號 | ジムノペディ第1番 | 짐노페디 제1번    |
 
 The source and licence lines of a built-in piece stay in English: they are provenance, not UI.
 

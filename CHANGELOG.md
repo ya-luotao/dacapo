@@ -10,6 +10,17 @@ Export format version 5: the file now includes imported pieces (from version 2),
 sessions and their step records (from version 3), rhythm-mode steps with their timings (from
 version 4), and scale sessions with every scale run as played. Version 1 to 4 files still import.
 
+### Seven more pieces
+
+- The built-in library grows from six pieces to thirteen, and grade 4 is no longer empty: the
+  Minuet in G minor (Petzold, grade 1), the Musette in D major (from Anna Magdalena Bach's
+  notebook), Burgmüller's La Candeur and Tchaikovsky's Old French Song (grade 2), Tchaikovsky's
+  Morning Prayer (grade 3), Chopin's Prelude in C minor, Op. 28 No. 20, and Satie's Gymnopédie
+  No. 1 (grade 4). Each is our own encoding of a public-domain Mutopia edition, checked note for
+  note against its MIDI file, with no fingering.
+- Where two voices of one hand share a key at the same moment (one notehead with two stems), the
+  proofreading script counts one key press, as the app always has.
+
 ### The basics: lessons for beginners ([docs/LEARN.md](docs/LEARN.md))
 
 - **Learn** has seven short lessons for your first weeks at the piano, in English and Simplified

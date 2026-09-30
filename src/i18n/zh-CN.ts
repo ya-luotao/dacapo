@@ -352,6 +352,33 @@ export const zhCN: Dictionary = {
   'library.bach-prelude-in-c.composer': '巴赫',
   'library.bach-prelude-in-c.note':
     '选自《平均律钢琴曲集》的分解和弦：每小节同一个音型，和声一小节一变。',
+  'library.petzold-minuet-in-g-minor.title': 'G 小调小步舞曲',
+  'library.petzold-minuet-in-g-minor.composer': '佩措尔德',
+  'library.petzold-minuet-in-g-minor.note':
+    '《安娜·玛格达莱娜·巴赫曲集》中 G 大调小步舞曲的姊妹篇，换成小调，前后两段各反复一次。',
+  'library.bach-musette-in-d.title': 'D 大调风笛舞曲',
+  'library.bach-musette-in-d.composer': '巴赫',
+  'library.bach-musette-in-d.note':
+    '风笛舞曲模仿风笛：左手的持续低音以八度跳跃，先在 D 上，再到 A 和 E，上方是明亮的旋律。',
+  'library.burgmuller-candeur.title': '纯洁，作品 100 第 1 首',
+  'library.burgmuller-candeur.composer': '布格缪勒',
+  'library.burgmuller-candeur.note':
+    '布格缪勒练习曲的第一首：平稳均匀的八分音符，大多在右手，配简单的和弦。',
+  'library.tchaikovsky-old-french-song.title': '古老的法国歌曲，作品 39 第 16 首',
+  'library.tchaikovsky-old-french-song.composer': '柴可夫斯基',
+  'library.tchaikovsky-old-french-song.note':
+    '选自《儿童曲集》：G 小调的哀婉旋律，左手有一条内声部和一个持续的 G 音。',
+  'library.tchaikovsky-morning-prayer.title': '晨祷，作品 39 第 1 首',
+  'library.tchaikovsky-morning-prayer.composer': '柴可夫斯基',
+  'library.tchaikovsky-morning-prayer.note':
+    '选自《儿童曲集》：安静的四声部圣咏，由双手分担缓慢的和弦。',
+  'library.chopin-prelude-in-c-minor.title': 'C 小调前奏曲，作品 28 第 20 首',
+  'library.chopin-prelude-in-c-minor.composer': '肖邦',
+  'library.chopin-prelude-in-c-minor.note':
+    '十三小节缓慢而饱满的双手和弦；第 5–8 小节轻声再现，然后是最后的和弦。',
+  'library.satie-gymnopedie-1.title': '裸体歌舞第 1 号',
+  'library.satie-gymnopedie-1.composer': '萨蒂',
+  'library.satie-gymnopedie-1.note': '缓慢而宁静的旋律，左手每小节在低音和和弦之间来回摆动。',
 
   'pieces.yours': '我的曲目',
   'pieces.yours.help':
