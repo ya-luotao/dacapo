@@ -239,6 +239,27 @@ describe('buildProfile', () => {
     expect(withoutTitles.activity!['2026-09-29']!.pieces).toEqual([{ ms: 6 * MIN }, { ms: MIN }]);
   });
 
+  it('counts arpeggios without naming them, since the service names only the scales', () => {
+    const sessions: SessionRecord[] = [
+      scale('s', NOW, [
+        ['majorArpeggio:C:2:right', 20_000],
+        ['major:G:1:right', 10_000],
+        ['minorArpeggio:A:1:left', 15_000],
+      ]),
+    ];
+    const day = build({ sessions, settings: { visibility: 'public', titles: false } })!.activity![
+      '2026-09-29'
+    ]!;
+    expect(day.scales).toEqual([{ type: 'major', tonic: 'G', ms: 10_000 }]);
+    expect(day.moreScales).toBe(2);
+    const onlyArpeggios = build({
+      sessions: [scale('a', NOW, [['majorArpeggio:C:2:right', 20_000]])],
+      settings: { visibility: 'public', titles: false },
+    })!.activity!['2026-09-29']!;
+    expect(onlyArpeggios.scales).toBeUndefined();
+    expect(onlyArpeggios.moreScales).toBe(1);
+  });
+
   it('publishes whole milliseconds, though scale runs are timed to fractions of one', () => {
     const sessions: SessionRecord[] = [
       scale('s', NOW + 0.5, [

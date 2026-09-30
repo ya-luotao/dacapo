@@ -145,6 +145,8 @@ click's tempo and grid of scale runs played with it (from version 7), and the ta
 
 ### Arpeggios and contrary motion (S5)
 
+- A public profile with arpeggios among the day's scales is published again: the service names
+  only the scales it knows, so arpeggios are counted with the day's other scales instead of named.
 - **Arpeggios**: the major and minor triad in root position in every key, one to four octaves,
   either hand or both, drawn three notes to the beat with **Hanon's fingering** from The Virtuoso
   Pianist, No. 41 (G. Schirmer 1900), transcribed twice independently and checked digit by digit:

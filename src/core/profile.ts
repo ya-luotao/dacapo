@@ -36,13 +36,29 @@ export const TITLE_LENGTH = 80;
 
 export type ActivityKind = 'read' | 'free' | 'piece' | 'scale';
 
+/**
+ * The scale types the service accepts in `activity.scales` (it rejects a document with any other):
+ * the scales of S1. Arpeggios are counted in `moreScales` until it learns them (docs/PROFILE.md).
+ */
+export const PROFILE_SCALE_TYPES = [
+  'major',
+  'naturalMinor',
+  'harmonicMinor',
+  'melodicMinor',
+  'chromatic',
+] as const satisfies readonly ScaleType[];
+type ProfileScaleType = (typeof PROFILE_SCALE_TYPES)[number];
+
+const isProfileScaleType = (type: ScaleType): type is ProfileScaleType =>
+  (PROFILE_SCALE_TYPES as readonly string[]).includes(type);
+
 export interface DayActivity {
   /** Active ms per kind practised that day. */
   kinds: Partial<Record<ActivityKind, number>>;
   /** The longest of the day, longest first; `title` only with `titles`. */
   pieces?: { title?: string; ms: number }[];
   morePieces?: number;
-  scales?: { type: ScaleType; tonic: Tonic; ms: number }[];
+  scales?: { type: ProfileScaleType; tonic: Tonic; ms: number }[];
   moreScales?: number;
 }
 
@@ -109,7 +125,9 @@ function dayActivity(
 ): DayActivity {
   const kinds: Partial<Record<ActivityKind, number>> = {};
   const pieces = new Map<string, { id: string; title: string; ms: number }>();
-  const scales = new Map<string, { type: ScaleType; tonic: Tonic; ms: number }>();
+  const scales = new Map<string, { type: ProfileScaleType; tonic: Tonic; ms: number }>();
+  // Exercises the service cannot name yet: counted, not listed.
+  const unnamed = new Set<string>();
   for (const session of sessions) {
     if (session.activeMs > 0) {
       const kind = activityKind(session);
@@ -127,8 +145,13 @@ function dayActivity(
       for (const run of session.runs) {
         const exercise = parseExerciseKey(run.exercise);
         if (!exercise) continue;
-        const key = `${exercise.type}:${exercise.tonic}`;
-        const scale = scales.get(key) ?? { type: exercise.type, tonic: exercise.tonic, ms: 0 };
+        const { type } = exercise;
+        if (!isProfileScaleType(type)) {
+          unnamed.add(`${type}:${exercise.tonic}`);
+          continue;
+        }
+        const key = `${type}:${exercise.tonic}`;
+        const scale = scales.get(key) ?? { type, tonic: exercise.tonic, ms: 0 };
         scale.ms += Math.max(0, run.endedAt - run.startedAt);
         scales.set(key, scale);
       }
@@ -149,8 +172,8 @@ function dayActivity(
   if (scales.size > 0) {
     const { top, more } = longest([...scales.values()], (s) => `${s.type}:${s.tonic}`);
     activity.scales = top.map(wholeMs);
-    if (more > 0) activity.moreScales = more;
-  }
+    if (more + unnamed.size > 0) activity.moreScales = more + unnamed.size;
+  } else if (unnamed.size > 0) activity.moreScales = unnamed.size;
   return activity;
 }
 
