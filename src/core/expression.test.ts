@@ -3,15 +3,24 @@ import {
   ACCENT_STEP_MIN,
   analyzeExpression,
   articulationToLookAt,
+  CHANGE_MAX_MS,
   dynamicsToLookAt,
   DYNAMIC_STEP,
+  pedalToLookAt,
   playedNotes,
+  RELEASE_MAX_MS,
+  runClock,
   runSteps,
+  runTimes,
   slotOf,
   velocityMeasured,
   type ExpressionInput,
 } from './expression.ts';
-import type { Dynamic, HairpinMark } from './markings.ts';
+import type { Dynamic, HairpinMark, PedalMark } from './markings.ts';
+import {
+  CHANGE_MAX_MS as LESSON_CHANGE_MAX_MS,
+  RELEASE_MAX_MS as LESSON_RELEASE_MAX_MS,
+} from '../ui/learn/expression.ts';
 import { bars, note, Q, score as makeScore } from './scoreFixtures.ts';
 import type { HandSelection, Score, ScoreNote } from './score.ts';
 import type { TakeEvent } from './takes.ts';
@@ -694,5 +703,239 @@ describe('articulation', () => {
     const analysis = run(s, events, { hands: 'right' });
     expect(analysis.dynamics.velocityMeasured).toBe(false);
     expect(analysis.articulation.judged).toBeGreaterThan(0);
+  });
+});
+
+describe('the pedal', () => {
+  /** Quarters in both hands, three bars, every key held `held` of its 500 ms. */
+  function chorale(
+    marks: [number, number, PedalMark['type']][],
+    pedal: PedalMark['pedal'] = 'sustain',
+  ) {
+    const s = piano(twoHands(3), 3);
+    for (const [measure, tick, type] of marks)
+      s.markings.pedals.push({ part: 0, staff: 2, measure, tick, pedal, type, line: true });
+    return s;
+  }
+  function played(s: Score, pedal: TakeEvent[], held = 0.95, extra: Partial<ExpressionInput> = {}) {
+    const keys = take(s, 'both', { velocity: jitter, held: () => held });
+    const events = [...keys, ...pedal].sort((a, b) => a[0]! - b[0]!);
+    return run(s, events, extra).pedal;
+  }
+  const verdicts = (p: ReturnType<typeof played>) =>
+    p.judgements.map((j) => [
+      j.mark,
+      j.tick / Q,
+      j.verdict,
+      j.ms === null ? null : Math.round(j.ms),
+    ]);
+  /** Start on bar 1's downbeat, a change on each of its beats, the stop on bar 2's downbeat. */
+  const changes = () =>
+    chorale([
+      [0, 0, 'start'],
+      [0, Q, 'change'],
+      [0, 2 * Q, 'change'],
+      [0, 3 * Q, 'change'],
+      [1, 4 * Q, 'stop'],
+    ]);
+  const down = (t: number): TakeEvent => [t, 64, 127];
+  const up = (t: number): TakeEvent => [t, 64, 0];
+
+  it('draws nothing and judges nothing without the sustain pedal in the take', () => {
+    const p = played(changes(), []);
+    expect(p.used).toBe(false);
+    expect(p.marked).toBe(true);
+    expect(p.marks.map((m) => m.type)).toEqual(['start', 'change', 'change', 'change', 'stop']);
+    expect(p.judgements).toEqual([]);
+    expect(p.lines.sustain).toEqual([]);
+    expect(p.down).toBeNull();
+  });
+
+  it('is clean: up just after each new note, down again straight away', () => {
+    const pedal = [down(100)];
+    for (const n of [500, 1000, 1500]) pedal.push(up(n + 80), down(n + 200));
+    pedal.push(up(2100));
+    const p = played(changes(), pedal);
+    expect(verdicts(p)).toEqual([
+      ['start', 0, 'clean', null],
+      ['change', 1, 'clean', null],
+      ['change', 2, 'clean', null],
+      ['change', 3, 'clean', null],
+      ['stop', 4, 'clean', null],
+    ]);
+    expect(pedalToLookAt(p)).toEqual([]);
+  });
+
+  it('hears a gap when the pedal comes up before the note, unless the hand holds it over', () => {
+    const pedal = [down(100), up(420), down(600), up(2100)];
+    // Every key let go at 0.8 of its length: nothing sounds from 420 to the note at 500.
+    expect(verdicts(played(changes(), pedal, 0.8))[1]).toEqual(['change', 1, 'gap', 80]);
+    // Held to the next note: no gap, and down again 100 ms after the note.
+    expect(verdicts(played(changes(), pedal, 1))[1]).toEqual(['change', 1, 'clean', null]);
+  });
+
+  it('measures a blur: up too late, or not at all before the next mark', () => {
+    const late = played(changes(), [down(100), up(800), down(900)]);
+    expect(verdicts(late)[1]).toEqual(['change', 1, 'blur', 300]);
+    // Never lifted: each change blurs to the next note, the stop to the end of the take.
+    const held = verdicts(played(changes(), [down(100)]));
+    expect(held.slice(1, 4)).toEqual([
+      ['change', 1, 'blur', 500],
+      ['change', 2, 'blur', 500],
+      ['change', 3, 'blur', 500],
+    ]);
+    expect(held[4]).toEqual(['stop', 4, 'blur', 5975 - 2000]);
+  });
+
+  it('says missed when the pedal never goes down, and a gap when it goes down too late', () => {
+    // The pedal moved (so it is there) but never reached down.
+    expect(verdicts(played(changes(), [[3000, 64, 30]]))).toEqual([
+      ['start', 0, 'missed', null],
+      ['change', 1, 'missed', null],
+      ['change', 2, 'missed', null],
+      ['change', 3, 'missed', null],
+    ]);
+    // Up 50 ms after the note, down again 550 ms later, the keys let go at 400 of 500: nothing
+    // sounds from 900 to the next note at 1000. Held over, the late pedal leaves no gap.
+    const s = chorale([
+      [0, 0, 'start'],
+      [0, Q, 'change'],
+      [1, 4 * Q, 'stop'],
+    ]);
+    const pedal = [down(100), up(550), down(1100), up(2100)];
+    expect(verdicts(played(s, pedal, 0.8))[1]).toEqual(['change', 1, 'gap', 100]);
+    expect(verdicts(played(s, pedal, 1))[1]).toEqual(['change', 1, 'clean', null]);
+    // Not down again before the next mark: the new harmony was not pedalled.
+    expect(verdicts(played(changes(), pedal))[1]).toEqual(['change', 1, 'missed', null]);
+  });
+
+  it('judges a lift inside a marked span where the sound broke, at its place', () => {
+    const s = chorale([
+      [0, 0, 'start'],
+      [1, 4 * Q, 'stop'],
+    ]);
+    const p = played(s, [down(100), up(700), down(1200), up(2100)], 0.8);
+    expect(verdicts(p)).toEqual([
+      ['start', 0, 'clean', null],
+      ['lift', 1.5, 'gap', 100],
+      ['stop', 4, 'clean', null],
+    ]);
+    expect(p.judgements[1]).toMatchObject({ measure: 0, beat: 2.5 });
+    expect(pedalToLookAt(p)).toEqual([
+      {
+        bars: { from: 0, to: 0 },
+        weight: 2,
+        problems: [{ kind: 'sustain', judgement: p.judgements[1] }],
+      },
+    ]);
+  });
+
+  it('reads a stop and a start struck on the same note as a change', () => {
+    // The stop just before bar 2 (as Für Elise marks it) is heard at bar 2's first note.
+    const s = chorale([
+      [0, 0, 'start'],
+      [0, 3.5 * Q, 'stop'],
+      [1, 4 * Q, 'start'],
+    ]);
+    const p = played(s, [down(100), up(2080), down(2200)]);
+    expect(verdicts(p)).toEqual([
+      ['start', 0, 'clean', null],
+      ['change', 4, 'clean', null],
+    ]);
+    expect(p.marks.map((m) => [m.type, m.tick / Q])).toEqual([
+      ['start', 0],
+      ['stop', 3.5],
+      ['start', 4],
+    ]);
+  });
+
+  it('judges each round of a loop, the pedal going on from one to the next', () => {
+    const s = chorale([
+      [0, 0, 'start'],
+      [0, 2 * Q, 'change'],
+    ]);
+    const { steps } = runSteps(s, 'both', 'play', { from: 0, to: 0 });
+    const events: TakeEvent[] = [];
+    for (let round = 0; round < 2; round++)
+      for (const step of steps.filter((x) => x.measure === 0)) {
+        const at = round * 2000 + (step.tick / Q) * 500;
+        for (const midi of step.midis)
+          events.push([at, 1, midi, 60, step.index], [at + 475, 0, midi]);
+      }
+    events.push(down(100), up(1080), down(1200), up(2050), down(2150), up(3300), down(3400));
+    events.sort((a, b) => a[0]! - b[0]!);
+    const p = run(s, events, { loop: { from: 0, to: 0 } }).pedal;
+    expect(p.judgements.map((j) => [j.round, j.mark, j.verdict, j.ms])).toEqual([
+      [0, 'start', 'clean', null],
+      [0, 'change', 'clean', null],
+      [1, 'start', 'clean', null],
+      [1, 'change', 'blur', 300],
+    ]);
+  });
+
+  it('draws the raw positions, half pedal too, and the share of the time down', () => {
+    const s = changes();
+    const p = played(s, [down(100), [1000, 64, 40], up(1500)]);
+    expect(p.lines.sustain.map((x) => [x.round, x.tick / Q, x.value])).toEqual([
+      [0, 0, 0],
+      [0, 0.2, 127],
+      [0, 2, 40],
+      [0, 3, 0],
+    ]);
+    // Down from 100 to 1000 of the run's 0 to 5975.
+    expect(p.down).toBeCloseTo(900 / 5975);
+    expect(
+      p.bars.map((b) => [b.measure, b.down === null ? null : Math.round(b.down * 100)]),
+    ).toEqual([
+      [0, 45],
+      [1, 0],
+      [2, 0],
+    ]);
+    expect(p.lines.unaCorda).toBeNull();
+    expect(p.lines.sostenuto).toBeNull();
+  });
+
+  it('places the take in the score: by the steps in wait mode, by the clock in rhythm mode', () => {
+    const s = changes();
+    s.tempos.push({ tick: 0, bpm: 120 });
+    const events = take(s, 'both', { velocity: jitter });
+    const { order, steps } = runSteps(s, 'both', 'play', null);
+    const wait = runTimes(playedNotes(s, steps, events, null), null);
+    expect(wait.at(0, 1.5 * Q)).toBe(750);
+    expect(wait.place(750)).toEqual({ round: 0, tick: 1.5 * Q });
+    const clock = runClock(s, order, { from: 0, to: 0 }, 1)!;
+    const rhythm = runTimes(playedNotes(s, steps, events, clock, 20), clock, 20);
+    expect(rhythm.at(1, Q)).toBeCloseTo(20 + 2000 + 500);
+    const at = rhythm.place(520)!;
+    expect(at.round).toBe(0);
+    expect(at.tick).toBeCloseTo(Q, 0);
+    // One round played: a later moment is held at the end of the loop.
+    expect(rhythm.place(2520)).toEqual({ round: 0, tick: 4 * Q });
+  });
+
+  it('checks una corda against its words, when the take has the left pedal', () => {
+    const s = chorale(
+      [
+        [0, 0, 'start'],
+        [1, 4 * Q, 'stop'],
+      ],
+      'una-corda',
+    );
+    const half = played(s, [
+      [0, 67, 127],
+      [1000, 67, 0],
+    ]);
+    expect(half.corde.map((c) => [c.pedal, c.verdict, c.share])).toEqual([
+      ['una-corda', 'partly', 0.5],
+    ]);
+    expect(half.lines.unaCorda?.length).toBeGreaterThan(0);
+    expect(played(s, [[0, 67, 127]]).corde[0]!.verdict).toBe('held');
+    expect(played(s, [[3000, 67, 0]]).corde[0]!.verdict).toBe('missed');
+    // Without the left pedal in the take, nothing is judged.
+    expect(played(s, [down(100)]).corde).toEqual([]);
+  });
+
+  it('shares the change window with the lesson on the pedals', () => {
+    expect([LESSON_CHANGE_MAX_MS, LESSON_RELEASE_MAX_MS]).toEqual([CHANGE_MAX_MS, RELEASE_MAX_MS]);
   });
 });

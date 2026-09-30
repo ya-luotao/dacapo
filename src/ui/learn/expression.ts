@@ -1,9 +1,14 @@
 // What the lessons on touch and the pedals hear in your playing: whether five notes get louder,
 // how each note joins the next, and whether the pedal changes just after each new chord. The
-// numbers are the Pieces' (docs/EXPRESSION.md, X2 and X3), so a lesson and the Pieces agree; the
-// legato ones are core/expression.ts's own.
+// numbers are the Pieces' (docs/EXPRESSION.md, X2 and X3), so a lesson and the Pieces agree: the
+// legato and pedal ones are core/expression.ts's own.
 
-import { LEGATO_GAP_MS, LEGATO_OVERLAP_MS } from '../../core/expression.ts';
+import {
+  CHANGE_MAX_MS,
+  LEGATO_GAP_MS,
+  LEGATO_OVERLAP_MS,
+  RELEASE_MAX_MS,
+} from '../../core/expression.ts';
 
 /** A note as played: when the key went down and came up (null while held), and how hard. */
 export interface Stroke {
@@ -84,10 +89,11 @@ export function heldShare(note: Stroke, next: Stroke, now: number): number {
 
 // Changing the pedal.
 
-/** The pedal goes up at most this long after a new chord (EXPRESSION.md, X3)... */
-export const CHANGE_MAX_MS = 250;
-/** ...and down again at most this long after it went up. */
-export const RELEASE_MAX_MS = 400;
+/**
+ * The pedal goes up at most `CHANGE_MAX_MS` after a new chord and down again at most
+ * `RELEASE_MAX_MS` after it went up: the Pieces' own (EXPRESSION.md, X3).
+ */
+export { CHANGE_MAX_MS, RELEASE_MAX_MS };
 
 /** The sustain pedal going down or up. */
 export interface PedalEvent {

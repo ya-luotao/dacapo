@@ -1,9 +1,9 @@
 import { readPref, writePref } from '../../lib/localPrefs.ts';
 
 // Which aspects of expression the Pieces judge, per browser (docs/EXPRESSION.md, "UI"): all by
-// default. The pedal joins with X3.
+// default.
 
-export const EXPRESSION_ASPECTS = ['dynamics', 'articulation'] as const;
+export const EXPRESSION_ASPECTS = ['dynamics', 'articulation', 'pedal'] as const;
 export type ExpressionAspect = (typeof EXPRESSION_ASPECTS)[number];
 
 const ASPECTS_PREF = 'dacapo.expression.off';

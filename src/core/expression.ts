@@ -6,7 +6,13 @@
 // until runs recorded on real instruments set them (the Pieces page's development-only "Save this
 // run" button exports a run for that).
 
-import { isDynamic, performedMarks, performedSpans, type Dynamic } from './markings.ts';
+import {
+  isDynamic,
+  performedMarks,
+  performedSpans,
+  type Dynamic,
+  type PedalMark,
+} from './markings.ts';
 import { beatTicks } from './metronome.ts';
 import { playSpan, timeline } from './playback.ts';
 import { playOrder, resolveLoop, type PlayedMeasure, type RepeatMode } from './repeats.ts';
@@ -22,7 +28,7 @@ import {
   type ScoreNote,
   type Step,
 } from './score.ts';
-import { TAKE_OFF, TAKE_ON, type TakeEvent } from './takes.ts';
+import { TAKE_OFF, TAKE_ON, type TakeEvent, type TakePedal } from './takes.ts';
 import type { BarLoop } from './wait.ts';
 
 // --- Constants ------------------------------------------------------------------------------------
@@ -275,6 +281,7 @@ export interface ExpressionAnalysis {
   slots: BeatSlot[];
   dynamics: DynamicsAnalysis;
   articulation: ArticulationAnalysis;
+  pedal: PedalAnalysis;
 }
 
 // --- Articulation (X2) ----------------------------------------------------------------------------
@@ -358,6 +365,99 @@ export interface ArticulationAnalysis {
   marks: ArticulationMarks;
 }
 
+// --- Pedal (X3) -----------------------------------------------------------------------------------
+
+/**
+ * At a marked change the sustain pedal goes up at most this long after the new note is struck (the
+ * lesson on the pedals uses the same)...
+ */
+export const CHANGE_MAX_MS = 250;
+/** ...and down again at most this long after it went up (legato, or syncopated, pedalling). */
+export const RELEASE_MAX_MS = 400;
+/**
+ * Lifted early, the pedal leaves a gap only when nothing sounds for longer than this (as long as
+ * legato allows between two notes): a hand holding the notes over leaves none.
+ */
+export const PEDAL_GAP_MS = LEGATO_GAP_MS;
+/** Una corda and sostenuto are held through their marked span when down this share of it. */
+export const CORDA_HELD = 0.9;
+
+/** Where a pedal stood from a moment of the run on, placed in the score for the chart. */
+export interface PedalPoint {
+  round: number;
+  /** Performance tick. */
+  tick: number;
+  /** The raw position, 0–127 (down from `PEDAL_DOWN`, a half pedal below it). */
+  value: number;
+}
+
+export type PedalVerdict = 'clean' | 'gap' | 'blur' | 'missed';
+
+/**
+ * A sustain pedal mark as played: its start (down), a change, its stop (up), or a lift inside a
+ * marked span that broke the sound.
+ */
+export interface PedalJudgement {
+  mark: 'start' | 'change' | 'stop' | 'lift';
+  verdict: PedalVerdict;
+  /** A gap: how long nothing sounded; a blur: how long the old harmony rang over the new; ms. */
+  ms: number | null;
+  round: number;
+  /** Performance tick of the mark (of a lift, where the pedal went up). */
+  tick: number;
+  measure: number;
+  pass: number;
+  beat: number;
+  bars: BarSpan;
+}
+
+export type CordaVerdict = 'held' | 'partly' | 'missed';
+
+/** A span marked _una corda_ (to _tre corde_) or sostenuto, as played. */
+export interface CordaJudgement {
+  pedal: 'una-corda' | 'sostenuto';
+  verdict: CordaVerdict;
+  /** The share of the span the pedal was down. */
+  share: number;
+  round: number;
+  tick: number;
+  measure: number;
+  pass: number;
+  beat: number;
+  bars: BarSpan;
+}
+
+export interface PedalBar {
+  round: number;
+  played: number;
+  measure: number;
+  /** The share of the bar's time the sustain pedal was down; null when the run gave it no time. */
+  down: number | null;
+  judged: number;
+  clean: number;
+  problems: Record<Exclude<PedalVerdict, 'clean'>, number>;
+}
+
+export interface PedalAnalysis {
+  /** The take has the sustain pedal (CC 64) in it; without it nothing is drawn or judged. */
+  used: boolean;
+  /** Each pedal as played over the beats of the run; sostenuto and una corda only when used. */
+  lines: {
+    sustain: PedalPoint[];
+    sostenuto: PedalPoint[] | null;
+    unaCorda: PedalPoint[] | null;
+  };
+  /** The score's sustain pedal marks where the run played, for the chart. */
+  marks: { round: number; tick: number; type: 'start' | 'change' | 'stop' }[];
+  /** The score marks the sustain pedal where the run played. */
+  marked: boolean;
+  judgements: PedalJudgement[];
+  corde: CordaJudgement[];
+  /** The share of the run's time (its first key to its last release) the sustain pedal was down. */
+  down: number | null;
+  bars: PedalBar[];
+}
+
 // --- Reconstruction ---------------------------------------------------------------------------------
 
 /**
@@ -367,6 +467,9 @@ export interface ArticulationAnalysis {
 export interface RunClock {
   ms: (tick: number) => number;
   length: number | null;
+  /** The span's performance ticks, [from, to). */
+  from: number;
+  to: number;
 }
 
 export function runClock(
@@ -383,6 +486,98 @@ export function runClock(
   return {
     ms: (tick) => exact(tick) - zero,
     length: loop ? exact(span.to) - zero : null,
+    from: span.from,
+    to: span.to,
+  };
+}
+
+/**
+ * The take's times against the score: when the run was at a tick of a round (ms of the take), and
+ * where in the score a moment of the take falls. Rhythm mode has its clock (the take's times are
+ * raw, so the latency is added back); wait mode has only the steps as the run reached them (each
+ * step's first key per round) and shares the time between two steps out by their ticks.
+ */
+export interface RunTimes {
+  /** ms of the take; null outside what the run reached (wait mode). */
+  at: (round: number, tick: number) => number | null;
+  /** Where a moment falls: in wait mode on a step, between two, or held at the nearest. */
+  place: (ms: number) => { round: number; tick: number } | null;
+}
+
+/** Each round's steps as the run reached them: the tick and the time of the step's first key. */
+function waitAnchors(notes: readonly PlayedNote[]): Map<number, { tick: number; time: number }[]> {
+  const first = new Map<string, { round: number; tick: number; time: number }>();
+  for (const n of notes) {
+    const id = `${n.round}:${n.step}`;
+    const seen = first.get(id);
+    if (!seen || n.on < seen.time) first.set(id, { round: n.round, tick: n.tick, time: n.on });
+  }
+  const anchors = new Map<number, { tick: number; time: number }[]>();
+  for (const { round, tick, time } of first.values()) {
+    const list = anchors.get(round) ?? [];
+    list.push({ tick, time });
+    anchors.set(round, list);
+  }
+  for (const list of anchors.values()) list.sort((a, b) => a.tick - b.tick);
+  return anchors;
+}
+
+export function runTimes(
+  notes: readonly PlayedNote[],
+  clock: RunClock | null,
+  latency = 0,
+): RunTimes {
+  if (clock) {
+    const length = clock.length ?? null;
+    const rounds = notes.reduce((max, n) => Math.max(max, n.round), 0);
+    return {
+      at: (round, tick) => latency + round * (length ?? 0) + clock.ms(tick),
+      place: (ms) => {
+        const t = ms - latency;
+        const round = length ? Math.min(rounds, Math.max(0, Math.floor(t / length))) : 0;
+        const local = t - round * (length ?? 0);
+        // The clock rises with the tick: find the tick by halving.
+        let lo = clock.from;
+        let hi = clock.to;
+        if (local <= clock.ms(lo)) return { round, tick: lo };
+        if (local >= clock.ms(hi)) return { round, tick: hi };
+        for (let k = 0; k < 40 && hi - lo > 0.5; k++) {
+          const mid = (lo + hi) / 2;
+          if (clock.ms(mid) <= local) lo = mid;
+          else hi = mid;
+        }
+        return { round, tick: lo };
+      },
+    };
+  }
+  const anchors = waitAnchors(notes);
+  const timeline = [...anchors]
+    .flatMap(([round, list]) => list.map((a) => ({ round, ...a })))
+    .sort((a, b) => a.time - b.time || a.round - b.round || a.tick - b.tick);
+  return {
+    at: (round, tick) => {
+      const list = anchors.get(round) ?? [];
+      for (let k = 0; k < list.length; k++) {
+        const b = list[k]!;
+        if (b.tick < tick) continue;
+        if (b.tick === tick) return b.time;
+        const a = list[k - 1];
+        return a ? a.time + ((tick - a.tick) / (b.tick - a.tick)) * (b.time - a.time) : null;
+      }
+      return null;
+    },
+    place: (ms) => {
+      if (timeline.length === 0) return null;
+      const k = timeline.findLastIndex((a) => a.time <= ms);
+      if (k < 0) return { round: timeline[0]!.round, tick: timeline[0]!.tick };
+      const a = timeline[k]!;
+      const b = timeline[k + 1];
+      if (!b || b.round !== a.round || b.time <= a.time) return { round: a.round, tick: a.tick };
+      return {
+        round: a.round,
+        tick: a.tick + ((ms - a.time) / (b.time - a.time)) * (b.tick - a.tick),
+      };
+    },
   };
 }
 
@@ -1135,34 +1330,8 @@ function analyzeArticulation(
     return 'plain';
   };
 
-  // Wait mode: when each step was reached (its first key), per round, to time lengths by.
-  const occurrences = new Map<string, PlayedNote[]>();
-  for (const n of notes) {
-    const id = `${n.round}:${n.step}`;
-    const list = occurrences.get(id) ?? [];
-    list.push(n);
-    occurrences.set(id, list);
-  }
-  const anchors = new Map<number, { tick: number; time: number }[]>();
-  for (const list of occurrences.values()) {
-    const first = list[0]!;
-    const round = anchors.get(first.round) ?? [];
-    round.push({ tick: first.tick, time: Math.min(...list.map((n) => n.on)) });
-    anchors.set(first.round, round);
-  }
-  for (const list of anchors.values()) list.sort((a, b) => a.tick - b.tick);
-  /** When the run reached `tick` in a round: at a step's first key, or between two steps. */
-  const reached = (round: number, tick: number): number | null => {
-    const list = anchors.get(round) ?? [];
-    for (let k = 0; k < list.length; k++) {
-      const b = list[k]!;
-      if (b.tick < tick) continue;
-      if (b.tick === tick) return b.time;
-      const a = list[k - 1];
-      return a ? a.time + ((tick - a.tick) / (b.tick - a.tick)) * (b.time - a.time) : null;
-    }
-    return null;
-  };
+  // Wait mode: when the run reached a tick (each step's first key, per round), to time lengths by.
+  const reached = runTimes(notes, null).at;
   /** A written length in ms: at the run's tempo (rhythm mode), or as the run went (wait mode). */
   const writtenMs = (p: PlayedNote, length: number): number | null => {
     if (clock) return clock.ms(p.tick + length) - clock.ms(p.tick);
@@ -1322,6 +1491,422 @@ export function articulationToLookAt(a: ArticulationAnalysis): LookAt<Articulati
   );
 }
 
+// --- Pedal: the analysis --------------------------------------------------------------------------
+
+/** A pedal going down (to `PEDAL_DOWN` or over) or up, in the order of the take. */
+interface Transition {
+  time: number;
+  down: boolean;
+}
+
+/** The raw positions of one pedal in the take. */
+function pedalValues(events: readonly TakeEvent[], controller: TakePedal) {
+  return events.filter((e) => e[1] === controller).map((e) => ({ time: e[0]!, value: e[2]! }));
+}
+
+/** Where the pedal changed from up to down and back; it starts up. */
+function transitionsOf(values: readonly { time: number; value: number }[]): Transition[] {
+  const out: Transition[] = [];
+  let down = false;
+  for (const { time, value } of values) {
+    if (value >= PEDAL_DOWN === down) continue;
+    down = !down;
+    out.push({ time, down });
+  }
+  return out;
+}
+
+function isDownAt(tr: readonly Transition[], time: number): boolean {
+  return tr.findLast((x) => x.time <= time)?.down ?? false;
+}
+
+/** How long the pedal was down between two moments, ms. */
+function downTime(tr: readonly Transition[], from: number, to: number): number {
+  let total = 0;
+  let down = isDownAt(tr, from);
+  let since = from;
+  for (const x of tr) {
+    if (x.time <= from) continue;
+    if (x.time >= to) break;
+    if (down) total += x.time - since;
+    down = x.down;
+    since = x.time;
+  }
+  return total + (down ? to - since : 0);
+}
+
+/** Where some key was down: every stroke of the take, merged, in order. */
+function soundingOf(events: readonly TakeEvent[], end: number): [number, number][] {
+  const strokes: [number, number][] = [];
+  const down = new Map<number, number>();
+  for (const e of events) {
+    const [time, kind, key] = e as number[];
+    if (kind === TAKE_ON) {
+      const on = down.get(key!);
+      if (on !== undefined) strokes.push([on, time!]);
+      down.set(key!, time!);
+    } else if (kind === TAKE_OFF) {
+      const on = down.get(key!);
+      if (on !== undefined) strokes.push([on, time!]);
+      down.delete(key!);
+    }
+  }
+  for (const on of down.values()) strokes.push([on, end]);
+  strokes.sort((a, b) => a[0] - b[0]);
+  const merged: [number, number][] = [];
+  for (const [on, off] of strokes) {
+    const last = merged.at(-1);
+    if (last && on <= last[1]) last[1] = Math.max(last[1], off);
+    else merged.push([on, off]);
+  }
+  return merged;
+}
+
+/** The longest stretch from `from` to `to` in which no key was down, ms. */
+function silence(sounding: readonly [number, number][], from: number, to: number): number {
+  let longest = 0;
+  let at = from;
+  for (const [on, off] of sounding) {
+    if (off <= at) continue;
+    if (on >= to) break;
+    longest = Math.max(longest, on - at);
+    at = Math.max(at, off);
+    if (at >= to) return longest;
+  }
+  return Math.max(longest, to - at);
+}
+
+/** A sustain mark where the run struck its note: `n`, the note's first key (ms of the take). */
+interface StruckMark {
+  type: 'start' | 'change' | 'stop';
+  round: number;
+  tick: number;
+  n: number;
+}
+
+type RawPedalJudgement = Pick<PedalJudgement, 'mark' | 'verdict' | 'ms' | 'round' | 'tick'>;
+
+/**
+ * The sustain pedal against its marks, in the order they were struck (docs/EXPRESSION.md, "Pedal"):
+ * down through a marked span; at a change up after the new note, within `CHANGE_MAX_MS`, and down
+ * again within `RELEASE_MAX_MS`; up at a stop within `CHANGE_MAX_MS` of its note. Lifted before a
+ * note, the pedal leaves a gap unless a key sounded all along; up too late, or not at all before the
+ * next mark (or the end of the take), the old harmony blurs into the new.
+ */
+export function judgeSustain(
+  marks: readonly StruckMark[],
+  tr: readonly Transition[],
+  sounding: readonly [number, number][],
+  end: number,
+  place: (ms: number) => { round: number; tick: number } | null,
+): RawPedalJudgement[] {
+  const out: RawPedalJudgement[] = [];
+  const first = (down: boolean, from: number, to: number) =>
+    tr.find((x) => x.down === down && x.time > from && x.time < to)?.time ?? null;
+  /** After `from` the pedal goes down again within `RELEASE_MAX_MS`: clean, a gap, or missed. */
+  const caught = (from: number, to: number) => {
+    const d = first(true, from, to);
+    if (d === null) return { verdict: 'missed' as const, ms: null, down: null };
+    const gap = d - from > RELEASE_MAX_MS ? silence(sounding, from, d) : 0;
+    return gap > PEDAL_GAP_MS
+      ? { verdict: 'gap' as const, ms: gap, down: d }
+      : { verdict: 'clean' as const, ms: null, down: d };
+  };
+  let since = -Infinity;
+  let inSpan = false;
+  marks.forEach((mark, i) => {
+    const { n } = mark;
+    const next = marks.slice(i + 1).find((m) => m.n > n)?.n ?? Math.max(end, n);
+    // Inside a marked span, every lift before this note: pressed again before it, a gap where the
+    // sound broke; still up at the note, the lift of this mark.
+    let early: number | null = null;
+    if (inSpan) {
+      for (const up of tr) {
+        if (up.down || up.time <= since || up.time > n) continue;
+        const again = tr.find((x) => x.down && x.time > up.time && x.time <= n);
+        if (!again) {
+          early = up.time;
+          continue;
+        }
+        const gap = silence(sounding, up.time, again.time);
+        const at = place(up.time);
+        if (gap > PEDAL_GAP_MS && at)
+          out.push({ mark: 'lift', verdict: 'gap', ms: gap, round: at.round, tick: at.tick });
+      }
+    }
+    const down = isDownAt(tr, n);
+    const judged = (verdict: PedalVerdict, ms: number | null = null) =>
+      out.push({ mark: mark.type, verdict, ms, round: mark.round, tick: mark.tick });
+    if (mark.type === 'stop') {
+      if (early !== null) {
+        const gap = silence(sounding, early, n);
+        judged(gap > PEDAL_GAP_MS ? 'gap' : 'clean', gap > PEDAL_GAP_MS ? gap : null);
+      } else if (down) {
+        const up = first(false, n, next);
+        if (up === null) judged('blur', next - n);
+        else if (up - n > CHANGE_MAX_MS) judged('blur', up - n);
+        else judged('clean');
+      }
+      // Not down since the span began: its start was missed, and the stop has nothing to lift.
+      since = n;
+      inSpan = false;
+      return;
+    }
+    let from = n;
+    if (mark.type === 'change' && early !== null) {
+      const gap = silence(sounding, early, n);
+      if (gap > PEDAL_GAP_MS) {
+        judged('gap', gap);
+        since = first(true, n, next) ?? n;
+        inSpan = true;
+        return;
+      }
+      // The hand held the notes over: the lift counts from the note.
+    } else if (mark.type === 'change' && down) {
+      const up = first(false, n, next);
+      if (up === null || up - n > CHANGE_MAX_MS) {
+        judged('blur', (up ?? next) - n);
+        since = up === null ? next : (first(true, up, next) ?? up);
+        inSpan = true;
+        return;
+      }
+      from = up;
+    } else if (down) {
+      // A start with the pedal already down.
+      judged('clean');
+      since = n;
+      inSpan = true;
+      return;
+    }
+    const c = caught(from, next);
+    judged(c.verdict, c.ms);
+    since = c.down ?? from;
+    inSpan = true;
+  });
+  return out;
+}
+
+function analyzePedal(
+  ctx: Context,
+  events: readonly TakeEvent[],
+  notes: readonly PlayedNote[],
+  slots: readonly BeatSlot[],
+  times: RunTimes,
+): PedalAnalysis {
+  const { score, order, steps } = ctx;
+  const values = pedalValues(events, 64);
+  const tr = transitionsOf(values);
+  const used = values.length > 0;
+  const ends = events.map((e) => e[0]!);
+  const end = ends.length > 0 ? Math.max(...ends) : 0;
+  const parts = new Set(score.notes.filter((n) => ctx.practised(n.hand)).map((n) => n.part));
+
+  // Each round: its notes, its first key and its last release.
+  const byRound = new Map<number, PlayedNote[]>();
+  for (const n of notes) {
+    const list = byRound.get(n.round) ?? [];
+    list.push(n);
+    byRound.set(n.round, list);
+  }
+  /** The first key of the step at or after `tick` in the round, not after `until`. */
+  const struck = (round: number, tick: number, until: number): number | null => {
+    let step: Step | null = null;
+    for (let i = ctx.first; i <= ctx.last; i++) {
+      const s = steps[i]!;
+      if (s.tick >= tick) {
+        step = s.tick <= until ? s : null;
+        break;
+      }
+    }
+    if (!step) return null;
+    const on = (byRound.get(round) ?? []).filter((n) => n.step === step.index).map((n) => n.on);
+    return on.length > 0 ? Math.min(...on) : null;
+  };
+  const inSlots = (round: number, tick: number) => slotOf(slots, round, tick) >= 0;
+  const rounds = [...byRound.keys()].sort((a, b) => a - b);
+  const performed = (pedal: PedalMark['pedal']) =>
+    performedMarks(
+      score.markings.pedals.filter(
+        (p) => p.pedal === pedal && p.type !== 'continue' && parts.has(p.part),
+      ),
+      score.measures,
+      order,
+    );
+
+  // The sustain marks where the run played, and those whose note was struck.
+  const sustain = performed('sustain');
+  const marks: PedalAnalysis['marks'] = [];
+  const struckMarks: StruckMark[] = [];
+  for (const round of rounds) {
+    sustain.forEach(({ mark, at }, k) => {
+      if (!inSlots(round, at)) return;
+      const type = mark.type as StruckMark['type'];
+      marks.push({ round, tick: at, type });
+      const n = struck(round, at, sustain[k + 1]?.at ?? Infinity);
+      if (n !== null) struckMarks.push({ type, round, tick: at, n });
+    });
+  }
+  struckMarks.sort((a, b) => a.n - b.n || a.round - b.round || a.tick - b.tick);
+  // A stop and a start struck on the same note are a change there.
+  const merged: StruckMark[] = [];
+  for (const m of struckMarks) {
+    const last = merged.at(-1);
+    if (last && last.type === 'stop' && m.type === 'start' && last.n === m.n) {
+      merged[merged.length - 1] = { ...m, type: 'change' };
+    } else {
+      merged.push(m);
+    }
+  }
+  const sounding = soundingOf(events, end);
+  const where = (tick: number) => {
+    const measure = measureAt(order, score, tick);
+    return { measure, ...placeOf(ctx, tick), bars: { from: measure, to: measure } };
+  };
+  // A lift is placed between two steps by the time: to the nearest sixteenth, to be named.
+  const sixteenth = TICKS_PER_QUARTER / 4;
+  const judgements: PedalJudgement[] = used
+    ? judgeSustain(merged, tr, sounding, end, times.place).map((j) => {
+        const tick = j.mark === 'lift' ? Math.round(j.tick / sixteenth) * sixteenth : j.tick;
+        return { ...j, tick, ...where(tick) };
+      })
+    : [];
+  judgements.sort((a, b) => a.round - b.round || a.tick - b.tick);
+
+  // Una corda and sostenuto, against their words, when the take has them.
+  const corde: CordaJudgement[] = [];
+  for (const [pedal, controller] of [
+    ['una-corda', 67],
+    ['sostenuto', 66],
+  ] as const) {
+    const own = pedalValues(events, controller);
+    if (own.length === 0) continue;
+    const ctr = transitionsOf(own);
+    const list = performed(pedal);
+    for (const round of rounds) {
+      const last = byRound.get(round)!;
+      const roundEnd = Math.max(...last.map((n) => n.off ?? n.on));
+      list.forEach(({ mark, at }, k) => {
+        if (mark.type !== 'start' || !inSlots(round, at)) return;
+        const stop = list.slice(k + 1).find((s) => s.mark.type === 'stop');
+        const from = struck(round, at, stop?.at ?? Infinity);
+        if (from === null) return;
+        const to = (stop && struck(round, stop.at, Infinity)) ?? roundEnd;
+        if (to <= from) return;
+        const share = downTime(ctr, from, to) / (to - from);
+        corde.push({
+          pedal,
+          verdict: share >= CORDA_HELD ? 'held' : share > 0 ? 'partly' : 'missed',
+          share,
+          round,
+          tick: at,
+          ...where(at),
+        });
+      });
+    }
+  }
+
+  // The lines, from the run's first key, placed in the score.
+  const first = notes.length > 0 ? Math.min(...notes.map((n) => n.on)) : 0;
+  const lineOf = (own: readonly { time: number; value: number }[]): PedalPoint[] => {
+    const start = slots[0];
+    if (!start) return [];
+    const points: PedalPoint[] = [
+      {
+        round: start.round,
+        tick: start.tick,
+        value: own.findLast((v) => v.time <= first)?.value ?? 0,
+      },
+    ];
+    for (const { time, value } of own) {
+      if (time <= first) continue;
+      const at = times.place(time);
+      if (at) points.push({ ...at, value });
+    }
+    return points;
+  };
+  const unaCorda = pedalValues(events, 67);
+  const sostenuto = pedalValues(events, 66);
+
+  // Per bar played: the share of its time the pedal was down, and its marks.
+  const ranges = new Map<string, BeatSlot & { to: number }>();
+  for (const slot of slots) {
+    const id = `${slot.round}:${slot.played}`;
+    const range = ranges.get(id);
+    if (range) range.to = slot.tick + slot.length;
+    else ranges.set(id, { ...slot, to: slot.tick + slot.length });
+  }
+  const bars = [...ranges.values()].map(({ round, played, measure, tick, to }): PedalBar => {
+    const list = byRound.get(round) ?? [];
+    // Wait mode knows the times between the round's steps; before them only from the round's first
+    // key, after them as far as its last release.
+    const a =
+      times.at(round, tick) ?? (list.length > 0 ? Math.min(...list.map((n) => n.on)) : null);
+    const b =
+      times.at(round, to) ?? (list.length > 0 ? Math.max(...list.map((n) => n.off ?? n.on)) : null);
+    return {
+      round,
+      played,
+      measure,
+      down: used && a !== null && b !== null && b > a ? downTime(tr, a, b) / (b - a) : null,
+      judged: 0,
+      clean: 0,
+      problems: { gap: 0, blur: 0, missed: 0 },
+    };
+  });
+  const barIndex = new Map(bars.map((b) => [`${b.round}:${b.played}`, b]));
+  for (const j of judgements) {
+    const slot = slots[slotOf(slots, j.round, j.tick)];
+    const bar = slot && barIndex.get(`${slot.round}:${slot.played}`);
+    if (!bar) continue;
+    bar.judged++;
+    if (j.verdict === 'clean') bar.clean++;
+    else bar.problems[j.verdict]++;
+  }
+
+  const lastOff = notes.length > 0 ? Math.max(...notes.map((n) => n.off ?? n.on)) : first;
+  return {
+    used,
+    lines: {
+      sustain: used ? lineOf(values) : [],
+      sostenuto: sostenuto.length > 0 ? lineOf(sostenuto) : null,
+      unaCorda: unaCorda.length > 0 ? lineOf(unaCorda) : null,
+    },
+    marks,
+    marked: marks.length > 0,
+    judgements,
+    corde,
+    down: used && lastOff > first ? downTime(tr, first, lastOff) / (lastOff - first) : null,
+    bars,
+  };
+}
+
+/** How much a pedal mark played wrong weighs among the bars to look at. */
+const PEDAL_SEVERITY: Record<PedalVerdict, number> = { gap: 2, blur: 2, missed: 2, clean: 0 };
+const CORDA_SEVERITY: Record<CordaVerdict, number> = { missed: 2, partly: 1, held: 0 };
+
+export type PedalProblem =
+  { kind: 'sustain'; judgement: PedalJudgement } | { kind: 'corda'; judgement: CordaJudgement };
+
+/** The pedal's three bars to look at: the marks not played cleanly. */
+export function pedalToLookAt(p: PedalAnalysis): LookAt<PedalProblem>[] {
+  return worstPlaces<PedalProblem>(
+    [
+      ...p.judgements.map((judgement) => ({
+        bars: judgement.bars,
+        weight: PEDAL_SEVERITY[judgement.verdict],
+        problem: { kind: 'sustain' as const, judgement },
+        tick: judgement.tick,
+      })),
+      ...p.corde.map((judgement) => ({
+        bars: judgement.bars,
+        weight: CORDA_SEVERITY[judgement.verdict],
+        problem: { kind: 'corda' as const, judgement },
+        tick: judgement.tick,
+      })),
+    ].sort((a, b) => a.tick - b.tick),
+  );
+}
+
 // --- The analysis ---------------------------------------------------------------------------------
 
 export function analyzeExpression(input: ExpressionInput): ExpressionAnalysis {
@@ -1403,6 +1988,7 @@ export function analyzeExpression(input: ExpressionInput): ExpressionAnalysis {
     rounds: Math.max(1, rounds.length),
     slots,
     articulation: analyzeArticulation(ctx, clock, slots),
+    pedal: analyzePedal(ctx, events, notes, slots, runTimes(notes, clock, input.latency ?? 0)),
     dynamics: {
       velocityMeasured: measured,
       range,

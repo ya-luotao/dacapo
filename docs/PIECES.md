@@ -194,8 +194,9 @@ for drawing.
   the bar numbers with the score's dynamics above, every dynamic, hairpin and accent judged in
   words, the balance of melody over accompaniment, the bars to look at, each loopable, and a table
   view) and, with X2, the Articulation tab (each note's held length against its slur, staccato,
-  tenuto or none, per bar). Options has **Your runs**: the piece's past runs, each with its
-  Expression panel, and a choice of the aspects judged.
+  tenuto or none, per bar) and, with X3, the Pedal tab (the sustain pedal as played against the
+  score's pedal marks: clean changes, gaps and blurs). Options has **Your runs**: the piece's
+  past runs, each with its Expression panel, and a choice of the aspects judged.
 - **Rhythm records.** Rhythm steps go into the same `pieceSteps` store with `mode: 'rhythm'` and
   `notes` (each key's deviation in whole ms, or null when missed); `ms` is the step's share of the
   run at its tempo and `wrong` its extra notes, so session time and the log work unchanged. No

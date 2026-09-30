@@ -143,6 +143,8 @@ Chinese and Latin letters, digits and placeholders (`第 {n} 张`, `MIDI 键盘`
 | melody / accompaniment / your runs                             | 旋律 / 伴奏 / 弹奏记录                   |
 | articulation / legato / non legato                             | 奏法 / 连奏 / 非连奏                     |
 | staccato / staccatissimo / tenuto / slur                       | 跳音 / 短跳音 / 保持音 / 圆滑线          |
+| pedal change / gap / blur (the pedal)                          | 换踏板 / 断开 / 混浊                     |
+| half pedal / una corda / sostenuto pedal                       | 半踏板 / 弱音踏板 / 持音踏板             |
 | Rhythm (Read) / cell / In time (group)                         | 节奏 / 节奏型 / 跟着拍子                 |
 | tie / triplet / syncopation / 6/8                              | 延音线 / 三连音 / 切分音 / 6/8 拍        |
 | count (1 trip let) / Show the counts                           | 数拍（1 连 音）/ 显示数拍                |
@@ -230,6 +232,8 @@ terms throughout. Address the learner as 你, as zh-CN does.
 | melody / accompaniment / your runs                             | 旋律 / 伴奏 / 彈奏紀錄               | 弹奏记录                   |
 | articulation / legato / slur                                   | 奏法 / 連奏 / 圓滑線                 | 奏法 / 连奏 / 圆滑线       |
 | staccato / staccatissimo / tenuto                              | 斷奏 / 短斷奏 / 持音                 | 跳音 / 短跳音 / 保持音     |
+| pedal change / gap / blur (the pedal)                          | 換踏板 / 斷開 / 混濁                 | 换踏板 / 断开 / 混浊       |
+| half pedal / una corda / sostenuto pedal                       | 半踏板 / 弱音踏板 / 持音踏板         |                            |
 | Rhythm (Read) / cell / In time (group)                         | 節奏 / 節奏型 / 跟著拍子             |                            |
 | triplet / count (1 trip let)                                   | 三連音 / 數拍（1 連 音）             | 数拍（1 连 音）            |
 | tap / pad / extra tap / click                                  | 按 / 按板 / 多按 / 節拍聲            |                            |
@@ -314,6 +318,8 @@ verb phrases for labels and buttons (設定, 開始, もう一度, 補正する)
 | melody / accompaniment / your runs                             | 旋律 / 伴奏 / これまでの演奏                                 |
 | articulation / legato / slur                                   | アーティキュレーション / レガート / スラー                   |
 | staccato / staccatissimo / tenuto                              | スタッカート / スタッカーティッシモ / テヌート               |
+| pedal change / gap / blur (the pedal)                          | 踏みかえ / 途切れ / 濁り                                     |
+| una corda / sostenuto pedal                                    | ウナ・コルダ / ソステヌート・ペダル                          |
 | Rhythm (Read) / cell / In time (group)                         | リズム / リズム型 / テンポに合わせて                         |
 | tie / triplet / syncopation / 6/8                              | タイ / 3連符 / シンコペーション / 8分の6拍子                 |
 | count (1 trip let) / Show the counts                           | カウント（1 trip let のまま）/ カウントを表示                |
@@ -400,6 +406,8 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 | melody / accompaniment / your runs                             | 선율 / 반주 / 지난 연주                                              |
 | articulation / legato / slur                                   | 아티큘레이션 / 레가토 / 이음줄                                       |
 | staccato / staccatissimo / tenuto                              | 스타카토 / 스타카티시모 / 테누토                                     |
+| pedal change / gap / blur (the pedal)                          | 페달 바꾸기 / 끊김 / 흐려짐                                          |
+| una corda / sostenuto pedal                                    | 우나 코르다 / 소스테누토 페달                                        |
 | Rhythm (Read) / cell / In time (group)                         | 리듬 / 리듬꼴 / 박자에 맞춰                                          |
 | tie / triplet / syncopation / 6/8                              | 붙임줄 / 셋잇단음표 / 당김음 / 8분의 6박자                           |
 | count (1 trip let) / Show the counts                           | 세기 (1 trip let 그대로) / 세는 법 보이기                            |

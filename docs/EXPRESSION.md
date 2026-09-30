@@ -1,8 +1,8 @@
 # dacapo — Expression specification
 
 Status: X0 is built (the markings, their sound in playback, takes, the library's markings), X1
-(dynamics and balance, the Expression panel, a piece's past runs) and X2 (articulation); X3–X4
-are planned. This extends [MVP.md](MVP.md) and
+(dynamics and balance, the Expression panel, a piece's past runs), X2 (articulation) and X3 (the
+pedal); X4 is planned. This extends [MVP.md](MVP.md) and
 [PIECES.md](PIECES.md); their principles and fixed decisions still apply (staff first, measure don't
 guess, local data, English of record, every UI language, 3-day dependency cooldown, no backend).
 
@@ -343,11 +343,65 @@ page has the development-only "Save this run" button that Scales has.
 - **The lessons agree**: `LEGATO_GAP_MS` and `LEGATO_OVERLAP_MS` live in `core/expression.ts` and
   the lesson on touch (`ui/learn/expression.ts`) takes them from there.
 
+## Clarifications (decided during X3)
+
+- **The pedal line** is the take's CC 64 as played, raw (0–127), down from 64 (`PEDAL_DOWN`); a
+  half pedal is drawn and counts as up. Placed in the score by the run's own times: in rhythm
+  mode by its clock (the latency added back, since a take's times are raw), in wait mode by each
+  step's first key per round, a moment between two steps shared out by their ticks (`runTimes`).
+- **No pedal in the take**: a take without any CC 64 event (none connected, or never touched)
+  draws nothing and judges nothing, and the tab says so, as Dynamics does without velocities; a
+  pedal that moved but never went down is used, and its marks are missed. The same holds for una
+  corda (CC 67) and the sostenuto (CC 66) on their own.
+- **Where a mark is heard.** Sustain marks of the parts practised, through the repeats; a mark is
+  judged at the first key of the run's step at or after it (not after the next mark), in its round:
+  a mark whose note the run did not play (a note missed in rhythm mode, a mark on the other hand's
+  note with nothing of the practised hand before the next mark) is drawn, not judged. A stop and a
+  start heard on the same note are one change there (Für Elise's ✱ just before the bar line and
+  its Ped. on the downbeat).
+- **The rules, in the order the marks are struck** (`n` the note, the next mark's note or the end
+  of the take the bound; the pedal's state carries over from one round of a loop to the next):
+  - **Start**: down at `n` already, or within `RELEASE_MAX_MS` after it: clean. Later: clean when a
+    key sounded all along, else a gap (the longest silence from `n` to the pedal going down). Not
+    down before the next mark: missed.
+  - **Change**: down at `n`, it must come up within `CHANGE_MAX_MS` after it (later, or not before
+    the next mark: a blur, from `n` to the lift or the next mark's note) and go down again within
+    `RELEASE_MAX_MS` of coming up (later: clean if a key sounded all along, else a gap; not again
+    before the next mark: missed). Already up at `n` since a lift before it: a gap when nothing
+    sounded for longer than `PEDAL_GAP_MS` (20 ms, legato's own gap) between the lift and the note,
+    measured as that silence; when the hand held the notes over, it counts from the note like a
+    start. Not down since the last mark at all: judged like a start.
+  - **Stop**: up within `CHANGE_MAX_MS` after `n`, else a blur to the lift (or the next mark, or
+    the end of the take); lifted before `n`, a gap where the sound broke, else clean; not down at
+    all since its span began (its start was missed), not judged.
+  - **A lift inside a span** (a start or change to the next mark) that is pressed again before the
+    next note is a **lift** judgement where it happened, a gap, only when the sound broke; placed
+    to the nearest sixteenth.
+- **Una corda and sostenuto** are judged per span of their marks (start to the next stop, or the
+  round's end), from the start's note to the stop's: down at least `CORDA_HELD` (0.9) of it held,
+  some of it partly, none missed. Una corda used where nothing marks it is not judged.
+- **Figures**: the marks clean of those judged, the gaps and blurs, and the share of the run's
+  time (its first key to its last release) with the pedal down; per bar, the share down and the
+  marks' verdicts. Bars to look at: each gap, blur or missed mark 2, una corda partly 1, missed 2.
+- **The chart** draws the marks as the edition's bracket line (a hook down at a start, a notch at
+  a change, a hook up at a stop) above the bar numbers, each judged mark's sign above it: a tick
+  clean, two bars a gap, a wave a blur, a cross missed, named in the legend; the sostenuto and una
+  corda get lanes of their own when used.
+- **Long lists.** A full run of Für Elise judges 34 pedal marks. In the Pedal tab, and among the
+  Dynamics tab's markings, those that need attention (a gap, a blur, missed; anything not right)
+  come first and in full; when more than three were played right, those fold into one line ("31
+  more marks played cleanly") that opens to list them. The table view keeps every one.
+- **Aspects**: Options has "Judge the pedal" beside the others (`pedal` in `dacapo.expression.off`
+  when turned off). `ANALYSIS_VERSION` stays 1: the pedal adds figures and changes none.
+- **The lessons agree**: `CHANGE_MAX_MS` and `RELEASE_MAX_MS` live in `core/expression.ts`, and the
+  lesson on the pedals (`ui/learn/expression.ts`) takes them from there; its own judge, per chord
+  with no marks, stays the lesson's.
+
 ## Milestones
 
 1. ✓ **X0 Markings and takes** — markings in the parser and score, grace notes and ornaments
    realised in playback, the `takes` store (synced, exported), the library's markings.
 2. ✓ **X1 Dynamics and balance** — curve, markings, balance, the Expression panel.
 3. ✓ **X2 Articulation** — held lengths, slurs, staccato, tenuto.
-4. **X3 Pedal** — the pedal line, changes, gaps and blurs.
+4. ✓ **X3 Pedal** — the pedal line, changes, gaps and blurs.
 5. **X4 Ornaments** — accepted in wait and rhythm mode, the keyboard hint.

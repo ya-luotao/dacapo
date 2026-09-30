@@ -6076,6 +6076,11 @@ select.is-compact {
   border-bottom: 1px solid var(--border);
 }
 
+/* The marks played right, folded into one line under those that need attention. */
+.expression-fold {
+  margin-top: 0.25rem;
+}
+
 .expression-what {
   display: flex;
   flex-wrap: wrap;
@@ -6355,6 +6360,56 @@ select.is-compact {
 
 .articulation-bar.is-hover .articulation-track {
   stroke: var(--text);
+}
+
+.pedal-fill {
+  fill: color-mix(in oklab, var(--accent) 22%, transparent);
+}
+
+.pedal-fill.is-lane {
+  fill: color-mix(in oklab, var(--text-muted) 45%, transparent);
+}
+
+.pedal-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+}
+
+.pedal-threshold {
+  stroke: var(--text-muted);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.pedal-glyph {
+  fill: none;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pedal-glyph.is-clean {
+  stroke: var(--ok);
+}
+
+.pedal-glyph.is-gap,
+.pedal-glyph.is-blur {
+  stroke: var(--warn);
+}
+
+.pedal-glyph.is-missed {
+  stroke: var(--bad);
+}
+
+.expression-legend svg.pedal-legend-glyph {
+  width: 0.875rem;
+  vertical-align: -0.0625rem;
+}
+
+.pedal-hover {
+  fill: color-mix(in oklab, var(--text) 8%, transparent);
 }
 
 .expression-chart .help {

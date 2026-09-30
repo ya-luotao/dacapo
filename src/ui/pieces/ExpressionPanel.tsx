@@ -9,10 +9,11 @@ import type { HandSelection } from '../../core/score.ts';
 import { useI18n } from '../../i18n/index.ts';
 import { ArticulationTab } from './ArticulationTab.tsx';
 import { DynamicsChart } from './DynamicsChart.tsx';
-import { LookAtList, Verdict } from './ExpressionParts.tsx';
+import { JudgedList, LookAtList } from './ExpressionParts.tsx';
 import type { ExpressionAspect } from './expressionPrefs.ts';
 import { BALANCE_GLYPH, useExpressionWords, type ExpressionWords } from './expressionWords.ts';
 import type { PieceFormat } from './format.ts';
+import { PedalTab } from './PedalTab.tsx';
 
 // The Expression panel of a run (docs/EXPRESSION.md, "UI"): a tab per aspect measured, each with
 // its chart under the bar numbers, its figures, every judged marking in words, the bars to look
@@ -123,13 +124,15 @@ export function ExpressionPanel({
             onMelody={onMelody}
             onLoopBars={onLoopBars}
           />
-        ) : (
+        ) : aspect === 'articulation' ? (
           <ArticulationTab
             analysis={analysis}
             format={format}
             words={words}
             onLoopBars={onLoopBars}
           />
+        ) : (
+          <PedalTab analysis={analysis} format={format} words={words} onLoopBars={onLoopBars} />
         )}
       </div>
       {footer}
@@ -203,17 +206,16 @@ function DynamicsTab({
             {t(dynamics.changes ? 'pieces.expression.noneJudged' : 'pieces.expression.noChange')}
           </p>
         ) : (
-          <ul className="expression-judgements">
-            {judgements.map((j, i) => (
-              <li key={i}>
-                <span className="expression-what">
-                  <span className="expression-marking">{words.marking(j)}</span>
-                  <span className="expression-where">{words.bars(j)}</span>
-                </span>
-                <Verdict label={words.verdict(j)} />
-              </li>
-            ))}
-          </ul>
+          <JudgedList
+            items={judgements}
+            right={(j) => j.verdict === 'right'}
+            what={(j) => words.marking(j)}
+            where={(j) => words.bars(j)}
+            verdict={(j) => words.verdict(j)}
+            folded={(n) =>
+              t(n === 1 ? 'pieces.expression.folded.one' : 'pieces.expression.folded.other', { n })
+            }
+          />
         )}
       </div>
 

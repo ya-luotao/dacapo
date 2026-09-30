@@ -3,13 +3,16 @@ import type {
   ArticulationSlip,
   ArticulationVerdict,
   BalanceVerdict,
+  CordaJudgement,
   DynamicsJudgement,
   DynamicsProblem,
+  PedalJudgement,
+  PedalProblem,
   Touch,
   Verdict,
 } from '../../core/expression.ts';
 import type { Hand } from '../../core/score.ts';
-import { useT, type Translate } from '../../i18n/index.ts';
+import { useI18n, type Translate } from '../../i18n/index.ts';
 import type { PieceFormat } from './format.ts';
 
 // Every judged marking in words (docs/EXPRESSION.md, "UI": colour is never the only sign): what
@@ -31,8 +34,13 @@ export interface VerdictLabel {
   tone: 'ok' | 'warn' | 'bad';
 }
 
-export function createExpressionWords(t: Translate, format: PieceFormat) {
+export function createExpressionWords(t: Translate, format: PieceFormat, locale: string) {
   const hand = (h: Hand) => t(`pieces.expression.hand.${h}`);
+  const percentFormat = new Intl.NumberFormat(locale, {
+    style: 'percent',
+    maximumFractionDigits: 0,
+  });
+  const percent = (share: number) => percentFormat.format(share);
 
   const marking = (j: DynamicsJudgement): string => {
     switch (j.kind) {
@@ -114,12 +122,62 @@ export function createExpressionWords(t: Translate, format: PieceFormat) {
       n: x.count,
     });
 
-  return { hand, marking, verdict, bars, balance, problem, barRow, touch, held, slip };
+  /** A pedal mark: down, a change, up, a lift inside a span, una corda or sostenuto. */
+  const pedalMark = (j: PedalJudgement | CordaJudgement) =>
+    'pedal' in j
+      ? t(`pieces.expression.pedal.mark.${j.pedal}`)
+      : t(`pieces.expression.pedal.mark.${j.mark}`);
+
+  const pedalVerdict = (j: PedalJudgement | CordaJudgement): VerdictLabel => {
+    if ('pedal' in j)
+      return j.verdict === 'held'
+        ? { text: t('pieces.expression.pedal.verdict.held'), tone: 'ok' }
+        : j.verdict === 'partly'
+          ? {
+              text: t('pieces.expression.pedal.verdict.partly', { percent: percent(j.share) }),
+              tone: 'warn',
+            }
+          : { text: t('pieces.expression.pedal.verdict.missed'), tone: 'bad' };
+    const ms = Math.round(j.ms ?? 0);
+    switch (j.verdict) {
+      case 'clean':
+        return { text: t('pieces.expression.pedal.verdict.clean'), tone: 'ok' };
+      case 'gap':
+        return { text: t('pieces.expression.pedal.verdict.gap', { ms }), tone: 'warn' };
+      case 'blur':
+        return { text: t('pieces.expression.pedal.verdict.blur', { ms }), tone: 'warn' };
+      case 'missed':
+        return { text: t('pieces.expression.pedal.verdict.missed'), tone: 'bad' };
+    }
+  };
+
+  const pedalProblem = (p: PedalProblem) =>
+    t('pieces.expression.problem', {
+      marking: pedalMark(p.judgement),
+      where: bars(p.judgement),
+      verdict: pedalVerdict(p.judgement).text,
+    });
+
+  return {
+    hand,
+    marking,
+    verdict,
+    bars,
+    balance,
+    problem,
+    barRow,
+    touch,
+    held,
+    slip,
+    pedalMark,
+    pedalVerdict,
+    pedalProblem,
+  };
 }
 
 export type ExpressionWords = ReturnType<typeof createExpressionWords>;
 
 export function useExpressionWords(format: PieceFormat): ExpressionWords {
-  const t = useT();
-  return useMemo(() => createExpressionWords(t, format), [t, format]);
+  const { t, locale } = useI18n();
+  return useMemo(() => createExpressionWords(t, format, locale), [t, format, locale]);
 }

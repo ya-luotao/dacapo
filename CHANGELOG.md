@@ -14,6 +14,25 @@ sessions go in the same lists), the
 click's tempo and grid of scale runs played with it (from version 7), and the takes of piece runs
 (from version 8). Version 1 to 7 files still import.
 
+### The pedal (X3, [docs/EXPRESSION.md](docs/EXPRESSION.md))
+
+- The Expression panel gains a **Pedal** tab: the sustain pedal as you played it, drawn under the
+  bar numbers from how far it was down (a half pedal shows, and counts as up), with the score's
+  pedal marks above as the edition draws them.
+- Each mark is judged in words. At a change the pedal should come up after the new note, within
+  250 ms, and go down again within 400 ms: coming up before the note leaves a **gap** in the sound
+  (unless your hand holds the notes over), coming up too late or not at all **blurs** the old
+  harmony into the new, both measured in ms; a pedal never put down is **missed**. A lift inside
+  a marked span that breaks the sound is a gap there. Una corda and the sostenuto pedal are drawn
+  when you use them and checked against their words.
+- The figures (marks clean, gaps, blurs, the share of the run with the pedal down), the three bars
+  to look at, each loopable, and a table; also for a past run in Your runs. Without marks the line
+  is drawn and nothing is judged; a run without the pedal says so.
+- Options can turn the judging of the pedal off, in this browser.
+- In the Pedal tab, and among the Dynamics tab's markings, the marks to look at come first; when
+  more than three were played right, they fold into one line that opens to list them.
+- The lesson on the pedals takes its change window from the Pieces.
+
 ### Technique II (S7)
 
 - The rest of the **Technique** group, from Hanon's The Virtuoso Pianist as printed: the
