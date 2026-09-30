@@ -1,8 +1,8 @@
 # dacapo — Expression specification
 
 Status: X0 is built (the markings, their sound in playback, takes, the library's markings), X1
-(dynamics and balance, the Expression panel, a piece's past runs), X2 (articulation) and X3 (the
-pedal); X4 is planned. This extends [MVP.md](MVP.md) and
+(dynamics and balance, the Expression panel, a piece's past runs), X2 (articulation), X3 (the
+pedal) and X4 (ornaments played in wait and rhythm mode). This extends [MVP.md](MVP.md) and
 [PIECES.md](PIECES.md); their principles and fixed decisions still apply (staff first, measure don't
 guess, local data, English of record, every UI language, 3-day dependency cooldown, no backend).
 
@@ -126,7 +126,7 @@ page has the development-only "Save this run" button that Scales has.
 ## UI
 
 - The Pieces summary gains **Expression**, with a tab per aspect measured on the run: Dynamics,
-  Articulation, Pedal. Each shows its line under the bar numbers, the figures, and "bars to look
+  Articulation, Pedal, Ornaments. Each shows its line under the bar numbers, the figures, and "bars to look
   at" (the worst three), each of which can be looped as the weakest bars are today.
 - Per piece: the melody's hand, the trill start; per browser: which aspects are judged (all on).
 - Colour is never the only sign: every judged marking says right, too little, too much or missed
@@ -397,6 +397,61 @@ page has the development-only "Save this run" button that Scales has.
   lesson on the pedals (`ui/learn/expression.ts`) takes them from there; its own judge, per chord
   with no marks, stays the lesson's.
 
+## Clarifications (decided during X4)
+
+- **Steps name their ornaments.** A step lists its notes with grace notes or an ornament
+  (`Step.ornaments`: the note, its principal key and the other keys it adds, `ornamentKeys`: the
+  keys its realisation plays besides the note, so a trill closing with a turn adds its lower note
+  and a long mordent nothing more). Grace notes are still no steps: step indices, step records and
+  the checksum are unchanged, so every record and take made before stays valid.
+- **Wait mode.** The step completes on its keys as before, the principal among them; a grace
+  note, an upper-note trill's first note or a turn's played before the principal is an ornament key
+  of the current step. After the step, its ornaments' keys and its principals stay neither right
+  nor wrong (`WaitState.carry`) until a key of a later step that is none of them is played; a
+  wrong key does not end them. An ornament's key that is also the next step's key completes that
+  step (a mordent whose lower note comes next moves the cursor on early); the ornament still goes
+  on, so the same key struck again is no wrong note. Once the run has finished, keys are ignored as
+  before.
+- **Rhythm mode.** The principal is due where the ornament strikes it, realised at the run's
+  tempo with the piece's trill start, as the demo plays it: on the beat after an acciaccatura, for
+  a mordent and a trill from the note; a thirty-second later for a turn (at most 70 ms) and a trill
+  from the note above; after an appoggiatura, half the note (two thirds of a dotted one). Its
+  deviation is measured from there and its step stays open until that window has closed. The
+  ornament's span is its figure's first onset to its last (a tied note's figure over the tie),
+  widened by the step's window; within it, a key of the ornament (or the principal struck again)
+  that matches no due key is an ornament key, not an extra. A due key is always matched first.
+- **In the take**, an ornament's other key names its ornamented step (as the step's own keys do);
+  the principal struck again after its step names −1, so the take's reading (X1) keeps the
+  principal's first stroke. A take's −1 therefore means a key matched to nothing: a wrong or extra
+  one, one in the count-in, or a principal struck again within its ornament.
+- **Records made before.** Before X4 an ornament's keys counted as wrong notes in wait mode and as
+  extra notes in rhythm mode; those records stay as they are (the bar heatmap mixes them with the
+  new ones) and their takes read on: an ornament key matched to nothing counts for its ornament when
+  it falls between the step before's first key and the step after's (wait mode), or within the
+  figure's span give or take 150 ms (rhythm mode), where a take made since X4 has none but its
+  wrong keys.
+- **Played or left out.** Per ornament (grace notes and an ornament on one note are one) and round,
+  on a note the run played: **played** when every other key it adds was played around its principal,
+  **played in part** when some were, **left out** when none. The run's last note struck is not
+  judged: the run ends with it, and a figure going on after it is not in the take. The Ornaments tab
+  (Options: "Judge ornaments") lists each with its bar, the three bars to look at (left out 2, in
+  part 1) and a table of the keys asked and played; it has no chart. It is shown only when the score
+  has ornaments or grace notes in the hands practised. Those left out or played in part come
+  first; more than three played fold into one line, as in the Pedal tab.
+- **The tabs** stay in one row: on a phone, where four do not fit, it scrolls sideways (the tab cut
+  at the edge shows there is more), the arrow keys move between them as before and the chosen one
+  is scrolled into view.
+- **Articulation.** A note with grace notes or an ornament is held as its figure plays it: its
+  held length is not judged, nor a legato join into it (its figure may start before it).
+  `ANALYSIS_VERSION` is 2.
+- **The keyboard hint.** With Show keys, the current step's ornament keys (not keys of the step
+  itself) have a dashed outline, lighter than the keys to play, and their own label for screen
+  readers ("B4, a note of the ornament"); not while the demo plays.
+- **The trill start** is kept with the piece's other preferences in this browser (`trillStart`
+  in `dacapo.pieces.byPiece`: `principal`, the default, or `upper`), offered in Options only when
+  the piece has a trill. The demo, the other hand and rhythm mode's timing use it; wait mode takes
+  the keys in any order either way.
+
 ## Milestones
 
 1. ✓ **X0 Markings and takes** — markings in the parser and score, grace notes and ornaments
@@ -404,4 +459,4 @@ page has the development-only "Save this run" button that Scales has.
 2. ✓ **X1 Dynamics and balance** — curve, markings, balance, the Expression panel.
 3. ✓ **X2 Articulation** — held lengths, slurs, staccato, tenuto.
 4. ✓ **X3 Pedal** — the pedal line, changes, gaps and blurs.
-5. **X4 Ornaments** — accepted in wait and rhythm mode, the keyboard hint.
+5. ✓ **X4 Ornaments** — accepted in wait and rhythm mode, the keyboard hint.

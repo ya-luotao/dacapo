@@ -447,6 +447,9 @@ describe('grace notes and ornaments in playback', () => {
     expect(trill[0]!.on).toBeCloseTo(3 * MSQ);
     expect(trill[1]!.on).toBeCloseTo(3 * MSQ + T);
     expect(trill.at(-1)!.off).toBeCloseTo(5 * MSQ);
+    // The piece's setting starts it on the upper note.
+    const upper = demo(s, 'right', { trillStart: 'upper' }).notes;
+    expect(upper.slice(0, 3).map((n) => n.midi)).toEqual([74, 72, 74]);
   });
 
   it('realises the other hand in rhythm mode and in wait mode, graces from the step on', () => {

@@ -1,6 +1,6 @@
 // How grace notes and ornaments sound when the app plays them: the demo, the other hand, "Listen"
 // (docs/EXPRESSION.md, "Ornaments and grace notes", "Realising them"). Pure: milliseconds in,
-// milliseconds out. Playing them is X4; here they are only heard.
+// milliseconds out; and the keys they add, which wait and rhythm mode accept around the note (X4).
 
 import type { GraceNote, Ornament } from './markings.ts';
 
@@ -78,6 +78,32 @@ export function realise(
   const off = Math.max(on, note.off);
   out.push(...ornamented({ ...note, on, off }, options));
   return out.sort((a, b) => a.on - b.on || a.midi - b.midi);
+}
+
+/**
+ * The keys a note's grace notes and ornaments play besides the note itself, ascending: what wait
+ * and rhythm mode accept around the note without counting them wrong (docs/EXPRESSION.md,
+ * "Playing them"). Empty for a note without either.
+ */
+export function ornamentKeys(note: {
+  midi: number;
+  ornaments?: readonly Ornament[];
+  graces?: readonly GraceNote[];
+}): number[] {
+  if (!note.ornaments?.length && !note.graces?.length) return [];
+  // Realised over a long note, so every figure (a trill, its closing turn) is played in full.
+  const sounded = realise({
+    midi: note.midi,
+    on: 0,
+    off: 100_000,
+    thirtySecond: 100,
+    appoggiatura: 50_000,
+    ornaments: note.ornaments,
+    graces: note.graces,
+  });
+  return [...new Set(sounded.map((s) => s.midi).filter((m) => m !== note.midi))].sort(
+    (a, b) => a - b,
+  );
 }
 
 /** The grace notes as struck: a chord of grace notes is one strike. */

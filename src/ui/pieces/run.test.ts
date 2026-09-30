@@ -123,4 +123,25 @@ describe('a wait-mode run', () => {
     // Nothing started yet: Finish does nothing.
     expect(runReducer(runFor('right'), { type: 'end' }).ended).toBe(false);
   });
+
+  it('takes an ornament’s keys as neither right nor wrong, and names them in the take', () => {
+    // A mordent on the first C5 (C–B–C).
+    const s = score();
+    s.notes.find((n) => n.id === 'r0a')!.ornaments = [{ kind: 'mordent', upper: 74, lower: 71 }];
+    const order = performanceOrder(s.measures);
+    const steps = buildSteps(s, 'right', order);
+    const start = startRun({ id: 'run', steps, range: waitRange(steps, order, null, 0) });
+    const run = play(start, [72, 71, 72, 74]);
+    expect(run.wait).toMatchObject({ current: 2, wrong: 0 });
+    expect(run.wrongKey).toBeNull();
+    expect(run.records.map((r) => r.wrong)).toEqual([0, 0]);
+    // The lower note names its step; the principal struck again names none, as a key matched to
+    // nothing.
+    expect(run.take!.events.map((e) => [e[2], e[4]])).toEqual([
+      [72, 0],
+      [71, 0],
+      [72, -1],
+      [74, 1],
+    ]);
+  });
 });

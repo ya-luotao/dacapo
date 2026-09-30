@@ -31,8 +31,8 @@ for drawing.
   default, overridable per piece), voice, tie flags. A tied continuation is not a new key press.
 - **Steps**: the ordered list of distinct onsets per hand selection (right, left, both); a step
   is the set of pitches that start together. Grace notes and ornaments are no steps of their own
-  (since X0 the parser keeps them on their note and the demo and the other hand play them, see
-  [EXPRESSION.md](EXPRESSION.md); accepting them when played is X4), repeats handled as decided in
+  (the parser keeps them on their note, the demo and the other hand play them, and since X4 a
+  step names the keys they add, see [EXPRESSION.md](EXPRESSION.md)), repeats handled as decided in
   the spike.
 - Mapping from steps to renderer positions so the cursor and highlights line up.
 
@@ -43,6 +43,9 @@ for drawing.
 - The cursor sits on the current step. The step is complete when every required pitch has been
   pressed since the step appeared (any order; a key already held from the previous step does
   not count again unless the score repeats it). Wrong notes are counted and shown, never block.
+  A step with grace notes or an ornament waits for its principal: the ornament's other keys, in
+  any order, count as neither right nor wrong, before the principal and after it until a key of
+  the steps that follow (X4).
 - Hand selection: right, left, both. Loop: choose a measure range (A–B); after the last step the
   cursor returns to A. "Start from measure n".
 - Per step: time to complete and wrong notes, used for the measure heatmap.
@@ -62,7 +65,9 @@ for drawing.
 
 - Metronome (count-in plus click), tempo slider, the cursor moves in time. Each played note is
   matched to the nearest expected note of the step (pitch + time window); deviation in ms early
-  / late, missed and extra notes.
+  / late, missed and extra notes. A principal with an ornament is due where the ornament strikes
+  it (an appoggiatura's half its length later), and the ornament's keys within its span are no
+  extra notes (X4).
 - Latency calibration (tap along to the click) stored as a preference.
 - The click is a short Web Audio click, or a MIDI click on the instrument if it supports it —
   decide in the spike.
@@ -194,8 +199,9 @@ for drawing.
   the bar numbers with the score's dynamics above, every dynamic, hairpin and accent judged in
   words, the balance of melody over accompaniment, the bars to look at, each loopable, and a table
   view) and, with X2, the Articulation tab (each note's held length against its slur, staccato,
-  tenuto or none, per bar) and, with X3, the Pedal tab (the sustain pedal as played against the
-  score's pedal marks: clean changes, gaps and blurs). Options has **Your runs**: the piece's
+  tenuto or none, per bar), with X3, the Pedal tab (the sustain pedal as played against the
+  score's pedal marks: clean changes, gaps and blurs) and, with X4, the Ornaments tab (each
+  ornament and grace note, played or left out). Options has **Your runs**: the piece's
   past runs, each with its Expression panel, and a choice of the aspects judged.
 - **Rhythm records.** Rhythm steps go into the same `pieceSteps` store with `mode: 'rhythm'` and
   `notes` (each key's deviation in whole ms, or null when missed); `ms` is the step's share of the

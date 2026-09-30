@@ -9,12 +9,17 @@ import {
   type RhythmPlan,
   type StepTiming,
 } from './rhythm.ts';
-import { buildSteps, type Score } from './score.ts';
+import { buildSteps, type Score, type ScoreNote } from './score.ts';
 import { bars, note, Q, quarters, score } from './scoreFixtures.ts';
 
 function planOf(
   s: Score,
-  options: { loop?: { from: number; to: number } | null; startBar?: number; scale?: number } = {},
+  options: {
+    loop?: { from: number; to: number } | null;
+    startBar?: number;
+    scale?: number;
+    trillStart?: 'principal' | 'upper';
+  } = {},
 ): RhythmPlan {
   const order = performanceOrder(s.measures);
   return rhythmPlan({
@@ -24,6 +29,7 @@ function planOf(
     loop: options.loop ?? null,
     startBar: options.startBar ?? 0,
     scale: options.scale ?? 1,
+    trillStart: options.trillStart,
   })!;
 }
 
@@ -252,5 +258,75 @@ describe('createMatcher', () => {
     played.play(60, 0);
     played.play(60, 1010);
     expect(played.finish(1050).map(brief)).toEqual(['0@0:60+0', '1@1000:60+10']);
+  });
+});
+
+describe('ornaments in rhythm mode', () => {
+  const ornament = (kind: 'mordent' | 'trill') => ({ kind, upper: 74, lower: 71 });
+  /** ♩ = 60: C5 (a quarter, or a half with `length`), then D5, E5. */
+  function decorated(extra: Partial<ScoreNote>, length = Q) {
+    const first = { ...note(0, 0, length, 72), ...extra };
+    return score(
+      bars(1),
+      [first, note(0, length, Q, 74), note(0, length + Q, Q, 76)],
+      [{ tick: 0, bpm: 60 }],
+    );
+  }
+
+  it('does not count the keys of a mordent within its span as extra notes', () => {
+    const matcher = createMatcher(planOf(decorated({ ornaments: [ornament('mordent')] })));
+    expect(matcher.play(72, 0)).toMatchObject({ kind: 'hit', deviation: 0 });
+    expect(matcher.play(71, 70)).toEqual({
+      kind: 'ornament',
+      step: 0,
+      round: 0,
+      midi: 71,
+      principal: false,
+    });
+    expect(matcher.play(72, 140)).toMatchObject({ kind: 'ornament', principal: true });
+    // Out of its span, a key of the ornament is an extra again.
+    expect(matcher.play(71, 700)).toEqual({ kind: 'extra', midi: 71 });
+    expect(matcher.play(74, 1000)).toMatchObject({ kind: 'hit', deviation: 0 });
+    expect(matcher.advance(1600).map(brief)).toEqual(['0@0:72+0', '1@1000:74+0 +1x']);
+  });
+
+  it('times an appoggiatura’s principal at its delayed onset', () => {
+    const plan = planOf(
+      decorated(
+        {
+          graces: [
+            {
+              id: 'g',
+              midi: 74,
+              pitch: { step: 'D', alter: 0, octave: 5 },
+              slash: false,
+              chord: false,
+            },
+          ],
+        },
+        2 * Q,
+      ),
+    );
+    expect(plan.steps[0]!.ornaments).toEqual([
+      { midi: 72, offset: 1000, keys: [74], from: 0, to: 1000 },
+    ]);
+    const matcher = createMatcher(plan);
+    expect(matcher.play(74, 10)).toMatchObject({ kind: 'ornament', step: 0 });
+    // The step waits for its principal, half the note later.
+    expect(matcher.advance(900)).toEqual([]);
+    expect(matcher.play(72, 1020)).toMatchObject({ kind: 'hit', step: 0, deviation: 20 });
+    expect(matcher.advance(1500).map(brief)).toEqual(['0@0:72+20']);
+  });
+
+  it('times a trill from the upper note, when the piece says so, at its second note', () => {
+    const s = decorated({ ornaments: [ornament('trill')] });
+    expect(planOf(s).steps[0]!.ornaments![0]!.offset).toBe(0);
+    const plan = planOf(s, { trillStart: 'upper' });
+    // A thirty-second at ♩ = 60 is 125 ms.
+    expect(plan.steps[0]!.ornaments![0]).toMatchObject({ offset: 125, keys: [74] });
+    const matcher = createMatcher(plan);
+    expect(matcher.play(74, 0)).toMatchObject({ kind: 'ornament' });
+    expect(matcher.play(72, 130)).toMatchObject({ kind: 'hit', deviation: 5 });
+    expect(matcher.play(74, 250)).toMatchObject({ kind: 'ornament' });
   });
 });

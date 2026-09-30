@@ -27,26 +27,29 @@ describe('per-piece preferences', () => {
     writePiecePrefs('minuet', { hands: 'left' });
     writePiecePrefs('minuet', { tempo: 70, mode: 'rhythm' });
     writePiecePrefs('ode', { tempo: 50 });
-    writePiecePrefs('minuet', { melody: 'top' });
+    writePiecePrefs('minuet', { melody: 'top', trillStart: 'upper' });
     expect(readPiecePrefs('minuet')).toEqual({
       hands: 'left',
       tempo: 70,
       mode: 'rhythm',
       melody: 'top',
+      trillStart: 'upper',
     });
     // A piece not practised yet starts with the hands chosen last anywhere, at 100 %, waiting,
-    // the melody on top of the right hand.
+    // the melody on top of the right hand, trills on their note.
     expect(readPiecePrefs('prelude')).toEqual({
       hands: 'left',
       tempo: 100,
       mode: 'wait',
       melody: 'right',
+      trillStart: 'principal',
     });
     expect(readPiecePrefs('ode')).toEqual({
       hands: 'left',
       tempo: 50,
       mode: 'wait',
       melody: 'right',
+      trillStart: 'principal',
     });
     writePiecePrefs('ode', { hands: 'both' });
     expect(readPiecePrefs('minuet').hands).toBe('left');
@@ -65,7 +68,7 @@ describe('per-piece preferences', () => {
     expect(
       parsePiecePrefs(
         JSON.stringify({
-          a: { hands: 'feet', tempo: 55, mode: 'jazz', melody: 'alto' },
+          a: { hands: 'feet', tempo: 55, mode: 'jazz', melody: 'alto', trillStart: 'below' },
           b: 3,
           c: { hands: 'right', tempo: 80, mode: 'rhythm' },
         }),
@@ -88,6 +91,7 @@ describe('per-piece preferences', () => {
       tempo: 100,
       mode: 'wait',
       melody: 'right',
+      trillStart: 'principal',
     });
   });
 });

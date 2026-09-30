@@ -182,6 +182,16 @@ describe('built-in pieces', () => {
     // Bar 3: a mordent on C5 goes down to B4, in G major.
     const bar3 = score.notes.find((n) => n.measure === 2 && n.ornaments)!;
     expect(bar3).toMatchObject({ midi: 72, ornaments: [{ kind: 'mordent', lower: 71 }] });
+    // Their steps name the keys wait and rhythm mode accept besides the note (X4).
+    const decorated = buildSteps(score, 'right').filter((s) => s.ornaments && s.pass === 1);
+    expect(decorated.map((s) => [s.measure, s.ornaments])).toEqual([
+      [2, [{ noteId: bar3.id, midi: 72, keys: [71] }]],
+      [4, [expect.objectContaining({ midi: 72, keys: [71] })]],
+      [7, [expect.objectContaining({ midi: 69, keys: [71] })]],
+      [10, [expect.objectContaining({ midi: 72, keys: [71] })]],
+      [12, [expect.objectContaining({ midi: 72, keys: [71] })]],
+      [29, [expect.objectContaining({ midi: 71, keys: [72] })]],
+    ]);
     expect(runs(score)).toBe('0-15,0-31,16-31');
     const right = buildSteps(score, 'right');
     expect(right.slice(0, 6).map((s) => s.midis)).toEqual([[74], [67], [69], [71], [72], [74]]);

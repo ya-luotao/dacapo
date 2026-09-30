@@ -104,8 +104,16 @@ export function runReducer(run: Run, action: RunAction): Run {
       const result = press(run.steps, run.wait, action.midi, action.time);
       if (result.kind === 'ignored') return run;
       const take = run.take ?? startTake(action.time, action.at, action.pedals);
-      // The key belongs to the step it was pressed on, unless it is not one of its keys.
-      const step = result.kind === 'wrong' ? -1 : run.wait.current;
+      // The key belongs to the step it was pressed on, unless it is not one of its keys; a key of
+      // an ornament to its step, unless it is the principal struck again after the step.
+      const step =
+        result.kind === 'wrong'
+          ? -1
+          : result.kind === 'ornament'
+            ? result.principal
+              ? -1
+              : result.step
+            : run.wait.current;
       return {
         ...run,
         take: takeNoteOn(take, action.time, action.midi, action.velocity, step),

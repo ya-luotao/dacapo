@@ -11,11 +11,13 @@ import {
   performedMarks,
   performedSpans,
   type Dynamic,
+  type OrnamentKind,
   type PedalMark,
 } from './markings.ts';
 import { beatTicks } from './metronome.ts';
-import { playSpan, timeline } from './playback.ts';
+import { playSpan, realiseAt, timeline } from './playback.ts';
 import { playOrder, resolveLoop, type PlayedMeasure, type RepeatMode } from './repeats.ts';
+import { MAX_WINDOW_MS } from './rhythm.ts';
 import { quantile, theilSen } from './robust.ts';
 import {
   buildSteps,
@@ -26,6 +28,7 @@ import {
   type HandSelection,
   type Score,
   type ScoreNote,
+  type SpelledPitch,
   type Step,
 } from './score.ts';
 import { TAKE_OFF, TAKE_ON, type TakeEvent, type TakePedal } from './takes.ts';
@@ -37,7 +40,7 @@ import type { BarLoop } from './wait.ts';
  * Bumped whenever a rule or threshold below changes what a run's figures come out as, so saved
  * runs (the development export) can be told apart.
  */
-export const ANALYSIS_VERSION = 1;
+export const ANALYSIS_VERSION = 2;
 
 /** A run's range of loudness: its velocities from this quantile... */
 export const RANGE_LOW = 0.05;
@@ -282,6 +285,7 @@ export interface ExpressionAnalysis {
   dynamics: DynamicsAnalysis;
   articulation: ArticulationAnalysis;
   pedal: PedalAnalysis;
+  ornaments: OrnamentsAnalysis;
 }
 
 // --- Articulation (X2) ----------------------------------------------------------------------------
@@ -456,6 +460,38 @@ export interface PedalAnalysis {
   /** The share of the run's time (its first key to its last release) the sustain pedal was down. */
   down: number | null;
   bars: PedalBar[];
+}
+
+// --- Ornaments (X4) -------------------------------------------------------------------------------
+
+/** What decorates a note: its ornament (a trill first), else its grace notes. */
+export type OrnamentLabel = OrnamentKind | 'acciaccatura' | 'appoggiatura' | 'graces';
+
+export type OrnamentVerdict = 'played' | 'incomplete' | 'left-out';
+
+/** An ornament or grace notes on a note the run played, and whether its keys were played. */
+export interface OrnamentJudgement {
+  kind: OrnamentLabel;
+  midi: number;
+  /** The principal as written, to name it. */
+  pitch: SpelledPitch;
+  /** Its other keys, ascending, and those of them played around the principal. */
+  keys: number[];
+  heard: number[];
+  verdict: OrnamentVerdict;
+  round: number;
+  step: number;
+  tick: number;
+  measure: number;
+  pass: number;
+  beat: number;
+  bars: BarSpan;
+}
+
+export interface OrnamentsAnalysis {
+  /** The score has ornaments or grace notes in the hands practised (else there is no tab). */
+  inScore: boolean;
+  judgements: OrnamentJudgement[];
 }
 
 // --- Reconstruction ---------------------------------------------------------------------------------
@@ -1275,6 +1311,9 @@ function nextOnset(voice: readonly ScoreNote[], onset: number): number | null {
   return best;
 }
 
+/** A note with grace notes or an ornament. */
+const decorated = (n: ScoreNote) => Boolean(n.ornaments?.length || n.graces?.length);
+
 function judgeHeld(touch: Touch, share: number): ArticulationVerdict {
   switch (touch) {
     case 'staccato':
@@ -1344,7 +1383,8 @@ function analyzeArticulation(
   const lastStep = ctx.last;
   for (const p of notes) {
     const touch = touchOf(p.note);
-    if (touch === null || p.off === null) continue;
+    // A note with an ornament or grace notes is held as its figure plays it: not judged.
+    if (touch === null || p.off === null || decorated(p.note)) continue;
     const held = p.off - p.on;
     const length = tiedLength(p.note, continuations);
     const voice = voiceOf(p.note);
@@ -1356,7 +1396,8 @@ function analyzeArticulation(
       const nextStep = ctx.steps.find((s) => s.index > p.step && s.writtenTick === next);
       if (!nextStep) continue;
       const nextNotes = voice.filter((n) => n.onset === next);
-      if (nextNotes.some((n) => n.midi === p.note.midi)) continue;
+      // A key struck again cannot be joined; nor a note whose ornament starts before it.
+      if (nextNotes.some((n) => n.midi === p.note.midi || decorated(n))) continue;
       const heard = notes.filter(
         (n) => n.round === p.round && n.step === nextStep.index && nextNotes.includes(n.note),
       );
@@ -1907,6 +1948,132 @@ export function pedalToLookAt(p: PedalAnalysis): LookAt<PedalProblem>[] {
   );
 }
 
+// --- Ornaments: the analysis ------------------------------------------------------------------------
+
+/** What decorates a note, for its name. */
+function ornamentLabel(note: ScoreNote): OrnamentLabel {
+  const ornaments = note.ornaments ?? [];
+  const trill = ornaments.find((o) => o.kind === 'trill');
+  if (trill || ornaments[0]) return (trill ?? ornaments[0]!).kind;
+  const graces = note.graces ?? [];
+  const strikes = graces.filter((g) => !g.chord);
+  if (strikes.length > 1) return 'graces';
+  return strikes[0]?.slash ? 'acciaccatura' : 'appoggiatura';
+}
+
+/**
+ * Each ornament (or grace notes) on a note the run played, round after round: played when every
+ * other key it has was played around its principal, incomplete when some were, left out when none.
+ * A key counts when the take names the ornamented step with it (as wait and rhythm mode accept it)
+ * or, in a take made before they did, when it matched nothing and came between the step before's
+ * first key and the step after's. The run's last step is not judged: the run ends with its note.
+ */
+function analyzeOrnaments(
+  ctx: Context,
+  events: readonly TakeEvent[],
+  notes: readonly PlayedNote[],
+  clock: RunClock | null,
+  times: RunTimes,
+): OrnamentsAnalysis {
+  const { steps, score } = ctx;
+  const inScore = score.notes.some((n) => ctx.practised(n.hand) && decorated(n));
+  // Each step's first key, per round.
+  const starts = new Map<string, number>();
+  for (const n of notes) {
+    const id = `${n.round}:${n.step}`;
+    starts.set(id, Math.min(starts.get(id) ?? Infinity, n.on));
+  }
+  const byStep = new Map<number, PlayedNote[]>();
+  for (const n of notes) {
+    const list = byStep.get(n.step) ?? [];
+    list.push(n);
+    byStep.set(n.step, list);
+  }
+  // The key downs naming a step, each given to the round whose principal it is nearest.
+  const named = new Map<string, number[]>();
+  const unmatched: { time: number; key: number }[] = [];
+  for (const e of events) {
+    if (e[1] !== TAKE_ON) continue;
+    const [time, , key, , step] = e as number[];
+    if (step === -1) {
+      unmatched.push({ time: time!, key: key! });
+      continue;
+    }
+    const played = byStep.get(step!);
+    if (!played) continue;
+    const nearest = played.reduce((a, b) =>
+      Math.abs(b.on - time!) < Math.abs(a.on - time!) ? b : a,
+    );
+    const id = `${nearest.round}:${step}`;
+    named.set(id, [...(named.get(id) ?? []), key!]);
+  }
+  // The run ends with its last note struck: an ornament there may go on after the run.
+  const final = notes.reduce<PlayedNote | null>((a, b) => (!a || b.on > a.on ? b : a), null);
+
+  const judgements: OrnamentJudgement[] = [];
+  const seen = new Set<string>();
+  for (const p of notes) {
+    const step = steps[p.step]!;
+    const ornament = step.ornaments?.find((o) => o.noteId === p.note.id);
+    const id = `${p.round}:${p.step}:${p.note.id}`;
+    if (!ornament || seen.has(id) || (p.round === final?.round && p.step === final.step)) continue;
+    seen.add(id);
+    // Where a key matched to nothing may be the ornament's (a take from before X4): in wait mode
+    // between the steps before and after, in rhythm mode within the figure's span, give or take
+    // the widest window (anything else in the span is named).
+    let before = starts.get(`${p.round}:${p.step - 1}`) ?? -Infinity;
+    let after = starts.get(`${p.round}:${p.step + 1}`) ?? Infinity;
+    const base = clock ? times.at(p.round, step.tick) : null;
+    if (clock && base !== null) {
+      const zero = clock.ms(step.tick);
+      const ons = realiseAt(p.note, step.tick, step.tick + p.note.duration, clock.ms).map(
+        (x) => x.on - zero,
+      );
+      before = base + Math.min(0, ...ons) - MAX_WINDOW_MS;
+      after = base + Math.max(0, ...ons) + MAX_WINDOW_MS;
+    }
+    const keys = new Set([
+      ...(named.get(`${p.round}:${p.step}`) ?? []),
+      ...unmatched.filter((u) => u.time > before && u.time < after).map((u) => u.key),
+    ]);
+    const heard = ornament.keys.filter((k) => keys.has(k));
+    const measure = step.measure;
+    judgements.push({
+      kind: ornamentLabel(p.note),
+      midi: p.note.midi,
+      pitch: p.note.pitch,
+      keys: ornament.keys,
+      heard,
+      verdict:
+        heard.length === ornament.keys.length
+          ? 'played'
+          : heard.length > 0
+            ? 'incomplete'
+            : 'left-out',
+      round: p.round,
+      step: p.step,
+      tick: step.tick,
+      measure,
+      ...placeOf(ctx, step.tick),
+      bars: { from: measure, to: measure },
+    });
+  }
+  return { inScore, judgements };
+}
+
+const ORNAMENT_SEVERITY: Record<OrnamentVerdict, number> = {
+  'left-out': 2,
+  incomplete: 1,
+  played: 0,
+};
+
+/** The ornaments' three bars to look at: those left out or played in part. */
+export function ornamentsToLookAt(o: OrnamentsAnalysis): LookAt<OrnamentJudgement>[] {
+  return worstPlaces(
+    o.judgements.map((j) => ({ bars: j.bars, weight: ORNAMENT_SEVERITY[j.verdict], problem: j })),
+  );
+}
+
 // --- The analysis ---------------------------------------------------------------------------------
 
 export function analyzeExpression(input: ExpressionInput): ExpressionAnalysis {
@@ -1989,6 +2156,13 @@ export function analyzeExpression(input: ExpressionInput): ExpressionAnalysis {
     slots,
     articulation: analyzeArticulation(ctx, clock, slots),
     pedal: analyzePedal(ctx, events, notes, slots, runTimes(notes, clock, input.latency ?? 0)),
+    ornaments: analyzeOrnaments(
+      ctx,
+      events,
+      notes,
+      clock,
+      runTimes(notes, clock, input.latency ?? 0),
+    ),
     dynamics: {
       velocityMeasured: measured,
       range,

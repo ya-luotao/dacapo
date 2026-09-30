@@ -1,4 +1,12 @@
-import { useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
 import {
   dynamicsToLookAt,
   MELODIES,
@@ -13,6 +21,7 @@ import { JudgedList, LookAtList } from './ExpressionParts.tsx';
 import type { ExpressionAspect } from './expressionPrefs.ts';
 import { BALANCE_GLYPH, useExpressionWords, type ExpressionWords } from './expressionWords.ts';
 import type { PieceFormat } from './format.ts';
+import { OrnamentsTab } from './OrnamentsTab.tsx';
 import { PedalTab } from './PedalTab.tsx';
 
 // The Expression panel of a run (docs/EXPRESSION.md, "UI"): a tab per aspect measured, each with
@@ -48,20 +57,35 @@ export function ExpressionPanel({
 }: ExpressionPanelProps) {
   const { t } = useI18n();
   const id = useId();
+  // Ornaments have a tab only when the score has some for the hands played.
+  const shown = aspects.filter((a) => a !== 'ornaments' || analysis.ornaments.inScore);
   // Without measured velocity there is nothing to see under Dynamics: open on the next aspect.
   const [chosen, setAspect] = useState<ExpressionAspect>(
     () =>
-      aspects.find((a) => a !== 'dynamics' || analysis.dynamics.velocityMeasured) ??
-      aspects[0] ??
+      shown.find((a) => a !== 'dynamics' || analysis.dynamics.velocityMeasured) ??
+      shown[0] ??
       'dynamics',
   );
-  const aspect = aspects.includes(chosen) ? chosen : aspects[0]!;
+  const aspect = shown.includes(chosen) ? chosen : shown[0];
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
+  const tabList = useRef<HTMLDivElement>(null);
+  // On a phone the tabs scroll sideways in one row: keep the chosen one in view, without moving
+  // the page (as scrollIntoView would).
+  const index = aspect ? shown.indexOf(aspect) : -1;
+  useEffect(() => {
+    const list = tabList.current;
+    const tab = tabs.current[index];
+    if (!list || !tab) return;
+    const start = tab.offsetLeft;
+    const end = start + tab.offsetWidth;
+    if (start < list.scrollLeft) list.scrollLeft = start;
+    else if (end > list.scrollLeft + list.clientWidth) list.scrollLeft = end - list.clientWidth;
+  }, [index]);
   const words = useExpressionWords(format);
 
   // Arrow keys move between the tabs (and wrap), Home and End go to the first and the last.
   function onTabKey(e: KeyboardEvent, index: number) {
-    const last = aspects.length - 1;
+    const last = shown.length - 1;
     const to =
       e.key === 'ArrowRight'
         ? index === last
@@ -78,16 +102,22 @@ export function ExpressionPanel({
               : null;
     if (to === null) return;
     e.preventDefault();
-    setAspect(aspects[to]!);
+    setAspect(shown[to]!);
     tabs.current[to]?.focus();
   }
 
+  if (!aspect) return null;
   return (
     <section className="expression" aria-labelledby={`${id}-title`}>
       <div className="expression-head">
         <h3 id={`${id}-title`}>{t('pieces.expression')}</h3>
-        <div className="expression-tabs" role="tablist" aria-labelledby={`${id}-title`}>
-          {aspects.map((a, i) => (
+        <div
+          ref={tabList}
+          className="expression-tabs"
+          role="tablist"
+          aria-labelledby={`${id}-title`}
+        >
+          {shown.map((a, i) => (
             <button
               key={a}
               ref={(el) => {
@@ -131,8 +161,10 @@ export function ExpressionPanel({
             words={words}
             onLoopBars={onLoopBars}
           />
-        ) : (
+        ) : aspect === 'pedal' ? (
           <PedalTab analysis={analysis} format={format} words={words} onLoopBars={onLoopBars} />
+        ) : (
+          <OrnamentsTab analysis={analysis} format={format} words={words} onLoopBars={onLoopBars} />
         )}
       </div>
       {footer}

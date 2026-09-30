@@ -1,10 +1,11 @@
 import { isMelody, type Melody } from '../../core/expression.ts';
+import type { TrillStart } from '../../core/ornaments.ts';
 import { isHandSelection, type PracticeMode } from '../../core/pieceRecords.ts';
 import type { HandSelection } from '../../core/score.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
 
 // What each piece was last practised with, kept in this browser: the hands, the tempo and the
-// mode; and which note is its melody, for the balance (docs/EXPRESSION.md).
+// mode; which note is its melody, for the balance, and where its trills start (docs/EXPRESSION.md).
 
 const PIECE_PREFS = 'dacapo.pieces.byPiece';
 /** The hands chosen last on any piece: the default for a piece not practised yet. */
@@ -20,6 +21,8 @@ export interface PiecePrefs {
   tempo: number;
   mode: PracticeMode;
   melody: Melody;
+  /** On the note (the default) or on the note above, as in Baroque music. */
+  trillStart: TrillStart;
 }
 
 type Stored = Record<string, Partial<PiecePrefs>>;
@@ -38,12 +41,13 @@ export function parsePiecePrefs(text: string | null): Stored {
   const out: Stored = {};
   for (const [id, value] of Object.entries(json as Record<string, unknown>)) {
     if (typeof value !== 'object' || value === null) continue;
-    const { hands, tempo, mode, melody } = value as Record<string, unknown>;
+    const { hands, tempo, mode, melody, trillStart } = value as Record<string, unknown>;
     const prefs: Partial<PiecePrefs> = {};
     if (isHandSelection(hands)) prefs.hands = hands;
     if (isTempo(tempo)) prefs.tempo = tempo;
     if (mode === 'wait' || mode === 'rhythm') prefs.mode = mode;
     if (isMelody(melody)) prefs.melody = melody;
+    if (trillStart === 'principal' || trillStart === 'upper') prefs.trillStart = trillStart;
     if (Object.keys(prefs).length > 0) out[id] = prefs;
   }
   return out;
@@ -57,6 +61,7 @@ export function readPiecePrefs(pieceId: string): PiecePrefs {
     tempo: own?.tempo ?? DEFAULT_TEMPO,
     mode: own?.mode ?? 'wait',
     melody: own?.melody ?? 'right',
+    trillStart: own?.trillStart ?? 'principal',
   };
 }
 

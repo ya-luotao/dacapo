@@ -75,6 +75,8 @@ interface PianoProps {
   pointer: PointerInput;
   /** Keys to point out, e.g. the answer after a wrong press: outlined and marked with a triangle. */
   marked?: ReadonlySet<number>;
+  /** Keys to point out more lightly than `marked` (an ornament's notes): a dashed outline. */
+  hinted?: ReadonlySet<number>;
   /** Keys just played wrong: flashed in the error colour. */
   wrong?: ReadonlySet<number>;
   /** The finger for a marked key (1 = thumb … 5): shown on the key in place of the triangle. */
@@ -97,6 +99,7 @@ export function Piano({
   sustained,
   pointer,
   marked = NONE,
+  hinted = NONE,
   wrong = NONE,
   fingers = NO_FINGERS,
   range,
@@ -179,7 +182,7 @@ export function Piano({
           const finger = marked.has(midi) ? fingers.get(midi) : undefined;
           const state =
             (velocity !== undefined ? ' is-held' : sustained.has(midi) ? ' is-sustained' : '') +
-            (marked.has(midi) ? ' is-marked' : '') +
+            (marked.has(midi) ? ' is-marked' : hinted.has(midi) ? ' is-hinted' : '') +
             (wrong.has(midi) ? ' is-wrong' : '') +
             (keyClasses.has(midi) ? ` ${keyClasses.get(midi)}` : '');
           return (
@@ -199,7 +202,9 @@ export function Piano({
                   ? t('piano.key.markedFinger', { name: labels.get(midi)!, finger })
                   : marked.has(midi)
                     ? t('piano.key.marked', { name: labels.get(midi)! })
-                    : labels.get(midi)
+                    : hinted.has(midi)
+                      ? t('piano.key.hinted', { name: labels.get(midi)! })
+                      : labels.get(midi)
               }
               aria-pressed={velocity !== undefined}
               onClick={(e) => onKeyActivate(midi, e.detail, e.timeStamp)}

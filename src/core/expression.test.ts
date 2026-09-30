@@ -6,6 +6,7 @@ import {
   CHANGE_MAX_MS,
   dynamicsToLookAt,
   DYNAMIC_STEP,
+  ornamentsToLookAt,
   pedalToLookAt,
   playedNotes,
   RELEASE_MAX_MS,
@@ -937,5 +938,83 @@ describe('the pedal', () => {
 
   it('shares the change window with the lesson on the pedals', () => {
     expect([LESSON_CHANGE_MAX_MS, LESSON_RELEASE_MAX_MS]).toEqual([CHANGE_MAX_MS, RELEASE_MAX_MS]);
+  });
+});
+
+describe('ornaments', () => {
+  /**
+   * Right-hand quarters C4 D4 E4 F4, G4 A4: a mordent on D4 (C4 its lower note), a turn on E4 (F4
+   * and D4), an acciaccatura G4 before F4, a mordent on A4, the last note.
+   */
+  function line() {
+    const notes = [60, 62, 64, 65, 67, 69].map((midi, k) =>
+      note(Math.floor(k / 4), k * Q, Q, midi),
+    );
+    notes[1]!.ornaments = [{ kind: 'mordent', upper: 64, lower: 60 }];
+    notes[2]!.ornaments = [{ kind: 'turn', upper: 65, lower: 62 }];
+    notes[3]!.graces = [
+      { id: 'g', midi: 67, pitch: { step: 'G', alter: 0, octave: 4 }, slash: true, chord: false },
+    ];
+    notes[5]!.ornaments = [{ kind: 'mordent', upper: 71, lower: 67 }];
+    return piano(notes, 2);
+  }
+  const judged = (s: Score, extra: TakeEvent[]) => {
+    const keys = take(s, 'right', { velocity: jitter });
+    return run(
+      s,
+      [...keys, ...extra].sort((a, b) => a[0]! - b[0]!),
+      { hands: 'right' },
+    );
+  };
+  const verdicts = (a: ReturnType<typeof judged>) =>
+    a.ornaments.judgements.map((j) => [j.kind, j.midi, j.heard, j.verdict]);
+
+  it('says, per ornament, whether its keys were played around its note', () => {
+    const s = line();
+    // The mordent’s C4 after D4; only the turn’s F4; the grace note not at all.
+    const a = judged(s, [
+      [560, 1, 60, 60, 1],
+      [1060, 1, 65, 60, 2],
+    ]);
+    expect(a.ornaments.inScore).toBe(true);
+    expect(verdicts(a)).toEqual([
+      ['mordent', 62, [60], 'played'],
+      ['turn', 64, [65], 'incomplete'],
+      ['acciaccatura', 65, [], 'left-out'],
+    ]);
+    expect(ornamentsToLookAt(a.ornaments).map((p) => [p.bars.from, p.weight])).toEqual([[0, 3]]);
+  });
+
+  it('reads a take from before, where an ornament’s keys matched nothing', () => {
+    const a = judged(line(), [
+      [560, 1, 60, 60, -1],
+      // Before E4’s step began: not D4’s.
+      [990, 1, 67, 60, -1],
+      [1440, 1, 67, 60, -1],
+    ]);
+    expect(verdicts(a).map((v) => v[3])).toEqual(['played', 'left-out', 'played']);
+  });
+
+  it('reads such a take in rhythm mode within the ornament’s span only', () => {
+    const s = line();
+    s.tempos.push({ tick: 0, bpm: 120 });
+    const keys = take(s, 'right', { velocity: jitter });
+    const events = (extra: TakeEvent[]) => [...keys, ...extra].sort((a, b) => a[0]! - b[0]!);
+    const rhythm = (extra: TakeEvent[]) =>
+      run(s, events(extra), { hands: 'right', mode: 'rhythm', scale: 1 }).ornaments.judgements;
+    // The mordent’s C4 70 ms after D4 (at 500 ms): within its span.
+    expect(rhythm([[570, 1, 60, 60, -1]])[0]!.verdict).toBe('played');
+    // A C4 400 ms later is no part of it.
+    expect(rhythm([[900, 1, 60, 60, -1]])[0]!.verdict).toBe('left-out');
+  });
+
+  it('does not judge the run’s last note, nor the held length of a note with an ornament', () => {
+    const s = line();
+    const a = judged(s, []);
+    expect(a.ornaments.judgements.map((j) => j.midi)).not.toContain(69);
+    // Every note is held 0.95 of its length, the decorated ones too: only C4 and G4 are judged
+    // (the last note may breathe).
+    expect(a.articulation.notes.map((n) => n.played.note.midi)).toEqual([60, 67]);
+    expect(run(piano(twoHands(1), 1), []).ornaments).toEqual({ inScore: false, judgements: [] });
   });
 });

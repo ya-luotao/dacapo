@@ -4,6 +4,7 @@
 
 import type { Articulation, GraceNote, Markings, Ornament } from './markings.ts';
 import type { Letter } from './note.ts';
+import { ornamentKeys } from './ornaments.ts';
 import { performanceOrder, type PlayedMeasure } from './repeats.ts';
 
 /** Ticks per quarter note. 960 = 2^6·3·5 divides every common MusicXML `divisions` value. */
@@ -156,6 +157,17 @@ export interface Step {
   noteIds: string[];
   /** Tied continuations still sounding at this onset: shown, not pressed. */
   heldIds: string[];
+  /** The notes here with grace notes or an ornament, and the keys those add; absent when none. */
+  ornaments?: StepOrnament[];
+}
+
+/** A note of a step with grace notes or an ornament (docs/EXPRESSION.md, "Playing them"). */
+export interface StepOrnament {
+  noteId: string;
+  /** The principal: the note's own key, one of the step's. */
+  midi: number;
+  /** The other keys its grace notes and ornament play, ascending (`ornamentKeys`). */
+  keys: number[];
 }
 
 /** Steps for a hand selection in play order. Onsets with only tied notes are no step. */
@@ -185,6 +197,10 @@ export function buildSteps(
       if (pressed.length === 0) continue;
       const within = onset - measure.start;
       const beatTicks = (4 * TICKS_PER_QUARTER) / measure.beatType;
+      const ornaments = pressed.flatMap((n): StepOrnament[] => {
+        const keys = ornamentKeys(n);
+        return keys.length > 0 ? [{ noteId: n.id, midi: n.midi, keys }] : [];
+      });
       steps.push({
         index: steps.length,
         tick: played.start + within,
@@ -196,6 +212,7 @@ export function buildSteps(
         midis: [...new Set(pressed.map((n) => n.midi))].sort((a, b) => a - b),
         noteIds: pressed.map((n) => n.id),
         heldIds: group.filter((n) => n.tieStop).map((n) => n.id),
+        ...(ornaments.length > 0 && { ornaments }),
       });
     }
   });

@@ -6,11 +6,13 @@ import type {
   CordaJudgement,
   DynamicsJudgement,
   DynamicsProblem,
+  OrnamentJudgement,
   PedalJudgement,
   PedalProblem,
   Touch,
   Verdict,
 } from '../../core/expression.ts';
+import { formatPitch, midiName } from '../../core/note.ts';
 import type { Hand } from '../../core/score.ts';
 import { useI18n, type Translate } from '../../i18n/index.ts';
 import type { PieceFormat } from './format.ts';
@@ -32,6 +34,19 @@ export const BALANCE_GLYPH: Record<BalanceVerdict, string> = {
 export interface VerdictLabel {
   text: string;
   tone: 'ok' | 'warn' | 'bad';
+}
+
+/** A note as written, or by its key when the spelling has no symbol here (a double sharp). */
+function spelled({ midi, pitch }: Pick<OrnamentJudgement, 'midi' | 'pitch'>): string {
+  const accidental = pitch.alter;
+  return accidental === -1 || accidental === 0 || accidental === 1
+    ? formatPitch({ letter: pitch.step, accidental, octave: pitch.octave })
+    : midiName(midi);
+}
+
+/** Keys named in the spelling of the note they decorate: flats beside a flat. */
+export function keyNames(keys: readonly number[], j: Pick<OrnamentJudgement, 'pitch'>): string {
+  return keys.map((k) => midiName(k, j.pitch.alter < 0 ? 'flat' : 'sharp')).join(' ');
 }
 
 export function createExpressionWords(t: Translate, format: PieceFormat, locale: string) {
@@ -151,6 +166,33 @@ export function createExpressionWords(t: Translate, format: PieceFormat, locale:
     }
   };
 
+  /** An ornament on its note, spelled as written: "Mordent on B♭4". */
+  const ornament = (j: OrnamentJudgement) =>
+    t('pieces.expression.ornaments.on', {
+      kind: t(`pieces.expression.ornaments.kind.${j.kind}`),
+      note: spelled(j),
+    });
+
+  const ornamentVerdict = (j: OrnamentJudgement): VerdictLabel =>
+    j.verdict === 'played'
+      ? { text: t('pieces.expression.ornaments.verdict.played'), tone: 'ok' }
+      : j.verdict === 'incomplete'
+        ? {
+            text: t('pieces.expression.ornaments.verdict.incomplete', {
+              n: j.heard.length,
+              total: j.keys.length,
+            }),
+            tone: 'warn',
+          }
+        : { text: t('pieces.expression.ornaments.verdict.left-out'), tone: 'bad' };
+
+  const ornamentProblem = (j: OrnamentJudgement) =>
+    t('pieces.expression.problem', {
+      marking: ornament(j),
+      where: bars(j),
+      verdict: ornamentVerdict(j).text,
+    });
+
   const pedalProblem = (p: PedalProblem) =>
     t('pieces.expression.problem', {
       marking: pedalMark(p.judgement),
@@ -172,6 +214,9 @@ export function createExpressionWords(t: Translate, format: PieceFormat, locale:
     pedalMark,
     pedalVerdict,
     pedalProblem,
+    ornament,
+    ornamentVerdict,
+    ornamentProblem,
   };
 }
 

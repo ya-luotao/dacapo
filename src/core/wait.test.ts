@@ -155,3 +155,66 @@ describe('waitRange', () => {
     expect(waitRange(bars, order, { from: 7, to: 8 }, 0)).toBeNull();
   });
 });
+
+describe('wait mode with ornaments', () => {
+  /** C5 with a mordent (C–B–C), then D5, then E5 with an acciaccatura D5 before it, then F5. */
+  const decorated: Step[] = [
+    { ...step(0, [72]), ornaments: [{ noteId: 'n0.72', midi: 72, keys: [71] }] },
+    step(1, [74]),
+    { ...step(2, [76]), ornaments: [{ noteId: 'n2.76', midi: 76, keys: [74] }] },
+    step(3, [77]),
+  ];
+  function run(list: readonly Step[], keys: number[]): PressResult[] {
+    let state = startWait(list)!;
+    return keys.map((midi, i) => {
+      const result = press(list, state, midi, i * 100);
+      state = result.state;
+      return result;
+    });
+  }
+  const kinds = (results: PressResult[]) =>
+    results.map((r) =>
+      r.kind === 'ornament' ? `ornament:${r.step}${r.principal ? ':principal' : ''}` : r.kind,
+    );
+
+  it('waits for the principal: the ornament’s keys are neither right nor wrong, after it too', () => {
+    const results = run(decorated, [72, 71, 72, 74, 74, 76, 77]);
+    expect(kinds(results)).toEqual([
+      'complete',
+      'ornament:0',
+      'ornament:0:principal',
+      'complete',
+      // The grace note D5 before E5, on E5’s step.
+      'ornament:2',
+      'complete',
+      'finished',
+    ]);
+    expect(results.every((r) => r.state.wrong === 0)).toBe(true);
+  });
+
+  it('ends the ornament at the next key of the steps after it', () => {
+    // D5 played, then the mordent’s B4 again: now a wrong key.
+    expect(kinds(run(decorated, [72, 74, 71]))).toEqual(['complete', 'complete', 'wrong']);
+  });
+
+  it('lets an ornament’s key complete the next step when it is that step’s key', () => {
+    // A mordent on E5 whose lower note D5 is the next step: D5 completes that step early, and the
+    // ornament goes on until another key.
+    const steps2: Step[] = [
+      { ...step(0, [76]), ornaments: [{ noteId: 'n0.76', midi: 76, keys: [74] }] },
+      step(1, [74]),
+      step(2, [72]),
+    ];
+    expect(kinds(run(steps2, [76, 74, 76, 74, 72]))).toEqual([
+      'complete',
+      'complete',
+      'ornament:0:principal',
+      'ornament:0',
+      'finished',
+    ]);
+  });
+
+  it('still counts a key of no ornament as wrong', () => {
+    expect(kinds(run(decorated, [72, 73]))).toEqual(['complete', 'wrong']);
+  });
+});

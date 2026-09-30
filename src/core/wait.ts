@@ -1,7 +1,9 @@
 // Wait mode: the cursor waits on a step until every key of it has been pressed, in any order.
 // Only key-downs count, so a key still held from an earlier step never completes a new one; the
 // score has to ask for it again and it has to be pressed again. Wrong keys are counted, never
-// blocking.
+// blocking. A step with grace notes or an ornament waits for its principal: the ornament's other
+// keys, in any order, count as neither right nor wrong, on the step and after it until a key of
+// the steps that follow is played (docs/EXPRESSION.md, "Playing them").
 
 import { firstOccurrence, resolveLoop, type PlayedMeasure } from './repeats.ts';
 import type { Step } from './score.ts';
@@ -34,6 +36,20 @@ export interface WaitState {
   /** Completed laps of the loop. */
   laps: number;
   finished: boolean;
+  /**
+   * The last ornamented step completed: its ornaments' keys (principals too) stay neither right
+   * nor wrong until a key of a later step that is none of them is played. Null when none.
+   */
+  carry?: Carry | null;
+}
+
+/** An ornament going on after its step was completed. */
+export interface Carry {
+  step: number;
+  /** Its grace notes' and ornaments' other keys. */
+  keys: readonly number[];
+  /** Its principals: struck again within the ornament. */
+  principals: readonly number[];
 }
 
 /** One completed step: what the measure heatmap aggregates (P3). */
@@ -51,6 +67,11 @@ export interface StepRecord {
 
 export type PressResult =
   | { kind: 'progress' | 'wrong' | 'ignored'; state: WaitState }
+  /**
+   * A key of an ornament (or grace note), neither right nor wrong: `step` is the ornamented step,
+   * `principal` whether the key is its principal struck again after the step was completed.
+   */
+  | { kind: 'ornament'; state: WaitState; step: number; principal: boolean }
   | { kind: 'complete' | 'finished'; state: WaitState; record: StepRecord };
 
 /** A run over `steps`; null when there is nothing to play. */
@@ -81,12 +102,31 @@ export function press(
   const step = steps[state.current];
   if (state.finished || !step) return { kind: 'ignored', state };
   const since = state.since ?? time;
+  const carry = state.carry ?? null;
+  const inCarry = carry !== null && (carry.keys.includes(midi) || carry.principals.includes(midi));
   if (!step.midis.includes(midi)) {
+    const own = step.ornaments?.some((o) => o.keys.includes(midi));
+    if (own)
+      return {
+        kind: 'ornament',
+        step: state.current,
+        principal: false,
+        state: { ...state, since },
+      };
+    if (carry && inCarry)
+      return {
+        kind: 'ornament',
+        step: carry.step,
+        principal: !carry.keys.includes(midi),
+        state: { ...state, since },
+      };
     return { kind: 'wrong', state: { ...state, since, wrong: state.wrong + 1 } };
   }
+  // A key of the step ends an ornament still going on, unless it is one of its keys.
+  const kept = inCarry ? carry : null;
   const pressed = state.pressed.includes(midi) ? state.pressed : [...state.pressed, midi];
   if (pressed.length < step.midis.length) {
-    return { kind: 'progress', state: { ...state, since, pressed } };
+    return { kind: 'progress', state: { ...state, since, pressed, carry: kept } };
   }
   const record: StepRecord = {
     step: state.current,
@@ -96,12 +136,19 @@ export function press(
     wrong: state.wrong,
     at: time,
   };
+  const next = step.ornaments
+    ? {
+        step: state.current,
+        keys: [...new Set(step.ornaments.flatMap((o) => o.keys))],
+        principals: step.ornaments.map((o) => o.midi),
+      }
+    : kept;
   const atEnd = state.current >= state.last;
   if (atEnd && !state.loop) {
     return {
       kind: 'finished',
       record,
-      state: { ...state, pressed, since, finished: true },
+      state: { ...state, pressed, since, finished: true, carry: next },
     };
   }
   return {
@@ -114,6 +161,7 @@ export function press(
       wrong: 0,
       since: time,
       laps: atEnd ? state.laps + 1 : state.laps,
+      carry: next,
     },
   };
 }

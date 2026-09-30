@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { GraceNote, Ornament } from './markings.ts';
-import { GRACE_MAX_MS, ORNAMENT_MAX_MS, realise, type Principal } from './ornaments.ts';
+import {
+  GRACE_MAX_MS,
+  ORNAMENT_MAX_MS,
+  ornamentKeys,
+  realise,
+  type Principal,
+} from './ornaments.ts';
 
 const C5 = 72;
 
@@ -134,5 +140,22 @@ describe('realise', () => {
       '71:1312.5-1375',
       '72:1375-1500',
     ]);
+  });
+});
+
+describe('ornamentKeys', () => {
+  it('names the keys an ornament or grace notes add to their note', () => {
+    expect(ornamentKeys({ midi: C5 })).toEqual([]);
+    expect(ornamentKeys({ midi: C5, ornaments: [ornament('mordent')] })).toEqual([71]);
+    expect(ornamentKeys({ midi: C5, ornaments: [ornament('inverted-mordent')] })).toEqual([74]);
+    expect(ornamentKeys({ midi: C5, ornaments: [ornament('turn')] })).toEqual([71, 74]);
+    expect(ornamentKeys({ midi: C5, ornaments: [ornament('trill')] })).toEqual([74]);
+    // A trill closing with a turn adds its lower note.
+    expect(ornamentKeys({ midi: C5, ornaments: [ornament('trill'), ornament('turn')] })).toEqual([
+      71, 74,
+    ]);
+    expect(ornamentKeys({ midi: C5, graces: [grace(74), grace(76)] })).toEqual([74, 76]);
+    // A grace note on the note’s own key adds nothing.
+    expect(ornamentKeys({ midi: C5, graces: [grace(C5)] })).toEqual([]);
   });
 });

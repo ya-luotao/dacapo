@@ -107,7 +107,12 @@ export function rhythmReducer(state: RhythmRunState, action: RhythmAction): Rhyt
     case 'played': {
       if (state.status !== 'running' || !state.take) return state;
       const { result } = action;
-      const step = result.kind === 'hit' ? result.step : -1;
+      // A key names the step it was matched to; a key of an ornament its step, unless it is the
+      // principal struck again.
+      const step =
+        result.kind === 'hit' || (result.kind === 'ornament' && !result.principal)
+          ? result.step
+          : -1;
       const take = takeNoteOn(state.take, action.time, action.midi, action.velocity, step);
       if (result.kind === 'hit')
         return { ...state, take, last: { kind: 'hit', deviation: result.deviation } };

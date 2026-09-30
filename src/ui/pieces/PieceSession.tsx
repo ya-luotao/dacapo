@@ -24,6 +24,7 @@ import {
   demoPlan,
   otherHand,
 } from '../../core/playback.ts';
+import type { TrillStart } from '../../core/ornaments.ts';
 import { rhythmPlan } from '../../core/rhythm.ts';
 import { PEDALS_UP, type PedalPositions, type TakeInput } from '../../core/takes.ts';
 import { summarizeRhythm } from '../../core/rhythmRun.ts';
@@ -117,6 +118,12 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
   const [scoreStatus, setScoreStatus] = useState<ScoreStatus>({ state: 'loading' });
   const [tempo, setTempo] = useState(prefs.tempo);
   const [melody, setMelodyState] = useState<Melody>(prefs.melody);
+  /** Where the piece's trills start: its setting, for the demo, the other hand and rhythm mode. */
+  const [trillStart, setTrillStartState] = useState<TrillStart>(prefs.trillStart);
+  const hasTrill = useMemo(
+    () => score.notes.some((n) => n.ornaments?.some((o) => o.kind === 'trill')),
+    [score],
+  );
   /** The aspects of expression judged, per browser. */
   const [aspects, setAspectsState] = useState<ExpressionAspect[]>(readExpressionAspects);
   /** "Your runs", laid over the score. */
@@ -166,28 +173,51 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
 
   const scale = tempo / 100;
   const plan = useMemo(
-    () => demoPlan({ score, order, steps, hands, loop, startBar, scale }),
-    [score, order, steps, hands, loop, startBar, scale],
+    () => demoPlan({ score, order, steps, hands, loop, startBar, scale, trillStart }),
+    [score, order, steps, hands, loop, startBar, scale, trillStart],
   );
   const backing = useMemo(
     () =>
       hands === 'both'
         ? null
-        : accompanimentPlan({ score, order, steps, hand: hands, loop, scale }),
-    [score, order, steps, hands, loop, scale],
+        : accompanimentPlan({ score, order, steps, hand: hands, loop, scale, trillStart }),
+    [score, order, steps, hands, loop, scale, trillStart],
   );
   const accompanying = accompany && hasOutput && backing !== null && !listening;
   const timed = useMemo(
-    () => (rhythmMode ? rhythmPlan({ score, order, steps, loop, startBar, scale }) : null),
-    [rhythmMode, score, order, steps, loop, startBar, scale],
+    () =>
+      rhythmMode ? rhythmPlan({ score, order, steps, loop, startBar, scale, trillStart }) : null,
+    [rhythmMode, score, order, steps, loop, startBar, scale, trillStart],
   );
   // In rhythm mode the other hand plays in time, from the same timeline.
   const timedBacking = useMemo(
     () =>
       rhythmMode && hands !== 'both' && accompany && hasOutput
-        ? demoPlan({ score, order, steps, hands, loop, startBar, scale, include: otherHand(hands) })
+        ? demoPlan({
+            score,
+            order,
+            steps,
+            hands,
+            loop,
+            startBar,
+            scale,
+            include: otherHand(hands),
+            trillStart,
+          })
         : null,
-    [rhythmMode, hands, accompany, hasOutput, score, order, steps, loop, startBar, scale],
+    [
+      rhythmMode,
+      hands,
+      accompany,
+      hasOutput,
+      score,
+      order,
+      steps,
+      loop,
+      startBar,
+      scale,
+      trillStart,
+    ],
   );
 
   const [run, dispatch] = useReducer(runReducer, { id: newRunId(), steps, range }, startRun);
@@ -447,7 +477,16 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
     setTempo(next);
     writePiecePrefs(piece.id, { tempo: next });
     if (state === 'stopped' || !at) return;
-    const retimed = demoPlan({ score, order, steps, hands, loop, startBar, scale: next / 100 });
+    const retimed = demoPlan({
+      score,
+      order,
+      steps,
+      hands,
+      loop,
+      startBar,
+      scale: next / 100,
+      trillStart,
+    });
     if (!retimed) {
       player.stop();
       return;
@@ -509,6 +548,11 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
   function setMelody(next: Melody) {
     setMelodyState(next);
     writePiecePrefs(piece.id, { melody: next });
+  }
+
+  function setTrillStart(next: TrillStart) {
+    setTrillStartState(next);
+    writePiecePrefs(piece.id, { trillStart: next });
   }
 
   /** Loops written bars from an Expression panel: the next run plays them. */
@@ -638,6 +682,12 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
       ? new Set(step.midis.filter((m) => !wait?.pressed.includes(m)))
       : new Set<number>();
   }, [listening, rhythmMode, showKeys, step, wait?.pressed]);
+
+  // With Show keys, an ornament's other keys in a lighter mark (docs/EXPRESSION.md).
+  const hinted = useMemo(() => {
+    if (listening || !showKeys || !step?.ornaments) return NO_HINTS;
+    return new Set(step.ornaments.flatMap((o) => o.keys).filter((k) => !marked.has(k)));
+  }, [listening, showKeys, step, marked]);
 
   // The fingers printed for the keys marked (a piece without fingering has none).
   const notesById = useMemo(() => new Map(score.notes.map((n) => [n.id, n])), [score]);
@@ -873,6 +923,29 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
                         }}
                       />
                       <span>{t(`pieces.repeats.${choice}`)}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            )}
+
+            {hasTrill && (
+              <fieldset className="piece-option">
+                <legend className="visually-hidden">{t('pieces.trillStart')}</legend>
+                <span className="piece-control-label" aria-hidden="true">
+                  {t('pieces.trillStart')}
+                </span>
+                <div className="segmented is-compact">
+                  {(['principal', 'upper'] as const).map((choice) => (
+                    <label key={choice}>
+                      <input
+                        type="radio"
+                        name={`${showKeysId}-trill`}
+                        value={choice}
+                        checked={trillStart === choice}
+                        onChange={() => setTrillStart(choice)}
+                      />
+                      <span>{t(`pieces.trillStart.${choice}`)}</span>
                     </label>
                   ))}
                 </div>
@@ -1271,6 +1344,7 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
             sustained={sustained}
             pointer={pointer}
             marked={marked}
+            hinted={hinted}
             wrong={rhythmMode ? NO_WRONG : wrong}
             fingers={fingers}
             range={keys}
@@ -1294,6 +1368,7 @@ interface RunSettings {
 }
 
 const NO_WRONG: ReadonlySet<number> = new Set();
+const NO_HINTS: ReadonlySet<number> = new Set();
 const NO_RECORDS: readonly RecordInput[] = [];
 
 function StatusLine({

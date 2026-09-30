@@ -12,7 +12,13 @@ import {
   type ScoreNote,
   type Step,
 } from './score.ts';
-import { realise, type Sounding } from './ornaments.ts';
+import {
+  DEFAULT_REALISE,
+  realise,
+  type RealiseOptions,
+  type Sounding,
+  type TrillStart,
+} from './ornaments.ts';
 import type { BarLoop } from './wait.ts';
 
 /** Quarter notes per minute when the score gives no tempo: moderate, easy to follow. */
@@ -206,25 +212,44 @@ const decorated = (note: ScoreNote) => Boolean(note.graces?.length || note.ornam
 const THIRTY_SECOND = TICKS_PER_QUARTER / 8;
 
 /**
- * The keys a performed note sounds, in ms on the timeline: itself, or with its grace notes and
- * ornaments realised (`core/ornaments.ts`), nothing before `floor`.
+ * The keys a note sounds from performance tick `on` to `off`, in ms on the timeline: itself, or
+ * with its grace notes and ornaments realised (`core/ornaments.ts`), nothing before `floor`.
  */
-function sounding(n: SourcedNote, ms: Timeline, floor: number, end: number): Sounding[] {
-  const plain = { midi: n.midi, on: ms(n.on), off: Math.min(ms(n.off), end) };
-  if (!decorated(n.note)) return [plain];
-  const { duration } = n.note;
+export function realiseAt(
+  note: ScoreNote,
+  on: number,
+  off: number,
+  ms: Timeline,
+  floor = -Infinity,
+  end = Infinity,
+  options: RealiseOptions = DEFAULT_REALISE,
+): Sounding[] {
+  const plain = { midi: note.midi, on: ms(on), off: Math.min(ms(off), end) };
+  if (!decorated(note)) return [plain];
+  const { duration } = note;
   // A dotted note's length is 3/2 of a plain note value: an appoggiatura takes two thirds of it.
   const dotted = isDotted(duration);
   return realise(
     {
       ...plain,
-      thirtySecond: ms(n.on + THIRTY_SECOND) - ms(n.on),
-      appoggiatura: ms(n.on + (dotted ? (duration * 2) / 3 : duration / 2)) - ms(n.on),
-      ornaments: n.note.ornaments,
-      graces: n.note.graces,
+      thirtySecond: ms(on + THIRTY_SECOND) - ms(on),
+      appoggiatura: ms(on + (dotted ? (duration * 2) / 3 : duration / 2)) - ms(on),
+      ornaments: note.ornaments,
+      graces: note.graces,
     },
     floor,
+    options,
   ).map((s) => ({ ...s, off: Math.min(s.off, end) }));
+}
+
+function sounding(
+  n: SourcedNote,
+  ms: Timeline,
+  floor: number,
+  end: number,
+  options: RealiseOptions,
+): Sounding[] {
+  return realiseAt(n.note, n.on, n.off, ms, floor, end, options);
 }
 
 /** Whether a length in ticks is a dotted note value (3/2 of a power-of-two fraction of a whole). */
@@ -269,8 +294,11 @@ export function demoPlan(options: {
   scale: number;
   /** The notes to play, if not those of `hands` (the other hand, in rhythm mode). */
   include?: (note: ScoreNote) => boolean;
+  /** Where trills start (the piece's setting): on their note by default. */
+  trillStart?: TrillStart;
 }): DemoPlan | null {
   const { score, order, steps, hands, loop, startBar, scale } = options;
+  const realising = { trillStart: options.trillStart ?? DEFAULT_REALISE.trillStart };
   const span = playSpan(score, order, loop, startBar);
   if (!span) return null;
   const ms = timeline(score, order, scale);
@@ -279,7 +307,7 @@ export function demoPlan(options: {
   const include = options.include ?? demoIncludes(hands);
   const end = ms(span.to);
   const notes = sourcedNotes(score, order, include, span.first, span.last)
-    .flatMap((n) => sounding(n, ms, zero, end))
+    .flatMap((n) => sounding(n, ms, zero, end, realising))
     .map((n) => ({ midi: n.midi, on: n.on - zero, off: n.off - zero }))
     .sort((a, b) => a.on - b.on || a.midi - b.midi);
   separateRepeatedKeys(notes, loop ? length : null);
@@ -341,8 +369,11 @@ export function accompanimentPlan(options: {
   hand: Hand;
   loop: BarLoop | null;
   scale: number;
+  /** Where trills start (the piece's setting): on their note by default. */
+  trillStart?: TrillStart;
 }): AccompanimentPlan | null {
   const { score, order, steps, hand, loop, scale } = options;
+  const realising = { trillStart: options.trillStart ?? DEFAULT_REALISE.trillStart };
   const span = playSpan(score, order, loop, -1);
   if (!span) return null;
   const inSpan = steps.filter((s) => s.played >= span.first && s.played <= span.last);
@@ -367,7 +398,7 @@ export function accompanimentPlan(options: {
     // A grace note before the beat of a note on this step sounds from the step, not before it.
     for (; k < others.length && others[k]!.on < next; k++) {
       const n = others[k]!;
-      for (const s of sounding(n, ms, origin, end)) {
+      for (const s of sounding(n, ms, origin, end, realising)) {
         notes.push({
           midi: s.midi,
           at: s.on - origin,
@@ -380,7 +411,7 @@ export function accompanimentPlan(options: {
       const toEnd = end - origin;
       const from = ms(span.from);
       for (const n of leadIn) {
-        for (const s of sounding(n, ms, from, end)) {
+        for (const s of sounding(n, ms, from, end, realising)) {
           notes.push({
             midi: s.midi,
             at: toEnd + s.on - from,

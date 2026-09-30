@@ -126,4 +126,22 @@ describe('rhythm run state', () => {
     // Before Start there is no take.
     expect(run({ type: 'input', input: { type: 'off', midi: 60, time: 0 } }).take).toBeNull();
   });
+
+  it('names an ornament’s keys with their step, and keeps the last note shown', () => {
+    const hit = { kind: 'hit', step: 0, round: 0, midi: 72, deviation: 3 } as const;
+    const lower = { kind: 'ornament', step: 0, round: 0, midi: 71, principal: false } as const;
+    const again = { kind: 'ornament', step: 0, round: 0, midi: 72, principal: true } as const;
+    const state = run(
+      { type: 'start', id: 'r1', epochOrigin: 1_000_000, origin: 5_000, latency: 0 },
+      { type: 'played', result: hit, midi: 72, velocity: 60, time: 5_003 },
+      { type: 'played', result: lower, midi: 71, velocity: 60, time: 5_070 },
+      { type: 'played', result: again, midi: 72, velocity: 60, time: 5_140 },
+    );
+    expect(state.take!.events).toEqual([
+      [3, 1, 72, 60, 0],
+      [70, 1, 71, 60, 0],
+      [140, 1, 72, 60, -1],
+    ]);
+    expect(state.last).toEqual({ kind: 'hit', deviation: 3 });
+  });
 });

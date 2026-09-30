@@ -14,6 +14,25 @@ sessions go in the same lists), the
 click's tempo and grid of scale runs played with it (from version 7), and the takes of piece runs
 (from version 8). Version 1 to 7 files still import.
 
+### Ornaments (X4, [docs/EXPRESSION.md](docs/EXPRESSION.md))
+
+- **Wait mode** waits for an ornament's note: the ornament's other notes (a mordent's lower note,
+  a trill's upper one, a grace note), in any order, are neither right nor wrong, before the note
+  and after it until you play on.
+- **Rhythm mode** times the note where the ornament strikes it (after an appoggiatura, half its
+  length later; after a turn or a trill from above, a thirty-second later), and the ornament's
+  notes within its span are no extra notes.
+- The Expression panel gains an **Ornaments** tab: each ornament and grace note on the notes you
+  played, played, played in part or left out, the bars to look at and a table. Options can turn it
+  off. A note with an ornament is no longer judged for how long it was held. As in the Pedal
+  tab, those left out or played in part come first, and the ones played fold into one line when
+  there are more than three.
+- With **Show keys**, the keyboard marks an ornament's notes with a lighter, dashed outline.
+- On a phone the Expression panel's tabs stay in one row that scrolls sideways.
+- A piece with a trill has **Trills start on** in Options: on the note, or on the note above as in
+  Baroque music, for the demo, the other hand and rhythm mode.
+- Records made before stay as they are: there, an ornament's notes counted as wrong or extra.
+
 ### The pedal (X3, [docs/EXPRESSION.md](docs/EXPRESSION.md))
 
 - The Expression panel gains a **Pedal** tab: the sustain pedal as you played it, drawn under the

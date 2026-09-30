@@ -1274,6 +1274,17 @@ kbd {
   box-shadow: inset 0 0 0 3px var(--key-target-black);
 }
 
+/* An ornament's notes while "Show keys" is on: lighter than the keys to play. */
+.key.is-hinted {
+  outline: 2px dashed var(--key-target);
+  outline-offset: -5px;
+}
+
+.key-black.is-hinted {
+  outline-color: var(--key-target-black);
+  outline-offset: -4px;
+}
+
 .key-target {
   position: absolute;
   right: 0;
@@ -5981,12 +5992,24 @@ select.is-compact {
 }
 
 .expression-tabs {
+  position: relative;
   display: flex;
   gap: 0.25rem;
+  min-width: 0;
+  max-width: 100%;
   margin-bottom: -1px;
+  /* One row: on a phone it scrolls sideways, the tab cut at the edge showing there is more. */
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.expression-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .expression-tab {
+  flex: none;
   min-height: 2.75rem;
   padding: 0.5rem 0.875rem;
   border: 0;
@@ -5996,6 +6019,12 @@ select.is-compact {
   font: inherit;
   font-weight: 600;
   cursor: pointer;
+}
+
+@media (max-width: 30rem) {
+  .expression-tab {
+    padding-inline: 0.625rem;
+  }
 }
 
 .expression-tab[aria-selected='true'] {

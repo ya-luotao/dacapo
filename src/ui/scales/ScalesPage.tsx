@@ -367,11 +367,13 @@ function ScaleSession({
           if (keysTo.current.click) {
             const result = rhythm.press(event.midi, event.time);
             if (result.kind === 'ignored') return;
-            setLast(
-              result.kind === 'hit'
-                ? { kind: 'hit', deviation: result.deviation }
-                : { kind: 'extra' },
-            );
+            // A scale has no ornaments: every key is a hit or an extra.
+            if (result.kind !== 'ornament')
+              setLast(
+                result.kind === 'hit'
+                  ? { kind: 'hit', deviation: result.deviation }
+                  : { kind: 'extra' },
+              );
           }
           dispatch({ ...event, type: 'on', at: Date.now() });
         } else if (event.type === 'off')
