@@ -241,6 +241,45 @@ for drawing.
   remembered in `localStorage`). They are a part of their own, with their own pedal: the
   scheduler's panic does not stop them; a hidden page does.
 
+## Practising a piece over weeks (after P4)
+
+Planned with [EXPRESSION.md](EXPRESSION.md), whose takes these build on.
+
+### Play back your run (P5)
+
+- Every run keeps its take (EXPRESSION.md). The summary, and each run in the piece's progress, has
+  **Play back**: the take plays through the output as it was played — velocities, releases, pedal —
+  with the cursor on the score following the notes as matched, a wrong note shown where it fell.
+  Pause, resume, from a bar, and **Compare**: the written version (the demo at the run's tempo),
+  then the run, bar by bar or the loop.
+- Playing back is listening: it is not practice time, and it silences on route change and hidden
+  page as the demo does.
+
+### Review schedule (P6)
+
+- A piece once practised to the end is in **review**. Its next review falls after an interval that
+  grows while runs go well: 1, 2, 4, 7, 14, 30, 60 days. A run to the end with at most one wrong or
+  missed note per 50 notes (in rhythm mode, with at least 80 % in time) and no bar slower than
+  twice its median in wait mode doubles the interval (to the next step); a worse run keeps it; a run
+  with more than one wrong note in 10 halves it. Runs before the date count only for the figures.
+- **Due** pieces are listed first on the Pieces page and on the home page ("Due for review: 3
+  pieces"), each with how long it has been. A piece can be taken out of review (and put back).
+- Computed from the step records and sessions (`core/review.ts`, pure), so it syncs and imports with
+  them; only "taken out" is stored, per piece, on the piece record (`review: false`).
+
+### Memorising (P7)
+
+- **Memory** is a practice mode beside Wait and Rhythm (it waits, like Wait). The score is **faded**
+  in stages the player chooses: all bars shown; every other bar hidden; only each phrase's first bar
+  shown (a phrase: 4 bars, or the score's own rehearsal marks and double bars); nothing but the
+  first bar. A hidden bar shows its barline and its number. A wrong key shows the step's notes for a
+  moment (and counts as a **prompt**); **Peek** (a key: P) shows the bar while held, also a prompt.
+- A hand at a time or both, the loop, and the start bar work as in Wait. The summary: prompts per
+  bar, the bars that needed them; the weak-bars heatmap gains **Memory** (prompts per run).
+- **Start anywhere**: a random phrase start to play from, as a teacher asks at a lesson; its first
+  bar is shown for two seconds, then faded.
+- Records: steps as Wait's, with `mode: 'memory'`, `prompts` and the stage.
+
 ## Milestones
 
 1. ✓ **P0 Spike** — choose the renderer (OpenSheetMusicDisplay vs Verovio vs other), prove
@@ -250,3 +289,6 @@ for drawing.
 3. ✓ **P2 MIDI output** — output selection, demo playback, accompaniment.
 4. ✓ **P3 Records** — persistence (DB v3), measure heatmap, log and streak integration, export.
 5. ✓ **P4 Rhythm mode** — metronome, calibration, timing analysis.
+6. **P5 Play back** — takes played back with the cursor; compare with the written version.
+7. **P6 Review schedule** — review intervals, due pieces on Pieces and Home.
+8. **P7 Memorising** — memory mode, fading stages, prompts, start anywhere.
