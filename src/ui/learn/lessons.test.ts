@@ -43,7 +43,8 @@ describe('the lessons', () => {
   it('lead from one written lesson to the next', () => {
     expect(neighbours('keyboard')).toMatchObject({ previous: undefined, next: { slug: 'staff' } });
     expect(neighbours('staff').previous?.slug).toBe('keyboard');
-    expect(neighbours('posture')).toMatchObject({ next: undefined });
+    expect(neighbours('posture').next?.slug).toBe('rhythm-2');
+    expect(neighbours('rhythm-2')).toMatchObject({ next: undefined });
     expect(neighbours('unknown')).toEqual({});
   });
 

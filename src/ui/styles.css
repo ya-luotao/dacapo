@@ -7766,6 +7766,27 @@ select.is-compact {
   font-size: 11px;
 }
 
+/* A line with triplets has room over its beams for the bracket: 18 units more than 70. */
+.plate-staff.is-rhythm.is-tall {
+  height: 8.8rem;
+}
+
+.engraved-label.is-held {
+  opacity: 0.55;
+}
+
+.engraved-tie {
+  stroke: currentColor;
+  stroke-width: 0.5;
+  stroke-linejoin: round;
+}
+
+.engraved-tuplet path:first-child {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
+}
+
 /* The steps of a scale: each note, and the whole or half step to the next. */
 .scale-steps {
   display: flex;

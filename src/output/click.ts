@@ -131,6 +131,8 @@ export interface ClickEvent {
   /** performance.now() ms at which it should be heard. */
   time: number;
   accent: boolean;
+  /** A subdivision between beats (the eighths of 6/8), lower and quieter. */
+  sub?: boolean;
 }
 
 /** The clicks heard in [from, to), in order. */
@@ -176,7 +178,7 @@ export function createClickTrack(
       context.destination,
       when,
       'click',
-      click.accent ? 'accent' : 'normal',
+      click.accent ? 'accent' : click.sub ? 'sub' : 'normal',
       volume,
     );
     sounding.add(node);

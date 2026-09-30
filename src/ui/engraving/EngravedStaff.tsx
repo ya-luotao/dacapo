@@ -22,12 +22,14 @@ import {
   BLACK_HEAD,
   BRACE,
   DOT,
+  FLAG_16TH_UP,
   FLAG_8TH_UP,
   FLAT,
   F_CLEF,
   G_CLEF,
   HALF_HEAD,
   NATURAL,
+  REST_16TH,
   REST_8TH,
   REST_HALF,
   REST_QUARTER,
@@ -45,7 +47,7 @@ import {
 
 export type { StaffSystem } from './geometry.ts';
 
-export type Duration = 'whole' | 'half' | 'quarter' | 'eighth';
+export type Duration = 'whole' | 'half' | 'quarter' | 'eighth' | 'sixteenth';
 
 export interface StaffNote {
   /** Stable across renders, so a note that moves glides to its new place. */
@@ -60,7 +62,7 @@ export interface StaffNote {
   dotted?: boolean;
   /** Up by default below the middle line, down from it (always up on a rhythm line). */
   stem?: 'up' | 'down';
-  /** False when the caller draws a beam instead of the eighth's flag. */
+  /** False when the caller draws a beam instead of the eighth's or sixteenth's flag. */
   flag?: boolean;
   tone?: 'ink' | 'accent' | 'good' | 'bad' | 'faint';
   /** Draw the accidental even when it is a natural (a courtesy natural). */
@@ -80,12 +82,16 @@ export interface StaffLabel {
   position: number;
   x: number;
   text: string;
+  /** Said but not played (a count inside a held note or a rest): drawn fainter. */
+  held?: boolean;
 }
 
 interface EngravedStaffProps {
   system: StaffSystem;
   /** Width of the drawing; the staff runs from the brace or clef to a final barline at its end. */
   width?: number;
+  /** Room added above the staff, for a triplet's bracket over the beams. */
+  above?: number;
   notes?: readonly StaffNote[];
   /** Key signature: sharps (+) or flats (−). */
   fifths?: number;
@@ -135,11 +141,13 @@ function accidentalGlyph(pitch: Pitch, natural: boolean | undefined): string | n
   return natural ? NATURAL : null;
 }
 
-const RESTS: Record<Duration, { glyph: string; position: number }> = {
-  whole: { glyph: REST_WHOLE, position: 6 },
-  half: { glyph: REST_HALF, position: 4 },
-  quarter: { glyph: REST_QUARTER, position: 4 },
-  eighth: { glyph: REST_8TH, position: 4 },
+/** Each rest, where it hangs, and its width in font units. */
+const RESTS: Record<Duration, { glyph: string; position: number; width: number }> = {
+  whole: { glyph: REST_WHOLE, position: 6, width: 282 },
+  half: { glyph: REST_HALF, position: 4, width: 282 },
+  quarter: { glyph: REST_QUARTER, position: 4, width: 270 },
+  eighth: { glyph: REST_8TH, position: 4, width: 250 },
+  sixteenth: { glyph: REST_16TH, position: 4, width: 320 },
 };
 
 function Note({ system, note }: { system: StaffSystem; note: StaffNote }) {
@@ -152,6 +160,13 @@ function Note({ system, note }: { system: StaffSystem; note: StaffNote }) {
     return (
       <g className={tone}>
         <path d={rest.glyph} transform={`translate(${note.x} ${y}) scale(${GLYPH})`} />
+        {/* A dotted rest's dot sits in the space above the middle line. */}
+        {note.dotted && (
+          <path
+            d={DOT}
+            transform={`translate(${note.x + rest.width * GLYPH + 3} ${staffY(system, note.clef, 5)}) scale(${GLYPH})`}
+          />
+        )}
       </g>
     );
   }
@@ -193,9 +208,9 @@ function Note({ system, note }: { system: StaffSystem; note: StaffNote }) {
           ) : (
             <rect x={0} y={1.7} width={STEM_WIDTH} height={STEM_LENGTH - 1.7} />
           ))}
-        {duration === 'eighth' && up && note.flag !== false && (
+        {(duration === 'eighth' || duration === 'sixteenth') && up && note.flag !== false && (
           <path
-            d={FLAG_8TH_UP}
+            d={duration === 'eighth' ? FLAG_8TH_UP : FLAG_16TH_UP}
             transform={`translate(${width - STEM_WIDTH} ${-STEM_LENGTH}) scale(${GLYPH})`}
           />
         )}
@@ -210,6 +225,7 @@ function Note({ system, note }: { system: StaffSystem; note: StaffNote }) {
 export function EngravedStaff({
   system,
   width = 300,
+  above = 0,
   notes = [],
   fifths = 0,
   time,
@@ -240,7 +256,7 @@ export function EngravedStaff({
   return (
     <svg
       className={className ? `engraved ${className}` : 'engraved'}
-      viewBox={`0 0 ${width} ${height}`}
+      viewBox={`0 ${-above} ${width} ${height + above}`}
       role="img"
       aria-label={label}
       onPointerLeave={onHover ? () => onHover(null) : undefined}
@@ -341,10 +357,10 @@ export function EngravedStaff({
         </g>
       )}
 
-      {labels.map(({ clef, position, x, text }) => (
+      {labels.map(({ clef, position, x, text, held }) => (
         <text
           key={`${clef}${position}${x}`}
-          className="engraved-label"
+          className={held ? 'engraved-label is-held' : 'engraved-label'}
           x={x}
           y={staffY(system, clef, position)}
           dominantBaseline="central"

@@ -16,6 +16,7 @@ the computer keyboard, a click or a tap, like the Play page.
 | 5   | `sharps-and-flats` | Sharps, flats, whole and half steps  | written |
 | 6   | `major-scale`      | The major scale and key signatures   | written |
 | 7   | `posture`          | Posture, hand shape and fingering    | written |
+| 8   | `rhythm-2`         | Dots, ties, triplets and syncopation | written |
 
 Beside them, not numbered: **Inside the piano** (`inside`), one key of a grand piano's action in
 cross-section, moving as you play. Its motion comes from `src/core/pianoAction.ts`: the key, the
@@ -50,7 +51,12 @@ Fine") are replaced by what works in Chinese.
 - `Aside` holds a rhyme, a tip or a warning; `Picture` an illustration.
 - Figures: `keyboardFigures.tsx` (the keyboard), `staffFigures.tsx` (the staff and clefs),
   `theoryFigures.tsx` (landmarks, intervals, steps and accidentals, scales and key signatures,
-  fingers) and `rhythmFigures.tsx` (the beat, rhythms on a line, time signatures). Exercises share
+  fingers) and `rhythmFigures.tsx` (the beat, rhythms on a line, time signatures, 3/4 against
+  6/8). A rhythm line beams by the beat (in threes in 6/8), draws ties, sixteenths and triplets
+  with their bracket, and counts each beat as finely as its notes need ("1 e & a", "1 trip let");
+  lesson 8 puts the counts not played on in brackets, "1 (2) & 3". Its time is in ticks, twelve
+  to a quarter note, so triplets and sixteenths fall exactly, and in 6/8 the click also sounds
+  the eighths, more quietly than the beats. Exercises share
   one frame (`exercises.tsx`): a key quiz, a line of keys to play in order, multiple choice, and
   in the rhythm lesson a bar to tap in time, judged against the click. Staves are drawn by
   `ui/engraving/EngravedStaff.tsx` from Bravura's outlines (notes of every value, rests, key and

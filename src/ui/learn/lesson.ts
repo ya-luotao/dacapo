@@ -58,6 +58,8 @@ const COPY = {
     another: 'Another',
     halfStep: 'Half step',
     wholeStep: 'Whole step',
+    countTrip: 'trip',
+    countLet: 'let',
   },
   'zh-CN': {
     plate: '图',
@@ -98,6 +100,8 @@ const COPY = {
     another: '换一个',
     halfStep: '半音',
     wholeStep: '全音',
+    countTrip: '连',
+    countLet: '音',
   },
 } as const satisfies Record<LessonLanguage, Record<string, string>>;
 

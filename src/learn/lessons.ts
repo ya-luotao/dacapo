@@ -97,6 +97,17 @@ export const LESSONS: readonly LessonInfo[] = [
     ready: true,
     practice: '/play',
   },
+  {
+    slug: 'rhythm-2',
+    title: { en: 'Dots, ties, triplets and syncopation', 'zh-CN': '附点、延音线、三连音与切分音' },
+    summary: {
+      en: 'Dotted notes and ties, sixteenths, triplets, rhythms off the beat, and 6/8 time.',
+      'zh-CN': '附点和延音线，十六分音符，三连音，落在两拍之间的节奏，以及 6/8 拍。',
+    },
+    minutes: 20,
+    ready: true,
+    practice: '/pieces',
+  },
 ];
 
 /**
