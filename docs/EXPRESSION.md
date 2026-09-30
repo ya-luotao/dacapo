@@ -49,7 +49,7 @@ recomputed from, and what "Play back your run" (PIECES.md) plays:
   to (step and key), or none (an extra).
 - Stored compactly (one array of integers per event), and in **chunks** of at most 2,000 events,
   one record each, so a record stays well under sync's 64 KB. Takes sync as the collection `takes`
-  (added when the id is not stored, never changed); the export includes them (next version).
+  (added when the id is not stored, never changed); the export includes them (format 8).
 - A take is written as the run goes (a chunk when it fills, the rest when the run ends), like the
   step records.
 
@@ -169,6 +169,30 @@ page has the development-only "Save this run" button that Scales has.
   after it. A grace note or ornament on a tied continuation is not realised (the tie's first note
   carries it). The trill starts on the principal; `realise` takes a `trillStart` for X4's
   per-piece setting. The velocity stays the demo's: dynamics do not change how it plays.
+- **A take's events** are arrays of integers: `[ms, 1, key, velocity, step]` a key down,
+  `[ms, 0, key]` a key up, `[ms, 64 | 66 | 67, value]` a pedal. The step is an index into the run's
+  steps (for its hands and repeats, which the take keeps with its piece, checksum, tempo and mode);
+  the key it was matched to is the event's own, since a key only matches its own pitch. A key
+  pressed again on the step it belongs to still names it; a wrong key, an extra one, and one in
+  the count-in or before the first window name −1. Times are rounded to whole ms.
+- **Time 0** is the run's first key in wait mode, and the start of the span (the first bar's
+  downbeat on the run's clock) in rhythm mode, so the count-in's keys are negative and a key's
+  time minus its step's due time is its deviation; the take keeps the `latency` the run was timed
+  with and its times stay raw. `startedAt` is time 0 in epoch ms. A pedal already down when the
+  take starts is written at 0.
+- **Written as the run goes**: a chunk (`sessionId:take:000`, `:001`, …) as soon as 2,000 events
+  wait, the rest once the run is over _and_ the keys held then are let go (so the last releases
+  are in it; keys pressed after the end are not), or when the run is replaced (a restart, other
+  hands, bars, mode) or the page is left. Nothing is written before the run's first step, so a
+  take never outlives a run that left no session; a tab closed mid-run keeps only the chunks
+  already written. Keys played while the demo plays are no part of the run, nor of its take.
+- **Pedals.** The keyboard's raw positions of CC 64, 66 and 67 reach the take through the input
+  hub, which passes each position on once, whatever port sends it (the sustain pedal's down and up
+  for sounding stays as it was). The Apple app's MIDI bridge already forwarded every controller.
+  Takes of a piece go with its step records: `deletePiece` with its records deletes them, and so
+  does a pulled deletion `withSteps`. IndexedDB version 7 adds the `takes` store (by piece, by
+  session), never read at startup; `SYNC_SCHEMA` 5 makes a build that learns them pull everything
+  again once.
 - **Import report.** `grace-notes` and `ornaments` are no longer reported. Pieces imported before
   keep them in their stored warnings (so their synced copies stay the same) and they are not shown.
 

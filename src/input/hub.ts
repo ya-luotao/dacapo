@@ -1,5 +1,12 @@
 import { isMidiNote } from '../core/note.ts';
-import type { InputEvent, NoteEvent, NoteInput, SustainEvent } from './types.ts';
+import type {
+  InputEvent,
+  NoteEvent,
+  NoteInput,
+  PedalController,
+  PedalEvent,
+  SustainEvent,
+} from './types.ts';
 
 export interface HubState {
   /** Keys physically held down by any source, in press order, with their note-on velocity. */
@@ -12,8 +19,11 @@ export interface HubState {
   lastChord: readonly number[];
 }
 
-/** Merged transitions: `on` when a key becomes held by anyone, `off` when nobody holds it. */
-export type HubEvent = NoteEvent | SustainEvent;
+/**
+ * Merged transitions: `on` when a key becomes held by anyone, `off` when nobody holds it; the
+ * sustain pedal down or up. Raw pedal positions pass through as they come, per source.
+ */
+export type HubEvent = NoteEvent | SustainEvent | PedalEvent;
 
 export interface InputHub {
   /** Starts `source` and merges its events. Returns a function that stops it and releases its keys. */
@@ -35,6 +45,8 @@ export function createInputHub(): InputHub {
   // midi → holder → velocity. A holder is one port of one source.
   const holders = new Map<number, Map<string, number>>();
   const pedals = new Set<string>();
+  // The last raw position of each pedal, from any source.
+  const pedalValues = new Map<PedalController, number>();
   const held = new Map<number, number>();
   const sustained = new Set<number>();
   const sources = new Map<string, () => void>();
@@ -91,6 +103,17 @@ export function createInputHub(): InputHub {
       case 'sustain':
         setPedal(holder, event.down, event.time, out);
         return;
+      case 'pedal':
+        // The same position again (another port of the device, say) says nothing new.
+        if (
+          event.value < 0 ||
+          event.value > 127 ||
+          pedalValues.get(event.controller) === event.value
+        )
+          return;
+        pedalValues.set(event.controller, event.value);
+        out.push(event);
+        return;
       case 'reset':
         resetHolder(holder, event.time, out);
         return;
@@ -99,6 +122,12 @@ export function createInputHub(): InputHub {
 
   function publish(out: HubEvent[]) {
     if (out.length === 0) return;
+    // A raw pedal position changes nothing held: the state (and whoever renders it) stays.
+    if (out.some((event) => event.type !== 'pedal')) publishState();
+    for (const event of out) for (const listener of [...eventListeners]) listener(event);
+  }
+
+  function publishState() {
     state = {
       held: new Map(held),
       sustained: new Set(sustained),
@@ -106,7 +135,6 @@ export function createInputHub(): InputHub {
       lastChord,
     };
     for (const listener of [...changeListeners]) listener();
-    for (const event of out) for (const listener of [...eventListeners]) listener(event);
   }
 
   return {

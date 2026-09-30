@@ -10,7 +10,7 @@ import {
   type RefObject,
 } from 'react';
 import { midiName } from '../../core/note.ts';
-import type { HubEvent } from '../../input/index.ts';
+import type { HubEvent, PedalEvent } from '../../input/index.ts';
 import type { LessonLanguage } from '../../learn/lessons.ts';
 import { formatMessage } from '../../i18n/locale.ts';
 import { useInput } from '../input/context.ts';
@@ -221,7 +221,9 @@ export function useNoteOn(
  * Calls `listener` with every key going down and up, and the sustain pedal, as they happen; `demo`
  * says the key is one a figure is playing by itself.
  */
-export function useKeyEvents(listener: (event: HubEvent, demo: boolean) => void): void {
+export function useKeyEvents(
+  listener: (event: Exclude<HubEvent, PedalEvent>, demo: boolean) => void,
+): void {
   const { hub } = useInput();
   const latest = useRef(listener);
   useEffect(() => {
@@ -230,6 +232,7 @@ export function useKeyEvents(listener: (event: HubEvent, demo: boolean) => void)
   useEffect(
     () =>
       hub.onEvent((event) => {
+        if (event.type === 'pedal') return;
         // A demo key is still marked as it comes up: it is let go before it is unmarked.
         latest.current(event, event.type !== 'sustain' && demoKeys.has(event.midi));
       }),

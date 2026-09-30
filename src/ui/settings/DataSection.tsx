@@ -2,6 +2,7 @@ import { useId, useRef, useState } from 'react';
 import {
   buildExport,
   exportFileName,
+  exportText,
   parseImport,
   planImport,
   type ImportError,
@@ -20,6 +21,7 @@ import { ImportPreview } from './ImportPreview.tsx';
 interface StoredIds {
   pieceSteps: ReadonlySet<string>;
   scaleRuns: ReadonlySet<string>;
+  takes: ReadonlySet<string>;
 }
 
 type ImportState =
@@ -29,7 +31,7 @@ type ImportState =
       step: 'preview';
       fileName: string;
       parsed: ParsedImport;
-      /** Step records and scale runs stored already, by id. */
+      /** Step records, scale runs and takes stored already, by id. */
       stored: StoredIds;
       working: boolean;
     }
@@ -69,22 +71,23 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
   const [state, setState] = useState<ImportState>({ step: 'idle' });
 
   async function onExport() {
-    let pieceSteps, scaleRuns;
+    let pieceSteps, scaleRuns, takes;
     try {
-      [pieceSteps, scaleRuns] = await Promise.all([
+      [pieceSteps, scaleRuns, takes] = await Promise.all([
         practice.allPieceSteps(),
         practice.allScaleRuns(),
+        practice.allTakes(),
       ]);
     } catch {
       setState({ step: 'exportFailed' });
       return;
     }
     const at = Date.now();
-    const file = buildExport({ ...data, pieceSteps, scaleRuns }, preferences, {
+    const file = buildExport({ ...data, pieceSteps, scaleRuns, takes }, preferences, {
       now: at,
       appVersion: __APP_VERSION__,
     });
-    downloadText(`${JSON.stringify(file, null, 2)}\n`, exportFileName(at));
+    downloadText(exportText(file), exportFileName(at));
   }
 
   async function onFile(file: File) {
@@ -100,16 +103,17 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
       setState({ step: 'error', error: result.error });
       return;
     }
-    const { pieceSteps, scaleRuns } = result.value;
-    const [stepIds, runIds] = await Promise.all([
+    const { pieceSteps, scaleRuns, takes } = result.value;
+    const [stepIds, runIds, takeIds] = await Promise.all([
       pieceSteps.length > 0 ? practice.pieceStepIds() : new Set<string>(),
       scaleRuns.length > 0 ? practice.scaleRunIds() : new Set<string>(),
+      takes.length > 0 ? practice.takeIds() : new Set<string>(),
     ]);
     setState({
       step: 'preview',
       fileName: file.name,
       parsed: result.value,
-      stored: { pieceSteps: stepIds, scaleRuns: runIds },
+      stored: { pieceSteps: stepIds, scaleRuns: runIds, takes: takeIds },
       working: false,
     });
   }
@@ -129,6 +133,7 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
         pieceSteps: parsed.pieceSteps,
         scaleRuns: parsed.scaleRuns,
         answers: parsed.answers,
+        takes: parsed.takes,
       });
       if (applyPreferences && parsed.preferences) onApplyPreferences(parsed.preferences);
       setState({ step: 'done', added });
@@ -206,6 +211,7 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
             pieceStepIds: state.stored.pieceSteps,
             scaleRunIds: state.stored.scaleRuns,
             answerIds: new Set(data.answers.map((a) => a.id)),
+            takeIds: state.stored.takes,
           })}
           working={state.working}
           onApply={(applyPreferences) =>
@@ -223,6 +229,7 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
             steps: state.added.pieceSteps,
             scaleRuns: state.added.scaleRuns,
             ear: state.added.answers,
+            takes: state.added.takes,
           })}
         </p>
       )}

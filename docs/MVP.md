@@ -69,7 +69,7 @@ functions so tests are deterministic.
   `onstatechange` (hot-plug); treat `0x90` with velocity 0 as note-off; track CC64
   (sustain) state. Expose device status: `pending` / `unsupported` / `no-permission` /
   `no-device` / `connected(names[])`. Sources emit an `InputEvent` union (note, sustain,
-  reset) tagged with a port, so the hub can merge holders across devices and pointers.
+  pedal, reset) tagged with a port, so the hub can merge holders across devices and pointers.
 - Keyboard fallback: two rows mapped like a piano (`A W S E D F T G Y H U J K` =
   C..C, black keys on the upper row), `Z`/`X` shift octave down/up, default octave 4.
   Ignore `event.repeat`. Disabled while focus is in a text input.

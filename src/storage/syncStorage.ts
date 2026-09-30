@@ -4,6 +4,7 @@ import type { PieceStep } from '../core/pieceRecords.ts';
 import type { StoredScaleRun } from '../core/scaleRecords.ts';
 import type { Attempt } from '../core/session.ts';
 import { pieceVersion, type StoredPiece } from '../core/storedPiece.ts';
+import type { TakeChunk } from '../core/takes.ts';
 import { statsFromAttempts } from '../core/weakness.ts';
 import { canonicalText } from '../lib/canonical.ts';
 import type { DacapoDB } from './db.ts';
@@ -38,6 +39,7 @@ export interface PulledRecords {
   pieceSteps: readonly PieceStep[];
   scaleRuns: readonly StoredScaleRun[];
   answers: readonly Answer[];
+  takes: readonly TakeChunk[];
 }
 
 /** What applying changed here. */
@@ -50,6 +52,7 @@ export interface AppliedCounts {
   pieceSteps: number;
   scaleRuns: number;
   answers: number;
+  takes: number;
 }
 
 export const nothingApplied = (counts: AppliedCounts) =>
@@ -251,6 +254,7 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
           'pieceSteps',
           'scaleRuns',
           'answers',
+          'takes',
           'meta',
           'outbox',
         ],
@@ -262,6 +266,7 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
       const steps = tx.objectStore('pieceSteps');
       const runs = tx.objectStore('scaleRuns');
       const answers = tx.objectStore('answers');
+      const takesStore = tx.objectStore('takes');
       const meta = tx.objectStore('meta');
 
       const [
@@ -273,6 +278,7 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
         storedSteps,
         storedRuns,
         storedAnswers,
+        storedTakes,
       ] = await Promise.all([
         deletedPieces(meta),
         meta.getKey(SYNC_STATE_KEY).then((key) => key !== undefined),
@@ -282,6 +288,7 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
         Promise.all(pulled.pieceSteps.map((s) => steps.get(s.id))),
         Promise.all(pulled.scaleRuns.map((r) => runs.get(r.id))),
         Promise.all(pulled.answers.map((a) => answers.get(a.id))),
+        Promise.all(pulled.takes.map((c) => takesStore.get(c.id))),
       ]);
 
       // Records whose copy here wins over a different pulled one: sent again.
@@ -308,6 +315,13 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
         await Promise.all(
           newlyDeleted.map((d) =>
             d.stepsToo ? steps.index('by-piece').getAllKeys(d.id) : Promise.resolve([]),
+          ),
+        )
+      ).flat();
+      const takeKeysToDelete = (
+        await Promise.all(
+          newlyDeleted.map((d) =>
+            d.stepsToo ? takesStore.index('by-piece').getAllKeys(d.id) : Promise.resolve([]),
           ),
         )
       ).flat();
@@ -360,6 +374,12 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
       const addedAnswers = pulled.answers.filter(
         (answer, i) => takes(storedAnswers[i], answer) && first(answer, 'an:'),
       );
+      const addedTakes = pulled.takes.filter(
+        (chunk, i) =>
+          takes(storedTakes[i], chunk) &&
+          !deletions.get(chunk.pieceId)?.withSteps &&
+          first(chunk, 'tk:'),
+      );
 
       // Note stats depend on the order of answers: rebuilt from all attempts, only when some
       // were added (or replaced).
@@ -379,12 +399,14 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
         ...newlyDeleted.map((d) => () => meta.put(d.deletion, pieceDeletionKey(d.id))),
         ...piecesToDelete.map((key) => () => pieces.delete(key)),
         ...stepKeysToDelete.map((key) => () => steps.delete(key)),
+        ...takeKeysToDelete.map((key) => () => takesStore.delete(key)),
         ...addedSessions.map((session) => () => sessions.put(session)),
         ...addedAttempts.map((attempt) => () => attempts.put(attempt)),
         ...addedPieces.map((piece) => () => pieces.put(piece)),
         ...addedSteps.map((step) => () => steps.put(step)),
         ...addedRuns.map((run) => () => runs.put(run)),
         ...addedAnswers.map((answer) => () => answers.put(answer)),
+        ...addedTakes.map((chunk) => () => takesStore.put(chunk)),
         ...(stats
           ? [() => noteStats.clear(), ...Object.values(stats).map((s) => () => noteStats.put(s))]
           : []),
@@ -400,6 +422,7 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
         pieceSteps: addedSteps.length,
         scaleRuns: addedRuns.length,
         answers: addedAnswers.length,
+        takes: addedTakes.length,
       };
     },
   };

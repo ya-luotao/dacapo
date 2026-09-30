@@ -65,7 +65,8 @@ function runFor(hands: HandSelection, loop: { from: number; to: number } | null 
 
 function play(run: Run, keys: number[], time = 0): Run {
   return keys.reduce(
-    (r, midi, i) => runReducer(r, { type: 'press', midi, time: time + i, at: EPOCH + time + i }),
+    (r, midi, i) =>
+      runReducer(r, { type: 'press', midi, velocity: 64, time: time + i, at: EPOCH + time + i }),
     run,
   );
 }
@@ -111,7 +112,7 @@ describe('a wait-mode run', () => {
 
   it('remembers the last wrong key for the flash, and ignores keys once finished', () => {
     let run = runFor('right');
-    run = runReducer(run, { type: 'press', midi: 60, time: 5, at: EPOCH + 5 });
+    run = runReducer(run, { type: 'press', midi: 60, velocity: 64, time: 5, at: EPOCH + 5 });
     expect(run.wrongKey).toEqual({ midi: 60, at: 5 });
     run = runReducer(run, { type: 'clearWrong', key: { midi: 60, at: 4 } });
     expect(run.wrongKey).not.toBeNull();

@@ -14,13 +14,27 @@ export interface SustainEvent {
   time: number;
 }
 
+/**
+ * A pedal's raw position as the keyboard sends it: CC 64 (sustain), 66 (sostenuto) or 67 (una
+ * corda), 0–127. The hub passes it on unmerged, for what a run records (its take); the sustain
+ * pedal's down or up for sounding and holding keys is `SustainEvent`.
+ */
+export interface PedalEvent {
+  type: 'pedal';
+  controller: PedalController;
+  value: number;
+  time: number;
+}
+
+export type PedalController = 64 | 66 | 67;
+
 /** Everything a port was holding is released (port gone, "all notes off", window lost focus). */
 export interface ResetEvent {
   type: 'reset';
   time: number;
 }
 
-export type InputEvent = NoteEvent | SustainEvent | ResetEvent;
+export type InputEvent = NoteEvent | SustainEvent | PedalEvent | ResetEvent;
 
 /**
  * Sends an event into the hub. `port` separates independent holders inside one source

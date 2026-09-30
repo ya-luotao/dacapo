@@ -5,7 +5,7 @@ import type { ProfileSettings } from '../core/profile.ts';
 
 /** The collections sent to the sync service, named as the stores that hold them. */
 export type SyncCollection =
-  'attempts' | 'sessions' | 'pieces' | 'pieceSteps' | 'scaleRuns' | 'answers';
+  'attempts' | 'sessions' | 'pieces' | 'pieceSteps' | 'scaleRuns' | 'answers' | 'takes';
 
 export const SYNC_COLLECTIONS: readonly SyncCollection[] = [
   'attempts',
@@ -14,6 +14,7 @@ export const SYNC_COLLECTIONS: readonly SyncCollection[] = [
   'pieceSteps',
   'scaleRuns',
   'answers',
+  'takes',
 ];
 
 /** A deleted piece, sent under the piece's id. A deletion is final. */
@@ -21,7 +22,7 @@ export interface PieceDeletion {
   deleted: true;
   /** Epoch ms. */
   at: number;
-  /** Its step records were deleted with it. */
+  /** Its step records (and takes) were deleted with it. */
   withSteps: boolean;
 }
 

@@ -12,6 +12,7 @@ import {
   samplePiece,
   sampleRun,
   sampleScaleSession,
+  sampleTake,
   T0,
 } from '../storage/fixtures.ts';
 import { createIndexedDbRepository } from '../storage/repository.ts';
@@ -552,6 +553,32 @@ describe('ear training', () => {
     expect(SYNC_SCHEMA).toBeGreaterThanOrEqual(3);
     expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
     expect(mac.store.getSnapshot().answers).toEqual(echo);
+  });
+});
+
+describe('takes', () => {
+  it('brings takes to the other device, and pulls again those a build before takes skipped', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    const takes = [sampleTake('r1', 0), sampleTake('r1', 1)];
+    for (const chunk of takes) ipad.store.recordTake(chunk);
+    await ipad.store.settled();
+    await signIn(ipad);
+    expect(service.body('takes', takes[0]!.id)).toEqual(takes[0]);
+    await signIn(mac);
+    expect(await mac.store.takes({ sessionId: 'r1' })).toEqual(takes);
+
+    // As schema 4 left it: the takes skipped, the cursor past them.
+    const state = (await mac.db.get('meta', SYNC_STATE_KEY)) as SyncState;
+    await mac.db.clear('takes');
+    await mac.db.put('meta', { ...state, schema: 4 }, SYNC_STATE_KEY);
+    const sync = vi.spyOn(service.api, 'sync');
+    await mac.client.syncNow();
+    expect(SYNC_SCHEMA).toBe(5);
+    expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
+    expect(await mac.store.takes({ sessionId: 'r1' })).toEqual(takes);
+    expect(await mac.db.count('outbox')).toBe(0);
   });
 });
 

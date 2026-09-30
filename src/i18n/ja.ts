@@ -1190,9 +1190,9 @@ export const ja: Dictionary = {
   'settings.storage.loading': '練習記録を読み込んでいます…',
   'settings.export': 'データをエクスポート',
   'settings.export.help':
-    'セッション、解答、インポートした曲、曲とスケールの練習記録、設定を含む{file}をダウンロードします。',
+    'セッション、解答、インポートした曲、曲とスケールの練習記録、テイク、設定を含む{file}をダウンロードします。',
   'settings.export.failed':
-    '曲またはスケールの練習記録を読み取れなかったため、何もエクスポートしていません。',
+    '曲やスケールの練習記録、またはテイクを読み取れなかったため、何もエクスポートしていません。',
   'settings.import': 'データをインポート…',
   'settings.import.help':
     'エクスポートしたファイルから、セッション、解答、曲を追加します。今あるデータが変更・削除されることはありません。',
@@ -1215,6 +1215,7 @@ export const ja: Dictionary = {
   'settings.import.pieceSteps': '曲の練習記録',
   'settings.import.scaleRuns': 'スケールの練習記録',
   'settings.import.answers': '聴音の解答',
+  'settings.import.takes': '曲の練習のテイク（分割して保存）',
   'settings.import.stats': '音ごとの統計は、インポート後にすべての解答から計算し直します。',
   'settings.import.nothingNew': 'このファイルの内容はすべて登録済みです。',
   'settings.import.invalidTitle': '次の記録は無効なため、インポートしません：',
@@ -1228,13 +1229,14 @@ export const ja: Dictionary = {
   'settings.import.record.pieceSteps': '曲の練習記録',
   'settings.import.record.scaleRuns': 'スケールの練習記録',
   'settings.import.record.answers': '聴音の解答',
+  'settings.import.record.takes': 'テイクの一部',
   'settings.import.more': '…ほか{n}件',
   'settings.import.prefs': 'ファイル内の設定も適用する：{language}、{theme}',
   'settings.import.apply': 'インポート',
   'settings.import.cancel': 'キャンセル',
   'settings.import.working': 'インポートしています…',
   'settings.import.done':
-    'インポートが完了しました：新しいセッション{sessions}件、解答{attempts}件、インポートした曲{pieces}曲、曲の練習記録{steps}件、スケールの練習記録{scaleRuns}件、聴音の解答{ear}件。',
+    'インポートが完了しました：新しいセッション{sessions}件、解答{attempts}件、インポートした曲{pieces}曲、曲の練習記録{steps}件、スケールの練習記録{scaleRuns}件、聴音の解答{ear}件、テイクの一部{takes}件。',
   'settings.import.failed': 'インポートを保存できませんでした。何も変更されていません。',
 
   'settings.account': 'アカウント',
@@ -1368,7 +1370,7 @@ export const ja: Dictionary = {
   'settings.storage.memory.app':
     '保存されていません：いまはこの端末にdacapoのデータを保存できません。dacapoを閉じる前にエクスポートしてください。',
   'settings.export.help.app':
-    'セッション、解答、インポートした曲、曲とスケールの練習記録、設定を含む{file}を保存します。',
+    'セッション、解答、インポートした曲、曲とスケールの練習記録、テイク、設定を含む{file}を保存します。',
   'metronome.noAudio.app':
     'この端末ではクリック音を鳴らせません。振り子はそのままテンポを刻みます。',
 

@@ -7,6 +7,7 @@ import {
   buildExport,
   EXPORT_VERSION,
   exportFileName,
+  exportText,
   parseImport,
   planImport,
   type ExportFile,
@@ -25,6 +26,7 @@ import {
   sampleRhythmRun,
   sampleRun,
   sampleScaleSession,
+  sampleTake,
   T0,
 } from './fixtures.ts';
 import { createIndexedDbRepository, type PracticeRepository } from './repository.ts';
@@ -43,8 +45,15 @@ async function freshRepository(): Promise<PracticeRepository> {
 
 async function exportOf(repo: PracticeRepository, now = NOW): Promise<ExportFile> {
   const data = await repo.load();
-  const [pieceSteps, scaleRuns] = await Promise.all([repo.allPieceSteps(), repo.allScaleRuns()]);
-  return buildExport({ ...data, pieceSteps, scaleRuns }, PREFS, { now, appVersion: '0.0.0' });
+  const [pieceSteps, scaleRuns, takes] = await Promise.all([
+    repo.allPieceSteps(),
+    repo.allScaleRuns(),
+    repo.allTakes(),
+  ]);
+  return buildExport({ ...data, pieceSteps, scaleRuns, takes }, PREFS, {
+    now,
+    appVersion: '0.0.0',
+  });
 }
 
 function parsed(text: string): ParsedImport {
@@ -87,6 +96,7 @@ describe('export', () => {
       pieceSteps: [],
       scaleRuns: [],
       answers: [],
+      takes: [],
     });
     const file = await exportOf(repo);
     expect(file).toMatchObject({
@@ -143,7 +153,14 @@ describe('export → import', () => {
     for (const { runs, session } of scales) {
       for (const run of runs) await source.addScaleRun(run, session);
     }
+    const takes = [
+      sampleTake('r1', 0),
+      sampleTake('r1', 1),
+      sampleTake('r3', 0, { mode: 'rhythm', latency: 23, startedAt: T0 - 5000 }),
+    ];
+    for (const chunk of takes) await source.addTake(chunk);
     const exported = await exportOf(source);
+    expect(exported.takes.map((c) => c.id)).toEqual(['r3:take:000', 'r1:take:000', 'r1:take:001']);
     expect(exported.pieces.map((p) => p.id)).toEqual(['p1', 'p2']);
     expect(exported.pieceSteps).toHaveLength(15);
     expect(exported.pieceSteps.filter((s) => s.mode === 'rhythm')).toHaveLength(5);
@@ -152,7 +169,11 @@ describe('export → import', () => {
     expect(exported.scaleRuns.map((r) => r.id)).toEqual(['k2:0', 'k2:1', 'k1:0', 'k1:1', 'k1:2']);
 
     const target = await freshRepository();
-    const file = parsed(JSON.stringify(exported));
+    // Numbers stay on one line in the file (a take's events above all), and it reads the same.
+    const text = exportText(exported);
+    expect(text).toContain('[0,64,127]');
+    expect(JSON.parse(text)).toEqual(exported);
+    const file = parsed(text);
     expect(file.invalid).toEqual([]);
     expect(file.preferences).toEqual(PREFS);
     expect(await target.merge(file)).toEqual({
@@ -162,11 +183,13 @@ describe('export → import', () => {
       pieceSteps: 15,
       scaleRuns: 5,
       answers: 0,
+      takes: 3,
     });
     expect(await exportOf(target)).toEqual(exported);
     expect(await target.load()).toEqual(await source.load());
     expect(await target.allPieceSteps()).toEqual(await source.allPieceSteps());
     expect(await target.allScaleRuns()).toEqual(await source.allScaleRuns());
+    expect(await target.allTakes()).toEqual(await source.allTakes());
   });
 
   it('importing the same file twice changes nothing', async () => {
@@ -182,6 +205,7 @@ describe('export → import', () => {
       pieceSteps: 0,
       scaleRuns: 0,
       answers: 0,
+      takes: 0,
     });
     expect(await repo.load()).toEqual(once);
   });
@@ -328,6 +352,7 @@ describe('planImport', () => {
       pieceStepIds: new Set(),
       scaleRunIds: new Set(),
       answerIds: new Set(),
+      takeIds: new Set<string>(),
     });
     expect(plan).toEqual({
       sessions: { new: sessions.length - 1, present: 1, invalid: 0 },
@@ -336,7 +361,40 @@ describe('planImport', () => {
       pieceSteps: { new: 0, present: 0, invalid: 0 },
       scaleRuns: { new: 0, present: 0, invalid: 0 },
       answers: { new: 0, present: 0, invalid: 0 },
+      takes: { new: 0, present: 0, invalid: 0 },
     });
+  });
+
+  it('counts takes too, and lists a chunk that is not one', () => {
+    const takes = [sampleTake('r1', 0), sampleTake('r1', 1), sampleTake('r2', 0)];
+    const file = parsed(
+      fileWith({
+        version: 8,
+        pieces: [],
+        pieceSteps: [],
+        scaleRuns: [],
+        answers: [],
+        takes: [
+          ...takes,
+          { ...takes[0]!, id: 'x', events: [[0, 1, 60, 80]] },
+          { ...sampleTake('r3', 0), events: [] },
+        ],
+      }),
+    );
+    expect(file.invalid).toEqual([
+      { collection: 'takes', index: 3, field: 'events', problem: 'invalid' },
+      { collection: 'takes', index: 4, field: 'events', problem: 'invalid' },
+    ]);
+    const plan = planImport(file, {
+      sessionIds: new Set(),
+      attemptIds: new Set(),
+      pieceIds: new Set(),
+      pieceStepIds: new Set(),
+      scaleRunIds: new Set(),
+      answerIds: new Set(),
+      takeIds: new Set([takes[1]!.id]),
+    });
+    expect(plan.takes).toEqual({ new: 2, present: 1, invalid: 2 });
   });
 
   it('counts step records too', () => {
@@ -349,6 +407,7 @@ describe('planImport', () => {
       pieceStepIds: new Set([steps[0]!.id]),
       scaleRunIds: new Set(),
       answerIds: new Set(),
+      takeIds: new Set<string>(),
     });
     expect(plan.pieceSteps).toEqual({ new: 3, present: 1, invalid: 0 });
   });
@@ -372,6 +431,7 @@ describe('planImport', () => {
       pieceStepIds: new Set(),
       scaleRunIds: new Set([runs[2]!.id]),
       answerIds: new Set(),
+      takeIds: new Set<string>(),
     });
     expect(plan.sessions).toEqual({ new: 1, present: 0, invalid: 0 });
     expect(plan.scaleRuns).toEqual({ new: 2, present: 1, invalid: 1 });
@@ -388,6 +448,7 @@ describe('planImport', () => {
       pieceStepIds: new Set(),
       scaleRunIds: new Set(),
       answerIds: new Set(),
+      takeIds: new Set<string>(),
     });
     expect(plan.pieces).toEqual({ new: 1, present: 1, invalid: 1 });
   });
@@ -646,7 +707,7 @@ describe('versions', () => {
     ]);
   });
 
-  it('writes version 7 with pieces, piece sessions, step records, scale runs and answers', async () => {
+  it('writes version 8 with pieces, piece sessions, step records, scale runs, answers and takes', async () => {
     const repo = await freshRepository();
     await repo.putPiece(samplePiece(1));
     const { steps, session } = sampleRun('r1', 2);
@@ -657,9 +718,12 @@ describe('versions', () => {
     const ear = sampleEarSession('e1', 5);
     for (const answer of [...ear.answers].reverse()) await repo.addAnswer(answer);
     await repo.putSession(ear.session);
+    const take = sampleTake('r1', 0);
+    await repo.addTake(take);
     const file = await exportOf(repo);
-    expect(EXPORT_VERSION).toBe(7);
-    expect(file.version).toBe(7);
+    expect(EXPORT_VERSION).toBe(8);
+    expect(file.version).toBe(8);
+    expect(file.takes).toEqual([take]);
     expect(file.pieces).toEqual([samplePiece(1)]);
     expect(file.pieceSteps).toEqual(steps);
     expect(file.scaleRuns).toEqual(scales.runs);
@@ -670,6 +734,7 @@ describe('versions', () => {
     expect(back.pieceSteps).toEqual(steps);
     expect(back.scaleRuns).toEqual(scales.runs);
     expect(back.answers).toEqual(ear.answers);
+    expect(back.takes).toEqual([take]);
     expect(back.sessions).toEqual([scales.session, session, ear.session]);
   });
 
@@ -723,6 +788,43 @@ describe('versions', () => {
       fileWith({ version: 5, pieces: [], pieceSteps: [], scaleRuns: [], answers: 'x' }),
     );
     expect(file).toMatchObject({ version: 5, answers: [], invalid: [] });
+  });
+
+  it('imports a version 7 file, which has no takes, and refuses a version 8 file without them', () => {
+    const lists = { pieces: [], pieceSteps: [], scaleRuns: [], answers: [] };
+    const file = parsed(fileWith({ version: 7, ...lists, takes: 'x' }));
+    expect(file).toMatchObject({ version: 7, takes: [], invalid: [] });
+    expect(parseImport(fileWith({ version: 8, ...lists }))).toEqual({
+      ok: false,
+      error: { kind: 'wrong-format' },
+    });
+  });
+
+  it('keeps only the fields of a take and refuses one whose id is not its chunk’s', () => {
+    const take = sampleTake('r1', 1, { mode: 'rhythm', latency: -12 });
+    const lists = { pieces: [], pieceSteps: [], scaleRuns: [], answers: [] };
+    const file = parsed(
+      fileWith({
+        version: 8,
+        ...lists,
+        takes: [
+          { ...take, secret: 1 },
+          { ...take, id: 'r1:take:000' },
+          { ...take, id: 'r2:take:001', sessionId: 'r2', mode: 'wait' },
+          { ...sampleTake('r4', 0), events: [[0, 1, 60, 80, -2]] },
+          { ...sampleTake('r5', 0), events: [[0, 65, 127]] },
+          { ...sampleTake('r6', 0), events: [[0.5, 0, 60]] },
+        ],
+      }),
+    );
+    expect(file.takes).toEqual([take]);
+    expect(file.invalid.map((i) => [i.index, i.field])).toEqual([
+      [1, 'id'],
+      [2, 'mode'],
+      [3, 'events'],
+      [4, 'events'],
+      [5, 'events'],
+    ]);
   });
 
   it('refuses a version 6 file without a list of answers', () => {

@@ -5,6 +5,7 @@ import type { PieceStep } from '../core/pieceRecords.ts';
 import type { StoredScaleRun } from '../core/scaleRecords.ts';
 import type { Attempt } from '../core/session.ts';
 import type { StoredPiece } from '../core/storedPiece.ts';
+import type { TakeChunk } from '../core/takes.ts';
 import type { PendingRecord } from '../storage/syncStorage.ts';
 import type { PieceDeletion, SyncCollection } from '../storage/syncTypes.ts';
 import {
@@ -14,6 +15,7 @@ import {
   validatePieceStep,
   validateScaleRun,
   validateSession,
+  validateTake,
   type Validation,
 } from '../storage/validate.ts';
 
@@ -21,10 +23,11 @@ import {
  * What this build understands of what the service carries (docs/SYNC.md, "A build that learns a
  * collection pulls everything again"): 1, the first collections; 2, `answers` and `ear` sessions;
  * 3, echo answers and sessions (a family and levels older builds do not validate); 4, scale runs
- * and sessions with the click, arpeggios and contrary motion (older builds skip or strip them). Bump it
- * whenever a build learns a collection, a session kind, or records that older builds skipped.
+ * and sessions with the click, arpeggios and contrary motion (older builds skip or strip them); 5,
+ * `takes` (older builds skip the collection). Bump it whenever a build learns a collection, a
+ * session kind, or records that older builds skipped.
  */
-export const SYNC_SCHEMA = 4;
+export const SYNC_SCHEMA = 5;
 
 // Records as the sync service carries them (docs/SYNC.md, "What syncs"): the stored record as it
 // is, except a piece, which goes without its MusicXML (sent as a file named by its hash) and
@@ -92,6 +95,7 @@ export type Incoming =
   | { collection: 'pieceSteps'; record: PieceStep }
   | { collection: 'scaleRuns'; record: StoredScaleRun }
   | { collection: 'answers'; record: Answer }
+  | { collection: 'takes'; record: TakeChunk }
   | { collection: 'pieces'; id: string; deletion: PieceDeletion }
   | { collection: 'pieces'; id: string; piece: PieceBody };
 
@@ -163,6 +167,12 @@ export function incoming(value: unknown): Incoming | null {
       const checked = validateAnswer(body);
       return checked.ok && matches(checked.value)
         ? { collection: 'answers', record: checked.value }
+        : null;
+    }
+    case 'takes': {
+      const checked = validateTake(body);
+      return checked.ok && matches(checked.value)
+        ? { collection: 'takes', record: checked.value }
         : null;
     }
     case 'pieces': {

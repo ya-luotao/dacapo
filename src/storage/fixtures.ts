@@ -19,6 +19,7 @@ import {
 } from '../core/scaleRecords.ts';
 import { recoverSummary, type Attempt } from '../core/session.ts';
 import type { StoredPiece } from '../core/storedPiece.ts';
+import { takeChunkId, type TakeChunk } from '../core/takes.ts';
 
 export const T0 = Date.UTC(2026, 8, 20, 10);
 
@@ -182,6 +183,39 @@ export function sampleRhythmRun(
       steps,
       true,
     ),
+  };
+}
+
+/**
+ * Chunk `chunk` of the take of run `sessionId`: `events` key presses (a key down, then up 300 ms
+ * later, every 400 ms: C4 D4 E4 … matched to steps 0, 1, 2 …, every fifth one wrong), the sustain
+ * pedal down at the start.
+ */
+export function sampleTake(
+  sessionId: string,
+  chunk = 0,
+  patch: Partial<TakeChunk> = {},
+  presses = 4,
+): TakeChunk {
+  const events: number[][] = chunk === 0 ? [[0, 64, 127]] : [];
+  for (let i = 0; i < presses; i++) {
+    const n = chunk * presses + i;
+    const key = 60 + (n % 12);
+    events.push([n * 400, 1, key, 60 + (n % 30), n % 5 === 4 ? -1 : n]);
+    events.push([n * 400 + 300, 0, key]);
+  }
+  return {
+    id: takeChunkId(sessionId, chunk),
+    sessionId,
+    pieceId: 'petzold-minuet-in-g',
+    checksum: 'b80fe0e1',
+    hands: 'right',
+    repeats: 'play',
+    tempo: 100,
+    startedAt: T0,
+    chunk,
+    events,
+    ...patch,
   };
 }
 

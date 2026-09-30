@@ -6,11 +6,11 @@ which is noted when it changes.
 
 ## Unreleased
 
-Export format version 7: the file now includes imported pieces (from version 2), piece practice
+Export format version 8: the file now includes imported pieces (from version 2), piece practice
 sessions and their step records (from version 3), rhythm-mode steps with their timings (from
 version 4), scale sessions with every scale run as played (from version 5), ear-training answers
-and sessions (from version 6), and the click's tempo and grid of scale runs played with it. Version
-1 to 6 files still import.
+and sessions (from version 6), the click's tempo and grid of scale runs played with it (from
+version 7), and the takes of piece runs (from version 8). Version 1 to 7 files still import.
 
 ### The score's markings, and takes (X0, [docs/EXPRESSION.md](docs/EXPRESSION.md))
 
@@ -25,6 +25,13 @@ and sessions (from version 6), and the click's tempo and grid of scale runs play
   note of the other hand sounds once you complete the step. Grace notes are still no step to play:
   accepting ornaments when you play them comes later (X4).
 - The import report no longer says that grace notes and ornaments are left out.
+- **Takes**: every run of a piece, in wait and rhythm mode, now keeps what you played as you
+  played it: each key with how hard it was struck and when it was let go, and the pedals as the
+  keyboard reports them (sustain, sostenuto and una corda, half-pedalling included), each key
+  matched to the note of the score it played or marked as a wrong or extra note. It is what the
+  expression figures and "Play back your run" will be computed from. Takes are stored in chunks as
+  the run goes (IndexedDB version 7, a `takes` store read only when needed), sync with an account,
+  and are in the export; deleting a piece with its practice records deletes its takes too.
 
 ### Arpeggios and contrary motion (S5)
 

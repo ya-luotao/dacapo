@@ -11,6 +11,7 @@ import {
   samplePiece,
   sampleRun,
   sampleScaleSession,
+  sampleTake,
   T0,
 } from './fixtures.ts';
 import { createIndexedDbRepository, type PracticeRepository } from './repository.ts';
@@ -41,6 +42,7 @@ const nothing: PulledRecords = {
   pieceSteps: [],
   scaleRuns: [],
   answers: [],
+  takes: [],
 };
 
 describe('signing in and out', () => {
@@ -60,6 +62,7 @@ describe('signing in and out', () => {
       pieceSteps: [],
       scaleRuns: [],
       answers: [],
+      takes: [],
     });
     await repo.putPiece(samplePiece(1));
     await repo.putPiece(samplePiece(2));
@@ -71,6 +74,8 @@ describe('signing in and out', () => {
     const ear = sampleEarSession('e1', 2);
     for (const answer of ear.answers) await repo.addAnswer(answer);
     await repo.putSession(ear.session);
+    const take = sampleTake('r1', 0, { pieceId: 'p1' });
+    await repo.addTake(take);
 
     await sync.signIn(account, 'token-1');
     expect(await sync.state()).toEqual({ account, token: 'token-1', cursor: 0, lastSyncAt: null });
@@ -83,6 +88,7 @@ describe('signing in and out', () => {
         ...run.steps.map((s) => `pieceSteps/${s.id}`),
         ...scales.runs.map((r) => `scaleRuns/${r.id}`),
         ...ear.answers.map((a) => `answers/${a.id}`),
+        `takes/${take.id}`,
       ].sort(),
     );
     expect((await db.get('outbox', 'pieces/p2'))!.deletion).toEqual({
@@ -147,10 +153,14 @@ describe('the outbox while signed in', () => {
     const ear = sampleEarSession('e1', 1);
     await repo.addAnswer(ear.answers[0]!);
     await repo.addAnswer(ear.answers[0]!); // stored already
+    const take = sampleTake('r1', 0, { pieceId: 'p1' });
+    await repo.addTake(take);
+    await repo.addTake(take); // stored already
     expect(await outboxKeys()).toEqual(
       [
         `attempts/${sampleAttempt(0).id}`,
         `answers/${ear.answers[0]!.id}`,
+        `takes/${take.id}`,
         ...run.steps.map((s) => `pieceSteps/${s.id}`),
         'sessions/r1',
         'sessions/k1',
@@ -251,6 +261,7 @@ describe('the outbox while signed in', () => {
       pieceSteps: [],
       scaleRuns: [],
       answers: [],
+      takes: [],
     });
     expect(await outboxKeys()).toEqual(
       [
@@ -341,6 +352,10 @@ describe('applying pulled records', () => {
     const one = sampleRun('r1', 2, { pieceId: 'p1' });
     const two = sampleRun('r2', 2, { pieceId: 'p2' });
     for (const step of [...one.steps, ...two.steps]) await repo.addPieceStep(step, null);
+    const takeOne = sampleTake('r1', 0, { pieceId: 'p1' });
+    const takeTwo = sampleTake('r2', 0, { pieceId: 'p2' });
+    await repo.addTake(takeOne);
+    await repo.addTake(takeTwo);
 
     const counts = await sync.apply({
       ...nothing,
@@ -353,6 +368,8 @@ describe('applying pulled records', () => {
     expect((await repo.load()).pieces).toEqual([]);
     expect(await repo.pieceSteps({ pieceId: 'p1' })).toEqual([]);
     expect(await repo.pieceSteps({ pieceId: 'p2' })).toEqual(two.steps);
+    // Takes go with the step records.
+    expect(await repo.allTakes()).toEqual([takeTwo]);
 
     // Copies that arrive later, from a device that practised offline, are dropped.
     const late = sampleRun('r3', 1, { pieceId: 'p1' }).steps;
@@ -360,10 +377,12 @@ describe('applying pulled records', () => {
       ...nothing,
       pieces: [{ ...samplePiece(1), updatedAt: T0 + 99 }],
       pieceSteps: [...late, ...sampleRun('r4', 1, { pieceId: 'p2' }).steps],
+      takes: [sampleTake('r3', 0, { pieceId: 'p1' }), sampleTake('r4', 0, { pieceId: 'p2' })],
     });
-    expect(again).toMatchObject({ pieces: 0, pieceSteps: 1 });
+    expect(again).toMatchObject({ pieces: 0, pieceSteps: 1, takes: 1 });
     expect((await repo.load()).pieces).toEqual([]);
     expect(await repo.pieceSteps({ pieceId: 'p1' })).toEqual([]);
+    expect((await repo.allTakes()).map((c) => c.sessionId).sort()).toEqual(['r2', 'r4']);
   });
 
   it('drops a piece and its steps that arrive in the same page as their deletion', async () => {
@@ -382,6 +401,7 @@ describe('applying pulled records', () => {
       pieceSteps: 0,
       scaleRuns: 0,
       answers: 0,
+      takes: 0,
     });
     expect(await db.get('meta', 'deleted:piece:p1')).toMatchObject({ withSteps: true });
   });
@@ -438,6 +458,7 @@ describe('applying pulled records', () => {
       pieceSteps: [],
       scaleRuns: [],
       answers: [],
+      takes: [],
     });
     await repo.putPiece(samplePiece(1));
     await repo.putPiece(samplePiece(2));
@@ -450,6 +471,8 @@ describe('applying pulled records', () => {
     const ear = sampleEarSession('e1', 3);
     for (const answer of ear.answers) await repo.addAnswer(answer);
     await repo.putSession(ear.session);
+    const take = sampleTake('r1', 0, { pieceId: 'p1' });
+    await repo.addTake(take);
     await sync.signIn(account, 't');
     await db.clear('outbox');
     const before = await repo.load();
@@ -463,10 +486,25 @@ describe('applying pulled records', () => {
       pieceSteps: run.steps,
       scaleRuns: scales.runs,
       answers: ear.answers,
+      takes: [take],
     });
     expect(Object.values(counts).every((n) => n === 0)).toBe(true);
     expect(await repo.load()).toEqual(before);
     expect(await db.getAll('noteStats')).toEqual(stats);
+    expect(await outboxKeys()).toEqual([]);
+  });
+
+  it('adds a take chunk once, and keeps the pulled copy of one stored differently', async () => {
+    const take = sampleTake('r1', 0);
+    await repo.addTake({ ...take, tempo: 80 });
+    await sync.signIn(account, 't');
+    await db.clear('outbox');
+    const counts = await sync.apply({
+      ...nothing,
+      takes: [take, sampleTake('r1', 1), take],
+    });
+    expect(counts).toMatchObject({ takes: 2 });
+    expect(await repo.takes({ sessionId: 'r1' })).toEqual([take, sampleTake('r1', 1)]);
     expect(await outboxKeys()).toEqual([]);
   });
 

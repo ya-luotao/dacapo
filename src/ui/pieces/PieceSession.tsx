@@ -24,6 +24,7 @@ import {
   otherHand,
 } from '../../core/playback.ts';
 import { rhythmPlan } from '../../core/rhythm.ts';
+import { PEDALS_UP, type PedalPositions, type TakeInput } from '../../core/takes.ts';
 import { summarizeRhythm } from '../../core/rhythmRun.ts';
 import { playOrder, type RepeatMode } from '../../core/repeats.ts';
 import { buildSteps, keyRange, type HandSelection } from '../../core/score.ts';
@@ -46,8 +47,8 @@ import { usePieceFormat } from './format.ts';
 import { readPiecePrefs, TEMPOS, writePiecePrefs } from './prefs.ts';
 import { useRunRecorder, waitRecording, type RecordableRun, type RecordInput } from './record.ts';
 import { RunSummary } from './RunSummary.tsx';
-import { runReducer, startRun } from './run.ts';
-import { idleRhythm, rhythmReducer } from './rhythm.ts';
+import { runReducer, startRun, takeDone } from './run.ts';
+import { idleRhythm, rhythmReducer, rhythmTakeDone } from './rhythm.ts';
 import { CalibrationSheet, RhythmStatus } from './RhythmParts.tsx';
 import {
   CLICK_MODES,
@@ -192,6 +193,8 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
                     completed: rhythm.end === 'done' || (rhythm.end === 'stopped' && loop !== null),
                   }
                 : null,
+            take: rhythm.take,
+            takeDone: rhythmTakeDone(rhythm),
           }
         : waitRecording(run),
     [rhythmMode, rhythm, run, loop],
@@ -275,22 +278,56 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
     [player, output],
   );
 
-  // Keys play the wait mode (except while the demo plays), or are timed in a rhythm run.
+  // Keys play the wait mode (except while the demo plays), or are timed in a rhythm run. Key-ups
+  // and pedals go to the run's take while it may be open (from a key sent to the run until a
+  // render says otherwise), so nothing else re-renders the page.
   const keysTo = useRef({ rhythmMode, calibrating });
+  const takeOpen = useRef(false);
+  const pedals = useRef<PedalPositions>(PEDALS_UP);
   useLayoutEffect(() => {
     keysTo.current = { rhythmMode, calibrating };
+    takeOpen.current = rhythmMode
+      ? rhythm.take !== null && !rhythmTakeDone(rhythm)
+      : run.take !== null && !takeDone(run);
   });
   useEffect(
     () =>
       hub.onEvent((event) => {
-        if (event.type !== 'on' || keysTo.current.calibrating) return;
-        if (keysTo.current.rhythmMode) {
-          const result = rhythmPlayer.press(event.midi, event.time);
-          if (result.kind !== 'ignored') dispatchRhythm({ type: 'played', result });
+        if (event.type === 'pedal')
+          pedals.current = { ...pedals.current, [event.controller]: event.value };
+        if (event.type === 'sustain' || keysTo.current.calibrating) return;
+        if (event.type !== 'on') {
+          if (!takeOpen.current) return;
+          const input: TakeInput =
+            event.type === 'pedal'
+              ? {
+                  type: 'pedal',
+                  controller: event.controller,
+                  value: event.value,
+                  time: event.time,
+                }
+              : { type: 'off', midi: event.midi, time: event.time };
+          if (keysTo.current.rhythmMode) dispatchRhythm({ type: 'input', input });
+          else if (player.getState() === 'stopped') dispatch({ type: 'input', input });
           return;
         }
-        if (player.getState() === 'stopped')
-          dispatch({ type: 'press', midi: event.midi, time: event.time, at: Date.now() });
+        if (keysTo.current.rhythmMode) {
+          if (rhythmPlayer.getSnapshot().state === 'stopped') return;
+          const result = rhythmPlayer.press(event.midi, event.time);
+          const { midi, velocity, time } = event;
+          dispatchRhythm({ type: 'played', result, midi, velocity, time });
+          return;
+        }
+        if (player.getState() !== 'stopped') return;
+        takeOpen.current = true;
+        dispatch({
+          type: 'press',
+          midi: event.midi,
+          velocity: event.velocity,
+          time: event.time,
+          at: Date.now(),
+          pedals: pedals.current,
+        });
       }),
     [hub, player, rhythmPlayer],
   );
@@ -338,17 +375,26 @@ export function PieceSession({ piece }: { piece: OpenPiece }) {
     if (player.getState() !== 'stopped') player.stop();
     accompanist.reset();
     const id = newRunId();
+    const latency = readLatency()?.offset ?? 0;
     const origin = rhythmPlayer.start({
       plan: timed,
       backing: timedBacking,
       velocity: ACCOMPANIMENT_LEVELS[readAccompanimentLevel()],
       clickMode,
       volume,
-      latency: readLatency()?.offset ?? 0,
+      latency,
       onSettled: (timings) => dispatchRhythm({ type: 'settled', timings }),
       onEnd: (reason) => dispatchRhythm({ type: 'end', reason }),
     });
-    dispatchRhythm({ type: 'start', id, epochOrigin: Date.now() - performance.now() + origin });
+    takeOpen.current = true;
+    dispatchRhythm({
+      type: 'start',
+      id,
+      epochOrigin: Date.now() - performance.now() + origin,
+      origin,
+      latency,
+      pedals: pedals.current,
+    });
     region.current?.focus({ preventScroll: true });
   }
 

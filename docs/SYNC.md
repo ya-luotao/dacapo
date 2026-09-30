@@ -109,11 +109,11 @@ and of two as long the one that sorts later, so every device picks the same. **W
 one, it goes in the outbox again**, so the service, and through it every device, ends up with the
 winner.
 
-| Collection                                       | Body                                                    | On pull                                                                      |
-| ------------------------------------------------ | ------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `attempts`, `pieceSteps`, `scaleRuns`, `answers` | the record as stored                                    | added when its id is not stored; replaces a stored copy that differs (below) |
-| `sessions`                                       | the record as stored                                    | the later copy wins (below)                                                  |
-| `pieces`                                         | `StoredPiece` without `xml` and `facts`, plus `xmlHash` | the later copy wins (below); a deletion is final                             |
+| Collection                                                | Body                                                    | On pull                                                                      |
+| --------------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `attempts`, `pieceSteps`, `scaleRuns`, `answers`, `takes` | the record as stored                                    | added when its id is not stored; replaces a stored copy that differs (below) |
+| `sessions`                                                | the record as stored                                    | the later copy wins (below)                                                  |
+| `pieces`                                                  | `StoredPiece` without `xml` and `facts`, plus `xmlHash` | the later copy wins (below); a deletion is final                             |
 
 - **Sessions.** A session grows while it is played, so of two copies the one with more runs (a
   scale session), or else the one that ended later, wins. That matters because a device can hold
@@ -128,25 +128,28 @@ winner.
   whose file is missing or does not match is skipped, like a record that does not validate.
 - **Deleting a piece** pushes `{ deleted: true, at, withSteps }` under the piece's id. A deletion is
   final: it wins over any copy of the piece, earlier or later, and a device that pulls it deletes
-  the piece and, with `withSteps`, its step records, as `deletePiece` does. Two deletions of the
+  the piece and, with `withSteps`, its step records and takes, as `deletePiece` does. Two deletions of the
   same piece combine (`withSteps` if either has it). Every device keeps the deletions it has made
   or pulled (in `meta`, a few bytes each), so a copy of the piece, or with `withSteps` a step
-  record of it, that arrives later (from a device that practised it offline) is dropped, and so
+  record or a take of it, that arrives later (from a device that practised it offline) is dropped, and so
   is one in an import file. (Importing the same MusicXML file again makes a new piece with a new
   id.)
 - **Answers** (ear training and theory cards, [EAR.md](EAR.md)) sync as `answers`, like
   `attempts`: added when the id is not stored, never changed afterwards.
+- **Takes** (what was played in a piece run, [EXPRESSION.md](EXPRESSION.md)) sync as `takes`, one
+  record per chunk of at most 2,000 events, well under the 64 KB a body may have; like `answers`,
+  a chunk is added when its id is not stored and never changed afterwards.
 - **A build that learns a collection pulls everything again.** An older build skips records it does
   not know (a collection, a session kind, or records its validation refuses, such as an ear
   family it has not learnt) but still moves its cursor past them, so after an update it would
   never see them. `SYNC_SCHEMA` in `src/sync/records.ts` counts what a build understands (1: the
   collections above without `answers`; 2: `answers` and `ear` sessions; 3: echo, the answers and
   ear sessions of the family `echo`; 4: scale runs and sessions with the click, arpeggios and
-  contrary motion), and the sync state keeps the schema its cursor was reached with. When the
+  contrary motion; 5: `takes`, which older builds skip), and the sync state keeps the schema its cursor was reached with. When the
   build's is higher, the next round starts again from cursor 0. Pulling a record already stored
   changes nothing, except where the stored copy differs: an older build that did not know a field
   kept the record without it. A record that never changes (`attempts`, `pieceSteps`, `scaleRuns`,
-  `answers`) is then replaced by the pulled copy, and where two copies of a session or a piece tie
+  `answers`, `takes`) is then replaced by the pulled copy, and where two copies of a session or a piece tie
   by the rules above, the longer text wins before the text's order decides, so the copy with the
   field is kept and sent again, never the one without it.
 - **Not synced:** `noteStats` (rebuilt from attempts), the free-play sessions and piece runs still

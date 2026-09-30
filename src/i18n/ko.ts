@@ -1174,9 +1174,9 @@ export const ko: Dictionary = {
   'settings.storage.loading': '연습 기록을 불러오는 중…',
   'settings.export': '데이터 내보내기',
   'settings.export.help':
-    '연습 내역, 응답, 가져온 곡, 곡과 스케일의 연습 상세 기록, 환경설정을 담은 {file} 파일을 내려받아요.',
+    '연습 내역, 응답, 가져온 곡, 곡과 스케일의 연습 상세 기록, 연주 테이크, 환경설정을 담은 {file} 파일을 내려받아요.',
   'settings.export.failed':
-    '곡이나 스케일의 연습 상세 기록을 읽지 못해서 아무것도 내보내지 않았어요.',
+    '곡이나 스케일의 연습 상세 기록 또는 연주 테이크를 읽지 못해서 아무것도 내보내지 않았어요.',
   'settings.import': '데이터 가져오기…',
   'settings.import.help':
     '내보낸 파일의 연습 내역, 응답, 곡을 추가해요. 이미 있는 데이터는 바뀌거나 지워지지 않아요.',
@@ -1199,6 +1199,7 @@ export const ko: Dictionary = {
   'settings.import.pieceSteps': '곡 연습 상세 기록',
   'settings.import.scaleRuns': '스케일 연습 상세 기록',
   'settings.import.answers': '청음 응답',
+  'settings.import.takes': '곡 연습 테이크(나눠서 저장)',
   'settings.import.stats': '음별 통계는 가져온 뒤 모든 응답을 바탕으로 다시 계산해요.',
   'settings.import.nothingNew': '이 파일의 내용은 모두 이미 있어요.',
   'settings.import.invalidTitle': '다음 항목은 잘못돼서 가져오지 않아요:',
@@ -1211,13 +1212,14 @@ export const ko: Dictionary = {
   'settings.import.record.pieceSteps': '곡 연습 상세 기록',
   'settings.import.record.scaleRuns': '스케일 연습 상세 기록',
   'settings.import.record.answers': '청음 응답',
+  'settings.import.record.takes': '테이크 조각',
   'settings.import.more': '…외 {n}개',
   'settings.import.prefs': '파일의 환경설정도 적용: {language}, {theme}',
   'settings.import.apply': '가져오기',
   'settings.import.cancel': '취소',
   'settings.import.working': '가져오는 중…',
   'settings.import.done':
-    '가져오기 완료: 새 연습 내역 {sessions}개, 새 응답 {attempts}개, 새 곡 {pieces}개, 새 곡 연습 상세 기록 {steps}개, 새 스케일 연습 상세 기록 {scaleRuns}개, 새 청음 응답 {ear}개.',
+    '가져오기 완료: 새 연습 내역 {sessions}개, 새 응답 {attempts}개, 새 곡 {pieces}개, 새 곡 연습 상세 기록 {steps}개, 새 스케일 연습 상세 기록 {scaleRuns}개, 새 청음 응답 {ear}개, 새 테이크 조각 {takes}개.',
   'settings.import.failed': '가져온 내용을 저장하지 못했어요. 아무것도 바뀌지 않았어요.',
 
   'settings.account': '계정',
@@ -1345,7 +1347,7 @@ export const ko: Dictionary = {
   'settings.storage.memory.app':
     '저장 안 됨: 지금은 dacapo가 이 기기에 데이터를 저장할 수 없어요. dacapo를 닫기 전에 내보내세요.',
   'settings.export.help.app':
-    '연습 내역, 응답, 가져온 곡, 곡과 스케일의 연습 상세 기록, 환경설정을 담은 {file} 파일을 저장해요.',
+    '연습 내역, 응답, 가져온 곡, 곡과 스케일의 연습 상세 기록, 연주 테이크, 환경설정을 담은 {file} 파일을 저장해요.',
   'metronome.noAudio.app': '이 기기에서는 클릭을 재생할 수 없어요. 진자는 그대로 박자를 짚어요.',
 
   'about.title': 'dacapo 정보',

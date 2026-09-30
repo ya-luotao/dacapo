@@ -9,8 +9,9 @@ import {
 import type { RepeatMode } from '../../core/repeats.ts';
 import type { NoteTiming } from '../../core/rhythm.ts';
 import type { HandSelection } from '../../core/score.ts';
+import { TAKE_CHUNK_EVENTS, takeChunkId, type TakeState } from '../../core/takes.ts';
 import type { PracticeStore } from '../practice/store.ts';
-import type { Run } from './run.ts';
+import { takeDone, type Run } from './run.ts';
 
 /** What a run is practising, besides its steps. */
 export interface RunContext {
@@ -45,6 +46,10 @@ export interface RecordableRun {
    * player), not when stopped early. Null while it goes on.
    */
   ended: { completed: boolean } | null;
+  /** What was played (null before the run's first key, in wait mode). */
+  take: TakeState | null;
+  /** The take has ended too: the run is over and the keys held then are let go. */
+  takeDone: boolean;
 }
 
 /** A wait-mode run for the recorder. */
@@ -54,6 +59,8 @@ export function waitRecording(run: Run): RecordableRun {
     records: run.records,
     startedEpoch: run.startedEpoch,
     ended: run.wait?.finished || run.ended ? { completed: true } : null,
+    take: run.take,
+    takeDone: takeDone(run),
   };
 }
 
@@ -65,12 +72,21 @@ interface Tracked {
   checksum: string;
   steps: PieceStep[];
   closed: boolean;
+  /** Events of the take stored so far, in how many chunks, and whether it is written to the end. */
+  takeSent: number;
+  takeChunks: number;
+  takeClosed: boolean;
 }
 
 /**
  * Stores every completed step of the runs as it happens, and each run's session when it
  * finishes, is replaced by a new run (a restart, other hands or bars) or the page is left. A run
  * without a completed step leaves nothing behind.
+ *
+ * Its take goes with it (docs/EXPRESSION.md, "Takes"): a chunk whenever `TAKE_CHUNK_EVENTS` events
+ * are waiting, the rest once the keys held at the end are let go, or when the run is replaced or
+ * the page is left. Nothing of the take is stored before the run's first step, so a take never
+ * outlives a run that left no session.
  */
 export function useRunRecorder(
   run: RecordableRun,
@@ -97,11 +113,15 @@ export function useRunRecorder(
         checksum: latest.current.checksum,
         steps: [],
         closed: false,
+        takeSent: 0,
+        takeChunks: 0,
+        takeClosed: false,
       };
     }
     current.run = run;
     flush(current);
-    if (run.ended) close(current, run.ended.completed);
+    flushTake(current, run.takeDone);
+    if (run.ended) close(current, run.ended.completed, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- store and helpers are stable
   }, [run]);
 
@@ -156,8 +176,41 @@ export function useRunRecorder(
     }
   }
 
-  function close(t: Tracked, completed: boolean) {
+  /** Stores the take's full chunks, and with `final` the rest: then it is closed. */
+  function flushTake(t: Tracked, final: boolean) {
+    const take = t.run.take;
+    if (!take || !t.header || t.takeClosed) return;
+    const { events } = take;
+    while (
+      events.length - t.takeSent >= TAKE_CHUNK_EVENTS ||
+      (final && events.length > t.takeSent)
+    ) {
+      const chunk = events.slice(t.takeSent, t.takeSent + TAKE_CHUNK_EVENTS);
+      const header = t.header;
+      store.recordTake({
+        id: takeChunkId(t.run.id, t.takeChunks),
+        sessionId: t.run.id,
+        pieceId: header.pieceId,
+        checksum: t.checksum,
+        hands: header.hands,
+        repeats: header.repeats,
+        tempo: header.tempo,
+        ...(header.mode && { mode: header.mode }),
+        ...(take.latency !== undefined && { latency: take.latency }),
+        startedAt: take.startedAt,
+        chunk: t.takeChunks,
+        events: chunk.map((e) => [...e]),
+      });
+      t.takeSent += chunk.length;
+      t.takeChunks++;
+    }
+    if (final) t.takeClosed = true;
+  }
+
+  /** The run is over or replaced: its session, and (unless it waits for keys) its take. */
+  function close(t: Tracked, completed: boolean, replaced = true) {
     flush(t);
+    if (replaced) flushTake(t, true);
     if (t.closed || !t.header) return;
     t.closed = true;
     const header = { ...t.header, tempo: latest.current.tempo };

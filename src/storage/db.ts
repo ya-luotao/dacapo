@@ -5,12 +5,13 @@ import type { PieceStep } from '../core/pieceRecords.ts';
 import type { StoredScaleRun } from '../core/scaleRecords.ts';
 import type { Attempt } from '../core/session.ts';
 import type { StoredPiece } from '../core/storedPiece.ts';
+import type { TakeChunk } from '../core/takes.ts';
 import type { NoteStats } from '../core/weakness.ts';
 import type { OutboxEntry } from './syncTypes.ts';
 
 export const DB_NAME = 'dacapo';
 /** Bump when the schema changes and add a `case` to `upgrade`. */
-export const DB_VERSION = 6;
+export const DB_VERSION = 7;
 
 export interface DacapoSchema extends DBSchema {
   noteStats: { key: string; value: NoteStats };
@@ -43,6 +44,12 @@ export interface DacapoSchema extends DBSchema {
     key: string;
     value: Answer;
     indexes: { 'by-session': string; 'by-item': string };
+  };
+  /** Takes of piece runs in chunks (version 7), read one piece or one session at a time. */
+  takes: {
+    key: string;
+    value: TakeChunk;
+    indexes: { 'by-piece': string; 'by-session': string };
   };
 }
 
@@ -92,6 +99,12 @@ export function upgrade(db: DacapoDB, oldVersion: number, newVersion = DB_VERSIO
         const answers = db.createObjectStore('answers', { keyPath: 'id' });
         answers.createIndex('by-session', 'sessionId');
         answers.createIndex('by-item', 'item');
+        break;
+      }
+      case 6: {
+        const takes = db.createObjectStore('takes', { keyPath: 'id' });
+        takes.createIndex('by-piece', 'pieceId');
+        takes.createIndex('by-session', 'sessionId');
         break;
       }
     }

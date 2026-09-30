@@ -41,11 +41,36 @@ describe('parseMidiMessage', () => {
     });
   });
 
-  it('parses the sustain pedal with 64 as the threshold', () => {
-    expect(parseMidiMessage([0xb0, 64, 127])).toEqual({ type: 'sustain', channel: 0, down: true });
+  it('parses the sustain pedal with 64 as the threshold, keeping its value', () => {
+    expect(parseMidiMessage([0xb0, 64, 127])).toEqual({
+      type: 'sustain',
+      channel: 0,
+      down: true,
+      value: 127,
+    });
     expect(parseMidiMessage([0xb0, 64, 64])).toMatchObject({ down: true });
-    expect(parseMidiMessage([0xb0, 64, 63])).toMatchObject({ down: false });
-    expect(parseMidiMessage([0xb1, 64, 0])).toEqual({ type: 'sustain', channel: 1, down: false });
+    expect(parseMidiMessage([0xb0, 64, 63])).toMatchObject({ down: false, value: 63 });
+    expect(parseMidiMessage([0xb1, 64, 0])).toEqual({
+      type: 'sustain',
+      channel: 1,
+      down: false,
+      value: 0,
+    });
+  });
+
+  it('parses the sostenuto and una corda pedals', () => {
+    expect(parseMidiMessage([0xb0, 66, 127])).toEqual({
+      type: 'pedal',
+      channel: 0,
+      controller: 66,
+      value: 127,
+    });
+    expect(parseMidiMessage([0xb2, 67, 40])).toEqual({
+      type: 'pedal',
+      channel: 2,
+      controller: 67,
+      value: 40,
+    });
   });
 
   it('parses "all notes off" and "all sound off" as a reset', () => {
@@ -55,7 +80,7 @@ describe('parseMidiMessage', () => {
 
   it('ignores other controllers and channel messages', () => {
     expect(parseMidiMessage([0xb0, 1, 50])).toBeNull(); // modulation
-    expect(parseMidiMessage([0xb0, 67, 127])).toBeNull(); // soft pedal
+    expect(parseMidiMessage([0xb0, 65, 127])).toBeNull(); // portamento
     expect(parseMidiMessage([0xa0, 60, 10])).toBeNull(); // poly aftertouch
     expect(parseMidiMessage([0xe0, 0, 64])).toBeNull(); // pitch bend
     expect(parseMidiMessage([0xc0, 5, 0])).toBeNull(); // program change (padded)
@@ -288,6 +313,33 @@ describe('createWebMidiInput', () => {
     expect(hub.getState()).toMatchObject({ sustain: true, sustained: new Set([60]) });
     input.send([0xb0, 64, 0]);
     expect(hub.getState()).toMatchObject({ sustain: false, sustained: new Set() });
+  });
+
+  it('passes every pedal position on, without changing what is held', async () => {
+    const { access, request, resolve } = deferredAccess();
+    const input = new FakeInput('a', 'MP11SE');
+    access.inputs.set('a', input);
+    const { hub, midi, events } = hubWithMidi(request);
+    hub.add(midi);
+    resolve();
+    await flush();
+    let changes = 0;
+    hub.subscribe(() => changes++);
+
+    input.send([0xb0, 64, 30]);
+    input.send([0xb0, 64, 90]);
+    input.send([0xb0, 66, 127]);
+    input.send([0xb0, 67, 64]);
+    const pedals = events.filter((e) => e.type === 'pedal' || e.type === 'sustain');
+    expect(pedals.map((e) => ({ ...e, time: 0 }))).toEqual([
+      { type: 'pedal', controller: 64, value: 30, time: 0 },
+      { type: 'pedal', controller: 64, value: 90, time: 0 },
+      { type: 'sustain', down: true, time: 0 },
+      { type: 'pedal', controller: 66, value: 127, time: 0 },
+      { type: 'pedal', controller: 67, value: 64, time: 0 },
+    ]);
+    // Only the sustain pedal going down changed the state.
+    expect(changes).toBe(1);
   });
 
   it('follows hot-plugging and releases the keys of an unplugged device', async () => {

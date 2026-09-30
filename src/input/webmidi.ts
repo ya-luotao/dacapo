@@ -10,7 +10,9 @@ export type MidiStatus =
 
 export type MidiMessage =
   | { type: 'on' | 'off'; channel: number; midi: number; velocity: number }
-  | { type: 'sustain'; channel: number; down: boolean }
+  | { type: 'sustain'; channel: number; down: boolean; value: number }
+  /** The sostenuto (CC 66) or una corda (CC 67) pedal. */
+  | { type: 'pedal'; channel: number; controller: 66 | 67; value: number }
   /** "All sound off" (CC120) or "all notes off" (CC123). */
   | { type: 'reset'; channel: number };
 
@@ -18,13 +20,15 @@ const NOTE_OFF = 0x80;
 const NOTE_ON = 0x90;
 const CONTROL_CHANGE = 0xb0;
 const CC_SUSTAIN = 64;
+const CC_SOSTENUTO = 66;
+const CC_SOFT = 67;
 const CC_ALL_SOUND_OFF = 120;
 const CC_ALL_NOTES_OFF = 123;
 
 /**
  * Parses one complete MIDI message as delivered by Web MIDI (always with its status byte,
  * so running status never occurs). Returns null for anything that is not a note or pedal
- * message on any channel: system messages (clock, active sensing, SysEx), other controllers,
+ * (CC 64, 66, 67) message on any channel: system messages (clock, active sensing, SysEx), other controllers,
  * truncated or malformed data.
  */
 export function parseMidiMessage(data: ArrayLike<number> | null | undefined): MidiMessage | null {
@@ -41,7 +45,10 @@ export function parseMidiMessage(data: ArrayLike<number> | null | undefined): Mi
     case NOTE_OFF:
       return { type: 'off', channel, midi: data1, velocity: data2 };
     case CONTROL_CHANGE:
-      if (data1 === CC_SUSTAIN) return { type: 'sustain', channel, down: data2 >= 64 };
+      if (data1 === CC_SUSTAIN)
+        return { type: 'sustain', channel, down: data2 >= 64, value: data2 };
+      if (data1 === CC_SOSTENUTO || data1 === CC_SOFT)
+        return { type: 'pedal', channel, controller: data1, value: data2 };
       if (data1 === CC_ALL_SOUND_OFF || data1 === CC_ALL_NOTES_OFF)
         return { type: 'reset', channel };
       return null;
@@ -50,15 +57,21 @@ export function parseMidiMessage(data: ArrayLike<number> | null | undefined): Mi
   }
 }
 
-function toInputEvent(message: MidiMessage, time: number): InputEvent {
+/** The hub's events for a message: the sustain pedal's raw value first, then down or up. */
+function toInputEvents(message: MidiMessage, time: number): InputEvent[] {
   switch (message.type) {
     case 'on':
     case 'off':
-      return { type: message.type, midi: message.midi, velocity: message.velocity, time };
+      return [{ type: message.type, midi: message.midi, velocity: message.velocity, time }];
     case 'sustain':
-      return { type: 'sustain', down: message.down, time };
+      return [
+        { type: 'pedal', controller: CC_SUSTAIN, value: message.value, time },
+        { type: 'sustain', down: message.down, time },
+      ];
+    case 'pedal':
+      return [{ type: 'pedal', controller: message.controller, value: message.value, time }];
     case 'reset':
-      return { type: 'reset', time };
+      return [{ type: 'reset', time }];
   }
 }
 
@@ -151,7 +164,7 @@ export function createWebMidiInput(
       if (!message || !emit) return;
       if (message.type === 'on' && isEcho(input.name?.trim() ?? '', message.midi, timeStamp))
         return;
-      emit(toInputEvent(message, timeStamp), input.id);
+      for (const event of toInputEvents(message, timeStamp)) emit(event, input.id);
     };
     input.addEventListener('midimessage', listener);
     attached.set(input.id, { input, listener });

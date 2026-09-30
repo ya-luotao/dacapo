@@ -1196,9 +1196,9 @@ export const en = {
   'settings.storage.loading': 'Loading your progress…',
   'settings.export': 'Export data',
   'settings.export.help':
-    'Downloads {file} with your sessions, answers, imported pieces, piece practice records, scale runs and preferences.',
+    'Downloads {file} with your sessions, answers, imported pieces, piece practice records and takes, scale runs and preferences.',
   'settings.export.failed':
-    'The piece practice records or the scale runs could not be read, so nothing was exported.',
+    'The piece practice records, the takes or the scale runs could not be read, so nothing was exported.',
   'settings.import': 'Import data…',
   'settings.import.help':
     'Adds the sessions, answers and pieces from an export file. Nothing you already have is changed or removed.',
@@ -1221,6 +1221,7 @@ export const en = {
   'settings.import.pieceSteps': 'Piece practice records',
   'settings.import.scaleRuns': 'Scale runs',
   'settings.import.answers': 'Ear training answers',
+  'settings.import.takes': 'Takes of piece runs (in parts)',
   'settings.import.stats': 'Note statistics are recalculated from all answers after the import.',
   'settings.import.nothingNew': 'Everything in this file is already here.',
   'settings.import.invalidTitle': 'These records are invalid and will not be imported:',
@@ -1233,13 +1234,14 @@ export const en = {
   'settings.import.record.pieceSteps': 'Piece practice record',
   'settings.import.record.scaleRuns': 'Scale run',
   'settings.import.record.answers': 'Ear training answer',
+  'settings.import.record.takes': 'Take part',
   'settings.import.more': '…and {n} more',
   'settings.import.prefs': 'Also apply the preferences from the file: {language}, {theme}',
   'settings.import.apply': 'Import',
   'settings.import.cancel': 'Cancel',
   'settings.import.working': 'Importing…',
   'settings.import.done':
-    'Import complete: {sessions} new sessions, {attempts} new answers, {pieces} new pieces, {steps} new piece practice records, {scaleRuns} new scale runs and {ear} new ear training answers.',
+    'Import complete: {sessions} new sessions, {attempts} new answers, {pieces} new pieces, {steps} new piece practice records, {scaleRuns} new scale runs, {ear} new ear training answers and {takes} new take parts.',
   'settings.import.failed': 'The import could not be saved. Nothing was changed.',
 
   'settings.account': 'Account',
@@ -1368,7 +1370,7 @@ export const en = {
   'settings.storage.memory.app':
     'Not saved: dacapo cannot store data on this device right now. Export before you close dacapo.',
   'settings.export.help.app':
-    'Saves {file} with your sessions, answers, imported pieces, piece practice records, scale runs and preferences.',
+    'Saves {file} with your sessions, answers, imported pieces, piece practice records and takes, scale runs and preferences.',
   'metronome.noAudio.app': 'The click cannot play on this device. The pendulum still keeps time.',
 
   'about.title': 'About dacapo',

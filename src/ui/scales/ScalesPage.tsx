@@ -347,7 +347,8 @@ function ScaleSession({
             );
           }
           dispatch({ ...event, type: 'on', at: Date.now() });
-        } else dispatch({ type: 'off', midi: event.midi, time: event.time });
+        } else if (event.type === 'off')
+          dispatch({ type: 'off', midi: event.midi, time: event.time });
       }),
     [hub, rhythm],
   );

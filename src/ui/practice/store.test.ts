@@ -88,7 +88,15 @@ describe('loading', () => {
   it('reports loading, then the stored data', async () => {
     const { sessions, attempts } = sampleData();
     await seed((repo) =>
-      repo.merge({ sessions, attempts, pieces: [], pieceSteps: [], scaleRuns: [], answers: [] }),
+      repo.merge({
+        sessions,
+        attempts,
+        pieces: [],
+        pieceSteps: [],
+        scaleRuns: [],
+        answers: [],
+        takes: [],
+      }),
     );
     const store = startStore();
     expect(store.getStatus()).toEqual({ state: 'loading', loaded: false, persisted: null });
@@ -319,6 +327,7 @@ describe('several tabs', () => {
       pieceSteps: [],
       scaleRuns: [],
       answers: [],
+      takes: [],
     });
     await vi.waitFor(() => expect(tabB.getSnapshot()).toEqual(tabA.getSnapshot()));
     expect(tabB.getSnapshot().pieces.map((p) => p.id)).toEqual(['p3']);
@@ -493,6 +502,7 @@ describe('piece runs', () => {
       pieceSteps: [...more.steps, ...sampleRun('r3', 1, { pieceId: 'p1' }).steps],
       scaleRuns: [],
       answers: [],
+      takes: [],
     });
     await vi.waitFor(() => expect(tabB.getPieceSteps('p1')).toBeNull());
     tabB.loadPieceSteps('p2');
@@ -524,6 +534,7 @@ describe('reloads', () => {
       pieceSteps: [],
       scaleRuns: [],
       answers: [],
+      takes: [],
     });
     await new Promise((resolve) => setTimeout(resolve, 50));
     expect(tabB.getSnapshot().sessions).toEqual([]);
@@ -632,6 +643,7 @@ describe('scale runs', () => {
       pieceSteps: [],
       scaleRuns: more.runs,
       answers: [],
+      takes: [],
     });
     await vi.waitFor(() => expect(tabB.getScaleRuns('major:C:1:right')).toBeNull());
     expect(tabB.getSnapshot().sessions).toEqual([more.session, two.session]);

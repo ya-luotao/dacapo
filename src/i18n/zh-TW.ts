@@ -1130,8 +1130,8 @@ export const zhTW: Dictionary = {
   'settings.storage.loading': '正在讀取練習紀錄⋯',
   'settings.export': '匯出資料',
   'settings.export.help':
-    '下載 {file}，內含你的練習紀錄、作答紀錄、匯入的樂曲、樂曲和音階的練習明細以及偏好設定。',
-  'settings.export.failed': '無法讀取樂曲或音階的練習明細，所以沒有匯出任何內容。',
+    '下載 {file}，內含你的練習紀錄、作答紀錄、匯入的樂曲、樂曲和音階的練習明細、演奏實錄以及偏好設定。',
+  'settings.export.failed': '無法讀取樂曲或音階的練習明細或演奏實錄，所以沒有匯出任何內容。',
   'settings.import': '匯入資料⋯',
   'settings.import.help':
     '把匯出檔中的練習紀錄、作答紀錄和樂曲加進來，已有的資料不會被修改或刪除。',
@@ -1153,6 +1153,7 @@ export const zhTW: Dictionary = {
   'settings.import.pieceSteps': '樂曲練習明細',
   'settings.import.scaleRuns': '音階練習明細',
   'settings.import.answers': '練耳作答紀錄',
+  'settings.import.takes': '演奏實錄（分段儲存）',
   'settings.import.stats': '匯入後，各音符的統計會根據全部作答紀錄重新計算。',
   'settings.import.nothingNew': '這個檔案裡的內容都已經有了。',
   'settings.import.invalidTitle': '以下紀錄無效，不會匯入：',
@@ -1165,13 +1166,14 @@ export const zhTW: Dictionary = {
   'settings.import.record.pieceSteps': '樂曲練習明細',
   'settings.import.record.scaleRuns': '音階練習明細',
   'settings.import.record.answers': '練耳作答紀錄',
+  'settings.import.record.takes': '演奏實錄片段',
   'settings.import.more': '⋯⋯還有 {n} 筆',
   'settings.import.prefs': '同時套用檔案中的偏好設定：{language}、{theme}',
   'settings.import.apply': '匯入',
   'settings.import.cancel': '取消',
   'settings.import.working': '正在匯入⋯',
   'settings.import.done':
-    '匯入完成：新增 {sessions} 筆練習紀錄、{attempts} 筆作答紀錄、{pieces} 首樂曲、{steps} 筆樂曲練習明細、{scaleRuns} 筆音階練習明細和 {ear} 筆練耳作答紀錄。',
+    '匯入完成：新增 {sessions} 筆練習紀錄、{attempts} 筆作答紀錄、{pieces} 首樂曲、{steps} 筆樂曲練習明細、{scaleRuns} 筆音階練習明細、{ear} 筆練耳作答紀錄和 {takes} 段演奏實錄。',
   'settings.import.failed': '匯入沒能儲存，資料沒有任何變動。',
 
   'settings.account': '帳號',
@@ -1293,7 +1295,7 @@ export const zhTW: Dictionary = {
   'settings.storage.memory.app':
     '未儲存：dacapo 目前無法在這台裝置上儲存資料。關閉 dacapo 前請先匯出。',
   'settings.export.help.app':
-    '儲存 {file}，內含你的練習紀錄、作答紀錄、匯入的樂曲、樂曲和音階的練習明細以及偏好設定。',
+    '儲存 {file}，內含你的練習紀錄、作答紀錄、匯入的樂曲、樂曲和音階的練習明細、演奏實錄以及偏好設定。',
   'metronome.noAudio.app': '這台裝置無法播放節拍聲，擺錘照樣打拍子。',
 
   'about.title': '關於 dacapo',

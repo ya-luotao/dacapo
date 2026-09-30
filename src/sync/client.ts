@@ -280,6 +280,7 @@ export function createSyncClient({
       pieceSteps: parsed.flatMap((c) => (c.collection === 'pieceSteps' ? [c.record] : [])),
       scaleRuns: parsed.flatMap((c) => (c.collection === 'scaleRuns' ? [c.record] : [])),
       answers: parsed.flatMap((c) => (c.collection === 'answers' ? [c.record] : [])),
+      takes: parsed.flatMap((c) => (c.collection === 'takes' ? [c.record] : [])),
     };
     return storage((sync) => sync.apply(pulled));
   }

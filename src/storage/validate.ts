@@ -39,6 +39,7 @@ import type { PedalChange, ScaleRunSummary, StoredScaleRun } from '../core/scale
 import { parseExerciseKey } from '../core/scales.ts';
 import type { Attempt } from '../core/session.ts';
 import { isScoreWarning, type StoredPiece } from '../core/storedPiece.ts';
+import { isTakeEvent, TAKE_CHUNK_EVENTS, takeChunkId, type TakeChunk } from '../core/takes.ts';
 
 // Hand-written validators for records read from outside the app (an import file, or storage
 // written by another version). They return a clean copy with only the known fields, or the name
@@ -688,6 +689,46 @@ export function validatePieceStep(value: unknown): Validation<PieceStep> {
         mode: r.mode,
         notes: r.notes!.map((n) => ({ midi: n.midi, deviation: n.deviation })),
       }),
+    },
+  };
+}
+
+/** A chunk of a take (docs/EXPRESSION.md, "Takes"): 1 to `TAKE_CHUNK_EVENTS` well-formed events. */
+export function validateTake(value: unknown): Validation<TakeChunk> {
+  if (!isObject(value)) return fail('record');
+  const field = firstInvalid(value, {
+    id: isId,
+    sessionId: isId,
+    pieceId: isId,
+    checksum: isChecksum,
+    hands: isHandSelection,
+    repeats: HEADER_CHECKS.repeats!,
+    tempo: HEADER_CHECKS.tempo!,
+    mode: isMode,
+    latency: (v) => v === undefined || (Number.isInteger(v) && Math.abs(v as number) <= 10_000),
+    startedAt: isTime,
+    chunk: (v) => isCount(v) && v < 10_000,
+    events: (v) =>
+      Array.isArray(v) && v.length > 0 && v.length <= TAKE_CHUNK_EVENTS && v.every(isTakeEvent),
+  });
+  if (field) return fail(field);
+  const r = value as unknown as TakeChunk;
+  if (r.id !== takeChunkId(r.sessionId, r.chunk)) return fail('id');
+  return {
+    ok: true,
+    value: {
+      id: r.id,
+      sessionId: r.sessionId,
+      pieceId: r.pieceId,
+      checksum: r.checksum,
+      hands: r.hands,
+      repeats: r.repeats,
+      tempo: r.tempo,
+      ...(r.mode === 'rhythm' && { mode: r.mode }),
+      ...(r.latency !== undefined && { latency: r.latency }),
+      startedAt: r.startedAt,
+      chunk: r.chunk,
+      events: r.events.map((e) => [...e]),
     },
   };
 }

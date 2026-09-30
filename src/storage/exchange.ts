@@ -4,6 +4,7 @@ import { byStepTime, type PieceStep } from '../core/pieceRecords.ts';
 import { byRunTime, type StoredScaleRun } from '../core/scaleRecords.ts';
 import type { Attempt } from '../core/session.ts';
 import { byImportedDescending, type StoredPiece } from '../core/storedPiece.ts';
+import { byTakeChunk, type TakeChunk } from '../core/takes.ts';
 import { dayKey } from '../core/streak.ts';
 import type { NoteStats } from '../core/weakness.ts';
 import { isLocale, type Locale } from '../i18n/locale.ts';
@@ -15,6 +16,7 @@ import {
   validatePieceStep,
   validateScaleRun,
   validateSession,
+  validateTake,
 } from './validate.ts';
 
 // The export file: everything the user owns, as one versioned JSON document. Importing merges by
@@ -27,9 +29,10 @@ export const EXPORT_FORMAT = 'dacapo';
  * version 3 piece sessions and step records, version 4 rhythm-mode steps and sessions (a `mode`
  * and their timings; records without a mode are wait mode's, as in version 3), version 5 scale
  * sessions and scale runs, version 6 ear-training answers and sessions, version 7 scale runs played
- * with the click (their grid, and the tempo on their session's summary).
+ * with the click (their grid, and the tempo on their session's summary), version 8 the takes of
+ * piece runs.
  */
-export const EXPORT_VERSION = 7;
+export const EXPORT_VERSION = 8;
 
 export interface Preferences {
   /** null follows the browser language. */
@@ -58,6 +61,8 @@ export interface ExportFile {
   scaleRuns: StoredScaleRun[];
   /** Ear-training answers, oldest first. */
   answers: Answer[];
+  /** Takes of piece runs, in chunks, oldest first. */
+  takes: TakeChunk[];
 }
 
 export interface ExportInput {
@@ -68,6 +73,7 @@ export interface ExportInput {
   pieceSteps: readonly PieceStep[];
   scaleRuns: readonly StoredScaleRun[];
   answers: readonly Answer[];
+  takes: readonly TakeChunk[];
 }
 
 export function buildExport(
@@ -88,7 +94,21 @@ export function buildExport(
     pieceSteps: [...data.pieceSteps].sort(byStepTime),
     scaleRuns: [...data.scaleRuns].sort(byRunTime),
     answers: [...data.answers].sort(byAnswerTime),
+    takes: [...data.takes].sort(byTakeChunk),
   };
+}
+
+/**
+ * The file's text: indented for reading, except arrays of numbers, which stay on one line (a
+ * take's events, above all, would otherwise take a line per number).
+ */
+export function exportText(file: ExportFile): string {
+  // Only structural line breaks are matched: inside a string a line break is written as \n.
+  const text = JSON.stringify(file, null, 2).replace(
+    /\[\n\s*(-?[\d.e+-]+(?:,\n\s*-?[\d.e+-]+)*)\n\s*\]/g,
+    (_, numbers: string) => `[${numbers.replace(/\s+/g, '')}]`,
+  );
+  return `${text}\n`;
 }
 
 /** `dacapo-YYYY-MM-DD.json`, with the local date. */
@@ -100,7 +120,7 @@ export type ImportError =
   { kind: 'malformed' } | { kind: 'wrong-format' } | { kind: 'future-version'; version: number };
 
 export type Collection =
-  'sessions' | 'attempts' | 'pieces' | 'pieceSteps' | 'scaleRuns' | 'answers';
+  'sessions' | 'attempts' | 'pieces' | 'pieceSteps' | 'scaleRuns' | 'answers' | 'takes';
 
 export interface InvalidRecord {
   collection: Collection | 'preferences';
@@ -125,6 +145,8 @@ export interface ParsedImport {
   scaleRuns: StoredScaleRun[];
   /** Empty before version 6. */
   answers: Answer[];
+  /** Empty before version 8. */
+  takes: TakeChunk[];
   /** null when the file has none or they are invalid (then listed in `invalid`). */
   preferences: Preferences | null;
   invalid: InvalidRecord[];
@@ -199,6 +221,10 @@ export function parseImport(text: string): ParseResult {
   if (version >= 6 && !Array.isArray(json.answers)) {
     return { ok: false, error: { kind: 'wrong-format' } };
   }
+  // Takes with version 8.
+  if (version >= 8 && !Array.isArray(json.takes)) {
+    return { ok: false, error: { kind: 'wrong-format' } };
+  }
 
   const invalid: InvalidRecord[] = [];
   const sessions = validateAll('sessions', json.sessions, validateSession, invalid);
@@ -214,6 +240,9 @@ export function parseImport(text: string): ParseResult {
     : [];
   const answers = Array.isArray(json.answers)
     ? validateAll('answers', json.answers, validateAnswer, invalid)
+    : [];
+  const takes = Array.isArray(json.takes)
+    ? validateAll('takes', json.takes, validateTake, invalid)
     : [];
   let preferences: Preferences | null = null;
   if (json.preferences !== undefined) {
@@ -237,6 +266,7 @@ export function parseImport(text: string): ParseResult {
       pieceSteps,
       scaleRuns,
       answers,
+      takes,
       preferences,
       invalid,
     },
@@ -262,6 +292,7 @@ export function planImport(
     pieceStepIds: ReadonlySet<string>;
     scaleRunIds: ReadonlySet<string>;
     answerIds: ReadonlySet<string>;
+    takeIds: ReadonlySet<string>;
   },
 ): ImportPlan {
   const count = (
@@ -283,5 +314,6 @@ export function planImport(
     pieceSteps: count(parsed.pieceSteps, existing.pieceStepIds, 'pieceSteps'),
     scaleRuns: count(parsed.scaleRuns, existing.scaleRunIds, 'scaleRuns'),
     answers: count(parsed.answers, existing.answerIds, 'answers'),
+    takes: count(parsed.takes, existing.takeIds, 'takes'),
   };
 }

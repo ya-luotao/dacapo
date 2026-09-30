@@ -400,6 +400,7 @@ describe('dacapo on the shim', () => {
     received('11', [0x90, 60, 0], OFFSET + 1300);
     expect(events).toEqual([
       { type: 'on', midi: 60, velocity: 80, time: 1234.5 },
+      { type: 'pedal', controller: 64, value: 127, time: 1250 },
       { type: 'sustain', down: true, time: 1250 },
       { type: 'off', midi: 60, velocity: 0, time: 1300 },
     ]);

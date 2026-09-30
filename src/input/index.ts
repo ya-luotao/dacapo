@@ -17,7 +17,7 @@ import {
 export type { HubEvent, HubState, InputHub } from './hub.ts';
 export type { KeyboardInput } from './keyboard.ts';
 export type { PointerInput } from './pointer.ts';
-export type { InputEvent, NoteEvent, NoteInput } from './types.ts';
+export type { InputEvent, NoteEvent, NoteInput, PedalController, PedalEvent } from './types.ts';
 export type { MidiStatus, WebMidiInput } from './webmidi.ts';
 
 export interface InputSystem {

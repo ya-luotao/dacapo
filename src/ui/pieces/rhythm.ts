@@ -1,4 +1,12 @@
 import type { PlayResult, StepTiming } from '../../core/rhythm.ts';
+import {
+  startTake,
+  takeInput,
+  takeNoteOn,
+  type PedalPositions,
+  type TakeInput,
+  type TakeState,
+} from '../../core/takes.ts';
 import type { RhythmEnd } from '../../output/rhythm.ts';
 import type { RecordInput } from './record.ts';
 
@@ -22,13 +30,29 @@ export interface RhythmRunState {
   end: RhythmEnd | null;
   /** Ended because the settings changed under it: saved, but no result sheet. */
   hidden: boolean;
+  /**
+   * What was played from Start on, times from the span's start (the count-in before it negative);
+   * after the end it still takes the releases of the keys held then.
+   */
+  take: TakeState | null;
 }
 
 export type RhythmAction =
   | { type: 'reset'; id: string }
-  | { type: 'start'; id: string; epochOrigin: number }
+  /** `origin`: the run clock's zero on the performance.now() clock (`epochOrigin` in epoch ms). */
+  | {
+      type: 'start';
+      id: string;
+      epochOrigin: number;
+      origin: number;
+      latency: number;
+      pedals?: PedalPositions;
+    }
   | { type: 'settled'; timings: readonly StepTiming[] }
-  | { type: 'played'; result: PlayResult }
+  /** Every key down while the run goes, judged or not (`time` on the performance.now() clock). */
+  | { type: 'played'; result: PlayResult; midi: number; velocity: number; time: number }
+  /** A key up or a pedal: for the take only. */
+  | { type: 'input'; input: TakeInput }
   | { type: 'end'; reason: RhythmEnd }
   | { type: 'hide' };
 
@@ -43,7 +67,13 @@ export function idleRhythm(id: string): RhythmRunState {
     last: null,
     end: null,
     hidden: false,
+    take: null,
   };
+}
+
+/** Ended, and every key held then let go. */
+export function rhythmTakeDone(state: Pick<RhythmRunState, 'status' | 'take'>): boolean {
+  return state.status === 'ended' && (state.take?.held.length ?? 0) === 0;
 }
 
 export function rhythmReducer(state: RhythmRunState, action: RhythmAction): RhythmRunState {
@@ -51,7 +81,12 @@ export function rhythmReducer(state: RhythmRunState, action: RhythmAction): Rhyt
     case 'reset':
       return idleRhythm(action.id);
     case 'start':
-      return { ...idleRhythm(action.id), status: 'running', epochOrigin: action.epochOrigin };
+      return {
+        ...idleRhythm(action.id),
+        status: 'running',
+        epochOrigin: action.epochOrigin,
+        take: startTake(action.origin, action.epochOrigin, action.pedals, action.latency),
+      };
     case 'settled': {
       if (state.status === 'idle' || action.timings.length === 0) return state;
       const records = action.timings.map((t): RecordInput => ({
@@ -69,12 +104,19 @@ export function rhythmReducer(state: RhythmRunState, action: RhythmAction): Rhyt
         startedEpoch: state.startedEpoch ?? records[0]!.epoch,
       };
     }
-    case 'played':
-      if (state.status !== 'running') return state;
-      if (action.result.kind === 'hit')
-        return { ...state, last: { kind: 'hit', deviation: action.result.deviation } };
-      if (action.result.kind === 'extra') return { ...state, last: { kind: 'extra' } };
-      return state;
+    case 'played': {
+      if (state.status !== 'running' || !state.take) return state;
+      const { result } = action;
+      const step = result.kind === 'hit' ? result.step : -1;
+      const take = takeNoteOn(state.take, action.time, action.midi, action.velocity, step);
+      if (result.kind === 'hit')
+        return { ...state, take, last: { kind: 'hit', deviation: result.deviation } };
+      if (result.kind === 'extra') return { ...state, take, last: { kind: 'extra' } };
+      return { ...state, take };
+    }
+    case 'input':
+      if (state.status === 'idle' || !state.take || rhythmTakeDone(state)) return state;
+      return { ...state, take: takeInput(state.take, action.input) };
     case 'end':
       return state.status === 'running' ? { ...state, status: 'ended', end: action.reason } : state;
     case 'hide':

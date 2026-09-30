@@ -41,11 +41,31 @@ function setup() {
   const stopB = hub.add(b.source);
   const held = () => [...hub.getState().held.keys()];
   const summary = () =>
-    events.map((e) => (e.type === 'sustain' ? `pedal:${e.down}` : `${e.type}:${e.midi}`));
+    events.map((e) =>
+      e.type === 'sustain'
+        ? `pedal:${e.down}`
+        : e.type === 'pedal'
+          ? `cc${e.controller}:${e.value}`
+          : `${e.type}:${e.midi}`,
+    );
   return { hub, a, b, stopA, stopB, events, held, summary };
 }
 
 describe('createInputHub', () => {
+  it('passes raw pedal positions on once each, without touching the state', () => {
+    const { hub, a, b, summary } = setup();
+    const before = hub.getState();
+    const cc = (controller: 64 | 66 | 67, value: number) =>
+      ({ type: 'pedal', controller, value, time: 0 }) as const;
+    a.send(cc(64, 40));
+    b.send(cc(64, 40)); // the same position from another port: nothing new
+    a.send(cc(67, 127));
+    a.send(cc(64, 0));
+    a.send(cc(66, 200)); // out of range
+    expect(summary()).toEqual(['cc64:40', 'cc67:127', 'cc64:0']);
+    expect(hub.getState()).toBe(before);
+  });
+
   it('starts with an empty, stable state', () => {
     const hub = createInputHub();
     const s = hub.getState();

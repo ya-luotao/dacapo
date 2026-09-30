@@ -17,6 +17,7 @@ import {
 import { byRunTime, type ScaleSession, type StoredScaleRun } from '../../core/scaleRecords.ts';
 import type { Attempt } from '../../core/session.ts';
 import { byImportedDescending, type StoredPiece } from '../../core/storedPiece.ts';
+import type { TakeChunk } from '../../core/takes.ts';
 import { emptyStats, updateStats, type NoteStats, type StatsByKey } from '../../core/weakness.ts';
 import type { OpenHandlers } from '../../storage/db.ts';
 import {
@@ -25,6 +26,7 @@ import {
   type MergeResult,
   type OpenResult,
   type PracticeRepository,
+  type StepQuery,
   type StoredData,
 } from '../../storage/repository.ts';
 import type { SyncStorage } from '../../storage/syncStorage.ts';
@@ -79,7 +81,7 @@ export interface PracticeStore {
   finishFreePlay: (id: string, session: FreePlaySession | null) => void;
   /** Adds or replaces an imported piece (a new import, a rename, other hands). */
   savePiece: (piece: StoredPiece) => void;
-  /** Deletes an imported piece, and with `steps` its step records. Its sessions stay. */
+  /** Deletes an imported piece, and with `steps` its step records and takes. Its sessions stay. */
   deletePiece: (id: string, options?: { steps: boolean }) => void;
   /** Stores a completed wait-mode step; `header` goes with the run's first step. */
   recordPieceStep: (step: PieceStep, header: PieceRunHeader | null) => void;
@@ -96,6 +98,13 @@ export interface PracticeStore {
   /** Every step record, for the export file. */
   allPieceSteps: () => Promise<PieceStep[]>;
   pieceStepIds: () => Promise<Set<string>>;
+  /** Stores a chunk of a run's take (docs/EXPRESSION.md); nothing of it is kept in memory. */
+  recordTake: (chunk: TakeChunk) => void;
+  /** The take chunks of a piece or of one run, in order, read when asked (never at startup). */
+  takes: (query: StepQuery) => Promise<TakeChunk[]>;
+  /** Every take chunk, for the export file. */
+  allTakes: () => Promise<TakeChunk[]>;
+  takeIds: () => Promise<Set<string>>;
   /**
    * Stores a scale run with its session, brought up to date with the run (added or replaced by
    * id); the snapshot has the session at once.
@@ -577,6 +586,20 @@ export function createPracticeStore({
     },
     async pieceStepIds() {
       return new Set((await enqueue((repo) => repo.pieceStepIds())) ?? []);
+    },
+    recordTake(chunk) {
+      void enqueue((repo) => repo.addTake(chunk));
+    },
+    async takes(query) {
+      return (await enqueue((repo) => repo.takes(query))) ?? [];
+    },
+    async allTakes() {
+      const chunks = await enqueue((repo) => repo.allTakes());
+      if (!chunks) throw new Error('Takes could not be read');
+      return chunks;
+    },
+    async takeIds() {
+      return new Set((await enqueue((repo) => repo.takeIds())) ?? []);
     },
     recordScaleRun(run, session) {
       set({ ...data, sessions: upsertSession(data.sessions, session) });
