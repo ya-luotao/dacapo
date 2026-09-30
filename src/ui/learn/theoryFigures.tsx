@@ -8,16 +8,28 @@ import {
   type Clef,
   type Pitch,
 } from '../../core/note.ts';
-import { keySignature, MAJOR_TONICS } from '../../core/scales.ts';
+import { keyAlters, keySignature, MAJOR_TONICS, MINOR_TONICS } from '../../core/scales.ts';
+import { formatMessage } from '../../i18n/locale.ts';
 import { EngravedStaff, type StaffLabel, type StaffNote } from '../engraving/EngravedStaff.tsx';
-import { bodyStart } from '../engraving/geometry.ts';
+import { bodyStart, HEAD_WIDTH } from '../engraving/geometry.ts';
 import { Choices, Picture } from './kit.tsx';
 import { LessonPiano } from './LessonPiano.tsx';
 import { keyName, useCopy, useNoteOn, usePlayKey, usePlaySequence } from './lesson.ts';
-import { majorScale, pitch, pitchName, tonicName } from './notes.ts';
+import {
+  majorScale,
+  phraseIn,
+  pitch,
+  pitchName,
+  relativeMinor,
+  scaleRun,
+  tonicName,
+  type ScaleKind,
+  type ScaleStep,
+  type SnippetKey,
+} from './notes.ts';
 
 // Figures for the lessons after the staff: landmarks and intervals, half and whole steps and
-// accidentals, the major scale and key signatures, and the hands and their fingers.
+// accidentals, the major scale and key signatures, the hands and their fingers, and minor keys.
 
 const STAFF_KEYS: readonly [number, number] = [36, 84]; // C2–C6
 const MIDDLE_KEYS: readonly [number, number] = [48, 83]; // C3–B5
@@ -644,6 +656,743 @@ export function SignatureCard({ tonic, label }: { tonic: string; label: string }
       className="plate-staff is-card"
       label={label}
       fifths={keySignature('major', tonic).fifths}
+    />
+  );
+}
+
+// Lesson 9: minor keys.
+
+/**
+ * Which notes of a line need their sign written after a key signature: those whose sharp, flat or
+ * natural neither the signature nor an earlier note on the same line or space in the bar gives.
+ * `bars` are the indexes of the first note of each new bar.
+ */
+function writtenSigns(
+  pitches: readonly Pitch[],
+  fifths: number,
+  bars: readonly number[] = [],
+): { inKey: boolean; natural: boolean }[] {
+  const alters = keyAlters(fifths);
+  let bar = new Map<string, number>();
+  return pitches.map((p, i) => {
+    if (bars.includes(i)) bar = new Map();
+    const at = `${p.letter}${p.octave}`;
+    const expected = bar.get(at) ?? alters[p.letter];
+    bar.set(at, p.accidental);
+    const inKey = p.accidental === expected;
+    return { inKey, natural: !inKey && p.accidental === 0 };
+  });
+}
+
+const RELATIVE_MAJORS = MAJOR_TONICS.filter((t) => relativeMinor(t) !== undefined);
+
+// Frère Jacques, its first three phrases: the third, E, is the one note major and minor disagree on.
+const TUNE = ['C4', 'D4', 'E4', 'C4', 'C4', 'D4', 'E4', 'C4', 'E4', 'F4', 'G4'];
+const TUNE_BARS = [4, 8];
+
+/** A tune in C major and in C minor: the same notes but one, E or E♭. */
+export function MajorAndMinor({
+  labels,
+  staffLabel,
+}: {
+  labels: { major: string; minor: string };
+  staffLabel: string;
+}) {
+  const listen = usePlaySequence();
+  const [mode, setMode] = useState<'major' | 'minor'>('major');
+  const tune = useMemo(
+    () => TUNE.map((t) => pitch(mode === 'minor' && t === 'E4' ? 'Eb4' : t)),
+    [mode],
+  );
+  const keys = useMemo(() => tune.map(pitchToMidi), [tune]);
+  const signs = writtenSigns(tune, 0, TUNE_BARS);
+  const start = bodyStart('treble') + 8;
+  const unit = (360 - 34 - start) / 12;
+  const xs = tune.map((_, i) => start + (i + TUNE_BARS.filter((b) => b <= i).length * 0.5) * unit);
+  const notes: StaffNote[] = tune.map((p, i) => ({
+    id: `${i}`,
+    pitch: p,
+    clef: 'treble',
+    x: xs[i]!,
+    duration: i === tune.length - 1 ? 'half' : 'quarter',
+    stem: 'up',
+    ...signs[i],
+    tone: listen.at === i ? 'accent' : 'ink',
+  }));
+  const bars = TUNE_BARS.map((b) => (xs[b - 1]! + HEAD_WIDTH + xs[b]! - 12) / 2);
+  const names = useMemo(() => new Map(keys.map((k, i) => [k, pitchName(tune[i]!)])), [keys, tune]);
+  const classes = useMemo(() => {
+    const current = listen.at === null ? null : keys[listen.at];
+    return new Map(keys.map((k) => [k, k === current ? 'lk-same' : 'lk-named']));
+  }, [keys, listen.at]);
+
+  return (
+    <>
+      <Choices
+        value={mode}
+        onChange={(next) => {
+          setMode(next);
+          listen.stop();
+        }}
+        options={[
+          { value: 'major', label: labels.major },
+          { value: 'minor', label: labels.minor },
+        ]}
+      />
+      <EngravedStaff
+        system="treble"
+        width={360}
+        className="plate-staff"
+        label={staffLabel}
+        notes={notes}
+        bars={bars}
+      />
+      <div className="plate-actions">
+        <PlayButton onClick={() => listen.play(keys, 380)} />
+      </div>
+      <LessonPiano range={MIDDLE_KEYS} keyNames={names} keyClasses={classes} />
+    </>
+  );
+}
+
+/** The third above the tonic, major or minor, and the chord built on it. */
+export function ThirdAndChord({
+  labels,
+  staffLabel,
+}: {
+  labels: {
+    major: string;
+    minor: string;
+    third: string;
+    chord: string;
+    readout: Record<'major' | 'minor', { name: string; label: string }>;
+  };
+  staffLabel: string;
+}) {
+  const listen = usePlaySequence();
+  const [mode, setMode] = useState<'major' | 'minor'>('minor');
+  const [playing, setPlaying] = useState<'third' | 'chord'>('third');
+  const third = pitch(mode === 'major' ? 'E4' : 'Eb4');
+  const keys = [60, pitchToMidi(third), 67];
+  const lit = (step: 'third' | 'chord', i: number) =>
+    listen.at !== null && playing === step && listen.at === i;
+  const tone = (on: boolean): StaffNote['tone'] => (on ? 'accent' : 'ink');
+  const notes: StaffNote[] = [
+    { id: 'c', pitch: pitch('C4'), clef: 'treble', x: 110, tone: tone(lit('third', 0)) },
+    { id: 'e', pitch: third, clef: 'treble', x: 160, tone: tone(lit('third', 1)) },
+    ...[pitch('C4'), third, pitch('G4')].map((p, i): StaffNote => ({
+      id: `chord${i}`,
+      pitch: p,
+      clef: 'treble',
+      x: 240,
+      tone: tone(lit('chord', 0)),
+    })),
+  ];
+  const names = new Map(keys.map((k, i) => [k, i === 1 ? pitchName(third) : keyName(k)]));
+  const classes = new Map<number, string>(keys.map((k) => [k, 'lk-named']));
+  if (listen.at !== null) {
+    const sounding = playing === 'chord' ? keys : [keys[listen.at === 0 ? 0 : 1]!];
+    for (const k of sounding) classes.set(k, 'lk-same');
+  }
+  const play = (step: 'third' | 'chord') => {
+    setPlaying(step);
+    if (step === 'third') listen.play(keys.slice(0, 2), 700);
+    else listen.play([keys], 1400);
+  };
+
+  return (
+    <>
+      <Choices
+        value={mode}
+        onChange={(next) => {
+          setMode(next);
+          listen.stop();
+        }}
+        options={[
+          { value: 'major', label: labels.major },
+          { value: 'minor', label: labels.minor },
+        ]}
+      />
+      <p className="plate-readout is-small" aria-live="polite">
+        <span className="plate-readout-name">{labels.readout[mode].name}</span>
+        <span className="plate-readout-label">{labels.readout[mode].label}</span>
+      </p>
+      <EngravedStaff
+        system="treble"
+        width={300}
+        className="plate-staff"
+        label={staffLabel}
+        notes={notes}
+        bars={[205]}
+      />
+      <div className="plate-actions">
+        <PlayButton onClick={() => play('third')} label={labels.third} />
+        <PlayButton onClick={() => play('chord')} label={labels.chord} />
+      </div>
+      <LessonPiano range={MIDDLE_KEYS} keyNames={names} keyClasses={classes} />
+    </>
+  );
+}
+
+/**
+ * A major key and its relative minor: the same notes and the same key signature, the minor
+ * starting on the major scale's 6th note.
+ */
+export function RelativeMinor({
+  labels,
+  staffLabel,
+}: {
+  labels: {
+    key: string;
+    /** '{tonic} major'. */
+    majorName: string;
+    /** '{tonic} minor'. */
+    minorName: string;
+    /** Said of the major scale and of its relative minor; {major} and {minor} name the keys. */
+    readout: Record<'major' | 'minor', string>;
+  };
+  staffLabel: string;
+}) {
+  const listen = usePlaySequence();
+  const [major, setMajor] = useState<string>('C');
+  const [view, setView] = useState<'major' | 'minor'>('major');
+  const minor = relativeMinor(major)!;
+  const scale = useMemo(
+    () =>
+      view === 'major'
+        ? scaleRun('major', major).slice(0, 8)
+        : scaleRun('naturalMinor', minor).slice(0, 8),
+    [view, major, minor],
+  );
+  const fifths = keySignature('major', major).fifths;
+  const start = bodyStart('treble', fifths) + 8;
+  const step = (340 - 20 - start) / 8;
+  const signs = writtenSigns(
+    scale.map((n) => n.pitch),
+    fifths,
+  );
+  // At rest, the note the relative minor starts on: the major's 6th, the minor's tonic.
+  const home = (i: number) => (view === 'major' ? i === 5 : i === 0 || i === 7);
+  const notes: StaffNote[] = scale.map((n, i) => ({
+    id: `${i}`,
+    pitch: n.pitch,
+    clef: 'treble',
+    x: start + i * step,
+    ...signs[i],
+    tone: listen.at === i || (listen.at === null && home(i)) ? 'accent' : 'ink',
+  }));
+  const degrees: StaffLabel[] =
+    view === 'major'
+      ? scale.map((_, i) => ({
+          clef: 'treble',
+          position: -5,
+          x: start + i * step + 6,
+          text: String(i + 1),
+        }))
+      : [];
+  const names = useMemo(
+    () => new Map(scale.map((n) => [n.midi, pitchName(n.pitch, false)])),
+    [scale],
+  );
+  const classes = useMemo(() => {
+    const current = listen.at === null ? null : scale[listen.at]?.midi;
+    return new Map(scale.map((n) => [n.midi, n.midi === current ? 'lk-same' : 'lk-named']));
+  }, [scale, listen.at]);
+  const vars = { major: tonicName(major), minor: tonicName(minor) };
+
+  return (
+    <>
+      <div className="plate-toolbar">
+        <label className="plate-select">
+          <span>{labels.key}</span>
+          <select
+            className="is-compact"
+            value={major}
+            onChange={(e) => {
+              setMajor(e.target.value);
+              listen.stop();
+            }}
+          >
+            {RELATIVE_MAJORS.map((t) => (
+              <option key={t} value={t}>
+                {tonicName(t)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <Choices
+          value={view}
+          onChange={(next) => {
+            setView(next);
+            listen.stop();
+          }}
+          options={[
+            { value: 'major', label: formatMessage(labels.majorName, { tonic: vars.major }) },
+            { value: 'minor', label: formatMessage(labels.minorName, { tonic: vars.minor }) },
+          ]}
+        />
+      </div>
+      <p className="plate-readout is-small" aria-live="polite">
+        <span className="plate-readout-label">{formatMessage(labels.readout[view], vars)}</span>
+      </p>
+      <EngravedStaff
+        system="treble"
+        width={340}
+        className="plate-staff"
+        label={staffLabel}
+        notes={notes}
+        labels={degrees}
+        fifths={fifths}
+      />
+      <div className="plate-actions">
+        <PlayButton
+          onClick={() =>
+            listen.play(
+              scale.map((n) => n.midi),
+              420,
+            )
+          }
+        />
+      </div>
+      <LessonPiano range={MIDDLE_KEYS} keyNames={names} keyClasses={classes} />
+    </>
+  );
+}
+
+export type MinorKind = Exclude<ScaleKind, 'major'>;
+
+/** G♯ minor is left out: its harmonic and melodic scales need F𝄪. */
+const BUILDER_MINORS = MINOR_TONICS.filter((t) => t !== 'G#');
+
+/** The step from each note of a line to the next: 1 (half), 2 (whole) or 3 half steps. */
+function stepSizes(run: readonly ScaleStep[]): number[] {
+  return run.slice(1).map((n, i) => Math.abs(n.midi - run[i]!.midi));
+}
+
+/**
+ * Build a minor scale from any key, natural, harmonic or melodic: the steps between its notes,
+ * the notes on the staff (with their sharps and flats, or after the key signature with only what
+ * it does not give), the notes each form raises marked. The melodic minor goes up and comes down.
+ */
+export function MinorScaleBuilder({
+  initial = 'naturalMinor',
+  labels,
+  staffLabel,
+}: {
+  initial?: MinorKind;
+  labels: {
+    tonic: string;
+    natural: string;
+    harmonic: string;
+    melodic: string;
+    accidentals: string;
+    signature: string;
+    steps: string;
+    up: string;
+    down: string;
+    whole: string;
+    half: string;
+    /** A step and a half. */
+    augmented: string;
+  };
+  staffLabel: string;
+}) {
+  const listen = usePlaySequence();
+  const [tonic, setTonic] = useState<string>('A');
+  const [kind, setKind] = useState<MinorKind>(initial);
+  const [view, setView] = useState<'accidentals' | 'signature'>('accidentals');
+  const { run, raised } = useMemo(() => {
+    const full = scaleRun(kind, tonic);
+    const natural = scaleRun('naturalMinor', tonic);
+    const run = kind === 'melodicMinor' ? full : full.slice(0, 8);
+    return { run, raised: run.map((n, i) => n.midi !== natural[i]!.midi) };
+  }, [kind, tonic]);
+  const fifths = view === 'signature' ? keySignature('naturalMinor', tonic).fifths : 0;
+  // Eight notes to a staff: the melodic minor comes down on a second one. Its signs are those of
+  // one bar, so a note going down that differs from the way up keeps its natural or flat.
+  const start = bodyStart('treble', fifths) + 10;
+  const step = 38;
+  const width = start + 8 * step + 18;
+  const signs = writtenSigns(
+    run.map((n) => n.pitch),
+    fifths,
+  );
+  const resting = listen.at === null;
+  const staves = (kind === 'melodicMinor' ? [0, 7] : [0]).map((from) =>
+    run.slice(from, from + 8).map((n, j): StaffNote => ({
+      id: `${from + j}`,
+      pitch: n.pitch,
+      clef: 'treble',
+      x: start + j * step,
+      ...signs[from + j],
+      tone: listen.at === from + j || (resting && raised[from + j]) ? 'accent' : 'ink',
+    })),
+  );
+  const names = useMemo(() => new Map(run.map((n) => [n.midi, pitchName(n.pitch, false)])), [run]);
+  const classes = useMemo(() => {
+    const current = listen.at === null ? null : run[listen.at]?.midi;
+    const map = new Map<number, string>();
+    for (const [i, n] of run.entries()) {
+      const lit = current === null ? raised[i] : n.midi === current;
+      if (lit || !map.has(n.midi)) map.set(n.midi, lit ? 'lk-same' : 'lk-named');
+    }
+    return map;
+  }, [run, raised, listen.at]);
+  const stepName = (size: number) =>
+    size === 1 ? labels.half : size === 2 ? labels.whole : labels.augmented;
+  const rows =
+    kind === 'melodicMinor'
+      ? [
+          { from: 0, notes: run.slice(0, 8), label: labels.up, way: '↑' },
+          { from: 7, notes: run.slice(7), label: labels.down, way: '↓' },
+        ]
+      : [{ from: 0, notes: run, label: labels.steps, way: null }];
+
+  return (
+    <>
+      <div className="plate-toolbar">
+        <label className="plate-select">
+          <span>{labels.tonic}</span>
+          <select
+            className="is-compact"
+            value={tonic}
+            onChange={(e) => {
+              setTonic(e.target.value);
+              listen.stop();
+            }}
+          >
+            {BUILDER_MINORS.map((t) => (
+              <option key={t} value={t}>
+                {tonicName(t)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <Choices
+          value={kind}
+          onChange={(next) => {
+            setKind(next);
+            listen.stop();
+          }}
+          options={[
+            { value: 'naturalMinor', label: labels.natural },
+            { value: 'harmonicMinor', label: labels.harmonic },
+            { value: 'melodicMinor', label: labels.melodic },
+          ]}
+        />
+        <Choices
+          value={view}
+          onChange={setView}
+          options={[
+            { value: 'accidentals', label: labels.accidentals },
+            { value: 'signature', label: labels.signature },
+          ]}
+        />
+      </div>
+      {rows.map((row) => {
+        const sizes = stepSizes(row.notes);
+        return (
+          <ol key={row.from} className="scale-steps" aria-label={row.label}>
+            {row.way && (
+              <li className="scale-steps-way" aria-hidden="true">
+                {row.way}
+              </li>
+            )}
+            {row.notes.map((n, j) => {
+              const i = row.from + j;
+              const size = sizes[j];
+              return (
+                <li
+                  key={i}
+                  className={
+                    listen.at === i ? 'is-current' : resting && raised[i] ? 'is-raised' : undefined
+                  }
+                >
+                  <span>{pitchName(n.pitch, false)}</span>
+                  {size !== undefined && (
+                    <b className={size > 2 ? 'is-wide' : undefined}>{stepName(size)}</b>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        );
+      })}
+      {/* One size whatever the key signature's width. */}
+      <div className="plate-scale" style={{ maxWidth: `${(width * 34) / 420}rem` }}>
+        {staves.map((notes, k) => (
+          <EngravedStaff
+            key={k}
+            system="treble"
+            width={width}
+            className="plate-staff"
+            label={staves.length > 1 ? `${staffLabel} ${k === 0 ? '↑' : '↓'}` : staffLabel}
+            notes={notes}
+            fifths={fifths}
+          />
+        ))}
+      </div>
+      <div className="plate-actions">
+        <PlayButton
+          onClick={() =>
+            listen.play(
+              run.map((n) => n.midi),
+              380,
+            )
+          }
+        />
+      </div>
+      <LessonPiano range={MIDDLE_KEYS} keyNames={names} keyClasses={classes} />
+    </>
+  );
+}
+
+const TOP = { natural: ['E4', 'F4', 'G4', 'A4'], raised: ['E4', 'F4', 'G#4', 'A4'] } as const;
+
+/**
+ * The top of A minor with its 7th natural or raised, and the two chords that end a piece in A
+ * minor: with G♯ the step to A is a half step, a leading note that pulls up into the tonic.
+ */
+export function LeadingNote({
+  labels,
+  staffLabel,
+}: {
+  labels: {
+    natural: string;
+    raised: string;
+    scale: string;
+    chords: string;
+    readout: Record<'natural' | 'raised', { name: string; label: string }>;
+  };
+  staffLabel: string;
+}) {
+  const listen = usePlaySequence();
+  const [seventh, setSeventh] = useState<'natural' | 'raised'>('raised');
+  const [playing, setPlaying] = useState<'scale' | 'chords'>('scale');
+  const top = TOP[seventh].map(pitch);
+  const topKeys = top.map(pitchToMidi);
+  const chords = [
+    [top[0]!, top[2]!, pitch('B4')],
+    [pitch('A4'), pitch('C5'), pitch('E5')],
+  ];
+  const chordKeys = chords.map((c) => c.map(pitchToMidi));
+  const lit = (step: 'scale' | 'chords', i: number) =>
+    listen.at !== null && playing === step && listen.at === i;
+  const tone = (on: boolean): StaffNote['tone'] => (on ? 'accent' : 'ink');
+  const notes: StaffNote[] = [
+    ...top.map((p, i): StaffNote => ({
+      id: `t${i}`,
+      pitch: p,
+      clef: 'treble',
+      x: 96 + i * 36,
+      tone: tone(lit('scale', i)),
+    })),
+    ...chords.flatMap((chord, c) =>
+      chord.map((p, i): StaffNote => ({
+        id: `c${c}${i}`,
+        pitch: p,
+        clef: 'treble',
+        x: 264 + c * 46,
+        tone: tone(lit('chords', c)),
+      })),
+    ),
+  ];
+  const names = new Map<number, string>(topKeys.map((k, i) => [k, pitchName(top[i]!)]));
+  const classes = new Map<number, string>(topKeys.map((k) => [k, 'lk-named']));
+  if (listen.at !== null) {
+    const sounding = playing === 'scale' ? [topKeys[listen.at]!] : chordKeys[listen.at]!;
+    for (const k of sounding) {
+      classes.set(k, 'lk-same');
+      if (!names.has(k)) names.set(k, keyName(k));
+    }
+  }
+  const play = (step: 'scale' | 'chords') => {
+    setPlaying(step);
+    if (step === 'scale') listen.play(topKeys, 520);
+    else listen.play(chordKeys, 1100);
+  };
+
+  return (
+    <>
+      <Choices
+        value={seventh}
+        onChange={(next) => {
+          setSeventh(next);
+          listen.stop();
+        }}
+        options={[
+          { value: 'natural', label: labels.natural },
+          { value: 'raised', label: labels.raised },
+        ]}
+      />
+      <p className="plate-readout is-small" aria-live="polite">
+        <span className="plate-readout-name">{labels.readout[seventh].name}</span>
+        <span className="plate-readout-label">{labels.readout[seventh].label}</span>
+      </p>
+      <EngravedStaff
+        system="treble"
+        width={360}
+        className="plate-staff"
+        label={staffLabel}
+        notes={notes}
+        bars={[240]}
+      />
+      <div className="plate-actions">
+        <PlayButton onClick={() => play('scale')} label={labels.scale} />
+        <PlayButton onClick={() => play('chords')} label={labels.chords} />
+      </div>
+      <LessonPiano range={MIDDLE_KEYS} keyNames={names} keyClasses={classes} />
+    </>
+  );
+}
+
+/** A phrase's end on the grand staff, after its key signature; `current` is the step sounding. */
+function SnippetStaff({
+  snippetKey,
+  width,
+  current,
+  className,
+  label,
+}: {
+  snippetKey: SnippetKey;
+  width: number;
+  current: number | null;
+  className: string;
+  label: string;
+}) {
+  const { tune, bass, fifths } = useMemo(() => phraseIn(snippetKey), [snippetKey]);
+  const start = bodyStart('grand', fifths) + 8;
+  const unit = (width - 34 - start) / 5;
+  const xs = [0, 1, 2, 3, 4.4].map((i) => start + i * unit);
+  const trebleSigns = writtenSigns(tune, fifths);
+  const bassSigns = writtenSigns(bass, fifths);
+  const tone = (i: number): StaffNote['tone'] => (current === i ? 'accent' : 'ink');
+  const notes: StaffNote[] = [
+    ...tune.map((p, i): StaffNote => ({
+      id: `t${i}`,
+      pitch: p,
+      clef: 'treble',
+      x: xs[i]!,
+      duration: i < 4 ? 'quarter' : 'whole',
+      ...trebleSigns[i],
+      tone: tone(i),
+    })),
+    ...bass.map((p, i): StaffNote => ({
+      id: `b${i}`,
+      pitch: p,
+      clef: 'bass',
+      x: xs[i === 0 ? 0 : 4]!,
+      ...bassSigns[i],
+      tone: tone(i === 0 ? 0 : 4),
+    })),
+  ];
+  const bar = (xs[3]! + HEAD_WIDTH + xs[4]! - 14) / 2;
+  return (
+    <EngravedStaff
+      system="grand"
+      width={width}
+      className={className}
+      label={label}
+      notes={notes}
+      bars={[bar]}
+      fifths={fifths}
+    />
+  );
+}
+
+/**
+ * One key signature, two keys: a phrase in the major key, and one in its relative minor, which
+ * ends on its own tonic, with it in the bass, and has the raised 7th on the way.
+ */
+export function TellTheKey({
+  keys,
+  labels,
+  staffLabel,
+}: {
+  keys: readonly [SnippetKey, SnippetKey];
+  labels: readonly [{ name: string; label: string }, { name: string; label: string }];
+  staffLabel: string;
+}) {
+  const listen = usePlaySequence();
+  const [which, setWhich] = useState<'0' | '1'>('1');
+  const i = which === '0' ? 0 : 1;
+  const shown = keys[i];
+  return (
+    <>
+      <Choices
+        value={which}
+        onChange={(next) => {
+          setWhich(next);
+          listen.stop();
+        }}
+        options={[
+          { value: '0', label: labels[0].name },
+          { value: '1', label: labels[1].name },
+        ]}
+      />
+      <p className="plate-readout is-small" aria-live="polite">
+        <span className="plate-readout-label">{labels[i].label}</span>
+      </p>
+      <SnippetStaff
+        snippetKey={shown}
+        width={320}
+        current={listen.at}
+        className="plate-staff is-grand"
+        label={staffLabel}
+      />
+      <div className="plate-actions">
+        <PlayButton onClick={() => listen.play(phraseIn(shown).sound, 520)} />
+      </div>
+    </>
+  );
+}
+
+/** A phrase on the grand staff, for a question about its key. */
+export function SnippetCard({ snippetKey, label }: { snippetKey: SnippetKey; label: string }) {
+  return (
+    <SnippetStaff
+      snippetKey={snippetKey}
+      width={300}
+      current={null}
+      className="plate-staff is-card is-snippet"
+      label={label}
+    />
+  );
+}
+
+/** A minor scale going up, after its key signature, for a question about which minor it is. */
+export function MinorScaleCard({
+  kind,
+  tonic,
+  label,
+}: {
+  kind: MinorKind;
+  tonic: string;
+  label: string;
+}) {
+  const run = scaleRun(kind, tonic).slice(0, 8);
+  const fifths = keySignature('naturalMinor', tonic).fifths;
+  const start = bodyStart('treble', fifths) + 10;
+  const step = 38;
+  const width = start + 8 * step + 18;
+  const signs = writtenSigns(
+    run.map((n) => n.pitch),
+    fifths,
+  );
+  return (
+    <EngravedStaff
+      system="treble"
+      width={width}
+      className="plate-staff is-card is-scale"
+      label={label}
+      fifths={fifths}
+      notes={run.map((n, i) => ({
+        id: `${i}`,
+        pitch: n.pitch,
+        clef: 'treble',
+        x: start + i * step,
+        ...signs[i],
+      }))}
     />
   );
 }

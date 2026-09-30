@@ -7824,6 +7824,40 @@ select.is-compact {
   color: var(--accent);
 }
 
+/* Lesson 9: the notes a minor scale raises, the step and a half, and which way a row goes. */
+.scale-steps li.is-raised span {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.scale-steps b.is-wide {
+  min-width: 2rem;
+  color: var(--accent);
+}
+
+.scale-steps li.scale-steps-way {
+  min-width: 1.25rem;
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.plate-staff.is-card.is-snippet {
+  max-width: 20rem;
+}
+
+.plate-staff.is-card.is-scale {
+  max-width: 25rem;
+}
+
+/* A scale drawn at one size, however many notes: its width is set on it from its own. */
+.plate-scale {
+  margin: 0 auto;
+}
+
+.plate-scale .plate-staff {
+  max-width: none;
+}
+
 /* The beat: four numbered dots, the first one accented, lit in turn. */
 .beat-row {
   display: flex;

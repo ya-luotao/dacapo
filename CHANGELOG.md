@@ -44,15 +44,22 @@ answers and sessions. Version 1 to 5 files still import.
 
 ### The basics: lessons for beginners ([docs/LEARN.md](docs/LEARN.md))
 
-- **Learn** has eight short lessons for your first weeks at the piano, in English and Simplified
+- **Learn** has nine short lessons for your first weeks at the piano, in English and Simplified
   Chinese: finding your way around the keyboard; the staff and the clefs; landmark notes and
   intervals; rhythm and the beat; sharps, flats, whole and half steps; the major scale and key
-  signatures; posture, hand shape and fingering; and dots, ties, triplets and syncopation.
+  signatures; posture, hand shape and fingering; dots, ties, triplets and syncopation; and minor
+  scales and minor keys.
 - The second rhythm lesson reads the rhythms of most beginners' pieces: the dotted quarter and its
   eighth, ties over the beat and the barline, sixteenths and the dotted eighth, triplets against
   straight eighths, syncopation, and 6/8 set beside 3/4. Every rhythm is engraved with its beams,
   ties and triplet brackets, counted under the notes ("1 (2) & 3", "1 e & a", "1 trip let"), and
   played with the click; then you tap seven bars in time, 6/8 included.
+- The minor keys lesson plays a tune in major and then in minor, and the major and minor third
+  and chord; finds each major key's relative minor, with the same notes and key signature; builds
+  the natural, harmonic and melodic minor from any key, the steps and the raised notes marked;
+  lets you hear the leading note pull into the tonic; and shows how to tell a piece in A minor
+  from one in C major. You then play the relative minor from its signature and A harmonic minor
+  with its fingering, and tell the three minors and the keys of a few phrases apart.
 - Every figure is the app's own keyboard or an engraved staff: colour the black-key groups, point
   at a line to hear its note, hold keys to see where they are written, build a major scale from
   any key, tap along with a beat and see how early or late you are. Each lesson ends with

@@ -108,6 +108,18 @@ export const LESSONS: readonly LessonInfo[] = [
     ready: true,
     practice: '/pieces',
   },
+  {
+    slug: 'minor-keys',
+    title: { en: 'Minor scales and minor keys', 'zh-CN': '小调音阶与小调' },
+    summary: {
+      en: 'The relative minor, the natural, harmonic and melodic minor scales, and how to tell a minor key from its major.',
+      'zh-CN':
+        '关系小调，自然、和声、旋律三种小调音阶，以及怎么分辨一首曲子是大调还是它的关系小调。',
+    },
+    minutes: 18,
+    ready: true,
+    practice: '/scales',
+  },
 ];
 
 /**

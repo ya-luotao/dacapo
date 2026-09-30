@@ -77,17 +77,21 @@ export function ExerciseFrame({
 type PianoProps = Omit<ComponentProps<typeof LessonPiano>, 'marked' | 'wrong'>;
 
 /**
- * Asks for keys one at a time, each with its own question: "Play D4", "A half step above E4".
- * A wrong key is shown with the answer marked.
+ * Asks for keys one at a time, each with its own question: "Play D4", "A half step above E4",
+ * and a figure to answer from when it has one (a key signature). A wrong key is shown with the
+ * answer marked.
  */
 export function KeyQuiz({
   range,
   items,
+  anyOctave = false,
   onComplete,
   piano,
 }: {
   range: readonly [number, number];
-  items: readonly { key: number; ask: string }[];
+  items: readonly { key: number; ask: string; figure?: ReactNode }[];
+  /** A note is asked for, not a key: the same letter in any octave answers it. */
+  anyOctave?: boolean;
   onComplete?: () => void;
   piano?: PianoProps;
 }) {
@@ -104,7 +108,7 @@ export function KeyQuiz({
 
   useNoteOn((midi) => {
     if (!listening() || done || target === undefined) return;
-    if (midi !== target) {
+    if (anyOctave ? (midi - target) % 12 !== 0 : midi !== target) {
       flashWrong(midi);
       setMissed(true);
       setMessage(copy('wrong', { played: keyName(midi), answer: keyName(target) }));
@@ -134,6 +138,7 @@ export function KeyQuiz({
     () => (missed && target !== undefined ? new Set([target]) : new Set<number>()),
     [missed, target],
   );
+  const figure = items[Math.min(at, items.length - 1)]?.figure;
 
   return (
     <ExerciseFrame
@@ -152,6 +157,7 @@ export function KeyQuiz({
             }
       }
     >
+      {figure && <div className="exercise-card">{figure}</div>}
       <LessonPiano range={range} {...piano} wrong={wrong} marked={marked} />
     </ExerciseFrame>
   );
