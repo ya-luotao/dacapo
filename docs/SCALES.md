@@ -124,7 +124,8 @@ All figures come from the raw notes of the run (see Records) and are recomputed 
   hands together as two series. Hover or focus shows a note's figures; a table lists them. (Shaped
   like `DeviationChart.tsx`, which is the starting point.)
 - Three sentences at most: the timing figure, the clearest problem place (from this run, or from the
-  last runs when they agree), and loudness or connection when they stand out.
+  last runs when they agree), and loudness or connection when they stand out. Under them, one
+  sentence says what to work on next, with the button that does it ([ADVICE.md](ADVICE.md)).
 - Again (the same exercise), change the tempo or the hands, or pick the weakest position as a
   **focus**: the scale is cut to the few notes around it, a loop in wait mode's sense, played until
   Stop.

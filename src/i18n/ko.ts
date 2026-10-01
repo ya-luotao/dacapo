@@ -2648,6 +2648,18 @@ export const ko: Dictionary = {
   'scales.repeats.shortest': '가장 짧게 올라온 시간',
   'scales.repeats.upFor':
     '다시 치기 전에 건반이 올라와 있던 시간은 보통 {ms}ms, 가장 짧게는 {key} 앞에서 {least}ms였어요.',
+  'scales.advice.slower': '모든 음을 맞게 칠 때까지 더 느리게 치세요. 고르게 치는 건 그다음이에요.',
+  'scales.advice.thumbUnder':
+    '{key} 주변을 천천히 반복하세요. 앞 손가락이 치는 동안 엄지를 미리 밑으로 넘겨 두세요.',
+  'scales.advice.fingerOver':
+    '{key} 주변을 천천히 반복하세요. 엄지가 치는 동안 손가락을 미리 넘겨 두세요.',
+  'scales.advice.pattern': '{key} 주변을 반복하세요. 매번 같은 손가락으로요.',
+  'scales.advice.hesitation': '{key} 주변을 막힘 없이 넘어갈 때까지 반복하세요.',
+  'scales.advice.startTempo': '클릭에 맞춰, ♩ = {bpm}, 한 박에 {n}음. 처음 시작한 빠르기예요.',
+  'scales.advice.eachHand': '한 손씩 따로, 그다음 천천히 양손으로 치세요.',
+  'scales.advice.even.click': '♩ = {bpm}에서 고르게 쳤어요. 다음은 ♩ = {next}.',
+  'scales.advice.even': '고르게 쳤어요. 다음은 클릭에 맞춰서요.',
+  'scales.advice.click': '클릭 {tempo}',
   'metronome.title': '메트로놈',
   'metronome.start': '시작',
   'metronome.stop': '정지',

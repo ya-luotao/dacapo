@@ -1,3 +1,4 @@
+import { scaleAdvice, type ScaleAction, type ScaleFinding } from '../../core/advice.ts';
 import type { HandAnalysis, PlayedNote, ProblemPlace, RunAnalysis } from '../../core/evenness.ts';
 import { repeatFigures, type RepeatFigures } from '../../core/repeatedNotes.ts';
 import { trillFigures, type TrillFigures } from '../../core/trill.ts';
@@ -5,6 +6,7 @@ import { IN_TIME_MS, TENDENCY_MS, type RhythmSummary } from '../../core/rhythmRu
 import type { ClickSettings } from '../../core/scaleClick.ts';
 import type { Hand } from '../../core/score.ts';
 import { SENTENCE_GAP, useI18n } from '../../i18n/index.ts';
+import { Advice } from '../Advice.tsx';
 import { fewKeys } from './format.ts';
 import { weakestPlace, type LoopPlace } from './loop.ts';
 import { ProfileChart } from './ProfileChart.tsx';
@@ -27,13 +29,26 @@ export interface ClickResult {
   summary: RhythmSummary;
 }
 
+/** What the advice after a run needs from the page (docs/ADVICE.md): its settings and its buttons. */
+export interface ScaleAdvise {
+  /** The grid's notes to the beat: the click's, or what the click would be set to. */
+  perBeat: number;
+  /** The latency was calibrated in this browser. */
+  calibrated: boolean;
+  /** The same exercise with the click at a tempo. */
+  onClick: (bpm: number) => void;
+  /** The same exercise with one hand. */
+  onHands: (hands: Hand) => void;
+  onCalibrate: () => void;
+}
+
 /**
  * After a run: how even it was (the spread of each hand, against the published professional
  * figure), how far apart the hands were, the tempo and the wrong notes, and with the click how the
  * notes sat against it; then in a few sentences, the most telling first, where it went uneven,
  * whether the notes came early or late, whether the hands and the fingers kept together, whether
- * the tempo moved and what the loudness did; then every note of each hand on a chart, and the
- * weakest place offered as a focus loop.
+ * the tempo moved and what the loudness did, and under them what to work on next; then every note
+ * of each hand on a chart, and the weakest place offered as a focus loop.
  */
 export function ScaleSummary({
   analysis,
@@ -42,6 +57,7 @@ export function ScaleSummary({
   pedal,
   click = null,
   onLoop,
+  advise = null,
   kind = null,
   played = [],
 }: {
@@ -62,6 +78,8 @@ export function ScaleSummary({
   click?: ClickResult | null;
   /** A focus loop round a place of the run. */
   onLoop?: (place: LoopPlace) => void;
+  /** For the sentence of advice under the verdict; none without it. */
+  advise?: ScaleAdvise | null;
 }) {
   const { t, locale } = useI18n();
   const gap = SENTENCE_GAP[locale];
@@ -74,18 +92,7 @@ export function ScaleSummary({
   const ms = (value: number) => t('scales.result.ms', { ms: whole.format(Math.round(value)) });
 
   const { counts, hands, together } = analysis;
-  if (analysis.quality !== 'ok') {
-    return (
-      <section className="scale-summary" aria-live="polite">
-        <p className="scale-verdict">
-          {t('scales.result.notARun', {
-            mistakes: counts.wrong + counts.missed + counts.extra,
-            total: counts.expected,
-          })}
-        </p>
-      </section>
-    );
-  }
+  const measured = analysis.quality === 'ok';
 
   const two = hands.length > 1;
   const handWord = (hand: Hand) => t(`scales.hand.${hand}`);
@@ -181,10 +188,12 @@ export function ScaleSummary({
 
   // A trill: how fast and whether it held its rate, and whether its two fingers were even.
   const trills: { hand: HandAnalysis; figures: TrillFigures }[] =
-    kind === 'trill' ? hands.map((hand) => ({ hand, figures: trillFigures(hand, played) })) : [];
+    kind === 'trill' && measured
+      ? hands.map((hand) => ({ hand, figures: trillFigures(hand, played) }))
+      : [];
   // Repeated notes: how long each key was up before it was struck again.
   const repeats: { hand: HandAnalysis; figures: RepeatFigures }[] =
-    kind === 'repeats'
+    kind === 'repeats' && measured
       ? hands.map((hand) => ({ hand, figures: repeatFigures(hand, played, analysis.extra) }))
       : [];
   /** A trill's lower and upper key, by name. */
@@ -198,12 +207,15 @@ export function ScaleSummary({
     };
   };
 
-  // Most telling first; at most three are shown.
-  const sentences: string[] = end === 'stopped' ? [t('scales.result.stopped')] : [];
+  // Most telling first; at most three are shown. Each with what it says, for the advice.
+  const findings: { kind: ScaleFinding; text: string }[] = [];
+  const say = (kind: ScaleFinding, text: string) => findings.push({ kind, text });
+  if (end === 'stopped') say('stopped', t('scales.result.stopped'));
   for (const { hand, figures } of trills) {
     const keys = trillKeys(hand);
     if (figures.drift && figures.startRate !== null && figures.endRate !== null)
-      sentences.push(
+      say(
+        'trill',
         forHand(
           hand.hand,
           t(figures.drift === 'slows' ? 'scales.trill.slows' : 'scales.trill.hurries', {
@@ -213,7 +225,8 @@ export function ScaleSummary({
         ),
       );
     if (figures.afterLower !== null && figures.afterUpper !== null)
-      sentences.push(
+      say(
+        'trill',
         forHand(
           hand.hand,
           figures.lingers
@@ -232,7 +245,8 @@ export function ScaleSummary({
   }
   for (const { hand, figures } of repeats) {
     if (figures.up !== null && figures.shortest)
-      sentences.push(
+      say(
+        'repeats',
         forHand(
           hand.hand,
           t('scales.repeats.upFor', {
@@ -243,27 +257,31 @@ export function ScaleSummary({
         ),
       );
   }
-  if (analysis.problem) sentences.push(problemSentence(analysis.problem));
+  if (analysis.problem)
+    say(analysis.problem.crossing ?? 'pattern', problemSentence(analysis.problem));
   // Chords: whether they were struck together is what the exercise is for.
   for (const hand of hands) {
     const sentence = chordSentence(hand);
-    if (sentence) sentences.push(sentence);
+    if (sentence) say('chords', sentence);
   }
   // With the click, whether the notes sat on it: what the click is there for.
   const tendency = click?.summary.tendency ?? null;
-  if (click)
-    sentences.push(
-      tendency === null
-        ? t('pieces.rhythm.noTendency')
-        : Math.abs(tendency) < TENDENCY_MS
-          ? t('scales.result.onBeat', { ms: TENDENCY_MS })
-          : t(tendency > 0 ? 'scales.result.late' : 'scales.result.early', {
-              ms: Math.round(Math.abs(tendency)),
-            }),
-    );
+  if (click) {
+    if (tendency === null) say('noTendency', t('pieces.rhythm.noTendency'));
+    else if (Math.abs(tendency) < TENDENCY_MS)
+      say('onClick', t('scales.result.onBeat', { ms: TENDENCY_MS }));
+    else
+      say(
+        tendency > 0 ? 'clickLate' : 'clickEarly',
+        t(tendency > 0 ? 'scales.result.late' : 'scales.result.early', {
+          ms: Math.round(Math.abs(tendency)),
+        }),
+      );
+  }
   for (const hand of hands)
     if (hand.timing.hesitations.length > 0)
-      sentences.push(
+      say(
+        'hesitation',
         forHand(
           hand.hand,
           t('scales.result.hesitations', {
@@ -277,45 +295,47 @@ export function ScaleSummary({
   if (together && together.median !== null) {
     // 30 ms apart happens by chance to loose hands: a few such pairs are named, many are how the
     // hands were, and a hand ahead every time says it all.
-    const measured = together.pairs.filter((p) => p.asynchrony !== null).length;
+    const paired = together.pairs.filter((p) => p.asynchrony !== null).length;
     const apart = together.apart;
-    sentences.push(
-      together.leads
-        ? t(`scales.result.leads.${together.leads}`, {
-            ms: Math.round(Math.abs(together.median)),
-          })
-        : measured > 0 && apart.length / measured >= APART_OFTEN && together.spread !== null
-          ? t('scales.result.apartOften', { ms: Math.round(together.spread) })
-          : apart.length > MAX_NAMED_GAPS
-            ? t('scales.result.apartMany', { n: apart.length })
-            : apart.length > 0
-              ? // A pair is named by its left-hand note, the lower of the two.
-                t('scales.result.apart', { keys: keysOf('left', apart) })
-              : t('scales.result.together'),
-    );
+    const text = together.leads
+      ? t(`scales.result.leads.${together.leads}`, {
+          ms: Math.round(Math.abs(together.median)),
+        })
+      : paired > 0 && apart.length / paired >= APART_OFTEN && together.spread !== null
+        ? t('scales.result.apartOften', { ms: Math.round(together.spread) })
+        : apart.length > MAX_NAMED_GAPS
+          ? t('scales.result.apartMany', { n: apart.length })
+          : apart.length > 0
+            ? // A pair is named by its left-hand note, the lower of the two.
+              t('scales.result.apart', { keys: keysOf('left', apart) })
+            : null;
+    if (text) say('apart', text);
+    else say('together', t('scales.result.together'));
   }
   for (const hand of hands) {
     const sentence = connectionSentence(hand);
-    if (sentence) sentences.push(sentence);
+    if (sentence) say('connection', sentence);
   }
-  if (pedal && hands.some((h) => h.connection)) sentences.push(t('scales.result.pedal'));
+  if (pedal && hands.some((h) => h.connection)) say('pedal', t('scales.result.pedal'));
   if (start !== null && finish !== null && Math.abs(moved) >= DRIFT_SHARE)
-    sentences.push(
+    say(
+      moved > 0 ? 'faster' : 'slower',
       t(moved > 0 ? 'scales.result.faster' : 'scales.result.slower', {
         from: tenth.format(start),
         to: tenth.format(finish),
       }),
     );
-  if (!analysis.velocityMeasured) sentences.push(t('scales.result.noLoudness'));
+  if (!analysis.velocityMeasured) say('loudness', t('scales.result.noLoudness'));
   else
     for (const hand of hands) {
       if (!hand.loudness) continue;
       const balance = balanceSentence(hand);
       if (balance) {
-        sentences.push(balance);
+        say('loudness', balance);
         continue;
       }
-      sentences.push(
+      say(
+        'loudness',
         forHand(
           hand.hand,
           hand.loudness.accents.length > 0
@@ -345,8 +365,99 @@ export function ScaleSummary({
         ? t('scales.result.topSofter', { n })
         : t('scales.result.topEven');
   };
-  const weakest = onLoop ? weakestPlace(analysis) : null;
+  const weakest = onLoop && measured ? weakestPlace(analysis) : null;
   const clicked = click?.summary;
+
+  // What to work on next (docs/ADVICE.md): the advice for the first sentence shown that names
+  // something to work on, with the button that does it.
+  const advice = advise
+    ? scaleAdvice({
+        measured,
+        provisional: kind !== null || chordRun,
+        findings: findings.map((f) => f.kind),
+        shown: MAX_SENTENCES,
+        place: weakest !== null,
+        click: click ? { bpm: click.settings.bpm, tendency } : null,
+        perBeat: advise.perBeat,
+        tempo,
+        startTempo: start,
+        calibrated: advise.calibrated,
+      })
+    : null;
+  const place = weakest ? (names[weakest.hand][weakest.index] ?? '') : '';
+  const bpmOf = (bpm: number) => t('pieces.tempo.bpm', { bpm });
+  function adviceText(): string | null {
+    switch (advice?.rule) {
+      case undefined:
+        return null;
+      case 'slower':
+        return t('scales.advice.slower');
+      case 'thumbUnder':
+      case 'fingerOver':
+      case 'pattern':
+      case 'hesitation':
+        return t(`scales.advice.${advice.rule}`, { key: place });
+      case 'startTempo':
+        return t('scales.advice.startTempo', { bpm: advice.bpm, n: advice.perBeat });
+      case 'eachHand':
+        return t('scales.advice.eachHand');
+      case 'tendency': {
+        const off = Math.round(Math.abs(advice.ms));
+        return advice.action
+          ? t('pieces.advice.late.calibrate', { ms: off })
+          : t(advice.ms > 0 ? 'pieces.advice.late' : 'pieces.advice.early', { ms: off });
+      }
+      case 'evenClick':
+        return t('scales.advice.even.click', { bpm: advice.bpm, next: advice.action.bpm });
+      case 'even':
+        return t('scales.advice.even');
+    }
+  }
+  function adviceButton(action: ScaleAction): { label: string; onClick: () => void } | null {
+    if (!advise) return null;
+    switch (action.kind) {
+      case 'loop':
+        return weakest && onLoop
+          ? { label: t('scales.loop.around', { key: place }), onClick: () => onLoop(weakest) }
+          : null;
+      case 'click':
+        return {
+          label: t('scales.advice.click', { tempo: bpmOf(action.bpm) }),
+          onClick: () => advise.onClick(action.bpm),
+        };
+      case 'hands':
+        return {
+          label: t(`pieces.hands.${action.hands}`),
+          onClick: () => advise.onHands(action.hands),
+        };
+      case 'calibrate':
+        return { label: t('pieces.latency.calibrate'), onClick: advise.onCalibrate };
+    }
+  }
+  const looping = advice?.action?.kind === 'loop';
+  const said = (
+    <Advice
+      text={adviceText()}
+      // The loop is said in the advice: what a loop is goes under it, where its button was.
+      note={looping ? t('scales.loop.offer') : null}
+      action={advice?.action ? adviceButton(advice.action) : null}
+      compact
+    />
+  );
+
+  if (!measured) {
+    return (
+      <section className="scale-summary" aria-live="polite">
+        <p className="scale-verdict">
+          {t('scales.result.notARun', {
+            mistakes: counts.wrong + counts.missed + counts.extra,
+            total: counts.expected,
+          })}
+        </p>
+        {said}
+      </section>
+    );
+  }
 
   return (
     <section className="scale-summary" aria-labelledby="scale-summary-title">
@@ -506,8 +617,14 @@ export function ScaleSummary({
         </dl>
       )}
       <p className="help">{t('scales.result.reference')}</p>
-      <p className="scale-verdict">{sentences.slice(0, MAX_SENTENCES).join(gap)}</p>
-      {weakest && onLoop && (
+      <p className="scale-verdict">
+        {findings
+          .slice(0, MAX_SENTENCES)
+          .map((f) => f.text)
+          .join(gap)}
+      </p>
+      {said}
+      {weakest && onLoop && !looping && (
         <p className="scale-loop-offer">
           <button type="button" className="button is-compact" onClick={() => onLoop(weakest)}>
             {t('scales.loop.around', { key: names[weakest.hand][weakest.index] ?? '' })}

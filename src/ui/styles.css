@@ -8325,6 +8325,10 @@ select.is-compact {
   line-height: 1.5;
 }
 
+.scale-summary .advice {
+  margin: 0 0 1rem;
+}
+
 /* With the click, a second row of figures: the run against it. */
 .scale-summary .scale-click-figures {
   grid-template-columns: repeat(3, minmax(0, 1fr));

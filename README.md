@@ -152,7 +152,9 @@ practising the notes you are slowest at. Progress is visible day by day.
   crossings come late or early, and with the click whether you sat early or late on it. A weak
   spot can be looped, a few notes either side, until you stop. The keyboard shows the finger for
   the keys to start on and, if you want, for each next key, with a word before a thumb crossing.
-  Every run is kept, with a 30-day trend per scale and the scale to practise next.
+  Every run is kept, with a 30-day trend per scale and the scale to practise next. After a run
+  one sentence says what to work on next (loop around a place, each hand alone, the click at the
+  tempo you started at, or the next tempo), and its button sets it up.
 - **Technique, measured the same way.** Five-finger patterns in every key, Hanon's first twenty
   exercises exactly as printed (notes, bars and his fingering, transcribed twice from the 1900
   edition and checked), the key's triad in block chords (two or three octaves) and broken chords

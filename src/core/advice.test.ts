@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
+  EVEN_STEP_BPM,
   MISSED_STEP,
   reviewLine,
   rhythmAdvice,
+  scaleAdvice,
+  SLOWER_SHARE,
   waitAdvice,
   type RhythmRun,
+  type ScaleFinding,
+  type ScaleRun,
   type WaitRun,
   type WaitStep,
 } from './advice.ts';
@@ -20,6 +25,7 @@ import {
   SLOW_BAR,
 } from './review.ts';
 import { TENDENCY_MS, type RhythmStretch } from './rhythmRun.ts';
+import { CLICK_MAX_BPM, CLICK_MIN_BPM } from './scaleClick.ts';
 import { LADDER_STEP, SCORE_TEMPO, TEMPOS } from './tempoLadder.ts';
 
 /** Steps a bar in the runs below. */
@@ -514,5 +520,185 @@ describe('what the run did to the review', () => {
     expect(reviewLine(null, null, false)).toBeNull();
     const before = reviewSchedule('p', [run('a', 0).session], run('a', 0).steps, FACTS, TZ);
     expect(reviewLine(before, before, false)).toBeNull();
+  });
+});
+
+/** A run at free tempo, four notes a second (♩ = 60 with four to the beat), measured. */
+function scale(findings: ScaleFinding[], over: Partial<ScaleRun> = {}): ScaleRun {
+  return {
+    measured: true,
+    provisional: false,
+    findings,
+    shown: 3,
+    place: true,
+    click: null,
+    perBeat: 4,
+    tempo: 4,
+    startTempo: 4,
+    calibrated: true,
+    ...over,
+  };
+}
+
+/** The same with the click at ♩ = 60, on it. */
+const clicked = (findings: ScaleFinding[], over: Partial<NonNullable<ScaleRun['click']>> = {}) =>
+  scale(findings, { click: { bpm: 60, tendency: 0, ...over } });
+
+describe('after a scale run', () => {
+  it('says nothing of a trill, repeated notes or chords: their thresholds are provisional', () => {
+    expect(scaleAdvice(scale(['trill', 'loudness'], { provisional: true }))).toBeNull();
+    expect(scaleAdvice(scale([], { provisional: true, measured: false }))).toBeNull();
+  });
+
+  it('too many mistakes to measure: slower, the click a fifth under the run’s tempo', () => {
+    expect(scaleAdvice(scale([], { measured: false }))).toEqual({
+      rule: 'slower',
+      action: { kind: 'click', bpm: 60 * SLOWER_SHARE },
+    });
+    expect(scaleAdvice({ ...clicked([]), measured: false })?.action).toEqual({
+      kind: 'click',
+      bpm: 48,
+    });
+    // Three notes to the beat: the same notes a second are a faster beat.
+    expect(scaleAdvice(scale([], { measured: false, perBeat: 3 }))?.action).toEqual({
+      kind: 'click',
+      bpm: 64,
+    });
+  });
+
+  it('says it without a button when the tempo is not known, or nothing slower can be set', () => {
+    expect(scaleAdvice(scale([], { measured: false, tempo: null }))).toEqual({
+      rule: 'slower',
+      action: null,
+    });
+    const slowest = { ...clicked([], { bpm: CLICK_MIN_BPM }), measured: false };
+    expect(scaleAdvice(slowest)).toEqual({ rule: 'slower', action: null });
+    // Faster than the click goes: its fastest is slower still.
+    expect(scaleAdvice(scale([], { measured: false, tempo: 16 }))?.action).toEqual({
+      kind: 'click',
+      bpm: CLICK_MAX_BPM,
+    });
+  });
+
+  it.each(['thumbUnder', 'fingerOver', 'pattern', 'hesitation'] as const)(
+    'a place named (%s): loop around it',
+    (finding) => {
+      expect(scaleAdvice(scale([finding, 'connection', 'loudness']))).toEqual({
+        rule: finding,
+        action: { kind: 'loop' },
+      });
+      expect(scaleAdvice(scale([finding], { place: false }))).toBeNull();
+    },
+  );
+
+  it('the tempo moved: the click at the tempo the run started at', () => {
+    expect(scaleAdvice(scale(['faster'], { tempo: 5, startTempo: 4.4 }))).toEqual({
+      rule: 'startTempo',
+      bpm: 66,
+      perBeat: 4,
+      action: { kind: 'click', bpm: 66 },
+    });
+    expect(scaleAdvice(scale(['slower'], { perBeat: 2, startTempo: 3 }))).toMatchObject({
+      rule: 'startTempo',
+      bpm: 90,
+      perBeat: 2,
+    });
+    // With the click, that is the click's tempo.
+    expect(scaleAdvice(clicked(['onClick', 'faster']))).toMatchObject({
+      rule: 'startTempo',
+      bpm: 60,
+    });
+  });
+
+  it('says nothing of a tempo the click cannot be set to', () => {
+    const slow = (CLICK_MIN_BPM - 1) / 60;
+    const fast = (CLICK_MAX_BPM + 1) / 60;
+    expect(scaleAdvice(scale(['faster'], { perBeat: 1, startTempo: slow }))).toBeNull();
+    expect(scaleAdvice(scale(['faster'], { perBeat: 1, startTempo: fast }))).toBeNull();
+    expect(
+      scaleAdvice(scale(['faster'], { perBeat: 1, startTempo: CLICK_MAX_BPM / 60 }))?.rule,
+    ).toBe('startTempo');
+    expect(scaleAdvice(scale(['faster'], { startTempo: null }))).toBeNull();
+  });
+
+  it('the hands apart: each hand alone, the right first', () => {
+    expect(scaleAdvice(scale(['apart', 'connection']))).toEqual({
+      rule: 'eachHand',
+      action: { kind: 'hands', hands: 'right' },
+    });
+  });
+
+  it('before or after the click: as rhythm mode’s tendency', () => {
+    const late = clicked(['clickLate'], { tendency: 28 });
+    expect(scaleAdvice({ ...late, calibrated: false })).toEqual({
+      rule: 'tendency',
+      ms: 28,
+      action: { kind: 'calibrate' },
+    });
+    expect(scaleAdvice(late)).toEqual({ rule: 'tendency', ms: 28, action: null });
+    const early = clicked(['clickEarly'], { tendency: -19 });
+    expect(scaleAdvice({ ...early, calibrated: false })).toEqual({
+      rule: 'tendency',
+      ms: -19,
+      action: null,
+    });
+  });
+
+  it('advises on the first sentence shown that names something to work on', () => {
+    // The run stopped, the keys were joined, the hands together: nothing to work on in those.
+    expect(scaleAdvice(scale(['stopped', 'hesitation', 'connection']))?.rule).toBe('hesitation');
+    expect(scaleAdvice(scale(['connection', 'pedal', 'faster']))?.rule).toBe('startTempo');
+    expect(scaleAdvice(scale(['together', 'connection', 'faster']))?.rule).toBe('startTempo');
+    expect(scaleAdvice(clicked(['onClick', 'hesitation']))?.rule).toBe('hesitation');
+    // The verdict's order is the order of rules.
+    expect(scaleAdvice(scale(['thumbUnder', 'hesitation', 'faster']))?.rule).toBe('thumbUnder');
+    expect(scaleAdvice(clicked(['clickLate', 'hesitation'], { tendency: 30 }))?.rule).toBe(
+      'tendency',
+    );
+    expect(scaleAdvice(scale(['hesitation', 'apart']))?.rule).toBe('hesitation');
+  });
+
+  it('says nothing of a problem the verdict has no room to show', () => {
+    const run = scale(['connection', 'pedal', 'loudness', 'faster']);
+    expect(scaleAdvice(run)).toBeNull();
+    expect(scaleAdvice({ ...run, shown: 4 })?.rule).toBe('startTempo');
+  });
+
+  it('even at free tempo: next, with the click at the run’s tempo', () => {
+    expect(scaleAdvice(scale(['connection', 'loudness']))).toEqual({
+      rule: 'even',
+      action: { kind: 'click', bpm: 60 },
+    });
+    expect(scaleAdvice(scale(['together', 'connection', 'loudness']))?.rule).toBe('even');
+    expect(scaleAdvice(scale([]))?.rule).toBe('even');
+  });
+
+  it('does not call a run even that stopped, or whose tempo the click cannot take', () => {
+    expect(scaleAdvice(scale(['stopped', 'connection']))).toBeNull();
+    expect(scaleAdvice(scale(['connection'], { tempo: null }))).toBeNull();
+    expect(scaleAdvice(scale(['connection'], { tempo: 16 }))).toBeNull();
+  });
+
+  it('even with the click: the next tempo', () => {
+    expect(scaleAdvice(clicked(['onClick', 'connection']))).toEqual({
+      rule: 'evenClick',
+      bpm: 60,
+      action: { kind: 'click', bpm: 60 + EVEN_STEP_BPM },
+    });
+    expect(EVEN_STEP_BPM).toBe(8);
+  });
+
+  it('with the click, even is said of notes the verdict says kept to it', () => {
+    expect(scaleAdvice(clicked(['onClick']))?.rule).toBe('evenClick');
+    expect(scaleAdvice(clicked(['noTendency', 'connection'], { tendency: null }))).toBeNull();
+  });
+
+  it('goes no faster than the click does', () => {
+    expect(
+      scaleAdvice(clicked(['onClick'], { bpm: CLICK_MAX_BPM - EVEN_STEP_BPM }))?.action,
+    ).toEqual({ kind: 'click', bpm: CLICK_MAX_BPM });
+    expect(
+      scaleAdvice(clicked(['onClick'], { bpm: CLICK_MAX_BPM - EVEN_STEP_BPM + 1 })),
+    ).toBeNull();
   });
 });

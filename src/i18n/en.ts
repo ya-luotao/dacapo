@@ -2691,6 +2691,18 @@ export const en = {
   'scales.repeats.shortest': 'Shortest up',
   'scales.repeats.upFor':
     'Each key was up for {ms} ms typically before it was struck again; {least} ms at the shortest, before {key}.',
+  'scales.advice.slower': 'Slower, until every note is right: evenness comes after.',
+  'scales.advice.thumbUnder':
+    'Loop around {key}, slowly, and move the thumb under while the finger before it plays.',
+  'scales.advice.fingerOver':
+    'Loop around {key}, slowly, and bring the finger over while the thumb plays.',
+  'scales.advice.pattern': 'Loop around {key}: the same finger each time.',
+  'scales.advice.hesitation': 'Loop around {key} until it runs through.',
+  'scales.advice.startTempo': 'With the click at ♩ = {bpm}, {n} a beat: the tempo you started at.',
+  'scales.advice.eachHand': 'Each hand alone, then together slowly.',
+  'scales.advice.even.click': 'Even at ♩ = {bpm}: next, ♩ = {next}.',
+  'scales.advice.even': 'Even. Next, with the click.',
+  'scales.advice.click': 'Click at {tempo}',
   'metronome.title': 'Metronome',
   'metronome.start': 'Start',
   'metronome.stop': 'Stop',

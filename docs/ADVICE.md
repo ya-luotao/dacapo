@@ -1,8 +1,8 @@
 # dacapo — Advice specification (what to work on next)
 
-Status: G2a (Pieces: the tempo ladder, the advice after a run, the review line) is built; G2b
-(Scales) and G2c (Cards) are planned. This extends [MVP.md](MVP.md) and the later specifications;
-their principles and fixed decisions still apply — **measure, don't guess** above all: every
+Status: G2a (Pieces: the tempo ladder, the advice after a run, the review line) and G2b (Scales:
+the advice for a run's verdict) are built; G2c (Cards) is planned. This extends [MVP.md](MVP.md)
+and the later specifications; their principles and fixed decisions still apply — **measure, don't guess** above all: every
 sentence of advice rests on a figure the summary already shows, and says which.
 
 Goal: a summary says what happened ("You speed up in bars 5–8", "Bar 7: 2.4 s per step, 3 wrong")
@@ -202,6 +202,35 @@ sessions and their figures, and a session of chosen items is stored as a session
   ("right hand: 8 of 16 bars steady · clean at 70%"). On the piece's page it is the mark in the
   tempo control ("70% · clean", for the hands chosen): no line of its own, so the control row
   stays one row.
+- **Scales: what each sentence says is data.** The summary builds the verdict's sentences as
+  before, each with its kind (`ScaleFinding` in `core/advice.ts`), and `scaleAdvice` reads the
+  kinds: the wording and the order of the sentences are unchanged.
+- **Scales: the first sentence with a row.** The verdict says in a fixed order things the table
+  has no row for: that the run stopped, that the notes kept to the click, that the hands kept
+  together, how the keys were joined, the pedal, the loudness. These are passed over, and the
+  advice is for the first sentence shown that names something to work on. Read to the letter,
+  "the first" would leave the row for a tempo that moved out of reach, since how the keys were
+  joined is said before it in every run with releases. A problem the verdict has no room to show
+  (after its three sentences) is not advised on.
+- **Scales: even** is said when no sentence of the whole verdict names a problem and the run was
+  played to its end; with the click, when the verdict says the notes kept to it (too few notes in
+  time to tell is not "even at ♩ = 60"). It is the verdict's finding, not a line drawn on the
+  spread, whose bands wait for S1.
+- **Scales: the place and the hands.** A crossing where the thumb passes under gets the sentence
+  above; one where a finger crosses over, "…and bring the finger over while the thumb plays." The
+  key named is the summary's own loop place (the note furthest off, or the first hesitation), and
+  what a loop is stands under the sentence, where the loop's button was. "The hands apart" takes
+  in a hand that comes ahead every time.
+- **Scales: the click's tempo.** Notes a second become beats a minute at the notes to the beat
+  the click has, or would have with the picker as it is. "Slower" is a fifth under the run's
+  tempo, no faster than ♩ = 160, and without a button when that is under ♩ = 40 or the tempo
+  could not be measured. "The tempo you started at" is the click's own in a run with the click,
+  and is not said when the click cannot be set to it (outside ♩ = 40–160). "Next, ♩ = 68" stops
+  at ♩ = 160.
+- **Scales: the buttons.** A button that sets the click starts the run as Start would (the
+  count-in, or the calibration offered first); "Right hand" at free tempo starts at the first
+  key. Before or after the click reads as rhythm mode's tendency, with the calibration for a run
+  that was late and never calibrated.
 - **Words.** A tempo reads "60%", as the tempo control writes it. In the Apple apps the delay is
   "the device's" (`pieces.advice.late.calibrate.app`): they have no computer to speak of.
 
@@ -209,5 +238,5 @@ sessions and their figures, and a session of chosen items is stored as a session
 
 1. ✓ **G2a Pieces** — `core/tempoLadder.ts`, `core/advice.ts` for wait, memory and rhythm runs, the
    review line, the ladder on the card and in the tempo control.
-2. **G2b Scales** — the advice for a run's verdict.
+2. ✓ **G2b Scales** — the advice for a run's verdict.
 3. **G2c Cards** — mastered just now, Practise these, the buttons on Progress, a level too far.

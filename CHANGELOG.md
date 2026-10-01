@@ -15,6 +15,17 @@ click's tempo and grid of scale runs played with it (from version 7), the takes 
 (from version 8), and assignments and kept reports (from version 9). Version 1 to 8 files still
 import.
 
+### What to work on next: scales (G2b, [docs/ADVICE.md](docs/ADVICE.md))
+
+- After a scale or technique run, **one sentence under the verdict says what to work on
+  next**, for the first thing the verdict names: a crossing, a note of each group or a
+  hesitation, a loop around it; a tempo that moved, the click at the tempo you started at; the
+  hands apart, each hand alone; after the click throughout and never calibrated, the
+  calibration; too many mistakes, slower with the click. A run with nothing to name is told the
+  next step: with the click, or the click 8 beats a minute faster.
+- Its button sets the page up, and with the click the run starts. A trill, repeated notes and
+  chords get no advice yet.
+
 ### What to work on next: pieces (G2a, [docs/ADVICE.md](docs/ADVICE.md))
 
 - After a run of a piece its summary says **in one sentence what to work on next**, with the

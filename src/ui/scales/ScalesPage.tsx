@@ -120,6 +120,8 @@ function Scales({ search }: { search: string }) {
   const [loop, setLoop] = useState<LoopPlace | null>(null);
   // A clicked run is on: its settings stay put until it ends.
   const [clicking, setClicking] = useState(false);
+  // An advice's button set the page up with the click: the run starts by itself (docs/ADVICE.md).
+  const [startNow, setStartNow] = useState(false);
   const focus = useFocusState();
   // In focus mode the choice of scale folds away until asked for.
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -167,10 +169,22 @@ function Scales({ search }: { search: string }) {
     stage.current?.focus({ preventScroll: true });
   }
 
+  /** An advice's button: the same exercise with the click at a tempo, and the run starts. */
+  function adviseClick(bpm: number) {
+    setClick({ ...click, on: true, bpm });
+    setStartNow(true);
+  }
+
+  /** An advice's button: the same exercise with one hand (with the click, the run starts). */
+  function adviseHands(hands: Hand) {
+    setExercise({ ...exercise, hands });
+    setStartNow(click.on);
+    stage.current?.focus({ preventScroll: true });
+  }
+
   // The grid as played: the notes to the beat chosen, or the exercise's own rhythm.
-  const clickSettings: ClickSettings | null = click.on
-    ? { bpm: click.bpm, perBeat: layoutOf(exercise, click.perBeat).perBeat as GridPerBeat }
-    : null;
+  const perBeat = layoutOf(exercise, click.perBeat).perBeat as GridPerBeat;
+  const clickSettings: ClickSettings | null = click.on ? { bpm: click.bpm, perBeat } : null;
   // A new session view for another scale or another grid: its run and result belong to those.
   const sessionKey = `${exerciseKey(exercise)}:${clickSettings ? `${clickSettings.bpm}:${clickSettings.perBeat}` : 'free'}`;
 
@@ -216,9 +230,14 @@ function Scales({ search }: { search: string }) {
             key={sessionKey}
             exercise={exercise}
             click={clickSettings}
+            gridPerBeat={perBeat}
             slot={slot}
             onLoop={startLoop}
             onClicking={setClicking}
+            startNow={startNow}
+            onStartNow={setStartNow}
+            onClickAt={adviseClick}
+            onHands={adviseHands}
           />
         )}
       </div>
@@ -261,16 +280,29 @@ function ScaleSession({
   exercise,
   click,
   slot,
+  gridPerBeat,
   onLoop,
   onClicking,
+  startNow,
+  onStartNow,
+  onClickAt,
+  onHands,
 }: {
   exercise: ScaleExercise;
   /** With the click: its tempo and notes per beat; null at free tempo. */
   click: ClickSettings | null;
+  /** The notes to the beat of the click's grid, on or off: what an advice would set it to. */
+  gridPerBeat: GridPerBeat;
   slot: SessionSlot;
   onLoop: (place: LoopPlace) => void;
   /** A clicked run starts or ends. */
   onClicking: (on: boolean) => void;
+  /** An advice's button set the page up: with the click, the run starts by itself. */
+  startNow: boolean;
+  onStartNow: (on: boolean) => void;
+  /** An advice's buttons: the same exercise with the click at a tempo, or with one hand. */
+  onClickAt: (bpm: number) => void;
+  onHands: (hands: Hand) => void;
 }) {
   const t = useT();
   const title = useExerciseTitle();
@@ -434,6 +466,22 @@ function ScaleSession({
     }
     startClicked();
   }
+
+  // An advice's button asked for a run (docs/ADVICE.md): it starts as Start would, a moment
+  // later, so that a page set up twice over (React's StrictMode does that while developing)
+  // starts once.
+  const start = useRef(onStart);
+  useEffect(() => {
+    start.current = onStart;
+  });
+  useEffect(() => {
+    if (!startNow) return;
+    const id = setTimeout(() => {
+      onStartNow(false);
+      if (click) start.current();
+    }, 0);
+    return () => clearTimeout(id);
+  }, [startNow, onStartNow, click]);
 
   const analysis = useMemo(() => (run.phase === 'done' ? analyze(run) : null), [run]);
   const ok = analysis?.quality === 'ok';
@@ -690,6 +738,13 @@ function ScaleSession({
           pedal={usedPedal(run)}
           click={clickResult}
           onLoop={onLoop}
+          advise={{
+            perBeat: gridPerBeat,
+            calibrated: latency !== null,
+            onClick: onClickAt,
+            onHands,
+            onCalibrate: () => setCalibration('open'),
+          }}
           kind={
             exercise.type === 'trill'
               ? 'trill'

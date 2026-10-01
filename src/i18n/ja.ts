@@ -2676,6 +2676,19 @@ export const ja: Dictionary = {
   'scales.repeats.shortest': '最も短い上がり時間',
   'scales.repeats.upFor':
     'もう一度弾く前に鍵盤が上がっていた時間はふつう{ms}ミリ秒、最も短いのは{key}の前の{least}ミリ秒でした。',
+  'scales.advice.slower':
+    'すべての音を正しく弾けるまで、ゆっくりと。粒をそろえるのはそのあとです。',
+  'scales.advice.thumbUnder':
+    '{key}の前後をゆっくりループしましょう。前の指が弾いているあいだに、親指をくぐらせておきます。',
+  'scales.advice.fingerOver':
+    '{key}の前後をゆっくりループしましょう。親指が弾いているあいだに、指を越えさせておきます。',
+  'scales.advice.pattern': '{key}の前後をループしましょう。毎回同じ指で。',
+  'scales.advice.hesitation': '{key}の前後を、止まらずに弾けるまでループしましょう。',
+  'scales.advice.startTempo': 'クリックに合わせて、♩ = {bpm}、1拍に{n}音で。弾き始めのテンポです。',
+  'scales.advice.eachHand': 'まず片手ずつ、それからゆっくり両手で。',
+  'scales.advice.even.click': '♩ = {bpm}で粒がそろっています。次は♩ = {next}です。',
+  'scales.advice.even': '粒がそろっています。次はクリックに合わせて。',
+  'scales.advice.click': 'クリック（{tempo}）',
   'metronome.title': 'メトロノーム',
   'metronome.start': '開始',
   'metronome.stop': '停止',
