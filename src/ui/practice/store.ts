@@ -98,6 +98,11 @@ export interface PracticeStore {
   /** Starts reading a piece's step records unless they are loaded or loading. */
   loadPieceSteps: (pieceId: string) => void;
   subscribePieceSteps: (onChange: () => void) => () => void;
+  /**
+   * The step records of these runs (piece sessions), read when asked and not kept: for figures
+   * over many pieces at once, such as the trends on Progress. Each run's in order.
+   */
+  sessionPieceSteps: (sessionIds: readonly string[]) => Promise<PieceStep[]>;
   /** Every step record, for the export file. */
   allPieceSteps: () => Promise<PieceStep[]>;
   pieceStepIds: () => Promise<Set<string>>;
@@ -121,6 +126,8 @@ export interface PracticeStore {
   /** Starts reading an exercise's scale runs unless they are loaded or loading. */
   loadScaleRuns: (exercise: string) => void;
   subscribeScaleRuns: (onChange: () => void) => () => void;
+  /** The scale runs of these sessions, read when asked and not kept; each session's in order. */
+  sessionScaleRuns: (sessionIds: readonly string[]) => Promise<StoredScaleRun[]>;
   /** Every scale run, for the export file. */
   allScaleRuns: () => Promise<StoredScaleRun[]>;
   scaleRunIds: () => Promise<Set<string>>;
@@ -588,6 +595,13 @@ export function createPracticeStore({
       stepListeners.add(onChange);
       return () => void stepListeners.delete(onChange);
     },
+    async sessionPieceSteps(sessionIds) {
+      const steps = await enqueue(async (repo) =>
+        (await Promise.all(sessionIds.map((sessionId) => repo.pieceSteps({ sessionId })))).flat(),
+      );
+      if (!steps) throw new Error('Step records could not be read');
+      return steps;
+    },
     async allPieceSteps() {
       const steps = await enqueue((repo) => repo.allPieceSteps());
       if (!steps) throw new Error('Step records could not be read');
@@ -636,6 +650,13 @@ export function createPracticeStore({
     subscribeScaleRuns(onChange) {
       runListeners.add(onChange);
       return () => void runListeners.delete(onChange);
+    },
+    async sessionScaleRuns(sessionIds) {
+      const runs = await enqueue(async (repo) =>
+        (await Promise.all(sessionIds.map((sessionId) => repo.scaleRuns({ sessionId })))).flat(),
+      );
+      if (!runs) throw new Error('Scale runs could not be read');
+      return runs;
     },
     async allScaleRuns() {
       const runs = await enqueue((repo) => repo.allScaleRuns());

@@ -8,12 +8,13 @@ import { FamilyProgress } from '../progress/families/FamilyProgress.tsx';
 import { WeaknessHeatmap } from '../progress/heatmap/WeaknessHeatmap.tsx';
 import { PracticeFigures } from '../progress/PracticeFigures.tsx';
 import { SessionList } from '../progress/SessionList.tsx';
+import { Trends } from '../progress/trends/Trends.tsx';
 import { useNow } from '../progress/useNow.ts';
 
 export function ProgressPage() {
   const t = useT();
   const { loaded } = useStorageStatus();
-  const { sessions, stats, answers } = usePractice();
+  const { sessions, stats, answers, attempts } = usePractice();
   const now = useNow();
   const log = useMemo(() => practiceLog(sessions, { now }), [sessions, now]);
   const piecesToday = useMemo(() => {
@@ -38,6 +39,7 @@ export function ProgressPage() {
           <DayHistory history={log.history} totals={log.totals} today={log.today} />
           <WeaknessHeatmap stats={stats} />
           <FamilyProgress answers={answers} />
+          <Trends sessions={sessions} attempts={attempts} answers={answers} today={log.today} />
           <SessionList sessions={sessions} />
         </>
       )}

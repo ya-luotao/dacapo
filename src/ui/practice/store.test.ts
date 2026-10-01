@@ -524,6 +524,21 @@ describe('piece runs', () => {
     expect(store.getPieceSteps('petzold-minuet-in-g')).toBe(before);
   });
 
+  it('reads the steps of the runs asked for, across pieces, without keeping them', async () => {
+    const r1 = sampleRun('r1', 4);
+    const r2 = sampleRun('r2', 3, { pieceId: 'other' });
+    const r3 = sampleRun('r3', 2);
+    await seed(async (repo) => {
+      for (const step of [...r1.steps, ...r2.steps, ...r3.steps])
+        await repo.addPieceStep(step, null);
+    });
+    const store = startStore();
+    await loaded(store);
+    expect(await store.sessionPieceSteps(['r2', 'r1'])).toEqual([...r2.steps, ...r1.steps]);
+    expect(await store.sessionPieceSteps([])).toEqual([]);
+    expect(store.getPieceSteps('petzold-minuet-in-g')).toBeNull();
+  });
+
   it('keeps two tabs in step: new steps, sessions, deleted records and imports', async () => {
     const tabA = startStore();
     const tabB = startStore();
@@ -672,6 +687,21 @@ describe('scale runs', () => {
     const later = sampleScaleRun('k1', 4);
     store.recordScaleRun(later, session);
     expect(store.getScaleRuns('major:C:1:right')).toEqual([...runs, late, later]);
+  });
+
+  it('reads the runs of the sessions asked for, across exercises, without keeping them', async () => {
+    const k1 = sampleScaleSession('k1', 2);
+    const k2 = sampleScaleSession('k2', 1, { exercise: 'major:D:2:left' });
+    const k3 = sampleScaleSession('k3', 1);
+    await seed(async (repo) => {
+      for (const { runs, session } of [k1, k2, k3]) {
+        for (const run of runs) await repo.addScaleRun(run, session);
+      }
+    });
+    const store = startStore();
+    await loaded(store);
+    expect(await store.sessionScaleRuns(['k1', 'k2'])).toEqual([...k1.runs, ...k2.runs]);
+    expect(store.getScaleRuns('major:C:1:right')).toBeNull();
   });
 
   it('keeps two tabs in step: new runs, their sessions and imports', async () => {

@@ -15,6 +15,25 @@ sessions go in the same lists), the
 click's tempo and grid of scale runs played with it (from version 7), and the takes of piece runs
 (from version 8). Version 1 to 7 files still import.
 
+### How you are doing (Q1, [docs/PROGRESS.md](docs/PROGRESS.md))
+
+- Progress gains **How you are doing**, above the sessions: a small chart for each practice with
+  three weeks or more of enough practice, a figure per week over the last 26 weeks (your week, as
+  the year grid has it): reading notes (median time to a right answer), sight-reading (notes right
+  and in time at first sight), reading theory (share right), ear and rhythm by ear (share right
+  without "Hear again"), chord symbols (share right), in time (median distance from the beat of
+  pieces in rhythm mode, rhythm lines, rhythms tapped back by ear and scales with the click),
+  scales (median timing spread of scale and arpeggio runs as a share of a note; technique is left
+  out) and pieces (steps right the first time in wait mode).
+- Under each, a sentence compares the last four weeks with the four before, in words and with
+  both figures ("Faster than a month ago: 1.5 s against 1.7 s"; "About the same" within 5 % for
+  a time or a spread, within 2 percentage points for a share). Where
+  levels differ, the comparison is made level by level within the levels both periods have, and
+  the share of each level is shown under the chart.
+- A practice with too few weeks gets a line saying what a week needs and how far this week is.
+  Each chart has a table of every week. Nothing new is stored: piece steps and clicked scale runs
+  of those weeks are read when the page opens.
+
 ### Rhythm dictation on Ear (R2, [docs/READING.md](docs/READING.md))
 
 - **Ear** gains a fifth family, **Rhythm**: a bar of count-in, then one bar played on one key at

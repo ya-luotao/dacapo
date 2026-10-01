@@ -89,7 +89,10 @@ practising the notes you are slowest at. Progress is visible day by day.
   then practised as a piece; and on the Ear page, cadences by ear: authentic, plagal, half or
   deceptive, named after four chords ([docs/HARMONY.md](docs/HARMONY.md)).
 - **Practice log.** Flashcard sessions and free play are saved: minutes today, a daily streak
-  (5 minutes a day), a 30-day chart and the list of sessions.
+  (5 minutes a day), a 30-day chart and the list of sessions. **How you are doing** charts each
+  practice week by week over half a year (reading speed, sight-reading, theory, ear, rhythm by ear,
+  chord symbols, timing against the beat, scale evenness, pieces right the first time) and says in words how the last four weeks
+  compare with the four before, level for level where levels differ.
 - **Weakness heatmap.** Every note you have practised, on the grand staff or on the keyboard,
   coloured by how fast you usually find it and marked with how often you missed it lately,
   with the three weakest notes named and a table view.
