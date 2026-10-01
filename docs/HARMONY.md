@@ -667,7 +667,8 @@ written)`). The key is kept per piece in this browser. While a piece is transpos
   once its session is, the rest after Stop once the keys held then are let go. It validates as any
   take, so older builds keep it. `SYNC_SCHEMA` 15 (14 is R2's); the export file needs no new
   version.
-- **Played back with its backing.** P5's playback is not built, so Improvise plays its own takes:
+- **Played back with its backing.** P5's playback follows a score and Improvise has none (it was
+  built before P5, too), so Improvise plays its own takes:
   **Play back with the backing** on the feedback and on each of **Your improvisations** (the six
   latest, with when, how long and the share of chord tones on 1 and 3). The take's keys play with
   their velocities and the sustain pedal in their lengths (the scheduler sends notes, not

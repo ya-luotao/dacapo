@@ -1,6 +1,6 @@
 # dacapo — Pieces specification
 
-Status: planned (after MVP 0.1.0). This extends [MVP.md](MVP.md); its principles and fixed
+Status: P0–P7 are built (after MVP 0.1.0, not yet in a release). This extends [MVP.md](MVP.md); its principles and fixed
 decisions still apply (staff first, local data, English of record, i18n in every UI language, 3-day
 dependency cooldown, no backend).
 

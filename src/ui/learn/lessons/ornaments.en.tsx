@@ -258,9 +258,10 @@ export default function Lesson() {
           />
         </Plate>
         <p>
-          The Pieces draw every ornament of the Minuets. For now they count an ornamented note as
-          its main note, so you may play the ornament or leave it out, and they leave the grace
-          notes out.
+          The Pieces draw every ornament of the Minuets and wait for the main note of each: the
+          ornament's other notes, and the grace notes, are neither right nor wrong, so you may play
+          the ornament or leave it out. After a run, the Ornaments tab of the Expression panel says
+          which you played, which in part and which you left out.
         </p>
       </Section>
     </>

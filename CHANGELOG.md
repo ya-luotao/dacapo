@@ -476,7 +476,7 @@ import.
   appoggiatura on it, mordents, turns and trills in thirty-seconds, each with the neighbouring
   notes of the key and the bar (or the accidental printed with the ornament). In wait mode a grace
   note of the other hand sounds once you complete the step. Grace notes are still no step to play:
-  accepting ornaments when you play them comes later (X4).
+  accepting ornaments when you play them is X4, above.
 - The import report no longer says that grace notes and ornaments are left out.
 - **The library's markings**: the Musette, Für Elise, La Candeur, Old French Song, Morning Prayer,
   Chopin's Prelude in C minor and the Gymnopédie No. 1 now show the dynamics, hairpins, slurs,

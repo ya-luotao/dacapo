@@ -6,7 +6,8 @@ import { useInput } from './input/context.ts';
 export const KEEP_AWAKE_IDLE_MS = 5 * 60_000;
 
 /**
- * Keeps the screen on while `active` (in the Apple app; nothing in a browser), and marks it as
+ * Keeps the screen on while `active` (natively in the Apple app; in a browser through the Screen
+ * Wake Lock API where it has one, see `lib/shell.ts`), and marks it as
  * practice, which sync waits for (`beginPractice`). With `idleMs`, the screen is let go after that
  * long without a key played and taken again at the next key: a session that waits for the player
  * should not keep a forgotten iPad awake. The practice lasts as long as `active`.
