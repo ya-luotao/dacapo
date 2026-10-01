@@ -189,6 +189,7 @@ Chinese and Latin letters, digits and placeholders (`第 {n} 张`, `MIDI 键盘`
 | repeated notes / trill / double notes, thirds                  | 同音反复 / 颤音 / 双音、三度双音             |
 | octaves / scale in octaves / diminished, dominant 7th arpeggio | 八度 / 八度音阶 / 减七、属七和弦琶音         |
 | rate (of a trill) / key up (between repeats)                   | 频率 / 抬键时间                              |
+| play back (a run) / compare / as written                       | 回放 / 对照 / 按谱                           |
 
 ## Traditional Chinese, Taiwan (`zh-TW`)
 
@@ -296,6 +297,7 @@ terms throughout. Address the learner as 你, as zh-CN does.
 | repeated notes / trill / double notes, thirds                  | 同音反覆 / 顫音 / 雙音、三度雙音           | 同音反复 / 颤音 / 三度双音      |
 | octaves / scale in octaves / diminished, dominant 7th arpeggio | 八度 / 八度音階 / 減七、屬七和弦琶音       | 八度音阶                        |
 | rate (of a trill) / key up (between repeats)                   | 頻率 / 抬鍵時間                            | 频率 / 抬键时间                 |
+| play back (a run) / compare / as written                       | 重播 / 對照 / 照譜                         | 回放 / 对照 / 按谱              |
 
 Keys in titles: `G 大調`, `C 大調`. Composers as Taiwan writes them: 貝多芬, 巴哈 (not 巴赫), 舒曼,
 布爾格彌勒.
@@ -402,6 +404,7 @@ verb phrases for labels and buttons (設定, 開始, もう一度, 補正する)
 | repeated notes / trill / double notes, thirds                  | 同音連打 / トリル / 重音、3度の重音                                |
 | octaves / scale in octaves / diminished, dominant 7th arpeggio | オクターブ / オクターブの音階 / 減七・属七の和音のアルペジオ       |
 | rate (of a trill) / key up (between repeats)                   | 速さ / 鍵盤が上がっている時間                                      |
+| play back (a run) / compare / as written                       | 演奏を再生 / 聴き比べ / 楽譜どおり                                 |
 
 Keys in titles follow Japanese editions: ハ長調, ト長調. Middle C is 中央C. Scale names on the Scales
 page keep the letter names of the app (`D長音階`, `G♯和声的短音階`), not ニ長音階.
@@ -509,6 +512,7 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 | repeated notes / trill / double notes, thirds                  | 동음 반복 / 트릴 / 겹음, 3도 겹음                                    |
 | octaves / scale in octaves / diminished, dominant 7th arpeggio | 옥타브 / 옥타브 음계 / 감7·딸림7화음 아르페지오                      |
 | rate (of a trill) / key up (between repeats)                   | 빠르기 / 건반이 올라온 시간                                          |
+| play back (a run) / compare / as written                       | 다시 듣기 / 비교 / 악보대로                                          |
 
 Keys in titles use letters: G장조, C장조, matching the letter names in the app. Composer names
 follow the National Institute of Korean Language: 루트비히 판 베토벤, 요한 제바스티안 바흐.

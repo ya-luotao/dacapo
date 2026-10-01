@@ -24,6 +24,8 @@ interface ScoreViewProps {
   step: Step | null;
   /** Keys of the step already played. */
   pressed: readonly number[];
+  /** A wrong key fell on the step (a run played back): the cursor says so. */
+  cursorWrong?: boolean;
   hands: HandSelection;
   onStatus: (status: ScoreStatus) => void;
   /** Drawn behind the notes, e.g. tints per bar; placed with the bars' boxes. */
@@ -131,6 +133,7 @@ export function ScoreView({
   title,
   step,
   pressed,
+  cursorWrong = false,
   hands,
   onStatus,
   behind,
@@ -388,7 +391,11 @@ export function ScoreView({
       <div className="score-page" ref={page}>
         <div className="score-layer" aria-hidden="true">
           {behind?.(boxes)}
-          <div ref={band} className="score-cursor" hidden />
+          <div
+            ref={band}
+            className={cursorWrong ? 'score-cursor is-wrong' : 'score-cursor'}
+            hidden
+          />
         </div>
         <div
           className="score-host"

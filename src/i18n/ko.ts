@@ -1693,6 +1693,27 @@ export const ko: Dictionary = {
     '이 연주는 친 내용이 기록되지 않았어요. dacapo가 연주를 기록하기 전에 친 연주예요.',
   'pieces.runs.changed': '이 연주 뒤로 곡의 음표가 바뀌어서, 친 내용과 맞지 않아요.',
 
+  'pieces.playback': '다시 듣기',
+  'pieces.playback.help':
+    '친 그대로 악기로 다시 들려줘요. 건반마다 세기와 누르고 있던 길이, 페달까지 그대로이고, 악보가 따라가요.',
+  'pieces.playback.play': '재생',
+  'pieces.playback.run': '{when} 연주',
+  'pieces.playback.this': '이번 연주',
+  'pieces.playback.region': '다시 듣는 중: {title}',
+  'pieces.playback.written': '악보대로',
+  'pieces.playback.yours': '내 연주',
+  'pieces.playback.paused': '일시정지됨',
+  'pieces.playback.wrong': '틀린 음: {notes}',
+  'pieces.playback.from': '시작 마디',
+  'pieces.playback.from.label': '다시 듣기를 시작할 마디',
+  'pieces.playback.compare': '비교',
+  'pieces.playback.compare.off': '끄기',
+  'pieces.playback.compare.bar': '마디마다',
+  'pieces.playback.compare.whole': '한 번에',
+  'pieces.playback.compare.help':
+    '악보대로의 소리를 이 연주의 템포로 먼저 들려주고, 이어서 내 연주를 들려줘요. 마디마다 또는 한 번에 비교해요. 구간 반복은 첫 바퀴로 비교해요.',
+  'pieces.playback.close': '닫기',
+
   'pieces.weak.metric': '약한 마디 기준',
   'pieces.weak.metric.hesitation': '망설임',
   'pieces.weak.metric.timing': '타이밍',

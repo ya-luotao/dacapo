@@ -109,7 +109,9 @@ practising the notes you are slowest at. Progress is visible day by day.
   afterwards you see how many came in time, whether you tend to play early or late, and where you
   sped up or slowed down. "Weak bars" tints each bar by how long you hesitated there, or how far
   off the beat you were, in your last runs, and one click loops the weakest ones. If the file has
-  fingering, the keys marked on the keyboard show which finger to use.
+  fingering, the keys marked on the keyboard show which finger to use. Any run can be played back
+  as you played it, with the score following and wrong notes shown where they fell, and compared
+  bar by bar with the score as written.
 - **Scales, measured for evenness.** Major, the three minors, chromatic and the major and minor
   arpeggios in every key, one to four octaves, one hand, both, or in contrary motion from one
   tonic, drawn with Hanon's fingering. Play at your own tempo or with the

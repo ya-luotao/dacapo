@@ -263,6 +263,15 @@ export interface DemoNote {
   /** Milliseconds from the start of the span. */
   on: number;
   off: number;
+  /** As played (a run played back); absent: the player's velocity. */
+  velocity?: number;
+}
+
+/** A pedal's position at a moment of the plan: a run played back keeps its pedals. */
+export interface DemoControl {
+  at: number;
+  controller: number;
+  value: number;
 }
 
 export interface DemoPlan {
@@ -276,6 +285,13 @@ export interface DemoPlan {
   start: number;
   /** Go round until stopped. */
   loop: boolean;
+  /** Pedals as played, sorted by time (a run played back); absent for the demo. */
+  controls?: DemoControl[];
+  /**
+   * Moments, sorted, at which what the page shows changes besides the step (a key of a run
+   * played back goes down or up): the player tells its listeners as each one passes.
+   */
+  cues?: number[];
 }
 
 /** Whose notes a demo plays: the selected hands; with both, the whole score. */

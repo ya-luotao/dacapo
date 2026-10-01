@@ -7511,6 +7511,81 @@ select.is-compact {
   font-size: 0.875rem;
 }
 
+/*
+ * Playing a run back (P5): the sheets give way to the score, and the transport takes the status
+ * line's place under it. A wrong key turns the cursor to the wrong colour where it fell.
+ */
+.piece-sheets {
+  display: contents;
+}
+
+.piece-sheets[hidden] {
+  display: none;
+}
+
+.score-cursor.is-wrong {
+  background: var(--bad-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--bad) 40%, transparent);
+}
+
+.playback {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.5rem;
+}
+
+.playback-status {
+  min-width: 0;
+}
+
+.playback-wrong {
+  color: var(--bad);
+}
+
+.playback-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-inline-start: auto;
+}
+
+.playback-controls fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.play-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.play-back svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  fill: currentColor;
+}
+
+.run-notice {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.your-runs-play {
+  margin: 0.75rem 0 0;
+}
+
+@media (max-width: 47.99rem) {
+  .playback-controls {
+    margin-inline-start: 0;
+  }
+}
+
 /* "Your runs": the piece's past runs, laid over the score. */
 .your-runs {
   max-width: 44rem;

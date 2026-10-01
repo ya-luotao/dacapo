@@ -1717,6 +1717,27 @@ export const en = {
   'pieces.runs.changed':
     'The notes of this piece have changed since this run, so what was played no longer matches them.',
 
+  'pieces.playback': 'Play back',
+  'pieces.playback.help':
+    'Plays the run on your instrument as you played it, each key as hard and as long as you held it, and the pedal, with the score following.',
+  'pieces.playback.play': 'Play',
+  'pieces.playback.run': 'Your run of {when}',
+  'pieces.playback.this': 'This run',
+  'pieces.playback.region': 'Playing back: {title}',
+  'pieces.playback.written': 'As written',
+  'pieces.playback.yours': 'As you played it',
+  'pieces.playback.paused': 'paused',
+  'pieces.playback.wrong': 'Wrong note: {notes}',
+  'pieces.playback.from': 'From bar',
+  'pieces.playback.from.label': 'Play back from bar',
+  'pieces.playback.compare': 'Compare',
+  'pieces.playback.compare.off': 'Off',
+  'pieces.playback.compare.bar': 'Bar by bar',
+  'pieces.playback.compare.whole': 'All at once',
+  'pieces.playback.compare.help':
+    'Plays the bars as written, at the tempo of the run, then as you played them: a bar at a time, or all of them at once. A loop is compared on its first time round.',
+  'pieces.playback.close': 'Close',
+
   'pieces.weak.metric': 'Weak bars by',
   'pieces.weak.metric.hesitation': 'Hesitation',
   'pieces.weak.metric.timing': 'Timing',

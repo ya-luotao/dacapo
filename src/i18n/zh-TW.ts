@@ -1639,6 +1639,27 @@ export const zhTW: Dictionary = {
   'pieces.runs.noTake': '這一遍沒有保存彈奏的紀錄：它是在 dacapo 開始保存演奏之前彈的。',
   'pieces.runs.changed': '這首樂曲的音符在這一遍之後改過了，彈奏的紀錄和它對不上。',
 
+  'pieces.playback': '重播',
+  'pieces.playback.help':
+    '在樂器上照你彈的樣子重播這一遍：每個鍵的力度、按住多久，還有踏板，樂譜跟著走。',
+  'pieces.playback.play': '播放',
+  'pieces.playback.run': '{when} 彈的一遍',
+  'pieces.playback.this': '這一遍',
+  'pieces.playback.region': '重播：{title}',
+  'pieces.playback.written': '照譜',
+  'pieces.playback.yours': '你彈的',
+  'pieces.playback.paused': '已暫停',
+  'pieces.playback.wrong': '錯音：{notes}',
+  'pieces.playback.from': '從小節',
+  'pieces.playback.from.label': '從哪個小節開始重播',
+  'pieces.playback.compare': '對照',
+  'pieces.playback.compare.off': '關',
+  'pieces.playback.compare.bar': '逐小節',
+  'pieces.playback.compare.whole': '整段',
+  'pieces.playback.compare.help':
+    '先照譜、用這一遍的速度彈這些小節，再播你彈的：一小節一小節對照，或整段一起。循環只對照第一輪。',
+  'pieces.playback.close': '關閉',
+
   'pieces.weak.metric': '弱點小節依據',
   'pieces.weak.metric.hesitation': '猶豫',
   'pieces.weak.metric.timing': '節奏',

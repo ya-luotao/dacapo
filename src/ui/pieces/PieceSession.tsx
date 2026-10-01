@@ -26,7 +26,20 @@ import {
 } from '../../core/playback.ts';
 import type { TrillStart } from '../../core/ornaments.ts';
 import { rhythmPlan } from '../../core/rhythm.ts';
-import { PEDALS_UP, type PedalPositions, type TakeInput } from '../../core/takes.ts';
+import {
+  PEDALS_UP,
+  type PedalPositions,
+  type TakeEvent,
+  type TakeInput,
+} from '../../core/takes.ts';
+import {
+  comparePlayback,
+  keysStruck,
+  playbackAt,
+  takePlayback,
+  type PlaybackRun,
+  type TakePlayback,
+} from '../../core/takePlayback.ts';
 import { summarizeRhythm } from '../../core/rhythmRun.ts';
 import { playOrder, type RepeatMode } from '../../core/repeats.ts';
 import { buildSteps, keyRange, type HandSelection } from '../../core/score.ts';
@@ -77,6 +90,8 @@ import {
 } from './expressionPrefs.ts';
 import { SaveTake } from './SaveTake.tsx';
 import { YourRuns } from './YourRuns.tsx';
+import { PlaybackBar, type CompareChoice } from './PlaybackBar.tsx';
+import { useLogFormat } from '../progress/format.ts';
 import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
 
 const SHOW_KEYS_PREF = 'dacapo.pieces.showKeys';
@@ -151,6 +166,10 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
   const [accompanist] = useState(() => createAccompanist(output.scheduler, browserClock));
   const demo = useSyncExternalStore(player.subscribe, player.getState);
   const demoStep = useSyncExternalStore(player.subscribe, player.currentStep);
+  const demoCue = useSyncExternalStore(player.subscribe, player.cue);
+  /** A run played back (docs/PIECES.md, "Play back your run"): the sheets give way to the score. */
+  const [playback, setPlayback] = useState<OpenPlayback | null>(null);
+  const log = useLogFormat();
   const listening = demo !== 'stopped';
   const metronome = useMetronome();
   const { player: rhythmPlayer, snapshot: beat } = useRhythmPlayer(
@@ -302,6 +321,7 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
     if (player.getState() !== 'stopped') player.stop();
     else output.scheduler.panic();
     accompanist.reset();
+    setPlayback(null);
   }
 
   const restart = () => {
@@ -336,11 +356,11 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
   // Keys play the wait mode (except while the demo plays), or are timed in a rhythm run. Key-ups
   // and pedals go to the run's take while it may be open (from a key sent to the run until a
   // render says otherwise), so nothing else re-renders the page.
-  const keysTo = useRef({ rhythmMode, calibrating });
+  const keysTo = useRef({ rhythmMode, calibrating, playingBack: false });
   const takeOpen = useRef(false);
   const pedals = useRef<PedalPositions>(PEDALS_UP);
   useLayoutEffect(() => {
-    keysTo.current = { rhythmMode, calibrating };
+    keysTo.current = { rhythmMode, calibrating, playingBack: playback !== null };
     takeOpen.current = rhythmMode
       ? rhythm.take !== null && !rhythmTakeDone(rhythm)
       : run.take !== null && !takeDone(run);
@@ -373,7 +393,8 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
           dispatchRhythm({ type: 'played', result, midi, velocity, time });
           return;
         }
-        if (player.getState() !== 'stopped') return;
+        // Not while the demo or a run played back is on (or the transport is open).
+        if (player.getState() !== 'stopped' || keysTo.current.playingBack) return;
         takeOpen.current = true;
         dispatch({
           type: 'press',
@@ -483,7 +504,7 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
     const at = player.position();
     setTempo(next);
     writePiecePrefs(piece.id, { tempo: next });
-    if (state === 'stopped' || !at) return;
+    if (state === 'stopped' || !at || playback) return;
     const retimed = demoPlan({
       score,
       order,
@@ -571,6 +592,60 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
     settle();
   }
 
+  /** The plan of a run played back: as it was played, or compared with the score as written. */
+  function playbackOf(source: PlaybackSource, compare: CompareChoice): TakePlayback | null {
+    const input: PlaybackRun = {
+      score,
+      hands: source.settings.hands,
+      repeats: source.settings.repeats,
+      loop: source.settings.loop,
+      mode: source.mode,
+      tempo: source.settings.tempo,
+      latency: source.settings.latency,
+      events: source.events,
+      trillStart,
+    };
+    return compare === 'off' ? takePlayback(input) : comparePlayback(input, compare);
+  }
+
+  /** Plays a run back: whatever plays stops, and listening is no hesitation. */
+  function startPlayback(source: PlaybackSource) {
+    const data = playbackOf(source, 'off');
+    if (!data) return;
+    silence();
+    dispatch({ type: 'pauseClock' });
+    setPlayback({ source, compare: 'off', data });
+    player.play(data.plan, DEMO_VELOCITY);
+  }
+
+  function togglePlayback() {
+    if (!playback) return;
+    const state = player.getState();
+    if (state === 'playing') player.pause();
+    else if (state === 'paused') player.resume();
+    else player.play(playback.data.plan, DEMO_VELOCITY);
+  }
+
+  function playbackFrom(measure: number) {
+    const bar = playback?.data.bars.find((b) => b.measure === measure);
+    if (!playback || !bar) return;
+    player.play(playback.data.plan, DEMO_VELOCITY, { round: 0, ms: bar.at });
+  }
+
+  function comparePlaybackBy(compare: CompareChoice) {
+    if (!playback) return;
+    const data = playbackOf(playback.source, compare);
+    if (!data) return;
+    setPlayback({ ...playback, compare, data });
+    player.play(data.plan, DEMO_VELOCITY);
+  }
+
+  function closePlayback() {
+    player.stop();
+    setPlayback(null);
+    settle();
+  }
+
   function setShowKeys(next: boolean) {
     setShowKeysState(next);
     writePref(SHOW_KEYS_PREF, next ? '1' : null);
@@ -578,15 +653,31 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
 
   const wait = run.wait;
   const waitStep = wait && !wait.finished ? (steps[wait.current] ?? null) : null;
-  const step = inTime
-    ? beat.step === null
-      ? null
-      : (steps[beat.step] ?? null)
-    : listening
-      ? demoStep === null
+  // A run played back: its own steps (its hands and repeats), the keys of the step struck so far,
+  // and what sounds at this moment (read again as each key of the plan goes down or up).
+  const playing = playback && demo !== 'stopped' ? playback.data : null;
+  const playbackStep = playing && demoStep !== null ? (playing.steps[demoStep] ?? null) : null;
+  const playbackView = useMemo(() => {
+    if (!playing) return null;
+    const ms = player.position()?.ms ?? 0;
+    const since = playing.plan.steps.findLast((s) => s.at <= ms)?.at ?? 0;
+    return {
+      ...playbackAt(playing, ms),
+      pressed: demoStep === null ? NO_KEYS : keysStruck(playing, demoStep, since, ms),
+      cue: demoCue,
+    };
+  }, [playing, player, demoStep, demoCue]);
+  const step = playback
+    ? playbackStep
+    : inTime
+      ? beat.step === null
         ? null
-        : (steps[demoStep] ?? null)
-      : waitStep;
+        : (steps[beat.step] ?? null)
+      : listening
+        ? demoStep === null
+          ? null
+          : (steps[demoStep] ?? null)
+        : waitStep;
   const done = !rhythmMode && Boolean(wait?.finished || run.ended);
   // The screen stays on while the instrument plays (a demo, a rhythm run) and during a wait-mode
   // run, which waits for the player. A paused demo lets it sleep.
@@ -682,13 +773,18 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
   }, [score]);
   const whites = useMemo(() => whiteKeys(keys), [keys]);
   const marked = useMemo(() => {
+    // A run played back shows the keys it pressed, its wrong ones apart.
+    if (playbackView)
+      return new Set(playbackView.sounding.filter((m) => !playbackView.wrong.includes(m)));
+    if (playback) return new Set<number>();
     // While listening the keyboard shows what sounds; otherwise, with Show keys, what to play.
     if (listening) return new Set(step?.midis ?? []);
     if (rhythmMode) return showKeys && step ? new Set(step.midis) : new Set<number>();
     return showKeys && step
       ? new Set(step.midis.filter((m) => !wait?.pressed.includes(m)))
       : new Set<number>();
-  }, [listening, rhythmMode, showKeys, step, wait?.pressed]);
+  }, [playbackView, playback, listening, rhythmMode, showKeys, step, wait?.pressed]);
+  const playbackWrong = useMemo(() => new Set(playbackView?.wrong ?? []), [playbackView]);
 
   // With Show keys, an ornament's other keys in a lighter mark (docs/EXPRESSION.md).
   const hinted = useMemo(() => {
@@ -1114,8 +1210,15 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
           score={score}
           title={piece.title}
           step={step}
-          pressed={listening || rhythmMode ? NO_KEYS : (wait?.pressed ?? NO_KEYS)}
-          hands={hands}
+          pressed={
+            playback
+              ? (playbackView?.pressed ?? NO_KEYS)
+              : listening || rhythmMode
+                ? NO_KEYS
+                : (wait?.pressed ?? NO_KEYS)
+          }
+          cursorWrong={(playbackView?.wrong.length ?? 0) > 0}
+          hands={playback ? playback.source.settings.hands : hands}
           onStatus={setScoreStatus}
           zoom={focus.on ? focus.zoom : 1}
           behind={
@@ -1150,63 +1253,104 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
             }}
           />
         )}
-        {summary && !runsOpen && (
-          <RunSummary
-            summary={summary}
-            looped={run.ended}
-            format={format}
-            onAgain={restart}
-            onLoopBar={(bar) => {
-              setLoop({ from: bar, to: bar });
-              settle();
-            }}
-            expression={expressionPanel(
-              waitExpression,
-              { hands, repeats, loop, tempo, latency: 0 },
-              run.take,
-              'wait',
-            )}
-          />
-        )}
-        {rhythmSummary && !calibration && !runsOpen && (
-          <RhythmSummary
-            summary={rhythmSummary}
-            done={rhythm.end === 'done'}
-            looped={loop !== null}
-            format={format}
-            onAgain={startRhythm}
-            onLoopBars={(from, to) => {
-              setLoop({ from, to });
-              setStartBar(from);
-              dispatchRhythm({ type: 'reset', id: newRunId() });
-              settle();
-            }}
-            onClose={() => {
-              dispatchRhythm({ type: 'hide' });
-              settle();
-            }}
-            expression={
-              rhythmSettings &&
-              expressionPanel(rhythmExpression, rhythmSettings, rhythm.take, 'rhythm')
-            }
-          />
-        )}
-        {runsOpen && (
-          <YourRuns
-            pieceId={piece.id}
-            checksum={piece.facts.checksum}
-            score={score}
-            format={format}
-            melody={melody}
-            aspects={aspects}
-            onMelody={setMelody}
-            onLoopBars={loopBars}
-            onClose={() => {
-              setRunsOpen(false);
-              settle();
-            }}
-          />
-        )}
+        <div className="piece-sheets" hidden={playback !== null}>
+          {summary && !runsOpen && (
+            <RunSummary
+              summary={summary}
+              looped={run.ended}
+              format={format}
+              onAgain={restart}
+              onLoopBar={(bar) => {
+                setLoop({ from: bar, to: bar });
+                settle();
+              }}
+              expression={expressionPanel(
+                waitExpression,
+                { hands, repeats, loop, tempo, latency: 0 },
+                run.take,
+                'wait',
+              )}
+              onPlayBack={
+                run.take && hasOutput
+                  ? () =>
+                      startPlayback({
+                        events: run.take!.events,
+                        mode: 'wait',
+                        settings: { hands, repeats, loop, tempo, latency: 0 },
+                        startedAt: null,
+                      })
+                  : undefined
+              }
+            />
+          )}
+          {rhythmSummary && !calibration && !runsOpen && (
+            <RhythmSummary
+              summary={rhythmSummary}
+              done={rhythm.end === 'done'}
+              looped={loop !== null}
+              format={format}
+              onAgain={startRhythm}
+              onLoopBars={(from, to) => {
+                setLoop({ from, to });
+                setStartBar(from);
+                dispatchRhythm({ type: 'reset', id: newRunId() });
+                settle();
+              }}
+              onClose={() => {
+                dispatchRhythm({ type: 'hide' });
+                settle();
+              }}
+              expression={
+                rhythmSettings &&
+                expressionPanel(rhythmExpression, rhythmSettings, rhythm.take, 'rhythm')
+              }
+              onPlayBack={
+                rhythm.take && rhythmSettings && hasOutput
+                  ? () =>
+                      startPlayback({
+                        events: rhythm.take!.events,
+                        mode: 'rhythm',
+                        settings: rhythmSettings,
+                        startedAt: null,
+                      })
+                  : undefined
+              }
+            />
+          )}
+          {runsOpen && (
+            <YourRuns
+              pieceId={piece.id}
+              checksum={piece.facts.checksum}
+              score={score}
+              format={format}
+              melody={melody}
+              aspects={aspects}
+              onMelody={setMelody}
+              onLoopBars={loopBars}
+              onPlayBack={
+                hasOutput
+                  ? (session, take) =>
+                      startPlayback({
+                        events: take.events,
+                        mode: session.mode === 'rhythm' ? 'rhythm' : 'wait',
+                        settings: {
+                          hands: session.hands,
+                          repeats: session.repeats,
+                          loop: session.loop,
+                          tempo: session.tempo,
+                          latency: take.latency,
+                        },
+                        startedAt: session.startedAt,
+                      })
+                  : undefined
+              }
+              onClose={() => {
+                setRunsOpen(false);
+                settle();
+              }}
+            />
+          )}
+        </div>
         {calibration && (
           <CalibrationSheet
             offer={calibration === 'offer'}
@@ -1222,127 +1366,152 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
         )}
       </div>
 
-      <div className="piece-status">
-        {rhythmMode ? (
-          <RhythmStatus
-            beat={beat}
-            ended={rhythm.status === 'ended' && rhythm.timings.length === 0}
-            last={rhythm.last}
-            nothing={!range || !timed}
-            click={clickMode}
-            bpm={bpm}
+      {playback ? (
+        <div className="piece-status">
+          <PlaybackBar
+            playback={playback.data}
+            compare={playback.compare}
+            state={demo}
+            title={
+              playback.source.startedAt === null
+                ? t('pieces.playback.this')
+                : t('pieces.playback.run', { when: log.dateTime(playback.source.startedAt) })
+            }
+            part={playbackView?.part ?? null}
             bar={step ? format.barStatus(step.measure, step.pass) : ''}
-            beatLabel={step ? format.beat(step.beat) : ''}
+            wrong={playbackView?.wrong ?? NO_KEYS}
+            format={format}
+            onToggle={togglePlayback}
+            onFrom={playbackFrom}
+            onCompare={comparePlaybackBy}
+            onClose={closePlayback}
           />
-        ) : (
-          <StatusLine
-            demo={demo}
-            bpm={bpm}
-            wait={wait}
-            step={step}
-            started={run.startedAt !== null}
-            nothing={!range}
-            showKeys={showKeys}
-            total={range ? range.last - range.first + 1 : 0}
-            bar={step ? format.barStatus(step.measure, step.pass) : ''}
-            beat={step ? format.beat(step.beat) : ''}
-          />
-        )}
-        <div className="piece-notes">
-          {scoreStatus.state === 'ready' && scoreStatus.unplaced > 0 && (
-            <p className="muted">{t('pieces.unplaced', { n: scoreStatus.unplaced })}</p>
-          )}
-          <KeyboardLine />
-          {!hasOutput && (
-            <p className="muted">
-              <Link href="/settings">{t('pieces.output.needed')}</Link>
-            </p>
-          )}
         </div>
-        <div className="piece-actions">
-          <button
-            type="button"
-            className="button is-compact piece-listen"
-            disabled={!hasOutput || !plan || inTime}
-            aria-describedby={`${showKeysId}-listen`}
-            onClick={onListen}
-          >
-            <svg viewBox="0 0 16 16" aria-hidden="true">
-              {demo === 'playing' ? (
-                <path d="M5 3.5v9M11 3.5v9" />
-              ) : (
-                <path d="M5 3l8 5-8 5z" className="is-filled" />
-              )}
-            </svg>
-            <span>
-              {demo === 'playing'
-                ? t('pieces.demo.pause')
-                : demo === 'paused'
-                  ? t('pieces.demo.resume')
-                  : t('pieces.demo')}
-            </span>
-          </button>
-          <span id={`${showKeysId}-listen`} className="visually-hidden">
-            {t('pieces.demo.help')}
-          </span>
-          {listening && (
-            <button
-              type="button"
-              className="button-icon"
-              aria-label={t('pieces.demo.stop')}
-              title={t('pieces.demo.stop')}
-              onClick={() => {
-                player.stop();
-                settle();
-              }}
-            >
-              <svg viewBox="0 0 16 16" aria-hidden="true">
-                <rect x="4" y="4" width="8" height="8" rx="1" className="is-filled" />
-              </svg>
-            </button>
-          )}
+      ) : (
+        <div className="piece-status">
           {rhythmMode ? (
+            <RhythmStatus
+              beat={beat}
+              ended={rhythm.status === 'ended' && rhythm.timings.length === 0}
+              last={rhythm.last}
+              nothing={!range || !timed}
+              click={clickMode}
+              bpm={bpm}
+              bar={step ? format.barStatus(step.measure, step.pass) : ''}
+              beatLabel={step ? format.beat(step.beat) : ''}
+            />
+          ) : (
+            <StatusLine
+              demo={demo}
+              bpm={bpm}
+              wait={wait}
+              step={step}
+              started={run.startedAt !== null}
+              nothing={!range}
+              showKeys={showKeys}
+              total={range ? range.last - range.first + 1 : 0}
+              bar={step ? format.barStatus(step.measure, step.pass) : ''}
+              beat={step ? format.beat(step.beat) : ''}
+            />
+          )}
+          <div className="piece-notes">
+            {scoreStatus.state === 'ready' && scoreStatus.unplaced > 0 && (
+              <p className="muted">{t('pieces.unplaced', { n: scoreStatus.unplaced })}</p>
+            )}
+            <KeyboardLine />
+            {!hasOutput && (
+              <p className="muted">
+                <Link href="/settings">{t('pieces.output.needed')}</Link>
+              </p>
+            )}
+          </div>
+          <div className="piece-actions">
             <button
               type="button"
-              className={
-                inTime ? 'button is-compact piece-go' : 'button button-primary is-compact piece-go'
-              }
-              disabled={!timed || calibrating}
-              aria-describedby={`${showKeysId}-go`}
-              onClick={onStart}
+              className="button is-compact piece-listen"
+              disabled={!hasOutput || !plan || inTime}
+              aria-describedby={`${showKeysId}-listen`}
+              onClick={onListen}
             >
               <svg viewBox="0 0 16 16" aria-hidden="true">
-                {inTime ? (
-                  <rect x="4" y="4" width="8" height="8" rx="1" className="is-filled" />
+                {demo === 'playing' ? (
+                  <path d="M5 3.5v9M11 3.5v9" />
                 ) : (
-                  <circle cx="8" cy="8" r="4.5" className="is-filled" />
+                  <path d="M5 3l8 5-8 5z" className="is-filled" />
                 )}
               </svg>
-              <span>{inTime ? t('pieces.rhythm.stop') : t('pieces.rhythm.start')}</span>
+              <span>
+                {demo === 'playing'
+                  ? t('pieces.demo.pause')
+                  : demo === 'paused'
+                    ? t('pieces.demo.resume')
+                    : t('pieces.demo')}
+              </span>
             </button>
-          ) : (
-            <>
-              {loop && run.startedAt !== null && !done && (
-                <button
-                  type="button"
-                  className="button is-compact"
-                  onClick={() => dispatch({ type: 'end' })}
-                >
-                  {t('pieces.finish')}
-                </button>
-              )}
-              <button type="button" className="button is-compact" onClick={restart}>
-                {t('pieces.restart')}
-              </button>
-            </>
-          )}
-          {rhythmMode && (
-            <span id={`${showKeysId}-go`} className="visually-hidden">
-              {t('pieces.rhythm.help')}
+            <span id={`${showKeysId}-listen`} className="visually-hidden">
+              {t('pieces.demo.help')}
             </span>
-          )}
+            {listening && (
+              <button
+                type="button"
+                className="button-icon"
+                aria-label={t('pieces.demo.stop')}
+                title={t('pieces.demo.stop')}
+                onClick={() => {
+                  player.stop();
+                  settle();
+                }}
+              >
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <rect x="4" y="4" width="8" height="8" rx="1" className="is-filled" />
+                </svg>
+              </button>
+            )}
+            {rhythmMode ? (
+              <button
+                type="button"
+                className={
+                  inTime
+                    ? 'button is-compact piece-go'
+                    : 'button button-primary is-compact piece-go'
+                }
+                disabled={!timed || calibrating}
+                aria-describedby={`${showKeysId}-go`}
+                onClick={onStart}
+              >
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  {inTime ? (
+                    <rect x="4" y="4" width="8" height="8" rx="1" className="is-filled" />
+                  ) : (
+                    <circle cx="8" cy="8" r="4.5" className="is-filled" />
+                  )}
+                </svg>
+                <span>{inTime ? t('pieces.rhythm.stop') : t('pieces.rhythm.start')}</span>
+              </button>
+            ) : (
+              <>
+                {loop && run.startedAt !== null && !done && (
+                  <button
+                    type="button"
+                    className="button is-compact"
+                    onClick={() => dispatch({ type: 'end' })}
+                  >
+                    {t('pieces.finish')}
+                  </button>
+                )}
+                <button type="button" className="button is-compact" onClick={restart}>
+                  {t('pieces.restart')}
+                </button>
+              </>
+            )}
+            {rhythmMode && (
+              <span id={`${showKeysId}-go`} className="visually-hidden">
+                {t('pieces.rhythm.help')}
+              </span>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {(!focus.on || focus.keyboard) && (
         <div className="piece-keys" style={{ '--piece-whites': whites } as CSSProperties}>
@@ -1352,7 +1521,7 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
             pointer={pointer}
             marked={marked}
             hinted={hinted}
-            wrong={rhythmMode ? NO_WRONG : wrong}
+            wrong={playback ? playbackWrong : rhythmMode ? NO_WRONG : wrong}
             fingers={fingers}
             range={keys}
             className="piece-piano"
@@ -1361,6 +1530,21 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
       )}
     </section>
   );
+}
+
+/** A run to play back: what was played and how it was practised. */
+interface PlaybackSource {
+  events: readonly TakeEvent[];
+  mode: 'wait' | 'rhythm';
+  settings: RunSettings;
+  /** When it was played (epoch ms), or null for the run just played. */
+  startedAt: number | null;
+}
+
+interface OpenPlayback {
+  source: PlaybackSource;
+  compare: CompareChoice;
+  data: TakePlayback;
 }
 
 /** What a run was practised with, for reading its take. */

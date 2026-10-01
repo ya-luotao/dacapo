@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { accompanimentPlan, DEFAULT_BPM, demoPlan } from '../core/playback.ts';
+import { accompanimentPlan, DEFAULT_BPM, demoPlan, type DemoPlan } from '../core/playback.ts';
 import { emptyMarkings } from '../core/markings.ts';
 import { performanceOrder } from '../core/repeats.ts';
 import { buildSteps, type Hand, type Measure, type Score, type ScoreNote } from '../core/score.ts';
@@ -217,6 +217,69 @@ describe('demo player', () => {
     clock.advance(10_000);
     expect(port.sent.length).toBe(after);
     expectNoStuckNotes(port.sent);
+  });
+});
+
+describe('demo player, playing a run back', () => {
+  /** Two keys with their own velocities, the sustain pedal down between them. */
+  const take: DemoPlan = {
+    notes: [
+      { midi: 60, on: 0, off: 400, velocity: 30 },
+      { midi: 64, on: 500, off: 900, velocity: 110 },
+    ],
+    steps: [
+      { step: 0, at: 0 },
+      { step: 1, at: 500 },
+    ],
+    length: 1500,
+    start: 0,
+    loop: false,
+    controls: [
+      { at: 200, controller: 64, value: 127 },
+      { at: 700, controller: 64, value: 0 },
+    ],
+    cues: [0, 400, 500, 900],
+  };
+
+  it('sends each key with its own velocity and the pedal as it moved', () => {
+    const { clock, port, scheduler } = setup();
+    const player = createDemoPlayer(scheduler, clock);
+    player.play(take, 72);
+    port.sent.splice(0, 48);
+    clock.advance(3000);
+    const t = 1000 + DEMO_LEAD_MS;
+    expect(port.log().slice(0, 6)).toEqual([
+      `on 60 v30@${t}`,
+      `cc 64=127 ch0@${t + 200}`,
+      `off 60@${t + 400}`,
+      `on 64 v110@${t + 500}`,
+      `cc 64=0 ch0@${t + 700}`,
+      `off 64@${t + 900}`,
+    ]);
+    expect(player.getState()).toBe('stopped');
+  });
+
+  it('starting inside the plan puts the pedal where it was first', () => {
+    const { clock, port, scheduler } = setup();
+    const player = createDemoPlayer(scheduler, clock);
+    player.play(take, 72, { round: 0, ms: 500 });
+    port.sent.splice(0, 48);
+    clock.advance(200);
+    const t = 1000 + DEMO_LEAD_MS;
+    expect(port.log().slice(0, 2)).toEqual([`cc 64=127 ch0@${t}`, `on 64 v110@${t}`]);
+    player.stop();
+  });
+
+  it('tells its listeners as each cue passes, not only when the step changes', () => {
+    const { clock, scheduler } = setup();
+    const player = createDemoPlayer(scheduler, clock);
+    let heard = 0;
+    player.subscribe(() => heard++);
+    player.play(take, 72);
+    heard = 0;
+    clock.advance(DEMO_LEAD_MS + 450); // the cue at 400 passed, the step is the same
+    expect(heard).toBe(1);
+    player.stop();
   });
 });
 

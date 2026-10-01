@@ -15,6 +15,17 @@ sessions go in the same lists), the
 click's tempo and grid of scale runs played with it (from version 7), and the takes of piece runs
 (from version 8). Version 1 to 7 files still import.
 
+### Play back your run (P5, [docs/PIECES.md](docs/PIECES.md))
+
+- **Play back** a run on your instrument (or the built-in piano) as you played it: each key as
+  hard and as long as you held it, and the sustain, sostenuto and una corda pedals as you moved
+  them. The cursor follows the notes on the score, the keys light up on the keyboard, and a wrong
+  note shows in red where it fell, with its name under the score.
+- Pause and go on, start **from a bar**, and **Compare**: each bar as written (the demo at the
+  run's tempo), then as you played it, bar by bar or all at once.
+- It is in both summaries and on every run in **Your runs**. Listening is not practice time, and
+  it stops on another page and pauses when the page is hidden, as the demo does.
+
 ### Improvise on Harmony (H6, [docs/HARMONY.md](docs/HARMONY.md))
 
 - Harmony gains a third practice, **Improvise**: a backing plays a loop of chords on your

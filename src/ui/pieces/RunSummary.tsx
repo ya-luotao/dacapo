@@ -3,6 +3,7 @@ import type { RunSummary as Summary } from '../../core/pieceRun.ts';
 import { useT } from '../../i18n/index.ts';
 import { useLogFormat } from '../progress/format.ts';
 import type { usePieceFormat } from './format.ts';
+import { PlayBackButton } from './PlayBackButton.tsx';
 
 interface RunSummaryProps {
   summary: Summary;
@@ -13,6 +14,8 @@ interface RunSummaryProps {
   onLoopBar: (bar: number) => void;
   /** The run's Expression panel. */
   expression?: ReactNode;
+  /** Plays the run back (absent when nothing of it was kept). */
+  onPlayBack?: () => void;
 }
 
 /** The end of a run: a sheet laid over the score. */
@@ -23,6 +26,7 @@ export function RunSummary({
   onAgain,
   onLoopBar,
   expression,
+  onPlayBack,
 }: RunSummaryProps) {
   const t = useT();
   const log = useLogFormat();
@@ -77,6 +81,7 @@ export function RunSummary({
             {t('pieces.done.loopBar', { bar: format.barLabel(slowest.measure) })}
           </button>
         )}
+        {onPlayBack && <PlayBackButton onClick={onPlayBack} />}
       </div>
       {expression}
     </section>

@@ -234,4 +234,41 @@ describe('createScheduler', () => {
     expect(() => clock.advance(200)).not.toThrow();
     expect(() => scheduler.panic()).not.toThrow();
   });
+
+  it('hands control changes over a lookahead ahead, before a note at the same time', () => {
+    const { clock, port, scheduler } = setup();
+    scheduler.control([
+      { controller: 64, value: 127, at: 1050 },
+      { controller: 64, value: 0, at: 1400 },
+    ]);
+    scheduler.play({ midi: 60, velocity: 50, on: 1050, off: 1300 });
+    expect(port.log()).toEqual(['cc 64=127 ch0@1050', 'on 60 v50@1050']);
+    clock.advance(320); // t = 1320: the pedal comes up at 1400, within the lookahead
+    expect(port.log()).toEqual([
+      'cc 64=127 ch0@1050',
+      'on 60 v50@1050',
+      'off 60@1300',
+      'cc 64=0 ch0@1400',
+    ]);
+    clock.advance(200);
+    expect(scheduler.pending()).toBe(0);
+    expect(clock.timers()).toBe(0);
+  });
+
+  it('drops queued control changes on panic and lets up a pedal already on its way', () => {
+    const { clock, port, scheduler } = setup();
+    scheduler.control([
+      { controller: 64, value: 100, at: 1060 },
+      { controller: 67, value: 127, at: 1070 },
+      { controller: 64, value: 0, at: 1500 },
+    ]);
+    clock.advance(10);
+    port.sent.length = 0;
+    scheduler.panic();
+    // The reset now, then both pedals up after the last one handed over (1070).
+    expect(port.log().slice(48)).toEqual(['cc 64=0 ch0@1071', 'cc 67=0 ch0@1071']);
+    clock.advance(1000);
+    expect(port.log()).toHaveLength(50);
+    expect(scheduler.pending()).toBe(0);
+  });
 });

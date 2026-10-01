@@ -8,6 +8,7 @@ import {
 import { SENTENCE_GAP, useI18n } from '../../i18n/index.ts';
 import { DeviationChart } from './DeviationChart.tsx';
 import type { PieceFormat } from './format.ts';
+import { PlayBackButton } from './PlayBackButton.tsx';
 
 interface RhythmSummaryProps {
   summary: Summary;
@@ -22,6 +23,8 @@ interface RhythmSummaryProps {
   onClose: () => void;
   /** The run's Expression panel. */
   expression?: ReactNode;
+  /** Plays the run back (absent when nothing of it was kept). */
+  onPlayBack?: () => void;
 }
 
 /** The end of a rhythm run: the figures, the tendency, where the tempo moved, and every note. */
@@ -34,6 +37,7 @@ export function RhythmSummary({
   onLoopBars,
   onClose,
   expression,
+  onPlayBack,
 }: RhythmSummaryProps) {
   const { t, locale } = useI18n();
   const heading = useRef<HTMLHeadingElement>(null);
@@ -97,6 +101,7 @@ export function RhythmSummary({
                   })}
             </button>
           )}
+          {onPlayBack && <PlayBackButton onClick={onPlayBack} compact />}
           <button type="button" className="button is-compact" onClick={onClose}>
             {t('pieces.weak.table.close')}
           </button>

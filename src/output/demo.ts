@@ -28,6 +28,11 @@ export interface DemoPlayer {
   position: () => DemoPosition | null;
   /** The step sounding now (index into the step list), or null. */
   currentStep: () => number | null;
+  /**
+   * How far through the plan's cues it is (changes as each passes; −1 when stopped or without
+   * cues): for `useSyncExternalStore`, beside `position`.
+   */
+  cue: () => number;
   subscribe: (onChange: () => void) => () => void;
 }
 
@@ -58,12 +63,14 @@ export function createDemoPlayer(
   /** Where playing (re)started: the cursor does not show the lead-in as the bar before. */
   let floor: DemoPosition = { round: 0, ms: 0 };
   let lastStep: number | null = null;
+  let lastCue = -1;
   let unsubscribe: (() => void) | null = null;
   let stopTimer: (() => void) | null = null;
   const listeners = new Set<() => void>();
 
   const notify = () => {
     lastStep = currentStep();
+    lastCue = currentCue();
     for (const listener of [...listeners]) listener();
   };
 
@@ -73,10 +80,27 @@ export function createDemoPlayer(
 
   function queue(round: number, fromMs: number) {
     const start = roundStart(round);
+    const controls = plan!.controls ?? [];
+    if (controls.length > 0) {
+      // Starting inside the plan: each pedal as it was at that moment, then as it moves.
+      const before = new Map<number, number>();
+      for (const c of controls) if (c.at < fromMs) before.set(c.controller, c.value);
+      scheduler.control([
+        ...[...before].map(([controller, value]) => ({ controller, value, at: start + fromMs })),
+        ...controls
+          .filter((c) => c.at >= fromMs)
+          .map((c) => ({ controller: c.controller, value: c.value, at: start + c.at })),
+      ]);
+    }
     scheduler.playAll(
       plan!.notes
         .filter((n) => n.on >= fromMs)
-        .map((n) => ({ midi: n.midi, velocity, on: start + n.on, off: start + n.off })),
+        .map((n) => ({
+          midi: n.midi,
+          velocity: n.velocity ?? velocity,
+          on: start + n.on,
+          off: start + n.off,
+        })),
     );
     queued = round + 1;
   }
@@ -90,7 +114,7 @@ export function createDemoPlayer(
       stop();
       return;
     }
-    if (currentStep() !== lastStep) notify();
+    if (currentStep() !== lastStep || currentCue() !== lastCue) notify();
   }
 
   function begin(from: DemoPosition) {
@@ -151,6 +175,21 @@ export function createDemoPlayer(
     return step;
   }
 
+  /** How many of the plan's cues have passed (−1 when stopped or without cues). */
+  function currentCue(): number {
+    const at = position();
+    const cues = plan?.cues;
+    if (!at || !cues) return -1;
+    let lo = 0;
+    let hi = cues.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (cues[mid]! <= at.ms) lo = mid + 1;
+      else hi = mid;
+    }
+    return at.round * (cues.length + 1) + lo;
+  }
+
   return {
     play(next, nextVelocity, from, startPaused = false) {
       plan = next;
@@ -177,6 +216,7 @@ export function createDemoPlayer(
     getState: () => state,
     position,
     currentStep,
+    cue: currentCue,
     subscribe(onChange) {
       listeners.add(onChange);
       return () => void listeners.delete(onChange);

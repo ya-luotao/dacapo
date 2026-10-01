@@ -296,6 +296,42 @@ Planned with [EXPRESSION.md](EXPRESSION.md), whose takes these build on.
   bar is shown for two seconds, then faded.
 - Records: steps as Wait's, with `mode: 'memory'`, `prompts` and the stage.
 
+## Clarifications (decided during P5)
+
+- **Playing back** goes through the demo player and the scheduler, as Listen does: each key down of
+  the take with its own velocity, released at its key up (a key struck again with no key up between
+  ends where it is struck again; one the take never lets go of sounds to the take's end, at least
+  400 ms), and the pedals (CC 64, 66 and 67) at the values recorded, from time 0 (or a rhythm run's
+  count-in before it) to the take's last event, then 1.2 s for the last notes to ring before the
+  instrument is silenced. The scheduler queues control changes as it queues notes (handed over 80 ms
+  ahead, dropped on stop; a pedal already handed over for later is let up again just after it).
+  Starting inside the take sends each pedal's position at that moment first. Pause, resume, a hidden
+  page (it pauses) and a route change (it stops) work as for the demo. Keys do not count while it
+  plays or is paused, nothing is recorded, and a wait-mode run in progress has its step's clock
+  restarted, as for the demo: listening is not practice time.
+- **The cursor** is on each step from its first key in the take, read as X1 reads it (the rounds of
+  a loop in turn); the step's keys struck so far are inked as played, and the keyboard shows the keys
+  down. A key matched to nothing is a **wrong note** (on the keyboard and the cursor in the wrong
+  colour, and named under the score while it sounds, at least 0.4 s), unless it is in a rhythm
+  run's count-in, or is an ornament's principal struck again (in a take from before X4, any key of
+  the ornament) on the step the run was on or the one before. In wait mode a wrong key moves the
+  cursor on to the step the run was waiting for: that is where it fell.
+- **From bar** lists the bars in the order the run first reached them; playing starts at that bar's
+  first key.
+- **Compare** plays the run's first time round (a loop's first round), **bar by bar** or **all at
+  once**. As written: the demo's notes of the run's hands (with both, the whole score), at the run's
+  tempo and the piece's trill start and the demo's velocity, those that start in the bar, cut at its
+  end. Then, after 0.7 s, as played: the run's keys that start from the bar's first key (in rhythm
+  mode its downbeat on the run's clock, when that is earlier, so an early first note is in it) to the
+  next bar's (for the last bar, the next round or the end of the take), cut there, with the pedals as
+  they were at its start and as they moved; at its end every pedal comes up, and 0.7 s later the next
+  bar begins. All at once is the same with the whole round as one bar.
+- **Where.** Play back is in both summaries, on every row of Your runs and on a past run opened
+  there, whenever there is an output (as for Listen). While it plays, the summary or Your runs gives
+  way to the score and the status line becomes the transport: play and pause, from bar, Compare and
+  Close, which brings the sheet back. Anything that silences the instrument (other hands, bars or
+  mode) closes it. A run from before takes, or of another version of the notes, says so instead.
+
 ## Milestones
 
 1. ✓ **P0 Spike** — choose the renderer (OpenSheetMusicDisplay vs Verovio vs other), prove
@@ -305,6 +341,6 @@ Planned with [EXPRESSION.md](EXPRESSION.md), whose takes these build on.
 3. ✓ **P2 MIDI output** — output selection, demo playback, accompaniment.
 4. ✓ **P3 Records** — persistence (DB v3), measure heatmap, log and streak integration, export.
 5. ✓ **P4 Rhythm mode** — metronome, calibration, timing analysis.
-6. **P5 Play back** — takes played back with the cursor; compare with the written version.
+6. ✓ **P5 Play back** — takes played back with the cursor; compare with the written version.
 7. **P6 Review schedule** — review intervals, due pieces on Pieces and Home.
 8. **P7 Memorising** — memory mode, fading stages, prompts, start anywhere.

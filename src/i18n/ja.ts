@@ -1713,6 +1713,27 @@ export const ja: Dictionary = {
     'この回は弾いた内容の記録がありません。dacapoが演奏を記録するようになる前の回です。',
   'pieces.runs.changed': 'この回のあとで曲の音符が変わったため、弾いた内容と合いません。',
 
+  'pieces.playback': '演奏を再生',
+  'pieces.playback.help':
+    'この演奏を弾いたとおりに楽器で再生します。鍵ごとの強さと押さえていた長さ、ペダルもそのままで、楽譜がついていきます。',
+  'pieces.playback.play': '再生',
+  'pieces.playback.run': '{when}の演奏',
+  'pieces.playback.this': '今回の演奏',
+  'pieces.playback.region': '再生中：{title}',
+  'pieces.playback.written': '楽譜どおり',
+  'pieces.playback.yours': 'あなたの演奏',
+  'pieces.playback.paused': '一時停止中',
+  'pieces.playback.wrong': 'ミスタッチ：{notes}',
+  'pieces.playback.from': '開始小節',
+  'pieces.playback.from.label': '再生を始める小節',
+  'pieces.playback.compare': '聴き比べ',
+  'pieces.playback.compare.off': 'オフ',
+  'pieces.playback.compare.bar': '1小節ずつ',
+  'pieces.playback.compare.whole': 'まとめて',
+  'pieces.playback.compare.help':
+    '楽譜どおりの音をこの演奏のテンポで流してから、あなたの演奏を流します。1小節ずつ、またはまとめて比べます。ループは1周目で比べます。',
+  'pieces.playback.close': '閉じる',
+
   'pieces.weak.metric': '苦手な小節の基準',
   'pieces.weak.metric.hesitation': '迷い',
   'pieces.weak.metric.timing': 'タイミング',

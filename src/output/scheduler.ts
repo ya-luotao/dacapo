@@ -3,7 +3,7 @@
 // messages are handed over only a short lookahead before they are due; everything later stays
 // here, where it can still be cancelled.
 
-import { isChannelMessage, noteOff, noteOn, resetAllChannels } from './messages.ts';
+import { controlChange, isChannelMessage, noteOff, noteOn, resetAllChannels } from './messages.ts';
 
 export interface OutPort {
   send: (data: number[], timestamp?: number) => void;
@@ -35,11 +35,26 @@ export interface NoteSpec {
   channel?: number;
 }
 
+/** A control change at a time, e.g. the sustain pedal of a run played back. */
+export interface ControlSpec {
+  controller: number;
+  value: number;
+  /** performance.now() time; a time already past means "now". */
+  at: number;
+  channel?: number;
+}
+
 export interface Scheduler {
   /** Queues a note; returns its id for `cut`. */
   play: (note: NoteSpec) => number;
   /** Queues several notes at once (one hand-over for all of them). */
   playAll: (notes: readonly NoteSpec[]) => number[];
+  /**
+   * Queues control changes. Like notes they are handed to the port only a lookahead ahead, so
+   * `panic` still drops what is not on its way; a pedal already handed over for later is let up
+   * again just after it.
+   */
+  control: (changes: readonly ControlSpec[]) => void;
   /** Ends a note early: before its note-on is sent it never sounds, afterwards its note-off moves to `at` (default now). */
   cut: (id: number, at?: number) => void;
   /** Forgets a note not yet handed to the port; false if it is already on its way (or unknown). */
@@ -78,11 +93,22 @@ interface Entry {
   offAt: number | null;
 }
 
+interface Control {
+  channel: number;
+  controller: number;
+  value: number;
+  at: number;
+  /** The timestamp it was sent with; null while still queued here. */
+  sentAt: number | null;
+}
+
 export function createScheduler(options: SchedulerOptions = {}): Scheduler {
   const clock = options.clock ?? browserClock;
   const lookahead = options.lookahead ?? LOOKAHEAD_MS;
   const interval = options.interval ?? TICK_MS;
   const entries = new Map<number, Entry>();
+  /** Control changes queued or handed over for later, in the order given. */
+  let controls: Control[] = [];
   let port: OutPort | null = null;
   let lastId = 0;
   let stopTimer: (() => void) | null = null;
@@ -105,6 +131,14 @@ export function createScheduler(options: SchedulerOptions = {}): Scheduler {
     const now = clock.now();
     const horizon = now + lookahead;
     const due: { time: number; off: boolean; entry: Entry }[] = [];
+    // Control changes go first at a time they share with a note: the pedal is down as it sounds.
+    const changes = controls
+      .filter((c) => c.sentAt === null && c.at <= horizon)
+      .sort((a, b) => a.at - b.at);
+    for (const change of changes) {
+      change.sentAt = Math.max(change.at, now);
+      send(controlChange(change.channel, change.controller, change.value), change.sentAt);
+    }
     for (const entry of entries.values()) {
       if (entry.onAt === null) {
         if (entry.on > horizon) continue;
@@ -131,7 +165,8 @@ export function createScheduler(options: SchedulerOptions = {}): Scheduler {
     for (const [id, entry] of entries) {
       if (entry.offAt !== null && entry.offAt <= now) entries.delete(id);
     }
-    if (entries.size === 0) {
+    controls = controls.filter((c) => c.sentAt === null || c.sentAt > now);
+    if (entries.size === 0 && controls.length === 0) {
       stopTimer?.();
       stopTimer = null;
     } else if (!stopTimer) {
@@ -153,7 +188,17 @@ export function createScheduler(options: SchedulerOptions = {}): Scheduler {
         latest = Math.max(latest, entry.onAt);
       }
     }
+    // Controllers handed over for later than now still arrive: let them up after the last one.
+    const lateControls = new Map<number, Control>();
+    for (const c of controls) {
+      if (c.sentAt === null || c.sentAt <= now) continue;
+      const key = c.channel * 128 + c.controller;
+      const other = lateControls.get(key);
+      if (!other || other.sentAt! <= c.sentAt) lateControls.set(key, c);
+      latest = Math.max(latest, c.sentAt);
+    }
     entries.clear();
+    controls = [];
     stopTimer?.();
     stopTimer = null;
     if (quiet) return;
@@ -162,6 +207,8 @@ export function createScheduler(options: SchedulerOptions = {}): Scheduler {
     // Note-ons already handed over for later still arrive; release them just after the last one
     // (a millisecond later, so no port has to keep equal timestamps in order).
     for (const entry of late.values()) send(noteOff(entry.channel, entry.midi), latest + 1);
+    for (const c of lateControls.values())
+      if (c.value !== 0) send(controlChange(c.channel, c.controller, 0), latest + 1);
     quiet = true;
   }
 
@@ -213,6 +260,18 @@ export function createScheduler(options: SchedulerOptions = {}): Scheduler {
       tick();
       return ids;
     },
+    control(changes) {
+      for (const change of changes) {
+        controls.push({
+          channel: change.channel ?? 0,
+          controller: change.controller,
+          value: change.value,
+          at: change.at,
+          sentAt: null,
+        });
+      }
+      tick();
+    },
     cut(id, at) {
       const entry = entries.get(id);
       if (!entry || entry.offAt !== null) return;
@@ -244,6 +303,6 @@ export function createScheduler(options: SchedulerOptions = {}): Scheduler {
       }
       return [...keys].sort((a, b) => a[0] - b[0]).map(([, key]) => key);
     },
-    pending: () => entries.size,
+    pending: () => entries.size + controls.length,
   };
 }
