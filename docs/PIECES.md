@@ -448,6 +448,27 @@ What the Key control changes on the practice page; the rules are HARMONY.md's ("
   run's transposition and plays any of them back.
 - **The review schedule** (P6) counts runs in the written key only.
 
+## A take as a MIDI file (G6b)
+
+Status: planned. A run is kept as a take (EXPRESSION.md, X0) and played back in the app (P5), and
+that is as far as it goes: it cannot be heard in another program, put into a notation program or
+sent to a teacher as sound.
+
+- **Save as MIDI** on each of **Your runs** that has a take, and on the run just played (beside
+  **Play back**); on Improvise's takes too (the player's keys; the backing is not in the take).
+- The file is a Standard MIDI File, format 0: one track, 480 ticks to the quarter note, on
+  channel 1, with every key down and up with its velocity and the three pedals as the take has
+  them (controllers 64, 66 and 67). Time 0 is the take's first event.
+- **Tempo.** A run in rhythm mode was played against a click: the file carries the score's
+  tempo marks times the run's percent (and its time signatures), so the bars line up in a
+  notation program; the run's count-in is left out and a key before the first bar is moved to
+  time 0. A run in wait or memory mode has no beat: the file is at ♩ = 120 with every event at
+  its own time, and no time signature claimed.
+- Named `<title> <yyyy-mm-dd hh.mm>.mid` (the characters a file name cannot have are left out),
+  with the piece's title as the track name. Made on the device and saved by the browser; in the
+  Apple app handed to the share sheet or the save panel, as the backup is.
+- `core/smfWrite.ts`, pure, with tests that read the bytes back.
+
 ## Milestones
 
 1. ✓ **P0 Spike** — choose the renderer (OpenSheetMusicDisplay vs Verovio vs other), prove

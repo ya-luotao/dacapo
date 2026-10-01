@@ -230,6 +230,18 @@ version: 1, report }`; a report may be 60 KB). The link follows the name and the
   through the sync service; signed in, a user's own assignments sync between their own devices
   like their other records, and reach no one else.
 
+## On paper (G6b)
+
+Status: planned. A teacher who sets a week often writes it into a notebook as well, and a report
+is read at the lesson, away from a screen.
+
+- **Print** on an assignment's page (its title, its dates, who set it, the note, every task with
+  its goal, and for the one who practises the checklist's figures and ticks as they stand) and on
+  a report (as it is shown). The browser's own print dialog; a print stylesheet lays the page out
+  in black on white without the header, the navigation and the buttons, tasks kept whole across a
+  page break, the link's address not printed.
+- Not offered in the Apple app, whose web view does not print; nothing else changes there.
+
 ## Milestones
 
 1. ✓ **T1 Assignments** — the page, making and editing, the `assignments` store, links and files,
