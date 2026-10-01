@@ -178,7 +178,8 @@ practising the notes you are slowest at. Progress is visible day by day.
   terms for the staff and the keyboard, and its own fonts. Note names stay letter names (C4, F♯)
   in every language.
 - Light and dark themes. Everything works from the keyboard, and charts have a table view and
-  labels for screen readers. Chrome can install it as an app.
+  labels for screen readers. Chrome and Edge can install it as an app, and once it has been
+  opened it opens and works without a network.
 
 ![Progress: today's minutes, the streak and a 30-day chart](docs/images/progress.webp)
 
@@ -202,6 +203,10 @@ The screenshots use generated practice data.
   headphones (their delay varies too much to calibrate).
 - No account needed. Everything is stored locally in your browser; Settings can export it as a
   JSON file for a backup or to move to another computer.
+- **Without a network:** once it has been opened, the web app is stored on the device and opens
+  offline. The notation engine of Pieces and Scales, the built-in piano and the other languages
+  are stored when they are first used, or all at once with **Store everything** in Settings
+  ([docs/OFFLINE.md](docs/OFFLINE.md)).
 - playdacapo.com counts visits with Cloudflare Web Analytics: no cookies and no personal data,
   and nothing about your practice. The Apple app and any other build have no analytics.
 - Optionally, sign in with your email address and a code sent to it, and your practice syncs
@@ -243,7 +248,9 @@ Then open the URL Vite prints (usually http://localhost:5173).
 
 The app uses hash-based routes (`/#/read`), so the `dist/` folder can be served by any
 static file host without rewrite rules. To serve it below the site root, build with the path in
-`BASE_PATH`, for example `BASE_PATH=/dacapo/ pnpm build`. The official site,
+`BASE_PATH`, for example `BASE_PATH=/dacapo/ pnpm build`. The build also writes `sw.js`, the
+worker that keeps the app on the device ([docs/OFFLINE.md](docs/OFFLINE.md)): serve it without
+caching, so that a new release reaches browsers at their next visit. The official site,
 [playdacapo.com](https://playdacapo.com/), is `pnpm build:site` served by a Cloudflare Worker
 (`wrangler.jsonc`), deployed by Cloudflare Workers Builds on every push to `main`.
 

@@ -15,6 +15,20 @@ click's tempo and grid of scale runs played with it (from version 7), the takes 
 (from version 8), and assignments and kept reports (from version 9). Version 1 to 8 files still
 import.
 
+### Offline (G6a, [docs/OFFLINE.md](docs/OFFLINE.md))
+
+- The web app **opens and works without a network** once it has been opened with one. A service
+  worker stores the app (about 4 MB) in the background after the first load; with a network, a
+  new release is still what the next load shows.
+- The notation engine of Pieces and Scales, the built-in piano's samples, the lessons' pictures,
+  the other languages and the licence texts are stored when they are first used. **Settings →
+  Your data → Offline** says what is stored, and **Store everything** stores the rest at once
+  (about 12 MB), with a count as it goes, and again after each release.
+- Your practice data is where it was (IndexedDB) and is not touched. The Apple app carries the
+  app inside it and has no worker; nor does `pnpm dev`.
+- For a build or a host of your own: the build writes `sw.js` at its root, to be served without
+  caching (`public/_headers`); `scripts/offline/sw-remove.js` is the worker that withdraws it.
+
 ### The first visit (G4, [docs/START.md](docs/START.md))
 
 - **Start**: the first page's button opens a short page before the first practice. **Where are

@@ -3,6 +3,11 @@
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
+# The offline worker (docs/OFFLINE.md) keeps its name from build to build: always asked for anew,
+# so a fix to it, or its withdrawal, reaches a browser at its next visit.
+/sw.js
+  Cache-Control: no-cache
+
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin

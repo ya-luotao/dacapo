@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { I18nProvider, loadLocale, preferredLocale } from './i18n/index.ts';
+import { registerOffline } from './offline/client.ts';
 import { openRepository } from './storage/repository.ts';
 import { createAppSync } from './sync/app.ts';
 import { App } from './ui/App.tsx';
@@ -52,4 +53,7 @@ void loadLocale(preferredLocale()).then((initial) => {
       </I18nProvider>
     </StrictMode>,
   );
+  // The offline worker (docs/OFFLINE.md), after the first render: the web app's production build
+  // only, and never in the way of the page.
+  registerOffline();
 });

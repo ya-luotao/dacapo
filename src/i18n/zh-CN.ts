@@ -2658,6 +2658,22 @@ export const zhCN: Dictionary = {
   'settings.import.done':
     '导入完成：新增 {sessions} 条练习记录、{attempts} 条答题记录、{pieces} 首曲目、{steps} 条曲目练习明细、{scaleRuns} 条音阶练习明细、{ear} 条练耳作答记录、{takes} 段演奏实录和 {assignments} 份作业或报告。',
   'settings.import.failed': '导入没能保存，数据没有任何改动。',
+  'settings.offline': '离线使用',
+  'settings.offline.stored': 'dacapo 已保存在本设备上，没有网络也能打开。',
+  'settings.offline.pending': '还没有保存。',
+  'settings.offline.unsupported': '这个浏览器不支持离线保存 dacapo。',
+  'settings.offline.all': '全部保存',
+  'settings.offline.all.help':
+    '现在就把其余部分也保存下来：“曲目”和“音阶”用的记谱引擎、内置钢琴和所有语言，约 {size}\u00a0MB。不然，它们要到第一次用到时才会保存。',
+  'settings.offline.all.progress': '已保存 {done} / {total} 个文件',
+  'settings.offline.all.done': '已全部保存：记谱引擎、内置钢琴和所有语言。',
+  'settings.offline.all.failed': '没能保存：{what}。请检查网络连接和设备的剩余空间，然后再试一次。',
+  'settings.offline.what.dacapo': 'dacapo 本身',
+  'settings.offline.what.engraver': '记谱引擎',
+  'settings.offline.what.piano': '内置钢琴',
+  'settings.offline.what.pictures': '课程里的图片',
+  'settings.offline.what.languages': '语言',
+  'settings.offline.what.licences': '许可文本',
 
   'settings.account': '账号',
   'settings.account.help':

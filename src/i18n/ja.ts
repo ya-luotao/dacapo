@@ -2788,6 +2788,23 @@ export const ja: Dictionary = {
   'settings.import.done':
     'インポートが完了しました：新しいセッション{sessions}件、解答{attempts}件、インポートした曲{pieces}曲、曲の練習記録{steps}件、スケールの練習記録{scaleRuns}件、聴音の解答{ear}件、テイクの一部{takes}件、課題・レポート{assignments}件。',
   'settings.import.failed': 'インポートを保存できませんでした。何も変更されていません。',
+  'settings.offline': 'オフライン',
+  'settings.offline.stored': 'dacapoはこの端末に保存されていて、ネットワークがなくても開けます。',
+  'settings.offline.pending': 'まだ保存されていません。',
+  'settings.offline.unsupported': 'このブラウザではdacapoをオフライン用に保存できません。',
+  'settings.offline.all': 'すべて保存',
+  'settings.offline.all.help':
+    '残りも今すぐ保存します：「曲」と「スケール」の楽譜エンジン、内蔵ピアノ、すべての言語（約{size}\u00a0MB）。保存しない場合は、それぞれ最初に使ったときに保存されます。',
+  'settings.offline.all.progress': '{total}ファイル中{done}ファイル',
+  'settings.offline.all.done': 'すべて保存されています：楽譜エンジン、内蔵ピアノ、すべての言語。',
+  'settings.offline.all.failed':
+    '保存できませんでした：{what}。ネットワーク接続と端末の空き容量を確認して、もう一度お試しください。',
+  'settings.offline.what.dacapo': 'dacapo本体',
+  'settings.offline.what.engraver': '楽譜エンジン',
+  'settings.offline.what.piano': '内蔵ピアノ',
+  'settings.offline.what.pictures': 'レッスンの写真',
+  'settings.offline.what.languages': '言語',
+  'settings.offline.what.licences': 'ライセンス文',
 
   'settings.account': 'アカウント',
   'settings.account.help':

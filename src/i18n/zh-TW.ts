@@ -2660,6 +2660,22 @@ export const zhTW: Dictionary = {
   'settings.import.done':
     '匯入完成：新增 {sessions} 筆練習紀錄、{attempts} 筆作答紀錄、{pieces} 首樂曲、{steps} 筆樂曲練習明細、{scaleRuns} 筆音階練習明細、{ear} 筆練耳作答紀錄、{takes} 段演奏實錄和 {assignments} 份作業或報告。',
   'settings.import.failed': '匯入沒能儲存，資料沒有任何變動。',
+  'settings.offline': '離線使用',
+  'settings.offline.stored': 'dacapo 已儲存在這台裝置上，沒有網路也能開啟。',
+  'settings.offline.pending': '尚未儲存。',
+  'settings.offline.unsupported': '這個瀏覽器不支援離線儲存 dacapo。',
+  'settings.offline.all': '全部儲存',
+  'settings.offline.all.help':
+    '現在就把其餘部分也儲存下來：「樂曲」和「音階」用的記譜引擎、內建鋼琴和所有語言，約 {size}\u00a0MB。否則，它們要到第一次用到時才會儲存。',
+  'settings.offline.all.progress': '已儲存 {done} / {total} 個檔案',
+  'settings.offline.all.done': '已全部儲存：記譜引擎、內建鋼琴和所有語言。',
+  'settings.offline.all.failed': '無法儲存：{what}。請檢查網路連線和裝置的剩餘空間，然後再試一次。',
+  'settings.offline.what.dacapo': 'dacapo 本身',
+  'settings.offline.what.engraver': '記譜引擎',
+  'settings.offline.what.piano': '內建鋼琴',
+  'settings.offline.what.pictures': '課程裡的圖片',
+  'settings.offline.what.languages': '語言',
+  'settings.offline.what.licences': '授權條款全文',
 
   'settings.account': '帳號',
   'settings.account.help':

@@ -233,6 +233,10 @@ winner.
   `npx wrangler deploy`). The old address, `ya-luotao.github.io/dacapo`, redirects every link
   there (`scripts/moved/`, `.github/workflows/pages.yml`); what a browser stored at the old
   address stays there, as storage belongs to the address.
+- A build also writes `sw.js` at its root: the worker that keeps the web app on the device
+  ([OFFLINE.md](OFFLINE.md)), served without caching (`public/_headers`). It is the same file for
+  the same build, so a push that changes nothing of the app deploys no new worker. The Apple
+  app's bundle leaves it out (`apple/scripts/embed-web.sh`).
 
 ## Service storage (`dacapo-cloud`)
 

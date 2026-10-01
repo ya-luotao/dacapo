@@ -12,11 +12,13 @@ import {
 import type { MergeResult } from '../../storage/repository.ts';
 import { useT, type MessageKey } from '../../i18n/index.ts';
 import { downloadText } from '../../lib/download.ts';
+import { currentShell } from '../../lib/shell.ts';
 import { usePractice, usePracticeStore, useStorageStatus } from '../practice/context.ts';
 import { useSyncStatus } from '../sync/context.ts';
 import type { StorageStatus } from '../practice/store.ts';
 import { useNow } from '../progress/useNow.ts';
 import { ImportPreview } from './ImportPreview.tsx';
+import { OfflineBlock } from './OfflineBlock.tsx';
 
 interface StoredIds {
   pieceSteps: ReadonlySet<string>;
@@ -246,6 +248,8 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
           {t('settings.import.failed')}
         </p>
       )}
+
+      {currentShell() === 'web' && <OfflineBlock />}
     </section>
   );
 }

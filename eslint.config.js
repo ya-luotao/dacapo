@@ -34,5 +34,10 @@ export default defineConfig(
     files: ['apple/Dacapo/**/*.js'],
     languageOptions: { globals: { ...globals.browser, webkit: 'readonly' } },
   },
+  {
+    // The offline worker (docs/OFFLINE.md) and the plain script that withdraws it.
+    files: ['src/offline/sw.ts', 'scripts/offline/*.js'],
+    languageOptions: { globals: globals.serviceworker },
+  },
   prettier,
 );

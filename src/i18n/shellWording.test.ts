@@ -30,6 +30,9 @@ const ALLOWED = new Set<MessageKey>([
   'home.faq.browser.q',
   'home.faq.browser.a',
   'home.faq.data.a',
+  // Settings' Offline block is only in the web app (DataSection.tsx): the app carries the build.
+  'settings.offline.unsupported',
+  'settings.offline.all.failed',
 ]);
 
 const placeholders = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();

@@ -30,8 +30,9 @@ else
 fi
 
 mkdir -p "${dest}"
-# _headers is for the web server (wrangler.jsonc), not the app.
-rsync -a --delete --exclude _headers "${src}/" "${dest}/"
+# _headers is for the web server (wrangler.jsonc), not the app; nor is the offline worker, which
+# the app never registers (docs/OFFLINE.md): the build is in the bundle.
+rsync -a --delete --exclude _headers --exclude /sw.js "${src}/" "${dest}/"
 echo "Embedded web app from ${src} ($(du -sh "${dest}" | cut -f1))"
 
 # Release: the Debug-only Info.plist keys (Config/Info.plist, DACAPO_DEBUG_HARNESS) and the

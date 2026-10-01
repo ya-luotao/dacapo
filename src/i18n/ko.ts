@@ -2761,6 +2761,23 @@ export const ko: Dictionary = {
   'settings.import.done':
     '가져오기 완료: 새 연습 내역 {sessions}개, 새 응답 {attempts}개, 새 곡 {pieces}개, 새 곡 연습 상세 기록 {steps}개, 새 스케일 연습 상세 기록 {scaleRuns}개, 새 청음 응답 {ear}개, 새 테이크 조각 {takes}개, 새 과제·보고서 {assignments}개.',
   'settings.import.failed': '가져온 내용을 저장하지 못했어요. 아무것도 바뀌지 않았어요.',
+  'settings.offline': '오프라인',
+  'settings.offline.stored': 'dacapo가 이 기기에 저장되어 있어서 네트워크 없이도 열려요.',
+  'settings.offline.pending': '아직 저장되지 않았어요.',
+  'settings.offline.unsupported': '이 브라우저는 dacapo를 오프라인용으로 저장하지 못해요.',
+  'settings.offline.all': '모두 저장',
+  'settings.offline.all.help':
+    '나머지도 지금 저장해요: “곡”과 “스케일”의 악보 엔진, 내장 피아노, 모든 언어. 약 {size}\u00a0MB예요. 저장하지 않으면 처음 쓸 때 하나씩 저장돼요.',
+  'settings.offline.all.progress': '파일 {total}개 중 {done}개',
+  'settings.offline.all.done': '모두 저장됨: 악보 엔진, 내장 피아노, 모든 언어.',
+  'settings.offline.all.failed':
+    '저장하지 못했어요: {what}. 인터넷 연결과 기기의 남은 공간을 확인한 뒤 다시 시도하세요.',
+  'settings.offline.what.dacapo': 'dacapo 자체',
+  'settings.offline.what.engraver': '악보 엔진',
+  'settings.offline.what.piano': '내장 피아노',
+  'settings.offline.what.pictures': '레슨 사진',
+  'settings.offline.what.languages': '언어',
+  'settings.offline.what.licences': '라이선스 전문',
 
   'settings.account': '계정',
   'settings.account.help':

@@ -2807,6 +2807,24 @@ export const en = {
   'settings.import.done':
     'Import complete: {sessions} new sessions, {attempts} new answers, {pieces} new pieces, {steps} new piece practice records, {scaleRuns} new scale runs, {ear} new ear training answers, {takes} new take parts and {assignments} new assignments or reports.',
   'settings.import.failed': 'The import could not be saved. Nothing was changed.',
+  'settings.offline': 'Offline',
+  'settings.offline.stored': 'The app is stored on this device and opens without a network.',
+  'settings.offline.pending': 'Not stored yet.',
+  'settings.offline.unsupported': 'This browser does not keep the app offline.',
+  'settings.offline.all': 'Store everything',
+  'settings.offline.all.help':
+    'Stores the rest now: the notation engine of Pieces and Scales, the built-in piano and every language, about {size}\u00a0MB. Otherwise each is stored when it is first used.',
+  'settings.offline.all.progress': '{done} of {total} files',
+  'settings.offline.all.done':
+    'Everything is stored: the notation engine, the built-in piano and every language.',
+  'settings.offline.all.failed':
+    'Could not be stored: {what}. Check the connection and the space left on this device, then try again.',
+  'settings.offline.what.dacapo': 'the app',
+  'settings.offline.what.engraver': 'the notation engine',
+  'settings.offline.what.piano': 'the built-in piano',
+  'settings.offline.what.pictures': 'the lessons’ pictures',
+  'settings.offline.what.languages': 'the languages',
+  'settings.offline.what.licences': 'the licence texts',
 
   'settings.account': 'Account',
   'settings.account.help':

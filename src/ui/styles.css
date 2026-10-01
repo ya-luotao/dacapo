@@ -5102,6 +5102,22 @@ kbd {
   color: var(--bad);
 }
 
+/* Settings: your data → offline. A block below a hairline, as the profile is in the account. */
+.data-offline {
+  margin-top: 2.25rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.data-offline > .eyebrow {
+  margin: 0 0 0.25rem;
+}
+
+/* The count runs while the files are stored: figures of one width, so the line does not shift. */
+.data-offline .help {
+  font-variant-numeric: tabular-nums;
+}
+
 /* The preview is a sheet laid on the page, like the flashcard. */
 .import-preview {
   margin-top: 1.75rem;
