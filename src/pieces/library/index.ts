@@ -20,6 +20,14 @@ export const BUILT_IN_IDS = [
   'tchaikovsky-morning-prayer',
   'chopin-prelude-in-c-minor',
   'satie-gymnopedie-1',
+  'trad-twinkle-twinkle',
+  'trad-frere-jacques',
+  'lyte-row-your-boat',
+  'trad-amazing-grace',
+  'pierpont-jingle-bells',
+  'foster-oh-susanna',
+  'trad-auld-lang-syne',
+  'trad-swing-low',
 ] as const;
 
 export type BuiltInId = (typeof BUILT_IN_IDS)[number];
@@ -35,6 +43,12 @@ export interface BuiltInPiece {
   sourceUrl: string;
   encoder: string;
   licence: string;
+  /**
+   * A lead sheet (docs/HARMONY.md, "Lead sheets (H3)"): a melody on the treble staff with chord
+   * symbols of our own, the bass staff empty for a left hand made from the symbols; absent for a
+   * piece written out for both hands.
+   */
+  leadSheet?: true;
   /** Checksum and bar counts, for the library without loading the file (locked by a test). */
   facts: PieceFacts;
 }
@@ -234,6 +248,142 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: 'db34d100',
       bars: { right: 38, left: 47, both: 47 },
       notes: { play: 455, skip: 228 },
+    },
+  },
+  {
+    id: 'trad-twinkle-twinkle',
+    level: 0,
+    composer: 'Traditional (French air)',
+    work: 'Twinkle, Twinkle, Little Star (Ah ! vous dirai-je, maman)',
+    source:
+      'Franklin Square Song Collection (Harper & Brothers, 1881), p. 95; chord symbols by the dacapo project',
+    sourceUrl: 'https://archive.org/details/franklinsquares04mccagoog/page/n99/',
+    encoder: 'dacapo project',
+    licence: 'Public-domain melody; chord symbols and encoding MIT',
+    leadSheet: true,
+    facts: {
+      checksum: 'eeb5c6ad',
+      bars: { right: 24, left: 0, both: 24 },
+      notes: { play: 42, skip: 42 },
+    },
+  },
+  {
+    id: 'trad-frere-jacques',
+    level: 0,
+    composer: 'Traditional (French)',
+    work: 'Frère Jacques (a round), first voice',
+    source:
+      'J.-B. Weckerlin, Chansons et rondes enfantines (Garnier frères, 1885), p. 85; chord symbols by the dacapo project',
+    sourceUrl: 'https://archive.org/details/chansonsetronde00weck/page/n102/',
+    encoder: 'dacapo project',
+    licence: 'Public-domain melody; chord symbols and encoding MIT',
+    leadSheet: true,
+    facts: {
+      checksum: '778fec8a',
+      bars: { right: 20, left: 0, both: 20 },
+      notes: { play: 44, skip: 44 },
+    },
+  },
+  {
+    id: 'lyte-row-your-boat',
+    level: 1,
+    composer: 'E. O. Lyte',
+    work: 'Row Your Boat (a round)',
+    source:
+      'Franklin Square Song Collection (Harper & Brothers, 1881), p. 69; chord symbols by the dacapo project',
+    sourceUrl: 'https://archive.org/details/franklinsquares04mccagoog/page/n73/',
+    encoder: 'dacapo project',
+    licence: 'Public-domain melody; chord symbols and encoding MIT',
+    leadSheet: true,
+    facts: {
+      checksum: 'f8cdf8f2',
+      bars: { right: 8, left: 0, both: 8 },
+      notes: { play: 27, skip: 27 },
+    },
+  },
+  {
+    id: 'trad-amazing-grace',
+    level: 1,
+    composer: 'Traditional (American hymn tune)',
+    work: 'Amazing Grace (the tune New Britain; words by John Newton)',
+    source:
+      'Coronation Hymns, ed. E. O. Excell (1910), No. 282, the soprano line; chord symbols by the dacapo project',
+    sourceUrl: 'https://archive.org/details/coronationhymns0000eoex_f0r6/page/n281/',
+    encoder: 'dacapo project',
+    licence: 'Public-domain melody; chord symbols and encoding MIT',
+    leadSheet: true,
+    facts: {
+      checksum: '45518e37',
+      bars: { right: 15, left: 0, both: 15 },
+      notes: { play: 35, skip: 35 },
+    },
+  },
+  {
+    id: 'pierpont-jingle-bells',
+    level: 1,
+    composer: 'James Lord Pierpont',
+    work: 'Jingle Bells (One Horse Open Sleigh): first verse and chorus',
+    source:
+      'Heart Songs Dear to the American People (Chapple, 1909), pp. 148–149, transposed from A♭ to G major; chord symbols by the dacapo project',
+    sourceUrl: 'https://archive.org/details/heartsongsdearto00chap/page/n163/',
+    encoder: 'dacapo project',
+    licence: 'Public-domain melody; chord symbols and encoding MIT',
+    leadSheet: true,
+    facts: {
+      checksum: '19fc9bb3',
+      bars: { right: 16, left: 0, both: 16 },
+      notes: { play: 98, skip: 98 },
+    },
+  },
+  {
+    id: 'foster-oh-susanna',
+    level: 2,
+    composer: 'Stephen Foster',
+    work: 'Oh! Susanna: verse and chorus',
+    source:
+      'Heart Songs Dear to the American People (Chapple, 1909), pp. 172–173; chord symbols by the dacapo project',
+    sourceUrl: 'https://archive.org/details/heartsongsdearto00chap/page/n187/',
+    encoder: 'dacapo project',
+    licence: 'Public-domain melody; chord symbols and encoding MIT',
+    leadSheet: true,
+    facts: {
+      checksum: 'f1e65c83',
+      bars: { right: 25, left: 0, both: 25 },
+      notes: { play: 110, skip: 85 },
+    },
+  },
+  {
+    id: 'trad-auld-lang-syne',
+    level: 2,
+    composer: 'Traditional (Scottish)',
+    work: 'Auld Lang Syne: verse and chorus',
+    source:
+      'Franklin Square Song Collection (Harper & Brothers, 1881), p. 104; chord symbols by the dacapo project',
+    sourceUrl: 'https://archive.org/details/franklinsquares04mccagoog/page/n108/',
+    encoder: 'dacapo project',
+    licence: 'Public-domain melody; chord symbols and encoding MIT',
+    leadSheet: true,
+    facts: {
+      checksum: '1fc67ba5',
+      bars: { right: 18, left: 0, both: 18 },
+      notes: { play: 84, skip: 56 },
+    },
+  },
+  {
+    id: 'trad-swing-low',
+    level: 2,
+    composer: 'Traditional (African American spiritual)',
+    work: 'Swing Low, Sweet Chariot: refrain, verse and refrain',
+    source:
+      'Heart Songs Dear to the American People (Chapple, 1909), p. 251, the soprano line; chord symbols by the dacapo project',
+    sourceUrl: 'https://archive.org/details/heartsongsdearto00chap/page/n272/',
+    encoder: 'dacapo project',
+    licence: 'Public-domain melody; chord symbols and encoding MIT',
+    leadSheet: true,
+    facts: {
+      checksum: 'ec992a8e',
+      bars: { right: 24, left: 0, both: 24 },
+      notes: { play: 100, skip: 100 },
     },
   },
 ];

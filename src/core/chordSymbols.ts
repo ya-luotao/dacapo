@@ -194,6 +194,62 @@ export function bassTone(symbol: ChordSymbol): Root | null {
   return symbolTones(symbol).find((t) => rootPc(t) === rootPc(bass)) ?? bass;
 }
 
+// --- MusicXML --------------------------------------------------------------------------------
+
+/**
+ * MusicXML's `<kind>` of each quality, and the text a lead sheet prints for it in the app's one
+ * style (the `text` attribute, so Verovio draws `maj7`, `°` and `m7♭5` as written). `add9` is a
+ * major triad with an added 9th (`<degree>`).
+ */
+export const MUSICXML_KIND: Readonly<Record<SymbolQuality, string>> = {
+  maj: 'major',
+  min: 'minor',
+  dim: 'diminished',
+  aug: 'augmented',
+  sus2: 'suspended-second',
+  sus4: 'suspended-fourth',
+  dom7: 'dominant',
+  maj7: 'major-seventh',
+  min7: 'minor-seventh',
+  hdim7: 'half-diminished',
+  dim7: 'diminished-seventh',
+  maj6: 'major-sixth',
+  min6: 'minor-sixth',
+  add9: 'major',
+};
+
+/** A `<degree>` of a `<harmony>`: a tone added to, altered in or taken from its kind. */
+export interface MusicXmlDegree {
+  value: number;
+  alter: number;
+  type: 'add' | 'alter' | 'subtract';
+}
+
+/**
+ * The symbol a `<harmony>` stands for, from its root, `<kind>` value, bass and degrees: null for a
+ * kind the app has no symbol for (`dominant-ninth`, `power`, `none`, `other` …), any degree but a
+ * 9th added to a major triad, a root or a bass outside `SYMBOL_ROOTS` (E♯, C♭, a double sign), and
+ * a bass that is the root.
+ */
+export function symbolFromMusicXml(
+  root: Root,
+  kind: string,
+  bass: Root | null,
+  degrees: readonly MusicXmlDegree[] = [],
+): ChordSymbol | null {
+  let quality = SYMBOL_QUALITIES.find((q) => q !== 'add9' && MUSICXML_KIND[q] === kind);
+  if (quality === undefined) return null;
+  if (degrees.length > 0) {
+    const [degree, ...more] = degrees;
+    const addNine = degree!.type === 'add' && degree!.value === 9 && degree!.alter === 0;
+    if (more.length > 0 || quality !== 'maj' || !addNine) return null;
+    quality = 'add9';
+  }
+  if (!isSymbolRoot(root) || (bass && !isSymbolRoot(bass))) return null;
+  if (bass && rootPc(bass) === rootPc(root)) return null;
+  return { root, quality, bass };
+}
+
 // --- Spelling --------------------------------------------------------------------------------
 
 /**

@@ -2,8 +2,9 @@
 // `Document`, so the browser's `DOMParser` does the XML and nothing here needs an XML library.
 
 import { unzipSync } from 'fflate';
+import { formatSymbol, symbolFromMusicXml, type MusicXmlDegree } from './chordSymbols.ts';
 import { applyHands, detectHands } from './hands.ts';
-import type { GraceNote, Ornament, OrnamentKind } from './markings.ts';
+import type { GraceNote, HarmonyMark, Ornament, OrnamentKind } from './markings.ts';
 import { createMarkingReader, type SlurEnd } from './musicxmlMarkings.ts';
 import { LETTERS, type Letter } from './note.ts';
 import {
@@ -18,6 +19,7 @@ import {
   type StaffHands,
   type TempoMark,
 } from './score.ts';
+import type { Root } from './theoryItems.ts';
 
 export interface ParseOptions {
   /** The piece's own choice of hands per staff, over the detected one. */
@@ -161,6 +163,8 @@ export function parseMusicXml(doc: Document, options: ParseOptions = {}): Score 
   // frame afterwards, so a part whose measures are too short or too long cannot shift the others.
   const pending: { measure: number; within: number; note: Omit<ScoreNote, 'onset'> }[] = [];
   const pendingTempos: { measure: number; within: number; bpm: number }[] = [];
+  const pendingHarmonies: { measure: number; within: number; mark: Omit<HarmonyMark, 'tick'> }[] =
+    [];
   const marks = createMarkingReader();
 
   parts.forEach((part, partIndex) => {
@@ -226,6 +230,17 @@ export function parseMusicXml(doc: Document, options: ParseOptions = {}): Score 
                 within: Math.max(0, cursor + offset),
               });
             }
+            break;
+          }
+          case 'harmony': {
+            const read = readHarmony(el);
+            if (!read) break;
+            const offset = ticks(num(child(el, 'offset'), 0));
+            pendingHarmonies.push({
+              measure: measureIndex,
+              within: Math.max(0, cursor + offset),
+              mark: { part: partIndex, staff: staffOf(el), measure: measureIndex, ...read },
+            });
             break;
           }
           case 'note': {
@@ -387,6 +402,9 @@ export function parseMusicXml(doc: Document, options: ParseOptions = {}): Score 
     notes.push({ ...note, onset: measures[measure]!.start + within });
   for (const { measure, within, bpm } of pendingTempos)
     tempos.push({ tick: measures[measure]!.start + within, bpm });
+  const harmonies: HarmonyMark[] = pendingHarmonies
+    .map(({ measure, within, mark }) => ({ ...mark, tick: measures[measure]!.start + within }))
+    .sort((a, b) => a.tick - b.tick || a.part - b.part || a.staff - b.staff);
 
   notes.sort(
     (a, b) => a.onset - b.onset || a.staff - b.staff || a.part - b.part || a.midi - b.midi,
@@ -402,7 +420,59 @@ export function parseMusicXml(doc: Document, options: ParseOptions = {}): Score 
     notes,
     tempos,
     markings: marks.finish(measures),
+    ...(harmonies.length > 0 && { harmonies }),
     warnings: [...warnings],
+  };
+}
+
+const DEGREE_TYPES: readonly string[] = ['add', 'alter', 'subtract'];
+
+/** A root or bass as printed: `B♭`, `F♯`, `E𝄫` written as two flats. */
+const noteName = ({ step, alter }: Root) =>
+  `${step}${(alter > 0 ? '♯' : '♭').repeat(Math.abs(alter))}`;
+
+function readRoot(el: Element | null, prefix: 'root' | 'bass'): Root | null {
+  if (!el) return null;
+  const step = text(child(el, `${prefix}-step`)).toUpperCase() as Letter;
+  if (!LETTERS.includes(step)) return null;
+  const alter = num(child(el, `${prefix}-alter`), 0);
+  return Number.isInteger(alter) ? { step, alter } : null;
+}
+
+/**
+ * A chord symbol: its root, `<kind>`, bass and degrees, the text the score prints and the app's
+ * symbol for it. Null for a `<harmony>` without a root (a roman numeral or a function alone).
+ */
+function readHarmony(el: Element): Omit<HarmonyMark, 'part' | 'staff' | 'measure' | 'tick'> | null {
+  const root = readRoot(child(el, 'root'), 'root');
+  if (!root) return null;
+  const kindEl = child(el, 'kind');
+  const kind = text(kindEl) || 'none';
+  const bass = readRoot(child(el, 'bass'), 'bass');
+  const degrees: MusicXmlDegree[] = childrenNamed(el, 'degree').flatMap((d) => {
+    const value = num(child(d, 'degree-value'), NaN);
+    const type = text(child(d, 'degree-type'));
+    if (!Number.isInteger(value) || !DEGREE_TYPES.includes(type)) return [];
+    return [
+      { value, alter: num(child(d, 'degree-alter'), 0), type: type as MusicXmlDegree['type'] },
+    ];
+  });
+  const symbol = symbolFromMusicXml(root, kind, bass, degrees);
+  const kindText = kindEl?.getAttribute('text');
+  const over = bass ? `/${noteName(bass)}` : '';
+  const printed =
+    kindText !== null && kindText !== undefined
+      ? `${noteName(root)}${kindText}${over}`
+      : symbol
+        ? formatSymbol(symbol)
+        : `${noteName(root)}${kind === 'major' ? '' : ` ${kind}`}${over}`;
+  return {
+    root,
+    kind,
+    bass,
+    ...(degrees.length > 0 && { degrees }),
+    text: printed,
+    symbol,
   };
 }
 

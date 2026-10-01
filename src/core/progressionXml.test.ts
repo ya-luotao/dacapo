@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
+import { formatSymbol } from './chordSymbols.ts';
 import { parseMusicXml } from './musicxml.ts';
 import { pieceFacts } from './pieceRecords.ts';
 import {
@@ -48,6 +49,10 @@ describe('progressionXml', () => {
         .map(({ onset, duration, midi, pitch, hand }) => ({ onset, duration, midi, pitch, hand }))
         .sort((x, y) => x.onset - y.onset || x.midi - y.midi);
       expect(parsed).toEqual(expected);
+      // The chord symbols read back as the chords, one at the start of each bar (H3).
+      expect(score.harmonies!.map((h) => [h.tick, h.symbol, h.text])).toEqual(
+        a.bars.map((bar, m) => [m * barTicks, bar.chord.symbol, formatSymbol(bar.chord.symbol)]),
+      );
     }
   });
 

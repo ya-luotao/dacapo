@@ -1256,6 +1256,48 @@ export const ja: Dictionary = {
   'library.satie-gymnopedie-1.note':
     'ゆっくりと静かな旋律。左手は小節ごとに、低い音と和音のあいだを行き来します。',
   'library.satie-gymnopedie-1.style': '印象派以降 · 同じ旋律を二度、それぞれ違う終わり方で',
+  'library.trad-twinkle-twinkle.title': 'きらきら星',
+  'library.trad-twinkle-twinkle.composer': 'フランス民謡',
+  'library.trad-twinkle-twinkle.note':
+    '誰もが知るフランスの旋律を、1881年のアメリカの歌集の形で。コードネームを見て左手を弾けます。',
+  'library.trad-twinkle-twinkle.style': '民謡 · リードシート、a b a の三部分',
+  'library.trad-frere-jacques.title': 'フレール・ジャック',
+  'library.trad-frere-jacques.composer': 'フランス民謡',
+  'library.trad-frere-jacques.note':
+    '輪唱の第1声部です。短いフレーズをそれぞれ二度歌い、最後の4小節でカノンを締めくくります。',
+  'library.trad-frere-jacques.style': '民謡 · 輪唱：四つのフレーズをそれぞれ二度',
+  'library.lyte-row-your-boat.title': 'こげこげボート',
+  'library.lyte-row-your-boat.composer': 'ライト',
+  'library.lyte-row-your-boat.note':
+    '1881年の歌集にある8分の6拍子の輪唱。旋律は最後の一行まで一つのコードの上にとどまります。',
+  'library.lyte-row-your-boat.style': '輪唱 · 8分の6拍子のリードシート、4小節のフレーズが二つ',
+  'library.trad-amazing-grace.title': 'アメイジング・グレイス',
+  'library.trad-amazing-grace.composer': 'アメリカの伝統的な賛美歌',
+  'library.trad-amazing-grace.note':
+    '賛美歌の旋律「ニュー・ブリテン」を、エクセルの1910年の賛美歌集の形で、4分の3拍子で。',
+  'library.trad-amazing-grace.style': '賛美歌 · 4分の3拍子のリードシート、四つのフレーズ',
+  'library.pierpont-jingle-bells.title': 'ジングル・ベル',
+  'library.pierpont-jingle-bells.composer': 'ピアポント',
+  'library.pierpont-jingle-bells.note':
+    '1番のヴァースとコーラスを、変イ長調からト長調に移しています。ここでの1小節は、今ふつうに見る楽譜の2小節にあたります。',
+  'library.pierpont-jingle-bells.style':
+    'ポピュラーソング（1857年） · リードシート：ヴァースとコーラス',
+  'library.foster-oh-susanna.title': 'おお、スザンナ',
+  'library.foster-oh-susanna.composer': 'フォスター',
+  'library.foster-oh-susanna.note':
+    'フォスターの1848年の歌。弾むような付点リズムの16小節のヴァースに、コーラスが二度続きます。',
+  'library.foster-oh-susanna.style':
+    'ポピュラーソング（1848年） · リードシート：ヴァースと、くり返すコーラス',
+  'library.trad-auld-lang-syne.title': 'オールド・ラング・サイン（蛍の光）',
+  'library.trad-auld-lang-syne.composer': 'スコットランド民謡',
+  'library.trad-auld-lang-syne.note':
+    '4分の2拍子のスコットランドの旋律。短い音のあとに長い音が来る「スコッチ・スナップ」もそのままに、コーラスは二度歌います。',
+  'library.trad-auld-lang-syne.style': '民謡 · リードシート：ヴァースと、くり返すコーラス',
+  'library.trad-swing-low.title': 'スウィング・ロウ、スウィート・チャリオット',
+  'library.trad-swing-low.composer': 'アフリカ系アメリカ人の霊歌',
+  'library.trad-swing-low.note':
+    '霊歌のリフレイン、ヴァース、そしてもう一度リフレイン。「Coming for to carry me home」はシンコペーションで歌います。',
+  'library.trad-swing-low.style': '霊歌 · リードシート：リフレイン、ヴァース、リフレイン',
 
   'pieces.yours': 'インポートした曲',
   'pieces.yours.help':
@@ -2486,9 +2528,9 @@ export const ja: Dictionary = {
     'Source Serif 4とSource Sans 3：本文のフォントです。© Adobe, with Reserved Font Name "Source". SIL Open Font License 1.1.',
   'about.accidentals':
     'dacapo Accidentals：本文中の♭・♮・♯。Bravura Textの5つの字形を、ライセンスが改変版に求めるとおり名前を変えて使っています。© Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
-  'about.music.intro': '内蔵の13曲はすべてパブリックドメインの作品です。',
+  'about.music.intro': '内蔵の21曲はすべてパブリックドメインの作品です。',
   'about.music.ours':
-    'そのうち10曲はdacapoプロジェクトがMITライセンスで入力したものです。「歓喜の歌」の編曲と、Mutopia Projectが組んだパブリックドメイン版にもとづく「メヌエット ト長調」「メヌエット ト短調」（ペツォールト）、「ミュゼット ニ長調」（バッハ）、「エリーゼのために」（ベートーヴェン）、「素直な心」（ブルグミュラー）、「古いフランスの歌」「朝の祈り」（チャイコフスキー）、「前奏曲 ハ短調」（ショパン）、「ジムノペディ第1番」（サティ）です。',
+    'そのうち18曲はdacapoプロジェクトがMITライセンスで入力したものです。「歓喜の歌」の編曲と、Mutopia Projectが組んだパブリックドメイン版にもとづく「メヌエット ト長調」「メヌエット ト短調」（ペツォールト）、「ミュゼット ニ長調」（バッハ）、「エリーゼのために」（ベートーヴェン）、「素直な心」（ブルグミュラー）、「古いフランスの歌」「朝の祈り」（チャイコフスキー）、「前奏曲 ハ短調」（ショパン）、「ジムノペディ第1番」（サティ）、そしてパブリックドメインの歌集・賛美歌集の旋律に私たちがコードネームをつけた8曲のリードシート、「きらきら星」「こげこげボート」「オールド・ラング・サイン（蛍の光）」（『フランクリン・スクエア歌集』1881年）、「フレール・ジャック」（ヴェッケルラン、1885年）、「アメイジング・グレイス」（エクセル『戴冠賛美歌集』1910年）、「ジングル・ベル」「おお、スザンナ」「スウィング・ロウ、スウィート・チャリオット」（『ハート・ソングズ』1909年）です。',
   'about.music.pdmx':
     '「アラベスク」（ブルグミュラー）、「兵士の行進」（シューマン）、「前奏曲 ハ長調」（J.S.バッハ）は、MuseScoreに投稿したPianoXML、jadr、OpenGoldbergの各氏がパブリックドメイン（CC0）として公開した楽譜で、dacapoプロジェクトが運指を削除しました。いずれもPhillip Long、Zachary Novack、Julian McAuley、Taylor Berg-KirkpatrickによるPDMXデータセットに収録されており、このデータセットはCC BY 4.0で公開されています。',
   'about.music.hanon':

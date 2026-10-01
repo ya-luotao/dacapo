@@ -6,7 +6,7 @@
 // Verovio draws what the file says and infers nothing, so the file spells out the accidentals and
 // the beams, as the scale exercises' does (scaleXml.ts).
 
-import type { SymbolQuality } from './chordSymbols.ts';
+import { MUSICXML_KIND, SYMBOL_SUFFIX } from './chordSymbols.ts';
 import {
   arrangeProgression,
   DIVISIONS,
@@ -29,15 +29,6 @@ const ACCIDENTALS: Readonly<Record<number, string>> = {
   2: 'double-sharp',
 };
 
-/** MusicXML's `<kind>` of each quality a progression uses, and the text the symbol prints. */
-const KINDS: Partial<Readonly<Record<SymbolQuality, [kind: string, text: string]>>> = {
-  maj: ['major', ''],
-  min: ['minor', 'm'],
-  dom7: ['dominant', '7'],
-  maj7: ['major-seventh', 'maj7'],
-  min7: ['minor-seventh', 'm7'],
-};
-
 /** Staff 1 is the right hand, staff 2 the left: given, so no hand is ever guessed. */
 export const PROGRESSION_HANDS: StaffHands = {
   [staffKey(0, 1)]: 'right',
@@ -50,7 +41,8 @@ export function numeralText(chord: Pick<KeyChord, 'numeral' | 'figure'>): string
 }
 
 function harmonyXml(c: KeyChord): string {
-  const [kind, text] = KINDS[c.symbol.quality] ?? ['major', ''];
+  const kind = MUSICXML_KIND[c.symbol.quality];
+  const text = SYMBOL_SUFFIX[c.symbol.quality];
   const { step, alter } = c.symbol.root;
   return (
     '<harmony print-frame="no" placement="above">' +

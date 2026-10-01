@@ -1209,6 +1209,46 @@ export const zhTW: Dictionary = {
   'library.satie-gymnopedie-1.composer': '薩提',
   'library.satie-gymnopedie-1.note': '緩慢而寧靜的旋律，左手每小節在低音與和弦之間來回擺盪。',
   'library.satie-gymnopedie-1.style': '印象樂派及其後 · 同一段旋律彈兩次，兩次結尾不同',
+  'library.trad-twinkle-twinkle.title': '小星星',
+  'library.trad-twinkle-twinkle.composer': '法國民謠',
+  'library.trad-twinkle-twinkle.note':
+    '人人會唱的法國曲調，依 1881 年一本美國歌集的版本，配上和弦記號，左手可以照著彈。',
+  'library.trad-twinkle-twinkle.style': '民歌 · 帶和弦記號的旋律譜，三段：a b a',
+  'library.trad-frere-jacques.title': '兩隻老虎（雅克兄弟）',
+  'library.trad-frere-jacques.composer': '法國民謠',
+  'library.trad-frere-jacques.note':
+    '輪唱曲第一聲部的唱法：每個短樂句唱兩遍，最後四小節是卡農的結尾。',
+  'library.trad-frere-jacques.style': '民歌 · 輪唱曲：四個樂句，每句唱兩遍',
+  'library.lyte-row-your-boat.title': '划船曲',
+  'library.lyte-row-your-boat.composer': '萊特',
+  'library.lyte-row-your-boat.note':
+    '1881 年歌集裡的 6/8 拍輪唱曲，直到最後一句，旋律都停在同一個和弦上。',
+  'library.lyte-row-your-boat.style': '輪唱曲 · 6/8 拍旋律譜，兩個四小節樂句',
+  'library.trad-amazing-grace.title': '奇異恩典',
+  'library.trad-amazing-grace.composer': '美國傳統聖詩曲調',
+  'library.trad-amazing-grace.note':
+    '聖詩曲調「新不列顛」，3/4 拍，依埃克塞爾 1910 年聖詩集的版本。',
+  'library.trad-amazing-grace.style': '聖詩 · 3/4 拍旋律譜，四個樂句',
+  'library.pierpont-jingle-bells.title': '鈴兒響叮噹',
+  'library.pierpont-jingle-bells.composer': '皮爾龐特',
+  'library.pierpont-jingle-bells.note':
+    '第一段主歌和副歌，從降 A 大調移到 G 大調。這裡的一小節相當於今天常見樂譜的兩小節。',
+  'library.pierpont-jingle-bells.style': '流行歌曲（1857） · 旋律譜：主歌和副歌',
+  'library.foster-oh-susanna.title': '噢！蘇珊娜',
+  'library.foster-oh-susanna.composer': '福斯特',
+  'library.foster-oh-susanna.note':
+    '福斯特 1848 年的歌曲：十六小節的主歌帶著輕快的附點節奏，然後副歌唱兩遍。',
+  'library.foster-oh-susanna.style': '流行歌曲（1848） · 旋律譜：主歌，然後副歌反覆',
+  'library.trad-auld-lang-syne.title': '友誼萬歲',
+  'library.trad-auld-lang-syne.composer': '蘇格蘭民謠',
+  'library.trad-auld-lang-syne.note':
+    '2/4 拍的蘇格蘭曲調，保留了先短後長的「蘇格蘭切分」。副歌唱兩遍。',
+  'library.trad-auld-lang-syne.style': '民歌 · 旋律譜：主歌，然後副歌反覆',
+  'library.trad-swing-low.title': '輕搖，可愛的馬車',
+  'library.trad-swing-low.composer': '非裔美國人靈歌',
+  'library.trad-swing-low.note':
+    '這首靈歌的副歌、主歌，再回到副歌，「Coming for to carry me home」一句帶切分。',
+  'library.trad-swing-low.style': '靈歌 · 旋律譜：副歌、主歌、副歌',
 
   'pieces.yours': '我的樂曲',
   'pieces.yours.help':
@@ -2369,9 +2409,9 @@ export const zhTW: Dictionary = {
     'Source Serif 4 和 Source Sans 3，內文字型。© Adobe, with Reserved Font Name "Source". SIL Open Font License 1.1.',
   'about.accidentals':
     'dacapo Accidentals，內文裡的 ♭、♮、♯：取自 Bravura Text 的五個字形，依其授權對修改版本的要求更名。© Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
-  'about.music.intro': '十三首內建樂曲都屬於公有領域。',
+  'about.music.intro': '二十一首內建樂曲都屬於公有領域。',
   'about.music.ours':
-    '其中十首由 dacapo 專案編碼，以 MIT 授權釋出：〈快樂頌〉的改編，以及依據 Mutopia 專案排印的公有領域版本編碼的〈G 大調小步舞曲〉〈G 小調小步舞曲〉（佩佐爾德）、〈D 大調風笛舞曲〉（巴哈）、〈給愛麗絲〉（貝多芬）、〈純潔〉（布爾格彌勒）、〈古老的法國歌曲〉〈晨禱〉（柴可夫斯基）、〈C 小調前奏曲〉（蕭邦）和〈裸體歌舞第 1 號〉（薩提）。',
+    '其中十八首由 dacapo 專案編碼，以 MIT 授權釋出：〈快樂頌〉的改編，以及依據 Mutopia 專案排印的公有領域版本編碼的〈G 大調小步舞曲〉〈G 小調小步舞曲〉（佩佐爾德）、〈D 大調風笛舞曲〉（巴哈）、〈給愛麗絲〉（貝多芬）、〈純潔〉（布爾格彌勒）、〈古老的法國歌曲〉〈晨禱〉（柴可夫斯基）、〈C 小調前奏曲〉（蕭邦）和〈裸體歌舞第 1 號〉（薩提）；還有八份旋律譜，旋律取自公有領域的歌集和聖詩集，和弦記號由我們編寫：〈小星星〉〈划船曲〉〈友誼萬歲〉（《富蘭克林廣場歌集》，1881）、〈兩隻老虎（雅克兄弟）〉（韋克蘭，1885）、〈奇異恩典〉（埃克塞爾《加冕聖詩》，1910）、〈鈴兒響叮噹〉〈噢！蘇珊娜〉〈輕搖，可愛的馬車〉（《心之歌》，1909）。',
   'about.music.pdmx':
     '〈阿拉貝斯克〉（布爾格彌勒）、〈士兵進行曲〉（舒曼）和〈C 大調前奏曲〉（巴哈）是 MuseScore 上的樂譜，上傳者 PianoXML、jadr 和 OpenGoldberg 已將它們貢獻到公有領域（CC0）；dacapo 專案刪去了其中的指法。它們來自 Phillip Long、Zachary Novack、Julian McAuley 和 Taylor Berg-Kirkpatrick 的 PDMX 資料集，該資料集以 CC BY 4.0 授權釋出。',
   'about.music.hanon':

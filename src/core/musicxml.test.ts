@@ -583,6 +583,115 @@ describe('markings', () => {
   });
 });
 
+describe('chord symbols (<harmony>)', () => {
+  const staff = (n: number) => `<staff>${n}</staff>`;
+  const harmony = (root: string, kind: string, extra = '') => {
+    const [, step, sign] = /^([A-G])(#|b)?$/.exec(root)!;
+    const alter = sign ? `<root-alter>${sign === '#' ? 1 : -1}</root-alter>` : '';
+    return `<harmony><root><root-step>${step}</root-step>${alter}</root>${kind}${extra}</harmony>`;
+  };
+  const bass = (step: string, alter = 0) =>
+    `<bass><bass-step>${step}</bass-step>${alter ? `<bass-alter>${alter}</bass-alter>` : ''}</bass>`;
+
+  it('reads root, kind, bass and degrees at the cursor and offset, with the text printed', () => {
+    const s = parse(
+      piano([
+        harmony('C', '<kind text="">major</kind>', staff(1)) +
+          note('E5', 4, staff(1)) +
+          harmony('G', '<kind text="7">dominant</kind>', `${bass('B')}<offset>2</offset>`) +
+          note('D5', 4, staff(1)),
+        harmony('B', '<kind text="m7♭5">half-diminished</kind>', staff(1)) +
+          note('C5', 2, staff(1)) +
+          harmony('D', '<kind>major</kind>', bass('F', 1)) +
+          note('C5', 2, staff(1)) +
+          harmony('C', '<kind text="add9">major</kind>') +
+          '<harmony><root><root-step>C</root-step></root><kind>major</kind><degree><degree-value>9</degree-value><degree-alter>0</degree-alter><degree-type>add</degree-type></degree></harmony>' +
+          note('E5', 4, staff(1)),
+      ]),
+    );
+    const read = (s.harmonies ?? []).map((h) => [h.measure, h.tick, h.staff, h.text, h.kind]);
+    expect(read).toEqual([
+      [0, 0, 1, 'C', 'major'],
+      [0, 3 * Q, 1, 'G7/B', 'dominant'],
+      [1, 4 * Q, 1, 'Bm7♭5', 'half-diminished'],
+      [1, 5 * Q, 1, 'D/F♯', 'major'],
+      [1, 6 * Q, 1, 'Cadd9', 'major'],
+      [1, 6 * Q, 1, 'Cadd9', 'major'],
+    ]);
+    const harmonies = s.harmonies!;
+    expect(harmonies[1]).toMatchObject({
+      root: { step: 'G', alter: 0 },
+      bass: { step: 'B', alter: 0 },
+      symbol: { root: { step: 'G', alter: 0 }, quality: 'dom7', bass: { step: 'B', alter: 0 } },
+    });
+    expect(harmonies[2]!.symbol?.quality).toBe('hdim7');
+    expect(harmonies[3]!.bass).toEqual({ step: 'F', alter: 1 });
+    // A 9th added by a degree is add9; the `text` attribute alone is only what is printed.
+    expect(harmonies[4]!.symbol?.quality).toBe('maj');
+    expect(harmonies[5]!.degrees).toEqual([{ value: 9, alter: 0, type: 'add' }]);
+    expect(harmonies[5]!.symbol?.quality).toBe('add9');
+    expect(s.warnings).toEqual([]);
+  });
+
+  it('keeps a kind the app has no symbol for, without a symbol', () => {
+    const s = parse(
+      piano([
+        harmony('C', '<kind>dominant-ninth</kind>') +
+          harmony('E', '<kind text="sus">suspended-fourth</kind>', bass('E')) +
+          '<harmony><numeral><numeral-root>5</numeral-root></numeral><kind>dominant</kind></harmony>' +
+          note('C5', 8, staff(1)),
+      ]),
+    );
+    expect(s.harmonies!.map((h) => [h.text, h.symbol])).toEqual([
+      ['C dominant-ninth', null],
+      // A bass that is the root is no slash chord of the app's.
+      ['Esus/E', null],
+    ]);
+  });
+
+  it('is absent when the score has none, and leaves the notes and the checksum alone', async () => {
+    const { pieceChecksum } = await import('./pieceRecords.ts');
+    const plain = parse(piano([note('C5', 4, staff(1)) + note('D5', 4, staff(1))]));
+    const symbols = parse(
+      piano([
+        harmony('C', '<kind>major</kind>') +
+          note('C5', 4, staff(1)) +
+          harmony('G', '<kind>dominant</kind>') +
+          note('D5', 4, staff(1)),
+      ]),
+    );
+    expect(plain.harmonies).toBeUndefined();
+    expect(symbols.harmonies).toHaveLength(2);
+    expect(pieceChecksum(symbols)).toBe(pieceChecksum(plain));
+    expect(symbols.notes).toEqual(plain.notes);
+  });
+
+  it('lays the symbols out through the repeats, like the markings', async () => {
+    const { performedMarks } = await import('./markings.ts');
+    const { performanceOrder } = await import('./repeats.ts');
+    const s = parse(
+      piano([
+        '<barline location="left"><repeat direction="forward"/></barline>' +
+          harmony('C', '<kind>major</kind>') +
+          note('C5', 8, staff(1)),
+        harmony('G', '<kind>dominant</kind>') +
+          note('B4', 8, staff(1)) +
+          '<barline location="right"><repeat direction="backward"/></barline>',
+        harmony('C', '<kind>major</kind>') + note('C5', 8, staff(1)),
+      ]),
+    );
+    const order = performanceOrder(s.measures);
+    const performed = performedMarks(s.harmonies!, s.measures, order);
+    expect(performed.map((p) => [p.at / Q, p.mark.text])).toEqual([
+      [0, 'C'],
+      [4, 'G7'],
+      [8, 'C'],
+      [12, 'G7'],
+      [16, 'C'],
+    ]);
+  });
+});
+
 describe('piano part detection', () => {
   const hands = (s: Score) => s.notes.map((n) => [n.midi, n.hand]);
 

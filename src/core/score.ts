@@ -2,7 +2,7 @@
 // from MusicXML (musicxml.ts). The renderer only draws; everything that counts or compares uses
 // this model.
 
-import type { Articulation, GraceNote, Markings, Ornament } from './markings.ts';
+import type { Articulation, GraceNote, HarmonyMark, Markings, Ornament } from './markings.ts';
 import type { Letter } from './note.ts';
 import { ornamentKeys } from './ornaments.ts';
 import { performanceOrder, type PlayedMeasure } from './repeats.ts';
@@ -129,6 +129,12 @@ export interface Score {
   tempos: TempoMark[];
   /** Dynamics, hairpins, slurs, fermatas and pedal marks (docs/EXPRESSION.md). */
   markings: Markings;
+  /**
+   * The chord symbols (`<harmony>`) of a lead sheet, sorted by tick, then part and staff; absent
+   * when the score has none. They are no notes: nothing is practised or judged from them, and
+   * they do not enter the checksum.
+   */
+  harmonies?: HarmonyMark[];
   /** What the parser left out or had to guess, for the import report. */
   warnings: ScoreWarning[];
 }

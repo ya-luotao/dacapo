@@ -15,6 +15,24 @@ sessions go in the same lists), the
 click's tempo and grid of scale runs played with it (from version 7), and the takes of piece runs
 (from version 8). Version 1 to 7 files still import.
 
+### Lead sheets in the library (H3, [docs/HARMONY.md](docs/HARMONY.md))
+
+- **Eight lead sheets** join the built-in pieces: a public-domain tune on the treble staff with
+  chord symbols of our own (MIT) above it, the bass staff left for a left hand made from the
+  symbols. Twinkle, Twinkle, Little Star, Row Your Boat and Auld Lang Syne from the Franklin Square
+  Song Collection (1881); Frère Jacques from Weckerlin's Chansons et rondes enfantines (1885);
+  Amazing Grace from Excell's Coronation Hymns (1910); Jingle Bells (moved from A♭ to G),
+  Oh! Susanna and Swing Low, Sweet Chariot from Heart Songs (1909). Each melody is the print's,
+  note for note, read from a scan and proofread blind; keys of at most two sharps or flats,
+  Initial to grade 2. Titles, composers, notes and forms in all five languages.
+- **Chord symbols in the parser.** A score's `<harmony>` elements are kept as its symbols: root,
+  kind, bass and degrees at their bar and tick, the text printed, and the app's symbol where it has
+  one (H1's qualities, `add9` from an added 9th). They are laid out through the repeats like the
+  markings and leave the notes, the steps and the checksum alone, so every record stays valid.
+  Imported MusicXML with symbols has them too. H2's progressions read back with theirs.
+- **Pieces tools.** `scripts/pieces/` writes a symbol from an `@h:` token (`@h:G7`, `@h:D/F#`),
+  its kind's text in the app's style.
+
 ### Memorising (P7, [docs/PIECES.md](docs/PIECES.md))
 
 - **Memory** is a third practice mode beside Wait and Rhythm: the score fades while you play from

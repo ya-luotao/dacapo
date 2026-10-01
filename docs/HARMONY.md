@@ -227,6 +227,67 @@ ear is a family of the Ear page; transposing is an option of every piece.
   practised, heard and judged like any written left hand. Changing the pattern makes new steps; the
   records keep the pattern.
 
+### Clarifications (decided during H3)
+
+The first half of H3: the symbols in the parser and the library's lead sheets. The left hand from
+the symbols, and the Library's own heading for the lead sheets, come with the UI.
+
+- **The parser** keeps each `<harmony>` with a root as `Score.harmonies` (`HarmonyMark` in
+  `core/markings.ts`): part, staff, written bar and tick (the cursor plus `<offset>`, as a
+  direction's), the root and the bass (step and alter), MusicXML's `<kind>` value as written, the
+  `<degree>`s, the text printed and the app's symbol. MusicXML gives a symbol a staff but no voice.
+  The text is the root, the kind's `text` attribute and the bass (`B♭maj7`, `D/F♯`); without a
+  `text`, the app's symbol; else the root and the kind's value. The symbol comes from
+  `symbolFromMusicXml` (`core/chordSymbols.ts`): `major` … `minor-sixth` map one to one to H1's
+  qualities, a major triad with an added 9th to `add9`; anything else (`dominant-ninth`, `power`,
+  another degree, a root such as E♯, a bass on the root) has none, and is kept with its text. A
+  `<harmony>` with no root (a numeral or a function alone) is skipped. The list is sorted by tick,
+  then part and staff, and laid out through the repeats by `performedMarks`, as the markings are.
+  It is absent from a score with no symbols (`src/ui/pieces` builds scores without it in its tests;
+  the UI commit may make it required). The symbols are not notes: steps, records and the checksum
+  ignore them, so no existing piece's checksum changes. H2's progressions now write their kinds
+  from the same table (`MUSICXML_KIND`), byte for byte as before, and read back with their symbols.
+- **The lead sheets** are our own encodings (`scripts/pieces/sources/`, a new `@h:` token for a
+  symbol in the app's style, written in ASCII: `@h:Bb`, `@h:F#m`, `@h:D/F#`, `@h:Bm7b5`, `dim`
+  and `aug` for `°` and `+`): the melody on the treble staff, note for note from one public-domain
+  print of the tune, and the bass staff left empty (whole-bar rests), so the left hand from the
+  symbols can be drawn there later and the hands stay right and left. A symbol stands where the
+  chord changes, and the first over the first full bar. No lyrics (the parser has no use for them
+  yet), no fingering, and of the edition's markings only fermatas. Each `<kind>` carries the house
+  style as its `text` (`m`, `7`, `°`, `m7♭5`), which Verovio prints as written; a ♭ in a root is
+  the root's `<root-alter>`, drawn as the flat sign.
+- **The eight**, chosen because a clean public-domain source could be found and read note for note
+  (melody: the source's tune as printed; symbols: ours, I, IV, V, V7, ii and vi only, simple and
+  idiomatic):
+
+  | Lead sheet                    | Source (scan on the Internet Archive)                  | Key              |
+  | ----------------------------- | ------------------------------------------------------ | ---------------- |
+  | Twinkle, Twinkle, Little Star | Franklin Square Song Collection (1881), p. 95          | G, 2/4           |
+  | Frère Jacques                 | Weckerlin, Chansons et rondes enfantines (1885), p. 85 | F, 2/4           |
+  | Row Your Boat (E. O. Lyte)    | Franklin Square Song Collection (1881), p. 69          | D, 6/8           |
+  | Amazing Grace (New Britain)   | Excell, Coronation Hymns (1910), No. 282               | G, 3/4           |
+  | Jingle Bells (Pierpont)       | Heart Songs (1909), pp. 148–149                        | G (from A♭), 4/4 |
+  | Oh! Susanna (Foster)          | Heart Songs (1909), pp. 172–173                        | G, 2/4           |
+  | Auld Lang Syne                | Franklin Square Song Collection (1881), p. 104         | G, 2/4           |
+  | Swing Low, Sweet Chariot      | Heart Songs (1909), p. 251                             | F, 2/4           |
+
+  Where the print differs from the tune as it is sung today, the print wins and the source file
+  says so (Row Your Boat's bar 3, Auld Lang Syne's Scotch snaps, Frère Jacques's first voice with
+  its four closing bars). Jingle Bells is moved from the print's A♭ (four flats) to G. Swing Low's
+  D.C. al Fine is written out; Auld Lang Syne's chorus repeats from its own pickup bar. Not taken
+  this time: the Londonderry Air (Petrie's 1855 print is a piano setting whose ornamented tune
+  could not be read note for note with confidence); Scarborough Fair, When the Saints, Home on the
+  Range, Old MacDonald, Shenandoah and Greensleeves were not attempted (for several of them the
+  tune sung today has no print before 1929 that we could check).
+
+- **Checked** without an oracle: each melody was read from the scan bar by bar, and read again
+  blind by a second reader; every difference was settled against the scan. A test locks each
+  checksum and the symbols, and checks that every symbol parses into a known chord in the house
+  style and that most of the melody under each symbol is its chord's tones.
+- **In the library** a lead sheet is a built-in piece with `leadSheet: true` and a level (Initial
+  to grade 2 for the melody alone). Until the Library groups them under their own heading, they
+  appear with the pieces of their level.
+
 ## Transposing (H4)
 
 - Every piece has a **Key** control: up to six semitones up or down, with the key's name. The score

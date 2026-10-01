@@ -26,6 +26,12 @@ the piece has 'divisions': 8), on the voice's staff, below it (^: above it). MAR
                                                     bracket line, a change being its end and a new
                                                     start at one place (Verovio 6.3 draws a line's
                                                     'change' from MusicXML wrongly)
+Chord symbol token (a lead sheet's symbols): @h:SYMBOL[+N], at the voice's position (+N: N
+sixteenths later), above its staff, as a <harmony> with its root, kind and bass. SYMBOL is the
+app's one style in ASCII: a root (C, Bb, F#), then nothing (major), m, dim (°), aug (+), sus2,
+sus4, 7, maj7, m7, m7b5, dim7, 6, m6 or add9, then /BASS (D/F#, Am/G). The kind's text attribute
+prints it as the app writes it (B♭maj7, F♯°, Dm7♭5).
+
 clef:G / clef:F changes the clef of the voice's staff before the next note.
 Piece-level 'clefs', e.g. {1: 'F'}, sets a staff's first clef (default: G on staff 1, F on 2);
 'divisions' (default 4) the MusicXML divisions per quarter.
@@ -112,6 +118,52 @@ def parse_direction(tok):
             'flags': []}
 
 
+# ASCII quality -> (MusicXML kind, the text the symbol prints: docs/HARMONY.md's one style).
+HARMONY_KINDS = {
+    '': ('major', ''), 'm': ('minor', 'm'), 'dim': ('diminished', '°'),
+    'aug': ('augmented', '+'), 'sus2': ('suspended-second', 'sus2'),
+    'sus4': ('suspended-fourth', 'sus4'), '7': ('dominant', '7'),
+    'maj7': ('major-seventh', 'maj7'), 'm7': ('minor-seventh', 'm7'),
+    'm7b5': ('half-diminished', 'm7♭5'), 'dim7': ('diminished-seventh', '°7'),
+    '6': ('major-sixth', '6'), 'm6': ('minor-sixth', 'm6'), 'add9': ('major', 'add9'),
+}
+HARMONY = re.compile(r'@h:(?P<root>[A-G][b#]?)(?P<quality>[a-z0-9]*)(?:/(?P<bass>[A-G][b#]?))?'
+                     r'(?:\+(?P<offset>\d+(?:\.5)?))?$')
+
+
+def parse_harmony(tok):
+    m = HARMONY.match(tok)
+    if not m or m.group('quality') not in HARMONY_KINDS:
+        raise SystemExit(f'cannot read chord symbol {tok}')
+    note = lambda n: (n[0], {'': 0, 'b': -1, '#': 1}[n[1:]])  # noqa: E731
+    return {'harmony': (note(m.group('root')), m.group('quality'),
+                        note(m.group('bass')) if m.group('bass') else None),
+            'offset': float(m.group('offset') or 0), 'grace': False, 'pitches': None, 'dur': 0,
+            'flags': []}
+
+
+def harmony_xml(e, staff, scale):
+    (step, alter), quality, bass = e['harmony']
+    kind, text = HARMONY_KINDS[quality]
+    x = ['<harmony print-frame="no" placement="above">',
+         f'<root><root-step>{step}</root-step>' +
+         (f'<root-alter>{alter}</root-alter>' if alter else '') + '</root>',
+         f'<kind text="{text}">{kind}</kind>']
+    if bass:
+        x.append(f'<bass><bass-step>{bass[0]}</bass-step>' +
+                 (f'<bass-alter>{bass[1]}</bass-alter>' if bass[1] else '') + '</bass>')
+    if quality == 'add9':
+        x.append('<degree><degree-value>9</degree-value><degree-alter>0</degree-alter>'
+                 '<degree-type text="">add</degree-type></degree>')
+    offset = e['offset'] * scale
+    if offset != int(offset):
+        raise SystemExit(f'offset {e["offset"]} needs more divisions')
+    if offset:
+        x.append(f'<offset>{int(offset)}</offset>')
+    x.append(f'<staff>{staff}</staff></harmony>')
+    return ''.join(x)
+
+
 def beam_groups(events, group_len):
     """Beam states per event index: list of (level, state)."""
     beams = {i: [] for i in range(len(events))}
@@ -119,7 +171,7 @@ def beam_groups(events, group_len):
     runs = []
     cur = []
     for i, e in enumerate(events):
-        if e.get('clef') or e.get('direction') or e['grace']:
+        if e.get('clef') or e.get('direction') or e.get('harmony') or e['grace']:
             continue
         start_group = pos // group_len
         beamable = e['pitches'] is not None and e['dur'] < 4 and e['dur'] in (1, 2, 3)
@@ -320,7 +372,9 @@ def end_hairpins_at_barlines(measures):
 def voice_events(tokens):
     events = []
     for tok in tokens.split():
-        if tok.startswith('clef:'):
+        if tok.startswith('@h:'):
+            events.append(parse_harmony(tok))
+        elif tok.startswith('clef:'):
             events.append({'clef': tok[5:], 'grace': False, 'pitches': None, 'dur': 0, 'flags': []})
         elif tok.startswith('@'):
             events.append(parse_direction(tok))
@@ -388,11 +442,14 @@ def build(piece):
                 if e.get('direction'):
                     x.append(direction_xml(e, staff, voice, scale, pedal_lines))
                     continue
+                if e.get('harmony'):
+                    x.append(harmony_xml(e, staff, scale))
+                    continue
                 if e.get('spacer'):
                     x.append(f'<forward><duration>{e["dur"] * scale}</duration><voice>{voice}</voice>'
                              f'<staff>{staff}</staff></forward>')
                     continue
-                notes = [e for e in events if not e.get('direction')]
+                notes = [e for e in events if not e.get('direction') and not e.get('harmony')]
                 if e['pitches'] is None and e['dur'] == total and len(notes) == 1 and not m.get('implicit'):
                     e['whole_rest'] = True
                 x += note_xml(e, staff, voice, beams[i], acc, stem, scale)

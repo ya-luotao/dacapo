@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
+import { formatSymbol, parseSymbol, symbolPitchClasses } from '../../core/chordSymbols.ts';
+import { performedMarks } from '../../core/markings.ts';
 import { parseMusicXml } from '../../core/musicxml.ts';
 import { isBlack } from '../../core/note.ts';
 import { performanceOrder } from '../../core/repeats.ts';
@@ -20,6 +22,14 @@ import satieGymnopedie1 from './satie-gymnopedie-1.musicxml?raw';
 import schumannSoldiersMarch from './schumann-soldiers-march.musicxml?raw';
 import tchaikovskyMorningPrayer from './tchaikovsky-morning-prayer.musicxml?raw';
 import tchaikovskyOldFrenchSong from './tchaikovsky-old-french-song.musicxml?raw';
+import fosterOhSusanna from './foster-oh-susanna.musicxml?raw';
+import lyteRowYourBoat from './lyte-row-your-boat.musicxml?raw';
+import pierpontJingleBells from './pierpont-jingle-bells.musicxml?raw';
+import tradAmazingGrace from './trad-amazing-grace.musicxml?raw';
+import tradAuldLangSyne from './trad-auld-lang-syne.musicxml?raw';
+import tradFrereJacques from './trad-frere-jacques.musicxml?raw';
+import tradSwingLow from './trad-swing-low.musicxml?raw';
+import tradTwinkleTwinkle from './trad-twinkle-twinkle.musicxml?raw';
 
 const Q = TICKS_PER_QUARTER;
 
@@ -37,7 +47,18 @@ const FILES: Record<string, string> = {
   'tchaikovsky-morning-prayer': tchaikovskyMorningPrayer,
   'chopin-prelude-in-c-minor': chopinPreludeInCMinor,
   'satie-gymnopedie-1': satieGymnopedie1,
+  'trad-twinkle-twinkle': tradTwinkleTwinkle,
+  'trad-frere-jacques': tradFrereJacques,
+  'lyte-row-your-boat': lyteRowYourBoat,
+  'trad-amazing-grace': tradAmazingGrace,
+  'pierpont-jingle-bells': pierpontJingleBells,
+  'foster-oh-susanna': fosterOhSusanna,
+  'trad-auld-lang-syne': tradAuldLangSyne,
+  'trad-swing-low': tradSwingLow,
 };
+
+/** The lead sheets (docs/HARMONY.md, "Lead sheets (H3)"): a melody and chord symbols. */
+const LEAD_SHEETS = Object.keys(FILES).filter((id) => builtInPiece(id)!.leadSheet);
 
 function parse(id: string): Score {
   return parseMusicXml(new DOMParser().parseFromString(FILES[id]!, 'application/xml'));
@@ -78,6 +99,14 @@ const LOCKED: Record<string, { notes: number; checksum: string }> = {
   'tchaikovsky-morning-prayer': { notes: 252, checksum: '9e16a928' },
   'chopin-prelude-in-c-minor': { notes: 286, checksum: '842bdcd3' },
   'satie-gymnopedie-1': { notes: 289, checksum: 'db34d100' },
+  'trad-twinkle-twinkle': { notes: 42, checksum: 'eeb5c6ad' },
+  'trad-frere-jacques': { notes: 44, checksum: '778fec8a' },
+  'lyte-row-your-boat': { notes: 29, checksum: 'f8cdf8f2' },
+  'trad-amazing-grace': { notes: 35, checksum: '45518e37' },
+  'pierpont-jingle-bells': { notes: 98, checksum: '19fc9bb3' },
+  'foster-oh-susanna': { notes: 85, checksum: 'f1e65c83' },
+  'trad-auld-lang-syne': { notes: 56, checksum: '1fc67ba5' },
+  'trad-swing-low': { notes: 100, checksum: 'ec992a8e' },
 };
 
 /** What a piece marks besides its notes, counted: locked like the notes. */
@@ -131,6 +160,22 @@ const MARKINGS: Record<string, string> = {
     'dynamics: ff p pp; hairpins: < <(words); pedal: start×2 change×4 stop×2; slurs: 7; fermatas: 2; articulations: accent×2; ornaments: ; graces: 0',
   'satie-gymnopedie-1':
     'dynamics: pp f pp p; hairpins: <×6 >×6; pedal: ; slurs: 6; fermatas: 0; articulations: ; ornaments: ; graces: 0',
+  'trad-twinkle-twinkle':
+    'dynamics: ; hairpins: ; pedal: ; slurs: 0; fermatas: 0; articulations: ; ornaments: ; graces: 0',
+  'trad-frere-jacques':
+    'dynamics: ; hairpins: ; pedal: ; slurs: 0; fermatas: 0; articulations: ; ornaments: ; graces: 0',
+  'lyte-row-your-boat':
+    'dynamics: ; hairpins: ; pedal: ; slurs: 0; fermatas: 0; articulations: ; ornaments: ; graces: 0',
+  'trad-amazing-grace':
+    'dynamics: ; hairpins: ; pedal: ; slurs: 0; fermatas: 0; articulations: ; ornaments: ; graces: 0',
+  'pierpont-jingle-bells':
+    'dynamics: ; hairpins: ; pedal: ; slurs: 0; fermatas: 0; articulations: ; ornaments: ; graces: 0',
+  'foster-oh-susanna':
+    'dynamics: ; hairpins: ; pedal: ; slurs: 0; fermatas: 0; articulations: ; ornaments: ; graces: 0',
+  'trad-auld-lang-syne':
+    'dynamics: ; hairpins: ; pedal: ; slurs: 0; fermatas: 0; articulations: ; ornaments: ; graces: 0',
+  'trad-swing-low':
+    'dynamics: ; hairpins: ; pedal: ; slurs: 0; fermatas: 4; articulations: ; ornaments: ; graces: 0',
 };
 
 describe('built-in pieces', () => {
@@ -161,7 +206,8 @@ describe('built-in pieces', () => {
     expect(score.title).not.toBe('');
     expect(score.hands).toEqual({ '0.1': 'right', '0.2': 'left' });
     expect(buildSteps(score, 'right').length).toBeGreaterThan(0);
-    expect(buildSteps(score, 'left').length).toBeGreaterThan(0);
+    // A lead sheet's bass staff is empty: its left hand comes from the symbols.
+    expect(buildSteps(score, 'left').length > 0).toBe(!builtInPiece(id)!.leadSheet);
   });
 
   it('Minuet in G: 32 bars of 3/4, both halves repeated', () => {
@@ -382,4 +428,198 @@ describe('built-in pieces', () => {
       }
     },
   );
+});
+
+/** The symbols in written order with their bar and beat: "1 G, 3 C, 7.3 D7". */
+function symbols(score: Score): string {
+  return (score.harmonies ?? [])
+    .map((h) => {
+      const m = score.measures[h.measure]!;
+      const beat = 1 + (h.tick - m.start) / ((4 * Q) / m.beatType);
+      return `${m.number}${beat === 1 ? '' : `.${beat}`} ${h.text}`;
+    })
+    .join(', ');
+}
+
+describe('lead sheets', () => {
+  it('are the library entries marked as such', () => {
+    expect(LEAD_SHEETS).toEqual([
+      'trad-twinkle-twinkle',
+      'trad-frere-jacques',
+      'lyte-row-your-boat',
+      'trad-amazing-grace',
+      'pierpont-jingle-bells',
+      'foster-oh-susanna',
+      'trad-auld-lang-syne',
+      'trad-swing-low',
+    ]);
+  });
+
+  it.each(LEAD_SHEETS)(
+    '%s: a melody in a singable key, the bass staff left for the symbols',
+    (id) => {
+      const score = parse(id);
+      const fifths = Number(/<fifths>(-?\d+)<\/fifths>/.exec(FILES[id]!)![1]);
+      expect(Math.abs(fifths)).toBeLessThanOrEqual(2);
+      expect(score.notes.every((n) => n.hand === 'right' && n.staff === 1)).toBe(true);
+      // C4 to F5: a voice's range, and the right hand's, above a left hand to come.
+      const keys = score.notes.map((n) => n.midi);
+      expect(Math.min(...keys)).toBeGreaterThanOrEqual(60);
+      expect(Math.max(...keys)).toBeLessThanOrEqual(77);
+      expect(builtInPiece(id)!.facts.bars.left).toBe(0);
+      expect(score.warnings).toEqual([]);
+    },
+  );
+
+  it.each(LEAD_SHEETS)(
+    '%s: every symbol is a known chord in the house style, written where the chord changes',
+    (id) => {
+      const score = parse(id);
+      const harmonies = score.harmonies!;
+      expect(harmonies.length).toBeGreaterThan(0);
+      for (const h of harmonies) {
+        expect(h.symbol, h.text).not.toBeNull();
+        expect(formatSymbol(h.symbol!)).toBe(h.text);
+        expect(parseSymbol(h.text)).toEqual(h.symbol);
+        expect(symbolPitchClasses(h.symbol!).size).toBeGreaterThanOrEqual(3);
+        expect([h.part, h.staff]).toEqual([0, 1]);
+      }
+      // The first stands over the first full bar's downbeat.
+      const first = score.measures.find((m) => m.number === '1')!;
+      expect(harmonies[0]!.tick).toBe(first.start);
+      for (let i = 1; i < harmonies.length; i++)
+        expect(harmonies[i]!.text, symbols(score)).not.toBe(harmonies[i - 1]!.text);
+    },
+  );
+
+  it.each(LEAD_SHEETS)('%s: the symbols fit the tune', (id) => {
+    // Under each symbol, until the next, most of the melody's time is on its chord's tones.
+    const score = parse(id);
+    const harmonies = score.harmonies!;
+    const last = score.measures.at(-1)!;
+    harmonies.forEach((h, i) => {
+      const until = harmonies[i + 1]?.tick ?? last.start + last.duration;
+      const pcs = symbolPitchClasses(h.symbol!);
+      let inChord = 0;
+      let all = 0;
+      for (const n of score.notes) {
+        const overlap = Math.min(n.onset + n.duration, until) - Math.max(n.onset, h.tick);
+        if (overlap <= 0) continue;
+        all += overlap;
+        if (pcs.has(n.midi % 12)) inChord += overlap;
+      }
+      const where = `${h.text} in bar ${score.measures[h.measure]!.number}`;
+      expect(inChord / all, where).toBeGreaterThan(0.5);
+    });
+  });
+
+  it('Twinkle, Twinkle: 24 bars of 2/4 in G, a a b b a a', () => {
+    const score = parse('trad-twinkle-twinkle');
+    expect(score.measures).toHaveLength(24);
+    expect(runs(score)).toBe('0-23');
+    expect(
+      buildSteps(score, 'right')
+        .slice(0, 7)
+        .map((s) => s.midis[0]),
+    ).toEqual([67, 67, 74, 74, 76, 76, 74]);
+    expect(symbols(score)).toBe(
+      '1 G, 3 C, 4 G, 5 C, 6 G, 7 D7, 8 G, 10 C, 11 G, 12 D, 13 G, 14 C, 15 G, 16 D, ' +
+        '17 G, 19 C, 20 G, 21 C, 22 G, 23 D7, 24 G',
+    );
+    expect(score.tempos).toEqual([{ tick: 0, bpm: 96 }]);
+  });
+
+  it('Frère Jacques: the round and the first voice’s four closing bars, in F', () => {
+    const score = parse('trad-frere-jacques');
+    expect(score.measures).toHaveLength(20);
+    expect(runs(score)).toBe('0-19');
+    expect(buildSteps(score, 'right').at(-1)!.midis).toEqual([69]);
+    expect(symbols(score)).toBe(
+      '1 F, 9 C7, 10 F, 11 C7, 12 F, 13.2 C7, 14 F, 15.2 C7, 16 F, 17.2 C7, 18 F, 19.2 C7, 20 F',
+    );
+  });
+
+  it('Row Your Boat: 8 bars of 6/8 in D, on D with A7 before the end', () => {
+    const score = parse('lyte-row-your-boat');
+    expect(score.measures).toHaveLength(8);
+    expect(score.measures[0]).toMatchObject({ beats: 6, beatType: 8 });
+    expect(runs(score)).toBe('0-7');
+    // The tied halves of bars 4 and 8 are no new key presses.
+    expect(score.notes.filter((n) => n.tieStop)).toHaveLength(2);
+    expect(symbols(score)).toBe('1 D, 7 A7, 8 D');
+  });
+
+  it('Amazing Grace: a quarter-note pickup, 3/4 in G, a half note to close', () => {
+    const score = parse('trad-amazing-grace');
+    expect(score.measures).toHaveLength(15);
+    expect(score.measures[0]).toMatchObject({ number: '0', duration: Q });
+    expect(score.measures.at(-1)!.duration).toBe(2 * Q);
+    expect(runs(score)).toBe('0-14');
+    expect(symbols(score)).toBe('1 G, 3 C, 4 G, 6 Em, 6.3 D, 8 G, 10 C, 11 G, 13.3 D7, 14 G');
+  });
+
+  it('Jingle Bells: verse and chorus in G, transposed from the edition’s A♭', () => {
+    const score = parse('pierpont-jingle-bells');
+    expect(score.measures).toHaveLength(16);
+    expect(runs(score)).toBe('0-15');
+    expect(
+      buildSteps(score, 'right')
+        .slice(0, 5)
+        .map((s) => s.midis[0]),
+    ).toEqual([62, 71, 69, 67, 62]);
+    expect(FILES['pierpont-jingle-bells']).toMatch(/transposed to G major/);
+    expect(symbols(score)).toBe(
+      '1 G, 2.3 C, 3 Am, 3.3 D7, 4.3 G, 6.3 C, 7 Am, 7.3 D7, 8.3 G, 11 C, 11.3.5 G, ' +
+        '12.3 D7, 13 G, 15 C, 15.3.5 G, 16 D7, 16.3 G',
+    );
+  });
+
+  it('Oh! Susanna: a pickup, the verse, and the chorus repeated', () => {
+    const score = parse('foster-oh-susanna');
+    expect(score.measures).toHaveLength(25);
+    expect(score.measures[0]).toMatchObject({ number: '0', duration: Q / 2 });
+    expect(score.measures[17]!.repeat.forward).toBe(true);
+    expect(runs(score)).toBe('0-24,17-24');
+    expect(symbols(score)).toBe(
+      '1 G, 4 D7, 5 G, 7.2 D7, 8 G, 12 D7, 13 G, 15.2 D7, 16 G, 17 C, 19 G, 20 D7, 21 G, ' +
+        '23.2 D7, 24 G',
+    );
+  });
+
+  it('Auld Lang Syne: the chorus repeated from its own pickup bar, its symbols with it', () => {
+    const score = parse('trad-auld-lang-syne');
+    expect(score.measures).toHaveLength(18);
+    expect(score.measures.map((m) => m.number).slice(7, 10)).toEqual(['7', '8', '8a']);
+    expect(score.measures[8]!.duration + score.measures[9]!.duration).toBe(2 * Q);
+    expect(score.measures[9]!.repeat.forward).toBe(true);
+    expect(runs(score)).toBe('0-17,9-17');
+    // Bar 3's Scotch snap: a sixteenth, then a dotted eighth.
+    const bar3 = score.notes.filter((n) => n.measure === 3).map((n) => n.duration);
+    expect(bar3).toEqual([Q / 4, (3 * Q) / 4, Q / 2, Q / 2]);
+    expect(symbols(score)).toBe(
+      '1 G, 2 D7, 3 G, 4 C, 5 G, 6 D7, 7 C, 7.2.5 D7, 8 G, 10 D7, 11 G, 12 C, 13 G, 14 D7, ' +
+        '15 C, 15.2.5 D7, 16 G',
+    );
+    // Through the repeat the chorus's symbols come twice.
+    const order = performanceOrder(score.measures);
+    expect(performedMarks(score.harmonies!, score.measures, order)).toHaveLength(17 + 8);
+  });
+
+  it('Swing Low, Sweet Chariot: the D.C. written out, refrain, verse and refrain', () => {
+    const score = parse('trad-swing-low');
+    expect(score.measures).toHaveLength(24);
+    expect(runs(score)).toBe('0-23');
+    const fermatas = score.markings.fermatas.map((f) => score.measures[f.measure]!.number);
+    expect(fermatas).toEqual(['1', '5', '17', '21']);
+    const bars = (from: number) =>
+      score.notes
+        .filter((n) => n.measure >= from && n.measure < from + 7)
+        .map((n) => [n.onset - score.measures[from]!.start, n.midi, n.duration]);
+    expect(bars(16)).toEqual(bars(0));
+    expect(symbols(score)).toBe(
+      '1 F, 2 B♭, 2.2.25 F, 4 C7, 5 F, 6 B♭, 6.2.25 F, 7.2.5 C7, 8 F, 10 B♭, 10.2.25 F, ' +
+        '12 C7, 13 F, 14 B♭, 14.2.25 F, 15.2.5 C7, 16 F, 18 B♭, 18.2.25 F, 20 C7, 21 F, ' +
+        '22 B♭, 22.2.25 F, 23.2.5 C7, 24 F',
+    );
+  });
 });

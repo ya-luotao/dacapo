@@ -1208,6 +1208,46 @@ export const zhCN: Dictionary = {
   'library.satie-gymnopedie-1.composer': '萨蒂',
   'library.satie-gymnopedie-1.note': '缓慢而宁静的旋律，左手每小节在低音和和弦之间来回摆动。',
   'library.satie-gymnopedie-1.style': '印象主义及以后 · 同一个旋律弹两遍，两次结尾不同',
+  'library.trad-twinkle-twinkle.title': '小星星',
+  'library.trad-twinkle-twinkle.composer': '法国民谣',
+  'library.trad-twinkle-twinkle.note':
+    '人人都会唱的法国曲调，按 1881 年一本美国歌集的版本，配上和弦记号，左手可以照着弹。',
+  'library.trad-twinkle-twinkle.style': '民歌 · 带和弦记号的旋律谱，三段：a b a',
+  'library.trad-frere-jacques.title': '两只老虎（雅克兄弟）',
+  'library.trad-frere-jacques.composer': '法国民谣',
+  'library.trad-frere-jacques.note':
+    '轮唱曲第一声部的唱法：每个短乐句唱两遍，最后四小节是卡农的结尾。',
+  'library.trad-frere-jacques.style': '民歌 · 轮唱曲：四个乐句，每句唱两遍',
+  'library.lyte-row-your-boat.title': '划船曲',
+  'library.lyte-row-your-boat.composer': '莱特',
+  'library.lyte-row-your-boat.note':
+    '1881 年歌集里的 6/8 拍轮唱曲，直到最后一句，旋律都停在同一个和弦上。',
+  'library.lyte-row-your-boat.style': '轮唱曲 · 6/8 拍旋律谱，两个四小节乐句',
+  'library.trad-amazing-grace.title': '奇异恩典',
+  'library.trad-amazing-grace.composer': '美国传统赞美诗曲调',
+  'library.trad-amazing-grace.note':
+    '赞美诗曲调“新不列颠”，3/4 拍，按埃克塞尔 1910 年赞美诗集的版本。',
+  'library.trad-amazing-grace.style': '赞美诗 · 3/4 拍旋律谱，四个乐句',
+  'library.pierpont-jingle-bells.title': '铃儿响叮当',
+  'library.pierpont-jingle-bells.composer': '皮尔庞特',
+  'library.pierpont-jingle-bells.note':
+    '第一段主歌和副歌，从降 A 大调移到 G 大调。这里的一小节相当于今天常见乐谱的两小节。',
+  'library.pierpont-jingle-bells.style': '流行歌曲（1857） · 旋律谱：主歌和副歌',
+  'library.foster-oh-susanna.title': '噢！苏珊娜',
+  'library.foster-oh-susanna.composer': '福斯特',
+  'library.foster-oh-susanna.note':
+    '福斯特 1848 年的歌曲：十六小节的主歌带着轻快的附点节奏，然后副歌唱两遍。',
+  'library.foster-oh-susanna.style': '流行歌曲（1848） · 旋律谱：主歌，然后副歌反复',
+  'library.trad-auld-lang-syne.title': '友谊地久天长',
+  'library.trad-auld-lang-syne.composer': '苏格兰民歌',
+  'library.trad-auld-lang-syne.note':
+    '2/4 拍的苏格兰曲调，保留了先短后长的“苏格兰切分”。副歌唱两遍。',
+  'library.trad-auld-lang-syne.style': '民歌 · 旋律谱：主歌，然后副歌反复',
+  'library.trad-swing-low.title': '轻摇，可爱的马车',
+  'library.trad-swing-low.composer': '非裔美国人灵歌',
+  'library.trad-swing-low.note':
+    '这首灵歌的副歌、主歌，再回到副歌，“Coming for to carry me home”一句带切分。',
+  'library.trad-swing-low.style': '灵歌 · 旋律谱：副歌、主歌、副歌',
 
   'pieces.yours': '我的曲目',
   'pieces.yours.help':
@@ -2366,9 +2406,9 @@ export const zhCN: Dictionary = {
     'Source Serif 4 和 Source Sans 3，正文字体。© Adobe, with Reserved Font Name "Source". SIL Open Font License 1.1.',
   'about.accidentals':
     'dacapo Accidentals，正文里的 ♭、♮、♯：取自 Bravura Text 的五个字形，按其许可证对修改版本的要求改了名。© Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
-  'about.music.intro': '十三首内置作品都属于公有领域。',
+  'about.music.intro': '二十一首内置作品都属于公有领域。',
   'about.music.ours':
-    '其中十首由 dacapo 项目编码，以 MIT 许可证发布：《欢乐颂》的改编，以及依据 Mutopia 项目排印的公有领域版本编码的《G 大调小步舞曲》《G 小调小步舞曲》（佩措尔德）、《D 大调风笛舞曲》（巴赫）、《致爱丽丝》（贝多芬）、《纯洁》（布格缪勒）、《古老的法国歌曲》《晨祷》（柴可夫斯基）、《C 小调前奏曲》（肖邦）和《裸体歌舞第 1 号》（萨蒂）。',
+    '其中十八首由 dacapo 项目编码，以 MIT 许可证发布：《欢乐颂》的改编，以及依据 Mutopia 项目排印的公有领域版本编码的《G 大调小步舞曲》《G 小调小步舞曲》（佩措尔德）、《D 大调风笛舞曲》（巴赫）、《致爱丽丝》（贝多芬）、《纯洁》（布格缪勒）、《古老的法国歌曲》《晨祷》（柴可夫斯基）、《C 小调前奏曲》（肖邦）和《裸体歌舞第 1 号》（萨蒂）；还有八份旋律谱，旋律取自公有领域的歌集和赞美诗集，和弦记号由我们编写：《小星星》《划船曲》《友谊地久天长》（《富兰克林广场歌集》，1881）、《两只老虎（雅克兄弟）》（韦克兰，1885）、《奇异恩典》（埃克塞尔《加冕赞美诗》，1910）、《铃儿响叮当》《噢！苏珊娜》《轻摇，可爱的马车》（《心之歌》，1909）。',
   'about.music.pdmx':
     '《阿拉伯风格曲》（布格缪勒）、《士兵进行曲》（舒曼）和《C 大调前奏曲》（巴赫）是 MuseScore 上的编码，上传者 PianoXML、jadr 和 OpenGoldberg 已将其贡献到公有领域（CC0）；dacapo 项目删去了其中的指法。它们来自 Phillip Long、Zachary Novack、Julian McAuley 和 Taylor Berg-Kirkpatrick 的 PDMX 数据集，该数据集以 CC BY 4.0 许可发布。',
   'about.music.hanon':

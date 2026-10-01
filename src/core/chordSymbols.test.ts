@@ -10,12 +10,14 @@ import {
   harmonyLevelItems,
   isSymbolRoot,
   judgeSymbolKeys,
+  MUSICXML_KIND,
   nextHarmonyLevel,
   parseSymbol,
   parseSymbolItem,
   rootlessSuffix,
   rootPc,
   spellRoot,
+  symbolFromMusicXml,
   symbolItem,
   symbolPitchClasses,
   symbolTones,
@@ -137,6 +139,40 @@ describe('the symbols', () => {
     expect(tones('Am/G')).toBe('A C E G');
     expect(bassTone(sym('C/E'))).toEqual({ step: 'E', alter: 0 });
     expect(bassTone(sym('C'))).toBeNull();
+  });
+});
+
+describe('MusicXML kinds', () => {
+  const C = { step: 'C', alter: 0 } as const;
+  const E = { step: 'E', alter: 0 } as const;
+
+  it('reads back every quality from its <kind>, add9 from an added 9th', () => {
+    for (const quality of SYMBOL_QUALITIES) {
+      const degrees = quality === 'add9' ? [{ value: 9, alter: 0, type: 'add' as const }] : [];
+      expect(symbolFromMusicXml(C, MUSICXML_KIND[quality], null, degrees), quality).toEqual({
+        root: C,
+        quality,
+        bass: null,
+      });
+    }
+    expect(symbolFromMusicXml({ step: 'B', alter: -1 }, 'dominant', E)).toEqual({
+      root: { step: 'B', alter: -1 },
+      quality: 'dom7',
+      bass: E,
+    });
+  });
+
+  it('has no symbol for other kinds, other degrees, odd roots and a bass on the root', () => {
+    expect(symbolFromMusicXml(C, 'dominant-ninth', null)).toBeNull();
+    expect(symbolFromMusicXml(C, 'none', null)).toBeNull();
+    expect(symbolFromMusicXml(C, 'power', null)).toBeNull();
+    const nine = { value: 9, alter: 0, type: 'add' as const };
+    expect(symbolFromMusicXml(C, 'minor', null, [nine])).toBeNull();
+    expect(symbolFromMusicXml(C, 'major', null, [{ ...nine, alter: -1 }])).toBeNull();
+    expect(symbolFromMusicXml(C, 'major', null, [nine, nine])).toBeNull();
+    expect(symbolFromMusicXml({ step: 'E', alter: 1 }, 'major', null)).toBeNull();
+    expect(symbolFromMusicXml(C, 'major', { step: 'C', alter: 0 })).toBeNull();
+    expect(symbolFromMusicXml(C, 'major', { step: 'F', alter: -1 })).toBeNull();
   });
 });
 

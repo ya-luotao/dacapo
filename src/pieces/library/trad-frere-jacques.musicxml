@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 4.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">
+<!-- A lead sheet: the melody (the edition's first voice, note for note, with its four closing bars) and chord symbols of our own (dacapo project, MIT). The edition's tempo words; the metronome figure is ours. The bass staff is empty, for a left hand made from the symbols. No fingering. -->
+<score-partwise version="4.0">
+<work><work-title>Frère Jacques</work-title></work>
+<identification>
+<creator type="composer">Traditional (French)</creator>
+<rights>Music: public domain. This encoding and the chord symbols: dacapo project, released under the MIT licence.</rights>
+<encoding><encoder>dacapo project</encoder><software>dacapo scripts/pieces/generate.py</software><encoding-date>2026-10-01</encoding-date></encoding>
+<source>J.-B. Weckerlin, Chansons et rondes enfantines (Paris: Garnier frères, 1885), p. 85, "Frère Jacques (chanson en canon à deux voix)", first voice (public domain), scan: https://archive.org/details/chansonsetronde00weck/page/n102/</source>
+</identification>
+<part-list><score-part id="P1"><part-name>Piano</part-name></score-part></part-list>
+<part id="P1">
+<measure number="1">
+<attributes><divisions>4</divisions><key><fifths>-1</fifths></key><time><beats>2</beats><beat-type>4</beat-type></time><staves>2</staves><clef number="1"><sign>G</sign><line>2</line></clef><clef number="2"><sign>F</sign><line>4</line></clef></attributes>
+<direction placement="above"><direction-type><words>Pas trop vite.</words></direction-type><staff>1</staff><sound tempo="92"/></direction>
+<harmony print-frame="no" placement="above"><root><root-step>F</root-step></root><kind text="">major</kind><staff>1</staff></harmony>
+<note><pitch><step>F</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<note><pitch><step>G</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<backup><duration>8</duration></backup>
+<note><rest measure="yes"/><duration>8</duration><voice>5</voice><staff>2</staff></note>
+</measure>
+<measure number="2">
+<note><pitch><step>A</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<note><pitch><step>F</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<backup><duration>8</duration></backup>
+<note><rest measure="yes"/><duration>8</duration><voice>5</voice><staff>2</staff></note>
+</measure>
+<measure number="3">
+<note><pitch><step>F</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<note><pitch><step>G</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<backup><duration>8</duration></backup>
+<note><rest measure="yes"/><duration>8</duration><voice>5</voice><staff>2</staff></note>
+</measure>
+<measure number="4">
+<note><pitch><step>A</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<note><pitch><step>F</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<backup><duration>8</duration></backup>
+<note><rest measure="yes"/><duration>8</duration><voice>5</voice><staff>2</staff></note>
+</measure>
+<measure number="5">
+<note><pitch><step>A</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<note><pitch><step>B</step><alter>-1</alter><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<backup><duration>8</duration></backup>
+<note><rest measure="yes"/><duration>8</duration><voice>5</voice><staff>2</staff></note>
+</measure>
+<measure number="6">
+<note><pitch><step>C</step><octave>5</octave></pitch><duration>8</duration><voice>1</voice><type>half</type><staff>1</staff></note>
+<backup><duration>8</duration></backup>
+<note><rest measure="yes"/><duration>8</duration><voice>5</voice><staff>2</staff></note>
+</measure>
+<measure number="7">
+<note><pitch><step>A</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<note><pitch><step>B</step><alter>-1</alter><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<backup><duration>8</duration></backup>
+<note><rest measure="yes"/><duration>8</duration><voice>5</voice><staff>2</staff></note>
+</measure>
+<measure number="8">
+<note><pitch><step>C</step><octave>5</octave></pitch><duration>8</duration><voice>1</voice><type>half</type><staff>1</staff></note>
+<backup><duration>8</duration></backup>
+<note><rest measure="yes"/><duration>8</duration><voice>5</voice><staff>2</staff></note>
+</measure>
+<measure number="9">
+<harmony print-frame="no" placement="above"><root><root-step>C</root-step></root><kind text="7">dominant</kind><staff>1</staff></harmony>
+<note><pitch><step>C</step><octave>5</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">begin</beam></note>
+<note><pitch><step>D</step><octave>5</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">end</beam></note>
+<note><pitch><step>C</step><octave>5</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">begin</beam></note>
+<note><pitch><step>B</step><alter>-1</alter><octave>4</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">end</beam></note>
+<backup><duration>8</duration></backup>
+<note><rest measure="yes"/><duration>8</duration><voice>5</voice><staff>2</staff></note>
+</measure>
+<measure number="10">
+<harmony print-frame="no" placement="above"><root><root-step>F</root-step></root><kind text="">major</kind><staff>1</staff></harmony>
+<note><pitch><step>A</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<note><pitch><step>F</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<backup><duration>8</duration></backup>
+<note><rest measure="yes"/><duration>8</duration><voice>5</voice><staff>2</staff></note>
+</measure>
+<measure number="11">
+<harmony print-frame="no" placement="above"><root><root-step>C</root-step></root><kind text="7">dominant</kind><staff>1</staff></harmony>
+<note><pitch><step>C</step><octave>5</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">begin</beam></note>
+<note><pitch><step>D</step><octave>5</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">end</beam></note>
+<note><pitch><step>C</step><octave>5</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">begin</beam></note>
+<note><pitch><step>B</step><alter>-1</alter><octave>4</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">end</beam></note>
+<backup><duration>8</duration></backup>
+<note><rest measure="yes"/><duration>8</duration><voice>5</voice><staff>2</staff></note>
+</measure>
+<measure number="12">
+<harmony print-frame="no" placement="above"><root><root-step>F</root-step></root><kind text="">major</kind><staff>1</staff></harmony>
+<note><pitch><step>A</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<note><pitch><step>F</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<backup><duration>8</duration></backup>
+<note><rest measure="yes"/><duration>8</duration><voice>5</voice><staff>2</staff></note>
+</measure>
+<measure number="13">
+<note><pitch><step>F</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<harmony print-frame="no" placement="above"><root><root-step>C</root-step></root><kind text="7">dominant</kind><staff>1</staff></harmony>
+<note><pitch><step>C</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<backup><duration>8</duration></backup>
+<note><rest measure="yes"/><duration>8</duration><voice>5</voice><staff>2</staff></note>
+</measure>
+<measure number="14">
+<harmony print-frame="no" placement="above"><root><root-step>F</root-step></root><kind text="">major</kind><staff>1</staff></harmony>
+<note><pitch><step>F</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<note><rest/><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<backup><duration>8</duration></backup>
+<note><rest measure="yes"/><duration>8</duration><voice>5</voice><staff>2</staff></note>
+</measure>
+<measure number="15">
+<note><pitch><step>F</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<harmony print-frame="no" placement="above"><root><root-step>C</root-step></root><kind text="7">dominant</kind><staff>1</staff></harmony>
+<note><pitch><step>C</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<backup><duration>8</duration></backup>
+<note><rest measure="yes"/><duration>8</duration><voice>5</voice><staff>2</staff></note>
+</measure>
+<measure number="16">
+<harmony print-frame="no" placement="above"><root><root-step>F</root-step></root><kind text="">major</kind><staff>1</staff></harmony>
+<note><pitch><step>F</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<note><rest/><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<backup><duration>8</duration></backup>
+<note><rest measure="yes"/><duration>8</duration><voice>5</voice><staff>2</staff></note>
+</measure>
+<measure number="17">
+<note><pitch><step>A</step><octave>4</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">begin</beam></note>
+<note><pitch><step>C</step><octave>5</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">end</beam></note>
+<harmony print-frame="no" placement="above"><root><root-step>C</root-step></root><kind text="7">dominant</kind><staff>1</staff></harmony>
+<note><pitch><step>B</step><alter>-1</alter><octave>4</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">begin</beam></note>
+<note><pitch><step>G</step><octave>4</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">end</beam></note>
+<backup><duration>8</duration></backup>
+<note><rest measure="yes"/><duration>8</duration><voice>5</voice><staff>2</staff></note>
+</measure>
+<measure number="18">
+<harmony print-frame="no" placement="above"><root><root-step>F</root-step></root><kind text="">major</kind><staff>1</staff></harmony>
+<note><pitch><step>A</step><octave>4</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">begin</beam></note>
+<note><pitch><step>C</step><octave>5</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">end</beam></note>
+<note><pitch><step>F</step><octave>5</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<backup><duration>8</duration></backup>
+<note><rest measure="yes"/><duration>8</duration><voice>5</voice><staff>2</staff></note>
+</measure>
+<measure number="19">
+<note><pitch><step>A</step><octave>4</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">begin</beam></note>
+<note><pitch><step>C</step><octave>5</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">end</beam></note>
+<harmony print-frame="no" placement="above"><root><root-step>C</root-step></root><kind text="7">dominant</kind><staff>1</staff></harmony>
+<note><pitch><step>B</step><alter>-1</alter><octave>4</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">begin</beam></note>
+<note><pitch><step>G</step><octave>4</octave></pitch><duration>2</duration><voice>1</voice><type>eighth</type><staff>1</staff><beam number="1">end</beam></note>
+<backup><duration>8</duration></backup>
+<note><rest measure="yes"/><duration>8</duration><voice>5</voice><staff>2</staff></note>
+</measure>
+<measure number="20">
+<harmony print-frame="no" placement="above"><root><root-step>F</root-step></root><kind text="">major</kind><staff>1</staff></harmony>
+<note><pitch><step>A</step><octave>4</octave></pitch><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<note><rest/><duration>4</duration><voice>1</voice><type>quarter</type><staff>1</staff></note>
+<backup><duration>8</duration></backup>
+<note><rest measure="yes"/><duration>8</duration><voice>5</voice><staff>2</staff></note>
+<barline location="right"><bar-style>light-heavy</bar-style></barline>
+</measure>
+</part>
+</score-partwise>

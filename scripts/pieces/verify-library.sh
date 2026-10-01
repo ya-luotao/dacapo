@@ -17,7 +17,8 @@
 #   01MorningPrayer.mid    https://www.mutopiaproject.org/ftp/TchaikovskyPI/O39/01MorningPrayer/01MorningPrayer.mid
 #   Chop-28-20.mid         https://www.mutopiaproject.org/ftp/ChopinFF/O28/Chop-28-20/Chop-28-20.mid
 #   gymnopedie_1.mid       https://www.mutopiaproject.org/ftp/SatieE/gymnopedie_1/gymnopedie_1.mid
-# Ode to Joy is our own arrangement and has no oracle.
+# Ode to Joy is our own arrangement and has no oracle. Nor have the lead sheets (trad-*, lyte-*,
+# pierpont-*, foster-*): their melodies were read from scans of songbooks and proofread blind.
 set -eu
 oracles=${1:?usage: verify-library.sh <oracle dir>}
 lib=src/pieces/library

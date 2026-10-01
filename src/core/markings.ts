@@ -4,8 +4,10 @@
 // out in performance order through the repeats by `performedMarks` and `performedSpans`.
 // None of it enters the piece's checksum, which covers the notes as practised.
 
+import type { ChordSymbol, MusicXmlDegree } from './chordSymbols.ts';
 import type { PlayedMeasure } from './repeats.ts';
 import type { Measure, SpelledPitch } from './score.ts';
+import type { Root } from './theoryItems.ts';
 
 /** The dynamics MusicXML names (`<dynamics>` children), soft to loud, then the accents. */
 export const DYNAMICS = [
@@ -100,6 +102,27 @@ export interface Markings {
   slurs: SlurMark[];
   /** On notes and rests, one per part, staff and tick. */
   fermatas: MarkPlace[];
+}
+
+/**
+ * A chord symbol over the music (`<harmony>`), as a lead sheet prints it (docs/HARMONY.md, "Lead
+ * sheets (H3)"). MusicXML gives a symbol a staff but no voice. Laid out through the repeats by
+ * `performedMarks`, like the markings.
+ */
+export interface HarmonyMark extends MarkPlace {
+  root: Root;
+  /** MusicXML's `<kind>` value as written: `major`, `dominant`, `half-diminished` … */
+  kind: string;
+  bass: Root | null;
+  /** Tones added, altered or taken away (`<degree>`); absent when none. */
+  degrees?: MusicXmlDegree[];
+  /**
+   * What the score prints: the root, the kind's `text` attribute and the bass (`B♭maj7`, `D/F♯`);
+   * without a `text`, the app's symbol, or the root and the kind.
+   */
+  text: string;
+  /** The symbol in the app's one style (`core/chordSymbols.ts`), or null for one it has none for. */
+  symbol: ChordSymbol | null;
 }
 
 export function emptyMarkings(): Markings {

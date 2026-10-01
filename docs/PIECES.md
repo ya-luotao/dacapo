@@ -126,7 +126,10 @@ for drawing.
 - **Built-in library:** our own encodings of Mutopia public-domain editions, our own _Ode to Joy_
   (in C, for the right hand's C position), and CC0 MuseScore files from PDMX with fingering
   removed. Each is checked against an independent MIDI file where one exists
-  (`scripts/pieces/`), and its notes are locked by a checksum test.
+  (`scripts/pieces/`), and its notes are locked by a checksum test. Since H3 it also holds lead
+  sheets (`leadSheet: true`): our own encodings of a public-domain print of a tune, with chord
+  symbols of our own and an empty bass staff, proofread blind against the scan where no oracle
+  exists ([HARMONY.md](HARMONY.md), "Clarifications (decided during H3)").
 
 - **MIDI output (P2).** Input and output share one `MIDIAccess` (one permission prompt). The
   output is the one named like the connected keyboard unless the user picks another, or None; the

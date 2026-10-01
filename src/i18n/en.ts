@@ -1264,6 +1264,47 @@ export const en = {
     'A slow, still melody over a left hand that swings between a low note and a chord in every bar.',
   'library.satie-gymnopedie-1.style':
     'Impressionism and after · one tune played twice, with two endings',
+  'library.trad-twinkle-twinkle.title': 'Twinkle, Twinkle, Little Star',
+  'library.trad-twinkle-twinkle.composer': 'Traditional (French air)',
+  'library.trad-twinkle-twinkle.note':
+    'The French air everyone knows, as an American songbook printed it in 1881, with chord symbols to play the left hand from.',
+  'library.trad-twinkle-twinkle.style': 'Folk song · lead sheet in three parts, a b a',
+  'library.trad-frere-jacques.title': 'Frère Jacques',
+  'library.trad-frere-jacques.composer': 'Traditional (French)',
+  'library.trad-frere-jacques.note':
+    'The round as its first voice sings it, each short phrase twice, with the four bars that close the canon.',
+  'library.trad-frere-jacques.style': 'Folk song · a round: four phrases, each sung twice',
+  'library.lyte-row-your-boat.title': 'Row, Row, Row Your Boat',
+  'library.lyte-row-your-boat.composer': 'E. O. Lyte',
+  'library.lyte-row-your-boat.note':
+    'A round in 6/8 from an 1881 songbook: the tune stays on one chord until its last line.',
+  'library.lyte-row-your-boat.style': 'Round · lead sheet in 6/8, two four-bar phrases',
+  'library.trad-amazing-grace.title': 'Amazing Grace',
+  'library.trad-amazing-grace.composer': 'Traditional (American hymn tune)',
+  'library.trad-amazing-grace.note':
+    'The hymn tune New Britain in 3/4, as E. O. Excell’s hymnal printed it in 1910.',
+  'library.trad-amazing-grace.style': 'Hymn · lead sheet in 3/4, four phrases',
+  'library.pierpont-jingle-bells.title': 'Jingle Bells',
+  'library.pierpont-jingle-bells.composer': 'James Lord Pierpont',
+  'library.pierpont-jingle-bells.note':
+    'The first verse and the chorus, moved from A♭ to G major. Each bar holds two bars of the song as it is usually printed today.',
+  'library.pierpont-jingle-bells.style': 'Popular song (1857) · lead sheet: verse and chorus',
+  'library.foster-oh-susanna.title': 'Oh! Susanna',
+  'library.foster-oh-susanna.composer': 'Stephen Foster',
+  'library.foster-oh-susanna.note':
+    'Foster’s song of 1848: a sixteen-bar verse in a bouncing dotted rhythm, then the chorus twice.',
+  'library.foster-oh-susanna.style':
+    'Popular song (1848) · lead sheet: verse, then the chorus repeated',
+  'library.trad-auld-lang-syne.title': 'Auld Lang Syne',
+  'library.trad-auld-lang-syne.composer': 'Traditional (Scottish)',
+  'library.trad-auld-lang-syne.note':
+    'The Scottish air in 2/4 with its Scotch snaps, a short note before a long one. The chorus is sung twice.',
+  'library.trad-auld-lang-syne.style': 'Folk song · lead sheet: verse, then the chorus repeated',
+  'library.trad-swing-low.title': 'Swing Low, Sweet Chariot',
+  'library.trad-swing-low.composer': 'Traditional (African American spiritual)',
+  'library.trad-swing-low.note':
+    'The spiritual’s refrain, its verse and the refrain again, with the syncopated “Coming for to carry me home”.',
+  'library.trad-swing-low.style': 'Spiritual · lead sheet: refrain, verse, refrain',
 
   'pieces.yours': 'Your pieces',
   'pieces.yours.help':
@@ -2494,9 +2535,9 @@ export const en = {
     'Source Serif 4 and Source Sans 3, the text fonts. © Adobe, with Reserved Font Name “Source”. SIL Open Font License 1.1.',
   'about.accidentals':
     'dacapo Accidentals, the ♭, ♮ and ♯ in the text: five glyphs of Bravura Text, renamed as its licence asks of a modified version. © Steinberg Media Technologies GmbH, with Reserved Font Name “Bravura”. SIL Open Font License 1.1.',
-  'about.music.intro': 'All thirteen built-in works are in the public domain.',
+  'about.music.intro': 'All twenty-one built-in works are in the public domain.',
   'about.music.ours':
-    'Ten are encoded by the dacapo project under the MIT licence: the Ode to Joy arrangement, and, from public-domain editions typeset for the Mutopia Project, the Minuets in G major and G minor (Petzold), the Musette in D major (Bach), Für Elise (Beethoven), La Candeur (Burgmüller), Old French Song and Morning Prayer (Tchaikovsky), the Prelude in C minor (Chopin) and Gymnopédie No. 1 (Satie).',
+    'Eighteen are encoded by the dacapo project under the MIT licence: the Ode to Joy arrangement; from public-domain editions typeset for the Mutopia Project, the Minuets in G major and G minor (Petzold), the Musette in D major (Bach), Für Elise (Beethoven), La Candeur (Burgmüller), Old French Song and Morning Prayer (Tchaikovsky), the Prelude in C minor (Chopin) and Gymnopédie No. 1 (Satie); and eight lead sheets, the melody from a public-domain songbook or hymnal and the chord symbols ours: Twinkle, Twinkle, Little Star, Row, Row, Row Your Boat and Auld Lang Syne (Franklin Square Song Collection, 1881), Frère Jacques (Weckerlin, 1885), Amazing Grace (Excell’s Coronation Hymns, 1910), Jingle Bells, Oh! Susanna and Swing Low, Sweet Chariot (Heart Songs, 1909).',
   'about.music.pdmx':
     'Arabesque (Burgmüller), Soldiers’ March (Schumann) and the Prelude in C major (Bach) are encodings from MuseScore that their uploaders PianoXML, jadr and OpenGoldberg dedicated to the public domain (CC0); the dacapo project removed the fingering. They come from the PDMX dataset by Phillip Long, Zachary Novack, Julian McAuley and Taylor Berg-Kirkpatrick, licensed under CC BY 4.0.',
   'about.music.hanon':

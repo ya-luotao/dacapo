@@ -1247,6 +1247,46 @@ export const ko: Dictionary = {
   'library.satie-gymnopedie-1.note':
     '느리고 고요한 선율 아래, 왼손이 마디마다 낮은 음과 화음을 오가요.',
   'library.satie-gymnopedie-1.style': '인상주의 이후 · 같은 선율을 두 번, 끝을 다르게',
+  'library.trad-twinkle-twinkle.title': '반짝반짝 작은 별',
+  'library.trad-twinkle-twinkle.composer': '프랑스 민요',
+  'library.trad-twinkle-twinkle.note':
+    '누구나 아는 프랑스 선율을 1881년 미국 노래책에 실린 그대로 담았어요. 코드 기호를 보고 왼손을 칠 수 있어요.',
+  'library.trad-twinkle-twinkle.style': '민요 · 리드 시트, a b a 세 부분',
+  'library.trad-frere-jacques.title': '프레르 자크',
+  'library.trad-frere-jacques.composer': '프랑스 민요',
+  'library.trad-frere-jacques.note':
+    '돌림노래의 첫 번째 성부예요. 짧은 프레이즈를 각각 두 번 부르고, 마지막 네 마디로 캐논을 마무리해요.',
+  'library.trad-frere-jacques.style': '민요 · 돌림노래: 네 프레이즈를 각각 두 번',
+  'library.lyte-row-your-boat.title': '노를 저어라',
+  'library.lyte-row-your-boat.composer': '엘리펄릿 오럼 라이트',
+  'library.lyte-row-your-boat.note':
+    '1881년 노래책에 실린 8분의 6박자 돌림노래예요. 마지막 줄 전까지 선율이 한 코드 위에 머물러요.',
+  'library.lyte-row-your-boat.style': '돌림노래 · 8분의 6박자 리드 시트, 네 마디 프레이즈 두 개',
+  'library.trad-amazing-grace.title': '어메이징 그레이스',
+  'library.trad-amazing-grace.composer': '미국 전통 찬송가 선율',
+  'library.trad-amazing-grace.note':
+    '찬송가 선율 「뉴 브리튼」을 엑셀의 1910년 찬송가집에 실린 그대로, 4분의 3박자로 담았어요.',
+  'library.trad-amazing-grace.style': '찬송가 · 4분의 3박자 리드 시트, 네 프레이즈',
+  'library.pierpont-jingle-bells.title': '징글벨',
+  'library.pierpont-jingle-bells.composer': '제임스 로드 피어폰트',
+  'library.pierpont-jingle-bells.note':
+    '1절과 후렴을 A♭장조에서 G장조로 옮겼어요. 여기의 한 마디는 요즘 흔히 보는 악보의 두 마디예요.',
+  'library.pierpont-jingle-bells.style': '대중가요(1857) · 리드 시트: 절과 후렴',
+  'library.foster-oh-susanna.title': '오! 수재너',
+  'library.foster-oh-susanna.composer': '스티븐 포스터',
+  'library.foster-oh-susanna.note':
+    '포스터의 1848년 노래예요. 경쾌한 부점 리듬의 16마디 절 다음에 후렴을 두 번 불러요.',
+  'library.foster-oh-susanna.style': '대중가요(1848) · 리드 시트: 절, 그리고 반복하는 후렴',
+  'library.trad-auld-lang-syne.title': '올드 랭 사인',
+  'library.trad-auld-lang-syne.composer': '스코틀랜드 민요',
+  'library.trad-auld-lang-syne.note':
+    '4분의 2박자 스코틀랜드 선율로, 짧은 음 다음에 긴 음이 오는 「스코치 스냅」을 그대로 살렸어요. 후렴은 두 번 불러요.',
+  'library.trad-auld-lang-syne.style': '민요 · 리드 시트: 절, 그리고 반복하는 후렴',
+  'library.trad-swing-low.title': '스윙 로, 스위트 채리엇',
+  'library.trad-swing-low.composer': '아프리카계 미국인 영가',
+  'library.trad-swing-low.note':
+    '영가의 후렴, 절, 그리고 다시 후렴이에요. 「Coming for to carry me home」은 당김음으로 불러요.',
+  'library.trad-swing-low.style': '영가 · 리드 시트: 후렴, 절, 후렴',
 
   'pieces.yours': '내 곡',
   'pieces.yours.help':
@@ -2458,9 +2498,9 @@ export const ko: Dictionary = {
     'Source Serif 4와 Source Sans 3: 본문 글꼴이에요. © Adobe, with Reserved Font Name "Source". SIL Open Font License 1.1.',
   'about.accidentals':
     'dacapo Accidentals: 본문의 ♭, ♮, ♯. Bravura Text의 글리프 다섯 개를, 라이선스가 수정본에 요구하는 대로 이름을 바꿔 썼어요. © Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
-  'about.music.intro': '기본 곡 13곡은 모두 퍼블릭 도메인 작품이에요.',
+  'about.music.intro': '기본 곡 21곡은 모두 퍼블릭 도메인 작품이에요.',
   'about.music.ours':
-    '그중 10곡은 dacapo 프로젝트가 MIT 라이선스로 입력했어요. 환희의 송가 편곡, 그리고 Mutopia Project가 조판한 퍼블릭 도메인 판을 바탕으로 한 미뉴에트 G장조와 G단조(페촐트), 뮈제트 D장조(바흐), 엘리제를 위하여(베토벤), 순수(부르크뮐러), 옛 프랑스 노래와 아침 기도(차이콥스키), 전주곡 C단조(쇼팽), 짐노페디 제1번(사티)이에요.',
+    '그중 18곡은 dacapo 프로젝트가 MIT 라이선스로 입력했어요. 환희의 송가 편곡, 그리고 Mutopia Project가 조판한 퍼블릭 도메인 판을 바탕으로 한 미뉴에트 G장조와 G단조(페촐트), 뮈제트 D장조(바흐), 엘리제를 위하여(베토벤), 순수(부르크뮐러), 옛 프랑스 노래와 아침 기도(차이콥스키), 전주곡 C단조(쇼팽), 짐노페디 제1번(사티), 그리고 퍼블릭 도메인 노래책과 찬송가집의 선율에 우리가 코드 기호를 붙인 리드 시트 8곡, 반짝반짝 작은 별, 노를 저어라, 올드 랭 사인(『프랭클린 스퀘어 노래집』, 1881), 프레르 자크(베커를랭, 1885), 어메이징 그레이스(엑셀 『대관식 찬송가』, 1910), 징글벨, 오! 수재너, 스윙 로, 스위트 채리엇(『하트 송스』, 1909)이에요.',
   'about.music.pdmx':
     '아라베스크(부르크뮐러), 병사의 행진(슈만), 전주곡 C장조(바흐)는 MuseScore에 악보를 올린 PianoXML, jadr, OpenGoldberg가 퍼블릭 도메인(CC0)으로 공개한 악보이고, dacapo 프로젝트가 운지 번호를 지웠어요. 모두 Phillip Long, Zachary Novack, Julian McAuley, Taylor Berg-Kirkpatrick의 PDMX 데이터셋에서 가져왔으며, 이 데이터셋은 CC BY 4.0 라이선스를 따라요.',
   'about.music.hanon':

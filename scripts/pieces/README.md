@@ -49,6 +49,12 @@ its end. A hairpin end (`@!`) that opens a bar is written at the end of the bar 
 moment, so it ends at the barline. Each source's comment says which markings come from which
 edition file.
 
+A lead sheet's chord symbols are tokens too: `@h:G7` puts a `<harmony>` at that place in the
+voice, above its staff (`+N` as for directions). The symbol is the app's one style
+(docs/HARMONY.md) in ASCII: a root (`C`, `Bb`, `F#`), then nothing, `m`, `dim`, `aug`, `sus2`,
+`sus4`, `7`, `maj7`, `m7`, `m7b5`, `dim7`, `6`, `m6` or `add9`, then `/` and a bass (`D/F#`). The
+`<kind>` gets the printed form as its `text` (`F♯°`, `Bm7♭5`), which Verovio draws as written.
+
 ```sh
 python3 scripts/pieces/generate.py              # write every generated piece
 python3 scripts/pieces/generate.py --check      # fail if a committed file is out of date
@@ -95,7 +101,8 @@ Notes the oracle plays off the sixteenth grid (grace notes, ornaments) are liste
 It prints `matched/total`, every difference with its bar, and exits non-zero on any difference.
 
 `verify-library.sh` runs the check for every built-in piece and lists where to download the
-oracles; they are not in the repository.
+oracles; they are not in the repository. The lead sheets have no oracle: each melody was read from a scan of
+its source, bar by bar, and proofread blind by a second reader.
 
 ## Adding a piece
 
