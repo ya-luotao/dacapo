@@ -28,12 +28,14 @@ describe('per-piece preferences', () => {
     writePiecePrefs('minuet', { tempo: 70, mode: 'rhythm' });
     writePiecePrefs('ode', { tempo: 50 });
     writePiecePrefs('minuet', { melody: 'top', trillStart: 'upper' });
+    writePiecePrefs('minuet', { mode: 'memory', memoryStage: 'phrases' });
     expect(readPiecePrefs('minuet')).toEqual({
       hands: 'left',
       tempo: 70,
-      mode: 'rhythm',
+      mode: 'memory',
       melody: 'top',
       trillStart: 'upper',
+      memoryStage: 'phrases',
     });
     // A piece not practised yet starts with the hands chosen last anywhere, at 100 %, waiting,
     // the melody on top of the right hand, trills on their note.
@@ -43,6 +45,7 @@ describe('per-piece preferences', () => {
       mode: 'wait',
       melody: 'right',
       trillStart: 'principal',
+      memoryStage: 'alternate',
     });
     expect(readPiecePrefs('ode')).toEqual({
       hands: 'left',
@@ -50,6 +53,7 @@ describe('per-piece preferences', () => {
       mode: 'wait',
       melody: 'right',
       trillStart: 'principal',
+      memoryStage: 'alternate',
     });
     writePiecePrefs('ode', { hands: 'both' });
     expect(readPiecePrefs('minuet').hands).toBe('left');
@@ -92,6 +96,7 @@ describe('per-piece preferences', () => {
       mode: 'wait',
       melody: 'right',
       trillStart: 'principal',
+      memoryStage: 'alternate',
     });
   });
 });

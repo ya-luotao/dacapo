@@ -900,6 +900,7 @@ export const ko: Dictionary = {
   'progress.kind.free': '자유 연주',
   'progress.kind.piece': '곡',
   'progress.kind.pieceRhythm': '곡 (리듬 모드)',
+  'progress.kind.pieceMemory': '곡(암보)',
   'progress.session.timing': '타이밍',
   'progress.session.inTime': '{percent}%가 ±50ms 이내',
   'progress.session.piece': '곡',
@@ -1427,6 +1428,7 @@ export const ko: Dictionary = {
   'pieces.status.keys': '칠 음: {notes}',
   'pieces.status.wrong': '{n}번 틀림',
   'pieces.status.lap': '{n}번째 구간 반복',
+  'pieces.status.prompts': '도움 {n}번',
   'pieces.status.ready': '준비되면 첫 음을 치세요. 첫 건반을 누르는 순간부터 시간을 재요.',
   'pieces.nothing': '지금 고른 손으로 칠 음이 여기에는 없어요. 다른 손이나 다른 마디를 고르세요.',
   'pieces.unplaced': '이 곡의 음 {n}개는 악보에 표시할 수 없어요.',
@@ -1447,8 +1449,9 @@ export const ko: Dictionary = {
   'pieces.mode': '모드',
   'pieces.mode.wait': '기다리기',
   'pieces.mode.rhythm': '리듬',
+  'pieces.mode.memory': '암보',
   'pieces.mode.help':
-    '기다리기: 음을 칠 때마다 악보가 기다려 줘요. 리듬: 클릭 소리에 맞춰 악보가 박자대로 움직이고, 모든 음의 타이밍을 재요.',
+    '기다리기: 음을 칠 때마다 악보가 기다려 줘요. 리듬: 클릭 소리에 맞춰 악보가 박자대로 움직이고, 모든 음의 타이밍을 재요. 암보: 악보가 마디마다 가려지고, 외워서 쳐요.',
   'pieces.options': '옵션',
   'pieces.click': '메트로놈',
   'pieces.click.on': '켬',
@@ -1734,6 +1737,24 @@ export const ko: Dictionary = {
     '악보대로의 소리를 이 연주의 템포로 먼저 들려주고, 이어서 내 연주를 들려줘요. 마디마다 또는 한 번에 비교해요. 구간 반복은 첫 바퀴로 비교해요.',
   'pieces.playback.close': '닫기',
 
+  'pieces.memory.stage': '악보',
+  'pieces.memory.stage.all': '모두 보이기',
+  'pieces.memory.stage.alternate': '한 마디 걸러 가리기',
+  'pieces.memory.stage.phrases': '프레이즈 첫 마디만',
+  'pieces.memory.stage.first': '첫 마디만',
+  'pieces.memory.stage.help':
+    '암보로 치는 동안 악보를 얼마나 보여 줄지 정해요. 프레이즈는 네 마디이고, 악보가 겹세로줄·도돌이표·연습 번호로 나눈 곳에서는 더 짧아요.',
+  'pieces.memory.peek': '살짝 보기(P)',
+  'pieces.memory.peek.help':
+    '이 버튼이나 P 키를 누르고 있으면 지금 마디가 보여요. 가려진 마디를 보면 도움 1번, 거기서 틀린 건반을 쳐도 도움 1번으로 세고, 음이 잠깐 보여요.',
+  'pieces.memory.anywhere': '아무 데서나 시작',
+  'pieces.memory.prompts': '도움',
+  'pieces.memory.bars': '도움이 필요했던 마디',
+  'pieces.memory.bars.none': '없어요: 가려진 마디를 모두 외워서 쳤어요.',
+  'pieces.memory.bar.one': '{bar}: 도움 1번',
+  'pieces.memory.bar.other': '{bar}: 도움 {n}번',
+  'pieces.runs.memory': '암보({stage}), 도움 {n}번',
+
   'pieces.weak.metric': '약한 마디 기준',
   'pieces.weak.metric.hesitation': '망설임',
   'pieces.weak.metric.timing': '타이밍',
@@ -1760,6 +1781,26 @@ export const ko: Dictionary = {
     '지금 고른 손으로 각 마디를 친 최근 {n}회 리듬 연주 기준이에요. 도돌이표로 두 번 친 경우 둘 다 계산해요.',
   'pieces.weak.loop.none.timing':
     '먼저 리듬 연주를 몇 번 해 보세요. 마디마다 두 번 이상 쳐야 판단할 수 있어요.',
+  'pieces.weak.metric.memory': '암보',
+  'pieces.weak.help.memory':
+    '이 손으로 친 최근 다섯 번의 암보 연습에서 마디마다 필요했던 도움 횟수로 마디에 색을 칠해요: 가려져 있을 때 틀린 건반과 살짝 보기.',
+  'pieces.weak.group.memory':
+    '연주 한 번당 도움 횟수로 본 악보의 마디. 화살표 키로 마디 사이를 옮겨 다닐 수 있어요.',
+  'pieces.weak.legend.memory': '한 번당 도움',
+  'pieces.weak.noData.memory':
+    '아직 데이터가 부족해요: 암보 연습 {runs}번과 {steps}스텝이 필요해요.',
+  'pieces.weak.perRun': '최근 연주의 평균',
+  'pieces.weak.perRun.value': '{value}번(한 번당)',
+  'pieces.weak.steady.memory': '안정: 최근 3번의 암보 연습에서 도움 없음.',
+  'pieces.weak.loop.none.memory':
+    '먼저 암보로 몇 번 쳐 보세요: 마디를 판단하려면 두 번이 필요해요.',
+  'pieces.weak.table.title.memory': '도움이 필요한 마디(약한 순)',
+  'pieces.weak.table.band.memory': '한 번당 도움',
+  'pieces.weak.table.median.memory': '한 번당',
+  'pieces.weak.table.help.memory':
+    '이 손으로 그 마디를 친 최근 {n}번의 암보 연습에서 가져와요. 도돌이의 두 번째도 세요.',
+  'pieces.weak.aria.memory':
+    '{bar}: 도움 {time}, {band}; {steps}스텝 중 틀린 음 {wrong}개; {runs}번.',
   'pieces.ms': '{value}ms',
 
   'storage.loading': '연습 기록을 불러오는 중…',

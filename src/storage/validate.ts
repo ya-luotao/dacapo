@@ -53,6 +53,7 @@ import {
 } from '../core/sightRead.ts';
 import { isMidiNote, type Clef } from '../core/note.ts';
 import type { SpelledPitch } from '../core/score.ts';
+import { isMemoryStage } from '../core/memory.ts';
 import {
   getTheoryLevel,
   isChordAnswer,
@@ -75,6 +76,7 @@ import type { TheoryAnswer, TheoryMissed } from '../core/theorySession.ts';
 import {
   isHandSelection,
   type LoopRange,
+  type MemoryCounts,
   type PieceFacts,
   type PieceRunHeader,
   type PieceStep,
@@ -268,7 +270,7 @@ function isLoopRange(v: unknown): v is LoopRange | null {
   );
 }
 
-const isMode = (v: unknown) => v === undefined || v === 'rhythm';
+const isMode = (v: unknown) => v === undefined || v === 'rhythm' || v === 'memory';
 /** A deviation is inside its window, which is never wider than this. */
 const isDeviation = (v: unknown) =>
   v === null || (typeof v === 'number' && Number.isFinite(v) && Math.abs(v) <= 1000);
@@ -318,8 +320,12 @@ function cleanHeader(h: PieceRunHeader): PieceRunHeader {
     repeats: h.repeats,
     tempo: h.tempo,
     startedAt: h.startedAt,
-    ...(h.mode === 'rhythm' && { mode: h.mode }),
+    ...((h.mode === 'rhythm' || h.mode === 'memory') && { mode: h.mode }),
   };
+}
+
+function isMemoryCounts(v: unknown): v is MemoryCounts {
+  return isObject(v) && isMemoryStage(v.stage) && isCount(v.prompts);
 }
 
 /** The header of a run still in progress, as saved with its first step. */
@@ -338,8 +344,9 @@ function validatePieceSession(value: Fields): Validation<PieceSessionRecord> {
     steps: isCount,
     wrong: isCount,
     completed: isBool,
-    // Counted in rhythm mode only.
+    // Counted in rhythm mode only, and the prompts in memory mode only.
     rhythm: (v) => (value.mode === 'rhythm' ? isRhythmCounts(v) : v === undefined),
+    memory: (v) => (value.mode === 'memory' ? isMemoryCounts(v) : v === undefined),
   });
   if (field) return fail(field);
   const s = value as unknown as PieceSessionRecord;
@@ -357,6 +364,7 @@ function validatePieceSession(value: Fields): Validation<PieceSessionRecord> {
       ...(s.rhythm && {
         rhythm: { notes: s.rhythm.notes, hits: s.rhythm.hits, inTime: s.rhythm.inTime },
       }),
+      ...(s.memory && { memory: { stage: s.memory.stage, prompts: s.memory.prompts } }),
     },
   };
 }
@@ -1410,8 +1418,10 @@ export function validatePieceStep(value: unknown): Validation<PieceStep> {
     wrong: isCount,
     at: isTime,
     mode: isMode,
-    // Rhythm mode's timings, and nothing in wait mode.
+    // Rhythm mode's timings, memory mode's prompts and stage, and nothing in wait mode.
     notes: (v) => (value.mode === 'rhythm' ? isNoteTimings(v) : v === undefined),
+    prompts: (v) => (value.mode === 'memory' ? isCount(v) : v === undefined),
+    stage: (v) => (value.mode === 'memory' ? isMemoryStage(v) : v === undefined),
   });
   if (field) return fail(field);
   const r = value as unknown as PieceStep;
@@ -1432,6 +1442,7 @@ export function validatePieceStep(value: unknown): Validation<PieceStep> {
         mode: r.mode,
         notes: r.notes!.map((n) => ({ midi: n.midi, deviation: n.deviation })),
       }),
+      ...(r.mode === 'memory' && { mode: r.mode, prompts: r.prompts!, stage: r.stage! }),
     },
   };
 }
@@ -1467,7 +1478,7 @@ export function validateTake(value: unknown): Validation<TakeChunk> {
       hands: r.hands,
       repeats: r.repeats,
       tempo: r.tempo,
-      ...(r.mode === 'rhythm' && { mode: r.mode }),
+      ...((r.mode === 'rhythm' || r.mode === 'memory') && { mode: r.mode }),
       ...(r.latency !== undefined && { latency: r.latency }),
       startedAt: r.startedAt,
       chunk: r.chunk,

@@ -8,6 +8,8 @@ import {
   barHeatmap,
   byBarWeakness,
   isWeak,
+  MEMORY_EDGES,
+  metricScale,
   steadyBars,
   TIMING_ANCHOR_MS,
   TIMING_EDGES_MS,
@@ -303,5 +305,34 @@ describe('the timing metric', () => {
       rhythmRun(r, { 0: { devs: [40, 45] }, 1: { devs: [10, 12], extra: 1 } }),
     );
     expect(timing(loose).cells.slice(0, 2).map(isWeak)).toEqual([true, true]);
+  });
+});
+
+describe('the memory metric', () => {
+  const memoryHeat = (records: PieceStep[]) =>
+    barHeatmap(records, { checksum: CHECKSUM, hands: 'right', bars: [0, 1], metric: 'memory' });
+  /** A memory run with `prompts` on each step of bar 0 (two steps) and none in bar 1. */
+  const memoryRun = (r: number, prompts: number) =>
+    run(r, { 0: [{ ms: 900, steps: 2 }], 1: [{ ms: 900, steps: 2 }] }, {}).map((s) => ({
+      ...s,
+      mode: 'memory' as const,
+      stage: 'phrases' as const,
+      prompts: s.measure === 0 ? prompts : 0,
+    }));
+
+  it('colours each bar by its prompts per run, on a scale around one every other run', () => {
+    expect(metricScale('memory')).toEqual({ edges: MEMORY_EDGES, anchor: 0.5 });
+    expect(MEMORY_EDGES.indexOf(0.5) + 1).toBe(ANCHOR_BUCKET);
+    const cells = memoryHeat([1, 2, 3].flatMap((r) => memoryRun(r, r === 3 ? 1 : 0))).cells;
+    // Two prompts (one on each step of bar 0 in run 3) over three runs.
+    expect(cells[0]).toMatchObject({ runs: 3, perRun: 2 / 3, bucket: 3, steady: false });
+    expect(cells[1]).toMatchObject({ perRun: 0, bucket: 0, steady: true });
+  });
+
+  it('keeps memory runs apart from wait mode’s, with the same window and data rules', () => {
+    const waiting = [1, 2].flatMap((r) => run(r, { 0: [{ ms: 3000, steps: 2 }] }));
+    expect(memoryHeat(waiting).cells[0]!.runs).toBe(0);
+    expect(heat(memoryRun(1, 1)).cells[0]!.runs).toBe(0);
+    expect(memoryHeat(memoryRun(1, 0)).cells[0]!.bucket).toBeNull();
   });
 });

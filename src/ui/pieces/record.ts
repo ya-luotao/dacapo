@@ -9,6 +9,7 @@ import {
 import type { RepeatMode } from '../../core/repeats.ts';
 import type { NoteTiming } from '../../core/rhythm.ts';
 import type { HandSelection } from '../../core/score.ts';
+import type { MemoryStage } from '../../core/memory.ts';
 import { TAKE_CHUNK_EVENTS, takeChunkId, type TakeState } from '../../core/takes.ts';
 import type { PracticeStore } from '../practice/store.ts';
 import { takeDone, type Run } from './run.ts';
@@ -22,7 +23,7 @@ export interface RunContext {
   loop: LoopRange | null;
   repeats: RepeatMode;
   tempo: number;
-  mode?: 'rhythm';
+  mode?: 'rhythm' | 'memory';
 }
 
 /** One step as a run hands it to the recorder. */
@@ -34,6 +35,9 @@ export interface RecordInput {
   /** Epoch ms: when it was completed (wait mode) or due (rhythm mode). */
   epoch: number;
   notes?: readonly NoteTiming[];
+  /** Memory mode: the step's prompts and the stage it was played at. */
+  prompts?: number;
+  stage?: MemoryStage;
 }
 
 /** A run of either mode, as far as the log cares. */
@@ -169,6 +173,11 @@ export function useRunRecorder(
             midi: n.midi,
             deviation: n.deviation === null ? null : Math.round(n.deviation),
           })),
+        }),
+        ...(record.stage && {
+          mode: 'memory' as const,
+          prompts: record.prompts ?? 0,
+          stage: record.stage,
         }),
       };
       t.steps.push(step);

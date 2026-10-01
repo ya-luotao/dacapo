@@ -909,6 +909,7 @@ export const en = {
   'progress.kind.free': 'Free play',
   'progress.kind.piece': 'Piece',
   'progress.kind.pieceRhythm': 'Piece, in rhythm',
+  'progress.kind.pieceMemory': 'Piece, by heart',
   'progress.session.timing': 'Timing',
   'progress.session.inTime': '{percent}% within ±50 ms',
   'progress.session.piece': 'Piece',
@@ -1447,6 +1448,7 @@ export const en = {
   'pieces.status.keys': 'Play {notes}',
   'pieces.status.wrong': '{n} wrong',
   'pieces.status.lap': 'loop {n}',
+  'pieces.status.prompts': 'prompts: {n}',
   'pieces.status.ready':
     'Play the first note when you are ready: the clock starts with your first key.',
   'pieces.nothing': 'Nothing to play here for these hands. Choose other hands or other bars.',
@@ -1467,8 +1469,9 @@ export const en = {
   'pieces.mode': 'Mode',
   'pieces.mode.wait': 'Wait',
   'pieces.mode.rhythm': 'Rhythm',
+  'pieces.mode.memory': 'Memory',
   'pieces.mode.help':
-    'Wait: the score waits for each note. Rhythm: the score moves in time with a click, and every note is timed.',
+    'Wait: the score waits for each note. Rhythm: the score moves in time with a click, and every note is timed. Memory: the score fades bar by bar while you play from memory.',
   'pieces.options': 'Options',
   'pieces.click': 'Click',
   'pieces.click.on': 'On',
@@ -1758,6 +1761,24 @@ export const en = {
     'Plays the bars as written, at the tempo of the run, then as you played them: a bar at a time, or all of them at once. A loop is compared on its first time round.',
   'pieces.playback.close': 'Close',
 
+  'pieces.memory.stage': 'Score',
+  'pieces.memory.stage.all': 'All shown',
+  'pieces.memory.stage.alternate': 'Every other bar',
+  'pieces.memory.stage.phrases': 'First bar of each phrase',
+  'pieces.memory.stage.first': 'First bar only',
+  'pieces.memory.stage.help':
+    'How much of the score is shown while you play from memory. A phrase is four bars, or less where the score marks a section with a double bar, a repeat sign or a rehearsal mark.',
+  'pieces.memory.peek': 'Peek (P)',
+  'pieces.memory.peek.help':
+    'Hold it, or the P key, to see the bar you are in. A peek at a hidden bar counts as a prompt, and so does a wrong key there, which shows the notes for a moment.',
+  'pieces.memory.anywhere': 'Start anywhere',
+  'pieces.memory.prompts': 'Prompts',
+  'pieces.memory.bars': 'Bars that needed prompts',
+  'pieces.memory.bars.none': 'None: every hidden bar came from memory.',
+  'pieces.memory.bar.one': '{bar}: 1 prompt',
+  'pieces.memory.bar.other': '{bar}: {n} prompts',
+  'pieces.runs.memory': 'Memory, {stage}, prompts: {n}',
+
   'pieces.weak.metric': 'Weak bars by',
   'pieces.weak.metric.hesitation': 'Hesitation',
   'pieces.weak.metric.timing': 'Timing',
@@ -1785,6 +1806,26 @@ export const en = {
     'From your last {n} rhythm runs with these hands that played each bar; both passes of a repeat count.',
   'pieces.weak.loop.none.timing':
     'Play a few rhythm runs first: a bar needs two runs before it can be judged.',
+  'pieces.weak.metric.memory': 'Memory',
+  'pieces.weak.help.memory':
+    'Tints each bar by how many prompts it needed in your last five memory runs with these hands: wrong keys and peeks while it was hidden.',
+  'pieces.weak.group.memory':
+    'Bars of the score by prompts per run. Use the arrow keys to move between bars.',
+  'pieces.weak.legend.memory': 'Prompts per run',
+  'pieces.weak.noData.memory':
+    'Not enough data yet: it takes {runs} memory runs and {steps} steps.',
+  'pieces.weak.perRun': 'over the last runs',
+  'pieces.weak.perRun.value': '{value} a run',
+  'pieces.weak.steady.memory': 'Steady: no prompt in your last 3 memory runs.',
+  'pieces.weak.loop.none.memory':
+    'Play a few memory runs first: a bar needs two runs before it can be judged.',
+  'pieces.weak.table.title.memory': 'Bars that need prompts, weakest first',
+  'pieces.weak.table.band.memory': 'Prompts per run',
+  'pieces.weak.table.median.memory': 'Per run',
+  'pieces.weak.table.help.memory':
+    'From your last {n} memory runs with these hands that played each bar; both passes of a repeat count.',
+  'pieces.weak.aria.memory':
+    '{bar}: prompts {time}, {band}; {wrong} wrong notes in {steps} steps; {runs} runs.',
   'pieces.ms': '{value} ms',
 
   'storage.loading': 'Loading your progress…',

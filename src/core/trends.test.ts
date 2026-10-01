@@ -556,6 +556,8 @@ describe('observations from the records', () => {
           { midi: 64, deviation: null },
         ],
       }),
+      // Memory mode counts for neither figure: its wrong keys are prompts, not misreadings.
+      step(4, { sessionId: 'm', mode: 'memory', wrong: 1, prompts: 1, stage: 'alternate' }),
     ];
     expect(pieceStepObservations(steps)).toEqual({
       wait: [

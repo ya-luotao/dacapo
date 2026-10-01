@@ -27,7 +27,12 @@ export function useRunFacts(): (run: PieceSessionRecord) => string {
   const log = useLogFormat();
   return (run) =>
     [
-      t(run.mode === 'rhythm' ? 'pieces.mode.rhythm' : 'pieces.mode.wait'),
+      run.memory
+        ? t('pieces.runs.memory', {
+            stage: t(`pieces.memory.stage.${run.memory.stage}`),
+            n: run.memory.prompts,
+          })
+        : t(run.mode === 'rhythm' ? 'pieces.mode.rhythm' : 'pieces.mode.wait'),
       t(`progress.session.hands.${run.hands}`),
       run.loop
         ? run.loop.fromLabel === run.loop.toLabel

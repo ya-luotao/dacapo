@@ -348,3 +348,48 @@ describe('recording takes', () => {
     expect(chunks.flatMap((c) => c.events)).toEqual(events(4_500));
   });
 });
+
+describe('recording memory runs', () => {
+  function MemoryRecorder({ run, store }: { run: Run; store: PracticeStore }) {
+    useRunRecorder(waitRecording(run), { ...CONTEXT, mode: 'memory' }, store);
+    return null;
+  }
+
+  it('stores each step with its prompts and stage, and the session with their sum', async () => {
+    const s = score();
+    const order = performanceOrder(s.measures);
+    const steps = buildSteps(s, 'right', order);
+    let run = startRun({
+      id: 'm1',
+      steps,
+      range: waitRange(steps, order, null, 0),
+      memory: { stage: 'phrases', hidden: new Set([1]) },
+    });
+    const show = () => act(() => root.render(createElement(MemoryRecorder, { run, store })));
+    show();
+    run = press(press(run, 72, 1_000), 74, 1_500);
+    run = runReducer(run, { type: 'peek' });
+    run = press(press(press(run, 70, 2_000), 76, 2_500), 77, 3_000);
+    show();
+    store.loadPieceSteps('two-bars');
+    await store.settled();
+    await new Promise((resolve) => setTimeout(resolve));
+    expect(
+      store.getPieceSteps('two-bars')!.map((step) => [step.mode, step.prompts, step.stage]),
+    ).toEqual([
+      ['memory', 0, 'phrases'],
+      ['memory', 0, 'phrases'],
+      ['memory', 2, 'phrases'],
+      ['memory', 0, 'phrases'],
+    ]);
+    expect(pieceSessions()).toEqual([
+      expect.objectContaining({
+        id: 'm1',
+        mode: 'memory',
+        wrong: 1,
+        completed: true,
+        memory: { stage: 'phrases', prompts: 2 },
+      }),
+    ]);
+  });
+});

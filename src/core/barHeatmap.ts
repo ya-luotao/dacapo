@@ -33,13 +33,26 @@ export const TIMING_ANCHOR_MS = 30;
 /** Upper edges of the timing buckets in ms; the anchor sits where the hesitation anchor does. */
 export const TIMING_EDGES_MS: readonly number[] = [10, 20, 30, 50, 75, 100];
 
-/** What the heatmap shows: hesitation (wait mode's records) or timing (rhythm mode's). */
-export type BarMetric = 'hesitation' | 'timing';
+/**
+ * Memory (P7): a prompt every other run, the bar half held by heart. Steady is none in the last
+ * three memory runs.
+ */
+export const MEMORY_ANCHOR = 0.5;
+/** Upper edges of the memory buckets in prompts per run; the anchor where the others sit. */
+export const MEMORY_EDGES: readonly number[] = [0.1, 0.25, 0.5, 1, 2, 3];
+
+/**
+ * What the heatmap shows: hesitation (wait mode's records), timing (rhythm mode's) or memory
+ * (memory mode's prompts per run).
+ */
+export type BarMetric = 'hesitation' | 'timing' | 'memory';
+export const BAR_METRICS: readonly BarMetric[] = ['hesitation', 'timing', 'memory'];
 
 export const metricMode = (metric: BarMetric): PracticeMode =>
-  metric === 'timing' ? 'rhythm' : 'wait';
+  metric === 'timing' ? 'rhythm' : metric === 'memory' ? 'memory' : 'wait';
 
 export function metricScale(metric: BarMetric): { edges: readonly number[]; anchor: number } {
+  if (metric === 'memory') return { edges: MEMORY_EDGES, anchor: MEMORY_ANCHOR };
   return metric === 'timing'
     ? { edges: TIMING_EDGES_MS, anchor: TIMING_ANCHOR_MS }
     : { edges: BAR_EDGES_MS, anchor: ANCHOR_MS };
@@ -78,6 +91,8 @@ export interface BarCell {
   wrongPerStep: number;
   /** Timing only: of `wrong`, the notes missed. */
   missed: number;
+  /** Memory only: prompts per run (what the colour shows). */
+  perRun?: number;
   /** The metric's bucket, or null when there is not enough data. */
   bucket: number | null;
   steady: boolean;
@@ -113,15 +128,17 @@ interface Figures {
   medianMs: number | null;
   wrong: number;
   missed: number;
+  prompts: number;
 }
 
 function figures(steps: readonly PieceStep[], metric: BarMetric): Figures {
-  if (metric === 'hesitation') {
+  if (metric !== 'timing') {
     return {
       count: steps.length,
       medianMs: median(steps.map((s) => Math.min(s.ms, IDLE_MS))),
       wrong: steps.reduce((n, s) => n + s.wrong, 0),
       missed: 0,
+      prompts: steps.reduce((n, s) => n + (s.prompts ?? 0), 0),
     };
   }
   const notes = steps.flatMap((s) => s.notes ?? []);
@@ -132,6 +149,7 @@ function figures(steps: readonly PieceStep[], metric: BarMetric): Figures {
     medianMs: median(played),
     wrong: missed + steps.reduce((n, s) => n + s.wrong, 0),
     missed,
+    prompts: 0,
   };
 }
 
@@ -165,10 +183,12 @@ export function barHeatmap(
       (a, b) => b.last - a.last || (a.sessionId < b.sessionId ? 1 : -1),
     );
     const window = latest.slice(0, WINDOW_RUNS);
-    const { count, medianMs, wrong, missed } = figures(
+    const { count, medianMs, wrong, missed, prompts } = figures(
       window.flatMap((r) => r.steps),
       metric,
     );
+    const memory = metric === 'memory';
+    const perRun = window.length === 0 ? 0 : prompts / window.length;
     const enough = window.length >= MIN_RUNS && count >= MIN_STEPS;
     const recent = latest.slice(0, STEADY_RUNS);
     const settled = figures(
@@ -176,7 +196,13 @@ export function barHeatmap(
       metric,
     );
     // Every note missed: as far from the beat as it gets.
-    const bucket = !enough ? null : medianMs === null ? edges.length : barBucket(medianMs, edges);
+    const bucket = !enough
+      ? null
+      : memory
+        ? barBucket(perRun, edges)
+        : medianMs === null
+          ? edges.length
+          : barBucket(medianMs, edges);
     return {
       measure,
       runs: window.length,
@@ -186,12 +212,13 @@ export function barHeatmap(
       wrong,
       wrongPerStep: count === 0 ? 0 : wrong / count,
       missed,
+      ...(memory && { perRun }),
       bucket,
       steady:
         recent.length === STEADY_RUNS &&
-        settled.medianMs !== null &&
-        settled.medianMs < anchor &&
-        settled.wrong === 0,
+        (memory
+          ? settled.prompts === 0
+          : settled.medianMs !== null && settled.medianMs < anchor && settled.wrong === 0),
     };
   });
   return { cells, staleRuns: stale.size };

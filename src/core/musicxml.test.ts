@@ -55,6 +55,33 @@ const midis = (s: Score, hands: 'right' | 'left' | 'both' = 'both') =>
   buildSteps(s, hands).map((step) => step.midis);
 
 describe('parseMusicXml', () => {
+  it('reads double bars and rehearsal marks, where phrases of a memorised piece begin (P7)', () => {
+    const whole = note('C4', 8);
+    const s = parse(
+      piano(
+        [
+          whole,
+          whole + '<barline location="right"><bar-style>light-light</bar-style></barline>',
+          '<direction><direction-type><rehearsal>B</rehearsal></direction-type></direction>' +
+            whole,
+          whole,
+          '<barline location="left"><bar-style>heavy-light</bar-style></barline>' + whole,
+          whole + '<barline location="right"><bar-style>light-heavy</bar-style></barline>',
+        ],
+        '<divisions>2</divisions>',
+      ),
+    );
+    expect(s.measures.map((m) => [m.doubleBar ?? false, m.rehearsal ?? ''])).toEqual([
+      [false, ''],
+      [true, ''],
+      [false, 'B'],
+      [true, ''],
+      [false, ''],
+      [true, ''],
+    ]);
+    expect('doubleBar' in s.measures[0]!).toBe(false);
+  });
+
   it('reads onsets in ticks, chords, and staves as hands', () => {
     const s = parse(
       piano([

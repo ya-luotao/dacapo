@@ -165,6 +165,13 @@ describe('reviewSchedule', () => {
     const first = schedule([run('a', { day: 0 })])!;
     expect(first.due).toBe('2026-09-02');
     expect(first.interval).toBe(1);
+    // Across the end of a month, by the calendar.
+    const turn = schedule([run('a', { day: 29 }), run('b', { day: 30 })])!;
+    expect(turn.runs.map((r) => [r.day, r.counted])).toEqual([
+      ['2026-09-30', true],
+      ['2026-10-01', true],
+    ]);
+    expect(turn.due).toBe('2026-10-03');
     // Each good run on its date moves a step up; the date runs from the run's own day.
     const runs = [run('a', { day: 0 })];
     let day = 0;

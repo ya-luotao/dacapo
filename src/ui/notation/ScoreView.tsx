@@ -26,6 +26,14 @@ interface ScoreViewProps {
   pressed: readonly number[];
   /** A wrong key fell on the step (a run played back): the cursor says so. */
   cursorWrong?: boolean;
+  /**
+   * Written bars whose notes and markings are hidden (memory mode): the staff lines, barlines,
+   * clefs and signatures stay. `revealed` bars show all the same, and `revealedNotes` (our note
+   * ids) show inside a hidden bar.
+   */
+  hiddenBars?: ReadonlySet<number>;
+  revealedBars?: ReadonlySet<number>;
+  revealedNotes?: readonly string[];
   hands: HandSelection;
   onStatus: (status: ScoreStatus) => void;
   /** Drawn behind the notes, e.g. tints per bar; placed with the bars' boxes. */
@@ -134,6 +142,9 @@ export function ScoreView({
   step,
   pressed,
   cursorWrong = false,
+  hiddenBars,
+  revealedBars,
+  revealedNotes,
   hands,
   onStatus,
   behind,
@@ -290,6 +301,33 @@ export function ScoreView({
       for (const el of marked) el.classList.remove('is-current', 'is-pressed', 'is-held');
     };
   }, [drawing, step, pressed, score]);
+
+  // Memory mode: the hidden bars fade, but for those revealed; single notes can show through.
+  useLayoutEffect(() => {
+    if (!drawing || !hiddenBars || hiddenBars.size === 0) return;
+    const faded: Element[] = [];
+    for (const index of hiddenBars) {
+      const el = drawing.measures[index];
+      if (!el || revealedBars?.has(index)) continue;
+      el.classList.add('is-faded');
+      faded.push(el);
+    }
+    const shown: Element[] = [];
+    for (const id of revealedNotes ?? []) {
+      const el = drawing.notes.get(id);
+      if (!el) continue;
+      // A chord's stem is the chord's.
+      const chord = el.parentElement?.closest('g.chord');
+      for (const target of chord ? [el, chord] : [el]) {
+        target.classList.add('is-revealed');
+        shown.push(target);
+      }
+    }
+    return () => {
+      for (const el of faded) el.classList.remove('is-faded');
+      for (const el of shown) el.classList.remove('is-revealed');
+    };
+  }, [drawing, hiddenBars, revealedBars, revealedNotes]);
 
   // Classes for single notes, laid on after the step's so they can override its ink.
   useLayoutEffect(() => {

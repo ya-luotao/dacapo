@@ -816,6 +816,46 @@ describe('the review schedule', () => {
   });
 });
 
+describe('memory mode', () => {
+  it('syncs its steps and sessions, and pulls them again after a build that refused them', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    const plain = sampleRun('m1', 2, { pieceId: 'p1' });
+    const steps = plain.steps.map((s) => ({
+      ...s,
+      mode: 'memory' as const,
+      prompts: 1,
+      stage: 'alternate' as const,
+    }));
+    const session = {
+      ...plain.session,
+      mode: 'memory' as const,
+      memory: { stage: 'alternate' as const, prompts: 2 },
+    };
+    for (const step of steps) ipad.store.recordPieceStep(step, null);
+    ipad.store.finishPieceRun('m1', session);
+    await ipad.store.settled();
+    await signIn(ipad);
+    await signIn(mac);
+    expect(mac.store.getSnapshot().sessions).toContainEqual(session);
+
+    // As schema 16 left it: the memory records refused, the cursor past them.
+    const state = (await mac.db.get('meta', SYNC_STATE_KEY)) as SyncState;
+    await mac.db.clear('pieceSteps');
+    await mac.db.delete('sessions', 'm1');
+    await mac.db.put('meta', { ...state, schema: 16 }, SYNC_STATE_KEY);
+    await mac.store.reloadAll();
+    const sync = vi.spyOn(service.api, 'sync');
+    await mac.client.syncNow();
+    expect(SYNC_SCHEMA).toBeGreaterThanOrEqual(17);
+    expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
+    expect(mac.store.getSnapshot().sessions).toContainEqual(session);
+    mac.store.loadPieceSteps('p1');
+    await vi.waitFor(() => expect(mac.store.getPieceSteps('p1')).toEqual(steps));
+  });
+});
+
 describe('takes', () => {
   it('brings takes to the other device, and pulls again those a build before takes skipped', async () => {
     const service = fakeService();

@@ -373,7 +373,12 @@ export function parseMusicXml(doc: Document, options: ParseOptions = {}): Score 
         ending,
       },
       jumps: m ? readJumps(m) : [],
+      ...(bars?.doubleRight && { doubleBar: true as const }),
     });
+    // A double bar drawn at the start of a measure ends the one before.
+    if (bars?.doubleLeft && i > 0) measures[i - 1]!.doubleBar = true;
+    const rehearsal = m ? readRehearsal(m) : null;
+    if (rehearsal) measures[i]!.rehearsal = rehearsal;
     if (bars?.endingEnd) ending = [];
     start += duration;
   }
@@ -406,6 +411,21 @@ interface Barlines {
   backwardTimes: number | null;
   endingStart: number[] | null;
   endingEnd: boolean;
+  /** A double (or final) barline at the measure's end, or at its start. */
+  doubleRight: boolean;
+  doubleLeft: boolean;
+}
+
+/** Bar styles that close a section: a double bar, a final bar, and their heavy forms. */
+const DOUBLE_BARS = new Set(['light-light', 'light-heavy', 'heavy-light', 'heavy-heavy']);
+
+/** The measure's rehearsal mark ("A", "12"), if it has one. */
+function readRehearsal(m: Element): string | null {
+  for (const mark of m.getElementsByTagName('rehearsal')) {
+    const text = mark.textContent?.trim();
+    if (text) return text;
+  }
+  return null;
 }
 
 function readBarlines(m: Element): Barlines {
@@ -414,8 +434,15 @@ function readBarlines(m: Element): Barlines {
     backwardTimes: null,
     endingStart: null,
     endingEnd: false,
+    doubleRight: false,
+    doubleLeft: false,
   };
   for (const barline of childrenNamed(m, 'barline')) {
+    const style = child(barline, 'bar-style')?.textContent?.trim() ?? '';
+    if (DOUBLE_BARS.has(style)) {
+      if (barline.getAttribute('location') === 'left') bars.doubleLeft = true;
+      else bars.doubleRight = true;
+    }
     const repeat = child(barline, 'repeat');
     if (repeat?.getAttribute('direction') === 'forward') bars.forward = true;
     if (repeat?.getAttribute('direction') === 'backward')

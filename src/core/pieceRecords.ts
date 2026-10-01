@@ -9,6 +9,7 @@ import type { RepeatMode } from './repeats.ts';
 import { performanceOrder, playOrder } from './repeats.ts';
 import { buildSteps, type HandSelection, type Score } from './score.ts';
 import type { BarLoop } from './wait.ts';
+import type { MemoryStage } from './memory.ts';
 
 export const HAND_SELECTIONS: readonly HandSelection[] = ['right', 'left', 'both'];
 
@@ -17,10 +18,10 @@ export function isHandSelection(value: unknown): value is HandSelection {
 }
 
 /**
- * Wait mode waits for each step; rhythm mode moves in time. Records made before rhythm mode have
- * no mode: they are wait mode's.
+ * Wait mode waits for each step; rhythm mode moves in time; memory mode waits, with the score
+ * faded (P7). Records made before rhythm mode have no mode: they are wait mode's.
  */
-export type PracticeMode = 'wait' | 'rhythm';
+export type PracticeMode = 'wait' | 'rhythm' | 'memory';
 
 /**
  * One step of a run. Plain data, so it can be stored as is. In wait mode it is completed when its
@@ -46,9 +47,15 @@ export interface PieceStep {
   wrong: number;
   /** When it was completed; in rhythm mode, when it was due. */
   at: number;
-  mode?: 'rhythm';
+  mode?: 'rhythm' | 'memory';
   /** Rhythm mode: each key of the step, how early (−) or late (+) in ms, null when missed. */
   notes?: NoteTiming[];
+  /**
+   * Memory mode: the prompts on the step (a wrong key or a peek while its bar was hidden), and
+   * how much of the score was shown.
+   */
+  prompts?: number;
+  stage?: MemoryStage;
 }
 
 export const stepMode = (step: Pick<PieceStep, 'mode'>): PracticeMode => step.mode ?? 'wait';
@@ -73,7 +80,7 @@ export interface PieceRunHeader {
   tempo: number;
   /** The first key of the run; in rhythm mode, the first step due. */
   startedAt: number;
-  mode?: 'rhythm';
+  mode?: 'rhythm' | 'memory';
 }
 
 /** A rhythm run's notes: due, played within their window, and within `IN_TIME_MS`. */
@@ -96,6 +103,13 @@ export interface PieceSession extends PieceRunHeader {
   completed: boolean;
   /** Rhythm mode only. */
   rhythm?: RhythmCounts;
+  /** Memory mode only: the stage it was played at, and its prompts. */
+  memory?: MemoryCounts;
+}
+
+export interface MemoryCounts {
+  stage: MemoryStage;
+  prompts: number;
 }
 
 export function stepId(sessionId: string, n: number): string {
@@ -129,6 +143,12 @@ export function pieceSession(
     wrong: steps.reduce((sum, s) => sum + s.wrong, 0),
     completed,
     ...(header.mode === 'rhythm' && { rhythm: rhythmCounts(steps) }),
+    ...(header.mode === 'memory' && {
+      memory: {
+        stage: steps[0]?.stage ?? 'all',
+        prompts: steps.reduce((sum, s) => sum + (s.prompts ?? 0), 0),
+      },
+    }),
   };
 }
 

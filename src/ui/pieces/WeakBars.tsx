@@ -6,10 +6,11 @@ import {
   MIN_RUNS,
   MIN_STEPS,
   WINDOW_RUNS,
+  BAR_METRICS,
   type BarCell,
   type BarMetric,
 } from '../../core/barHeatmap.ts';
-import { useT } from '../../i18n/index.ts';
+import { useT, type MessageKey } from '../../i18n/index.ts';
 import type { BarBox, BarBoxes } from '../notation/ScoreView.tsx';
 import { useCellNavigation } from '../progress/heatmap/navigation.ts';
 import { Tooltip } from '../progress/heatmap/Details.tsx';
@@ -21,6 +22,64 @@ import type { BarFormat } from './barFormat.ts';
 // heatmap's colour for the time per step (or, for timing, the distance from the beat), a mark
 // for wrong (missed and extra) notes, details on hover, focus or tap, and the same figures as a
 // table.
+
+/** The words of each metric: hesitation (wait mode), timing (rhythm mode), memory (P7). */
+const WORDS = {
+  hesitation: {
+    help: 'pieces.weak.help',
+    group: 'pieces.weak.group',
+    legend: 'pieces.weak.legend',
+    noData: 'pieces.weak.noData.details',
+    per: 'pieces.weak.perStep',
+    count: 'pieces.weak.steps',
+    wrong: 'pieces.weak.wrong',
+    wrongValue: 'pieces.weak.wrong.value',
+    steady: 'pieces.weak.steady',
+    wrongKey: 'pieces.weak.wrongKey',
+    loopNone: 'pieces.weak.loop.none',
+    title: 'pieces.weak.table.title',
+    band: 'pieces.weak.table.band',
+    tableWrong: 'pieces.weak.table.wrong',
+    tableHelp: 'pieces.weak.table.help',
+    median: 'pieces.weak.table.median',
+  },
+  timing: {
+    help: 'pieces.weak.help.timing',
+    group: 'pieces.weak.group.timing',
+    legend: 'pieces.weak.legend.timing',
+    noData: 'pieces.weak.noData.timing',
+    per: 'pieces.weak.perNote',
+    count: 'pieces.weak.notes',
+    wrong: 'pieces.weak.missed',
+    wrongValue: 'pieces.weak.missed.value',
+    steady: 'pieces.weak.steady.timing',
+    wrongKey: 'pieces.weak.wrongKey.timing',
+    loopNone: 'pieces.weak.loop.none.timing',
+    title: 'pieces.weak.table.title.timing',
+    band: 'pieces.weak.table.band.timing',
+    tableWrong: 'pieces.weak.table.wrong.timing',
+    tableHelp: 'pieces.weak.table.help.timing',
+    median: 'pieces.weak.table.median',
+  },
+  memory: {
+    help: 'pieces.weak.help.memory',
+    group: 'pieces.weak.group.memory',
+    legend: 'pieces.weak.legend.memory',
+    noData: 'pieces.weak.noData.memory',
+    per: 'pieces.weak.perRun',
+    count: 'pieces.weak.steps',
+    wrong: 'pieces.weak.wrong',
+    wrongValue: 'pieces.weak.wrong.value',
+    steady: 'pieces.weak.steady.memory',
+    wrongKey: 'pieces.weak.wrongKey',
+    loopNone: 'pieces.weak.loop.none.memory',
+    title: 'pieces.weak.table.title.memory',
+    band: 'pieces.weak.table.band.memory',
+    tableWrong: 'pieces.weak.table.wrong',
+    tableHelp: 'pieces.weak.table.help.memory',
+    median: 'pieces.weak.table.median.memory',
+  },
+} as const satisfies Record<BarMetric, Record<string, MessageKey>>;
 
 /** Space around the staff lines that the tint covers, and the strip above it. */
 const PAD = 8;
@@ -103,7 +162,7 @@ export function BarTargets({
       className="bar-targets"
       ref={layer}
       role="group"
-      aria-label={t(format.metric === 'timing' ? 'pieces.weak.group.timing' : 'pieces.weak.group')}
+      aria-label={t(WORDS[format.metric].group)}
       onKeyDown={onKeyDown}
     >
       {placed.map((cell) => (
@@ -133,14 +192,14 @@ export function BarTargets({
 
 function BarDetails({ cell, format }: { cell: BarCell; format: BarFormat }) {
   const t = useT();
-  const timing = format.metric === 'timing';
+  const words = WORDS[format.metric];
   return (
     <>
       <p className="hm-tooltip-title">{format.bar(cell)}</p>
       {cell.bucket === null ? (
         <p className="hm-tooltip-nodata">
           <Swatch bucket={null} />
-          {t(timing ? 'pieces.weak.noData.timing' : 'pieces.weak.noData.details', {
+          {t(words.noData, {
             runs: MIN_RUNS,
             steps: MIN_STEPS,
           })}
@@ -150,7 +209,7 @@ function BarDetails({ cell, format }: { cell: BarCell; format: BarFormat }) {
           <Swatch bucket={cell.bucket} />
           <strong>{format.median(cell)}</strong>
           <span>
-            {t(timing ? 'pieces.weak.perNote' : 'pieces.weak.perStep')} · {format.band(cell.bucket)}
+            {t(words.per)} · {format.band(cell.bucket)}
           </span>
         </p>
       )}
@@ -160,22 +219,18 @@ function BarDetails({ cell, format }: { cell: BarCell; format: BarFormat }) {
           <dd>{cell.runs}</dd>
         </div>
         <div>
-          <dt>{t(timing ? 'pieces.weak.notes' : 'pieces.weak.steps')}</dt>
+          <dt>{t(words.count)}</dt>
           <dd>{cell.steps}</dd>
         </div>
         <div>
-          <dt>{t(timing ? 'pieces.weak.missed' : 'pieces.weak.wrong')}</dt>
+          <dt>{t(words.wrong)}</dt>
           <dd>
             <WrongValue cell={cell} format={format} />
           </dd>
         </div>
       </dl>
       {cell.passes > 1 && <p className="hm-tooltip-note">{t('pieces.weak.passes')}</p>}
-      {cell.steady && (
-        <p className="hm-tooltip-note">
-          {t(timing ? 'pieces.weak.steady.timing' : 'pieces.weak.steady')}
-        </p>
-      )}
+      {cell.steady && <p className="hm-tooltip-note">{t(words.steady)}</p>}
     </>
   );
 }
@@ -185,7 +240,7 @@ function WrongValue({ cell, format }: { cell: BarCell; format: BarFormat }) {
   const t = useT();
   if (cell.steps === 0) return t('read.none');
   if (cell.wrong === 0) return 0;
-  return t(format.metric === 'timing' ? 'pieces.weak.missed.value' : 'pieces.weak.wrong.value', {
+  return t(WORDS[format.metric].wrongValue, {
     n: cell.wrong,
     rate: format.rate(cell),
   });
@@ -212,7 +267,7 @@ export function WeakBarsBar({
 }) {
   const t = useT();
   const id = useId();
-  const timing = format.metric === 'timing';
+  const words = WORDS[format.metric];
   const { edges } = metricScale(format.metric);
   const percent = (i: number) => `${((i + 1) / BAR_BUCKETS) * 100}%`;
   return (
@@ -220,7 +275,7 @@ export function WeakBarsBar({
       <fieldset className="piece-control weak-metric">
         <legend className="visually-hidden">{t('pieces.weak.metric')}</legend>
         <div className="segmented is-compact">
-          {(['hesitation', 'timing'] as const).map((metric) => (
+          {BAR_METRICS.map((metric) => (
             <label key={metric}>
               <input
                 type="radio"
@@ -234,15 +289,14 @@ export function WeakBarsBar({
             </label>
           ))}
         </div>
-        <span id={`${id}-metric-hesitation`} className="visually-hidden">
-          {t('pieces.weak.help')}
-        </span>
-        <span id={`${id}-metric-timing`} className="visually-hidden">
-          {t('pieces.weak.help.timing')}
-        </span>
+        {BAR_METRICS.map((metric) => (
+          <span key={metric} id={`${id}-metric-${metric}`} className="visually-hidden">
+            {t(WORDS[metric].help)}
+          </span>
+        ))}
       </fieldset>
       <figure className="weak-scale">
-        <figcaption>{t(timing ? 'pieces.weak.legend.timing' : 'pieces.weak.legend')}</figcaption>
+        <figcaption>{t(words.legend)}</figcaption>
         <div>
           <div className="hm-scale-bar" aria-hidden="true">
             {BUCKETS.map((bucket) => (
@@ -272,7 +326,7 @@ export function WeakBarsBar({
           <span className="bar-wrong is-key" aria-hidden="true">
             ×0.5
           </span>
-          {t(timing ? 'pieces.weak.wrongKey.timing' : 'pieces.weak.wrongKey')}
+          {t(words.wrongKey)}
         </li>
       </ul>
       <div className="weak-actions">
@@ -290,7 +344,7 @@ export function WeakBarsBar({
         </button>
         {!loopLabel && (
           <span id={`${id}-loop`} className="visually-hidden">
-            {t(timing ? 'pieces.weak.loop.none.timing' : 'pieces.weak.loop.none')}
+            {t(words.loopNone)}
           </span>
         )}
       </div>
@@ -318,7 +372,7 @@ export function WeakBarsTable({
   onClose: () => void;
 }) {
   const t = useT();
-  const timing = format.metric === 'timing';
+  const words = WORDS[format.metric];
   const heading = useRef<HTMLHeadingElement>(null);
   const rows = useMemo(() => [...cells].sort(byBarWeakness), [cells]);
   useEffect(() => heading.current?.focus({ preventScroll: true }), []);
@@ -335,7 +389,7 @@ export function WeakBarsTable({
     >
       <div className="weak-table-head">
         <h2 id="weak-table-title" ref={heading} tabIndex={-1}>
-          {t(timing ? 'pieces.weak.table.title.timing' : 'pieces.weak.table.title')}
+          {t(words.title)}
         </h2>
         <button type="button" className="button is-compact" onClick={onClose}>
           {t('pieces.weak.table.close')}
@@ -346,13 +400,9 @@ export function WeakBarsTable({
           <thead>
             <tr>
               <th scope="col">{t('pieces.weak.table.bar')}</th>
-              <th scope="col">
-                {t(timing ? 'pieces.weak.table.band.timing' : 'pieces.weak.table.band')}
-              </th>
-              <th scope="col">{t('pieces.weak.table.median')}</th>
-              <th scope="col">
-                {t(timing ? 'pieces.weak.table.wrong.timing' : 'pieces.weak.table.wrong')}
-              </th>
+              <th scope="col">{t(words.band)}</th>
+              <th scope="col">{t(words.median)}</th>
+              <th scope="col">{t(words.tableWrong)}</th>
               <th scope="col">{t('pieces.weak.table.runs')}</th>
               <th scope="col">{t('pieces.weak.table.steady')}</th>
             </tr>
@@ -378,9 +428,7 @@ export function WeakBarsTable({
           </tbody>
         </table>
       </div>
-      <p className="help">
-        {t(timing ? 'pieces.weak.table.help.timing' : 'pieces.weak.table.help', { n: WINDOW_RUNS })}
-      </p>
+      <p className="help">{t(words.tableHelp, { n: WINDOW_RUNS })}</p>
     </section>
   );
 }

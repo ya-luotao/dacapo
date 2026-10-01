@@ -119,7 +119,7 @@ export interface TakeChunk {
   repeats: RepeatMode;
   /** Percent of the score's tempo marks. */
   tempo: number;
-  mode?: 'rhythm';
+  mode?: 'rhythm' | 'memory';
   /** Rhythm mode: the latency taken off for the timing, in ms. */
   latency?: number;
   /** Epoch ms of time 0: the first key (wait mode), the start of the span (rhythm mode). */

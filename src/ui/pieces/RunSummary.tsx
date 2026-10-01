@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
+import type { BarPrompts } from '../../core/memory.ts';
 import type { RunSummary as Summary } from '../../core/pieceRun.ts';
 import { useT } from '../../i18n/index.ts';
 import { useLogFormat } from '../progress/format.ts';
@@ -7,6 +8,8 @@ import { PlayBackButton } from './PlayBackButton.tsx';
 
 interface RunSummaryProps {
   summary: Summary;
+  /** Memory mode: the prompts per bar (none needed: an empty list); null in wait mode. */
+  prompts?: BarPrompts[] | null;
   /** Ended with Finish while looping. */
   looped: boolean;
   format: ReturnType<typeof usePieceFormat>;
@@ -21,6 +24,7 @@ interface RunSummaryProps {
 /** The end of a run: a sheet laid over the score. */
 export function RunSummary({
   summary,
+  prompts = null,
   looped,
   format,
   onAgain,
@@ -32,7 +36,8 @@ export function RunSummary({
   const log = useLogFormat();
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => heading.current?.focus({ preventScroll: true }), []);
-  const slowest = summary.slowest[0];
+  // The bar to loop: by heart, the one that needed most prompts; else the slowest.
+  const loopBar = prompts?.[0]?.measure ?? summary.slowest[0]?.measure;
 
   return (
     <section className="piece-summary" aria-labelledby="piece-summary-title">
@@ -52,7 +57,34 @@ export function RunSummary({
           <dt>{t('pieces.done.steps')}</dt>
           <dd>{summary.steps}</dd>
         </div>
+        {prompts && (
+          <div>
+            <dt>{t('pieces.memory.prompts')}</dt>
+            <dd>{prompts.reduce((sum, bar) => sum + bar.prompts, 0)}</dd>
+          </div>
+        )}
       </dl>
+      {prompts && (
+        <div className="note-list">
+          <h3>{t('pieces.memory.bars')}</h3>
+          {prompts.length === 0 ? (
+            <p>{t('pieces.memory.bars.none')}</p>
+          ) : (
+            <ul>
+              {prompts.map((bar) => (
+                <li key={bar.measure}>
+                  {bar.prompts === 1
+                    ? t('pieces.memory.bar.one', { bar: format.barTitle(bar.measure) })
+                    : t('pieces.memory.bar.other', {
+                        bar: format.barTitle(bar.measure),
+                        n: bar.prompts,
+                      })}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
       <div className="note-list">
         <h3>{t('pieces.done.slowest')}</h3>
         {summary.slowest.length === 0 ? (
@@ -76,9 +108,9 @@ export function RunSummary({
         <button type="button" className="button button-primary" onClick={onAgain}>
           {t('pieces.done.again')}
         </button>
-        {slowest && (
-          <button type="button" className="button" onClick={() => onLoopBar(slowest.measure)}>
-            {t('pieces.done.loopBar', { bar: format.barLabel(slowest.measure) })}
+        {loopBar !== undefined && (
+          <button type="button" className="button" onClick={() => onLoopBar(loopBar)}>
+            {t('pieces.done.loopBar', { bar: format.barLabel(loopBar) })}
           </button>
         )}
         {onPlayBack && <PlayBackButton onClick={onPlayBack} />}

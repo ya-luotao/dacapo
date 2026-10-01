@@ -9,6 +9,7 @@ export function useBarFormat(format: PieceFormat, metric: BarMetric = 'hesitatio
   return useMemo(() => {
     const { edges } = metricScale(metric);
     const timing = metric === 'timing';
+    const memory = metric === 'memory';
     const number = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 });
     const oneDecimal = new Intl.NumberFormat(locale, {
       minimumFractionDigits: 1,
@@ -16,9 +17,15 @@ export function useBarFormat(format: PieceFormat, metric: BarMetric = 'hesitatio
     });
     const whole = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
     /** An edge of the scale, as a bare number in the legend's unit. */
-    const edge = (ms: number) => (timing ? whole.format(ms) : number.format(ms / 1000));
+    // Memory's scale is in prompts per run, the others' in ms.
+    const edge = (ms: number) =>
+      memory ? number.format(ms) : timing ? whole.format(ms) : number.format(ms / 1000);
     const unit = (ms: number) =>
-      timing ? t('pieces.ms', { value: edge(ms) }) : t('heatmap.seconds', { value: edge(ms) });
+      memory
+        ? t('pieces.weak.perRun.value', { value: edge(ms) })
+        : timing
+          ? t('pieces.ms', { value: edge(ms) })
+          : t('heatmap.seconds', { value: edge(ms) });
     const band = (bucket: number) => {
       if (bucket === 0) return t('heatmap.bucket.below', { max: unit(edges[0]!) });
       if (bucket === BAR_BUCKETS - 1)
@@ -38,11 +45,13 @@ export function useBarFormat(format: PieceFormat, metric: BarMetric = 'hesitatio
     const value = (ms: number) =>
       timing ? t('pieces.ms', { value: whole.format(ms) }) : format.seconds(ms);
     const median = (cell: BarCell) =>
-      cell.medianMs !== null
-        ? value(cell.medianMs)
-        : timing && cell.steps > 0
-          ? t('pieces.weak.allMissed')
-          : t('read.none');
+      memory
+        ? unit(cell.perRun ?? 0)
+        : cell.medianMs !== null
+          ? value(cell.medianMs)
+          : timing && cell.steps > 0
+            ? t('pieces.weak.allMissed')
+            : t('read.none');
     return {
       metric,
       edge,
@@ -55,14 +64,21 @@ export function useBarFormat(format: PieceFormat, metric: BarMetric = 'hesitatio
       aria: (cell: BarCell) =>
         cell.bucket === null
           ? t('pieces.weak.aria.noData', { bar: bar(cell), runs: cell.runs })
-          : t(timing ? 'pieces.weak.aria.timing' : 'pieces.weak.aria', {
-              bar: bar(cell),
-              time: median(cell),
-              band: band(cell.bucket),
-              wrong: cell.wrong,
-              steps: cell.steps,
-              runs: cell.runs,
-            }),
+          : t(
+              memory
+                ? 'pieces.weak.aria.memory'
+                : timing
+                  ? 'pieces.weak.aria.timing'
+                  : 'pieces.weak.aria',
+              {
+                bar: bar(cell),
+                time: median(cell),
+                band: band(cell.bucket),
+                wrong: cell.wrong,
+                steps: cell.steps,
+                runs: cell.runs,
+              },
+            ),
     };
   }, [t, locale, format, metric]);
 }

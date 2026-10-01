@@ -36,10 +36,11 @@ import {
  * builds skip them); 14, rhythm dictation on Ear: answers of the family `rhythmEar` and `ear`
  * sessions of that family (older builds skip them); 15, improvising on Harmony: sessions of kind
  * `improv` and their takes (older builds skip the sessions; the takes they keep); 16, a piece taken
- * out of the review schedule (`review: false`, which older builds strip). Bump it whenever a build
- * learns a collection, a session kind, or records that older builds skipped or stripped.
+ * out of the review schedule (`review: false`, which older builds strip); 17, memory mode's steps,
+ * sessions and takes (`mode: 'memory'`, which older builds refuse). Bump it whenever a build learns
+ * a collection, a session kind, or records that older builds skipped or stripped.
  */
-export const SYNC_SCHEMA = 16;
+export const SYNC_SCHEMA = 17;
 
 // Records as the sync service carries them (docs/SYNC.md, "What syncs"): the stored record as it
 // is, except a piece, which goes without its MusicXML (sent as a file named by its hash) and

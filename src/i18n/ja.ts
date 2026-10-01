@@ -903,6 +903,7 @@ export const ja: Dictionary = {
   'progress.kind.free': '自由演奏',
   'progress.kind.piece': '曲',
   'progress.kind.pieceRhythm': '曲（リズム）',
+  'progress.kind.pieceMemory': '曲（暗譜）',
   'progress.session.timing': 'タイミング',
   'progress.session.inTime': '{percent}%が±50ミリ秒以内',
   'progress.session.piece': '曲',
@@ -1440,6 +1441,7 @@ export const ja: Dictionary = {
   'pieces.status.keys': '弾く音：{notes}',
   'pieces.status.wrong': 'ミス{n}回',
   'pieces.status.lap': 'ループ{n}回目',
+  'pieces.status.prompts': 'ヒント{n}回',
   'pieces.status.ready':
     '準備ができたら最初の音を弾いてください。最初の鍵盤を押したときから計測が始まります。',
   'pieces.nothing':
@@ -1462,8 +1464,9 @@ export const ja: Dictionary = {
   'pieces.mode': 'モード',
   'pieces.mode.wait': '待機',
   'pieces.mode.rhythm': 'リズム',
+  'pieces.mode.memory': '暗譜',
   'pieces.mode.help':
-    '待機：音を弾くまで楽譜が待ちます。リズム：クリック音に合わせて楽譜がテンポどおりに進み、すべての音のタイミングを計ります。',
+    '待機：音を弾くまで楽譜が待ちます。リズム：クリック音に合わせて楽譜がテンポどおりに進み、すべての音のタイミングを計ります。暗譜：楽譜が小節ごとに消えていき、覚えて弾きます。',
   'pieces.options': 'オプション',
   'pieces.click': 'クリック音',
   'pieces.click.on': 'オン',
@@ -1754,6 +1757,24 @@ export const ja: Dictionary = {
     '楽譜どおりの音をこの演奏のテンポで流してから、あなたの演奏を流します。1小節ずつ、またはまとめて比べます。ループは1周目で比べます。',
   'pieces.playback.close': '閉じる',
 
+  'pieces.memory.stage': '楽譜',
+  'pieces.memory.stage.all': 'すべて表示',
+  'pieces.memory.stage.alternate': '1小節おきに隠す',
+  'pieces.memory.stage.phrases': '各フレーズの最初の小節だけ',
+  'pieces.memory.stage.first': '最初の小節だけ',
+  'pieces.memory.stage.help':
+    '暗譜で弾くあいだ、楽譜をどれだけ表示するか。フレーズは4小節、または楽譜が複縦線・反復記号・練習番号で区切ったところまでです。',
+  'pieces.memory.peek': 'のぞく（P）',
+  'pieces.memory.peek.help':
+    'このボタンかPキーを押しているあいだ、いまの小節が見えます。隠れた小節をのぞくとヒント1回、そこでのミスタッチもヒント1回と数え、音が少しのあいだ表示されます。',
+  'pieces.memory.anywhere': '途中から始める',
+  'pieces.memory.prompts': 'ヒント',
+  'pieces.memory.bars': 'ヒントが必要だった小節',
+  'pieces.memory.bars.none': 'なし：隠れた小節をすべて暗譜で弾けました。',
+  'pieces.memory.bar.one': '{bar}：ヒント1回',
+  'pieces.memory.bar.other': '{bar}：ヒント{n}回',
+  'pieces.runs.memory': '暗譜（{stage}）・ヒント{n}回',
+
   'pieces.weak.metric': '苦手な小節の基準',
   'pieces.weak.metric.hesitation': '迷い',
   'pieces.weak.metric.timing': 'タイミング',
@@ -1779,6 +1800,25 @@ export const ja: Dictionary = {
     '選んでいる手で各小節を弾いた直近{n}回のリズム練習から集計しています。くり返しは2回とも数えます。',
   'pieces.weak.loop.none.timing':
     'まず何回かリズム練習をしてください。小節を判定するには、2回分の練習が必要です。',
+  'pieces.weak.metric.memory': '暗譜',
+  'pieces.weak.help.memory':
+    'この手で弾いた直近5回の暗譜練習で、各小節に必要だったヒントの数で小節に色をつけます（隠れているあいだのミスタッチとのぞき見）。',
+  'pieces.weak.group.memory':
+    '1回あたりのヒントの数で見た楽譜の小節。矢印キーで小節を移動できます。',
+  'pieces.weak.legend.memory': '1回あたりのヒント',
+  'pieces.weak.noData.memory':
+    'まだデータが足りません：暗譜練習{runs}回と{steps}ステップが必要です。',
+  'pieces.weak.perRun': '直近の回の平均',
+  'pieces.weak.perRun.value': '{value}回（1回あたり）',
+  'pieces.weak.steady.memory': '安定：直近3回の暗譜練習でヒントなし。',
+  'pieces.weak.loop.none.memory': 'まず暗譜で何回か弾きましょう：小節の判定には2回分が必要です。',
+  'pieces.weak.table.title.memory': 'ヒントが必要な小節（苦手な順）',
+  'pieces.weak.table.band.memory': '1回あたりのヒント',
+  'pieces.weak.table.median.memory': '1回あたり',
+  'pieces.weak.table.help.memory':
+    'その小節を弾いた、この手での直近{n}回の暗譜練習から。反復の2回目も数えます。',
+  'pieces.weak.aria.memory':
+    '{bar}：ヒント{time}、{band}。{steps}ステップでミスタッチ{wrong}回。{runs}回。',
   'pieces.ms': '{value}ミリ秒',
 
   'storage.loading': '練習記録を読み込んでいます…',

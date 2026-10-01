@@ -128,7 +128,13 @@ function SessionRow({ session }: { session: SessionRecord }) {
         when,
         [
           'progress.session.kind',
-          t(session.mode === 'rhythm' ? 'progress.kind.pieceRhythm' : 'progress.kind.piece'),
+          t(
+            session.mode === 'rhythm'
+              ? 'progress.kind.pieceRhythm'
+              : session.mode === 'memory'
+                ? 'progress.kind.pieceMemory'
+                : 'progress.kind.piece',
+          ),
         ],
         ['progress.session.piece', <PieceTitle session={session} />],
         duration,

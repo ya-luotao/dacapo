@@ -14,7 +14,7 @@ export interface SavedTake {
   /** The score is referred to, not copied: the piece and the checksum of its notes. */
   checksum: string;
   title: string;
-  mode: 'wait' | 'rhythm';
+  mode: 'wait' | 'rhythm' | 'memory';
   hands: HandSelection;
   repeats: RepeatMode;
   loop: BarLoop | null;

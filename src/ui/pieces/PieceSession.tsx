@@ -92,6 +92,15 @@ import { SaveTake } from './SaveTake.tsx';
 import { YourRuns } from './YourRuns.tsx';
 import { PlaybackBar, type CompareChoice } from './PlaybackBar.tsx';
 import { useLogFormat } from '../progress/format.ts';
+import {
+  hiddenBars,
+  PROMPT_SHOW_MS,
+  promptsByBar,
+  randomPhraseStart,
+  START_SHOW_MS,
+  type MemoryStage,
+} from '../../core/memory.ts';
+import { HiddenBarNumbers, MemoryStageSelect } from './MemoryParts.tsx';
 import { usePieceReview, useReviewOut } from './review.ts';
 import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
 
@@ -100,8 +109,9 @@ const ACCOMPANY_PREF = 'dacapo.pieces.accompany';
 const WEAK_BARS_PREF = 'dacapo.pieces.weakBars';
 /** Offered once per browser: the calibration before the first rhythm run. */
 const CALIBRATION_OFFERED_PREF = 'dacapo.latency.offered';
-const MODES: readonly PracticeMode[] = ['wait', 'rhythm'];
-const metricOf = (mode: PracticeMode): BarMetric => (mode === 'rhythm' ? 'timing' : 'hesitation');
+const MODES: readonly PracticeMode[] = ['wait', 'rhythm', 'memory'];
+const metricOf = (mode: PracticeMode): BarMetric =>
+  mode === 'rhythm' ? 'timing' : mode === 'memory' ? 'memory' : 'hesitation';
 const WRONG_FLASH_MS = 350;
 const HAND_CHOICES = ['right', 'left', 'both'] as const;
 const NO_KEYS: readonly number[] = [];
@@ -185,6 +195,9 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
   const [rhythmSettings, setRhythmSettings] = useState<RunSettings | null>(null);
   const inTime = beat.state !== 'stopped';
   const rhythmMode = mode === 'rhythm';
+  const memoryMode = mode === 'memory';
+  /** Memory mode: how much of the score is shown (per piece, in this browser). */
+  const [stage, setStageState] = useState<MemoryStage>(prefs.memoryStage);
 
   const hasRepeats = score.measures.some(
     (m) => m.repeat.backwardTimes !== null || m.repeat.ending.length > 0,
@@ -249,11 +262,21 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
     ],
   );
 
-  const [run, dispatch] = useReducer(runReducer, { id: newRunId(), steps, range }, startRun);
-  // Any change of hands, bars or repeats starts over (React's pattern for state derived from
-  // props: set during render, before anything is painted).
-  if (run.steps !== steps || run.range !== range)
-    dispatch({ type: 'restart', id: newRunId(), steps, range });
+  // Memory mode: the bars hidden at the stage, for a run from its first bar (P7).
+  const firstBar = range ? (steps[range.start ?? range.first]?.measure ?? startBar) : startBar;
+  const memory = useMemo(
+    () => (memoryMode ? { stage, hidden: hiddenBars(score.measures, stage, firstBar) } : null),
+    [memoryMode, stage, score, firstBar],
+  );
+  const [run, dispatch] = useReducer(
+    runReducer,
+    { id: newRunId(), steps, range, memory },
+    startRun,
+  );
+  // Any change of hands, bars, repeats or what is hidden starts over (React's pattern for state
+  // derived from props: set during render, before anything is painted).
+  if (run.steps !== steps || run.range !== range || run.memory !== memory)
+    dispatch({ type: 'restart', id: newRunId(), steps, range, memory });
 
   const recorded = useMemo<RecordableRun>(
     () =>
@@ -291,6 +314,7 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
       repeats,
       tempo,
       ...(rhythmMode && { mode: 'rhythm' as const }),
+      ...(memoryMode && { mode: 'memory' as const }),
     },
     store,
   );
@@ -329,7 +353,7 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
 
   const restart = () => {
     silence();
-    dispatch({ type: 'restart', id: newRunId(), steps, range });
+    dispatch({ type: 'restart', id: newRunId(), steps, range, memory });
     region.current?.focus({ preventScroll: true });
   };
 
@@ -498,7 +522,8 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
     setModeState(next);
     setMetric(metricOf(next));
     writePiecePrefs(piece.id, { mode: next });
-    dispatch({ type: 'restart', id: newRunId(), steps, range });
+    // The memory of the new mode is set as the page renders again: a restart follows there.
+    dispatch({ type: 'restart', id: newRunId(), steps, range, memory });
     dispatchRhythm({ type: 'reset', id: newRunId() });
   }
 
@@ -538,6 +563,92 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
     return () => clearTimeout(id);
   }, [wrongKey]);
   const wrong = useMemo(() => new Set(wrongKey ? [wrongKey.midi] : []), [wrongKey]);
+
+  // Memory mode (docs/PIECES.md, "Memorising"): a wrong key in a hidden bar shows the step's notes
+  // for a moment; Peek (the P key, or the button, held) shows the bar; Start anywhere shows its
+  // first bar for two seconds. Each prompt is counted by the run.
+  /** The step a wrong key fell on in a hidden bar, shown for a moment: its notes and keys. */
+  const [prompt, setPrompt] = useState<{ noteIds: string[]; midis: number[] } | null>(null);
+  const promptNotes = prompt?.noteIds ?? null;
+  const [peeking, setPeeking] = useState(false);
+  const [startShown, setStartShown] = useState<number | null>(null);
+  // Set as the page renders (React's pattern for state derived from a change), on each wrong key.
+  const [prompted, setPrompted] = useState(wrongKey);
+  if (wrongKey !== prompted) {
+    setPrompted(wrongKey);
+    const fell = wrongKey ? run.steps[wrongKey.step] : undefined;
+    // A new object each time, so a second wrong key shows them for as long again.
+    if (fell && run.memory?.hidden.has(fell.measure))
+      setPrompt({ noteIds: fell.noteIds, midis: fell.midis });
+  }
+  useEffect(() => {
+    if (!prompt) return;
+    const id = setTimeout(() => setPrompt(null), PROMPT_SHOW_MS);
+    return () => clearTimeout(id);
+  }, [prompt]);
+  useEffect(() => {
+    if (startShown === null) return;
+    const id = setTimeout(() => setStartShown(null), START_SHOW_MS);
+    return () => clearTimeout(id);
+  }, [startShown]);
+  // A new run or another stage forgets what was shown.
+  const [shownFor, setShownFor] = useState(run.id);
+  if (shownFor !== run.id) {
+    setShownFor(run.id);
+    setPrompt(null);
+  }
+
+  function peek(held: boolean) {
+    if (held && !peeking) dispatch({ type: 'peek' });
+    setPeeking(held);
+  }
+  const peekRef = useRef(peek);
+  useLayoutEffect(() => {
+    peekRef.current = peek;
+  });
+  useEffect(() => {
+    if (!memoryMode) return;
+    const typing = (target: EventTarget | null) =>
+      target instanceof HTMLElement &&
+      (target.isContentEditable || ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName));
+    const onDown = (e: KeyboardEvent) => {
+      if (e.code !== 'KeyP' || e.repeat || e.ctrlKey || e.metaKey || e.altKey || typing(e.target))
+        return;
+      e.preventDefault();
+      peekRef.current(true);
+    };
+    const onUp = (e: KeyboardEvent) => {
+      if (e.code === 'KeyP') peekRef.current(false);
+    };
+    const onBlur = () => peekRef.current(false);
+    window.addEventListener('keydown', onDown);
+    window.addEventListener('keyup', onUp);
+    window.addEventListener('blur', onBlur);
+    return () => {
+      window.removeEventListener('keydown', onDown);
+      window.removeEventListener('keyup', onUp);
+      window.removeEventListener('blur', onBlur);
+    };
+  }, [memoryMode]);
+
+  /** A random phrase start of the bars practised, to play from: as a teacher asks at a lesson. */
+  function startAnywhere() {
+    const bars = range
+      ? [...new Set(steps.slice(range.first, range.last + 1).map((s) => s.measure))]
+      : playedBars;
+    const next = randomPhraseStart(score.measures, bars, firstBar);
+    if (next === null) return;
+    silence();
+    setStartBar(next);
+    setStartShown(next);
+    settle();
+  }
+
+  function setStage(next: MemoryStage) {
+    setStageState(next);
+    writePiecePrefs(piece.id, { memoryStage: next });
+    settle();
+  }
 
   // Selects take keyboard input; after a choice, the keys play notes again.
   const settle = () => region.current?.focus({ preventScroll: true });
@@ -670,6 +781,13 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
       cue: demoCue,
     };
   }, [playing, player, demoStep, demoCue]);
+  // Bars a peek or Start anywhere shows (memory mode).
+  const revealedBars = useMemo(() => {
+    const bars = new Set<number>();
+    if (peeking && waitStep) bars.add(waitStep.measure);
+    if (startShown !== null) bars.add(startShown);
+    return bars;
+  }, [peeking, waitStep, startShown]);
   const step = playback
     ? playbackStep
     : inTime
@@ -687,6 +805,10 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
   useKeepAwake(demo === 'playing' || inTime);
   useKeepAwake(!rhythmMode && run.startedAt !== null && !done, KEEP_AWAKE_IDLE_MS);
   const summary = useMemo(() => (done ? summarizeRun(run.records) : null), [done, run.records]);
+  const prompts = useMemo(
+    () => (done && run.memory ? promptsByBar(run.records) : null),
+    [done, run.memory, run.records],
+  );
   const rhythmSummary = useMemo(
     () =>
       rhythmMode && rhythm.status === 'ended' && !rhythm.hidden && rhythm.timings.length > 0
@@ -783,17 +905,29 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
     // While listening the keyboard shows what sounds; otherwise, with Show keys, what to play.
     if (listening) return new Set(step?.midis ?? []);
     if (rhythmMode) return showKeys && step ? new Set(step.midis) : new Set<number>();
+    // By heart: the keys are shown only while a wrong key shows the step's notes.
+    if (memoryMode) return new Set(prompt?.midis ?? []);
     return showKeys && step
       ? new Set(step.midis.filter((m) => !wait?.pressed.includes(m)))
       : new Set<number>();
-  }, [playbackView, playback, listening, rhythmMode, showKeys, step, wait?.pressed]);
+  }, [
+    playbackView,
+    playback,
+    listening,
+    rhythmMode,
+    memoryMode,
+    prompt,
+    showKeys,
+    step,
+    wait?.pressed,
+  ]);
   const playbackWrong = useMemo(() => new Set(playbackView?.wrong ?? []), [playbackView]);
 
   // With Show keys, an ornament's other keys in a lighter mark (docs/EXPRESSION.md).
   const hinted = useMemo(() => {
-    if (listening || !showKeys || !step?.ornaments) return NO_HINTS;
+    if (listening || memoryMode || !showKeys || !step?.ornaments) return NO_HINTS;
     return new Set(step.ornaments.flatMap((o) => o.keys).filter((k) => !marked.has(k)));
-  }, [listening, showKeys, step, marked]);
+  }, [listening, memoryMode, showKeys, step, marked]);
 
   // The fingers printed for the keys marked (a piece without fingering has none).
   const notesById = useMemo(() => new Map(score.notes.map((n) => [n.id, n])), [score]);
@@ -997,6 +1131,8 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
         >
           <summary className="button is-compact">{t('pieces.options')}</summary>
           <div className="piece-options-panel">
+            {memoryMode && <MemoryStageSelect stage={stage} onChange={setStage} />}
+
             <label className="piece-option">
               <span className="piece-control-label">{t('pieces.start')}</span>
               <select
@@ -1244,6 +1380,9 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
                 : (wait?.pressed ?? NO_KEYS)
           }
           cursorWrong={(playbackView?.wrong.length ?? 0) > 0}
+          hiddenBars={playback ? undefined : run.memory?.hidden}
+          revealedBars={revealedBars}
+          revealedNotes={promptNotes ?? NO_NOTES}
           hands={playback ? playback.source.settings.hands : hands}
           onStatus={setScoreStatus}
           zoom={focus.on ? focus.zoom : 1}
@@ -1253,8 +1392,19 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
               : undefined
           }
           above={
-            weakBars
-              ? (boxes) => <BarTargets cells={heat.cells} boxes={boxes} format={barFormat} />
+            weakBars || (run.memory && !playback)
+              ? (boxes) => (
+                  <>
+                    {run.memory && !playback && (
+                      <HiddenBarNumbers
+                        hidden={shownHidden(run.memory.hidden, revealedBars)}
+                        boxes={boxes}
+                        format={format}
+                      />
+                    )}
+                    {weakBars && <BarTargets cells={heat.cells} boxes={boxes} format={barFormat} />}
+                  </>
+                )
               : undefined
           }
         />
@@ -1283,6 +1433,7 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
           {summary && !runsOpen && (
             <RunSummary
               summary={summary}
+              prompts={prompts}
               looped={run.ended}
               format={format}
               onAgain={restart}
@@ -1434,7 +1585,8 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
               step={step}
               started={run.startedAt !== null}
               nothing={!range}
-              showKeys={showKeys}
+              showKeys={showKeys && !memoryMode}
+              prompts={run.memory ? run.prompts : null}
               total={range ? range.last - range.first + 1 : 0}
               bar={step ? format.barStatus(step.measure, step.pass) : ''}
               beat={step ? format.beat(step.beat) : ''}
@@ -1525,6 +1677,44 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
                     {t('pieces.finish')}
                   </button>
                 )}
+                {memoryMode && (
+                  <>
+                    <button
+                      type="button"
+                      className={
+                        peeking
+                          ? 'button is-compact memory-peek is-held'
+                          : 'button is-compact memory-peek'
+                      }
+                      aria-pressed={peeking}
+                      aria-describedby={`${showKeysId}-peek`}
+                      disabled={!waitStep}
+                      onPointerDown={(e) => {
+                        e.currentTarget.setPointerCapture?.(e.pointerId);
+                        peek(true);
+                      }}
+                      onPointerUp={() => peek(false)}
+                      onPointerCancel={() => peek(false)}
+                      onKeyDown={(e) => {
+                        if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) {
+                          e.preventDefault();
+                          peek(true);
+                        }
+                      }}
+                      onKeyUp={(e) => {
+                        if (e.key === ' ' || e.key === 'Enter') peek(false);
+                      }}
+                    >
+                      {t('pieces.memory.peek')}
+                    </button>
+                    <span id={`${showKeysId}-peek`} className="visually-hidden">
+                      {t('pieces.memory.peek.help')}
+                    </span>
+                    <button type="button" className="button is-compact" onClick={startAnywhere}>
+                      {t('pieces.memory.anywhere')}
+                    </button>
+                  </>
+                )}
                 <button type="button" className="button is-compact" onClick={restart}>
                   {t('pieces.restart')}
                 </button>
@@ -1585,6 +1775,12 @@ interface RunSettings {
 }
 
 const NO_WRONG: ReadonlySet<number> = new Set();
+const NO_NOTES: readonly string[] = [];
+
+/** The hidden bars not shown at the moment: their numbers stand in the middle of the staff. */
+function shownHidden(hidden: ReadonlySet<number>, revealed: ReadonlySet<number>): Set<number> {
+  return new Set([...hidden].filter((bar) => !revealed.has(bar)));
+}
 const NO_HINTS: ReadonlySet<number> = new Set();
 const NO_RECORDS: readonly RecordInput[] = [];
 
@@ -1596,6 +1792,7 @@ function StatusLine({
   started,
   nothing,
   showKeys,
+  prompts,
   total,
   bar,
   beat,
@@ -1607,6 +1804,8 @@ function StatusLine({
   started: boolean;
   nothing: boolean;
   showKeys: boolean;
+  /** Memory mode: the prompts on the step so far; null in wait mode. */
+  prompts: number | null;
   total: number;
   bar: string;
   beat: string;
@@ -1632,6 +1831,7 @@ function StatusLine({
     t('pieces.status.step', { n: wait.current - wait.first + 1, total }),
   ];
   if (wait.wrong > 0) parts.push(t('pieces.status.wrong', { n: wait.wrong }));
+  if (prompts) parts.push(t('pieces.status.prompts', { n: prompts }));
   if (wait.laps > 0) parts.push(t('pieces.status.lap', { n: wait.laps + 1 }));
   return (
     <p className="piece-status-main">

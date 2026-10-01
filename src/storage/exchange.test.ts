@@ -613,6 +613,56 @@ describe('versions', () => {
     ]);
   });
 
+  it('imports memory steps, sessions and takes, strict about their prompts and stage (P7)', () => {
+    const { steps: plain, session: waitSession } = sampleRun('m1', 2);
+    const steps = plain.map((s, i) => ({
+      ...s,
+      mode: 'memory' as const,
+      prompts: i,
+      stage: 'first' as const,
+    }));
+    const session = {
+      ...waitSession,
+      mode: 'memory' as const,
+      memory: { stage: 'first' as const, prompts: 1 },
+    };
+    const take = sampleTake('m1', 0, { mode: 'memory' });
+    const file = parsed(
+      fileWith({
+        version: 8,
+        pieces: [],
+        sessions: [
+          session,
+          { ...session, id: 'x1', memory: undefined },
+          { ...session, id: 'x2', memory: { stage: 'some', prompts: 1 } },
+          { ...waitSession, id: 'x3', memory: { stage: 'first', prompts: 0 } },
+        ],
+        pieceSteps: [
+          ...steps,
+          { ...steps[0]!, id: 'y1', prompts: undefined },
+          { ...steps[0]!, id: 'y2', stage: 'most' },
+          { ...plain[0]!, id: 'y3', prompts: 0 },
+          { ...steps[0]!, id: 'y4', notes: [] },
+        ],
+        scaleRuns: [],
+        answers: [],
+        takes: [take],
+      }),
+    );
+    expect(file.sessions).toEqual([session]);
+    expect(file.pieceSteps).toEqual(steps);
+    expect(file.takes).toEqual([take]);
+    expect(file.invalid).toEqual([
+      { collection: 'sessions', index: 1, field: 'memory', problem: 'invalid' },
+      { collection: 'sessions', index: 2, field: 'memory', problem: 'invalid' },
+      { collection: 'sessions', index: 3, field: 'memory', problem: 'invalid' },
+      { collection: 'pieceSteps', index: 2, field: 'prompts', problem: 'invalid' },
+      { collection: 'pieceSteps', index: 3, field: 'stage', problem: 'invalid' },
+      { collection: 'pieceSteps', index: 4, field: 'prompts', problem: 'invalid' },
+      { collection: 'pieceSteps', index: 5, field: 'notes', problem: 'invalid' },
+    ]);
+  });
+
   it('imports a version 4 file, which has no scale runs', () => {
     const { steps, session } = sampleRhythmRun('r1', 3);
     const file = parsed(

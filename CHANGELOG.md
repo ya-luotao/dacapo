@@ -15,6 +15,19 @@ sessions go in the same lists), the
 click's tempo and grid of scale runs played with it (from version 7), and the takes of piece runs
 (from version 8). Version 1 to 7 files still import.
 
+### Memorising (P7, [docs/PIECES.md](docs/PIECES.md))
+
+- **Memory** is a third practice mode beside Wait and Rhythm: the score fades while you play from
+  memory, in stages you choose: all shown, every other bar hidden, only the first bar of each
+  phrase, or nothing but the first bar. A phrase is four bars, or less where the score marks a
+  section with a double bar, a repeat sign or a rehearsal mark. A hidden bar keeps its barline and
+  shows its number.
+- A wrong key in a hidden bar shows the notes for a moment; **Peek** (hold P, or the button) shows
+  the bar. Each is a **prompt**. **Start anywhere** starts from a random phrase, its first bar
+  shown for two seconds.
+- The summary lists the prompts and the bars that needed them; Weak bars gains **Memory**, the
+  prompts per run in each bar.
+
 ### Review schedule (P6, [docs/PIECES.md](docs/PIECES.md))
 
 - A piece you have played to the end comes back for **review** after 1, 2, 4, 7, 14, 30 and 60

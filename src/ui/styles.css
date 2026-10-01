@@ -7547,6 +7547,45 @@ select.is-compact {
 }
 
 /*
+ * Memorising (P7): a hidden bar keeps its staff lines, barline, clefs and signatures, and shows
+ * its number in its middle; a prompt shows a step's notes through it.
+ */
+.score-svg g.measure.is-faded > g.staff > g:not(.clef, .keySig, .meterSig),
+.score-svg g.measure.is-faded > g:not(.staff, .barLine, .mNum) {
+  visibility: hidden;
+}
+
+.score-svg g.measure.is-faded g.is-revealed {
+  visibility: visible;
+}
+
+.bar-hidden-number {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.9375rem;
+  font-style: italic;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.memory-stage select {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Memory mode has two more actions: on a phone they wrap. */
+.piece-actions {
+  flex-wrap: wrap;
+}
+
+.memory-peek.is-held {
+  background: var(--accent-soft);
+}
+
+/*
  * Playing a run back (P5): the sheets give way to the score, and the transport takes the status
  * line's place under it. A wrong key turns the cursor to the wrong colour where it fell.
  */

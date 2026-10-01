@@ -211,10 +211,13 @@ export function pieceStepObservations(steps: readonly PieceStep[]): {
   const wait: Observation[] = [];
   const timed: Observation[] = [];
   for (const step of steps) {
-    if (stepMode(step) === 'wait') {
+    const mode = stepMode(step);
+    if (mode === 'wait') {
       wait.push({ at: step.at, value: step.wrong === 0 ? 1 : 0, run: step.sessionId });
       continue;
     }
+    // Memory mode is neither: a wrong key in a hidden bar is a prompt, not a misreading.
+    if (mode !== 'rhythm') continue;
     for (const note of step.notes ?? []) {
       if (note.deviation !== null) timed.push({ at: step.at, value: Math.abs(note.deviation) });
     }

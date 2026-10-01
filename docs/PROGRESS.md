@@ -55,7 +55,8 @@ four before:
   missed note has no distance from the beat); sight-reading, scales and pieces count runs (3 a
   week). Wait mode keeps no number of keys per
   step, only its wrong notes, so **Pieces** is the share of _steps_ (a note or a chord) played
-  without a wrong note, over the week's wait-mode runs.
+  without a wrong note, over the week's wait-mode runs. Memory-mode runs (PIECES.md, P7) are left out:
+  a wrong key in a hidden bar is a prompt, not a misreading, and would not compare with reading.
 - **In time** pools four sources: the notes of rhythm-mode piece runs (their step records), the
   onsets of Read's rhythm lines (R1), the onsets of the cells of rhythm dictation tapped back (R2:
   the same click, the same latency taken off, judged by the same rule as a line on Read, so they

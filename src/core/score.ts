@@ -84,6 +84,10 @@ export interface Measure {
   repeat: Repeat;
   /** Navigation the model does not follow (D.C., D.S., Fine, Coda). */
   jumps: string[];
+  /** A double or final barline ends it (also one drawn at the next measure's start). */
+  doubleBar?: true;
+  /** A rehearsal mark at it ("A", "12"). */
+  rehearsal?: string;
 }
 
 export interface TempoMark {

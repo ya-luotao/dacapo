@@ -372,6 +372,50 @@ Planned with [EXPRESSION.md](EXPRESSION.md), whose takes these build on.
   with a completed run without a loop (the Pieces page's cards read them already); they stay in
   the store's cache for the page's life.
 
+## Clarifications (decided during P7)
+
+- **Memory mode** runs on wait mode's engine (the same steps, keys, loop, start bar, other hand and
+  takes). Its stage is chosen first under Options ("Score": all shown, every other bar, first bar of
+  each phrase, first bar only), so the control row stays one row, kept per piece in this browser with the hands and tempo; changing
+  it starts a new run. Show keys marks nothing in memory mode.
+- **Phrases** (`core/memory.ts`). The parser now keeps a measure's double or final barline
+  (`doubleBar`, also one drawn at the start of the next measure) and its rehearsal mark
+  (`rehearsal`); the checksum covers the notes only, so records stay valid. A section begins at the
+  first bar, after a double bar or a `:|`, at a `|:`, at a rehearsal mark and where a volta begins;
+  within a section a phrase is four written bars. An upbeat (a first bar shorter than its time
+  signature) belongs to the first phrase, which is counted from the bar after it.
+- **The stages.** Every other bar is counted within each phrase, so each phrase starts shown; the
+  first bar of each phrase shows the upbeat with it; first bar only is the run's first bar (the
+  start bar, or the loop's), and with an upbeat the bar after it. The run's first bar is shown at
+  every stage.
+- **Hidden** is drawn on Verovio's own drawing: a hidden bar's notes, rests, beams, ledger lines and
+  markings are hidden; its staff lines, barline, clefs, key and time signatures (and the system's
+  own bar number) stay, and its number stands in the middle of its staff. A slur or tie drawn from
+  a hidden bar is hidden whole.
+- **Prompts.** A wrong key on a step of a hidden bar is a prompt (and still a wrong note): that
+  step's notes show through, and its keys on the keyboard, for 1.5 s. **Peek** (the P key, or the
+  button, held; P plays no note) shows the bar the run is on while held, one prompt per press. In a
+  bar that is shown neither counts. Prompts are kept per step.
+- **Start anywhere** picks at random a phrase start among the bars practised (the loop's, if one
+  is set), another than the one the run starts from when there is one, makes it the start bar and
+  shows that bar for 2 s.
+- **Records.** Steps have `mode: 'memory'`, `prompts` and `stage`; the session has `mode: 'memory'`
+  and `memory: { stage, prompts }`; the take `mode: 'memory'` (read as wait mode's). Validation is
+  strict both ways: a memory step must have both, any other none. Older builds refuse them, so
+  `SYNC_SCHEMA` 17 makes a build that learns them pull everything again; the export format stays at
+  8, since they are new kinds of record in lists the file has (an older build reports them as
+  records it could not read and imports the rest).
+- **The summary** adds the prompts and the bars that needed them, most first; its loop button
+  loops the bar with the most prompts (else the slowest). Your runs and the practice log name
+  memory runs, with the stage and the prompts.
+- **Weak bars by Memory**: per written bar, the prompts per run over the last 5 memory runs that
+  played it (both passes together), on a scale with edges at 0.1, 0.25, 0.5, 1, 2 and 3 around a
+  0.5 anchor (a prompt every other run) at the other anchors' place, with the same data rules (2
+  runs, 3 steps); the mark is wrong notes per step. Steady: no prompt in the last 3 memory runs.
+  Hesitation keeps counting wait mode's records only.
+- **The review schedule** counts a memory run to the end as a wait run (its wrong notes and its
+  bars' times); prompts are not counted against it.
+
 ## Milestones
 
 1. ✓ **P0 Spike** — choose the renderer (OpenSheetMusicDisplay vs Verovio vs other), prove
@@ -383,4 +427,4 @@ Planned with [EXPRESSION.md](EXPRESSION.md), whose takes these build on.
 5. ✓ **P4 Rhythm mode** — metronome, calibration, timing analysis.
 6. ✓ **P5 Play back** — takes played back with the cursor; compare with the written version.
 7. ✓ **P6 Review schedule** — review intervals, due pieces on Pieces and Home.
-8. **P7 Memorising** — memory mode, fading stages, prompts, start anywhere.
+8. ✓ **P7 Memorising** — memory mode, fading stages, prompts, start anywhere.
