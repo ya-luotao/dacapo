@@ -1351,6 +1351,14 @@ export const zhTW: Dictionary = {
   'pieces.repeats': '反覆',
   'pieces.repeats.play': '彈奏',
   'pieces.repeats.skip': '跳過',
+  'pieces.key': '調',
+  'pieces.key.written': '{key}（原調）',
+  'pieces.key.moved': '{key}（{shift}）',
+  'pieces.key.either': '{major} / {minor}',
+  'pieces.key.help':
+    '替樂曲移調，最多上移或下移六個半音。樂譜依新調重新繪製，示範、伴奏和評判都在新調上。移調後彈的每一遍，和原調的每一遍分開記錄，也不計入複習計畫。',
+  'pieces.key.note':
+    '已移調到 {key}（{shift}），原調是 {written}。這個調的每一遍分開記錄，不計入複習計畫。',
   'pieces.leftHand': '左手',
   'pieces.leftHand.written': '照譜面',
   'pieces.leftHand.symbols': '由和弦記號產生',
@@ -1377,6 +1385,9 @@ export const zhTW: Dictionary = {
   'pieces.weak.loading': '正在讀取你的練習紀錄⋯',
   'pieces.weak.stale.one': '有 1 遍較早的練習是在這份樂譜的另一個版本上記錄的，不列入計算。',
   'pieces.weak.stale.other': '有 {n} 遍較早的練習是在這份樂譜的另一個版本上記錄的，不列入計算。',
+  'pieces.weak.allKeys': '所有調',
+  'pieces.weak.allKeys.help': '把你移調後彈的每一遍也算進來。不勾選時，只統計原調的每一遍。',
+  'pieces.weak.writtenKey': '這裡統計的是原調的每一遍。勾選「所有調」，把這個調的每一遍也算進來。',
   'pieces.weak.perStep': '每步中位數',
   'pieces.weak.runs': '遍數（最近 {n} 遍）',
   'pieces.weak.steps': '步數',
@@ -1714,6 +1725,7 @@ export const zhTW: Dictionary = {
   'pieces.runs.leftHand': '左手：{pattern}',
   'pieces.runs.otherLeftHand':
     '這一遍用的是另一種左手，音符和現在顯示的不一樣。在「選項」選回那種左手，才能打開它。',
+  'pieces.runs.key': '移調 {shift}',
 
   'pieces.playback': '重播',
   'pieces.playback.help':

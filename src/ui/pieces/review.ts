@@ -53,7 +53,7 @@ export function usePieceReviews(): { reviews: PieceReview[]; loading: boolean } 
     const played = new Set(
       sessions
         .filter((s): s is PieceSessionRecord => s.kind === 'piece')
-        .filter((s) => s.completed && s.loop === null)
+        .filter((s) => s.completed && s.loop === null && s.transpose === undefined)
         .map((s) => s.pieceId),
     );
     const list: Candidate[] = [];

@@ -2,6 +2,7 @@ import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { recoverEarSummary, type EarAnswer } from '../core/earSession.ts';
 import type { SessionRecord } from '../core/log.ts';
+import { takeChunkId } from '../core/takes.ts';
 import { openDacapoDB, type DacapoDB } from './db.ts';
 import {
   buildExport,
@@ -632,6 +633,44 @@ describe('versions', () => {
     expect(file.pieceSteps).toEqual(steps);
     expect(file.invalid).toEqual([
       { collection: 'sessions', index: 1, field: 'leftHand', problem: 'invalid' },
+    ]);
+  });
+
+  it('imports a transposed run, strict about how far it was moved (H4)', () => {
+    const { steps: plain, session: written } = sampleRun('t1', 2);
+    const steps = plain.map((s) => ({ ...s, transpose: -3 }));
+    const session = { ...written, transpose: -3 };
+    const take = sampleTake('t1', 0, { transpose: -3 });
+    const file = parsed(
+      fileWith({
+        version: 8,
+        pieces: [],
+        sessions: [
+          session,
+          { ...session, id: 'x1', transpose: 0 },
+          { ...session, id: 'x2', transpose: 7 },
+          { ...session, id: 'x3', transpose: 1.5 },
+        ],
+        pieceSteps: [
+          ...steps,
+          { ...steps[0]!, id: 'y1', transpose: 0 },
+          { ...steps[0]!, id: 'y2', transpose: '2' },
+        ],
+        scaleRuns: [],
+        answers: [],
+        takes: [take, { ...take, id: takeChunkId('t1', 1), chunk: 1, transpose: -7 }],
+      }),
+    );
+    expect(file.sessions).toEqual([session]);
+    expect(file.pieceSteps).toEqual(steps);
+    expect(file.takes).toEqual([take]);
+    expect(file.invalid).toEqual([
+      { collection: 'sessions', index: 1, field: 'transpose', problem: 'invalid' },
+      { collection: 'sessions', index: 2, field: 'transpose', problem: 'invalid' },
+      { collection: 'sessions', index: 3, field: 'transpose', problem: 'invalid' },
+      { collection: 'pieceSteps', index: 2, field: 'transpose', problem: 'invalid' },
+      { collection: 'pieceSteps', index: 3, field: 'transpose', problem: 'invalid' },
+      { collection: 'takes', index: 1, field: 'transpose', problem: 'invalid' },
     ]);
   });
 

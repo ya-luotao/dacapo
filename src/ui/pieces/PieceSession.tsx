@@ -47,9 +47,10 @@ import { playOrder, type RepeatMode } from '../../core/repeats.ts';
 import { buildSteps, keyRange, type HandSelection, type Score } from '../../core/score.ts';
 import { waitRange, type BarLoop, type WaitState } from '../../core/wait.ts';
 import type { TakeState } from '../../core/takes.ts';
+import { pieceKey, transposedKey, TRANSPOSITIONS } from '../../core/transpose.ts';
 import { useT } from '../../i18n/index.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
-import { withLeftHand } from '../../pieces/derive.ts';
+import { transposed, withLeftHand } from '../../pieces/derive.ts';
 import { createAccompanist } from '../../output/accompany.ts';
 import { createDemoPlayer, type DemoState } from '../../output/demo.ts';
 import { browserClock } from '../../output/scheduler.ts';
@@ -63,7 +64,7 @@ import { Piano } from '../piano/Piano.tsx';
 import { keyboardRange, whiteKeys } from '../piano/range.ts';
 import { usePieceSteps, usePracticeStore } from '../practice/context.ts';
 import { usePieceFormat } from './format.ts';
-import { readPiecePrefs, TEMPOS, writePiecePrefs } from './prefs.ts';
+import { readPiecePrefs, TEMPOS, WEAK_ALL_KEYS_PREF, writePiecePrefs } from './prefs.ts';
 import { useRunRecorder, waitRecording, type RecordableRun, type RecordInput } from './record.ts';
 import { RunSummary } from './RunSummary.tsx';
 import { runReducer, startRun, takeDone } from './run.ts';
@@ -81,6 +82,7 @@ import { RhythmSummary } from './RhythmSummary.tsx';
 import { useRhythmPlayer } from './useRhythmPlayer.ts';
 import type { OpenPiece } from './usePiece.ts';
 import { useBarFormat } from './barFormat.ts';
+import { shiftText, useKeyName } from './keyFormat.ts';
 import { FocusBar, FocusEnter } from '../focus/FocusBar.tsx';
 import { useFocusState } from '../focus/focus.ts';
 import { BarTargets, BarTints, WeakBarsBar, WeakBarsTable } from './WeakBars.tsx';
@@ -149,8 +151,20 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
       ),
     [writtenXml, written, writtenFacts, patterns, leftHandChoice],
   );
-  const { score, leftHand } = practised;
+  const { leftHand } = practised;
+  // Records are kept in the written key: a transposed run says how far it was moved.
   const { checksum } = practised.facts;
+  // The key (docs/HARMONY.md, "Transposing (H4)"): the piece as practised, moved up to six
+  // semitones either way. A progression is in the key its page was opened in.
+  const canTranspose = !isProgressionPieceId(piece.id);
+  const [transposeChoice, setTransposeState] = useState(canTranspose ? prefs.transpose : 0);
+  const shown = useMemo(() => inKey(practised, transposeChoice), [practised, transposeChoice]);
+  const { score, transpose } = shown;
+  /** The piece in the key of a past run, for playing it back and judging its take. */
+  const scoreIn = (semitones: number): Score | null =>
+    semitones === transpose ? score : scoreInKey(practised, semitones);
+  const writtenKey = useMemo(() => pieceKey(written), [written]);
+  const keyName = useKeyName();
   const format = usePieceFormat(score.measures);
   const { hub, pointer, output } = useInput();
   const hasOutput = useOutputState().selected !== null;
@@ -350,6 +364,7 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
       ...(rhythmMode && { mode: 'rhythm' as const }),
       ...(memoryMode && { mode: 'memory' as const }),
       ...(leftHand !== 'written' && { leftHand }),
+      ...(transpose !== 0 && { transpose }),
     },
     store,
   );
@@ -365,6 +380,9 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
     );
     return others.size === 0 ? allRecords : allRecords.filter((r) => !others.has(r.sessionId));
   }, [allRecords, runs, leftHand]);
+  // Runs in another key are counted only when asked for (shared with the library's cards).
+  const [allKeys, setAllKeysState] = useState(() => readPref(WEAK_ALL_KEYS_PREF) === '1');
+  const otherKeyRuns = transpose !== 0 || runs.some((run) => run.transpose !== undefined);
   const handBars = useMemo(
     () => [...new Set(steps.map((s) => s.measure))].sort((a, b) => a - b),
     [steps],
@@ -376,8 +394,9 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
         hands,
         bars: handBars,
         metric,
+        allKeys,
       }),
-    [records, checksum, hands, handBars, metric],
+    [records, checksum, hands, handBars, metric, allKeys],
   );
   const weakest = useMemo(() => weakestLoop(heat.cells, order), [heat, order]);
   const barFormat = useBarFormat(format, metric);
@@ -534,7 +553,7 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
       onEnd: (reason) => dispatchRhythm({ type: 'end', reason }),
     });
     takeOpen.current = true;
-    setRhythmSettings({ hands, repeats, loop, tempo, latency });
+    setRhythmSettings({ hands, repeats, loop, tempo, latency, transpose });
     dispatchRhythm({
       type: 'start',
       id,
@@ -715,6 +734,7 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
   function setLeftHand(next: LeftHandChoice) {
     setLeftHandState(next);
     writePiecePrefs(piece.id, { leftHand: next });
+    dispatchRhythm({ type: 'reset', id: newRunId() });
     settle();
   }
 
@@ -728,6 +748,19 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
       practised: practisedFacts && { checksum: practisedFacts.checksum, bars: practisedFacts.bars },
     });
   }, [piece.id, practisedFacts]);
+
+  function setTranspose(next: number) {
+    setTransposeState(next);
+    writePiecePrefs(piece.id, { transpose: next });
+    // A result in the old key is not read against the new one.
+    dispatchRhythm({ type: 'reset', id: newRunId() });
+    settle();
+  }
+
+  function setAllKeys(next: boolean) {
+    setAllKeysState(next);
+    writePref(WEAK_ALL_KEYS_PREF, next ? '1' : null);
+  }
 
   function setWeakBars(next: boolean) {
     setWeakBarsState(next);
@@ -769,8 +802,11 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
 
   /** The plan of a run played back: as it was played, or compared with the score as written. */
   function playbackOf(source: PlaybackSource, compare: CompareChoice): TakePlayback | null {
+    // The keys of a take are the keys played: it is read against the piece in its run's key.
+    const played = scoreIn(source.settings.transpose);
+    if (!played) return null;
     const input: PlaybackRun = {
-      score,
+      score: played,
       hands: source.settings.hands,
       repeats: source.settings.repeats,
       loop: source.settings.loop,
@@ -944,6 +980,8 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
                 loop: settings.loop,
                 tempo: settings.tempo,
                 latency: settings.latency,
+                ...(leftHand !== 'written' && { leftHand }),
+                ...(settings.transpose !== 0 && { transpose: settings.transpose }),
                 startedAt: take.startedAt,
                 events: take.events.map((e) => [...e]),
               }}
@@ -1195,6 +1233,32 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
           <div className="piece-options-panel">
             {memoryMode && <MemoryStageSelect stage={stage} onChange={setStage} />}
 
+            {canTranspose && (
+              <label className="piece-option">
+                <span className="piece-control-label">{t('pieces.key')}</span>
+                <select
+                  className="is-compact"
+                  aria-describedby={`${showKeysId}-key`}
+                  value={transpose}
+                  onChange={(e) => setTranspose(Number(e.target.value))}
+                >
+                  {[...TRANSPOSITIONS].reverse().map((n) => {
+                    const key = keyName(transposedKey(writtenKey, n));
+                    return (
+                      <option key={n} value={n}>
+                        {n === 0
+                          ? t('pieces.key.written', { key })
+                          : t('pieces.key.moved', { key, shift: shiftText(n) })}
+                      </option>
+                    );
+                  })}
+                </select>
+                <span id={`${showKeysId}-key`} className="visually-hidden">
+                  {t('pieces.key.help')}
+                </span>
+              </label>
+            )}
+
             {patterns.length > 0 && (
               <label className="piece-option">
                 <span className="piece-control-label">{t('pieces.leftHand')}</span>
@@ -1445,6 +1509,9 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
           format={barFormat}
           loading={records === null}
           staleRuns={heat.staleRuns}
+          keys={
+            otherKeyRuns ? { all: allKeys, transposed: transpose !== 0, onAll: setAllKeys } : null
+          }
           loopLabel={weakest && format.barRange(weakest.from, weakest.to)}
           onLoop={loopWeakest}
           onTable={() => setTable(true)}
@@ -1454,7 +1521,7 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
 
       <div className="piece-stage">
         <ScoreView
-          xml={practised.xml}
+          xml={shown.xml}
           score={score}
           title={piece.title}
           step={step}
@@ -1529,7 +1596,7 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
               }}
               expression={expressionPanel(
                 waitExpression,
-                { hands, repeats, loop, tempo, latency: 0 },
+                { hands, repeats, loop, tempo, latency: 0, transpose },
                 run.take,
                 'wait',
               )}
@@ -1539,7 +1606,7 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
                       startPlayback({
                         events: run.take!.events,
                         mode: 'wait',
-                        settings: { hands, repeats, loop, tempo, latency: 0 },
+                        settings: { hands, repeats, loop, tempo, latency: 0, transpose },
                         startedAt: null,
                       })
                   : undefined
@@ -1585,7 +1652,7 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
               pieceId={piece.id}
               checksum={checksum}
               leftHand={leftHand}
-              score={score}
+              scoreIn={scoreIn}
               format={format}
               melody={melody}
               aspects={aspects}
@@ -1603,6 +1670,7 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
                           loop: session.loop,
                           tempo: session.tempo,
                           latency: take.latency,
+                          transpose: session.transpose ?? 0,
                         },
                         startedAt: session.startedAt,
                       })
@@ -1682,6 +1750,15 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
           <div className="piece-notes">
             {scoreStatus.state === 'ready' && scoreStatus.unplaced > 0 && (
               <p className="muted">{t('pieces.unplaced', { n: scoreStatus.unplaced })}</p>
+            )}
+            {transpose !== 0 && (
+              <p className="muted">
+                {t('pieces.key.note', {
+                  key: keyName(transposedKey(writtenKey, transpose)),
+                  shift: shiftText(transpose),
+                  written: keyName(writtenKey),
+                })}
+              </p>
             )}
             {patterns.length > 0 && leftHand === 'written' && !playable.left && (
               <p className="muted">{t('pieces.leftHand.none')}</p>
@@ -1862,6 +1939,40 @@ function practise(
   return { xml: piece.xml, score: piece.score, facts: piece.facts, leftHand: 'written' };
 }
 
+/** The piece as it is drawn and judged: in its written key, or moved by `transpose` semitones. */
+interface ShownPiece {
+  xml: string;
+  score: Score;
+  /** The transposition in effect: 0 too when the piece could not be moved. */
+  transpose: number;
+}
+
+function inKey(piece: PractisedPiece, semitones: number): ShownPiece {
+  if (semitones !== 0) {
+    try {
+      return { ...transposed(piece.xml, piece.score.hands, semitones), transpose: semitones };
+    } catch {
+      // A score that cannot be moved is practised as written.
+    }
+  }
+  return { xml: piece.xml, score: piece.score, transpose: 0 };
+}
+
+/** The piece in the keys of past runs, kept as long as the piece is. */
+const movedScores = new WeakMap<PractisedPiece, Map<number, Score | null>>();
+
+/** The piece's score moved by `semitones`; null when it cannot be moved. */
+function scoreInKey(piece: PractisedPiece, semitones: number): Score | null {
+  if (semitones === 0) return piece.score;
+  let known = movedScores.get(piece);
+  if (!known) movedScores.set(piece, (known = new Map<number, Score | null>()));
+  if (!known.has(semitones)) {
+    const moved = inKey(piece, semitones);
+    known.set(semitones, moved.transpose === semitones ? moved.score : null);
+  }
+  return known.get(semitones) ?? null;
+}
+
 /** A run to play back: what was played and how it was practised. */
 interface PlaybackSource {
   events: readonly TakeEvent[];
@@ -1886,6 +1997,8 @@ interface RunSettings {
   tempo: number;
   /** Rhythm mode: the latency taken off every key. */
   latency: number;
+  /** Semitones the piece was moved by; 0 in the written key. */
+  transpose: number;
 }
 
 const NO_WRONG: ReadonlySet<number> = new Set();

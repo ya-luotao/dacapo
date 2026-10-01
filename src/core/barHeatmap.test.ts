@@ -53,6 +53,25 @@ const heat = (records: PieceStep[], bars = [0, 1, 2, 3], hands: 'right' | 'left'
 const cell = (records: PieceStep[], measure: number) =>
   heat(records).cells.find((c) => c.measure === measure)!;
 
+describe('runs in another key', () => {
+  it('count only when every key is asked for, and are never an older version', () => {
+    const written = [1, 2].flatMap((r) => run(r, { 0: [{ ms: 600, steps: 3 }] }));
+    const moved = [3, 4, 5].flatMap((r) =>
+      run(r, { 0: [{ ms: 2500, steps: 3 }] }, { transpose: r === 5 ? -3 : 2 }),
+    );
+    const records = [...written, ...moved];
+    const options = { checksum: CHECKSUM, hands: 'right' as const, bars: [0] };
+    const byDefault = barHeatmap(records, options);
+    expect(byDefault.cells[0]).toMatchObject({ runs: 2, steps: 6, medianMs: 600 });
+    expect(byDefault.staleRuns).toBe(0);
+    const everyKey = barHeatmap(records, { ...options, allKeys: true });
+    expect(everyKey.cells[0]).toMatchObject({ runs: 5, steps: 15, medianMs: 2500 });
+    // Only transposed runs: nothing to show until every key is asked for.
+    expect(barHeatmap(moved, options).cells[0]).toMatchObject({ runs: 0, bucket: null });
+    expect(barHeatmap(moved, { ...options, allKeys: true }).cells[0]!.runs).toBe(3);
+  });
+});
+
 describe('the hesitation scale', () => {
   it('has round edges around a one-second anchor, which belongs to the slower bucket', () => {
     expect(BAR_EDGES_MS).toEqual([500, 750, 1000, 1500, 2000, 3000]);

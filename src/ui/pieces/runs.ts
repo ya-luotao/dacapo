@@ -4,6 +4,7 @@ import { takeEvents, type TakeChunk, type TakeEvent } from '../../core/takes.ts'
 import { useT } from '../../i18n/index.ts';
 import { usePractice, usePracticeStore } from '../practice/context.ts';
 import { useLogFormat } from '../progress/format.ts';
+import { shiftText } from './keyFormat.ts';
 
 // A piece's past runs, and what was played in one of them (its take), read from storage only
 // when a run is opened. The Expression panel of a past run is computed from it; "Play back your
@@ -37,6 +38,7 @@ export function useRunFacts(): (run: PieceSessionRecord) => string {
       ...(run.leftHand
         ? [t('pieces.runs.leftHand', { pattern: t(`harmony.pattern.${run.leftHand}`) })]
         : []),
+      ...(run.transpose ? [t('pieces.runs.key', { shift: shiftText(run.transpose) })] : []),
       run.loop
         ? run.loop.fromLabel === run.loop.toLabel
           ? t('progress.session.bar', { bar: run.loop.fromLabel })

@@ -55,6 +55,7 @@ import { isMidiNote, type Clef } from '../core/note.ts';
 import type { SpelledPitch } from '../core/score.ts';
 import { isMemoryStage } from '../core/memory.ts';
 import { isPatternId } from '../core/progressions.ts';
+import { isTransposition } from '../core/transpose.ts';
 import {
   getTheoryLevel,
   isChordAnswer,
@@ -272,6 +273,8 @@ function isLoopRange(v: unknown): v is LoopRange | null {
 }
 
 const isMode = (v: unknown) => v === undefined || v === 'rhythm' || v === 'memory';
+/** A transposition is never written as 0: the written key is its absence. */
+const isTranspose = (v: unknown) => v === undefined || isTransposition(v);
 /** A deviation is inside its window, which is never wider than this. */
 const isDeviation = (v: unknown) =>
   v === null || (typeof v === 'number' && Number.isFinite(v) && Math.abs(v) <= 1000);
@@ -307,6 +310,7 @@ const HEADER_CHECKS: Record<string, (v: unknown) => boolean> = {
   startedAt: isTime,
   mode: isMode,
   leftHand: (v) => v === undefined || isPatternId(v),
+  transpose: isTranspose,
 };
 
 function cleanHeader(h: PieceRunHeader): PieceRunHeader {
@@ -324,6 +328,7 @@ function cleanHeader(h: PieceRunHeader): PieceRunHeader {
     startedAt: h.startedAt,
     ...((h.mode === 'rhythm' || h.mode === 'memory') && { mode: h.mode }),
     ...(h.leftHand !== undefined && { leftHand: h.leftHand }),
+    ...(h.transpose !== undefined && { transpose: h.transpose }),
   };
 }
 
@@ -1425,6 +1430,7 @@ export function validatePieceStep(value: unknown): Validation<PieceStep> {
     notes: (v) => (value.mode === 'rhythm' ? isNoteTimings(v) : v === undefined),
     prompts: (v) => (value.mode === 'memory' ? isCount(v) : v === undefined),
     stage: (v) => (value.mode === 'memory' ? isMemoryStage(v) : v === undefined),
+    transpose: isTranspose,
   });
   if (field) return fail(field);
   const r = value as unknown as PieceStep;
@@ -1446,6 +1452,7 @@ export function validatePieceStep(value: unknown): Validation<PieceStep> {
         notes: r.notes!.map((n) => ({ midi: n.midi, deviation: n.deviation })),
       }),
       ...(r.mode === 'memory' && { mode: r.mode, prompts: r.prompts!, stage: r.stage! }),
+      ...(r.transpose !== undefined && { transpose: r.transpose }),
     },
   };
 }
@@ -1463,6 +1470,7 @@ export function validateTake(value: unknown): Validation<TakeChunk> {
     tempo: HEADER_CHECKS.tempo!,
     mode: isMode,
     latency: (v) => v === undefined || (Number.isInteger(v) && Math.abs(v as number) <= 10_000),
+    transpose: isTranspose,
     startedAt: isTime,
     chunk: (v) => isCount(v) && v < 10_000,
     events: (v) =>
@@ -1483,6 +1491,7 @@ export function validateTake(value: unknown): Validation<TakeChunk> {
       tempo: r.tempo,
       ...((r.mode === 'rhythm' || r.mode === 'memory') && { mode: r.mode }),
       ...(r.latency !== undefined && { latency: r.latency }),
+      ...(r.transpose !== undefined && { transpose: r.transpose }),
       startedAt: r.startedAt,
       chunk: r.chunk,
       events: r.events.map((e) => [...e]),

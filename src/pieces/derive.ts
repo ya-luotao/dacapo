@@ -1,11 +1,13 @@
 // A piece as it is practised: the written MusicXML with the left hand a pattern makes from its
-// chord symbols written in (docs/HARMONY.md, "Lead sheets (H3)"). One document is changed, then
-// both drawn and parsed, so what is drawn is what is judged.
+// chord symbols written in (docs/HARMONY.md, "Lead sheets (H3)"), and moved to another key
+// ("Transposing (H4)"). One document is changed, then both drawn and parsed, so what is drawn is
+// what is judged.
 
 import { writeLeftHand } from '../core/leadSheetXml.ts';
 import { parseMusicXml } from '../core/musicxml.ts';
 import type { PatternId } from '../core/progressions.ts';
-import type { Score } from '../core/score.ts';
+import type { Score, StaffHands } from '../core/score.ts';
+import { transposeDocument } from '../core/transposeXml.ts';
 import { parseXml } from './load.ts';
 
 /** The score to practise, and the MusicXML Verovio draws it from. */
@@ -27,5 +29,15 @@ function serializeXml(doc: Document): string {
 export function withLeftHand(xml: string, score: Score, pattern: PatternId): Practised {
   const doc = parseXml(xml);
   const hands = writeLeftHand(doc, score, pattern);
+  return { xml: serializeXml(doc), score: parseMusicXml(doc, { hands }) };
+}
+
+/**
+ * The piece moved by `semitones` (−6 … 6, not 0): `xml` is the piece as practised in its written
+ * key, read with `hands`.
+ */
+export function transposed(xml: string, hands: StaffHands, semitones: number): Practised {
+  const doc = parseXml(xml);
+  transposeDocument(doc, semitones);
   return { xml: serializeXml(doc), score: parseMusicXml(doc, { hands }) };
 }

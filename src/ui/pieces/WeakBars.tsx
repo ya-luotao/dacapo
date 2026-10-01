@@ -251,6 +251,7 @@ export function WeakBarsBar({
   format,
   loading,
   staleRuns,
+  keys,
   loopLabel,
   onLoop,
   onTable,
@@ -259,6 +260,11 @@ export function WeakBarsBar({
   format: BarFormat;
   loading: boolean;
   staleRuns: number;
+  /**
+   * The piece has runs in other keys (or is in one now): whether they are counted, and whether
+   * the piece is transposed at the moment. Null when every run is in the written key.
+   */
+  keys: { all: boolean; transposed: boolean; onAll: (all: boolean) => void } | null;
   /** The bars "Loop the weakest bars" would loop, or null when there is nothing to loop. */
   loopLabel: string | null;
   onLoop: () => void;
@@ -330,6 +336,22 @@ export function WeakBarsBar({
         </li>
       </ul>
       <div className="weak-actions">
+        {keys && (
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={keys.all}
+              onChange={(e) => keys.onAll(e.target.checked)}
+              aria-describedby={`${id}-keys`}
+            />
+            <span>{t('pieces.weak.allKeys')}</span>
+          </label>
+        )}
+        {keys && (
+          <span id={`${id}-keys`} className="visually-hidden">
+            {t('pieces.weak.allKeys.help')}
+          </span>
+        )}
         <button type="button" className="button is-compact" onClick={onTable}>
           {t('pieces.weak.table')}
         </button>
@@ -356,6 +378,9 @@ export function WeakBarsBar({
               ? t('pieces.weak.stale.one')
               : t('pieces.weak.stale.other', { n: staleRuns })}
         </p>
+      )}
+      {keys?.transposed && !keys.all && !loading && (
+        <p className="muted weak-note">{t('pieces.weak.writtenKey')}</p>
       )}
     </div>
   );

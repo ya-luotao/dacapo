@@ -63,16 +63,17 @@ export function playsEveryNote(hands: HandSelection, facts: Pick<PieceFacts, 'ba
 }
 
 /**
- * A run to the end: completed, without a loop, with hands that play every note of the piece, and
- * (when its step records are here) through every bar those hands play.
+ * A run to the end: completed, without a loop, in the written key, with hands that play every
+ * note of the piece, and (when its step records are here) through every bar those hands play. A
+ * run in another key is practice at transposing, not a review of the piece as written.
  */
 export function isRunToTheEnd(
   session: PieceSessionRecord,
   steps: readonly PieceStep[] | undefined,
   facts: Pick<PieceFacts, 'bars'>,
 ): boolean {
-  if (!session.completed || session.loop !== null || !playsEveryNote(session.hands, facts))
-    return false;
+  if (!session.completed || session.loop !== null || session.transpose !== undefined) return false;
+  if (!playsEveryNote(session.hands, facts)) return false;
   if (!steps || steps.length === 0) return true;
   return new Set(steps.map((s) => s.measure)).size >= facts.bars[session.hands];
 }

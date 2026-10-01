@@ -151,7 +151,7 @@ for drawing.
 - **Records (P3).** Raw step records are the source of truth; every figure is recomputed from them.
   A step record holds a stable id (`session:n`), the session, the piece, the piece's checksum
   (FNV-1a over each note's written onset, key, length and hand, so another hand assignment is
-  another version), the hands, the written bar and pass, the time, the wrong notes and when.
+  another version; a transposed run keeps the checksum of the written key, see H4), the hands, the written bar and pass, the time, the wrong notes and when.
   IndexedDB version 3 adds a `pieceSteps` store with indexes by piece and by session; it is never
   read at startup, only one piece at a time when a page needs it. With a run's first step its
   header (piece, title, hands, loop, repeats, tempo, start) is saved in `meta`; the session
@@ -432,6 +432,21 @@ What a lead sheet changes on the practice page; the rules are HARMONY.md's ("Cla
 - **Hands.** A hand the piece has no notes for is disabled, and a piece last practised with it is
   practised with the other one; with a lead sheet's left hand as written, Both is the right hand.
 - **The review schedule** uses the written piece's facts (the melody): see HARMONY.md.
+
+## Transposing (H4 of [HARMONY.md](HARMONY.md))
+
+What the Key control changes on the practice page; the rules are HARMONY.md's ("Clarifications
+(decided during H4)").
+
+- **Key** (Options, on every piece but a progression): up to six semitones up or down. The score
+  is the written file transposed in our own code and then drawn and parsed, so the cursor, Listen,
+  the other hand, wait, rhythm and memory mode, play back and the on-screen keyboard are all in
+  the new key.
+- **Records.** A transposed run keeps the piece's checksum (the written key's) and says how far it
+  was moved (`transpose` on its steps, its session and its take). Weak bars and the library's
+  steady bars count runs in the written key unless **All keys** is ticked; Your runs names each
+  run's transposition and plays any of them back.
+- **The review schedule** (P6) counts runs in the written key only.
 
 ## Milestones
 

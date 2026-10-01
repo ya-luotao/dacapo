@@ -3,9 +3,9 @@
 Status: H1 is built (the Harmony page with Chords: chord symbols to play, five levels, their
 answers and progress), H2 (Progressions, generated scores practised as pieces, and cadences by
 ear on the Ear page), H3 (lead sheets: chord symbols in the parser, eight tunes in the library,
-the left hand made from the symbols) and H6 (Improvise: backings to play over, feedback, call and
-response, the take played back with its backing); H4 and H5 are planned (after
-[EXPRESSION.md](EXPRESSION.md)).
+the left hand made from the symbols), H4 (transposing: the Key control of every piece) and H6
+(Improvise: backings to play over, feedback, call and response, the take played back with its
+backing); H5 is planned (after [EXPRESSION.md](EXPRESSION.md)).
 This extends [MVP.md](MVP.md), [PIECES.md](PIECES.md) and [EAR.md](EAR.md); their principles and fixed decisions still apply
 (staff first, measure don't guess, local data, English of record, every UI language, 3-day
 dependency cooldown, no backend).
@@ -386,6 +386,77 @@ and the Library's heading for the lead sheets after them (from "Left hand" on, b
 - A run's header records the transposition; the weak-bars heatmap and progress by default count
   runs in the written key only, with a toggle for all keys.
 
+### Clarifications (decided during H4)
+
+- **Our own transposition, not Verovio's.** The MusicXML document is transposed in our code
+  (`core/transpose.ts` for the arithmetic, `core/transposeXml.ts` for the document), then the one
+  document is drawn by Verovio and read by the parser (`pieces/derive.ts`), as the left hand from
+  the symbols is: what is drawn, what Listen and the other hand play, what is judged and what
+  the symbols say cannot differ, because they are read from the same file. Verovio's `transpose`
+  option moves only its own drawing (our parser, the steps and the symbols would have to follow it
+  by a second set of rules), and its toolkit, shared by every page, keeps an option it is not
+  given again. A test reads every library piece in all twelve other keys, and the app was run in
+  Chrome over every piece and key (and the lead sheets' patterns): no note is drawn at another
+  pitch or time than the parser reads.
+- **The Key control** is under Options, first (the control row stays one row): the thirteen keys
+  from six semitones up to six down, each by name with its distance (`B minor (+2)`, `A minor (as
+written)`). The key is kept per piece in this browser. While a piece is transposed a line under
+  the score says so: the key, how far, the written key, and that runs in this key are kept apart
+  and do not count for the review schedule. A progression of H2 has no Key control: its key is
+  part of its id, chosen on the Harmony page.
+- **The new key** is the one with fewer signs of the two that name it: D♭ major (five flats), not
+  C♯ major (seven sharps). Where both have six, the sharps: in F♯ major and D♯ minor every common
+  chord has a root the app writes symbols on, while G♭ major's IV and E♭ minor's VI stand on C♭.
+  So the signatures used run from five flats to six sharps, and six semitones up and six down are
+  the same key an octave apart.
+- **Spelling.** Every note moves by the interval between the two keys (letters and semitones:
+  A minor to B minor is a major second), so it keeps its place in its key: the leading note
+  stays the leading note (Für Elise's D♯ becomes E♯ in B minor, not F), and a note takes a double
+  sign where the new key asks for one (E minor's D♯ is F𝄪 in G♯ minor). A sign printed in the
+  written key is printed in the new one, changed to the sign the note now has, and nowhere else:
+  a note needs a sign in the new key exactly where it needed one before, so courtesy signs and
+  their brackets stay as the edition has them. A note that would need more than a double sign is
+  written on the next letter, with its sign. Stems drawn up or down for the written pitch are
+  left to Verovio again; beams, slurs, fingering and everything else stay.
+- **A piece that changes key** is moved section by section: each key signature goes to the simpler
+  of its two keys, and the notes under it by that key's interval (A♭ major then E major, a
+  semitone up, are A major then F major, not A major then E♯ major).
+- **What moves.** The key signatures (per staff where a staff has its own; a `<cancel>` is
+  dropped), every pitch (chords, grace notes, tied notes), the signs printed with the notes and
+  with ornaments (`<accidental-mark>`: the sign of the upper or lower note in the new key, so a
+  trill's neighbours move with it), and each chord symbol's root and bass. A symbol's kind and
+  its printed text stay. A left hand made from the symbols is made in the written key and moved
+  with the rest, so it is the same pattern in every key and stays below the melody.
+- **The key's name** needs the mode. A file that names it (`<mode>`) is believed. Otherwise the
+  piece's ending is read, where the piece keeps one signature: the root of its last chord symbol,
+  or else the lowest note it ends on, is the tonic of the signature's major key or of its minor
+  key. Where it is neither (or the signature changes), both keys are named (`G major / E minor`).
+  The parser keeps the key signatures for this (`Score.keys`), outside the steps and the
+  checksum. Every library piece is named by its ending except the Musette in D, which ends on
+  its dominant (its first half is played again to end): its file names its mode.
+- **Records.** A transposed run is a run of the same piece: its steps, its session and its take
+  carry the checksum of the piece in its written key and `transpose`, the semitones it was moved
+  by (−6 … 6, never 0: the written key is its absence), validated strictly. Step indices, bars
+  and passes are the same in every key; a take's keys are the keys played. Older builds strip
+  the field, so it rides on `SYNC_SCHEMA` 18 with H3's `leftHand` (the two ship together); the
+  export file needs no new version.
+- **Written key by default.** Weak bars count the runs in the written key; **All keys** (in the
+  Weak bars row, shown once the piece has a run in another key or is in one now, kept in this
+  browser) counts them all. While the piece is transposed and All keys is off, the row says that
+  what it shows are the runs in the written key. The library card's steady bars follow the same
+  choice; its date and its number of runs count every run. On the Progress page, "pieces" (steps
+  right the first time) counts steps in the written key only, with no toggle: reading a piece in
+  a new key is another task. "In time" counts every rhythm-mode note, whatever the key.
+- **The review schedule** (P6) counts runs in the written key only: a run in another key is
+  practice at transposing, not a review of the piece as written. It never puts a piece in
+  review, and never moves its interval.
+- **Memory mode, play back and the expression panels** work in any key: they read the transposed
+  score. A run in another key than the one shown can still be played back and opened from Your
+  runs (which names each run's transposition): its take is read against the piece in the run's
+  key, the keyboard shows the keys as played, and the cursor moves on the score as shown, since
+  the steps are the same in every key.
+- **The on-screen keyboard** spans the transposed notes.
+
 ## Playing by ear (H5, on Ear)
 
 - **Tunes**: the lead sheets' melodies, phrase by phrase. The key is set by its tonic chord and
@@ -519,6 +590,6 @@ and the Library's heading for the lead sheets after them (from "Left hand" on, b
    cadences on Ear.
 3. ✓ **H3 Lead sheets** — symbols in the parser, the library's lead sheets, the left hand from the
    symbols.
-4. **H4 Transposing** — the Key control on every piece.
+4. ✓ **H4 Transposing** — the Key control on every piece.
 5. **H5 Playing by ear** — tunes on Ear.
 6. ✓ **H6 Improvise** — backings, feedback, call and response.

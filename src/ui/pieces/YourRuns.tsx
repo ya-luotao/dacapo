@@ -28,7 +28,7 @@ export function YourRuns({
   pieceId,
   checksum,
   leftHand,
-  score,
+  scoreIn,
   format,
   melody,
   aspects,
@@ -41,7 +41,8 @@ export function YourRuns({
   checksum: string;
   /** The left hand the piece is practised with now: a run with another has other notes. */
   leftHand: LeftHandChoice;
-  score: Score;
+  /** The piece in the key a run was played in (semitones from the written key). */
+  scoreIn: (transpose: number) => Score | null;
   format: PieceFormat;
   melody: Melody;
   /** The aspects judged; with none, a run offers no expression. */
@@ -115,7 +116,7 @@ export function YourRuns({
           run={open}
           checksum={checksum}
           otherLeftHand={(open.leftHand ?? 'written') !== leftHand}
-          score={score}
+          score={scoreIn(open.transpose ?? 0)}
           format={format}
           melody={melody}
           aspects={aspects}
@@ -163,7 +164,8 @@ function PastRun({
   checksum: string;
   /** The run was played with another left hand than the piece has now. */
   otherLeftHand: boolean;
-  score: Score;
+  /** The piece in the run's key; null when it cannot be had. */
+  score: Score | null;
   format: PieceFormat;
   melody: Melody;
   aspects: readonly ExpressionAspect[];
@@ -175,7 +177,7 @@ function PastRun({
   const take = useRunTake(run.id, checksum);
   const analysis = useMemo(
     () =>
-      take.state === 'ready'
+      take.state === 'ready' && score
         ? analyzeExpression({
             score,
             hands: run.hands,

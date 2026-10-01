@@ -90,6 +90,16 @@ export interface Measure {
   rehearsal?: string;
 }
 
+/** A key signature, where the score sets it (docs/HARMONY.md, "Transposing (H4)"). */
+export interface KeySignature {
+  /** Written measure index. */
+  measure: number;
+  /** Sharps (+) or flats (−). */
+  fifths: number;
+  /** The mode the file names (`<mode>`), when it is major or minor. */
+  mode: 'major' | 'minor' | null;
+}
+
 export interface TempoMark {
   /** Written tick. */
   tick: number;
@@ -127,6 +137,12 @@ export interface Score {
    */
   notes: ScoreNote[];
   tempos: TempoMark[];
+  /**
+   * The key signatures of the practised part (of the first part when none is practised), in
+   * written order, each where it changes; absent when the score sets none. They name the piece's
+   * key for the Key control and enter neither the steps nor the checksum.
+   */
+  keys?: KeySignature[];
   /** Dynamics, hairpins, slurs, fermatas and pedal marks (docs/EXPRESSION.md). */
   markings: Markings;
   /**

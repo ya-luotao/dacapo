@@ -558,13 +558,24 @@ describe('observations from the records', () => {
       }),
       // Memory mode counts for neither figure: its wrong keys are prompts, not misreadings.
       step(4, { sessionId: 'm', mode: 'memory', wrong: 1, prompts: 1, stage: 'alternate' }),
+      // In another key: no step of the piece as written, but its timing is timing.
+      step(5, { sessionId: 't', wrong: 3, transpose: 2 }),
+      step(6, {
+        sessionId: 'u',
+        mode: 'rhythm',
+        transpose: -3,
+        notes: [{ midi: 60, deviation: 20 }],
+      }),
     ];
     expect(pieceStepObservations(steps)).toEqual({
       wait: [
         { at: 1, value: 1, run: 'p' },
         { at: 2, value: 0, run: 'p' },
       ],
-      timed: [{ at: 3, value: 8.5 }],
+      timed: [
+        { at: 3, value: 8.5 },
+        { at: 6, value: 20 },
+      ],
     });
   });
 

@@ -27,6 +27,8 @@ export interface RunContext {
   mode?: 'rhythm' | 'memory';
   /** The left hand made from the symbols, when it is. */
   leftHand?: PatternId;
+  /** Semitones the piece is moved by; absent (or 0) in the written key. */
+  transpose?: number;
 }
 
 /** One step as a run hands it to the recorder. */
@@ -158,6 +160,7 @@ export function useRunRecorder(
           startedAt: r.startedEpoch ?? record.epoch - record.ms,
           ...(c.mode && { mode: c.mode }),
           ...(c.leftHand && { leftHand: c.leftHand }),
+          ...(c.transpose && { transpose: c.transpose }),
         };
       }
       const step: PieceStep = {
@@ -183,6 +186,7 @@ export function useRunRecorder(
           prompts: record.prompts ?? 0,
           stage: record.stage,
         }),
+        ...(t.header.transpose !== undefined && { transpose: t.header.transpose }),
       };
       t.steps.push(step);
       store.recordPieceStep(step, header);
@@ -210,6 +214,7 @@ export function useRunRecorder(
         tempo: header.tempo,
         ...(header.mode && { mode: header.mode }),
         ...(take.latency !== undefined && { latency: take.latency }),
+        ...(header.transpose !== undefined && { transpose: header.transpose }),
         startedAt: take.startedAt,
         chunk: t.takeChunks,
         events: chunk.map((e) => [...e]),

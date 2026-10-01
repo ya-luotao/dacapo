@@ -15,6 +15,19 @@ sessions go in the same lists), the
 click's tempo and grid of scale runs played with it (from version 7), and the takes of piece runs
 (from version 8). Version 1 to 7 files still import.
 
+### Transposing (H4, [docs/HARMONY.md](docs/HARMONY.md))
+
+- Every piece has a **Key** under Options: move it up to six semitones up or down, each key by
+  its name (`B minor (+2)`). The score is redrawn in the new key, in the simpler of its two
+  signatures (D♭, not C♯), every note spelled as that key spells it (Für Elise's D♯ is E♯ in B
+  minor), chord symbols and a left hand made from them included. Listen, the other hand, wait,
+  rhythm and memory mode, play back and the on-screen keyboard all follow.
+- Runs in another key are kept apart: **Weak bars** and the library's steady bars count the runs
+  in the written key, and **All keys** counts them all; Your runs names each run's transposition
+  and plays any of them back. The review schedule counts runs in the written key only.
+- A transposed run's steps, session and take say how far it was moved (`transpose`); it rides on
+  `SYNC_SCHEMA` 18.
+
 ### Lead sheets (H3, [docs/HARMONY.md](docs/HARMONY.md))
 
 - **The left hand from the chord symbols.** A piece with chord symbols has a **Left hand** option:

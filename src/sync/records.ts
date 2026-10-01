@@ -22,8 +22,9 @@ import type { SyncCollection } from '../storage/syncTypes.ts';
  * `improv` and their takes (older builds skip the sessions; the takes they keep); 16, a piece taken
  * out of the review schedule (`review: false`, which older builds strip); 17, memory mode's steps,
  * sessions and takes (`mode: 'memory'`, which older builds refuse); 18, a piece run's left hand
- * from the chord symbols (`leftHand` on the session, which older builds strip). Bump it whenever a
- * build learns a collection, a session kind, or records that older builds skipped or stripped.
+ * from the chord symbols (`leftHand` on the session) and its transposition (`transpose` on the
+ * session, its steps and its take), both of which older builds strip. Bump it whenever a build
+ * learns a collection, a session kind, or records that older builds skipped or stripped.
  */
 export const SYNC_SCHEMA = 18;
 

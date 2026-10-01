@@ -38,6 +38,7 @@ describe('per-piece preferences', () => {
       memoryStage: 'phrases',
       leftHand: null,
       practised: null,
+      transpose: 0,
     });
     // A piece not practised yet starts with the hands chosen last anywhere, at 100 %, waiting,
     // the melody on top of the right hand, trills on their note.
@@ -50,6 +51,7 @@ describe('per-piece preferences', () => {
       memoryStage: 'alternate',
       leftHand: null,
       practised: null,
+      transpose: 0,
     });
     expect(readPiecePrefs('ode')).toEqual({
       hands: 'left',
@@ -60,6 +62,7 @@ describe('per-piece preferences', () => {
       memoryStage: 'alternate',
       leftHand: null,
       practised: null,
+      transpose: 0,
     });
     writePiecePrefs('ode', { hands: 'both' });
     expect(readPiecePrefs('minuet').hands).toBe('left');
@@ -84,6 +87,21 @@ describe('per-piece preferences', () => {
         }),
       ),
     ).toEqual({ b: { leftHand: 'waltz' } });
+  });
+
+  it('remember the key a piece is moved to (H4)', () => {
+    writePiecePrefs('elise', { transpose: 2 });
+    expect(readPiecePrefs('elise').transpose).toBe(2);
+    writePiecePrefs('elise', { transpose: -6 });
+    expect(readPiecePrefs('elise').transpose).toBe(-6);
+    // The written key is kept as no transposition at all.
+    writePiecePrefs('elise', { transpose: 0 });
+    expect(readPiecePrefs('elise').transpose).toBe(0);
+    expect(
+      parsePiecePrefs(
+        JSON.stringify({ a: { transpose: 7 }, b: { transpose: 1.5 }, c: { transpose: -3 } }),
+      ),
+    ).toEqual({ c: { transpose: -3 } });
   });
 
   it('are forgotten with their piece', () => {
@@ -125,6 +143,7 @@ describe('per-piece preferences', () => {
       memoryStage: 'alternate',
       leftHand: null,
       practised: null,
+      transpose: 0,
     });
   });
 });

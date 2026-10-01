@@ -6,7 +6,8 @@ import type { HandSelection } from '../../core/score.ts';
 import { useT } from '../../i18n/index.ts';
 import { usePieceSteps, usePractice } from '../practice/context.ts';
 import { usePieceFormat } from './format.ts';
-import { readPiecePrefs } from './prefs.ts';
+import { readPref } from '../../lib/localPrefs.ts';
+import { readPiecePrefs, WEAK_ALL_KEYS_PREF } from './prefs.ts';
 import { usePieceReview } from './review.ts';
 
 /**
@@ -65,15 +66,20 @@ function Steady({ pieceId, facts }: { pieceId: string; facts: PieceFacts }) {
   // With a left hand from the symbols the piece is practised on other notes: the practice page
   // leaves their checksum and bar counts here (docs/HARMONY.md, H3).
   const { checksum, bars: counts } = prefs.practised ?? facts;
+  // Runs in the written key, unless Weak bars was asked for every key (H4).
+  const allKeys = readPref(WEAK_ALL_KEYS_PREF) === '1';
   const steady = useMemo(() => {
     if (!records) return null;
     const bars = [
       ...new Set(
-        records.filter((r) => r.hands === hands && r.checksum === checksum).map((r) => r.measure),
+        records
+          .filter((r) => r.hands === hands && r.checksum === checksum)
+          .filter((r) => allKeys || r.transpose === undefined)
+          .map((r) => r.measure),
       ),
     ];
-    return steadyBars(barHeatmap(records, { checksum, hands, bars }).cells).steady;
-  }, [records, checksum, hands]);
+    return steadyBars(barHeatmap(records, { checksum, hands, bars, allKeys }).cells).steady;
+  }, [records, checksum, hands, allKeys]);
   if (steady === null) return null;
   return (
     <>

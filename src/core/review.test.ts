@@ -104,6 +104,12 @@ describe('a run to the end', () => {
     expect(
       isRunToTheEnd(right.session, right.steps, { bars: { right: 4, left: 0, both: 4 } }),
     ).toBe(true);
+    // A run in another key is practice at transposing, not a review of the piece.
+    expect(isRunToTheEnd({ ...ok.session, transpose: 2 }, ok.steps, FACTS)).toBe(false);
+    const sessions = [ok.session, { ...run('t', { day: 3 }).session, transpose: -1 }];
+    expect(reviewSchedule('p', sessions, null, FACTS, TZ)!.runs.map((r) => r.sessionId)).toEqual([
+      'a',
+    ]);
     // Without its step records, a completed whole-piece run is taken at its word.
     expect(isRunToTheEnd(ok.session, undefined, FACTS)).toBe(true);
   });

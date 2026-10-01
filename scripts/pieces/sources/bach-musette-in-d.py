@@ -43,7 +43,8 @@ PIECE = {
     'title': 'Musette in D major',
     'work_number': 'BWV Anh. 126',
     'composer': 'Johann Sebastian Bach (attributed)',
-    'fifths': 2, 'beats': 2, 'beat_type': 4, 'beam_group': 4,
+    # The written end is on A (the first half is played again to end): the file names the mode.
+    'fifths': 2, 'mode': 'major', 'beats': 2, 'beat_type': 4, 'beam_group': 4,
     'measures': measures,
     'source': 'Bach-Gesellschaft Ausgabe (Notebook for Anna Magdalena Bach, 1725), as typeset by '
               'Allen Garvin for the Mutopia Project (piece 79, public domain): '

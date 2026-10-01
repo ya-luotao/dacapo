@@ -57,6 +57,8 @@ four before:
   step, only its wrong notes, so **Pieces** is the share of _steps_ (a note or a chord) played
   without a wrong note, over the week's wait-mode runs. Memory-mode runs (PIECES.md, P7) are left out:
   a wrong key in a hidden bar is a prompt, not a misreading, and would not compare with reading.
+  So are runs in another key (HARMONY.md, H4): reading a piece transposed is another task, and
+  would pull the figure down. In time counts their notes as any others.
 - **In time** pools four sources: the notes of rhythm-mode piece runs (their step records), the
   onsets of Read's rhythm lines (R1), the onsets of the cells of rhythm dictation tapped back (R2:
   the same click, the same latency taken off, judged by the same rule as a line on Read, so they

@@ -55,6 +55,10 @@ voice, above its staff (`+N` as for directions). The symbol is the app's one sty
 `sus4`, `7`, `maj7`, `m7`, `m7b5`, `dim7`, `6`, `m6` or `add9`, then `/` and a bass (`D/F#`). The
 `<kind>` gets the printed form as its `text` (`F♯°`, `Bm7♭5`), which Verovio draws as written.
 
+A piece whose written end does not tell the mode of its key names it: `'mode': 'major'` (or
+`'minor'`) writes `<mode>` into the key signature, which the Key control reads to name the key
+(docs/HARMONY.md, "Transposing (H4)"). Only the Musette in D needs it: it ends on its dominant.
+
 ```sh
 python3 scripts/pieces/generate.py              # write every generated piece
 python3 scripts/pieces/generate.py --check      # fail if a committed file is out of date

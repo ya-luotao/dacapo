@@ -21,6 +21,9 @@ export interface SavedTake {
   /** Percent of the score's tempo. */
   tempo: number;
   latency: number;
+  /** The left hand made from the chord symbols, and the semitones the piece was moved by. */
+  leftHand?: string;
+  transpose?: number;
   /** Epoch ms of the take's time 0. */
   startedAt: number;
   /** The MIDI inputs connected, by name: velocity curves differ between instruments. */

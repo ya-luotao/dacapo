@@ -1414,6 +1414,14 @@ export const en = {
   'pieces.repeats': 'Repeats',
   'pieces.repeats.play': 'Play',
   'pieces.repeats.skip': 'Skip',
+  'pieces.key': 'Key',
+  'pieces.key.written': '{key} (as written)',
+  'pieces.key.moved': '{key} ({shift})',
+  'pieces.key.either': '{major} / {minor}',
+  'pieces.key.help':
+    'Transposes the piece, up to six semitones up or down. The score is drawn in the new key, and everything is played and judged there. Runs in another key are kept apart from those in the written key, and do not count for the review schedule.',
+  'pieces.key.note':
+    'Transposed to {key} ({shift}); written in {written}. Runs in this key are kept apart, and do not count for the review schedule.',
   'pieces.leftHand': 'Left hand',
   'pieces.leftHand.written': 'As written',
   'pieces.leftHand.symbols': 'From the chord symbols',
@@ -1444,6 +1452,11 @@ export const en = {
     'One older run was recorded on a different version of this score and is not counted.',
   'pieces.weak.stale.other':
     '{n} older runs were recorded on a different version of this score and are not counted.',
+  'pieces.weak.allKeys': 'All keys',
+  'pieces.weak.allKeys.help':
+    'Counts your runs in every key you have transposed the piece to. Without it, only the runs in the written key count.',
+  'pieces.weak.writtenKey':
+    'These are your runs in the written key. Tick All keys to count the runs in this key too.',
   'pieces.weak.perStep': 'median per step',
   'pieces.weak.runs': 'Runs (last {n})',
   'pieces.weak.steps': 'Steps',
@@ -1794,6 +1807,7 @@ export const en = {
   'pieces.runs.leftHand': 'Left hand: {pattern}',
   'pieces.runs.otherLeftHand':
     'This run was played with another left hand, so its notes are not the ones shown. Choose that left hand under Options to open it.',
+  'pieces.runs.key': 'Transposed {shift}',
 
   'pieces.playback': 'Play back',
   'pieces.playback.help':

@@ -846,6 +846,43 @@ describe('the left hand from the symbols', () => {
   });
 });
 
+describe('a transposed run', () => {
+  it('syncs its steps, session and take, and takes back what a build stripped', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    const plain = sampleRun('t1', 2, { pieceId: 'p1' });
+    const steps = plain.steps.map((s) => ({ ...s, transpose: 2 }));
+    const session = { ...plain.session, transpose: 2 };
+    const take = sampleTake('t1', 0, { pieceId: 'p1', transpose: 2 });
+    for (const step of steps) ipad.store.recordPieceStep(step, null);
+    ipad.store.recordTake(take);
+    ipad.store.finishPieceRun('t1', session);
+    await ipad.store.settled();
+    await signIn(ipad);
+    await signIn(mac);
+    expect(mac.store.getSnapshot().sessions).toContainEqual(session);
+
+    // As schema 17 left them: kept without the field, the cursor past them.
+    const state = (await mac.db.get('meta', SYNC_STATE_KEY)) as SyncState;
+    await mac.db.put('sessions', plain.session);
+    for (const step of plain.steps) await mac.db.put('pieceSteps', step);
+    const stripped = { ...take };
+    delete stripped.transpose;
+    await mac.db.put('takes', stripped);
+    await mac.db.put('meta', { ...state, schema: 17 }, SYNC_STATE_KEY);
+    await mac.store.reloadAll();
+    const sync = vi.spyOn(service.api, 'sync');
+    await mac.client.syncNow();
+    expect(SYNC_SCHEMA).toBeGreaterThanOrEqual(18);
+    expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
+    expect(mac.store.getSnapshot().sessions).toContainEqual(session);
+    mac.store.loadPieceSteps('p1');
+    await vi.waitFor(() => expect(mac.store.getPieceSteps('p1')).toEqual(steps));
+    expect(await mac.store.takes({ sessionId: 't1' })).toEqual([take]);
+  });
+});
+
 describe('memory mode', () => {
   it('syncs its steps and sessions, and pulls them again after a build that refused them', async () => {
     const service = fakeService();

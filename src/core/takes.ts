@@ -122,6 +122,11 @@ export interface TakeChunk {
   mode?: 'rhythm' | 'memory';
   /** Rhythm mode: the latency taken off for the timing, in ms. */
   latency?: number;
+  /**
+   * Semitones the piece was moved by (docs/HARMONY.md, H4); absent in the written key. The keys
+   * of the events are the keys played; the steps they name are the same in every key.
+   */
+  transpose?: number;
   /** Epoch ms of time 0: the first key (wait mode), the start of the span (rhythm mode). */
   startedAt: number;
   /** The chunk's position in the take, from 0. */

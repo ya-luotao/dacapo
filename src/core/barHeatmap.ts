@@ -113,6 +113,11 @@ export interface BarHeatmapOptions {
   bars: readonly number[];
   /** Default: hesitation. */
   metric?: BarMetric;
+  /**
+   * Count the runs in every key the piece was moved to (docs/HARMONY.md, "Transposing (H4)"): by
+   * default only runs in the written key count.
+   */
+  allKeys?: boolean;
 }
 
 interface RunInBar {
@@ -155,7 +160,7 @@ function figures(steps: readonly PieceStep[], metric: BarMetric): Figures {
 
 export function barHeatmap(
   records: readonly PieceStep[],
-  { checksum, hands, bars, metric = 'hesitation' }: BarHeatmapOptions,
+  { checksum, hands, bars, metric = 'hesitation', allKeys = false }: BarHeatmapOptions,
 ): BarHeatmap {
   const mode = metricMode(metric);
   const { edges, anchor } = metricScale(metric);
@@ -163,6 +168,7 @@ export function barHeatmap(
   const byBar = new Map<number, Map<string, RunInBar>>();
   for (const record of records) {
     if (record.hands !== hands || stepMode(record) !== mode) continue;
+    if (record.transpose !== undefined && !allKeys) continue;
     if (record.checksum !== checksum) {
       stale.add(record.sessionId);
       continue;

@@ -202,7 +202,9 @@ export function clickedRunObservations(
 
 /**
  * What a piece run's steps give: in wait mode each step, right on the first try (no wrong note)
- * or not, by run; in rhythm mode each note played, by its distance from the beat.
+ * or not, by run; in rhythm mode each note played, by its distance from the beat. Steps played in
+ * another key (docs/HARMONY.md, H4) are no step of the piece as written: reading at sight in a
+ * new key would pull the figure down. Their timing counts as any note's.
  */
 export function pieceStepObservations(steps: readonly PieceStep[]): {
   wait: Observation[];
@@ -213,7 +215,8 @@ export function pieceStepObservations(steps: readonly PieceStep[]): {
   for (const step of steps) {
     const mode = stepMode(step);
     if (mode === 'wait') {
-      wait.push({ at: step.at, value: step.wrong === 0 ? 1 : 0, run: step.sessionId });
+      if (step.transpose === undefined)
+        wait.push({ at: step.at, value: step.wrong === 0 ? 1 : 0, run: step.sessionId });
       continue;
     }
     // Memory mode is neither: a wrong key in a hidden bar is a prompt, not a misreading.

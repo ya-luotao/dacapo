@@ -10,6 +10,7 @@ import { LETTERS, type Letter } from './note.ts';
 import {
   staffKey,
   TICKS_PER_QUARTER,
+  type KeySignature,
   type Measure,
   type PartInfo,
   type Score,
@@ -165,6 +166,8 @@ export function parseMusicXml(doc: Document, options: ParseOptions = {}): Score 
   const pendingTempos: { measure: number; within: number; bpm: number }[] = [];
   const pendingHarmonies: { measure: number; within: number; mark: Omit<HarmonyMark, 'tick'> }[] =
     [];
+  /** Each part's key signatures, where they change. */
+  const partKeys: KeySignature[][] = parts.map(() => []);
   const marks = createMarkingReader();
 
   parts.forEach((part, partIndex) => {
@@ -204,6 +207,14 @@ export function parseMusicXml(doc: Document, options: ParseOptions = {}): Score 
               const fifths = num(child(key, 'fifths'), 0);
               if (Number.isInteger(staff) && staff > 0) state.fifths.set(staff, fifths);
               else state.fifths = new Map([[0, fifths]]);
+              // The part's key is the one of all its staves, or of its first.
+              if (!(staff > 1)) {
+                const named = text(child(key, 'mode')).toLowerCase();
+                const mode = named === 'major' || named === 'minor' ? named : null;
+                const before = partKeys[partIndex]!.at(-1);
+                if (before?.fifths !== fifths || before.mode !== mode)
+                  partKeys[partIndex]!.push({ measure: measureIndex, fifths, mode });
+              }
             }
             break;
           }
@@ -411,6 +422,10 @@ export function parseMusicXml(doc: Document, options: ParseOptions = {}): Score 
   );
   tempos.sort((a, b) => a.tick - b.tick);
   if (measures.some((m) => m.jumps.length > 0)) warnings.add('jumps');
+  const practised = partInfo.find((p) =>
+    Array.from({ length: p.staves }, (_, s) => hands[staffKey(p.index, s + 1)]).some(Boolean),
+  );
+  const keys = partKeys[practised?.index ?? 0] ?? [];
   return {
     title,
     composer,
@@ -419,6 +434,7 @@ export function parseMusicXml(doc: Document, options: ParseOptions = {}): Score 
     measures,
     notes,
     tempos,
+    ...(keys.length > 0 && { keys }),
     markings: marks.finish(measures),
     ...(harmonies.length > 0 && { harmonies }),
     warnings: [...warnings],

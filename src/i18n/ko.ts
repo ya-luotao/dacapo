@@ -1396,6 +1396,14 @@ export const ko: Dictionary = {
   'pieces.repeats': '도돌이표',
   'pieces.repeats.play': '반복',
   'pieces.repeats.skip': '건너뛰기',
+  'pieces.key': '조',
+  'pieces.key.written': '{key}(원래 조)',
+  'pieces.key.moved': '{key}({shift})',
+  'pieces.key.either': '{major} / {minor}',
+  'pieces.key.help':
+    '곡을 조옮김해요. 위아래로 반음 6개까지예요. 악보를 새 조로 다시 그리고, 듣기와 반주, 판정도 모두 새 조로 해요. 조옮김해서 친 연주는 원래 조의 연주와 따로 기록하고, 복습 일정에는 세지 않아요.',
+  'pieces.key.note':
+    '{key}로 조옮김했어요({shift}). 원래 조는 {written}예요. 이 조로 친 연주는 따로 기록하고, 복습 일정에는 세지 않아요.',
   'pieces.leftHand': '왼손',
   'pieces.leftHand.written': '악보대로',
   'pieces.leftHand.symbols': '코드 기호에서',
@@ -1424,6 +1432,10 @@ export const ko: Dictionary = {
   'pieces.weak.stale.one': '예전 연주 1회는 이 악보의 다른 버전에서 기록돼서 계산에 넣지 않았어요.',
   'pieces.weak.stale.other':
     '예전 연주 {n}회는 이 악보의 다른 버전에서 기록돼서 계산에 넣지 않았어요.',
+  'pieces.weak.allKeys': '모든 조',
+  'pieces.weak.allKeys.help': '조옮김해서 친 연주도 함께 세요. 끄면 원래 조의 연주만 세요.',
+  'pieces.weak.writtenKey':
+    "여기 보이는 것은 원래 조의 연주예요. '모든 조'를 켜면 이 조의 연주도 함께 세요.",
   'pieces.weak.perStep': '스텝당 중앙값',
   'pieces.weak.runs': '연주 횟수(최근 {n}회)',
   'pieces.weak.steps': '스텝',
@@ -1769,6 +1781,7 @@ export const ko: Dictionary = {
   'pieces.runs.leftHand': '왼손: {pattern}',
   'pieces.runs.otherLeftHand':
     "이 연주는 다른 왼손으로 쳐서, 지금 보이는 음표와 달라요. '옵션'에서 그 왼손을 고르면 열 수 있어요.",
+  'pieces.runs.key': '조옮김 {shift}',
 
   'pieces.playback': '다시 듣기',
   'pieces.playback.help':

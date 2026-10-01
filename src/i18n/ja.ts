@@ -1408,6 +1408,14 @@ export const ja: Dictionary = {
   'pieces.repeats': 'くり返し',
   'pieces.repeats.play': '弾く',
   'pieces.repeats.skip': '飛ばす',
+  'pieces.key': '調',
+  'pieces.key.written': '{key}（原調）',
+  'pieces.key.moved': '{key}（{shift}）',
+  'pieces.key.either': '{major} / {minor}',
+  'pieces.key.help':
+    '曲を移調します。上下それぞれ6半音まで。楽譜は新しい調で描き直され、お手本も伴奏も判定もその調になります。移調して弾いた回は、原調の回とは別に記録され、復習スケジュールには数えません。',
+  'pieces.key.note':
+    '{key}に移調しています（{shift}）。原調は{written}です。この調で弾いた回は別に記録され、復習スケジュールには数えません。',
   'pieces.leftHand': '左手',
   'pieces.leftHand.written': '楽譜どおり',
   'pieces.leftHand.symbols': 'コードネームから',
@@ -1439,6 +1447,10 @@ export const ja: Dictionary = {
     '以前の練習1回は、この楽譜の別のバージョンで記録されたため、数えていません。',
   'pieces.weak.stale.other':
     '以前の練習{n}回は、この楽譜の別のバージョンで記録されたため、数えていません。',
+  'pieces.weak.allKeys': 'すべての調',
+  'pieces.weak.allKeys.help': '移調して弾いた回も数えます。オフのときは、原調の回だけを数えます。',
+  'pieces.weak.writtenKey':
+    'ここに出ているのは原調の回です。「すべての調」をオンにすると、この調の回も数えます。',
   'pieces.weak.perStep': '1ステップあたりの中央値',
   'pieces.weak.runs': '練習回数（直近{n}回）',
   'pieces.weak.steps': 'ステップ数',
@@ -1791,6 +1803,7 @@ export const ja: Dictionary = {
   'pieces.runs.leftHand': '左手：{pattern}',
   'pieces.runs.otherLeftHand':
     'この回は別の左手で弾いたので、いま表示されている音符とは違います。「オプション」でその左手を選ぶと開けます。',
+  'pieces.runs.key': '移調 {shift}',
 
   'pieces.playback': '演奏を再生',
   'pieces.playback.help':

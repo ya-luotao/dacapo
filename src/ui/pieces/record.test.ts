@@ -380,6 +380,49 @@ describe('recording a run with a left hand from the symbols', () => {
   });
 });
 
+describe('recording a transposed run', () => {
+  function MovedRecorder({ run, store }: { run: Run; store: PracticeStore }) {
+    useRunRecorder(waitRecording(run), { ...CONTEXT, transpose: -3 }, store);
+    return null;
+  }
+
+  it('says how far it was moved on its steps, its session and its take', async () => {
+    let run = newRun('t1');
+    const show = () => act(() => root.render(createElement(MovedRecorder, { run, store })));
+    show();
+    // The keys played are the transposed ones; the steps and the checksum are the written piece's.
+    run = press(press(press(press(run, 72, 1_000), 74, 1_500), 76, 2_000), 77, 2_500);
+    for (const midi of [72, 74, 76, 77])
+      run = runReducer(run, { type: 'input', input: { type: 'off', midi, time: 3_000 } });
+    show();
+    store.loadPieceSteps('two-bars');
+    await store.settled();
+    await new Promise((resolve) => setTimeout(resolve));
+    expect(store.getPieceSteps('two-bars')!.map((s) => [s.checksum, s.transpose])).toEqual(
+      Array.from({ length: 4 }, () => ['abcdef01', -3]),
+    );
+    expect(pieceSessions()).toEqual([expect.objectContaining({ id: 't1', transpose: -3 })]);
+    expect((await store.takes({ sessionId: 't1' })).map((c) => c.transpose)).toEqual([-3]);
+  });
+
+  it('leaves the written key unmarked', async () => {
+    function Written({ run, store }: { run: Run; store: PracticeStore }) {
+      useRunRecorder(waitRecording(run), { ...CONTEXT, transpose: 0 }, store);
+      return null;
+    }
+    let run = newRun('w1');
+    const show = () => act(() => root.render(createElement(Written, { run, store })));
+    show();
+    run = press(press(press(press(run, 72, 1_000), 74, 1_500), 76, 2_000), 77, 2_500);
+    show();
+    store.loadPieceSteps('two-bars');
+    await store.settled();
+    await new Promise((resolve) => setTimeout(resolve));
+    expect(store.getPieceSteps('two-bars')!.every((s) => !('transpose' in s))).toBe(true);
+    expect(pieceSessions()[0]).not.toHaveProperty('transpose');
+  });
+});
+
 describe('recording memory runs', () => {
   function MemoryRecorder({ run, store }: { run: Run; store: PracticeStore }) {
     useRunRecorder(waitRecording(run), { ...CONTEXT, mode: 'memory' }, store);

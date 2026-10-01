@@ -398,8 +398,11 @@ def build(piece):
         for bar in m.get('left', []):
             x.append(bar)
         if mi == 0:
+            # The mode is written where the piece's ending does not tell it (a da capo piece
+            # whose written end is on the dominant): the Key control names the key from it.
+            mode = f'<mode>{piece["mode"]}</mode>' if piece.get('mode') else ''
             x.append(f'<attributes><divisions>{divisions}</divisions><key><fifths>{piece["fifths"]}</fifths>'
-                     f'</key><time><beats>{piece["beats"]}</beats><beat-type>{piece["beat_type"]}'
+                     f'{mode}</key><time><beats>{piece["beats"]}</beats><beat-type>{piece["beat_type"]}'
                      f'</beat-type></time><staves>2</staves>' + ''.join(
                          f'<clef number="{n}"><sign>{sign}</sign><line>{2 if sign == "G" else 4}'
                          f'</line></clef>' for n, sign in ((1, clefs[1]), (2, clefs[2]))) +

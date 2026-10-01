@@ -33,7 +33,10 @@ export interface PieceStep {
   id: string;
   sessionId: string;
   pieceId: string;
-  /** `pieceChecksum` of the score as it was practised. */
+  /**
+   * `pieceChecksum` of the score as it was practised, in its written key: a transposed run has
+   * the checksum of the piece it transposes.
+   */
   checksum: string;
   hands: HandSelection;
   /** Written measure index, and which pass through it. */
@@ -57,6 +60,11 @@ export interface PieceStep {
    */
   prompts?: number;
   stage?: MemoryStage;
+  /**
+   * Semitones the piece was moved by (docs/HARMONY.md, "Transposing (H4)"), −6 … 6; absent in
+   * the written key.
+   */
+  transpose?: number;
 }
 
 export const stepMode = (step: Pick<PieceStep, 'mode'>): PracticeMode => step.mode ?? 'wait';
@@ -88,6 +96,8 @@ export interface PieceRunHeader {
    * this left hand.
    */
   leftHand?: PatternId;
+  /** Semitones the piece was moved by (H4), −6 … 6; absent in the written key. */
+  transpose?: number;
 }
 
 /** A rhythm run's notes: due, played within their window, and within `IN_TIME_MS`. */
@@ -195,7 +205,8 @@ export function fnv1a(text: string): string {
 /**
  * Identifies the notes as practised: (written onset, key, duration, hand) of every note. A changed
  * encoding, another file or another hand assignment gives another checksum, and step records made
- * on the old one no longer count for the measure heatmap.
+ * on the old one no longer count for the measure heatmap. A piece played in another key keeps the
+ * checksum of its written key (its records say how far it was moved).
  */
 export function pieceChecksum(score: Pick<Score, 'notes'>): string {
   return fnv1a(score.notes.map((n) => `${n.onset},${n.midi},${n.duration},${n.hand}`).join(';'));
