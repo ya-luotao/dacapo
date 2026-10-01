@@ -361,6 +361,30 @@ terms throughout. Address the learner as 你, as zh-CN does.
 | play through / in hand (a piece) / Where you are               | 完整彈一遍 / 正在練 / 練到哪裡了           | 练到哪儿了                      |
 | Start (the page) / starting point / It is heard                | 開始 / 你的起點 / 聽到了                   | 你的起点 / 听到了               |
 | note names (the setting) / Do Re Mi / middle Do                | 音名 / Do Re Mi / 中央 Do（`中央 {C}`）    |                                 |
+| lesson / landmark note / line, space (of the staff)            | 課 / 地標音 / 線、間                       | 课 / 地标音 / 线、间            |
+| brace / stem / flag / beam                                     | 大括號 / 符桿 / 符尾 / 符槓                | 花括号 / 符干 / 符杠            |
+| accidental (in a bar) / half step / whole step                 | 臨時記號 / 半音 / 全音                     | 临时记号                        |
+| counting aloud: 1 & 2 & / 1 e & a                              | 1 and 2 and / 1 伊 and 啊                  | 1 嗒 2 嗒 / 一、伊、嗒、啊      |
+| upright piano / digital piano / piano bench                    | 直立式鋼琴 / 數位鋼琴 / 琴椅               | 立式钢琴 / 电钢琴 / 琴凳        |
+| action / hammer / damper / soundboard / bridge                 | 擊弦機 / 琴槌 / 制音器 / 響板 / 琴橋       | 击弦机 / 音板 / 琴马            |
+| capstan / wippen / jack / let-off (button)                     | 頂柱 / 聯動器 / 頂桿 / 脫擊（鈕）          | 顶柱 / 转击器 / 顶杆 / 脱击     |
+| repetition lever / backcheck / double escapement               | 複奏槓桿 / 托槌器 / 雙重擒縱機構           | 复奏杠杆 / 双重擒纵机构         |
+| pp, ff (in words) / sforzando / velocity                       | 甚弱、甚強 / 突強 / 力度值                 | 很弱、很强 / 突强               |
+| legato pedalling / practice pedal (an upright's)               | 切分踏板（連音踏板）/ 靜音踏板             | 连音踏板 / 弱音练习踏板         |
+| principal note (of an ornament) / fermata                      | 本音 / 延長記號                            | 本音、主音 / 延长记号           |
+| spread chord / grace note / runs                               | 琶音 / 倚音 / 快速音群                     | 跑动                            |
+| parallel minor / leading note                                  | 平行小調（同主音小調）/ 導音               | 同主音小调 / 导音               |
+| primary triads / dominant, subdominant chord                   | 正三和弦 / 屬和弦、下屬和弦                | 属和弦、下属和弦                |
+| suspended chord / deceptive cadence, also                      | 掛留和弦 / 假終止                          | 挂留和弦 / 伪终止               |
+| Baroque / Classical / Romantic / Impressionism                 | 巴洛克 / 古典樂派 / 浪漫樂派 / 印象樂派    | 古典主义 / 浪漫主义 / 印象主义  |
+| binary, ternary, rondo form / variations                       | 二段式、三段式、輪旋曲式 / 變奏曲          | 二部、三部、回旋曲式            |
+| sonata form / development / episode (of a rondo)               | 奏鳴曲式 / 發展部 / 插入段                 | 展开部 / 插部                   |
+| polyphony / texture / terraced dynamics / rubato               | 複音 / 織度 / 階梯式力度 / 彈性速度        | 复调 / 织体                     |
+| phrase / period (two phrases) / character piece                | 樂句 / 樂段 / 性格小品                     |                                 |
+| harpsichord / clavichord / ragtime                             | 大鍵琴 / 古鋼琴 / 散拍音樂                 | 羽管键琴 / 拉格泰姆             |
+| Handel / Haydn / Mozart / Mahler                               | 韓德爾 / 海頓 / 莫札特 / 馬勒              | 亨德尔 / 莫扎特                 |
+| Brahms / Debussy / Ravel / Érard                               | 布拉姆斯 / 德布西 / 拉威爾 / 艾拉爾        | 勃拉姆斯 / 德彪西 / 埃拉尔      |
+| amen / hymn / the app (said in a lesson)                       | 阿們 / 聖詩 / dacapo、App                  | 阿门 / 赞美诗 / 这个应用        |
 
 Keys in titles: `G 大調`, `C 大調`. Composers as Taiwan writes them: 貝多芬, 巴哈 (not 巴赫), 舒曼,
 布爾格彌勒.
