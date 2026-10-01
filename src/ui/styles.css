@@ -3724,6 +3724,17 @@ kbd {
   background: var(--improv-mark-chord);
 }
 
+/* Middle C carries its name: the scale's dot takes the place of the name's own, above it. */
+.improv-piano .key.improv-scale .key-mark::before,
+.improv-piano .key.improv-chord .key-mark::before {
+  display: none;
+}
+
+.improv-piano .key.improv-scale:has(.key-mark)::after,
+.improv-piano .key.improv-chord:has(.key-mark)::after {
+  bottom: 1.25rem;
+}
+
 /* A key held hides its mark under its tint. */
 .improv-piano .key.is-held::after {
   display: none;
