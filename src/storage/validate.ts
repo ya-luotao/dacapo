@@ -54,6 +54,7 @@ import {
 import { isMidiNote, type Clef } from '../core/note.ts';
 import type { SpelledPitch } from '../core/score.ts';
 import { isMemoryStage } from '../core/memory.ts';
+import { isPatternId } from '../core/progressions.ts';
 import {
   getTheoryLevel,
   isChordAnswer,
@@ -305,6 +306,7 @@ const HEADER_CHECKS: Record<string, (v: unknown) => boolean> = {
   tempo: (v) => isCount(v) && v > 0 && v <= 1000,
   startedAt: isTime,
   mode: isMode,
+  leftHand: (v) => v === undefined || isPatternId(v),
 };
 
 function cleanHeader(h: PieceRunHeader): PieceRunHeader {
@@ -321,6 +323,7 @@ function cleanHeader(h: PieceRunHeader): PieceRunHeader {
     tempo: h.tempo,
     startedAt: h.startedAt,
     ...((h.mode === 'rhythm' || h.mode === 'memory') && { mode: h.mode }),
+    ...(h.leftHand !== undefined && { leftHand: h.leftHand }),
   };
 }
 

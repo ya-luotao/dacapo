@@ -1178,6 +1178,9 @@ export const ko: Dictionary = {
   'pieces.level.n': '그레이드 {n}',
   'pieces.levels.help':
     '그레이드는 대략적인 기준으로, 일반적인 피아노 그레이드 시험의 단계를 따라요.',
+  'pieces.leadSheets': '리드 시트',
+  'pieces.leadSheets.help':
+    "코드 기호가 붙은 선율이에요. 오른손으로 선율을 치고, 왼손은 코드 기호에서 만들어져요. 반주 패턴은 '옵션'에서 골라요.",
   'pieces.edition': '출처: {source}. {licence}.',
   'library.beethoven-ode-to-joy.title': '환희의 송가',
   'library.beethoven-ode-to-joy.composer': '루트비히 판 베토벤',
@@ -1382,6 +1385,7 @@ export const ko: Dictionary = {
   'pieces.hand.right': '오른손',
   'pieces.hand.left': '왼손',
   'pieces.hand.both': '양손',
+  'pieces.hand.none': '이 곡에는 이 손으로 칠 음이 없어요.',
   'pieces.loop': '구간 반복',
   'pieces.loop.from': '반복 시작 마디',
   'pieces.loop.to': '반복 끝 마디',
@@ -1392,6 +1396,13 @@ export const ko: Dictionary = {
   'pieces.repeats': '도돌이표',
   'pieces.repeats.play': '반복',
   'pieces.repeats.skip': '건너뛰기',
+  'pieces.leftHand': '왼손',
+  'pieces.leftHand.written': '악보대로',
+  'pieces.leftHand.symbols': '코드 기호에서',
+  'pieces.leftHand.help':
+    '악보대로: 악보에 적힌 왼손을 쳐요. 코드 기호에서: 고른 반주 패턴으로 왼손을 만들어 낮은음자리표 보표에 적어요. 적힌 왼손처럼 연습하고, 듣고, 기록해요. 기록은 패턴마다 따로 남아요.',
+  'pieces.leftHand.none':
+    "여기에는 왼손이 적혀 있지 않아요. '옵션'의 '왼손'에서 코드 기호로 만들 수 있어요.",
   'pieces.showKeys': '건반 표시',
   'pieces.showKeys.help':
     '지금 칠 건반을 아래 건반에 표시해요. 꾸밈음의 다른 음은 옅은 점선 테두리로 표시해요.',
@@ -1755,6 +1766,9 @@ export const ko: Dictionary = {
   'pieces.runs.noTake':
     '이 연주는 친 내용이 기록되지 않았어요. dacapo가 연주를 기록하기 전에 친 연주예요.',
   'pieces.runs.changed': '이 연주 뒤로 곡의 음표가 바뀌어서, 친 내용과 맞지 않아요.',
+  'pieces.runs.leftHand': '왼손: {pattern}',
+  'pieces.runs.otherLeftHand':
+    "이 연주는 다른 왼손으로 쳐서, 지금 보이는 음표와 달라요. '옵션'에서 그 왼손을 고르면 열 수 있어요.",
 
   'pieces.playback': '다시 듣기',
   'pieces.playback.help':

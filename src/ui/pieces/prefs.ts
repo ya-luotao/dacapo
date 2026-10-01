@@ -1,13 +1,15 @@
 import { isMelody, type Melody } from '../../core/expression.ts';
+import { isLeftHandChoice, type LeftHandChoice } from '../../core/leadSheet.ts';
 import { isMemoryStage, type MemoryStage } from '../../core/memory.ts';
 import type { TrillStart } from '../../core/ornaments.ts';
-import { isHandSelection, type PracticeMode } from '../../core/pieceRecords.ts';
+import { isHandSelection, type PieceFacts, type PracticeMode } from '../../core/pieceRecords.ts';
 import type { HandSelection } from '../../core/score.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
 
 // What each piece was last practised with, kept in this browser: the hands, the tempo and the
 // mode; which note is its melody, for the balance, and where its trills start (docs/EXPRESSION.md);
-// how much of the score memory mode shows (P7).
+// how much of the score memory mode shows (P7); what its left hand plays, the written one or a
+// pattern from its chord symbols (H3).
 
 const PIECE_PREFS = 'dacapo.pieces.byPiece';
 /** The hands chosen last on any piece: the default for a piece not practised yet. */
@@ -26,6 +28,31 @@ export interface PiecePrefs {
   /** On the note (the default) or on the note above, as in Baroque music. */
   trillStart: TrillStart;
   memoryStage: MemoryStage;
+  /** The left hand chosen; null until the player chooses (the piece's default then). */
+  leftHand: LeftHandChoice | null;
+  /**
+   * The checksum and bar counts of the piece as practised with a left hand from the symbols, for
+   * its line in the library (which does not open the file); null with the written left hand.
+   */
+  practised: PractisedFacts | null;
+}
+
+export type PractisedFacts = Pick<PieceFacts, 'checksum' | 'bars'>;
+
+const isCount = (v: unknown): v is number => Number.isInteger(v) && (v as number) >= 0;
+
+function isPractisedFacts(v: unknown): v is PractisedFacts {
+  if (typeof v !== 'object' || v === null) return false;
+  const { checksum, bars } = v as { checksum?: unknown; bars?: Record<string, unknown> | null };
+  return (
+    typeof checksum === 'string' &&
+    /^[0-9a-f]{8}$/.test(checksum) &&
+    typeof bars === 'object' &&
+    bars !== null &&
+    isCount(bars.right) &&
+    isCount(bars.left) &&
+    isCount(bars.both)
+  );
 }
 
 type Stored = Record<string, Partial<PiecePrefs>>;
@@ -44,10 +71,8 @@ export function parsePiecePrefs(text: string | null): Stored {
   const out: Stored = {};
   for (const [id, value] of Object.entries(json as Record<string, unknown>)) {
     if (typeof value !== 'object' || value === null) continue;
-    const { hands, tempo, mode, melody, trillStart, memoryStage } = value as Record<
-      string,
-      unknown
-    >;
+    const { hands, tempo, mode, melody, trillStart, memoryStage, leftHand, practised } =
+      value as Record<string, unknown>;
     const prefs: Partial<PiecePrefs> = {};
     if (isHandSelection(hands)) prefs.hands = hands;
     if (isTempo(tempo)) prefs.tempo = tempo;
@@ -55,6 +80,9 @@ export function parsePiecePrefs(text: string | null): Stored {
     if (isMemoryStage(memoryStage)) prefs.memoryStage = memoryStage;
     if (isMelody(melody)) prefs.melody = melody;
     if (trillStart === 'principal' || trillStart === 'upper') prefs.trillStart = trillStart;
+    if (isLeftHandChoice(leftHand)) prefs.leftHand = leftHand;
+    if (isPractisedFacts(practised))
+      prefs.practised = { checksum: practised.checksum, bars: { ...practised.bars } };
     if (Object.keys(prefs).length > 0) out[id] = prefs;
   }
   return out;
@@ -70,6 +98,8 @@ export function readPiecePrefs(pieceId: string): PiecePrefs {
     melody: own?.melody ?? 'right',
     trillStart: own?.trillStart ?? 'principal',
     memoryStage: own?.memoryStage ?? 'alternate',
+    leftHand: own?.leftHand ?? null,
+    practised: own?.practised ?? null,
   };
 }
 

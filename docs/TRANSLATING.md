@@ -166,6 +166,7 @@ Chinese and Latin letters, digits and placeholders (`第 {n} 张`, `MIDI 键盘`
 | Harmony (the page) / Chords (its practice)                     | 和声 / 和弦                                     |
 | chord symbol / slash chord / in the bass                       | 和弦记号 / 斜线和弦 / 在最低（低音）            |
 | lead sheet / round / verse, chorus, refrain                    | 旋律谱（带和弦记号）/ 轮唱曲 / 主歌、副歌、副歌 |
+| left hand: as written / from the chord symbols                 | 按谱面 / 由和弦记号生成                         |
 | sus2, sus4 / 6, m6 / add9 / diminished 7th                     | 挂二、挂四 / 大六、小六 / 加九 / 减七           |
 | Show the notes (the chord's)                                   | 显示和弦音                                      |
 | Progressions / roman numeral / Left hand                       | 和弦进行 / 罗马数字级数 / 左手（伴奏型）        |
@@ -277,6 +278,7 @@ terms throughout. Address the learner as 你, as zh-CN does.
 | Harmony (the page) / Chords                                    | 和聲 / 和弦                                | 和声                            |
 | chord symbol / slash chord                                     | 和弦記號 / 斜線和弦                        | 和弦记号 / 斜线和弦             |
 | lead sheet / round / verse, chorus                             | 旋律譜（帶和弦記號）/ 輪唱曲 / 主歌、副歌  | 旋律谱 / 轮唱曲 / 主歌、副歌    |
+| left hand: as written / from the chord symbols                 | 照譜面 / 由和弦記號產生                    | 按谱面 / 由和弦记号生成         |
 | sus2, sus4 / diminished 7th                                    | 掛二、掛四 / 減七                          | 挂二、挂四 / 减七               |
 | Show the notes (the chord's)                                   | 顯示和弦音                                 | 显示和弦音                      |
 | Progressions / roman numeral / Left hand                       | 和弦進行 / 羅馬數字級數 / 左手（伴奏型）   | 和弦进行 / 罗马数字级数         |
@@ -387,6 +389,7 @@ verb phrases for labels and buttons (設定, 開始, もう一度, 補正する)
 | Harmony (the page) / Chords (its practice)                     | 和声 / コード                                                      |
 | chord symbol / slash chord / lowest (bass)                     | コードネーム / 分数コード / いちばん下（ベース）                   |
 | lead sheet / round / verse, chorus, refrain                    | リードシート / 輪唱 / ヴァース、コーラス、リフレイン               |
+| left hand: as written / from the chord symbols                 | 楽譜どおり / コードネームから                                      |
 | sus2, sus4 / 6, add9 / diminished 7th                          | 掛留2度、掛留4度 / 付加六、付加九 / 減七の和音                     |
 | Show the notes (the chord's)                                   | 構成音を表示                                                       |
 | Progressions / roman numeral / Left hand                       | コード進行 / ローマ数字 / 左手（伴奏形）                           |
@@ -498,6 +501,7 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 | Harmony (the page) / Chords (its practice)                     | 화성 / 코드                                                          |
 | chord symbol / slash chord / lowest (bass)                     | 코드 기호 / 슬래시 코드 / 가장 아래(베이스)                          |
 | lead sheet / round / verse, chorus, refrain                    | 리드 시트 / 돌림노래 / 절, 후렴, 후렴                                |
+| left hand: as written / from the chord symbols                 | 악보대로 / 코드 기호에서                                             |
 | sus2, sus4 / 6, add9 / diminished 7th                          | 서스2, 서스4 / 부가6, 부가9 / 감7화음                                |
 | Show the notes (the chord's)                                   | 구성음 보기                                                          |
 | Progressions / roman numeral / Left hand                       | 코드 진행 / 로마 숫자 / 왼손(반주 형태)                              |

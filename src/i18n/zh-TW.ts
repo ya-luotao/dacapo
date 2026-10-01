@@ -1145,6 +1145,9 @@ export const zhTW: Dictionary = {
   'pieces.level.0': '入門',
   'pieces.level.n': '{n} 級',
   'pieces.levels.help': '級數只是大致的參考，對應 ABRSM 等常見檢定的級別，數字越大越難。',
+  'pieces.leadSheets': '旋律譜',
+  'pieces.leadSheets.help':
+    '帶和弦記號的旋律。右手彈旋律，左手由和弦記號產生，伴奏型在「選項」裡選。',
   'pieces.edition': '來源：{source}。{licence}。',
   'library.beethoven-ode-to-joy.title': '快樂頌',
   'library.beethoven-ode-to-joy.composer': '貝多芬',
@@ -1337,6 +1340,7 @@ export const zhTW: Dictionary = {
   'pieces.hand.right': '右手',
   'pieces.hand.left': '左手',
   'pieces.hand.both': '雙手',
+  'pieces.hand.none': '這首樂曲沒有這隻手要彈的音。',
   'pieces.loop': '循環',
   'pieces.loop.from': '循環起始小節',
   'pieces.loop.to': '循環結束小節',
@@ -1347,6 +1351,12 @@ export const zhTW: Dictionary = {
   'pieces.repeats': '反覆',
   'pieces.repeats.play': '彈奏',
   'pieces.repeats.skip': '跳過',
+  'pieces.leftHand': '左手',
+  'pieces.leftHand.written': '照譜面',
+  'pieces.leftHand.symbols': '由和弦記號產生',
+  'pieces.leftHand.help':
+    '照譜面：彈樂譜上寫的左手。由和弦記號產生：依所選伴奏型產生左手，寫在低音譜表上，和譜面上的左手一樣練習、聆聽和記錄。每種伴奏型各有自己的紀錄。',
+  'pieces.leftHand.none': '這裡沒有寫左手。在「選項」的「左手」，可以由和弦記號產生一個。',
   'pieces.showKeys': '顯示琴鍵',
   'pieces.showKeys.help':
     '在下方的鍵盤上標出目前這一步要彈的鍵；裝飾音裡的其他音用較淡的虛線框標出。',
@@ -1701,6 +1711,9 @@ export const zhTW: Dictionary = {
   'pieces.runs.loading': '正在讀取這一遍⋯',
   'pieces.runs.noTake': '這一遍沒有保存彈奏的紀錄：它是在 dacapo 開始保存演奏之前彈的。',
   'pieces.runs.changed': '這首樂曲的音符在這一遍之後改過了，彈奏的紀錄和它對不上。',
+  'pieces.runs.leftHand': '左手：{pattern}',
+  'pieces.runs.otherLeftHand':
+    '這一遍用的是另一種左手，音符和現在顯示的不一樣。在「選項」選回那種左手，才能打開它。',
 
   'pieces.playback': '重播',
   'pieces.playback.help':

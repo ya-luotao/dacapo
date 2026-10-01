@@ -349,6 +349,37 @@ describe('recording takes', () => {
   });
 });
 
+describe('recording a run with a left hand from the symbols', () => {
+  function PatternRecorder({ run, store }: { run: Run; store: PracticeStore }) {
+    useRunRecorder(
+      waitRecording(run),
+      { ...CONTEXT, checksum: '0badf00d', leftHand: 'alberti' },
+      store,
+    );
+    return null;
+  }
+
+  it('keeps the pattern on the session, and the practised notes’ checksum on its steps', async () => {
+    const s = score();
+    const order = performanceOrder(s.measures);
+    const steps = buildSteps(s, 'right', order);
+    let run = startRun({ id: 'l1', steps, range: waitRange(steps, order, null, 0) });
+    const show = () => act(() => root.render(createElement(PatternRecorder, { run, store })));
+    show();
+    run = press(press(press(press(run, 72, 1_000), 74, 1_500), 76, 2_000), 77, 2_500);
+    show();
+    store.loadPieceSteps('two-bars');
+    await store.settled();
+    await new Promise((resolve) => setTimeout(resolve));
+    expect(store.getPieceSteps('two-bars')!.map((step) => step.checksum)).toEqual(
+      Array.from({ length: 4 }, () => '0badf00d'),
+    );
+    expect(pieceSessions()).toEqual([
+      expect.objectContaining({ id: 'l1', completed: true, leftHand: 'alberti' }),
+    ]);
+  });
+});
+
 describe('recording memory runs', () => {
   function MemoryRecorder({ run, store }: { run: Run; store: PracticeStore }) {
     useRunRecorder(waitRecording(run), { ...CONTEXT, mode: 'memory' }, store);

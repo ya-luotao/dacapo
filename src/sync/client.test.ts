@@ -816,6 +816,36 @@ describe('the review schedule', () => {
   });
 });
 
+describe('the left hand from the symbols', () => {
+  it('syncs with the run, and comes back to a build that stripped it', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    const plain = sampleRun('l1', 2, { pieceId: 'p1' });
+    const session = { ...plain.session, leftHand: 'stride' as const };
+    for (const step of plain.steps) ipad.store.recordPieceStep(step, null);
+    ipad.store.finishPieceRun('l1', session);
+    await ipad.store.settled();
+    await signIn(ipad);
+    expect(service.body('sessions', 'l1')).toMatchObject({ leftHand: 'stride' });
+    await signIn(mac);
+    expect(mac.store.getSnapshot().sessions).toContainEqual(session);
+
+    // As schema 17 left it: the session kept without the field, the cursor past it.
+    const state = (await mac.db.get('meta', SYNC_STATE_KEY)) as SyncState;
+    await mac.db.put('sessions', plain.session);
+    await mac.db.put('meta', { ...state, schema: 17 }, SYNC_STATE_KEY);
+    await mac.store.reloadAll();
+    expect(mac.store.getSnapshot().sessions).toContainEqual(plain.session);
+    const sync = vi.spyOn(service.api, 'sync');
+    await mac.client.syncNow();
+    expect(SYNC_SCHEMA).toBeGreaterThanOrEqual(18);
+    expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
+    expect(mac.store.getSnapshot().sessions).toContainEqual(session);
+    expect(mac.store.getSnapshot().sessions).not.toContainEqual(plain.session);
+  });
+});
+
 describe('memory mode', () => {
   it('syncs its steps and sessions, and pulls them again after a build that refused them', async () => {
     const service = fakeService();

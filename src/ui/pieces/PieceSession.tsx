@@ -13,9 +13,10 @@ import { flushSync } from 'react-dom';
 import { Link } from 'wouter';
 import { barHeatmap, weakestLoop, type BarMetric } from '../../core/barHeatmap.ts';
 import { analyzeExpression, type Melody } from '../../core/expression.ts';
+import { leftHandFor, leftHandPatterns, type LeftHandChoice } from '../../core/leadSheet.ts';
 import { parseMeter, tempoForMeter } from '../../core/metronomeSettings.ts';
 import { midiName } from '../../core/note.ts';
-import type { PracticeMode } from '../../core/pieceRecords.ts';
+import { pieceFacts, type PieceFacts, type PracticeMode } from '../../core/pieceRecords.ts';
 import { summarizeRun } from '../../core/pieceRun.ts';
 import {
   accompanimentPlan,
@@ -25,6 +26,7 @@ import {
   otherHand,
 } from '../../core/playback.ts';
 import type { TrillStart } from '../../core/ornaments.ts';
+import { isProgressionPieceId } from '../../core/progressions.ts';
 import { rhythmPlan } from '../../core/rhythm.ts';
 import {
   PEDALS_UP,
@@ -42,11 +44,12 @@ import {
 } from '../../core/takePlayback.ts';
 import { summarizeRhythm } from '../../core/rhythmRun.ts';
 import { playOrder, type RepeatMode } from '../../core/repeats.ts';
-import { buildSteps, keyRange, type HandSelection } from '../../core/score.ts';
+import { buildSteps, keyRange, type HandSelection, type Score } from '../../core/score.ts';
 import { waitRange, type BarLoop, type WaitState } from '../../core/wait.ts';
 import type { TakeState } from '../../core/takes.ts';
 import { useT } from '../../i18n/index.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
+import { withLeftHand } from '../../pieces/derive.ts';
 import { createAccompanist } from '../../output/accompany.ts';
 import { createDemoPlayer, type DemoState } from '../../output/demo.ts';
 import { browserClock } from '../../output/scheduler.ts';
@@ -89,6 +92,7 @@ import {
   type ExpressionAspect,
 } from './expressionPrefs.ts';
 import { SaveTake } from './SaveTake.tsx';
+import { usePieceRuns } from './runs.ts';
 import { YourRuns } from './YourRuns.tsx';
 import { PlaybackBar, type CompareChoice } from './PlaybackBar.tsx';
 import { useLogFormat } from '../progress/format.ts';
@@ -115,6 +119,7 @@ const metricOf = (mode: PracticeMode): BarMetric =>
 const WRONG_FLASH_MS = 350;
 const HAND_CHOICES = ['right', 'left', 'both'] as const;
 const NO_KEYS: readonly number[] = [];
+const opposite = (hand: 'right' | 'left') => (hand === 'right' ? 'left' : 'right');
 const newRunId = () => crypto.randomUUID();
 
 /** Where the page's back link goes: the Pieces page, or the page a generated piece came from. */
@@ -126,7 +131,26 @@ export interface PieceBack {
 export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBack }) {
   const t = useT();
   const backTo = back ?? { href: '/pieces', label: t('pieces.back') };
-  const { score } = piece;
+  const [prefs] = useState(() => readPiecePrefs(piece.id));
+  // The left hand: as written, or a pattern made from the chord symbols and written into the
+  // score (docs/HARMONY.md, "Lead sheets (H3)"). A progression's pattern is its own.
+  // (The piece is a new object whenever the page renders: its parts are what stays the same.)
+  const { xml: writtenXml, score: written, facts: writtenFacts } = piece;
+  const patterns = useMemo(
+    () => (isProgressionPieceId(piece.id) ? [] : leftHandPatterns(written)),
+    [piece.id, written],
+  );
+  const [leftHandChoice, setLeftHandState] = useState<LeftHandChoice | null>(prefs.leftHand);
+  const practised = useMemo(
+    () =>
+      practise(
+        { xml: writtenXml, score: written, facts: writtenFacts },
+        patterns.length > 0 ? leftHandFor(written, leftHandChoice ?? undefined) : 'written',
+      ),
+    [writtenXml, written, writtenFacts, patterns, leftHandChoice],
+  );
+  const { score, leftHand } = practised;
+  const { checksum } = practised.facts;
   const format = usePieceFormat(score.measures);
   const { hub, pointer, output } = useInput();
   const hasOutput = useOutputState().selected !== null;
@@ -143,9 +167,19 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
   const store = usePracticeStore();
   const review = usePieceReview(piece.id, piece.facts);
   const reviewOut = useReviewOut(piece.id);
-  const [prefs] = useState(() => readPiecePrefs(piece.id));
   const [mode, setModeState] = useState<PracticeMode>(prefs.mode);
-  const [hands, setHandsState] = useState<HandSelection>(prefs.hands);
+  const [handsChoice, setHandsState] = useState<HandSelection>(prefs.hands);
+  // A hand the piece has nothing for cannot be chosen: the other one is practised instead (a
+  // lead sheet with its left hand as written has only the right; Both is then the right hand).
+  const playable = {
+    right: practised.facts.bars.right > 0,
+    left: practised.facts.bars.left > 0,
+    both: true,
+  };
+  const hands: HandSelection =
+    handsChoice !== 'both' && !playable[handsChoice] && playable[opposite(handsChoice)]
+      ? opposite(handsChoice)
+      : handsChoice;
   const [repeats, setRepeats] = useState<RepeatMode>('play');
   const [loop, setLoop] = useState<BarLoop | null>(null);
   const [startBar, setStartBar] = useState(0);
@@ -303,7 +337,7 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
     recorded,
     {
       pieceId: piece.id,
-      checksum: piece.facts.checksum,
+      checksum,
       title: piece.title,
       hands,
       loop: loop && {
@@ -315,12 +349,22 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
       tempo,
       ...(rhythmMode && { mode: 'rhythm' as const }),
       ...(memoryMode && { mode: 'memory' as const }),
+      ...(leftHand !== 'written' && { leftHand }),
     },
     store,
   );
 
   // The measure heatmap: this piece's step records, read when the page opens.
-  const records = usePieceSteps(piece.id);
+  const allRecords = usePieceSteps(piece.id);
+  // Runs with another left hand are runs of other notes: neither counted nor an older version.
+  const runs = usePieceRuns(piece.id);
+  const records = useMemo(() => {
+    if (!allRecords) return null;
+    const others = new Set(
+      runs.filter((run) => (run.leftHand ?? 'written') !== leftHand).map((run) => run.id),
+    );
+    return others.size === 0 ? allRecords : allRecords.filter((r) => !others.has(r.sessionId));
+  }, [allRecords, runs, leftHand]);
   const handBars = useMemo(
     () => [...new Set(steps.map((s) => s.measure))].sort((a, b) => a - b),
     [steps],
@@ -328,12 +372,12 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
   const heat = useMemo(
     () =>
       barHeatmap(records ?? [], {
-        checksum: piece.facts.checksum,
+        checksum,
         hands,
         bars: handBars,
         metric,
       }),
-    [records, piece.facts.checksum, hands, handBars, metric],
+    [records, checksum, hands, handBars, metric],
   );
   const weakest = useMemo(() => weakestLoop(heat.cells, order), [heat, order]);
   const barFormat = useBarFormat(format, metric);
@@ -668,6 +712,23 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
     writePiecePrefs(piece.id, { hands: next });
   }
 
+  function setLeftHand(next: LeftHandChoice) {
+    setLeftHandState(next);
+    writePiecePrefs(piece.id, { leftHand: next });
+    settle();
+  }
+
+  // The library's line for the piece counts its steady bars without opening the file: it is
+  // told the checksum and the bars of the piece with this left hand.
+  const practisedFacts = leftHand === 'written' ? null : practised.facts;
+  useEffect(() => {
+    const kept = readPiecePrefs(piece.id).practised;
+    if ((kept?.checksum ?? null) === (practisedFacts?.checksum ?? null)) return;
+    writePiecePrefs(piece.id, {
+      practised: practisedFacts && { checksum: practisedFacts.checksum, bars: practisedFacts.bars },
+    });
+  }, [piece.id, practisedFacts]);
+
   function setWeakBars(next: boolean) {
     setWeakBarsState(next);
     writePref(WEAK_BARS_PREF, next ? '1' : null);
@@ -875,7 +936,7 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
             <SaveTake
               run={{
                 pieceId: piece.id,
-                checksum: piece.facts.checksum,
+                checksum,
                 title: piece.title,
                 mode,
                 hands: settings.hands,
@@ -1026,12 +1087,13 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
           <legend className="visually-hidden">{t('pieces.hand')}</legend>
           <div className="segmented is-compact">
             {HAND_CHOICES.map((choice) => (
-              <label key={choice}>
+              <label key={choice} title={playable[choice] ? undefined : t('pieces.hand.none')}>
                 <input
                   type="radio"
                   name={`${showKeysId}-hands`}
                   value={choice}
                   checked={hands === choice}
+                  disabled={!playable[choice]}
                   onChange={() => setHands(choice)}
                 />
                 <span>{t(`pieces.hand.${choice}`)}</span>
@@ -1132,6 +1194,30 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
           <summary className="button is-compact">{t('pieces.options')}</summary>
           <div className="piece-options-panel">
             {memoryMode && <MemoryStageSelect stage={stage} onChange={setStage} />}
+
+            {patterns.length > 0 && (
+              <label className="piece-option">
+                <span className="piece-control-label">{t('pieces.leftHand')}</span>
+                <select
+                  className="is-compact"
+                  aria-describedby={`${showKeysId}-lefthand`}
+                  value={leftHand}
+                  onChange={(e) => setLeftHand(e.target.value as LeftHandChoice)}
+                >
+                  <option value="written">{t('pieces.leftHand.written')}</option>
+                  <optgroup label={t('pieces.leftHand.symbols')}>
+                    {patterns.map((pattern) => (
+                      <option key={pattern} value={pattern}>
+                        {t(`harmony.pattern.${pattern}`)}
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+                <span id={`${showKeysId}-lefthand`} className="visually-hidden">
+                  {t('pieces.leftHand.help')}
+                </span>
+              </label>
+            )}
 
             <label className="piece-option">
               <span className="piece-control-label">{t('pieces.start')}</span>
@@ -1368,7 +1454,7 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
 
       <div className="piece-stage">
         <ScoreView
-          xml={piece.xml}
+          xml={practised.xml}
           score={score}
           title={piece.title}
           step={step}
@@ -1497,7 +1583,8 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
           {runsOpen && (
             <YourRuns
               pieceId={piece.id}
-              checksum={piece.facts.checksum}
+              checksum={checksum}
+              leftHand={leftHand}
               score={score}
               format={format}
               melody={melody}
@@ -1595,6 +1682,9 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
           <div className="piece-notes">
             {scoreStatus.state === 'ready' && scoreStatus.unplaced > 0 && (
               <p className="muted">{t('pieces.unplaced', { n: scoreStatus.unplaced })}</p>
+            )}
+            {patterns.length > 0 && leftHand === 'written' && !playable.left && (
+              <p className="muted">{t('pieces.leftHand.none')}</p>
             )}
             <KeyboardLine />
             {!hasOutput && (
@@ -1746,6 +1836,30 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
       )}
     </section>
   );
+}
+
+/** The piece as it is practised: its score with the left hand chosen, and that score's facts. */
+interface PractisedPiece {
+  xml: string;
+  score: Score;
+  facts: PieceFacts;
+  /** The left hand in effect: `written` too when the pattern could not be written. */
+  leftHand: LeftHandChoice;
+}
+
+function practise(
+  piece: Pick<OpenPiece, 'xml' | 'score' | 'facts'>,
+  leftHand: LeftHandChoice,
+): PractisedPiece {
+  if (leftHand !== 'written') {
+    try {
+      const made = withLeftHand(piece.xml, piece.score, leftHand);
+      return { ...made, facts: pieceFacts(made.score), leftHand };
+    } catch {
+      // A score the pattern cannot be written into is practised as written.
+    }
+  }
+  return { xml: piece.xml, score: piece.score, facts: piece.facts, leftHand: 'written' };
 }
 
 /** A run to play back: what was played and how it was practised. */

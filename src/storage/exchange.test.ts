@@ -613,6 +613,28 @@ describe('versions', () => {
     ]);
   });
 
+  it('imports a run with its left hand from the symbols, strict about the pattern (H3)', () => {
+    const { steps, session: plain } = sampleRun('l1', 2);
+    const session = { ...plain, leftHand: 'alberti' as const };
+    const written = { ...plain, id: 'l2' };
+    const file = parsed(
+      fileWith({
+        version: 8,
+        pieces: [],
+        sessions: [session, { ...session, id: 'x1', leftHand: 'polka' }, written],
+        pieceSteps: steps,
+        scaleRuns: [],
+        answers: [],
+        takes: [],
+      }),
+    );
+    expect(file.sessions).toEqual([session, written]);
+    expect(file.pieceSteps).toEqual(steps);
+    expect(file.invalid).toEqual([
+      { collection: 'sessions', index: 1, field: 'leftHand', problem: 'invalid' },
+    ]);
+  });
+
   it('imports memory steps, sessions and takes, strict about their prompts and stage (P7)', () => {
     const { steps: plain, session: waitSession } = sampleRun('m1', 2);
     const steps = plain.map((s, i) => ({

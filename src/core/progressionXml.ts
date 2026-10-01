@@ -16,12 +16,13 @@ import {
   type ProgressionSpec,
 } from './progressions.ts';
 import { keyAlters } from './scales.ts';
-import { staffKey, type StaffHands } from './score.ts';
+import { staffKey, type SpelledPitch, type StaffHands } from './score.ts';
 
 /** ♩ = 80 unless another tempo is chosen. */
 export const DEFAULT_PROGRESSION_BPM = 80;
 
-const ACCIDENTALS: Readonly<Record<number, string>> = {
+/** MusicXML's `<accidental>` for each alteration. */
+export const ACCIDENTALS: Readonly<Record<number, string>> = {
   [-2]: 'flat-flat',
   [-1]: 'flat',
   0: 'natural',
@@ -87,17 +88,18 @@ function typeOf(eighths: number): { type: string; dot: boolean } {
   }
 }
 
-interface Accidentals {
+export interface Accidentals {
   newBar: () => void;
   /**
-   * The sign a note needs: where its alteration is not the one in force (the key's, or an earlier
-   * note's in the bar), and a courtesy sign where the bar before altered it otherwise.
+   * The sign a note needs (MusicXML's name for it), or null: where its alteration is not the one
+   * in force (the key's, or an earlier note's in the bar), and a courtesy sign where the bar
+   * before altered it otherwise.
    */
-  sign: (note: ArrangedNote) => string;
+  sign: (pitch: SpelledPitch) => string | null;
 }
 
 /** Alterations in force on a staff: by letter and octave, within the bar and the bar before. */
-function accidentals(key: Readonly<Record<string, number>>): Accidentals {
+export function accidentals(key: Readonly<Record<string, number>>): Accidentals {
   let inForce = new Map<string, number>();
   let before = new Map<string, number>();
   return {
@@ -105,14 +107,13 @@ function accidentals(key: Readonly<Record<string, number>>): Accidentals {
       before = inForce;
       inForce = new Map();
     },
-    sign(note) {
-      const { step, alter, octave } = note.pitch;
+    sign({ step, alter, octave }) {
       const place = `${step}${octave}`;
       const expected = inForce.get(place) ?? key[step]!;
       const previous = before.get(place);
       const courtesy = previous !== undefined && previous !== alter && !inForce.has(place);
       inForce.set(place, alter);
-      return alter !== expected || courtesy ? `<accidental>${ACCIDENTALS[alter]}</accidental>` : '';
+      return alter !== expected || courtesy ? (ACCIDENTALS[alter] ?? null) : null;
     },
   };
 }
@@ -166,7 +167,11 @@ function staffNotes(
         }
       }
       return chord
-        .map((note, k) => noteXml(note, staff, k > 0, signs.sign(note), k === 0 ? beam : ''))
+        .map((note, k) => {
+          const sign = signs.sign(note.pitch);
+          const accidental = sign === null ? '' : `<accidental>${sign}</accidental>`;
+          return noteXml(note, staff, k > 0, accidental, k === 0 ? beam : '');
+        })
         .join('');
     })
     .join('');

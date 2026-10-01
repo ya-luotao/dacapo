@@ -5869,6 +5869,17 @@ tr.is-few .cm-row {
   list-style: none;
 }
 
+/* What a group holds (the lead sheets), over its list. */
+.library-level-help {
+  max-width: 40rem;
+  margin: 0;
+  padding: 0.875rem 0.75rem 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
 .library-list > li + li {
   border-top: 1px solid var(--border);
 }

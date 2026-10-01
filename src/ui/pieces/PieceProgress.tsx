@@ -60,25 +60,27 @@ function Review({ pieceId, facts }: { pieceId: string; facts: PieceFacts }) {
 function Steady({ pieceId, facts }: { pieceId: string; facts: PieceFacts }) {
   const t = useT();
   const records = usePieceSteps(pieceId);
-  const hands: HandSelection = readPiecePrefs(pieceId).hands;
+  const prefs = readPiecePrefs(pieceId);
+  const hands: HandSelection = prefs.hands;
+  // With a left hand from the symbols the piece is practised on other notes: the practice page
+  // leaves their checksum and bar counts here (docs/HARMONY.md, H3).
+  const { checksum, bars: counts } = prefs.practised ?? facts;
   const steady = useMemo(() => {
     if (!records) return null;
     const bars = [
       ...new Set(
-        records
-          .filter((r) => r.hands === hands && r.checksum === facts.checksum)
-          .map((r) => r.measure),
+        records.filter((r) => r.hands === hands && r.checksum === checksum).map((r) => r.measure),
       ),
     ];
-    return steadyBars(barHeatmap(records, { checksum: facts.checksum, hands, bars }).cells).steady;
-  }, [records, facts.checksum, hands]);
+    return steadyBars(barHeatmap(records, { checksum, hands, bars }).cells).steady;
+  }, [records, checksum, hands]);
   if (steady === null) return null;
   return (
     <>
       {' · '}
       {t('pieces.progress.steady', {
         n: steady,
-        m: facts.bars[hands],
+        m: counts[hands],
         hands: t(`pieces.progress.hands.${hands}`),
       })}
     </>

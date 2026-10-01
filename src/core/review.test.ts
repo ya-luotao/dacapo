@@ -128,6 +128,13 @@ describe('gradeRun', () => {
     const r = run('a', { day: 0, wrong: 2 });
     expect(gradeRun(r.session, r.steps, { notes: { play: 100, skip: 100 } })).toBe('better');
     expect(gradeRun(r.session, r.steps, { notes: { play: 99, skip: 99 } })).toBe('same');
+    // With a left hand from the symbols the piece's facts do not count the run's keys: its
+    // steps stand in (8 here), as for a piece without facts.
+    const made = { ...r.session, leftHand: 'alberti' as const };
+    expect(gradeRun(made, r.steps, { notes: { play: 100, skip: 100 } })).toBe('worse');
+    expect(gradeRun({ ...made, wrong: 0 }, r.steps, { notes: { play: 100, skip: 100 } })).toBe(
+      'better',
+    );
     // 8 steps: 2 wrong is more than one in ten.
     expect(gradeRun(r.session, r.steps, {})).toBe('worse');
     // Without its step records the bars cannot be checked: kept at best.

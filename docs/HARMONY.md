@@ -2,8 +2,10 @@
 
 Status: H1 is built (the Harmony page with Chords: chord symbols to play, five levels, their
 answers and progress), H2 (Progressions, generated scores practised as pieces, and cadences by
-ear on the Ear page) and H6 (Improvise: backings to play over, feedback, call and response, the
-take played back with its backing); H3 to H5 are planned (after [EXPRESSION.md](EXPRESSION.md)).
+ear on the Ear page), H3 (lead sheets: chord symbols in the parser, eight tunes in the library,
+the left hand made from the symbols) and H6 (Improvise: backings to play over, feedback, call and
+response, the take played back with its backing); H4 and H5 are planned (after
+[EXPRESSION.md](EXPRESSION.md)).
 This extends [MVP.md](MVP.md), [PIECES.md](PIECES.md) and [EAR.md](EAR.md); their principles and fixed decisions still apply
 (staff first, measure don't guess, local data, English of record, every UI language, 3-day
 dependency cooldown, no backend).
@@ -229,8 +231,8 @@ ear is a family of the Ear page; transposing is an option of every piece.
 
 ### Clarifications (decided during H3)
 
-The first half of H3: the symbols in the parser and the library's lead sheets. The left hand from
-the symbols, and the Library's own heading for the lead sheets, come with the UI.
+The symbols in the parser and the library's lead sheets came first; the left hand from the symbols
+and the Library's heading for the lead sheets after them (from "Left hand" on, below).
 
 - **The parser** keeps each `<harmony>` with a root as `Score.harmonies` (`HarmonyMark` in
   `core/markings.ts`): part, staff, written bar and tick (the cursor plus `<offset>`, as a
@@ -243,8 +245,7 @@ the symbols, and the Library's own heading for the lead sheets, come with the UI
   another degree, a root such as E♯, a bass on the root) has none, and is kept with its text. A
   `<harmony>` with no root (a numeral or a function alone) is skipped. The list is sorted by tick,
   then part and staff, and laid out through the repeats by `performedMarks`, as the markings are.
-  It is absent from a score with no symbols (`src/ui/pieces` builds scores without it in its tests;
-  the UI commit may make it required). The symbols are not notes: steps, records and the checksum
+  It is absent from a score with no symbols. The symbols are not notes: steps, records and the checksum
   ignore them, so no existing piece's checksum changes. H2's progressions now write their kinds
   from the same table (`MUSICXML_KIND`), byte for byte as before, and read back with their symbols.
 - **The lead sheets** are our own encodings (`scripts/pieces/sources/`, a new `@h:` token for a
@@ -285,8 +286,96 @@ the symbols, and the Library's own heading for the lead sheets, come with the UI
   checksum and the symbols, and checks that every symbol parses into a known chord in the house
   style and that most of the melody under each symbol is its chord's tones.
 - **In the library** a lead sheet is a built-in piece with `leadSheet: true` and a level (Initial
-  to grade 2 for the melody alone). Until the Library groups them under their own heading, they
-  appear with the pieces of their level.
+  to grade 2 for the melody alone). The Pieces page lists them after the graded pieces under a
+  heading of their own, **Lead sheets**, the easiest first, each card with its level. The review
+  schedule, the due list and Your pieces treat a lead sheet as any piece.
+- **Left hand: as written, or from the symbols.** An option of the piece (Options, "Left hand"),
+  shown when the score has chord symbols: "As written", or one of H2's patterns that the score's
+  meter takes. Until the player chooses, it is block chords for a score whose left hand has no
+  notes, and as written otherwise; the choice is kept per piece in this browser. A progression of
+  H2 is not offered it (its pattern is part of its id). Imported MusicXML with `<harmony>` gets the
+  same option.
+- **One document.** `core/leadSheet.ts` makes the pattern's notes from the score, and
+  `core/leadSheetXml.ts` writes them into the score's own MusicXML document on the left hand's
+  staff, in a voice of its own: note values (tied where one value cannot say a length),
+  accidentals (against the key and the bar, a courtesy sign after a bar that altered the note) and
+  beams (by the half bar in two and four, by the bar in three, by the dotted beat). That one
+  document is then drawn by Verovio and read by the parser (`pieces/derive.ts`), so the left hand
+  is practised, heard (Listen, the other hand), judged and recorded exactly as a written one, and
+  the melody, the symbols, the bars and the repeats are untouched. The left hand's staff is the
+  first one the score gives the left hand; failing that, the second staff of the right hand's
+  part, which is added with a bass clef to a part of one staff (an imported lead sheet on a single
+  staff). What the staff held is taken out (notes, rests, grace notes, and its clef changes: it
+  stays in the bass clef), so on an imported piano score with symbols "from the symbols" takes the
+  place of the written left hand. Where the pattern needs finer values than the file's
+  `divisions`, they are multiplied through the part.
+- **Symbols to chords.** A symbol stands until the next one in the score _as written_: the left
+  hand is written once per bar, so repeats are not unrolled (a second ending goes on from the
+  first's last symbol). The chord is the symbol's `<kind>` as one of H1's qualities; `<degree>`s
+  are left out (`C7♯9` is played as C7); a ninth, eleventh or thirteenth is played as its seventh
+  chord, a minor chord with a major seventh as its triad, an augmented seventh as its triad. Under
+  a symbol with no chord to play (`none`, `power`, `other`, an augmented sixth) the left hand
+  rests until the next symbol, as it does before the first. A slash chord's bass is the lowest
+  note: the chord's other tones stand in close position above it (`C/E` as E G C, `Am/G` as G A C
+  E), root and fifth becomes the bass and the root, and the stride's and the waltz's bass is the
+  slash bass.
+- **The patterns by meter.** A meter is two, three or four beats (2/4, 3/4, 4/4, 2/2, 3/8), dotted
+  beats of three (6/8, 9/8, 12/8), or anything else (5/4, 7/8, 6/4). A score is offered the
+  patterns every one of its bars takes:
+
+  | Pattern        | 2 beats           | 3 beats                     | 4 beats                   | Dotted beats                    | Other |
+  | -------------- | ----------------- | --------------------------- | ------------------------- | ------------------------------- | ----- |
+  | Block chords   | held              | held                        | held                      | held                            | held  |
+  | Root and fifth | held              | held                        | held                      | held                            | held  |
+  | Waltz          | –                 | bass, chord, chord          | –                         | bass, chord, chord in each beat | –     |
+  | Alberti        | low high mid high | low high mid high, mid high | low high mid high, twice  | low, middle, high in each beat  | –     |
+  | Arpeggio up    | 1–5–8–10          | 1–5–8                       | 1–5–8–10                  | 1–5–8, then 10–8–5              | –     |
+  | Stride         | bass, chord       | –                           | bass, chord, fifth, chord | –                               | –     |
+
+  A held chord sounds from its symbol to the next (or the bar's end) and is struck again in each
+  bar. Alberti moves in half beats, the arpeggio in beats (half beats in two), stride and the
+  waltz in beats; in a compound meter all three move in the eighths of the dotted beat, the
+  waltz's bass the root on one beat and the fifth on the next. The keys are H2's: block chords and
+  Alberti on root, 3rd and 5th (a seventh chord's root, 3rd and 7th) from F2; the others from C2;
+  the arpeggio 1–5–8–10 (1–5–7–10); the stride's second bass the fifth, a fourth below where that
+  stays above C2; the chords on the off-beats in close position in the tenor (up to B3, a seventh
+  chord without its root), led from one to the next as H2's are.
+
+- **Where a symbol takes effect.** Under a held pattern, where it stands (on the next sixteenth
+  when it stands between two): Swing Low's F on the last three sixteenths of a bar is struck with
+  the melody note it harmonises. Under a moving pattern, on the pattern's next note, and the
+  pattern starts over there with the new chord (a chord that lasts less than the pattern gets its
+  beginning; the same symbol printed again within a bar goes on). A symbol that falls after the
+  pattern's last note of the bar would start the next bar, where that bar's own symbol takes its
+  place: under stride, Auld Lang Syne's D7 on the last eighth of bar 7 is not heard, while block
+  chords and Alberti play it.
+- **Short bars.** A bar shorter than its time signature is an upbeat when it is the first bar, or
+  the second part of a bar divided in two by a repeat sign or a double bar: it ends on the
+  barline, and the left hand rests in it until a symbol stands in it. Any other short bar (a last
+  bar that completes the upbeat) starts on the 1 and gets the pattern's beginning.
+- **Under the melody.** Every key of the left hand lies below the lowest key the right hand plays
+  anywhere in the piece, so the hands never cross and no key is asked of both at once. A pattern
+  that would reach the melody is played an octave lower where its bass then stays at or above C2;
+  failing that, its keys above the limit are left out (a single note takes the highest chord tone
+  under the limit, and nothing is played where even the bass would reach it). The off-beat chords
+  are voiced under the same limit. A test holds every lead sheet and pattern to it.
+- **Records.** The piece with a pattern is another piece of notes, so its checksum (which covers
+  the notes as practised) is its own: each (piece, pattern) has one, locked by a test for the
+  library's, and the weak bars, the steady bars and "Your runs" compare runs of the same checksum
+  only, as they always have. The run's header carries the pattern (`leftHand`, absent when as
+  written), validated strictly; older builds strip it, so `SYNC_SCHEMA` is 18; steps and takes are
+  unchanged, and the export file needs no new version. Runs with another left hand are not
+  counted in Weak bars, and not reported there as runs of an older version; "Your runs" names
+  each run's pattern, and a run with another left hand than the one chosen says so instead of
+  opening. The library card counts its steady bars for the left hand chosen (the practice page
+  leaves the checksum and bar counts of the piece as practised in this browser's preferences).
+- **Hands.** A hand with no notes cannot be chosen (the control is disabled, with a line saying
+  that Options can make a left hand); a piece last practised with it is practised with the other.
+  On a lead sheet with its left hand as written, Both is the right hand.
+- **The review schedule** judges a lead sheet by its melody, whatever the left hand: its facts
+  are the written piece's, so a run of the right hand alone or of both hands to the end counts,
+  and a run of the left hand alone does not. A wait or memory run with a left hand from the
+  symbols is graded against its own steps, since the piece's facts count the melody's keys only.
 
 ## Transposing (H4)
 
@@ -428,7 +517,7 @@ the symbols, and the Library's own heading for the lead sheets, come with the UI
 1. ✓ **H1 Chords** — the Harmony page, symbols, levels, answers.
 2. ✓ **H2 Progressions** — generated progressions and patterns on the Pieces machinery;
    cadences on Ear.
-3. **H3 Lead sheets** — symbols in the parser, the library's lead sheets, the left hand from the
+3. ✓ **H3 Lead sheets** — symbols in the parser, the library's lead sheets, the left hand from the
    symbols.
 4. **H4 Transposing** — the Key control on every piece.
 5. **H5 Playing by ear** — tunes on Ear.

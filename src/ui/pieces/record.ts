@@ -10,6 +10,7 @@ import type { RepeatMode } from '../../core/repeats.ts';
 import type { NoteTiming } from '../../core/rhythm.ts';
 import type { HandSelection } from '../../core/score.ts';
 import type { MemoryStage } from '../../core/memory.ts';
+import type { PatternId } from '../../core/progressions.ts';
 import { TAKE_CHUNK_EVENTS, takeChunkId, type TakeState } from '../../core/takes.ts';
 import type { PracticeStore } from '../practice/store.ts';
 import { takeDone, type Run } from './run.ts';
@@ -24,6 +25,8 @@ export interface RunContext {
   repeats: RepeatMode;
   tempo: number;
   mode?: 'rhythm' | 'memory';
+  /** The left hand made from the symbols, when it is. */
+  leftHand?: PatternId;
 }
 
 /** One step as a run hands it to the recorder. */
@@ -154,6 +157,7 @@ export function useRunRecorder(
           tempo: c.tempo,
           startedAt: r.startedEpoch ?? record.epoch - record.ms,
           ...(c.mode && { mode: c.mode }),
+          ...(c.leftHand && { leftHand: c.leftHand }),
         };
       }
       const step: PieceStep = {

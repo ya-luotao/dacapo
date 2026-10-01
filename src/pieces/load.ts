@@ -3,7 +3,7 @@
 import { musicXmlFromBytes, parseMusicXml, ScoreError } from '../core/musicxml.ts';
 import type { Score, StaffHands } from '../core/score.ts';
 
-const parseXml = (xml: string) => new DOMParser().parseFromString(xml, 'application/xml');
+export const parseXml = (xml: string) => new DOMParser().parseFromString(xml, 'application/xml');
 
 export function readScore(xml: string, hands: StaffHands | null = null): Score {
   return parseMusicXml(parseXml(xml), { hands });

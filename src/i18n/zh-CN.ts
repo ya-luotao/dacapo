@@ -1144,6 +1144,9 @@ export const zhCN: Dictionary = {
   'pieces.level.0': '入门',
   'pieces.level.n': '{n} 级',
   'pieces.levels.help': '级别只是大致参考，按常见考级的梯度划分。',
+  'pieces.leadSheets': '旋律谱',
+  'pieces.leadSheets.help':
+    '带和弦记号的旋律。右手弹旋律，左手由和弦记号生成，伴奏型在“选项”里选。',
   'pieces.edition': '来源：{source}。{licence}。',
   'library.beethoven-ode-to-joy.title': '欢乐颂',
   'library.beethoven-ode-to-joy.composer': '贝多芬',
@@ -1336,6 +1339,7 @@ export const zhCN: Dictionary = {
   'pieces.hand.right': '右手',
   'pieces.hand.left': '左手',
   'pieces.hand.both': '双手',
+  'pieces.hand.none': '这首曲子没有这只手要弹的音。',
   'pieces.loop': '循环',
   'pieces.loop.from': '循环起始小节',
   'pieces.loop.to': '循环结束小节',
@@ -1346,6 +1350,12 @@ export const zhCN: Dictionary = {
   'pieces.repeats': '反复',
   'pieces.repeats.play': '弹奏',
   'pieces.repeats.skip': '跳过',
+  'pieces.leftHand': '左手',
+  'pieces.leftHand.written': '按谱面',
+  'pieces.leftHand.symbols': '由和弦记号生成',
+  'pieces.leftHand.help':
+    '按谱面：弹乐谱上写的左手。由和弦记号生成：按所选伴奏型生成左手，写在低音谱表上，像谱面上的左手一样练习、聆听和记录。每种伴奏型各有自己的记录。',
+  'pieces.leftHand.none': '这里没有写左手。在“选项”的“左手”里，可以由和弦记号生成一个。',
   'pieces.showKeys': '显示琴键',
   'pieces.showKeys.help':
     '在下方的键盘上标出当前这一步要弹的键；装饰音里的其他音用较浅的虚线框标出。',
@@ -1697,6 +1707,9 @@ export const zhCN: Dictionary = {
   'pieces.runs.loading': '正在读取这一遍…',
   'pieces.runs.noTake': '这一遍没有保存弹奏的记录：它是在 dacapo 开始保存演奏之前弹的。',
   'pieces.runs.changed': '这首曲目的音符在这一遍之后改过了，弹奏的记录和它对不上。',
+  'pieces.runs.leftHand': '左手：{pattern}',
+  'pieces.runs.otherLeftHand':
+    '这一遍用的是另一种左手，音符和现在显示的不一样。在“选项”里选回那种左手，才能打开它。',
 
   'pieces.playback': '回放',
   'pieces.playback.help':

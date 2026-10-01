@@ -129,7 +129,8 @@ for drawing.
   (`scripts/pieces/`), and its notes are locked by a checksum test. Since H3 it also holds lead
   sheets (`leadSheet: true`): our own encodings of a public-domain print of a tune, with chord
   symbols of our own and an empty bass staff, proofread blind against the scan where no oracle
-  exists ([HARMONY.md](HARMONY.md), "Clarifications (decided during H3)").
+  exists ([HARMONY.md](HARMONY.md), "Clarifications (decided during H3)"). The Pieces page lists
+  them after the graded pieces, under their own heading.
 
 - **MIDI output (P2).** Input and output share one `MIDIAccess` (one permission prompt). The
   output is the one named like the connected keyboard unless the user picks another, or None; the
@@ -418,6 +419,19 @@ Planned with [EXPRESSION.md](EXPRESSION.md), whose takes these build on.
   Hesitation keeps counting wait mode's records only.
 - **The review schedule** counts a memory run to the end as a wait run (its wrong notes and its
   bars' times); prompts are not counted against it.
+
+## Lead sheets (H3 of [HARMONY.md](HARMONY.md))
+
+What a lead sheet changes on the practice page; the rules are HARMONY.md's ("Clarifications
+(decided during H3)").
+
+- **Left hand** (Options, when the score has chord symbols): as written, or a pattern made from
+  the symbols and written into the score on the bass staff. The piece with a pattern is another
+  piece of notes: it has its own checksum, so its steps, weak bars, steady bars and takes are its
+  own, and a run's session carries the pattern (`leftHand`).
+- **Hands.** A hand the piece has no notes for is disabled, and a piece last practised with it is
+  practised with the other one; with a lead sheet's left hand as written, Both is the right hand.
+- **The review schedule** uses the written piece's facts (the melody): see HARMONY.md.
 
 ## Milestones
 

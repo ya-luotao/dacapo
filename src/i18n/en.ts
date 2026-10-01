@@ -1190,6 +1190,9 @@ export const en = {
   'pieces.level.0': 'Initial',
   'pieces.level.n': 'Grade {n}',
   'pieces.levels.help': 'Grades are a rough guide, in the steps of the usual graded exams.',
+  'pieces.leadSheets': 'Lead sheets',
+  'pieces.leadSheets.help':
+    'A tune with chord symbols above it. Play the tune, and let the left hand be made from the symbols, in a pattern you choose under Options.',
   'pieces.edition': 'Source: {source}. {licence}.',
   'library.beethoven-ode-to-joy.title': 'Ode to Joy',
   'library.beethoven-ode-to-joy.composer': 'Ludwig van Beethoven',
@@ -1400,6 +1403,7 @@ export const en = {
   'pieces.hand.right': 'Right',
   'pieces.hand.left': 'Left',
   'pieces.hand.both': 'Both',
+  'pieces.hand.none': 'This piece has nothing for this hand.',
   'pieces.loop': 'Loop',
   'pieces.loop.from': 'Loop from bar',
   'pieces.loop.to': 'Loop to bar',
@@ -1410,6 +1414,13 @@ export const en = {
   'pieces.repeats': 'Repeats',
   'pieces.repeats.play': 'Play',
   'pieces.repeats.skip': 'Skip',
+  'pieces.leftHand': 'Left hand',
+  'pieces.leftHand.written': 'As written',
+  'pieces.leftHand.symbols': 'From the chord symbols',
+  'pieces.leftHand.help':
+    'As written: the left hand the score has. From the chord symbols: a pattern made from them and written on the bass staff, to practise, hear and record like a written left hand. Each pattern keeps its own records.',
+  'pieces.leftHand.none':
+    'No left hand is written here. Under Options, Left hand makes one from the chord symbols.',
   'pieces.showKeys': 'Show keys',
   'pieces.showKeys.help':
     'Marks the keys of the current step on the keyboard below, and an ornament’s other notes with a lighter, dashed outline.',
@@ -1780,6 +1791,9 @@ export const en = {
     'This run kept no record of how it was played: it was played before dacapo kept takes.',
   'pieces.runs.changed':
     'The notes of this piece have changed since this run, so what was played no longer matches them.',
+  'pieces.runs.leftHand': 'Left hand: {pattern}',
+  'pieces.runs.otherLeftHand':
+    'This run was played with another left hand, so its notes are not the ones shown. Choose that left hand under Options to open it.',
 
   'pieces.playback': 'Play back',
   'pieces.playback.help':

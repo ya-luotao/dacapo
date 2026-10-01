@@ -101,7 +101,9 @@ practising the notes you are slowest at. Progress is visible day by day.
   coloured by how fast you usually find it and marked with how often you missed it lately,
   with the three weakest notes named and a table view.
 - **Pieces, in wait mode and in rhythm.** Twenty-one public-domain works from Initial to about grade 5,
-  eight of them lead sheets (a folk song, hymn or spiritual with chord symbols of our own),
+  eight of them lead sheets: a folk song, hymn or spiritual with chord symbols of our own, its left
+  hand made from the symbols in a pattern you choose (block chords, Alberti bass, a waltz, stride)
+  and written on the bass staff;
   plus your own MusicXML (`.musicxml`, `.xml` or `.mxl`, for example from MuseScore). The cursor waits on
   the real score until you have played the right keys. You can practise one hand or both, loop a
   few bars, start anywhere, and play or skip the repeats. Your instrument (over USB MIDI) or the

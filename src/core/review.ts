@@ -94,7 +94,8 @@ export function evenBars(steps: readonly PieceStep[]): boolean {
 /**
  * How a run to the end went. Wrong and missed notes are counted against the notes it played: in
  * rhythm mode those due; in wait mode the piece's keys for its repeats (its step count when the
- * piece's facts do not have them yet). A run whose step records are not here can keep the
+ * piece's facts do not have them yet, and for a run with a left hand made from the chord symbols,
+ * whose keys the piece's facts do not count). A run whose step records are not here can keep the
  * interval, but not move it up.
  */
 export function gradeRun(
@@ -103,7 +104,8 @@ export function gradeRun(
   facts: Pick<PieceFacts, 'notes'>,
 ): ReviewGrade {
   const rhythm = session.mode === 'rhythm' ? session.rhythm : undefined;
-  const notes = rhythm ? rhythm.notes : (facts.notes?.[session.repeats] ?? session.steps);
+  const written = session.leftHand === undefined ? facts.notes?.[session.repeats] : undefined;
+  const notes = rhythm ? rhythm.notes : (written ?? session.steps);
   const errors = session.wrong + (rhythm ? rhythm.notes - rhythm.hits : 0);
   if (notes <= 0) return 'same';
   if (errors * POOR_NOTES > notes) return 'worse';

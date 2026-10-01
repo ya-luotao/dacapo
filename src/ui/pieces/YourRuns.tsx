@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { takeEvents, type TakeEvent } from '../../core/takes.ts';
 import { analyzeExpression, type Melody } from '../../core/expression.ts';
 import type { PieceSessionRecord } from '../../core/log.ts';
+import type { LeftHandChoice } from '../../core/leadSheet.ts';
 import type { Score } from '../../core/score.ts';
 import { useT } from '../../i18n/index.ts';
 import { useLogFormat } from '../progress/format.ts';
@@ -26,6 +27,7 @@ export interface PastTake {
 export function YourRuns({
   pieceId,
   checksum,
+  leftHand,
   score,
   format,
   melody,
@@ -37,6 +39,8 @@ export function YourRuns({
 }: {
   pieceId: string;
   checksum: string;
+  /** The left hand the piece is practised with now: a run with another has other notes. */
+  leftHand: LeftHandChoice;
   score: Score;
   format: PieceFormat;
   melody: Melody;
@@ -57,6 +61,10 @@ export function YourRuns({
 
   async function playBack(run: PieceSessionRecord) {
     if (!onPlayBack) return;
+    if ((run.leftHand ?? 'written') !== leftHand) {
+      setNotice({ id: run.id, text: t('pieces.runs.otherLeftHand') });
+      return;
+    }
     setNotice({ id: run.id, text: t('pieces.runs.loading') });
     const chunks = await store.takes({ sessionId: run.id }).catch(() => null);
     if (!chunks || chunks.length === 0) {
@@ -106,6 +114,7 @@ export function YourRuns({
         <PastRun
           run={open}
           checksum={checksum}
+          otherLeftHand={(open.leftHand ?? 'written') !== leftHand}
           score={score}
           format={format}
           melody={melody}
@@ -141,6 +150,7 @@ export function YourRuns({
 function PastRun({
   run,
   checksum,
+  otherLeftHand,
   score,
   format,
   melody,
@@ -151,6 +161,8 @@ function PastRun({
 }: {
   run: PieceSessionRecord;
   checksum: string;
+  /** The run was played with another left hand than the piece has now. */
+  otherLeftHand: boolean;
   score: Score;
   format: PieceFormat;
   melody: Melody;
@@ -178,6 +190,7 @@ function PastRun({
         : null,
     [take, score, run, melody],
   );
+  if (otherLeftHand) return <p className="muted">{t('pieces.runs.otherLeftHand')}</p>;
   if (take.state === 'loading') return <p className="muted">{t('pieces.runs.loading')}</p>;
   if (take.state === 'none') return <p className="muted">{t('pieces.runs.noTake')}</p>;
   if (take.state === 'changed') return <p className="muted">{t('pieces.runs.changed')}</p>;

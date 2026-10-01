@@ -249,13 +249,13 @@ export const RIGHT_HIGH = 84;
 /** Where the middle of a right-hand chord is best placed: G4. */
 const RIGHT_CENTER = 67;
 /** C2: the bass of the low patterns (root and fifth, waltz, arpeggio, stride) from here … */
-const BASS_LOW = 36;
+export const BASS_LOW = 36;
 /** … and F2 for the chordal ones (the chord on the 1, Alberti), which sit an octave higher. */
-const CHORD_BASS_LOW = 41;
+export const CHORD_BASS_LOW = 41;
 /** B3: the top of the waltz's and the stride's chords on the off-beats. */
-const OFFBEAT_HIGH = 59;
+export const OFFBEAT_HIGH = 59;
 /** F♯3: where those chords are best placed. */
-const OFFBEAT_CENTER = 54;
+export const OFFBEAT_CENTER = 54;
 
 const STEP_PC: Readonly<Record<Letter, number>> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 

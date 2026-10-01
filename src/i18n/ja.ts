@@ -1184,6 +1184,9 @@ export const ja: Dictionary = {
   'pieces.level.n': 'グレード{n}',
   'pieces.levels.help':
     'グレードはおおよその難易度の目安で、数字が大きいほど難しくなります。英国のABRSMなど、一般的なグレード試験の段階に合わせています。',
+  'pieces.leadSheets': 'リードシート',
+  'pieces.leadSheets.help':
+    'コードネームのついたメロディーです。右手でメロディーを弾き、左手はコードネームから作られます。伴奏形は「オプション」で選べます。',
   'pieces.edition': '出典：{source}。{licence}。',
   'library.beethoven-ode-to-joy.title': '歓喜の歌',
   'library.beethoven-ode-to-joy.composer': 'ベートーヴェン',
@@ -1394,6 +1397,7 @@ export const ja: Dictionary = {
   'pieces.hand.right': '右手',
   'pieces.hand.left': '左手',
   'pieces.hand.both': '両手',
+  'pieces.hand.none': 'この曲には、この手で弾く音がありません。',
   'pieces.loop': 'ループ',
   'pieces.loop.from': 'ループ開始小節',
   'pieces.loop.to': 'ループ終了小節',
@@ -1404,6 +1408,13 @@ export const ja: Dictionary = {
   'pieces.repeats': 'くり返し',
   'pieces.repeats.play': '弾く',
   'pieces.repeats.skip': '飛ばす',
+  'pieces.leftHand': '左手',
+  'pieces.leftHand.written': '楽譜どおり',
+  'pieces.leftHand.symbols': 'コードネームから',
+  'pieces.leftHand.help':
+    '楽譜どおり：楽譜に書かれた左手を弾きます。コードネームから：選んだ伴奏形で左手を作り、ヘ音譜表に書きます。書かれた左手と同じように練習し、聴き、記録できます。記録は伴奏形ごとに別になります。',
+  'pieces.leftHand.none':
+    'ここには左手が書かれていません。「オプション」の「左手」で、コードネームから作れます。',
   'pieces.showKeys': '弾く鍵盤を表示',
   'pieces.showKeys.help':
     'いま弾く鍵盤を、下の鍵盤図で示します。装飾音のほかの音は、薄い点線の枠で示します。',
@@ -1777,6 +1788,9 @@ export const ja: Dictionary = {
   'pieces.runs.noTake':
     'この回は弾いた内容の記録がありません。dacapoが演奏を記録するようになる前の回です。',
   'pieces.runs.changed': 'この回のあとで曲の音符が変わったため、弾いた内容と合いません。',
+  'pieces.runs.leftHand': '左手：{pattern}',
+  'pieces.runs.otherLeftHand':
+    'この回は別の左手で弾いたので、いま表示されている音符とは違います。「オプション」でその左手を選ぶと開けます。',
 
   'pieces.playback': '演奏を再生',
   'pieces.playback.help':

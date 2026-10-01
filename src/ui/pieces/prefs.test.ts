@@ -36,6 +36,8 @@ describe('per-piece preferences', () => {
       melody: 'top',
       trillStart: 'upper',
       memoryStage: 'phrases',
+      leftHand: null,
+      practised: null,
     });
     // A piece not practised yet starts with the hands chosen last anywhere, at 100 %, waiting,
     // the melody on top of the right hand, trills on their note.
@@ -46,6 +48,8 @@ describe('per-piece preferences', () => {
       melody: 'right',
       trillStart: 'principal',
       memoryStage: 'alternate',
+      leftHand: null,
+      practised: null,
     });
     expect(readPiecePrefs('ode')).toEqual({
       hands: 'left',
@@ -54,10 +58,32 @@ describe('per-piece preferences', () => {
       melody: 'right',
       trillStart: 'principal',
       memoryStage: 'alternate',
+      leftHand: null,
+      practised: null,
     });
     writePiecePrefs('ode', { hands: 'both' });
     expect(readPiecePrefs('minuet').hands).toBe('left');
     expect(localStorage.getItem(HANDS_PREF)).toBe('both');
+  });
+
+  it('remember the left hand chosen, and the facts of the piece practised with it (H3)', () => {
+    expect(readPiecePrefs('twinkle').leftHand).toBeNull();
+    const practised = { checksum: '8bfe243f', bars: { right: 24, left: 24, both: 24 } };
+    writePiecePrefs('twinkle', { leftHand: 'stride', practised });
+    expect(readPiecePrefs('twinkle')).toMatchObject({ leftHand: 'stride', practised });
+    writePiecePrefs('twinkle', { leftHand: 'written', practised: null });
+    expect(readPiecePrefs('twinkle')).toMatchObject({ leftHand: 'written', practised: null });
+    expect(
+      parsePiecePrefs(
+        JSON.stringify({
+          a: { leftHand: 'polka', practised: { checksum: 'xyz', bars: {} } },
+          b: {
+            leftHand: 'waltz',
+            practised: { checksum: '0123abcd', bars: { right: 1, left: 2 } },
+          },
+        }),
+      ),
+    ).toEqual({ b: { leftHand: 'waltz' } });
   });
 
   it('are forgotten with their piece', () => {
@@ -97,6 +123,8 @@ describe('per-piece preferences', () => {
       melody: 'right',
       trillStart: 'principal',
       memoryStage: 'alternate',
+      leftHand: null,
+      practised: null,
     });
   });
 });

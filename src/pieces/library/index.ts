@@ -46,7 +46,8 @@ export interface BuiltInPiece {
   /**
    * A lead sheet (docs/HARMONY.md, "Lead sheets (H3)"): a melody on the treble staff with chord
    * symbols of our own, the bass staff empty for a left hand made from the symbols; absent for a
-   * piece written out for both hands.
+   * piece written out for both hands. The Pieces page lists the lead sheets under their own
+   * heading.
    */
   leadSheet?: true;
   /** Checksum and bar counts, for the library without loading the file (locked by a test). */

@@ -15,8 +15,18 @@ sessions go in the same lists), the
 click's tempo and grid of scale runs played with it (from version 7), and the takes of piece runs
 (from version 8). Version 1 to 7 files still import.
 
-### Lead sheets in the library (H3, [docs/HARMONY.md](docs/HARMONY.md))
+### Lead sheets (H3, [docs/HARMONY.md](docs/HARMONY.md))
 
+- **The left hand from the chord symbols.** A piece with chord symbols has a **Left hand** option:
+  as written, or a pattern made from the symbols — block chords, root and fifth, a waltz, Alberti
+  bass, an arpeggio or stride, whichever fit its meter (2/4, 3/4, 4/4, 6/8 …). The pattern is
+  written on the bass staff under the melody, always below it, so you practise it, hear it (Listen,
+  or as the other hand), and have it judged and recorded like a written left hand. A lead sheet
+  starts with block chords. Each pattern keeps its own records, weak bars and runs.
+- **Lead sheets have their own heading** on the Pieces page, after the graded pieces, each with
+  its level. Imported MusicXML with chord symbols gets the same Left hand option.
+- A hand a piece has no notes for can no longer be chosen.
+- A run's session carries its left hand (`leftHand`); `SYNC_SCHEMA` 18.
 - **Eight lead sheets** join the built-in pieces: a public-domain tune on the treble staff with
   chord symbols of our own (MIT) above it, the bass staff left for a left hand made from the
   symbols. Twinkle, Twinkle, Little Star, Row Your Boat and Auld Lang Syne from the Franklin Square

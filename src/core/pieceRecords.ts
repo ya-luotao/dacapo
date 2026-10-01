@@ -10,6 +10,7 @@ import { performanceOrder, playOrder } from './repeats.ts';
 import { buildSteps, type HandSelection, type Score } from './score.ts';
 import type { BarLoop } from './wait.ts';
 import type { MemoryStage } from './memory.ts';
+import type { PatternId } from './progressions.ts';
 
 export const HAND_SELECTIONS: readonly HandSelection[] = ['right', 'left', 'both'];
 
@@ -81,6 +82,12 @@ export interface PieceRunHeader {
   /** The first key of the run; in rhythm mode, the first step due. */
   startedAt: number;
   mode?: 'rhythm' | 'memory';
+  /**
+   * The left hand was made from the chord symbols, in this pattern (docs/HARMONY.md, H3); absent
+   * when it was played as written. The checksum of such a run's steps is that of the notes with
+   * this left hand.
+   */
+  leftHand?: PatternId;
 }
 
 /** A rhythm run's notes: due, played within their window, and within `IN_TIME_MS`. */

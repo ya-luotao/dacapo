@@ -34,6 +34,9 @@ export function useRunFacts(): (run: PieceSessionRecord) => string {
           })
         : t(run.mode === 'rhythm' ? 'pieces.mode.rhythm' : 'pieces.mode.wait'),
       t(`progress.session.hands.${run.hands}`),
+      ...(run.leftHand
+        ? [t('pieces.runs.leftHand', { pattern: t(`harmony.pattern.${run.leftHand}`) })]
+        : []),
       run.loop
         ? run.loop.fromLabel === run.loop.toLabel
           ? t('progress.session.bar', { bar: run.loop.fromLabel })
