@@ -15,6 +15,7 @@ import { EmptyState } from '../EmptyState.tsx';
 import { usePractice, usePracticeStore, useStorageStatus } from '../practice/context.ts';
 import { useNow } from '../progress/useNow.ts';
 import { useAssignmentFormat } from './format.ts';
+import { PrintButton } from './PrintButton.tsx';
 import { KeptReports, SendReport } from './ReportView.tsx';
 import { ShareBox } from './ShareBox.tsx';
 import { TaskList } from './TaskList.tsx';
@@ -68,7 +69,7 @@ function Share({ record }: { record: StoredAssignment }) {
   );
   const needsFile = carried.pieces.length > 0 || carried.missing.length > 0;
   return (
-    <section className="assignment-section" aria-labelledby={`${id}-title`}>
+    <section className="assignment-section no-print" aria-labelledby={`${id}-title`}>
       <h2 id={`${id}-title`}>{t('assignments.share')}</h2>
       <ShareBox
         shared={shared}
@@ -172,6 +173,7 @@ export function AssignmentPage({ id }: { id: string }) {
             {t(following ? 'assignments.unfollow' : 'assignments.follow')}
           </button>
         )}
+        <PrintButton />
         <button
           type="button"
           className="button-link is-danger"

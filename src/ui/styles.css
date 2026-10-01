@@ -13071,3 +13071,213 @@ h2.assignment-name:focus {
 .home-assignment-more {
   margin: 0.25rem 0 0;
 }
+
+/* On paper (docs/ASSIGNMENTS.md, "On paper"): an assignment or a report printed, in black on white
+   whatever the theme, without the header, the footer, the buttons and the ways to share it. */
+
+/* What only paper shows: what a kept report answers, when it is printed alone. */
+.print-only {
+  display: none;
+}
+
+@page {
+  margin: 16mm 14mm 18mm;
+
+  /* The page and how many there are. Where a browser draws this box it leaves out its own header
+     and footer, and with them the address of the page (a link's whole assignment). */
+  @bottom-right {
+    content: counter(page) ' / ' counter(pages);
+    font:
+      9pt 'Source Sans 3',
+      system-ui,
+      sans-serif;
+  }
+}
+
+@media print {
+  /* After the themes and as specific as they are, so a dark page prints white too. */
+  :root:not([data-theme='light']),
+  :root[data-theme] {
+    color-scheme: light;
+    --bg: #fff;
+    --surface: #fff;
+    --sunk: #fff;
+    --text: #000;
+    --text-muted: #000;
+    --border: #000;
+    --control: #000;
+    --accent: #000;
+    --accent-hover: #000;
+    --accent-contrast: #fff;
+    --accent-soft: #fff;
+    --ok: #000;
+    --warn: #000;
+    --warn-soft: #fff;
+    --warn-rule: #000;
+    --bad: #000;
+    --ok-soft: #fff;
+    --bad-soft: #fff;
+    --shadow-sheet: none;
+    --shadow-pop: none;
+    /* Paper is read closer than a screen: 12 px to the rem is about 10.5 pt text. */
+    font-size: 75%;
+  }
+
+  body {
+    min-height: 0;
+    overflow: visible;
+    background: #fff;
+  }
+
+  #root {
+    display: block;
+    min-height: 0;
+  }
+
+  .main {
+    max-width: none;
+    padding: 0;
+  }
+
+  .header,
+  .footer,
+  .storage-notice,
+  .no-print,
+  .piece-back,
+  .actions,
+  .button,
+  .button-link,
+  .help,
+  .data-message,
+  .task-missing,
+  .your-piece-panel,
+  .assignments-open {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* The sheet is the page: no card, no shadow, the full width of the paper. */
+  .assignments,
+  .assignment,
+  .assignment-preview {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  /* A link or a file opened among the lists: the sheet alone. */
+  .assignments:has(> .assignment-preview) > :not(.assignment-preview) {
+    display: none;
+  }
+
+  /* The reports kept on an assignment are no part of it on paper; each is printed alone
+     (ui/assignments/print.ts marks it), and then nothing of the page but what holds it. */
+  :root:not([data-print='part']) .assignment-reports {
+    display: none;
+  }
+
+  :root[data-print='part']
+    .main
+    :not(:has([data-print-part]), [data-print-part], [data-print-part] *) {
+    display: none;
+  }
+
+  .assignment-reports,
+  .kept-reports,
+  .kept-reports > li {
+    margin: 0;
+    border: 0;
+  }
+
+  .kept-reports summary {
+    padding: 0;
+  }
+
+  .kept-reports summary::before {
+    display: none;
+  }
+
+  /* What it answers, set as the sheet of a report opened from a link sets it. */
+  .kept-reports summary .eyebrow {
+    margin-bottom: 0.5rem;
+  }
+
+  .kept-reports summary .assignment-name {
+    font-family: var(--font-serif);
+    font-size: clamp(1.75rem, 1.5rem + 1vw, 2.25rem);
+    font-weight: 500;
+    line-height: 1.15;
+    letter-spacing: -0.016em;
+  }
+
+  .kept-reports summary .assignment-name:is(:lang(zh), :lang(ja), :lang(ko)) {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .kept-reports summary .assignment-meta {
+    margin-top: 0.5rem;
+  }
+
+  .kept-reports details > .report {
+    margin: 0;
+  }
+
+  .assignment-section {
+    margin-top: 2rem;
+  }
+
+  /* Without its button a task is its tick, its words and its figure, from edge to edge. */
+  .task {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    padding-inline: 0;
+  }
+
+  /* A heading stays with what it heads, and a task is never split across two pages. */
+  .assignment-name,
+  .assignment-meta,
+  .assignment-section h2,
+  .report-days .eyebrow {
+    break-after: avoid;
+  }
+
+  .tasks > li,
+  .assignment-note,
+  .assignment-pieces li {
+    break-inside: avoid;
+  }
+
+  /* Backgrounds are not printed: a tick is its box and its stroke, in ink. */
+  .task-tick,
+  .task-tick.is-met {
+    border-color: #000;
+    background: none;
+    color: #000;
+  }
+
+  /* A day's bar is drawn with a border for the same reason, on a hairline for the scale. */
+  .report-bar {
+    height: auto;
+    border-bottom: 1px solid #000;
+    border-radius: 0;
+    background: none;
+  }
+
+  .report-bar::after {
+    content: '';
+    display: block;
+    width: calc(var(--share) * 100%);
+    border-top: 0.5rem solid #000;
+  }
+}

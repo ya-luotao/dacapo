@@ -15,6 +15,16 @@ click's tempo and grid of scale runs played with it (from version 7), the takes 
 (from version 8), and assignments and kept reports (from version 9). Version 1 to 8 files still
 import.
 
+### Assignments on paper (G6b, [docs/ASSIGNMENTS.md](docs/ASSIGNMENTS.md))
+
+- **Print** on an assignment's page and on a report: the browser's own print dialog, and a page
+  laid out for paper, in black on white whatever the theme, without the header, the buttons and
+  the ways to share it. The checklist prints with its ticks and figures as they stand, a report
+  with each task's figures and the minutes of each day. A task is never split across two pages,
+  and the pages are numbered where the browser can.
+- A report kept under an assignment is printed alone.
+- Not in the Apple apps, whose web view does not print.
+
 ### A run as a MIDI file (G6b, [docs/PIECES.md](docs/PIECES.md))
 
 - **Save as MIDI**, beside Play back on both summaries and on each of Your runs, and on

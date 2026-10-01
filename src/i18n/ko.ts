@@ -2127,6 +2127,7 @@ export const ko: Dictionary = {
   'assignments.unfollow': '“내가 할 과제”에서 빼기',
   'assignments.unfollow.help':
     '“내가 할 과제”에도 표시돼 있어요. 빼더라도 연습 기록은 그대로 남아요.',
+  'assignments.print': '인쇄',
   'assignments.delete': '삭제',
   'assignments.delete.confirm':
     '“{title}” 과제를 삭제할까요? 그 아래 보관한 보고서도 함께 삭제돼요. 이미 공유한 과제는 받은 사람에게 그대로 남아요.',

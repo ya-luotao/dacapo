@@ -2052,6 +2052,7 @@ export const zhCN: Dictionary = {
   'assignments.follow.help': '让它也出现在“我要做的”里，清单按你自己的练习来算。',
   'assignments.unfollow': '从“我要做的”里拿掉',
   'assignments.unfollow.help': '它也列在“我要做的”里。拿不拿掉，你的练习记录都还在。',
+  'assignments.print': '打印',
   'assignments.delete': '删除',
   'assignments.delete.confirm':
     '删除“{title}”？它下面保留的报告会一起删除。已经分享出去的，对方那里还会保留。',

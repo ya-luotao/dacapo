@@ -2054,6 +2054,7 @@ export const zhTW: Dictionary = {
   'assignments.follow.help': '讓它也出現在「我要做的」裡，清單依你自己的練習來算。',
   'assignments.unfollow': '從「我要做的」裡拿掉',
   'assignments.unfollow.help': '它也列在「我要做的」裡。拿不拿掉，你的練習紀錄都還在。',
+  'assignments.print': '列印',
   'assignments.delete': '刪除',
   'assignments.delete.confirm':
     '要刪除「{title}」嗎？它下面保留的報告會一起刪除。已經分享出去的，對方那裡還會保留。',

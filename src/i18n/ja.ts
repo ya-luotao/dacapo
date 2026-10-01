@@ -2150,6 +2150,7 @@ export const ja: Dictionary = {
   'assignments.unfollow': '「取り組む課題」から外す',
   'assignments.unfollow.help':
     '「取り組む課題」にも表示されています。外しても練習の記録は残ります。',
+  'assignments.print': '印刷',
   'assignments.delete': '削除',
   'assignments.delete.confirm':
     '「{title}」を削除しますか？保存したレポートも一緒に削除されます。すでに共有した課題は、相手の手元に残ります。',

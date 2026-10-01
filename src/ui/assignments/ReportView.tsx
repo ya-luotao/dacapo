@@ -16,6 +16,7 @@ import { readPref, writePref } from '../../lib/localPrefs.ts';
 import { usePractice, usePracticeStore, useStorageStatus } from '../practice/context.ts';
 import { useLogFormat } from '../progress/format.ts';
 import { useAssignmentFormat } from './format.ts';
+import { PrintButton } from './PrintButton.tsx';
 import { ShareBox } from './ShareBox.tsx';
 import { TaskList } from './TaskList.tsx';
 import { NAME_PREF } from './tasks.ts';
@@ -144,6 +145,7 @@ export function ReportPreview({ report }: { report: Report }) {
             {t('assignments.report.assignment')}
           </Link>
         )}
+        <PrintButton />
         <Link href="/assignments" className="button">
           {t('assignments.back')}
         </Link>
@@ -164,16 +166,19 @@ export function KeptReports({ assignmentId }: { assignmentId: string }) {
   const [deleting, setDeleting] = useState<string | null>(null);
   const reports = storedReports(assignments).filter((r) => r.report.assignmentId === assignmentId);
   return (
-    <section className="assignment-section" aria-labelledby={`${id}-title`}>
+    <section className="assignment-section assignment-reports" aria-labelledby={`${id}-title`}>
       <h2 id={`${id}-title`}>{t('assignments.reports')}</h2>
       {reports.length === 0 ? (
         <p className="muted">{t('assignments.reports.empty')}</p>
       ) : (
         <ul className="kept-reports">
           {reports.map(({ id: reportId, report }) => (
-            <li key={reportId}>
+            <li key={reportId} className="kept-report">
               <details>
                 <summary>
+                  {/* On paper a report stands alone, so it says what it answers. */}
+                  <span className="eyebrow print-only">{t('assignments.report.eyebrow')}</span>
+                  <span className="assignment-name print-only">{report.title}</span>
                   <ReportMeta report={report} />
                 </summary>
                 <ReportView report={report} />
@@ -192,13 +197,16 @@ export function KeptReports({ assignmentId }: { assignmentId: string }) {
                       </button>
                     </>
                   ) : (
-                    <button
-                      type="button"
-                      className="button-link is-danger"
-                      onClick={() => setDeleting(reportId)}
-                    >
-                      {t('assignments.report.delete')}
-                    </button>
+                    <>
+                      <PrintButton part=".kept-report" />
+                      <button
+                        type="button"
+                        className="button-link is-danger"
+                        onClick={() => setDeleting(reportId)}
+                      >
+                        {t('assignments.report.delete')}
+                      </button>
+                    </>
                   )}
                 </div>
               </details>
@@ -246,7 +254,7 @@ export function SendReport({
   const shared: Shared | null = report && { kind: 'report', report };
 
   return (
-    <section className="assignment-section" aria-labelledby={`${id}-title`}>
+    <section className="assignment-section no-print" aria-labelledby={`${id}-title`}>
       <h2 id={`${id}-title`}>{t('assignments.report.title')}</h2>
       <p className="help">{t('assignments.report.help')}</p>
       {!made ? (

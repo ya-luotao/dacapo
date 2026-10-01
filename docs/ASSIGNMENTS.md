@@ -232,7 +232,7 @@ version: 1, report }`; a report may be 60 KB). The link follows the name and the
 
 ## On paper (G6b)
 
-Status: planned. A teacher who sets a week often writes it into a notebook as well, and a report
+Status: built. A teacher who sets a week often writes it into a notebook as well, and a report
 is read at the lesson, away from a screen.
 
 - **Print** on an assignment's page (its title, its dates, who set it, the note, every task with
@@ -242,8 +242,57 @@ is read at the lesson, away from a screen.
   page break, the link's address not printed.
 - Not offered in the Apple app, whose web view does not print; nothing else changes there.
 
+### Clarifications (decided during G6b)
+
+- **Where Print is.** Among the actions of an assignment's page; among those of a report opened
+  from a link or a file; and on each report kept under an assignment. An assignment opened from
+  a link has none before it is added (it has a page of its own once it is), though the browser's
+  own Print command prints its sheet as cleanly. The button is not there in the Apple app
+  (`currentShell`).
+- **What an assignment prints.** Its title, who set it, its dates and when it is due, its note,
+  and its tasks: as their maker sees them, or for whoever follows it the checklist with its
+  count, each task's tick and its figure as they stand. Not the way back, Send a report, Share,
+  the reports kept, the buttons, the help lines, or "this piece is not on this device".
+- **What a report prints.** "A report", the title, who it is from, the days, when it was made
+  and how many tasks are done, the note, every task with its tick and figures, and the minutes
+  of each day.
+- **A kept report is printed alone.** Its Print marks it for the stylesheet while the dialog is
+  open (`ui/assignments/print.ts`: `data-print="part"` on the document and `data-print-part`
+  on the report, taken off at `afterprint`), and nothing of the page is printed but what holds
+  it. On paper it is headed like a report opened from a link, with the title it carries, since
+  the assignment's own heading is not printed with it. The browser's Print command on an
+  assignment's page prints the assignment, without the reports kept under it.
+- **The stylesheet** is one `@media print` block and an `@page` rule at the end of
+  `ui/styles.css`. It sets the colour tokens to black on white after the themes and as
+  specifically as they do, so a dark page, chosen or the system's, prints white; text is set
+  at 12 px to the rem (about 10.5 pt); the header, the footer, the storage notice, every button,
+  the help lines and the status messages are left out of whatever page is printed; the sheet
+  loses its card and shadow and takes the paper's width. A heading stays with what it heads,
+  and a task (`.tasks > li`), the note and a file's piece are never split across two pages. Only
+  the assignment pages are laid out for paper.
+- **Without colour and without backgrounds.** Browsers leave backgrounds out of print unless
+  the reader asks for them, so nothing on paper depends on one: a tick is its box and its stroke
+  in ink (a task done is a ticked box, and its figure says so in words: "3 of 3 runs"), and a
+  day's bar is drawn with a border on a hairline, its minutes in figures beside it. There are
+  no background images.
+- **Margins, page numbers and the page's address.** `@page` sets margins of 16, 14 and 18 mm
+  and a margin box at the bottom right with the page and how many there are ("2 / 3"). The
+  link's address in the share box is never printed: the share box is not. The address of the
+  page itself, which for a link opened is the whole assignment or report, is printed by the
+  browser in its own footer, not by the page, and a page cannot turn that off. In Chrome
+  (checked in 154) a margin box in the bottom margin takes the place of that footer, so the
+  address is not printed there; its header, the date and the page's title, stays when the reader
+  has headers and footers on. A browser without margin boxes (Safari and Firefox today) ignores
+  the box and prints its own header and footer as its dialog has them.
+- **Checked** as PDFs from Chrome on A4 with backgrounds off: an assignment set by me and
+  followed, a report opened from a link and from a file, a kept report alone, in the five
+  languages, from the light theme and from the dark one (chosen, and the system's), and an
+  assignment and a report of thirty tasks over three pages.
+- Nothing stored, synced or exported changes.
+
 ## Milestones
 
 1. ✓ **T1 Assignments** — the page, making and editing, the `assignments` store, links and files,
    opening, the checklist, starting a task, Home.
 2. ✓ **T2 Reports** — the report, sharing it, opening it next to its assignment.
+3. ✓ **G6b On paper** — Print on an assignment and on a report, and the print stylesheet.

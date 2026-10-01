@@ -2159,6 +2159,7 @@ export const en = {
   'assignments.unfollow': 'Take it out of For me',
   'assignments.unfollow.help':
     'It is listed under For me too. Your practice records stay either way.',
+  'assignments.print': 'Print',
   'assignments.delete': 'Delete',
   'assignments.delete.confirm':
     'Delete “{title}”? The reports kept under it go with it. Copies you have shared stay with whoever has them.',

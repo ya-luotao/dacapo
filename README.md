@@ -106,8 +106,8 @@ practising the notes you are slowest at. Progress is visible day by day.
   lesson, minutes a day. It is shared as a link or a file, without a server: the assignment is in
   the link itself. Whoever opens it gets a checklist that ticks itself from what they play, each
   task with a button that starts it with its settings. At the next lesson a report goes back the
-  same way: each task's figure, the best and the last run, the minutes of each day
-  ([docs/ASSIGNMENTS.md](docs/ASSIGNMENTS.md)).
+  same way: each task's figure, the best and the last run, the minutes of each day. Both can
+  be printed ([docs/ASSIGNMENTS.md](docs/ASSIGNMENTS.md)).
 - **Weakness heatmap.** Every note you have practised, on the grand staff or on the keyboard,
   coloured by how fast you usually find it and marked with how often you missed it lately,
   with the three weakest notes named and a table view.
