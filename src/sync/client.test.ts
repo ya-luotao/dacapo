@@ -20,6 +20,7 @@ import {
   sampleTheorySession,
   sampleRhythmSession,
   sampleSightSession,
+  sampleImprovSession,
   sampleRhythmEarSession,
   T0,
 } from '../storage/fixtures.ts';
@@ -749,6 +750,41 @@ describe('rhythm dictation', () => {
         .sessions.map((s) => s.id)
         .sort(),
     ).toEqual(['rd1', 'rd2']);
+  });
+});
+
+describe('improvising on Harmony', () => {
+  it('syncs a session as it grows, with its take, and pulls it again after a build that skipped it', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    await signIn(ipad);
+    await signIn(mac);
+    // Stored again as it goes: the copy with more notes is the later one.
+    const early = sampleImprovSession('im1', 4);
+    const { session, takes } = sampleImprovSession('im1', 8);
+    expect(session.figures.notes).toBeGreaterThan(early.session.figures.notes);
+    ipad.store.recordSession(early.session);
+    await ipad.client.syncNow();
+    ipad.store.recordSession(session);
+    for (const chunk of takes) ipad.store.recordTake(chunk);
+    await ipad.client.syncNow();
+    expect(service.body('sessions', 'im1')).toEqual(session);
+    expect(service.body('takes', takes[0]!.id)).toEqual(takes[0]);
+    await mac.client.syncNow();
+    expect(mac.store.getSnapshot().sessions).toEqual([session]);
+    expect(await mac.store.takes({ sessionId: 'im1' })).toEqual(takes);
+
+    // As a build before schema 15 left it: the session skipped, the cursor past it.
+    const state = (await mac.db.get('meta', SYNC_STATE_KEY)) as SyncState;
+    await mac.db.delete('sessions', session.id);
+    await mac.db.put('meta', { ...state, schema: 14 }, SYNC_STATE_KEY);
+    await mac.store.reloadAll();
+    const sync = vi.spyOn(service.api, 'sync');
+    await mac.client.syncNow();
+    expect(SYNC_SCHEMA).toBeGreaterThanOrEqual(15);
+    expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
+    expect(mac.store.getSnapshot().sessions).toEqual([session]);
   });
 });
 

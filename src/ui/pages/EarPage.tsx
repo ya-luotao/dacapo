@@ -26,7 +26,6 @@ import {
 } from '../../core/rhythmEar.ts';
 import { useT } from '../../i18n/index.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
-import { SETTLE_MS } from '../../output/output.ts';
 import { createEarController, type EarSound } from '../ear/controller.ts';
 import { EarSession } from '../ear/EarSession.tsx';
 import { EarSetup } from '../ear/EarSetup.tsx';
@@ -37,7 +36,7 @@ import { RhythmEarSession } from '../ear/RhythmEarSession.tsx';
 import { RhythmEarSummary } from '../ear/RhythmEarSummary.tsx';
 import { useInput } from '../input/context.ts';
 import { useMetronome } from '../metronome/context.ts';
-import { useOutputState } from '../output/context.ts';
+import { useOutputSound } from '../output/context.ts';
 import { CalibrationSheet } from '../pieces/RhythmParts.tsx';
 import { readClickVolume, readLatency } from '../pieces/rhythmPrefs.ts';
 import { createRhythmPlayer } from '../pieces/useRhythmPlayer.ts';
@@ -50,22 +49,6 @@ import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
 /** Offered once per browser, before the first run with a click (shared with Pieces and Read). */
 const CALIBRATION_OFFERED_PREF = 'dacapo.latency.offered';
 
-/**
- * Whether prompts can sound: an output is selected. Right after the app starts, "auto" may still
- * be waiting for MIDI (up to `SETTLE_MS`), so no output yet is not taken for none until then.
- */
-function useSound(): 'ready' | 'none' | 'waiting' {
-  const { selected, choice } = useOutputState();
-  const [settled, setSettled] = useState(() => performance.now() > SETTLE_MS + 500);
-  useEffect(() => {
-    if (settled) return;
-    const timer = setTimeout(() => setSettled(true), SETTLE_MS + 500 - performance.now());
-    return () => clearTimeout(timer);
-  }, [settled]);
-  if (selected) return 'ready';
-  return choice.kind === 'none' || settled ? 'none' : 'waiting';
-}
-
 export function EarPage() {
   const t = useT();
   const practice = usePracticeStore();
@@ -75,7 +58,7 @@ export function EarPage() {
   const { loaded } = useStorageStatus();
   const { hub, output, keyboard, monitor } = useInput();
   const metronome = useMetronome();
-  const sound = useSound();
+  const sound = useOutputSound();
   const [controller] = useState(() => {
     // A new prompt ends ours still sounding (`cut`), without resetting the instrument: the
     // player may still be holding keys or the pedal. Only stopping silences everything.

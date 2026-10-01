@@ -7,7 +7,7 @@ describe('harmony prefs', () => {
     expect(parseHarmonyPrefs('not json')).toEqual(DEFAULT_HARMONY_PREFS);
     expect(
       parseHarmonyPrefs(
-        JSON.stringify({ practice: 'improvise', progression: 'x', majorKey: 'C#', bpm: 81 }),
+        JSON.stringify({ practice: 'compose', progression: 'x', majorKey: 'C#', bpm: 81 }),
       ),
     ).toEqual(DEFAULT_HARMONY_PREFS);
   });

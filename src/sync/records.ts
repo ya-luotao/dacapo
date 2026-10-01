@@ -34,10 +34,11 @@ import {
  * the trill on a pair (S7, the same); 11, cadences by ear: answers and ear sessions of the family
  * `cadence` (older builds skip them); 13, sight-reading on Read: sessions of kind `sight` (older
  * builds skip them); 14, rhythm dictation on Ear: answers of the family `rhythmEar` and `ear`
- * sessions of that family (older builds skip them). Bump it whenever a build learns a collection,
- * a session kind, or records that older builds skipped.
+ * sessions of that family (older builds skip them); 15, improvising on Harmony: sessions of kind
+ * `improv` and their takes (older builds skip the sessions; the takes they keep). Bump it whenever
+ * a build learns a collection, a session kind, or records that older builds skipped.
  */
-export const SYNC_SCHEMA = 14;
+export const SYNC_SCHEMA = 15;
 
 // Records as the sync service carries them (docs/SYNC.md, "What syncs"): the stored record as it
 // is, except a piece, which goes without its MusicXML (sent as a file named by its hash) and

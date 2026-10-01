@@ -87,7 +87,11 @@ practising the notes you are slowest at. Progress is visible day by day.
   blues and more) are written out in any key with the left hand in a pattern (block chords,
   Alberti bass, waltz, stride …) and the right hand's chords voiced to move as little as they can,
   then practised as a piece; and on the Ear page, cadences by ear: authentic, plagal, half or
-  deceptive, named after four chords ([docs/HARMONY.md](docs/HARMONY.md)).
+  deceptive, named after four chords. **Improvise** over a backing in a loop (the 12-bar blues,
+  `I–vi–IV–V`, `ii–V–I`, a modal vamp; straight or swung): the chords shown as they come, a scale
+  marked on the keyboard, each note tinted as a chord tone, a scale tone or outside, call and
+  response, then feedback rather than a score and the take played back with its backing
+  ([docs/HARMONY.md](docs/HARMONY.md)).
 - **Practice log.** Flashcard sessions and free play are saved: minutes today, a daily streak
   (5 minutes a day), a 30-day chart and the list of sessions. **How you are doing** charts each
   practice week by week over half a year (reading speed, sight-reading, theory, ear, rhythm by ear,

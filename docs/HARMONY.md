@@ -1,10 +1,10 @@
 # dacapo — Harmony, accompaniment and making music specification
 
 Status: H1 is built (the Harmony page with Chords: chord symbols to play, five levels, their
-answers and progress) and H2 (Progressions, generated scores practised as pieces, and cadences
-by ear on the Ear page); H3 to H6 are planned (after [EXPRESSION.md](EXPRESSION.md)). This extends
-[MVP.md](MVP.md),
-[PIECES.md](PIECES.md) and [EAR.md](EAR.md); their principles and fixed decisions still apply
+answers and progress), H2 (Progressions, generated scores practised as pieces, and cadences by
+ear on the Ear page) and H6 (Improvise: backings to play over, feedback, call and response, the
+take played back with its backing); H3 to H5 are planned (after [EXPRESSION.md](EXPRESSION.md)).
+This extends [MVP.md](MVP.md), [PIECES.md](PIECES.md) and [EAR.md](EAR.md); their principles and fixed decisions still apply
 (staff first, measure don't guess, local data, English of record, every UI language, 3-day
 dependency cooldown, no backend).
 
@@ -49,7 +49,7 @@ ear is a family of the Ear page; transposing is an option of every piece.
   milestone. The page is `/harmony`, between Ear and Scales in the navigation (and the home page's
   contents); it moves into the More menu early on a narrow screen (priority 2.5). Chords is a
   section under its own heading; since H2 a chooser above the practices picks it or Progressions
-  (`ui/harmony/practices.ts`), and Improvise joins them with H6. Lesson 13 (chords) now practises
+  (`ui/harmony/practices.ts`), and Improvise joined them with H6. Lesson 13 (chords) now practises
   here.
 - **The symbols** are one style everywhere (`core/chordSymbols.ts`): a root (C D E F G A B, ♭ or ♯),
   then nothing (major), `m`, `°`, `+`, `sus2`, `sus4`, `7`, `maj7`, `m7`, `m7♭5`, `°7`, `6`, `m6`
@@ -259,6 +259,109 @@ ear is a family of the Ear page; transposing is an option of every piece.
   recorded as a take (EXPRESSION.md) and played back with its backing.
 - Sessions are kind `improv` (time and the figures), for the log and the streak.
 
+### Clarifications (decided during H6)
+
+- **The page.** Improvise is the chooser's third practice. Its choices are remembered in this
+  browser (`dacapo.harmony.improv`): the backing chosen last and, for each backing, its key, scale,
+  left hand and feel; the tempo, the click, call and response and the MIDI channel for all. Start
+  turns the page into the loop's screen; Stop (or the route changing, or the page hidden) ends it
+  and shows the feedback, whose **Change the backing** returns to the setup.
+- **The backings** (`core/improv.ts`), one chord to a bar, all in 4/4 (so the strong beats are
+  always the 1 and the 3; the waltz is not offered): the **12-bar blues** of H2 with `V7` in its
+  last bar, the turnaround that takes a loop round (H2's ends at home, which looped gives six bars
+  of `I7`), in C, G or F; **`I–vi–IV–V`** and **`ii7–V7–Imaj7`** (its I held a second bar, as H2's)
+  in C, G, D, B♭ or F; and the **two-chord modal vamp** `i7–IV7` of a Dorian mode, a bar each
+  (Dm7–G7 in D Dorian), in A, E, G or D Dorian. The keys are listed round the circle of fifths,
+  the chords spelled from the key by letter as H2's are.
+- **The left hand only.** The backing is a pianist's left hand: H2's patterns (`leftHand` in
+  `core/progressions.ts`, shared with the scores) — **stride**, **arpeggio up** and **Alberti
+  bass** — and, over the blues only, the **blues shuffle**: the root with its fifth, sixth, seventh
+  and sixth, a dyad struck twice a beat (long–short when swung), the root from D2. The right
+  hand's chords are not played, so the player's register (C4 up) is theirs: the backing stays
+  within C2–D♯4 (only the arpeggio's tenth reaches above B3), the shuffle and the stride within
+  B3. Defaults: the shuffle for the blues, stride for `ii–V–I`, the arpeggio for the others. The
+  loop is always voiced going round. Each note ends a moment before its written end (6 % of a
+  beat, at most 30 ms) so a key struck again sounds again; the stride's chords on 2 and 4 are
+  short (0.55 of a beat).
+- **Feel and tempo.** Straight eighths fall halfway through the beat; swung ones two thirds in, the
+  long and the short eighth 2:1 (a triplet feel), each note's end mapped the same way. Swing is the
+  default for the blues and `ii–V–I`, straight for the others. Tempo 60, 72, 80 (the default), 96,
+  112 or 132 to the quarter.
+- **On the instrument.** The backing goes through the output's scheduler as the demo does, a bar
+  at a time queued a second ahead (a bar is generated as it is queued, so the calls come with it),
+  and is silenced on Stop, a route change and a hidden page. Its levels follow Settings'
+  accompaniment level: the bass at it, the chords 8 below, the off-beat eighths 6 lighter again,
+  the calls 8 above, so the player's own playing is on top. It goes on MIDI channel 1 unless
+  another is chosen (1–16, offered only for a MIDI output): channel 1 sounds on every instrument,
+  and the app cannot know which other channels one listens on; the built-in piano keeps the
+  backing's voices apart from the player's keys whatever the channel. One bar of count-in clicks
+  always comes first; the click through the loop (every beat, the 1 accented) is a choice, off by
+  default. The header's metronome is paused while a loop or a playback lasts (pause reason
+  `improv`).
+- **The scales**, spelled from the key by letter: the major scale, the major pentatonic, the blues
+  scale (1 ♭3 4 ♭5 5 ♭7, its blue note written as a ♭5: F A♭ B♭ C♭ C E♭), the Dorian mode and the
+  minor pentatonic. The blues offers the blues scale (the default) and the major pentatonic;
+  `I–vi–IV–V` the major pentatonic (the default) and the major scale; `ii–V–I` the major scale (the
+  default) and its pentatonic; the vamp its Dorian mode (the default), the minor pentatonic and
+  the blues scale.
+- **The screen.** The chord now and the next bar's, large, with the numeral of the chord now;
+  under them the loop's bars four to a line as a lead sheet lays them out, the bar playing lit and
+  the calls' bars in italics; the bar and beat, or the count-in, above; the scale's name and notes;
+  a keyboard of four octaves from C3 with a small dot on every key of the scale and a larger green
+  one, on a pale green key, on the tones of the chord now; each key held tinted green (a chord
+  tone), blue (a tone of the scale) or amber (outside) — never red, as nothing is wrong — with a
+  legend.
+- **How a note is heard**: a chord tone of the chord sounding when it was struck, else a tone of
+  the scale, else outside. The time is the key's less the calibrated latency, as rhythm mode takes
+  it; a note up to a sixteenth before a bar's 1 belongs to that bar (an anticipation is heard with
+  the chord it leads into); a note in the count-in is heard with the first chord.
+- **Call and response.** Phrases of two bars from the first: the even ones the backing's calls,
+  the odd ones the player's answers (in the blues a call and its answer to each four-bar line). A
+  call is generated: one of eight two-bar rhythms (pickups, syncopations, runs of eighths), its
+  notes moving mostly by step of the scale with now and then a third or a fourth, within C4–C6
+  (kept to D4–A5), every note on a 1 or a 3 a tone of the chord then, the last the root, 3rd or 5th
+  if one lies within a third (else the nearest chord tone), over by the second bar's last eighth so
+  the answer starts from a breath. Each loop draws a seed, stored with its session, so the same
+  calls play again when its take is played back.
+- **The figures** (`core/improvFigures.ts`), over the player's bars (every bar, or the answers):
+  the notes heard as chord tones, scale tones and outside; of those on a strong beat (within a
+  sixteenth of the 1 or the 3) the chord tones; the range, lowest to highest key; notes a bar;
+  silence, the share of the time nothing sounded (a key held, or let go under the sustain pedal
+  until its lift); repetition, the share of the melody's notes (of keys struck within 30 ms the top
+  one) in a figure of four whose shape — the semitones from each note to the next, at any pitch —
+  was played before; and with call and response the calls answered (a call counts once its answer
+  has begun, answered with at least a note). The feedback says them in sentences, three of them
+  large, and draws the share of chord tones in each bar of the loop, every time round, under its
+  chord. Feedback, not a score: no figure is called good or bad.
+- **Records.** A session of kind `improv`: Start and stop, the active time (as the other kinds', a
+  pause between keys longer than a minute counting as a minute), the backing, key, scale, pattern,
+  feel, tempo, click, call and response and the calls' seed, and the figures as counts (with the
+  chord tones and notes of each bar of the loop), checked on import and sync. Recorded only when a
+  key was struck from the first bar's 1 on: a backing only listened to is not practice. It is
+  stored again every 30 seconds while the loop goes on, and before each chunk of its take, so a
+  closed tab keeps most of it; of two copies the one with more notes, then the later, wins.
+- **The take** goes in the `takes` store under the session's id, in EXPRESSION.md's format and
+  chunks: piece id `improv:<backing>:<key>` (`improv:blues:F`), the checksum of the backing's left
+  hand and feel (`fnv1a`, so a backing generated otherwise since is known), hands `both`, repeats
+  `play`, tempo 100 (the session has the tempo), mode `rhythm` (time 0 is the first bar's 1, the
+  count-in negative) with the latency, and every key's step −1 (there is no score). It is written
+  once its session is, the rest after Stop once the keys held then are let go. It validates as any
+  take, so older builds keep it. `SYNC_SCHEMA` 15 (14 is R2's); the export file needs no new
+  version.
+- **Played back with its backing.** P5's playback is not built, so Improvise plays its own takes:
+  **Play back with the backing** on the feedback and on each of **Your improvisations** (the six
+  latest, with when, how long and the share of chord tones on 1 and 3). The take's keys play with
+  their velocities and the sustain pedal in their lengths (the scheduler sends notes, not
+  controllers; sostenuto and una corda are not played back), their times less the latency, with
+  the backing generated again from the session (its calls from the seed), without the click, to
+  where the loop stopped; the screen follows it, the keys tinted as they were heard. It is
+  listening, not practice, and is silenced as the demo is. A take not on this device (one not yet
+  synced) says so.
+- **Elsewhere.** The session list names an improvisation by its backing and key, with the notes
+  played and the share of chord tones on 1 and 3. The public profile (version 2) publishes the kind
+  as `improv`, which the service folds into "Other practice" until its page names it; with a
+  service before version 2 it counts as free play.
+
 ## Milestones
 
 1. ✓ **H1 Chords** — the Harmony page, symbols, levels, answers.
@@ -268,4 +371,4 @@ ear is a family of the Ear page; transposing is an option of every piece.
    symbols.
 4. **H4 Transposing** — the Key control on every piece.
 5. **H5 Playing by ear** — tunes on Ear.
-6. **H6 Improvise** — backings, feedback, call and response.
+6. ✓ **H6 Improvise** — backings, feedback, call and response.

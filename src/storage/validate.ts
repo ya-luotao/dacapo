@@ -28,11 +28,14 @@ import type { PlayedNote, RunHeadline } from '../core/evenness.ts';
 import type { OpenFreePlay } from '../core/freePlay.ts';
 import type { ChordSymbolAnswer, HarmonyMissed } from '../core/harmonySession.ts';
 import { isStaffHands } from '../core/hands.ts';
+import { BACKINGS, isBackingId, isFeel, isImprovTempo } from '../core/improv.ts';
+import type { ImprovFigures } from '../core/improvFigures.ts';
 import { isLevelId, parseNoteKey } from '../core/levels.ts';
 import type {
   EarSessionRecord,
   FreePlaySessionRecord,
   HarmonySessionRecord,
+  ImprovSessionRecord,
   PieceSessionRecord,
   ReadSessionRecord,
   RhythmSessionRecord,
@@ -965,6 +968,7 @@ export function validateSession(value: unknown): Validation<SessionRecord> {
   if (value.kind === 'rhythm') return validateRhythmSession(value);
   if (value.kind === 'harmony') return validateHarmonySession(value);
   if (value.kind === 'sight') return validateSightSession(value);
+  if (value.kind === 'improv') return validateImprovSession(value);
   return fail('kind');
 }
 
@@ -1076,6 +1080,118 @@ function validateSightSession(value: Fields): Validation<SightSessionRecord> {
       activeMs: s.activeMs,
       length: s.length,
       fragments: fragments as SightFragmentRecord[],
+    },
+  };
+}
+
+// --- Improvise on Harmony --------------------------------------------------------------------
+
+/** Whole ms of a loop: at most a day. */
+const isLoopMs = (v: unknown): v is number => isCount(v) && v <= 86_400_000;
+
+function cleanImprovFigures(v: unknown, s: ImprovSessionRecord): ImprovFigures | null {
+  if (!isObject(v)) return null;
+  const counts = [
+    'notes',
+    'chord',
+    'scale',
+    'outside',
+    'strong',
+    'strongChord',
+    'melody',
+    'repeated',
+    'calls',
+    'answered',
+  ] as const;
+  if (counts.some((k) => !isCount(v[k]))) return null;
+  if (!isLoopMs(v.ms) || !isLoopMs(v.playerMs) || !isLoopMs(v.soundMs)) return null;
+  const f = v as unknown as ImprovFigures;
+  if (f.chord + f.scale + f.outside !== f.notes) return null;
+  if (f.strongChord > f.strong || f.strong > f.notes) return null;
+  if (f.melody > f.notes || f.repeated > f.melody) return null;
+  if (f.answered > f.calls || (!s.call && f.calls > 0)) return null;
+  if (f.playerMs > f.ms || f.soundMs > f.playerMs) return null;
+  if (f.notes === 0 ? f.low !== null || f.high !== null : !isMidi(f.low) || !isMidi(f.high))
+    return null;
+  if (f.low !== null && f.high !== null && f.low > f.high) return null;
+  const bars = BACKINGS[s.backing].bars.length;
+  if (
+    !Array.isArray(f.byBar) ||
+    f.byBar.length !== bars ||
+    !f.byBar.every(
+      (cell) =>
+        Array.isArray(cell) &&
+        cell.length === 2 &&
+        isCount(cell[0]) &&
+        isCount(cell[1]) &&
+        cell[0] <= cell[1],
+    )
+  )
+    return null;
+  if (f.byBar.reduce((sum, [, n]) => sum + n, 0) !== f.notes) return null;
+  if (f.byBar.reduce((sum, [c]) => sum + c, 0) !== f.chord) return null;
+  return {
+    ms: f.ms,
+    notes: f.notes,
+    chord: f.chord,
+    scale: f.scale,
+    outside: f.outside,
+    strong: f.strong,
+    strongChord: f.strongChord,
+    low: f.low,
+    high: f.high,
+    playerMs: f.playerMs,
+    soundMs: f.soundMs,
+    melody: f.melody,
+    repeated: f.repeated,
+    calls: f.calls,
+    answered: f.answered,
+    byBar: f.byBar.map(([c, n]) => [c, n]),
+  };
+}
+
+function validateImprovSession(value: Fields): Validation<ImprovSessionRecord> {
+  const field = firstInvalid(value, {
+    id: isId,
+    startedAt: isTime,
+    endedAt: isTime,
+    activeMs: isTime,
+    backing: isBackingId,
+    key: (v) => isBackingId(value.backing) && BACKINGS[value.backing].keys.includes(v as string),
+    scale: (v) => isBackingId(value.backing) && BACKINGS[value.backing].scales.includes(v as never),
+    pattern: (v) =>
+      isBackingId(value.backing) && BACKINGS[value.backing].patterns.includes(v as never),
+    feel: isFeel,
+    bpm: isImprovTempo,
+    click: isBool,
+    call: isBool,
+    seed: (v) => isCount(v) && v <= 0xffffffff,
+    figures: isObject,
+  });
+  if (field) return fail(field);
+  const s = value as unknown as ImprovSessionRecord;
+  if (s.endedAt < s.startedAt) return fail('endedAt');
+  if (s.activeMs > s.endedAt - s.startedAt) return fail('activeMs');
+  const figures = cleanImprovFigures(s.figures, s);
+  if (!figures) return fail('figures');
+  return {
+    ok: true,
+    value: {
+      kind: 'improv',
+      id: s.id,
+      startedAt: s.startedAt,
+      endedAt: s.endedAt,
+      activeMs: s.activeMs,
+      backing: s.backing,
+      key: s.key,
+      scale: s.scale,
+      pattern: s.pattern,
+      feel: s.feel,
+      bpm: s.bpm,
+      click: s.click,
+      call: s.call,
+      seed: s.seed,
+      figures,
     },
   };
 }

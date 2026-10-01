@@ -278,8 +278,8 @@ function intervals(quality: SymbolQuality) {
   return { third: find(2)!, fifth: find(4)!, seventh: find(6) };
 }
 
-interface LeftBar {
-  /** onset, duration and keys, in eighths */
+/** The left hand under one chord: its events, onset and duration in eighths from the bar's 1. */
+export interface LeftBar {
   events: { onset: number; duration: number; keys: number[] }[];
 }
 
@@ -349,18 +349,17 @@ function leftBar(
  * its root (the bass has it), in close position within the tenor, each moving as little as it can
  * from the one before, as the right hand's do.
  */
-function offbeatChords(chords: readonly KeyChord[], progression: Progression): number[][] {
+function offbeatChords(
+  chords: readonly KeyChord[],
+  bars: readonly ProgressionChord[],
+  cyclic: boolean,
+): number[][] {
   const lead: LeadChord[] = chords.map((c, n) => {
-    const pcs = SYMBOL_TONES[progression.bars[n]!.quality].length === 4 ? c.pcs.slice(1) : c.pcs;
+    const pcs = SYMBOL_TONES[bars[n]!.quality].length === 4 ? c.pcs.slice(1) : c.pcs;
     const bass = from(rootPc(c.symbol.root), BASS_LOW);
     return { pcs, bass, floor: bass + 3 };
   });
-  return leadVoices(lead, {
-    low: BASS_LOW,
-    high: OFFBEAT_HIGH,
-    center: OFFBEAT_CENTER,
-    cyclic: loopsOn(progression),
-  });
+  return leadVoices(lead, { low: BASS_LOW, high: OFFBEAT_HIGH, center: OFFBEAT_CENTER, cyclic });
 }
 
 /**
@@ -369,6 +368,24 @@ function offbeatChords(chords: readonly KeyChord[], progression: Progression): n
  * home, and its own chords are voiced best.
  */
 const loopsOn = (progression: Progression) => progression.bars.at(-1)!.steps !== 0;
+
+/**
+ * The left hand of chords in a key, a bar to each, in `pattern` (the waltz's and the stride's
+ * chords on the off-beats voiced round the loop when `cyclic`): the chords as the key spells them,
+ * and each bar's events. Improvise's backings play it (docs/HARMONY.md, "Improvise (H6)").
+ */
+export function leftHand(
+  bars: readonly ProgressionChord[],
+  key: ProgressionKey,
+  pattern: PatternId,
+  cyclic: boolean,
+): { chords: KeyChord[]; left: LeftBar[] } {
+  const chords = bars.map((c) => keyChord(key, c));
+  const offbeats =
+    pattern === 'waltz' || pattern === 'stride' ? offbeatChords(chords, bars, cyclic) : null;
+  const left = chords.map((c, n) => leftBar(pattern, c, bars[n]!.quality, offbeats?.[n] ?? null));
+  return { chords, left };
+}
 
 /**
  * The progression written out: per bar, its chord and the notes of both hands. The left hand's
@@ -380,14 +397,7 @@ export function arrangeProgression(spec: ProgressionSpec): Arrangement {
   const progression = PROGRESSIONS[spec.progression];
   const beats = patternBeats(spec.pattern);
   const barLength = beats * DIVISIONS;
-  const chords = progression.bars.map((c) => keyChord(spec.key, c));
-  const offbeats =
-    spec.pattern === 'waltz' || spec.pattern === 'stride'
-      ? offbeatChords(chords, progression)
-      : null;
-  const left = chords.map((c, n) =>
-    leftBar(spec.pattern, c, progression.bars[n]!.quality, offbeats?.[n] ?? null),
-  );
+  const { chords, left } = leftHand(progression.bars, spec.key, spec.pattern, loopsOn(progression));
   const right = leadVoices(
     chords.map((c, n) => {
       const keys = left[n]!.events.flatMap((e) => e.keys);

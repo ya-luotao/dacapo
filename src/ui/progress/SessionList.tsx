@@ -2,6 +2,7 @@ import { useId, useState, type ReactNode } from 'react';
 import type { PieceSessionRecord, SessionRecord } from '../../core/log.ts';
 import { useT, type MessageKey } from '../../i18n/index.ts';
 import { isBuiltInId } from '../../pieces/library/index.ts';
+import { backingTitle } from '../harmony/improvFormat.ts';
 import { progressionPieceTitle } from '../harmony/progressionFormat.ts';
 import { runFigures } from '../../core/scaleProgress.ts';
 import { parseExerciseKey } from '../../core/scales.ts';
@@ -281,6 +282,25 @@ function SessionRow({ session }: { session: SessionRecord }) {
             median(firsts.flatMap((r) => (r.medianDeviation === null ? [] : [r.medianDeviation]))),
           ),
         ],
+      ];
+      break;
+    }
+    case 'improv': {
+      const { figures } = session;
+      cells = [
+        when,
+        ['progress.session.kind', t('progress.kind.improv')],
+        [
+          'progress.session.backing',
+          <span className="session-piece">{backingTitle(t, session.backing, session.key)}</span>,
+        ],
+        duration,
+        ['progress.session.played', t('progress.session.notes', { n: figures.notes })],
+        [
+          'progress.session.strongChord',
+          read.percent(figures.strong === 0 ? null : figures.strongChord / figures.strong),
+        ],
+        ['progress.session.median', none],
       ];
       break;
     }

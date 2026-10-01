@@ -35,6 +35,7 @@ import {
   sampleRhythmAnswers,
   sampleRhythmSession,
   sampleSightSession,
+  sampleImprovSession,
   sampleRhythmEarChoice,
   sampleRhythmEarSession,
   sampleRhythmEarTaps,
@@ -1346,6 +1347,73 @@ describe('versions', () => {
       { collection: 'answers', index: 13, field: 'prompt', problem: 'invalid' },
       { collection: 'answers', index: 14, field: 'by', problem: 'invalid' },
     ]);
+  });
+
+  it('imports improvisations with their takes and refuses broken ones', async () => {
+    const { session, takes } = sampleImprovSession('im1', 8, 40);
+    expect(takes.length).toBeGreaterThan(1);
+    const f = session.figures;
+    const file = parsed(
+      fileWith({
+        version: 8,
+        pieces: [],
+        pieceSteps: [],
+        scaleRuns: [],
+        answers: [],
+        takes,
+        sessions: [
+          { ...session, extra: 1 },
+          { ...session, id: 'x1', key: 'D' },
+          { ...session, id: 'x2', scale: 'dorian' },
+          { ...session, id: 'x3', pattern: 'waltz' },
+          { ...session, id: 'x4', bpm: 100 },
+          { ...session, id: 'x5', feel: 'shuffle' },
+          { ...session, id: 'x6', seed: -1 },
+          { ...session, id: 'x7', figures: { ...f, chord: f.chord + 1 } },
+          { ...session, id: 'x8', figures: { ...f, strongChord: f.strong + 1 } },
+          { ...session, id: 'x9', figures: { ...f, byBar: f.byBar.slice(1) } },
+          { ...session, id: 'x10', figures: { ...f, soundMs: f.playerMs + 1 } },
+          { ...session, id: 'x11', figures: { ...f, answered: f.calls + 1 } },
+          { ...session, id: 'x12', call: false },
+          { ...session, id: 'x13', figures: { ...f, low: null } },
+          { ...session, id: 'x14', activeMs: session.endedAt - session.startedAt + 1 },
+        ],
+      }),
+    );
+    expect(file.sessions).toEqual([session]);
+    expect(file.takes).toEqual(takes);
+    expect(file.invalid).toEqual([
+      { collection: 'sessions', index: 1, field: 'key', problem: 'invalid' },
+      { collection: 'sessions', index: 2, field: 'scale', problem: 'invalid' },
+      { collection: 'sessions', index: 3, field: 'pattern', problem: 'invalid' },
+      { collection: 'sessions', index: 4, field: 'bpm', problem: 'invalid' },
+      { collection: 'sessions', index: 5, field: 'feel', problem: 'invalid' },
+      { collection: 'sessions', index: 6, field: 'seed', problem: 'invalid' },
+      ...[7, 8, 9, 10, 11, 12, 13].map((index) => ({
+        collection: 'sessions',
+        index,
+        field: 'figures',
+        problem: 'invalid',
+      })),
+      { collection: 'sessions', index: 14, field: 'activeMs', problem: 'invalid' },
+    ]);
+
+    // Exported and read back as they were, the take by its session.
+    const repo = await freshRepository();
+    await repo.merge({
+      sessions: [session],
+      attempts: [],
+      pieces: [],
+      pieceSteps: [],
+      scaleRuns: [],
+      answers: [],
+      takes,
+    });
+    expect(await repo.takes({ sessionId: 'im1' })).toEqual(takes);
+    const back = parsed(JSON.stringify(await exportOf(repo)));
+    expect(back.invalid).toEqual([]);
+    expect(back.sessions).toEqual([session]);
+    expect(back.takes).toEqual(takes);
   });
 
   it('keeps the facts of a piece and refuses broken ones', () => {

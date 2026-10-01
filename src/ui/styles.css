@@ -3493,6 +3493,489 @@ kbd {
   }
 }
 
+/*
+ * Improvise: the chord now and the next set large over the loop's bars, laid out four to a line
+ * as a lead sheet lays them; the keyboard below with the scale marked lightly and the chord's
+ * tones a shade darker, and each key held tinted by how it sounds. Nothing is red: improvising
+ * has no wrong note, and outside is amber.
+ */
+:root {
+  --improv-chord: #2f6f45;
+  --improv-scale: #3e6596;
+  --improv-outside: #a66816;
+  /* The marks stay pale on the ivory keys in both themes, as Learn's do. */
+  --improv-mark-scale: #e3eaf2;
+  --improv-mark-chord: #dcebde;
+  --improv-mark-rule: #316843;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --improv-chord: #5f9f73;
+    --improv-scale: #6289b5;
+    --improv-outside: #c98e3e;
+    --improv-mark-scale: #d6e1ec;
+    --improv-mark-chord: #c2dbc6;
+    --improv-mark-rule: #4f8a5f;
+  }
+}
+
+:root[data-theme='dark'] {
+  --improv-chord: #5f9f73;
+  --improv-scale: #6289b5;
+  --improv-outside: #c98e3e;
+  --improv-mark-scale: #d6e1ec;
+  --improv-mark-chord: #c2dbc6;
+  --improv-mark-rule: #4f8a5f;
+}
+
+.improv-keys .segmented span {
+  min-width: 3.25rem;
+}
+
+.improv-tempo .segmented span {
+  padding-inline: 0.75rem;
+}
+
+.improv-channel {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-weight: 600;
+}
+
+.improv-channel + select {
+  min-width: 6rem;
+}
+
+.improv-position {
+  min-width: 13ch;
+}
+
+/* The music stand: the chords on a sheet, the loop's bars under them. */
+.improv-stage {
+  max-width: 46rem;
+  margin: 0.75rem auto 0;
+  padding: 1rem 1.5rem 1.25rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-sheet);
+}
+
+.improv-now-next {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0.25rem 2rem;
+}
+
+.improv-now,
+.improv-next {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.improv-label {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.improv-label:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+}
+
+.improv-now .improv-symbol {
+  font-size: clamp(3.5rem, 2.5rem + 4.5vw, 5.75rem);
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.improv-now .numerals {
+  color: var(--text-muted);
+  font-size: 1.25rem;
+}
+
+.improv-next {
+  align-items: flex-end;
+  color: var(--text-muted);
+}
+
+.improv-next .improv-symbol {
+  font-size: clamp(1.75rem, 1.4rem + 1.6vw, 2.5rem);
+  line-height: 1.15;
+}
+
+.improv-turn {
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin: 0.5rem 0 0;
+  padding: 0.125rem 0.625rem;
+  border-radius: 999px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.improv-turn.is-listen {
+  background: var(--sunk);
+  color: var(--text-muted);
+}
+
+.improv-turn.is-answer {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* The loop's bars, four to a line, bar lines between them. */
+.improv-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 1rem 0 0;
+  padding: 0;
+  border-inline-start: 2px solid var(--text-muted);
+  list-style: none;
+}
+
+.improv-strip-bar {
+  padding: 0.25rem 0.625rem;
+  border-inline-end: 1px solid var(--border);
+  border-block-end: 1px solid var(--border);
+  font-size: 1.125rem;
+  transition: background-color var(--dur-fast) ease-out;
+}
+
+.improv-strip-bar.is-call {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.improv-strip-bar.is-now {
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.improv-scale-line {
+  max-width: 46rem;
+  margin: 1rem auto 0.75rem;
+  color: var(--text-muted);
+}
+
+.improv-scale-name {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.improv-scale-notes {
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  letter-spacing: 0.04em;
+}
+
+/* Four octaves from C3: the player's register and the octave under it. */
+.improv-piano {
+  --white-min: 13px;
+  max-width: 60rem;
+  margin-inline: auto;
+}
+
+.improv-piano .piano {
+  min-height: 0;
+}
+
+.improv-piano .key-white.improv-chord {
+  background: var(--improv-mark-chord);
+}
+
+/* A dot low on each key of the scale, larger and green on the chord's tones. */
+.improv-piano .key.improv-scale::after,
+.improv-piano .key.improv-chord::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  bottom: 0.625rem;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--improv-scale);
+  opacity: 0.55;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.improv-piano .key.improv-chord::after {
+  width: 9px;
+  height: 9px;
+  background: var(--improv-chord);
+  opacity: 0.9;
+}
+
+.improv-piano .key-black.improv-scale::after,
+.improv-piano .key-black.improv-chord::after {
+  bottom: 0.5rem;
+  background: var(--improv-mark-scale);
+}
+
+.improv-piano .key-black.improv-chord::after {
+  background: var(--improv-mark-chord);
+}
+
+/* A key held hides its mark under its tint. */
+.improv-piano .key.is-held::after {
+  display: none;
+}
+
+.improv-piano .key.is-heard-chord .key-fill {
+  background: var(--improv-chord);
+}
+
+.improv-piano .key.is-heard-scale .key-fill {
+  background: var(--improv-scale);
+}
+
+.improv-piano .key.is-heard-outside .key-fill {
+  background: var(--improv-outside);
+}
+
+.improv-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.25rem 1.5rem;
+  max-width: 46rem;
+  margin: 0.75rem auto 0;
+  padding: 0;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  list-style: none;
+}
+
+.improv-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.improv-swatch {
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 2px;
+}
+
+.improv-legend-chord .improv-swatch {
+  background: var(--improv-chord);
+}
+
+.improv-legend-scale .improv-swatch {
+  background: var(--improv-scale);
+}
+
+.improv-legend-outside .improv-swatch {
+  background: var(--improv-outside);
+}
+
+.improv-session .read-keyboard {
+  max-width: 46rem;
+  margin-inline: auto;
+  text-align: center;
+}
+
+/* After the loop: its figures in sentences, and a column for each bar of the loop. */
+.improv-figures {
+  max-width: 38rem;
+  margin: 0;
+  padding-inline-start: 1.25rem;
+  text-wrap: pretty;
+}
+
+.improv-figures li + li {
+  margin-top: 0.375rem;
+}
+
+.improv-nothing {
+  max-width: 38rem;
+  margin: 2rem 0 0;
+}
+
+.improv-chart {
+  max-width: 46rem;
+  margin: 2.5rem 0 0;
+}
+
+.improv-chart figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.improv-chart-title {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.improv-chart-title:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+}
+
+.improv-chart figcaption .help {
+  margin: 0;
+}
+
+.improv-chart-bars {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 6rem));
+  gap: 0.75rem 0.375rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.improv-chart-bars.is-long {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.improv-chart-bars li {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.improv-chart-column {
+  position: relative;
+  display: block;
+  height: 5rem;
+  border-block-end: 1px solid var(--text-muted);
+  background: var(--sunk);
+}
+
+.improv-chart-fill {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  background: var(--improv-chord);
+}
+
+.improv-chart-value {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.improv-chart-chord {
+  font-size: 1rem;
+  text-align: center;
+}
+
+.improv-chart-bars li.is-empty .improv-chart-column {
+  background: repeating-linear-gradient(
+    135deg,
+    transparent 0 4px,
+    color-mix(in srgb, var(--border) 70%, transparent) 4px 5px
+  );
+}
+
+.improv-playback {
+  margin-top: 2rem;
+}
+
+.improv-playback .improv-stage,
+.improv-playback .improv-piano,
+.improv-playback .improv-legend {
+  max-width: 46rem;
+  margin-inline: 0;
+}
+
+.improv-playback .improv-piano {
+  margin-top: 1rem;
+}
+
+.improv-missing {
+  align-self: center;
+  margin: 0;
+}
+
+.improv-yours-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.improv-yours-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.125rem 1rem;
+  padding-block: 0.75rem;
+  border-block-end: 1px solid var(--border);
+}
+
+.improv-yours-title {
+  font-weight: 600;
+}
+
+.improv-yours-detail {
+  grid-column: 1;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+
+.improv-yours-action {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+@media (max-width: 52rem) {
+  .improv-chart-bars.is-long {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 40rem) {
+  .improv-stage {
+    padding: 0.75rem 1rem 1rem;
+  }
+
+  .improv-now-next {
+    gap: 0.25rem 1rem;
+  }
+
+  .improv-strip-bar {
+    padding-inline: 0.375rem;
+    font-size: 1rem;
+  }
+
+  .improv-chart-bars.is-long {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .improv-yours-list li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .improv-yours-action {
+    grid-column: 1;
+    grid-row: auto;
+    justify-content: flex-start;
+    margin-top: 0.375rem;
+  }
+}
+
 /* Storage notice: a footnote-style strip, tinted with the warning colour. */
 
 .storage-notice {

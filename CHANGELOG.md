@@ -15,6 +15,29 @@ sessions go in the same lists), the
 click's tempo and grid of scale runs played with it (from version 7), and the takes of piece runs
 (from version 8). Version 1 to 7 files still import.
 
+### Improvise on Harmony (H6, [docs/HARMONY.md](docs/HARMONY.md))
+
+- Harmony gains a third practice, **Improvise**: a backing plays a loop of chords on your
+  instrument (or the built-in piano) — the 12-bar blues in C, G or F with its turnaround,
+  `I–vi–IV–V`, `ii7–V7–Imaj7` or a two-chord Dorian vamp — its left hand a blues shuffle, stride,
+  arpeggio or Alberti bass below your register, straight or swung 2:1, at 60 to 132, after a bar of
+  count-in, with the click if you want it. Its level follows Settings' accompaniment level, under
+  your playing; a MIDI output can take it on another channel.
+- The chord now and the next are shown large over the loop's bars as a lead sheet lays them out,
+  and the keyboard marks a suggested scale lightly (the major scale, its pentatonic, the blues
+  scale with its ♭5, Dorian), the chord's own tones a shade darker. Each key you play is tinted
+  as a chord tone, a scale tone or outside — nothing is marked wrong.
+- **Call and response**: the backing plays a two-bar phrase, made up from the scale and landing
+  on the chord, and you answer it in the next two.
+- When you stop: feedback, not a score — the share of notes on the 1 and the 3 that were chord
+  tones, how every note was heard, the range, notes a bar, how much was silence, how much repeated
+  a figure played before, the calls answered, and the chord tones bar by bar. The loop's take is
+  kept and **plays back with its backing**, there and from **Your improvisations**.
+- Sessions of kind `improv` count for the minutes, the streak and the session list; they sync
+  (`SYNC_SCHEMA` 15) and export with their takes. The public profile names them from version 2
+  and counts them as free play before it. Every string in five languages (即兴, 即興, 即興演奏,
+  즉흥 연주).
+
 ### How you are doing (Q1, [docs/PROGRESS.md](docs/PROGRESS.md))
 
 - Progress gains **How you are doing**, above the sessions: a small chart for each practice with

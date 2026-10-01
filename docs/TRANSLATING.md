@@ -102,88 +102,93 @@ and no Simplified-only characters in zh-TW.
 Address the learner as 你. Full-width punctuation, “ ” quotes, 《》 for works; a space between
 Chinese and Latin letters, digits and placeholders (`第 {n} 张`, `MIDI 键盘`); `、` for lists.
 
-| English                                                        | zh-CN                                    |
-| -------------------------------------------------------------- | ---------------------------------------- |
-| Read / flashcards                                              | 识谱 / 识谱卡片                          |
-| grand staff / treble staff / bass staff                        | 大谱表 / 高音谱表 / 低音谱表             |
-| ledger lines / sharps and flats                                | 加线 / 升号和降号                        |
-| bar / right, left, both hands                                  | 小节 / 右手、左手、双手                  |
-| sustain pedal / metronome / count-in                           | 延音踏板 / 节拍器 / 预备拍               |
-| tap tempo / subdivide / tempo trainer                          | 敲击测速 / 细分 / 速度训练               |
-| accented / muted beat / time signature                         | 重音 / 静音 / 拍号                       |
-| wait mode / rhythm mode / weak bars                            | 等待 / 节奏 / 薄弱小节                   |
-| loop / repeat / run                                            | 循环 / 反复 / 遍                         |
-| latency calibration                                            | 延迟校准                                 |
-| built-in piano / sound out through                             | 内置钢琴 / 声音输出到                    |
-| export / import                                                | 导出 / 导入                              |
-| Scales (the page) / key (tonic)                                | 音阶 / 主音                              |
-| major / natural, harmonic, melodic minor                       | 大调 / 自然、和声、旋律小调              |
-| chromatic / fingering / thumb under                            | 半音阶 / 指法 / 拇指穿过                 |
-| arpeggio / contrary motion / focus loop                        | 琶音 / 反向（双手反向）/ 循环练          |
-| free tempo / with the click                                    | 自由 / 跟节拍器                          |
-| timing spread / hesitation / loudness                          | 时间波动 / 迟疑 / 力度                   |
-| Ear (the page) / question / Hear again                         | 练耳 / 题 / 再听一遍                     |
-| interval / chord / triad / seventh chord                       | 音程 / 和弦 / 三和弦 / 七和弦            |
-| minor, major, perfect 2nd … 12th                               | 小、大、纯（小二度、大三度、纯五度）     |
-| tritone / octave / compound interval                           | 三全音 / 纯八度 / 复音程                 |
-| up / down / together (an interval)                             | 上行 / 下行 / 和声（同时）               |
-| major, minor, diminished, augmented triad                      | 大三和弦、小三和弦、减三和弦、增三和弦   |
-| dominant, major, minor, half-diminished 7th                    | 属七和弦、大七和弦、小七和弦、半减七和弦 |
-| root position / 1st, 2nd inversion / root                      | 原位 / 第一转位、第二转位 / 根音         |
-| broken / block (a chord)                                       | 分解 / 柱式                              |
-| Echo (the family) / melody / note 3                            | 旋律 / 一段旋律 / 第 3 个音              |
-| step / leap / tonic chord                                      | 级进 / 跳进 / 主和弦                     |
-| chromatic (neighbour, passing) notes                           | 变化音（辅助音、经过音）                 |
-| played as (a wrong key)                                        | 弹成了                                   |
-| What to read: notes, intervals (Read)                          | 识谱内容：音符、音程                     |
-| key signature / tonic / relative minor                         | 调号 / 主音 / 关系小调                   |
-| diminished, minor, perfect, major, aug.                        | 减、小、纯、大、增（增二度、减五度）     |
-| quality / number (of an interval)                              | 性质 / 度数（二度……八度）                |
-| natural notes / double sharp, flat                             | 自然音 / 重升、重降                      |
-| natural sign / root pos., 1st inv.                             | 还原号 / 原位、第一转位                  |
-| Ear training and theory (Progress)                             | 练耳与乐理卡片                           |
-| what you answer instead / Other                                | 你答成了什么 / 其他                      |
-| expression / dynamics / balance                                | 表现 / 力度 / 声部平衡                   |
-| crescendo / diminuendo / accent / sf                           | 渐强 / 渐弱 / 重音 / 突强                |
-| melody / accompaniment / your runs                             | 旋律 / 伴奏 / 弹奏记录                   |
-| articulation / legato / non legato                             | 奏法 / 连奏 / 非连奏                     |
-| staccato / staccatissimo / tenuto / slur                       | 跳音 / 短跳音 / 保持音 / 圆滑线          |
-| pedal change / gap / blur (the pedal)                          | 换踏板 / 断开 / 混浊                     |
-| half pedal / una corda / sostenuto pedal                       | 半踏板 / 弱音踏板 / 持音踏板             |
-| ornament / trill / mordent / inv. mordent                      | 装饰音 / 颤音 / 下波音 / 上波音          |
-| turn / acciaccatura / appoggiatura                             | 回音 / 短倚音 / 长倚音                   |
-| Rhythm (Read) / cell / In time (group)                         | 节奏 / 节奏型 / 跟着拍子                 |
-| tie / triplet / syncopation / 6/8                              | 延音线 / 三连音 / 切分音 / 6/8 拍        |
-| count (1 trip let) / Show the counts                           | 数拍（1 连 音）/ 显示数拍                |
-| tap / pad / extra tap / click                                  | 按 / 按板 / 多按 / 节拍声                |
-| Rhythm (Ear) / Tap it back / Choose it                         | 节奏 / 打出来 / 选出来                   |
-| rhythm dictation / bar                                         | 节奏听写 / 小节                          |
-| early, late, missed / rush, drag                               | 早了、晚了、漏了 / 抢拍、拖拍            |
-| Sight-reading / fragment / look first                          | 视奏 / 片段（量词：段）/ 先看            |
-| Read ahead (off, on, hard) / Wait (mode)                       | 往前看（关、开、难）/ 等待               |
-| position (C position) / position shift                         | 位置（C 位置）/ 换把位                   |
-| right and in time / wrong / extra                              | 弹对且在拍子上 / 弹错 / 多按             |
-| Harmony (the page) / Chords (its practice)                     | 和声 / 和弦                              |
-| chord symbol / slash chord / in the bass                       | 和弦记号 / 斜线和弦 / 在最低（低音）     |
-| sus2, sus4 / 6, m6 / add9 / diminished 7th                     | 挂二、挂四 / 大六、小六 / 加九 / 减七    |
-| Show the notes (the chord's)                                   | 显示和弦音                               |
-| Progressions / roman numeral / Left hand                       | 和弦进行 / 罗马数字级数 / 左手（伴奏型） |
-| Block chords / Root and fifth / Waltz                          | 柱式和弦 / 根音加五音 / 圆舞曲           |
-| Alberti bass / Arpeggio up / Stride                            | 阿尔贝蒂低音 / 上行琶音 / 跨步低音       |
-| 12-bar blues / the fifties progression                         | 十二小节布鲁斯 / 五十年代进行            |
-| Cadences / authentic, plagal                                   | 终止式 / 正格终止、变格终止              |
-| half, deceptive (cadence)                                      | 半终止、阻碍终止                         |
-| ---------------------------------------------                  | ---------------------------------------- |
-| ---------------------------------------------                  | ---------------------------------------- |
-| technique / five-finger pattern / Hanon No. 3                  | 技巧练习 / 五指练习 / 哈农第 3 首        |
-| block chords / broken chords (the exercises)                   | 柱式和弦 / 分解和弦                      |
-| chord spread / top note (its balance)                          | 和弦错开 / 最高音                        |
-| group (of a pattern) / note 4 of each group                    | 组 / 每组的第 4 个音                     |
-| -------------------------------------------------------------- | ---------------------------------------- |
-| -------------------------------------------------------------- | ---------------------------------------- |
-| repeated notes / trill / double notes, thirds                  | 同音反复 / 颤音 / 双音、三度双音         |
-| octaves / scale in octaves / diminished, dominant 7th arpeggio | 八度 / 八度音阶 / 减七、属七和弦琶音     |
-| rate (of a trill) / key up (between repeats)                   | 频率 / 抬键时间                          |
+| English                                                        | zh-CN                                        |
+| -------------------------------------------------------------- | -------------------------------------------- |
+| Read / flashcards                                              | 识谱 / 识谱卡片                              |
+| grand staff / treble staff / bass staff                        | 大谱表 / 高音谱表 / 低音谱表                 |
+| ledger lines / sharps and flats                                | 加线 / 升号和降号                            |
+| bar / right, left, both hands                                  | 小节 / 右手、左手、双手                      |
+| sustain pedal / metronome / count-in                           | 延音踏板 / 节拍器 / 预备拍                   |
+| tap tempo / subdivide / tempo trainer                          | 敲击测速 / 细分 / 速度训练                   |
+| accented / muted beat / time signature                         | 重音 / 静音 / 拍号                           |
+| wait mode / rhythm mode / weak bars                            | 等待 / 节奏 / 薄弱小节                       |
+| loop / repeat / run                                            | 循环 / 反复 / 遍                             |
+| latency calibration                                            | 延迟校准                                     |
+| built-in piano / sound out through                             | 内置钢琴 / 声音输出到                        |
+| export / import                                                | 导出 / 导入                                  |
+| Scales (the page) / key (tonic)                                | 音阶 / 主音                                  |
+| major / natural, harmonic, melodic minor                       | 大调 / 自然、和声、旋律小调                  |
+| chromatic / fingering / thumb under                            | 半音阶 / 指法 / 拇指穿过                     |
+| arpeggio / contrary motion / focus loop                        | 琶音 / 反向（双手反向）/ 循环练              |
+| free tempo / with the click                                    | 自由 / 跟节拍器                              |
+| timing spread / hesitation / loudness                          | 时间波动 / 迟疑 / 力度                       |
+| Ear (the page) / question / Hear again                         | 练耳 / 题 / 再听一遍                         |
+| interval / chord / triad / seventh chord                       | 音程 / 和弦 / 三和弦 / 七和弦                |
+| minor, major, perfect 2nd … 12th                               | 小、大、纯（小二度、大三度、纯五度）         |
+| tritone / octave / compound interval                           | 三全音 / 纯八度 / 复音程                     |
+| up / down / together (an interval)                             | 上行 / 下行 / 和声（同时）                   |
+| major, minor, diminished, augmented triad                      | 大三和弦、小三和弦、减三和弦、增三和弦       |
+| dominant, major, minor, half-diminished 7th                    | 属七和弦、大七和弦、小七和弦、半减七和弦     |
+| root position / 1st, 2nd inversion / root                      | 原位 / 第一转位、第二转位 / 根音             |
+| broken / block (a chord)                                       | 分解 / 柱式                                  |
+| Echo (the family) / melody / note 3                            | 旋律 / 一段旋律 / 第 3 个音                  |
+| step / leap / tonic chord                                      | 级进 / 跳进 / 主和弦                         |
+| chromatic (neighbour, passing) notes                           | 变化音（辅助音、经过音）                     |
+| played as (a wrong key)                                        | 弹成了                                       |
+| What to read: notes, intervals (Read)                          | 识谱内容：音符、音程                         |
+| key signature / tonic / relative minor                         | 调号 / 主音 / 关系小调                       |
+| diminished, minor, perfect, major, aug.                        | 减、小、纯、大、增（增二度、减五度）         |
+| quality / number (of an interval)                              | 性质 / 度数（二度……八度）                    |
+| natural notes / double sharp, flat                             | 自然音 / 重升、重降                          |
+| natural sign / root pos., 1st inv.                             | 还原号 / 原位、第一转位                      |
+| Ear training and theory (Progress)                             | 练耳与乐理卡片                               |
+| what you answer instead / Other                                | 你答成了什么 / 其他                          |
+| expression / dynamics / balance                                | 表现 / 力度 / 声部平衡                       |
+| crescendo / diminuendo / accent / sf                           | 渐强 / 渐弱 / 重音 / 突强                    |
+| melody / accompaniment / your runs                             | 旋律 / 伴奏 / 弹奏记录                       |
+| articulation / legato / non legato                             | 奏法 / 连奏 / 非连奏                         |
+| staccato / staccatissimo / tenuto / slur                       | 跳音 / 短跳音 / 保持音 / 圆滑线              |
+| pedal change / gap / blur (the pedal)                          | 换踏板 / 断开 / 混浊                         |
+| half pedal / una corda / sostenuto pedal                       | 半踏板 / 弱音踏板 / 持音踏板                 |
+| ornament / trill / mordent / inv. mordent                      | 装饰音 / 颤音 / 下波音 / 上波音              |
+| turn / acciaccatura / appoggiatura                             | 回音 / 短倚音 / 长倚音                       |
+| Rhythm (Read) / cell / In time (group)                         | 节奏 / 节奏型 / 跟着拍子                     |
+| tie / triplet / syncopation / 6/8                              | 延音线 / 三连音 / 切分音 / 6/8 拍            |
+| count (1 trip let) / Show the counts                           | 数拍（1 连 音）/ 显示数拍                    |
+| tap / pad / extra tap / click                                  | 按 / 按板 / 多按 / 节拍声                    |
+| Rhythm (Ear) / Tap it back / Choose it                         | 节奏 / 打出来 / 选出来                       |
+| rhythm dictation / bar                                         | 节奏听写 / 小节                              |
+| early, late, missed / rush, drag                               | 早了、晚了、漏了 / 抢拍、拖拍                |
+| Sight-reading / fragment / look first                          | 视奏 / 片段（量词：段）/ 先看                |
+| Read ahead (off, on, hard) / Wait (mode)                       | 往前看（关、开、难）/ 等待                   |
+| position (C position) / position shift                         | 位置（C 位置）/ 换把位                       |
+| right and in time / wrong / extra                              | 弹对且在拍子上 / 弹错 / 多按                 |
+| Harmony (the page) / Chords (its practice)                     | 和声 / 和弦                                  |
+| chord symbol / slash chord / in the bass                       | 和弦记号 / 斜线和弦 / 在最低（低音）         |
+| sus2, sus4 / 6, m6 / add9 / diminished 7th                     | 挂二、挂四 / 大六、小六 / 加九 / 减七        |
+| Show the notes (the chord's)                                   | 显示和弦音                                   |
+| Progressions / roman numeral / Left hand                       | 和弦进行 / 罗马数字级数 / 左手（伴奏型）     |
+| Block chords / Root and fifth / Waltz                          | 柱式和弦 / 根音加五音 / 圆舞曲               |
+| Alberti bass / Arpeggio up / Stride                            | 阿尔贝蒂低音 / 上行琶音 / 跨步低音           |
+| 12-bar blues / the fifties progression                         | 十二小节布鲁斯 / 五十年代进行                |
+| Cadences / authentic, plagal                                   | 终止式 / 正格终止、变格终止                  |
+| half, deceptive (cadence)                                      | 半终止、阻碍终止                             |
+| Improvise / backing / Your turn                                | 即兴 / 伴奏 / 轮到你                         |
+| chord tone / scale tone / outside                              | 和弦内音 / 音阶音 / 音阶外                   |
+| blues scale / major, minor pentatonic / Dorian                 | 布鲁斯音阶 / 大调、小调五声音阶 / 多利亚调式 |
+| call and response / feel: straight, swing                      | 呼应 / 律动：平均八分、摇摆八分              |
+| blues shuffle / modal vamp / take (played back)                | 布鲁斯 Shuffle / 调式循环 / 录音（回放）     |
+| ---------------------------------------------                  | ----------------------------------------     |
+| ---------------------------------------------                  | ----------------------------------------     |
+| technique / five-finger pattern / Hanon No. 3                  | 技巧练习 / 五指练习 / 哈农第 3 首            |
+| block chords / broken chords (the exercises)                   | 柱式和弦 / 分解和弦                          |
+| chord spread / top note (its balance)                          | 和弦错开 / 最高音                            |
+| group (of a pattern) / note 4 of each group                    | 组 / 每组的第 4 个音                         |
+| -------------------------------------------------------------- | ----------------------------------------     |
+| -------------------------------------------------------------- | ----------------------------------------     |
+| repeated notes / trill / double notes, thirds                  | 同音反复 / 颤音 / 双音、三度双音             |
+| octaves / scale in octaves / diminished, dominant 7th arpeggio | 八度 / 八度音阶 / 减七、属七和弦琶音         |
+| rate (of a trill) / key up (between repeats)                   | 频率 / 抬键时间                              |
 
 ## Traditional Chinese, Taiwan (`zh-TW`)
 
@@ -200,92 +205,97 @@ terms throughout. Address the learner as 你, as zh-CN does.
   個 notes, 筆 records.
 - Enharmonic spellings are 同音異名; the Schumann collection is 《青少年曲集》.
 
-| English                                                        | zh-TW                                    | zh-CN, where different          |
-| -------------------------------------------------------------- | ---------------------------------------- | ------------------------------- |
-| Read / flashcards                                              | 識譜 / 音符閃卡                          | 识谱 / 识谱卡片                 |
-| level / mastered                                               | 等級 / 已熟練                            | 级别 / 已掌握                   |
-| grand staff / treble staff / bass staff                        | 大譜表 / 高音譜表 / 低音譜表             |                                 |
-| treble clef / bass clef                                        | 高音譜號 / 低音譜號                      |                                 |
-| ledger lines / sharps and flats                                | 加線 / 升降記號                          |                                 |
-| bar / both hands                                               | 小節 / 雙手                              |                                 |
-| sustain pedal / metronome / count-in                           | 延音踏板 / 節拍器 / 預備拍               |                                 |
-| tap tempo / subdivide / tempo trainer                          | 點按測速 / 細分 / 速度訓練               | 敲击测速 / 细分 / 速度训练      |
-| speed up / silent bars / time signature                        | 漸快 / 靜音小節 / 拍號                   | 逐渐加快 / 静音小节 / 拍号      |
-| repeat / volta                                                 | 反覆 / {n} 房                            | 反复                            |
-| tie / mordent                                                  | 連結線 / 漣音                            | 连音线 / 波音                   |
-| weak bars / calibrate                                          | 弱點小節 / 校正                          | 薄弱小节 / 校准                 |
-| cursor / speakers                                              | 游標 / 喇叭                              | 光标 / 音箱                     |
-| piece / library                                                | 樂曲 / 曲庫                              | 曲目 / 曲库                     |
-| export / import / file / data                                  | 匯出 / 匯入 / 檔案 / 資料                | 导出 / 导入 / 文件 / 数据       |
-| settings / tab / private window                                | 設定 / 分頁 / 無痕視窗                   | 设置 / 标签页 / 无痕窗口        |
-| save / reload / font                                           | 儲存 / 重新整理 / 字型                   | 保存 / 刷新 / 字体              |
-| built-in piano / grand piano                                   | 內建鋼琴 / 平台鋼琴                      | 内置钢琴 / 三角钢琴             |
-| Scales (the page) / key (tonic)                                | 音階 / 主音                              | 音阶 / 主音                     |
-| major / harmonic, melodic minor                                | 大調 / 和聲小調、旋律小調                | 大调 / 和声小调、旋律小调       |
-| chromatic / fingering / hesitation                             | 半音階 / 指法 / 遲疑                     | 半音阶 / 指法 / 迟疑            |
-| arpeggio / contrary motion / focus loop                        | 琶音 / 反向（雙手反向）/ 循環練          | 双手反向、循环练                |
-| free tempo / with the click                                    | 自由 / 跟節拍器                          | 跟节拍器                        |
-| Ear (the page) / question / Hear again                         | 練耳 / 題 / 再聽一次                     | 练耳 / 题 / 再听一遍            |
-| interval / chord / triad / seventh chord                       | 音程 / 和弦 / 三和弦 / 七和弦            |                                 |
-| minor, major, perfect 2nd … 12th                               | 小、大、純（小二度、大三度、純五度）     | 纯五度                          |
-| tritone / octave / compound interval                           | 三全音 / 純八度 / 複音程                 | 纯八度 / 复音程                 |
-| up / down / together (an interval)                             | 上行 / 下行 / 和聲（同時）               | 和声（同时）                    |
-| diminished triad / dominant 7th                                | 減三和弦 / 屬七和弦                      | 减三和弦 / 属七和弦             |
-| half-diminished 7th                                            | 半減七和弦                               | 半减七和弦                      |
-| root position / 1st, 2nd inversion / root                      | 原位 / 第一轉位、第二轉位 / 根音         | 第一转位、第二转位              |
-| broken / block (a chord)                                       | 分解 / 柱式                              |                                 |
-| Echo (the family) / melody / note 3                            | 旋律 / 一段旋律 / 第 3 個音              | 第 3 个音                       |
-| step / leap / tonic chord                                      | 級進 / 跳進 / 主和弦                     | 级进 / 跳进                     |
-| chromatic (neighbour, passing) notes                           | 變化音                                   | 变化音                          |
-| played as (a wrong key)                                        | 彈成了                                   | 弹成了                          |
-| What to read: notes, intervals (Read)                          | 識譜內容：音符、音程                     | 识谱内容                        |
-| key signature / relative minor                                 | 調號 / 關係小調                          | 调号 / 关系小调                 |
-| diminished, perfect, augmented                                 | 減、純、增（增二度、減五度）             | 减、纯、增                      |
-| quality / number (of an interval)                              | 性質 / 度數                              | 性质 / 度数                     |
-| natural notes / double sharp, flat                             | 自然音 / 重升、重降記號                  | 重升、重降                      |
-| natural sign / 1st inversion                                   | 還原記號 / 第一轉位                      | 还原号 / 第一转位               |
-| Ear training and theory (Progress)                             | 練耳與樂理閃卡                           | 练耳与乐理卡片                  |
-| what you answer instead / row, column                          | 你答成了什麼 / 列、欄                    | 你答成了什么 / 行、列           |
-| expression / dynamics / balance                                | 表情 / 力度 / 聲部平衡                   | 表现 / 力度 / 声部平衡          |
-| crescendo / diminuendo / accent                                | 漸強 / 漸弱 / 重音                       | 渐强 / 渐弱                     |
-| melody / accompaniment / your runs                             | 旋律 / 伴奏 / 彈奏紀錄                   | 弹奏记录                        |
-| articulation / legato / slur                                   | 奏法 / 連奏 / 圓滑線                     | 奏法 / 连奏 / 圆滑线            |
-| staccato / staccatissimo / tenuto                              | 斷奏 / 短斷奏 / 持音                     | 跳音 / 短跳音 / 保持音          |
-| pedal change / gap / blur (the pedal)                          | 換踏板 / 斷開 / 混濁                     | 换踏板 / 断开 / 混浊            |
-| half pedal / una corda / sostenuto pedal                       | 半踏板 / 弱音踏板 / 持音踏板             |                                 |
-| ornament / trill / mordent / inv. mordent                      | 裝飾音 / 顫音 / 下漣音 / 上漣音          | 装饰音 / 颤音 / 下波音 / 上波音 |
-| turn / acciaccatura / appoggiatura                             | 迴音 / 短倚音 / 長倚音                   | 回音 / 长倚音                   |
-| Rhythm (Read) / cell / In time (group)                         | 節奏 / 節奏型 / 跟著拍子                 |                                 |
-| triplet / count (1 trip let)                                   | 三連音 / 數拍（1 連 音）                 | 数拍（1 连 音）                 |
-| tap / pad / extra tap / click                                  | 按 / 按板 / 多按 / 節拍聲                |                                 |
-| Rhythm (Ear) / Tap it back / Choose it                         | 節奏 / 打出來 / 選出來                   | 打出来 / 选出来                 |
-| rhythm dictation / bar                                         | 節奏聽寫 / 小節                          | 节奏听写                        |
-| early, late, missed / rush, drag                               | 早了、晚了、漏了 / 搶拍、拖拍            | 抢拍、拖拍                      |
-| Sight-reading / fragment / look first                          | 視奏 / 片段（量詞：段）/ 先看            |                                 |
-| Read ahead (off, on, hard) / Wait (mode)                       | 往前看（關、開、難）/ 等待               |                                 |
-| position / position shift / tie                                | 位置 / 換把位 / 連結線                   | 延音线                          |
-| right and in time / wrong / extra                              | 彈對且在拍子上 / 彈錯 / 多按             |                                 |
-| Harmony (the page) / Chords                                    | 和聲 / 和弦                              | 和声                            |
-| chord symbol / slash chord                                     | 和弦記號 / 斜線和弦                      | 和弦记号 / 斜线和弦             |
-| sus2, sus4 / diminished 7th                                    | 掛二、掛四 / 減七                        | 挂二、挂四 / 减七               |
-| Show the notes (the chord's)                                   | 顯示和弦音                               | 显示和弦音                      |
-| Progressions / roman numeral / Left hand                       | 和弦進行 / 羅馬數字級數 / 左手（伴奏型） | 和弦进行 / 罗马数字级数         |
-| Block chords / Root and fifth / Waltz                          | 柱式和弦 / 根音加五音 / 圓舞曲           | 圆舞曲                          |
-| Alberti bass / Arpeggio up / Stride                            | 阿爾貝蒂低音 / 上行琶音 / 跨步低音       | 阿尔贝蒂低音                    |
-| 12-bar blues                                                   | 十二小節藍調                             | 十二小节布鲁斯                  |
-| Cadences / authentic, plagal                                   | 終止式 / 正格終止、變格終止              | 终止式                          |
-| half, deceptive (cadence)                                      | 半終止、阻礙終止                         | 阻碍终止                        |
-| ---------------------------------------------                  | ------------------------------------     | --------------------------      |
-| ---------------------------------------------                  | ------------------------------------     | --------------------------      |
-| technique / five-finger pattern / Hanon No. 3                  | 技巧練習 / 五指練習 / 哈農第 3 首        | 技巧练习 / 五指练习             |
-| block chords / broken chords (the exercises)                   | 柱式和弦 / 分解和弦                      |                                 |
-| chord spread / top note (its balance)                          | 和弦錯開 / 最高音                        | 和弦错开                        |
-| group (of a pattern) / note 4 of each group                    | 組 / 每組的第 4 個音                     | 每组的第 4 个音                 |
-| -------------------------------------------------------------- | ------------------------------------     | --------------------------      |
-| -------------------------------------------------------------- | ------------------------------------     | --------------------------      |
-| repeated notes / trill / double notes, thirds                  | 同音反覆 / 顫音 / 雙音、三度雙音         | 同音反复 / 颤音 / 三度双音      |
-| octaves / scale in octaves / diminished, dominant 7th arpeggio | 八度 / 八度音階 / 減七、屬七和弦琶音     | 八度音阶                        |
-| rate (of a trill) / key up (between repeats)                   | 頻率 / 抬鍵時間                          | 频率 / 抬键时间                 |
+| English                                                        | zh-TW                                      | zh-CN, where different          |
+| -------------------------------------------------------------- | ------------------------------------------ | ------------------------------- |
+| Read / flashcards                                              | 識譜 / 音符閃卡                            | 识谱 / 识谱卡片                 |
+| level / mastered                                               | 等級 / 已熟練                              | 级别 / 已掌握                   |
+| grand staff / treble staff / bass staff                        | 大譜表 / 高音譜表 / 低音譜表               |                                 |
+| treble clef / bass clef                                        | 高音譜號 / 低音譜號                        |                                 |
+| ledger lines / sharps and flats                                | 加線 / 升降記號                            |                                 |
+| bar / both hands                                               | 小節 / 雙手                                |                                 |
+| sustain pedal / metronome / count-in                           | 延音踏板 / 節拍器 / 預備拍                 |                                 |
+| tap tempo / subdivide / tempo trainer                          | 點按測速 / 細分 / 速度訓練                 | 敲击测速 / 细分 / 速度训练      |
+| speed up / silent bars / time signature                        | 漸快 / 靜音小節 / 拍號                     | 逐渐加快 / 静音小节 / 拍号      |
+| repeat / volta                                                 | 反覆 / {n} 房                              | 反复                            |
+| tie / mordent                                                  | 連結線 / 漣音                              | 连音线 / 波音                   |
+| weak bars / calibrate                                          | 弱點小節 / 校正                            | 薄弱小节 / 校准                 |
+| cursor / speakers                                              | 游標 / 喇叭                                | 光标 / 音箱                     |
+| piece / library                                                | 樂曲 / 曲庫                                | 曲目 / 曲库                     |
+| export / import / file / data                                  | 匯出 / 匯入 / 檔案 / 資料                  | 导出 / 导入 / 文件 / 数据       |
+| settings / tab / private window                                | 設定 / 分頁 / 無痕視窗                     | 设置 / 标签页 / 无痕窗口        |
+| save / reload / font                                           | 儲存 / 重新整理 / 字型                     | 保存 / 刷新 / 字体              |
+| built-in piano / grand piano                                   | 內建鋼琴 / 平台鋼琴                        | 内置钢琴 / 三角钢琴             |
+| Scales (the page) / key (tonic)                                | 音階 / 主音                                | 音阶 / 主音                     |
+| major / harmonic, melodic minor                                | 大調 / 和聲小調、旋律小調                  | 大调 / 和声小调、旋律小调       |
+| chromatic / fingering / hesitation                             | 半音階 / 指法 / 遲疑                       | 半音阶 / 指法 / 迟疑            |
+| arpeggio / contrary motion / focus loop                        | 琶音 / 反向（雙手反向）/ 循環練            | 双手反向、循环练                |
+| free tempo / with the click                                    | 自由 / 跟節拍器                            | 跟节拍器                        |
+| Ear (the page) / question / Hear again                         | 練耳 / 題 / 再聽一次                       | 练耳 / 题 / 再听一遍            |
+| interval / chord / triad / seventh chord                       | 音程 / 和弦 / 三和弦 / 七和弦              |                                 |
+| minor, major, perfect 2nd … 12th                               | 小、大、純（小二度、大三度、純五度）       | 纯五度                          |
+| tritone / octave / compound interval                           | 三全音 / 純八度 / 複音程                   | 纯八度 / 复音程                 |
+| up / down / together (an interval)                             | 上行 / 下行 / 和聲（同時）                 | 和声（同时）                    |
+| diminished triad / dominant 7th                                | 減三和弦 / 屬七和弦                        | 减三和弦 / 属七和弦             |
+| half-diminished 7th                                            | 半減七和弦                                 | 半减七和弦                      |
+| root position / 1st, 2nd inversion / root                      | 原位 / 第一轉位、第二轉位 / 根音           | 第一转位、第二转位              |
+| broken / block (a chord)                                       | 分解 / 柱式                                |                                 |
+| Echo (the family) / melody / note 3                            | 旋律 / 一段旋律 / 第 3 個音                | 第 3 个音                       |
+| step / leap / tonic chord                                      | 級進 / 跳進 / 主和弦                       | 级进 / 跳进                     |
+| chromatic (neighbour, passing) notes                           | 變化音                                     | 变化音                          |
+| played as (a wrong key)                                        | 彈成了                                     | 弹成了                          |
+| What to read: notes, intervals (Read)                          | 識譜內容：音符、音程                       | 识谱内容                        |
+| key signature / relative minor                                 | 調號 / 關係小調                            | 调号 / 关系小调                 |
+| diminished, perfect, augmented                                 | 減、純、增（增二度、減五度）               | 减、纯、增                      |
+| quality / number (of an interval)                              | 性質 / 度數                                | 性质 / 度数                     |
+| natural notes / double sharp, flat                             | 自然音 / 重升、重降記號                    | 重升、重降                      |
+| natural sign / 1st inversion                                   | 還原記號 / 第一轉位                        | 还原号 / 第一转位               |
+| Ear training and theory (Progress)                             | 練耳與樂理閃卡                             | 练耳与乐理卡片                  |
+| what you answer instead / row, column                          | 你答成了什麼 / 列、欄                      | 你答成了什么 / 行、列           |
+| expression / dynamics / balance                                | 表情 / 力度 / 聲部平衡                     | 表现 / 力度 / 声部平衡          |
+| crescendo / diminuendo / accent                                | 漸強 / 漸弱 / 重音                         | 渐强 / 渐弱                     |
+| melody / accompaniment / your runs                             | 旋律 / 伴奏 / 彈奏紀錄                     | 弹奏记录                        |
+| articulation / legato / slur                                   | 奏法 / 連奏 / 圓滑線                       | 奏法 / 连奏 / 圆滑线            |
+| staccato / staccatissimo / tenuto                              | 斷奏 / 短斷奏 / 持音                       | 跳音 / 短跳音 / 保持音          |
+| pedal change / gap / blur (the pedal)                          | 換踏板 / 斷開 / 混濁                       | 换踏板 / 断开 / 混浊            |
+| half pedal / una corda / sostenuto pedal                       | 半踏板 / 弱音踏板 / 持音踏板               |                                 |
+| ornament / trill / mordent / inv. mordent                      | 裝飾音 / 顫音 / 下漣音 / 上漣音            | 装饰音 / 颤音 / 下波音 / 上波音 |
+| turn / acciaccatura / appoggiatura                             | 迴音 / 短倚音 / 長倚音                     | 回音 / 长倚音                   |
+| Rhythm (Read) / cell / In time (group)                         | 節奏 / 節奏型 / 跟著拍子                   |                                 |
+| triplet / count (1 trip let)                                   | 三連音 / 數拍（1 連 音）                   | 数拍（1 连 音）                 |
+| tap / pad / extra tap / click                                  | 按 / 按板 / 多按 / 節拍聲                  |                                 |
+| Rhythm (Ear) / Tap it back / Choose it                         | 節奏 / 打出來 / 選出來                     | 打出来 / 选出来                 |
+| rhythm dictation / bar                                         | 節奏聽寫 / 小節                            | 节奏听写                        |
+| early, late, missed / rush, drag                               | 早了、晚了、漏了 / 搶拍、拖拍              | 抢拍、拖拍                      |
+| Sight-reading / fragment / look first                          | 視奏 / 片段（量詞：段）/ 先看              |                                 |
+| Read ahead (off, on, hard) / Wait (mode)                       | 往前看（關、開、難）/ 等待                 |                                 |
+| position / position shift / tie                                | 位置 / 換把位 / 連結線                     | 延音线                          |
+| right and in time / wrong / extra                              | 彈對且在拍子上 / 彈錯 / 多按               |                                 |
+| Harmony (the page) / Chords                                    | 和聲 / 和弦                                | 和声                            |
+| chord symbol / slash chord                                     | 和弦記號 / 斜線和弦                        | 和弦记号 / 斜线和弦             |
+| sus2, sus4 / diminished 7th                                    | 掛二、掛四 / 減七                          | 挂二、挂四 / 减七               |
+| Show the notes (the chord's)                                   | 顯示和弦音                                 | 显示和弦音                      |
+| Progressions / roman numeral / Left hand                       | 和弦進行 / 羅馬數字級數 / 左手（伴奏型）   | 和弦进行 / 罗马数字级数         |
+| Block chords / Root and fifth / Waltz                          | 柱式和弦 / 根音加五音 / 圓舞曲             | 圆舞曲                          |
+| Alberti bass / Arpeggio up / Stride                            | 阿爾貝蒂低音 / 上行琶音 / 跨步低音         | 阿尔贝蒂低音                    |
+| 12-bar blues                                                   | 十二小節藍調                               | 十二小节布鲁斯                  |
+| Cadences / authentic, plagal                                   | 終止式 / 正格終止、變格終止                | 终止式                          |
+| half, deceptive (cadence)                                      | 半終止、阻礙終止                           | 阻碍终止                        |
+| Improvise / backing / Your turn                                | 即興 / 伴奏 / 輪到你                       | 即兴 / 轮到你                   |
+| chord tone / scale tone / outside                              | 和弦內音 / 音階音 / 音階外                 | 和弦内音                        |
+| blues scale / major, minor pentatonic / Dorian                 | 藍調音階 / 大調、小調五聲音階 / 多利亞調式 | 布鲁斯音阶                      |
+| call and response / feel: straight, swing                      | 呼應 / 律動：平均八分、搖擺八分            | 呼应                            |
+| blues shuffle / modal vamp / take (played back)                | 藍調 Shuffle / 調式循環 / 錄音（回放）     | 布鲁斯 Shuffle                  |
+| ---------------------------------------------                  | ------------------------------------       | --------------------------      |
+| ---------------------------------------------                  | ------------------------------------       | --------------------------      |
+| technique / five-finger pattern / Hanon No. 3                  | 技巧練習 / 五指練習 / 哈農第 3 首          | 技巧练习 / 五指练习             |
+| block chords / broken chords (the exercises)                   | 柱式和弦 / 分解和弦                        |                                 |
+| chord spread / top note (its balance)                          | 和弦錯開 / 最高音                          | 和弦错开                        |
+| group (of a pattern) / note 4 of each group                    | 組 / 每組的第 4 個音                       | 每组的第 4 个音                 |
+| -------------------------------------------------------------- | ------------------------------------       | --------------------------      |
+| -------------------------------------------------------------- | ------------------------------------       | --------------------------      |
+| repeated notes / trill / double notes, thirds                  | 同音反覆 / 顫音 / 雙音、三度雙音           | 同音反复 / 颤音 / 三度双音      |
+| octaves / scale in octaves / diminished, dominant 7th arpeggio | 八度 / 八度音階 / 減七、屬七和弦琶音       | 八度音阶                        |
+| rate (of a trill) / key up (between repeats)                   | 頻率 / 抬鍵時間                            | 频率 / 抬键时间                 |
 
 Keys in titles: `G 大調`, `C 大調`. Composers as Taiwan writes them: 貝多芬, 巴哈 (not 巴赫), 舒曼,
 布爾格彌勒.
@@ -301,92 +311,97 @@ verb phrases for labels and buttons (設定, 開始, もう一度, 補正する)
   for books and collections; `、` for lists; ranges with `〜` (`{from}〜{to}小節`).
 - Counters: 枚 cards, 曲 pieces, 回 runs and wrong notes, 件 records, 小節 bars (`{bar}小節目`).
 
-| English                                                        | ja                                                           |
-| -------------------------------------------------------------- | ------------------------------------------------------------ |
-| Read (the feature and its page)                                | 譜読み (not 読譜)                                            |
-| grand staff / staff                                            | 大譜表 / 譜表                                                |
-| treble staff / bass staff                                      | ト音記号 / ヘ音記号 (`C4（ト音記号）`)                       |
-| ledger lines / sharps and flats                                | 加線 / シャープとフラット                                    |
-| bar / right, left, both hands                                  | 小節 / 右手・左手・両手                                      |
-| sustain pedal / metronome / count-in                           | ダンパーペダル / メトロノーム / 予備カウント                 |
-| tap tempo / subdivide / tempo trainer                          | タップ / 細分 / テンポトレーナー                             |
-| time signature / accent / mute                                 | 拍子 / アクセント / ミュート                                 |
-| flashcards / level / mastered                                  | フラッシュカード / レベル / 習得済み                         |
-| grade                                                          | グレード{n} (not 級, which counts down in Japan)             |
-| wrong note / missed note / extra note                          | ミスタッチ / 弾き逃し / 余分な音                             |
-| wait mode / rhythm mode                                        | 待機モード / リズムモード                                    |
-| loop / repeat / volta                                          | ループ / くり返し / {n}番カッコ                              |
-| weak bars / hesitation / steady                                | 苦手な小節 / 迷い / 安定                                     |
-| latency calibration / demo                                     | 遅延の補正 / お手本                                          |
-| built-in piano                                                 | 内蔵ピアノ                                                   |
-| import / export                                                | インポート / エクスポート                                    |
-| Scales (the page) / key (tonic)                                | スケール / 主音                                              |
-| major / harmonic, melodic minor                                | 長音階 / 和声的短音階・旋律的短音階                          |
-| chromatic / fingering / evenness                               | 半音階 / 運指（指番号） / 粒のそろい                         |
-| arpeggio / contrary motion / focus loop                        | アルペジオ / 反行 / 部分ループ                               |
-| free tempo / with the click                                    | 自由 / クリックに合わせて                                    |
-| Ear (the page) / question / Hear again                         | 聴音 / 問 / もう一度聴く                                     |
-| interval / chord / triad / seventh chord                       | 音程 / 和音 / 三和音 / 七の和音                              |
-| minor, major, perfect 2nd … 12th                               | 短・長・完全（短2度、長3度、完全5度）                        |
-| tritone / octave / compound interval                           | 三全音 / 完全8度 / 複音程                                    |
-| up / down / together (an interval)                             | 上行 / 下行 / 和声的（同時）                                 |
-| major, minor, diminished, augmented triad                      | 長三和音・短三和音・減三和音・増三和音                       |
-| dominant, major, minor, half-diminished 7th                    | 属七の和音・長七の和音・短七の和音・半減七の和音             |
-| root position / 1st, 2nd inversion / root                      | 基本形 / 第1転回形・第2転回形 / 根音                         |
-| broken / block (a chord)                                       | 分散 / 同時                                                  |
-| Echo (the family) / melody / note 3                            | 旋律 / 旋律 / 3音目                                          |
-| step / leap / tonic chord                                      | 順次進行 / 跳躍 / 主和音                                     |
-| chromatic (neighbour, passing) notes                           | 半音階的な音                                                 |
-| played as (a wrong key)                                        | 〜と弾きました                                               |
-| What to read: notes, intervals (Read)                          | 読むもの：音符・音程                                         |
-| key signature / relative minor                                 | 調号 / 平行調                                                |
-| diminished, minor, perfect, major, aug.                        | 減・短・完全・長・増（増2度、減5度）                         |
-| quality / number (of an interval)                              | 種類 / 度数（2度〜8度）                                      |
-| natural notes / double sharp, flat                             | 幹音 / ダブルシャープ・ダブルフラット                        |
-| natural sign / 1st inversion (button)                          | ナチュラル / 第1転回                                         |
-| Ear training and theory (Progress)                             | 聴音と楽典カード                                             |
-| what you answer instead / Other                                | 代わりに何と答えたか / その他                                |
-| expression / dynamics / balance                                | 表現 / 強弱 / 声部のバランス                                 |
-| crescendo / diminuendo / accent (the sign)                     | クレッシェンド / ディミヌエンド / アクセント                 |
-| melody / accompaniment / your runs                             | 旋律 / 伴奏 / これまでの演奏                                 |
-| articulation / legato / slur                                   | アーティキュレーション / レガート / スラー                   |
-| staccato / staccatissimo / tenuto                              | スタッカート / スタッカーティッシモ / テヌート               |
-| pedal change / gap / blur (the pedal)                          | 踏みかえ / 途切れ / 濁り                                     |
-| una corda / sostenuto pedal                                    | ウナ・コルダ / ソステヌート・ペダル                          |
-| ornament / trill / mordent / inv. mordent                      | 装飾音 / トリル / モルデント / プラルトリラー                |
-| turn / acciaccatura / appoggiatura                             | ターン / 短前打音 / 長前打音                                 |
-| Rhythm (Read) / cell / In time (group)                         | リズム / リズム型 / テンポに合わせて                         |
-| tie / triplet / syncopation / 6/8                              | タイ / 3連符 / シンコペーション / 8分の6拍子                 |
-| count (1 trip let) / Show the counts                           | カウント（1 trip let のまま）/ カウントを表示                |
-| tap / pad / extra tap / click                                  | タップ / パッド / 余分なタップ / クリック音                  |
-| Rhythm (Ear) / Tap it back / Choose it                         | リズム / タップして答える / 選んで答える                     |
-| rhythm dictation / bar                                         | リズムの聴音 / 小節                                          |
-| early, late, missed / rush, drag                               | 早い、遅い、抜けた / 走る、もたる                            |
-| Sight-reading / fragment / look first                          | 初見（初見演奏）/ 曲（〜曲目）/ 下見                         |
-| Read ahead (off, on, hard) / Wait (mode)                       | 先読み（オフ、オン、ハード）/ 待つ                           |
-| position (C position) / position shift                         | ポジション（Cポジション）/ ポジション移動                    |
-| right and in time / wrong / extra                              | 正しく拍どおり / 間違い / 余分                               |
-| Harmony (the page) / Chords (its practice)                     | 和声 / コード                                                |
-| chord symbol / slash chord / lowest (bass)                     | コードネーム / 分数コード / いちばん下（ベース）             |
-| sus2, sus4 / 6, add9 / diminished 7th                          | 掛留2度、掛留4度 / 付加六、付加九 / 減七の和音               |
-| Show the notes (the chord's)                                   | 構成音を表示                                                 |
-| Progressions / roman numeral / Left hand                       | コード進行 / ローマ数字 / 左手（伴奏形）                     |
-| Block chords / Root and fifth / Waltz                          | ブロックコード / 根音と5度 / ワルツ                          |
-| Alberti bass / Arpeggio up / Stride                            | アルベルティ・バス / 上行アルペジオ / ストライド             |
-| 12-bar blues                                                   | 12小節のブルース                                             |
-| Cadences / authentic, plagal                                   | 終止形 / 完全終止、変格終止                                  |
-| half, deceptive (cadence)                                      | 半終止、偽終止                                               |
-| ---------------------------------------------                  | ------------------------------------------------             |
-| ---------------------------------------------                  | ------------------------------------------------             |
-| technique / five-finger pattern / Hanon No. 3                  | テクニック / 5指の練習 / ハノン第3番                         |
-| block chords / broken chords (the exercises)                   | 和音 / 分散和音                                              |
-| chord spread / top note (its balance)                          | 和音のずれ / いちばん上の音                                  |
-| group (of a pattern) / note 4 of each group                    | グループ / 各グループの4音目                                 |
-| -------------------------------------------------------------- | ------------------------------------------------------------ |
-| -------------------------------------------------------------- | ------------------------------------------------------------ |
-| repeated notes / trill / double notes, thirds                  | 同音連打 / トリル / 重音、3度の重音                          |
-| octaves / scale in octaves / diminished, dominant 7th arpeggio | オクターブ / オクターブの音階 / 減七・属七の和音のアルペジオ |
-| rate (of a trill) / key up (between repeats)                   | 速さ / 鍵盤が上がっている時間                                |
+| English                                                        | ja                                                                 |
+| -------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Read (the feature and its page)                                | 譜読み (not 読譜)                                                  |
+| grand staff / staff                                            | 大譜表 / 譜表                                                      |
+| treble staff / bass staff                                      | ト音記号 / ヘ音記号 (`C4（ト音記号）`)                             |
+| ledger lines / sharps and flats                                | 加線 / シャープとフラット                                          |
+| bar / right, left, both hands                                  | 小節 / 右手・左手・両手                                            |
+| sustain pedal / metronome / count-in                           | ダンパーペダル / メトロノーム / 予備カウント                       |
+| tap tempo / subdivide / tempo trainer                          | タップ / 細分 / テンポトレーナー                                   |
+| time signature / accent / mute                                 | 拍子 / アクセント / ミュート                                       |
+| flashcards / level / mastered                                  | フラッシュカード / レベル / 習得済み                               |
+| grade                                                          | グレード{n} (not 級, which counts down in Japan)                   |
+| wrong note / missed note / extra note                          | ミスタッチ / 弾き逃し / 余分な音                                   |
+| wait mode / rhythm mode                                        | 待機モード / リズムモード                                          |
+| loop / repeat / volta                                          | ループ / くり返し / {n}番カッコ                                    |
+| weak bars / hesitation / steady                                | 苦手な小節 / 迷い / 安定                                           |
+| latency calibration / demo                                     | 遅延の補正 / お手本                                                |
+| built-in piano                                                 | 内蔵ピアノ                                                         |
+| import / export                                                | インポート / エクスポート                                          |
+| Scales (the page) / key (tonic)                                | スケール / 主音                                                    |
+| major / harmonic, melodic minor                                | 長音階 / 和声的短音階・旋律的短音階                                |
+| chromatic / fingering / evenness                               | 半音階 / 運指（指番号） / 粒のそろい                               |
+| arpeggio / contrary motion / focus loop                        | アルペジオ / 反行 / 部分ループ                                     |
+| free tempo / with the click                                    | 自由 / クリックに合わせて                                          |
+| Ear (the page) / question / Hear again                         | 聴音 / 問 / もう一度聴く                                           |
+| interval / chord / triad / seventh chord                       | 音程 / 和音 / 三和音 / 七の和音                                    |
+| minor, major, perfect 2nd … 12th                               | 短・長・完全（短2度、長3度、完全5度）                              |
+| tritone / octave / compound interval                           | 三全音 / 完全8度 / 複音程                                          |
+| up / down / together (an interval)                             | 上行 / 下行 / 和声的（同時）                                       |
+| major, minor, diminished, augmented triad                      | 長三和音・短三和音・減三和音・増三和音                             |
+| dominant, major, minor, half-diminished 7th                    | 属七の和音・長七の和音・短七の和音・半減七の和音                   |
+| root position / 1st, 2nd inversion / root                      | 基本形 / 第1転回形・第2転回形 / 根音                               |
+| broken / block (a chord)                                       | 分散 / 同時                                                        |
+| Echo (the family) / melody / note 3                            | 旋律 / 旋律 / 3音目                                                |
+| step / leap / tonic chord                                      | 順次進行 / 跳躍 / 主和音                                           |
+| chromatic (neighbour, passing) notes                           | 半音階的な音                                                       |
+| played as (a wrong key)                                        | 〜と弾きました                                                     |
+| What to read: notes, intervals (Read)                          | 読むもの：音符・音程                                               |
+| key signature / relative minor                                 | 調号 / 平行調                                                      |
+| diminished, minor, perfect, major, aug.                        | 減・短・完全・長・増（増2度、減5度）                               |
+| quality / number (of an interval)                              | 種類 / 度数（2度〜8度）                                            |
+| natural notes / double sharp, flat                             | 幹音 / ダブルシャープ・ダブルフラット                              |
+| natural sign / 1st inversion (button)                          | ナチュラル / 第1転回                                               |
+| Ear training and theory (Progress)                             | 聴音と楽典カード                                                   |
+| what you answer instead / Other                                | 代わりに何と答えたか / その他                                      |
+| expression / dynamics / balance                                | 表現 / 強弱 / 声部のバランス                                       |
+| crescendo / diminuendo / accent (the sign)                     | クレッシェンド / ディミヌエンド / アクセント                       |
+| melody / accompaniment / your runs                             | 旋律 / 伴奏 / これまでの演奏                                       |
+| articulation / legato / slur                                   | アーティキュレーション / レガート / スラー                         |
+| staccato / staccatissimo / tenuto                              | スタッカート / スタッカーティッシモ / テヌート                     |
+| pedal change / gap / blur (the pedal)                          | 踏みかえ / 途切れ / 濁り                                           |
+| una corda / sostenuto pedal                                    | ウナ・コルダ / ソステヌート・ペダル                                |
+| ornament / trill / mordent / inv. mordent                      | 装飾音 / トリル / モルデント / プラルトリラー                      |
+| turn / acciaccatura / appoggiatura                             | ターン / 短前打音 / 長前打音                                       |
+| Rhythm (Read) / cell / In time (group)                         | リズム / リズム型 / テンポに合わせて                               |
+| tie / triplet / syncopation / 6/8                              | タイ / 3連符 / シンコペーション / 8分の6拍子                       |
+| count (1 trip let) / Show the counts                           | カウント（1 trip let のまま）/ カウントを表示                      |
+| tap / pad / extra tap / click                                  | タップ / パッド / 余分なタップ / クリック音                        |
+| Rhythm (Ear) / Tap it back / Choose it                         | リズム / タップして答える / 選んで答える                           |
+| rhythm dictation / bar                                         | リズムの聴音 / 小節                                                |
+| early, late, missed / rush, drag                               | 早い、遅い、抜けた / 走る、もたる                                  |
+| Sight-reading / fragment / look first                          | 初見（初見演奏）/ 曲（〜曲目）/ 下見                               |
+| Read ahead (off, on, hard) / Wait (mode)                       | 先読み（オフ、オン、ハード）/ 待つ                                 |
+| position (C position) / position shift                         | ポジション（Cポジション）/ ポジション移動                          |
+| right and in time / wrong / extra                              | 正しく拍どおり / 間違い / 余分                                     |
+| Harmony (the page) / Chords (its practice)                     | 和声 / コード                                                      |
+| chord symbol / slash chord / lowest (bass)                     | コードネーム / 分数コード / いちばん下（ベース）                   |
+| sus2, sus4 / 6, add9 / diminished 7th                          | 掛留2度、掛留4度 / 付加六、付加九 / 減七の和音                     |
+| Show the notes (the chord's)                                   | 構成音を表示                                                       |
+| Progressions / roman numeral / Left hand                       | コード進行 / ローマ数字 / 左手（伴奏形）                           |
+| Block chords / Root and fifth / Waltz                          | ブロックコード / 根音と5度 / ワルツ                                |
+| Alberti bass / Arpeggio up / Stride                            | アルベルティ・バス / 上行アルペジオ / ストライド                   |
+| 12-bar blues                                                   | 12小節のブルース                                                   |
+| Cadences / authentic, plagal                                   | 終止形 / 完全終止、変格終止                                        |
+| half, deceptive (cadence)                                      | 半終止、偽終止                                                     |
+| Improvise / backing / Your turn                                | 即興演奏 / 伴奏 / あなたの番                                       |
+| chord tone / scale tone / outside                              | コードトーン / スケール音 / スケール外                             |
+| blues scale / major, minor pentatonic / Dorian                 | ブルース・スケール / メジャー・マイナー・ペンタトニック / ドリアン |
+| call and response / feel: straight, swing                      | コール・アンド・レスポンス / フィール：ストレート、スウィング      |
+| blues shuffle / modal vamp / take (played back)                | ブルース・シャッフル / モーダル・ヴァンプ / テイク                 |
+| ---------------------------------------------                  | ------------------------------------------------                   |
+| ---------------------------------------------                  | ------------------------------------------------                   |
+| technique / five-finger pattern / Hanon No. 3                  | テクニック / 5指の練習 / ハノン第3番                               |
+| block chords / broken chords (the exercises)                   | 和音 / 分散和音                                                    |
+| chord spread / top note (its balance)                          | 和音のずれ / いちばん上の音                                        |
+| group (of a pattern) / note 4 of each group                    | グループ / 各グループの4音目                                       |
+| -------------------------------------------------------------- | ------------------------------------------------------------       |
+| -------------------------------------------------------------- | ------------------------------------------------------------       |
+| repeated notes / trill / double notes, thirds                  | 同音連打 / トリル / 重音、3度の重音                                |
+| octaves / scale in octaves / diminished, dominant 7th arpeggio | オクターブ / オクターブの音階 / 減七・属七の和音のアルペジオ       |
+| rate (of a trill) / key up (between repeats)                   | 速さ / 鍵盤が上がっている時間                                      |
 
 Keys in titles follow Japanese editions: ハ長調, ト長調. Middle C is 中央C. Scale names on the Scales
 page keep the letter names of the app (`D長音階`, `G♯和声的短音階`), not ニ長音階.
@@ -478,6 +493,11 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 | 12-bar blues                                                   | 12마디 블루스                                                        |
 | Cadences / authentic, plagal                                   | 종지 / 정격 종지, 변격 종지                                          |
 | half, deceptive (cadence)                                      | 반종지, 거짓 종지                                                    |
+| Improvise / backing / Your turn                                | 즉흥 연주 / 반주 / 내 차례                                           |
+| chord tone / scale tone / outside                              | 코드 톤 / 스케일 음 / 스케일 밖                                      |
+| blues scale / major, minor pentatonic / Dorian                 | 블루스 스케일 / 메이저·마이너 펜타토닉 / 도리안                      |
+| call and response / feel: straight, swing                      | 콜 앤드 리스폰스 / 필: 스트레이트, 스윙                              |
+| blues shuffle / modal vamp / take (played back)                | 블루스 셔플 / 모달 뱀프 / 테이크                                     |
 | ---------------------------------------------                  | -------------------------------------------------------------------- |
 | ---------------------------------------------                  | -------------------------------------------------------------------- |
 | technique / five-finger pattern / Hanon No. 3                  | 테크닉 / 5손가락 연습 / 하농 3번                                     |

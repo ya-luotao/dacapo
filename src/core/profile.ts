@@ -133,9 +133,11 @@ function longest<T extends { ms: number }>(
  * cards on Read (kind `theory`), its rhythm lines (kind `rhythm`) and its sight-reading (kind
  * `sight`) are reading, and so are the
  * chord symbols of the Harmony page (kind `harmony`), cards by level as Read's are
- * (docs/HARMONY.md, "Clarifications"). From version 2 each kind is its own.
+ * (docs/HARMONY.md, "Clarifications"). Improvising over a backing (kind `improv`) is playing
+ * freely, nearest to free play. From version 2 each kind is its own.
  */
 function legacyKind(kind: ActivityKind): LegacyKind {
+  if (kind === 'improv') return 'free';
   return (LEGACY_KINDS as readonly string[]).includes(kind) ? (kind as LegacyKind) : 'read';
 }
 

@@ -1,4 +1,12 @@
-import { useEffect, useId, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react';
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from 'react';
 import { isChordSymbolAnswer } from '../../core/answers.ts';
 import {
   HARMONY_LEVEL_IDS,
@@ -12,14 +20,27 @@ import {
   type HarmonyLevelProgress,
 } from '../../core/harmonySession.ts';
 import { DEFAULT_SESSION_LENGTH, type SessionLength } from '../../core/session.ts';
+import { PEDALS_UP, type PedalPositions } from '../../core/takes.ts';
 import { useT } from '../../i18n/index.ts';
+import { isBuiltin } from '../../output/output.ts';
+import { browserClock } from '../../output/scheduler.ts';
 import { useInput } from '../input/context.ts';
+import { useMetronome } from '../metronome/context.ts';
+import { useOutputSound, useOutputState } from '../output/context.ts';
+import { ACCOMPANIMENT_LEVELS, readAccompanimentLevel } from '../output/prefs.ts';
+import { readLatency } from '../pieces/rhythmPrefs.ts';
+import { sharedClickTrack } from '../pieces/useRhythmPlayer.ts';
 import { usePractice, usePracticeStore, useStorageStatus } from '../practice/context.ts';
 import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
 import { ChordsSession } from './ChordsSession.tsx';
 import { ChordsSetup } from './ChordsSetup.tsx';
 import { ChordsSummary } from './ChordsSummary.tsx';
 import { createHarmonyController } from './controller.ts';
+import { createImprovController } from './improvController.ts';
+import { ImprovFeedback } from './ImprovFeedback.tsx';
+import { prefsSpec, readImprovPrefs, writeImprovPrefs, type ImprovPrefs } from './improvPrefs.ts';
+import { ImprovSession } from './ImprovSession.tsx';
+import { ImprovSetup } from './ImprovSetup.tsx';
 import { HARMONY_PRACTICES, type HarmonyPractice } from './practices.ts';
 import { readHarmonyPrefs, writeHarmonyPrefs, type HarmonyPrefs } from './prefs.ts';
 import { ProgressionsSetup } from './ProgressionsSetup.tsx';
@@ -30,10 +51,27 @@ export function HarmonyPage() {
   const practice = usePracticeStore();
   const { answers } = usePractice();
   const { loaded } = useStorageStatus();
-  const { hub } = useInput();
+  const { hub, output } = useInput();
+  const metronome = useMetronome();
   const [controller] = useState(() => createHarmonyController({ practice }));
   const session = useSyncExternalStore(controller.subscribe, controller.getState);
-  useKeepAwake(session?.phase === 'running', KEEP_AWAKE_IDLE_MS);
+  const [improv] = useState(() =>
+    createImprovController({
+      practice,
+      scheduler: output.scheduler,
+      clock: browserClock,
+      onInterrupt: output.onInterrupt,
+      clicks: sharedClickTrack,
+      hold: () => metronome.block('improv'),
+    }),
+  );
+  const improvView = useSyncExternalStore(improv.subscribe, improv.getState);
+  const [improvPrefs, setImprovPrefs] = useState(readImprovPrefs);
+  const sound = useOutputSound();
+  const { selected } = useOutputState();
+  /** The pedals' positions, for a take that starts with one down. */
+  const pedals = useRef<PedalPositions>(PEDALS_UP);
+  useKeepAwake(session?.phase === 'running' || improvView.phase === 'running', KEEP_AWAKE_IDLE_MS);
 
   const progress = useMemo(() => {
     const own = answers.filter(isChordSymbolAnswer);
@@ -56,14 +94,45 @@ export function HarmonyPage() {
     writeHarmonyPrefs(next);
   }
 
+  function changeImprovPrefs(patch: Partial<ImprovPrefs>) {
+    const next = { ...improvPrefs, ...patch };
+    setImprovPrefs(next);
+    writeImprovPrefs(next);
+  }
+
+  /** The level the backing plays at (Settings) and the channel it goes on (a MIDI port's). */
+  const improvSound = {
+    level: ACCOMPANIMENT_LEVELS[readAccompanimentLevel()],
+    channel: selected && !isBuiltin(selected) ? improvPrefs.channel : 0,
+  };
+
+  function startImprov() {
+    improv.start({
+      spec: prefsSpec(improvPrefs),
+      click: improvPrefs.click,
+      ...improvSound,
+      latency: readLatency()?.offset ?? 0,
+      pedals: pedals.current,
+    });
+  }
+
   useEffect(() => () => controller.dispose(), [controller]);
+  useEffect(() => () => improv.dispose(), [improv]);
   useEffect(
     () =>
       hub.onEvent((event) => {
-        if (event.type === 'on') controller.press(event.midi, event.time);
-        else if (event.type === 'off') controller.release(event.midi, event.time);
+        if (event.type === 'on') {
+          controller.press(event.midi, event.time);
+          improv.press(event.midi, event.velocity, event.time);
+        } else if (event.type === 'off') {
+          controller.release(event.midi, event.time);
+          improv.release(event.midi, event.time);
+        } else if (event.type === 'pedal') {
+          pedals.current = { ...pedals.current, [event.controller]: event.value };
+          improv.pedal(event.controller, event.value, event.time);
+        }
       }),
-    [hub, controller],
+    [hub, controller, improv],
   );
 
   const summary = useMemo(
@@ -79,6 +148,15 @@ export function HarmonyPage() {
   function onHint(next: boolean) {
     setHint(next);
     controller.setHint(next);
+  }
+
+  if (improvView.phase === 'running') {
+    return (
+      <section className="read harmony">
+        <h1 className="visually-hidden">{t('harmony.title')}</h1>
+        <ImprovSession view={improvView} controller={improv} />
+      </section>
+    );
   }
 
   if (session?.phase === 'running') {
@@ -98,6 +176,14 @@ export function HarmonyPage() {
         <p className="muted" role="status">
           {t('storage.loading')}
         </p>
+      ) : improvView.phase === 'done' ? (
+        <ImprovFeedback
+          view={improvView}
+          controller={improv}
+          sound={improvSound}
+          onAgain={startImprov}
+          onChange={improv.close}
+        />
       ) : summary ? (
         <ChordsSummary
           summary={summary}
@@ -133,9 +219,22 @@ export function HarmonyPage() {
                 onStart={() => start(level)}
               />
             </PracticeSection>
-          ) : (
+          ) : prefs.practice === 'progressions' ? (
             <PracticeSection practice="progressions">
               <ProgressionsSetup prefs={prefs} onPrefs={changePrefs} />
+            </PracticeSection>
+          ) : (
+            <PracticeSection practice="improvise">
+              <ImprovSetup
+                prefs={improvPrefs}
+                onPrefs={changeImprovPrefs}
+                onStart={startImprov}
+                sound={sound}
+                port={selected !== null && !isBuiltin(selected)}
+                view={improvView}
+                controller={improv}
+                playback={improvSound}
+              />
             </PracticeSection>
           )}
         </>

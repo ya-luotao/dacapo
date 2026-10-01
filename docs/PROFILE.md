@@ -186,7 +186,7 @@ Added to SYNC.md's table; the same errors, plus 400 `invalid-username`, 409
 
 ## Version 2: kinds and exercise types by name
 
-The app keeps gaining session kinds (`ear`, `theory`, `rhythm`, `harmony`, soon `sight`) and
+The app keeps gaining session kinds (`ear`, `theory`, `rhythm`, `harmony`, `sight`, `improv`) and
 exercise types (the arpeggios, the technique of S6 and S7). With the service's closed lists of
 version 1, each one had to wait for a deploy before a profile could name it, and until then the
 client mapped it onto `read` or counted it in `moreScales`. Version 2 opens the lists; the rest of
@@ -210,6 +210,9 @@ the document is unchanged.
 - `read` keeps its version 1 label "Flashcards", not "Note flashcards": in a version 1 document,
   still published by older apps and kept until their next publish, `read` includes ear training,
   the theory cards, rhythm and harmony.
+- `improv` (improvising over a backing on the Harmony page, HARMONY.md's H6) is other practice
+  until the page names it ("Improvisation": 即兴, 即興, 即興演奏, 즉흥 연주); in a version 1
+  document it is counted as `free`, playing freely being the nearest of the four.
 - **The service says it.** `GET /v1/account` answers `profileVersion: 2` (`PROFILE_VERSION` in the
   service's `src/profile.ts`). A service before it sends none.
 - **The client names what the service knows.** It keeps the `profileVersion` it last heard with

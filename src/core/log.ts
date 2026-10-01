@@ -9,6 +9,7 @@ import {
 import { recoverEarSummary, type EarSessionSummary } from './earSession.ts';
 import type { FreePlaySession } from './freePlay.ts';
 import { recoverHarmonySummary, type HarmonySessionSummary } from './harmonySession.ts';
+import type { ImprovSession } from './improvFigures.ts';
 import type { PieceSession } from './pieceRecords.ts';
 import { recoverRhythmEarSummary, type RhythmEarSessionSummary } from './rhythmEar.ts';
 import { recoverRhythmSummary, type RhythmSessionSummary } from './rhythmRead.ts';
@@ -38,6 +39,11 @@ export type HarmonySessionRecord = HarmonySessionSummary & { kind: 'harmony' };
  * after every run, so a closed tab loses nothing.
  */
 export type SightSessionRecord = SightSessionSummary & { kind: 'sight' };
+/**
+ * An improvisation over a backing on the Harmony page (docs/HARMONY.md, "Improvise (H6)") as
+ * stored: stored again as it goes, so a closed tab keeps most of it.
+ */
+export type ImprovSessionRecord = ImprovSession;
 export type SessionRecord =
   | ReadSessionRecord
   | FreePlaySessionRecord
@@ -47,15 +53,18 @@ export type SessionRecord =
   | TheorySessionRecord
   | RhythmSessionRecord
   | HarmonySessionRecord
-  | SightSessionRecord;
+  | SightSessionRecord
+  | ImprovSessionRecord;
 
 /**
  * The runs of a session that grows while it is played and is stored again as it does (a scale
- * or sight-reading session); 0 for the others. Of two copies, the one with more is the later.
+ * or sight-reading session; an improvisation's notes); 0 for the others. Of two copies, the one
+ * with more is the later.
  */
 export function sessionRuns(session: SessionRecord): number {
   if (session.kind === 'scale') return session.runs.length;
   if (session.kind === 'sight') return sightRunCount(session);
+  if (session.kind === 'improv') return session.figures.notes;
   return 0;
 }
 

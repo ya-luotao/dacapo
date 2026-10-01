@@ -16,13 +16,17 @@ function Numeral({ chord }: { chord: ProgressionChord }) {
 }
 
 /**
- * A progression's numerals typeset (`ii⁷–V⁷–Imaj⁷`, the figures raised). Hidden from assistive
- * technology, which reads `label` instead, or nothing when the caller says it.
+ * A progression's numerals typeset (`ii⁷–V⁷–Imaj⁷`, the figures raised), or those of `chords`
+ * (Improvise's backings). Hidden from assistive technology, which reads `label` instead, or
+ * nothing when the caller says it.
  */
-export function NumeralsText({ id }: { id: ProgressionId }) {
+export function NumeralsText(
+  props: { id: ProgressionId } | { chords: readonly ProgressionChord[] },
+) {
+  const chords = 'chords' in props ? props.chords : progressionNumerals(props.id);
   return (
     <span className="sym numerals" aria-hidden="true">
-      {progressionNumerals(id).map((c, n) => (
+      {chords.map((c, n) => (
         <Fragment key={n}>
           {n > 0 && '–'}
           <Numeral chord={c} />

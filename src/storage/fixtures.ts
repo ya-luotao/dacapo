@@ -4,9 +4,12 @@ import { voiceCadence } from '../core/cadences.ts';
 import { recoverEarSummary, type EarAnswer } from '../core/earSession.ts';
 import type { RunHeadline } from '../core/evenness.ts';
 import { recoverHarmonySummary, type ChordSymbolAnswer } from '../core/harmonySession.ts';
+import { backingChecksum, improvPieceId, improvPlan, isPlayerBar } from '../core/improv.ts';
+import { improvSession } from '../core/improvFigures.ts';
 import type {
   EarSessionRecord,
   HarmonySessionRecord,
+  ImprovSessionRecord,
   RhythmSessionRecord,
   SessionRecord,
   SightSessionRecord,
@@ -37,7 +40,7 @@ import {
 import { recoverSummary, type Attempt } from '../core/session.ts';
 import { recoverTheorySummary, type TheoryAnswer } from '../core/theorySession.ts';
 import type { StoredPiece } from '../core/storedPiece.ts';
-import { takeChunkId, type TakeChunk } from '../core/takes.ts';
+import { TAKE_CHUNK_EVENTS, takeChunkId, type TakeChunk } from '../core/takes.ts';
 
 export const T0 = Date.UTC(2026, 8, 20, 10);
 
@@ -725,4 +728,67 @@ export function sampleRhythmEarSession(
     by === 'play' ? sampleRhythmEarTaps(i, sessionId) : [sampleRhythmEarChoice(i, sessionId)],
   ).flat();
   return { answers, session: { kind: 'ear', ...recoverRhythmEarSummary(answers)! } };
+}
+
+/**
+ * An improvisation over the 12-bar blues in F at 96 with call and response (seed 5), with its
+ * take: eighths up and down the F blues scale through the answers' bars, the sustain pedal down
+ * through the first answer, `bars` bars long. Its take in chunks of at most `perChunk` events.
+ */
+export function sampleImprovSession(
+  sessionId: string,
+  bars = 8,
+  perChunk = TAKE_CHUNK_EVENTS,
+): { session: ImprovSessionRecord; takes: TakeChunk[] } {
+  const plan = improvPlan({
+    backing: 'blues',
+    key: 'F',
+    scale: 'blues',
+    pattern: 'shuffle',
+    feel: 'swing',
+    bpm: 96,
+    call: true,
+    seed: 5,
+  });
+  const run = [65, 68, 70, 71, 72, 75, 77, 75, 72, 71, 70, 68];
+  const events: number[][] = [[plan.barMs * 2 - 50, 64, 127]];
+  for (let bar = 0; bar < bars; bar++) {
+    if (!isPlayerBar(plan, bar)) continue;
+    for (let e = 0; e < 8; e++) {
+      const on = Math.round(bar * plan.barMs + e * (plan.beatMs / 2));
+      const key = run[(bar * 8 + e) % run.length]!;
+      events.push([on, 1, key, 60 + (e % 4) * 8, -1], [on + 120, 0, key]);
+    }
+    if (bar === 3) events.push([Math.round(4 * plan.barMs - 10), 64, 0]);
+  }
+  events.sort((a, b) => a[0]! - b[0]!);
+  const zero = T0 + 20_000_000;
+  const session = improvSession(plan, {
+    id: sessionId,
+    spec: plan.spec,
+    click: false,
+    startedAt: zero - 2800,
+    zero,
+    endedAt: zero + Math.round(bars * plan.barMs),
+    events,
+    latency: 12,
+  })!;
+  const takes: TakeChunk[] = [];
+  for (let chunk = 0; chunk * perChunk < events.length; chunk++) {
+    takes.push({
+      id: takeChunkId(sessionId, chunk),
+      sessionId,
+      pieceId: improvPieceId(plan.spec),
+      checksum: backingChecksum(plan),
+      hands: 'both',
+      repeats: 'play',
+      tempo: 100,
+      mode: 'rhythm',
+      latency: 12,
+      startedAt: zero,
+      chunk,
+      events: events.slice(chunk * perChunk, (chunk + 1) * perChunk),
+    });
+  }
+  return { session, takes };
 }

@@ -186,6 +186,41 @@ const sight = (startedAt: number): SessionRecord => ({
   ],
 });
 
+const improv = (startedAt: number): SessionRecord => ({
+  kind: 'improv',
+  id: `im${startedAt}`,
+  startedAt,
+  endedAt: startedAt + 6 * MIN,
+  activeMs: 6 * MIN,
+  backing: 'blues',
+  key: 'F',
+  scale: 'blues',
+  pattern: 'shuffle',
+  feel: 'swing',
+  bpm: 96,
+  click: false,
+  call: false,
+  seed: 1,
+  figures: {
+    ms: 6 * MIN,
+    notes: 2,
+    chord: 1,
+    scale: 1,
+    outside: 0,
+    strong: 1,
+    strongChord: 1,
+    low: 65,
+    high: 68,
+    playerMs: 6 * MIN,
+    soundMs: 1000,
+    melody: 2,
+    repeated: 0,
+    calls: 0,
+    answered: 0,
+    byBar: [[1, 2], ...Array.from({ length: 11 }, (): [number, number] => [0, 0])],
+  },
+});
+
 const stored = (id: string, title: string, fileName = `${id}.musicxml`) =>
   ({ id, title, fileName }) as StoredPiece;
 /** The stored pieces of `sessions`, titled as when practised. */
@@ -292,6 +327,17 @@ describe('buildProfile', () => {
     expect(named.activity!['2026-09-29']!.kinds).toEqual({ sight: 3 * MIN });
   });
 
+  it('counts an improvisation as free play for a service before version 2, by name from it', () => {
+    const sessions = [improv(NOW), free('f', NOW + 10 * MIN, 2 * MIN)];
+    const settings = { visibility: 'public', titles: false } as const;
+    expect(build({ sessions, settings })!.activity!['2026-09-29']!.kinds).toEqual({
+      free: 8 * MIN,
+    });
+    const named = build({ sessions, settings, profileVersion: NAMED_PROFILE_VERSION })!;
+    expect(named.activity!['2026-09-29']!.kinds).toEqual({ improv: 6 * MIN, free: 2 * MIN });
+    expect(named.days['2026-09-29']).toBe(8 * MIN);
+  });
+
   it('is what it was before version 2 for a service that does not say one', () => {
     const input = {
       sessions: richSessions(),
@@ -378,6 +424,7 @@ describe('buildProfile', () => {
       rhythm: true,
       harmony: true,
       sight: true,
+      improv: true,
     } satisfies Record<SessionRecord['kind'], true>;
     // At most 16 a day.
     expect(Object.keys(kinds).length).toBeLessThanOrEqual(16);

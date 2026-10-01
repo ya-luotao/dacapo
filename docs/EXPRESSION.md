@@ -50,7 +50,9 @@ recomputed from, and what "Play back your run" (PIECES.md) plays:
   (controller 64, 66 or 67, value 0–127). Each note-on also names the score note it was matched
   to (step and key), or none (an extra).
 - Stored compactly (one array of integers per event), and in **chunks** of at most 2,000 events,
-  one record each, so a record stays well under sync's 64 KB. Takes sync as the collection `takes`
+  one record each, so a record stays well under sync's 64 KB. (An improvisation over a backing on
+  the Harmony page keeps its take in the same store, under its session: HARMONY.md, "Clarifications
+  (decided during H6)".) Takes sync as the collection `takes`
   (added when the id is not stored, never changed); the export includes them (format 8).
 - A take is written as the run goes (a chunk when it fills, the rest when the run ends), like the
   step records.

@@ -178,9 +178,9 @@ function validHeaders(values: readonly unknown[]): PieceRunHeader[] {
 }
 
 /**
- * The scale and sight-reading sessions of `records` that are stored with fewer runs, first
- * occurrence only. Such a session grows while it is played (it is stored again after every run),
- * so a longer copy (from another device, say) is the later one.
+ * The scale, sight-reading and improvisation sessions of `records` that are stored with fewer
+ * runs (an improvisation's notes), first occurrence only. Such a session grows while it is played
+ * (it is stored again as it goes), so a longer copy (from another device, say) is the later one.
  */
 function longerSessions(
   records: readonly SessionRecord[],
@@ -188,7 +188,8 @@ function longerSessions(
 ): SessionRecord[] {
   const seen = new Set<string>();
   return records.filter((record) => {
-    if ((record.kind !== 'scale' && record.kind !== 'sight') || seen.has(record.id)) return false;
+    const grows = record.kind === 'scale' || record.kind === 'sight' || record.kind === 'improv';
+    if (!grows || seen.has(record.id)) return false;
     seen.add(record.id);
     const known = stored(record.id);
     return known?.kind === record.kind && sessionRuns(record) > sessionRuns(known);
