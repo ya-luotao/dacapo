@@ -37,7 +37,10 @@ note: `(` and `)` start and end a slur, `~` starts a tie, `!st` `!te` `!ac` `!ma
 staccato, tenuto, accent, strong accent and staccatissimo, `!fe` a fermata, `!m` `!p` `!tr`
 `!trw`/`!w` `!t` `!it` the ornaments (mordent, inverted mordent, trill, trill with a wavy line
 and its end, turn, inverted turn) with `!^s`-style accidental marks, `!c` a cautionary
-accidental; `g:` and `a:` before a note make it a grace note with and without a slash. Between
+accidental; `!f3` is the edition's finger for the note, on a chord one figure per note in the
+order the chord is written (`[c4,e4,g4]/16!f421`, `_` for a note without one), and `!f4-5` a
+change of finger on the held key; `g:` and `a:` before a note make it a grace note with and
+without a slash. Between
 notes, `@` tokens are directions at that place in the voice, on its staff: `@p` (any dynamic),
 `@<` `@>` `@!` (hairpins), `@w:cresc.` (words, `_` for a space), `@dashes[`/`@dashes]`, and
 `@Ped` `@Ped*` `@Ped*Ped` (the sustain pedal down, up and changed: Ped. and ✱ signs, or a

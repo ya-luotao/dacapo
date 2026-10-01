@@ -13,7 +13,12 @@ SUFFIXES, in any order:
   !^s !^n !^f !_s !_n !_f  accidental mark above / below an ornament (sharp, natural, flat)
   !st !sts !te !ac !ma     staccato, staccatissimo, tenuto, accent, strong accent
   !fe      fermata                          !c   cautionary accidental (printed even if in force)
-Marks go on the first note of a chord.
+  !fN      fingering, as the edition prints it: !f3 on a note; on a chord one figure per note in
+           the order the chord is written (lowest key first), `_` for a note the edition gives no
+           finger: [c4,e4,g4]/4!f135, [c4,g4]/4!f_5. !f4-5 is a change of finger on the held key
+           (a single note only). Drawn above the right hand's staff and below the left hand's (in
+           a staff with two voices: above the upper voice, below the lower).
+Marks go on the first note of a chord; each note of a chord gets its own finger.
 
 Direction token: @MARK[^][+N], at the voice's position (+N: N sixteenths later, may be x.5 when
 the piece has 'divisions': 8), on the voice's staff, below it (^: above it). MARK:
@@ -61,7 +66,7 @@ def parse_pitch(p):
     return step, alter, int(rest)
 
 
-SUFFIX = re.compile(r'~|\(\d?|\)\d?|![a-z]+|![\^_][snf]')
+SUFFIX = re.compile(r'~|\(\d?|\)\d?|!f[1-5_]+(?:-[1-5])?|![a-z]+|![\^_][snf]')
 DYNAMICS = ('p', 'pp', 'ppp', 'mp', 'mf', 'f', 'ff', 'fff', 'sf', 'sfz', 'fz', 'fp', 'rf', 'rfz',
             'sfp')
 NOTE_FLAGS = ('!m', '!p', '!tr', '!trw', '!w', '!t', '!it', '!st', '!sts', '!te', '!ac', '!ma',
@@ -82,11 +87,14 @@ def parse_token(tok):
     suffix = rest[len(digits):]
     flags = []
     slurs = []
+    fingers = change = None
     for part in SUFFIX.findall(suffix):
         if part == '~':
             flags.append('tie')
         elif part[0] in '()':
             slurs.append(('start' if part[0] == '(' else 'stop', int(part[1:]) if part[1:] else None))
+        elif part[:2] == '!f' and part[2:3] in tuple('12345_'):
+            fingers, _, change = part[2:].partition('-')
         elif part in NOTE_FLAGS:
             flags.append(part)
         else:
@@ -101,7 +109,12 @@ def parse_token(tok):
         pitches = [parse_pitch(x) for x in pitch[1:-1].split(',')]
     else:
         pitches = [parse_pitch(pitch)]
-    return {'grace': grace, 'pitches': pitches, 'dur': dur, 'flags': flags, 'slurs': slurs}
+    if fingers is not None and len(fingers) != len(pitches or ()):
+        raise SystemExit(f'{tok}: {len(fingers)} fingers for {len(pitches or ())} notes')
+    if change and len(fingers) != 1:
+        raise SystemExit(f'{tok}: a change of finger is written on a single note')
+    return {'grace': grace, 'pitches': pitches, 'dur': dur, 'flags': flags, 'slurs': slurs,
+            'fingers': fingers, 'finger_change': change}
 
 
 def parse_direction(tok):
@@ -301,6 +314,16 @@ def note_xml(e, staff, voice, beams, acc, stem, scale=1):
                                      f'{ACCIDENTAL_MARKS[flag[2]]}</accidental-mark>')
             if ornaments:
                 notations.append('<ornaments>' + ''.join(ornaments) + '</ornaments>')
+        finger = (e.get('fingers') or '_' * len(pitches))[n]
+        if finger != '_':
+            place = 'above' if voice in (1, 5) and (staff == 1 or stem) else 'below'
+            # A change of finger is one figure, "4-5": Verovio stacks a second <fingering> over
+            # the first like a chord's, and the parser takes the first digit either way.
+            if e.get('finger_change'):
+                finger += '-' + e['finger_change']
+            notations.append(f'<technical><fingering placement="{place}">{finger}</fingering>'
+                             '</technical>')
+        if n == 0:
             articulations = [xml for flag, xml in ARTICULATIONS if flag in flags]
             if articulations:
                 notations.append('<articulations>' + ''.join(articulations) + '</articulations>')
