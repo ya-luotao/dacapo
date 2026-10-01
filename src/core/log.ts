@@ -11,6 +11,7 @@ import { recoverHarmonySummary, type HarmonySessionSummary } from './harmonySess
 import type { PieceSession } from './pieceRecords.ts';
 import { recoverRhythmSummary, type RhythmSessionSummary } from './rhythmRead.ts';
 import type { ScaleSession } from './scaleRecords.ts';
+import { sightRunCount, type SightSessionSummary } from './sightRead.ts';
 import { recoverSummary, type Attempt, type SessionSummary } from './session.ts';
 import { recoverTheorySummary, type TheorySessionSummary } from './theorySession.ts';
 
@@ -27,6 +28,11 @@ export type TheorySessionRecord = TheorySessionSummary & { kind: 'theory' };
 export type RhythmSessionRecord = RhythmSessionSummary & { kind: 'rhythm' };
 /** A session of chord symbols on the Harmony page as stored. */
 export type HarmonySessionRecord = HarmonySessionSummary & { kind: 'harmony' };
+/**
+ * A sight-reading session on Read (docs/READING.md, "Sight-reading (R3)") as stored: stored again
+ * after every run, so a closed tab loses nothing.
+ */
+export type SightSessionRecord = SightSessionSummary & { kind: 'sight' };
 export type SessionRecord =
   | ReadSessionRecord
   | FreePlaySessionRecord
@@ -35,7 +41,18 @@ export type SessionRecord =
   | EarSessionRecord
   | TheorySessionRecord
   | RhythmSessionRecord
-  | HarmonySessionRecord;
+  | HarmonySessionRecord
+  | SightSessionRecord;
+
+/**
+ * The runs of a session that grows while it is played and is stored again as it does (a scale
+ * or sight-reading session); 0 for the others. Of two copies, the one with more is the later.
+ */
+export function sessionRuns(session: SessionRecord): number {
+  if (session.kind === 'scale') return session.runs.length;
+  if (session.kind === 'sight') return sightRunCount(session);
+  return 0;
+}
 
 export function byTime(a: Attempt, b: Attempt): number {
   return a.at - b.at || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);

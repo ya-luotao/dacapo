@@ -276,9 +276,12 @@ export function RhythmSession({ session, controller, prefs, onPrefs }: RhythmSes
           />
           <span>{t('rhythm.counts')}</span>
         </label>
-        <button type="button" className="button" onClick={stopSession}>
-          {t('read.stop')}
-        </button>
+        {/* While a run goes, its own Stop is the only one: the session ends between runs. */}
+        {!running && (
+          <button type="button" className="button" onClick={stopSession}>
+            {t('read.stop')}
+          </button>
+        )}
       </div>
       <div className="read-progress" aria-hidden="true">
         <span style={{ transform: `scaleX(${session.index / session.length})` }} />

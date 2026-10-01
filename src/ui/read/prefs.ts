@@ -2,19 +2,19 @@ import { ANSWER_MODES, type AnswerMode } from '../../core/earSession.ts';
 import { THEORY_FAMILIES, type TheoryFamily } from '../../core/theoryItems.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
 
-/** What Read's setup offers to read: single notes, one of the theory cards, or a rhythm line. */
-export type ReadChoice = 'notes' | TheoryFamily | 'rhythm';
-
 /**
- * The choices, in groups: the cards, and what is read in time (Rhythm; Sight-reading will join
- * it, docs/READING.md).
+ * What Read's setup offers to read: single notes, one of the theory cards, a rhythm line or a
+ * fragment to sight-read.
  */
+export type ReadChoice = 'notes' | TheoryFamily | 'rhythm' | 'sight';
+
+/** The choices, in groups: the cards, and what is read in time (docs/READING.md). */
 export const READ_CHOICE_GROUPS: readonly {
   id: 'cards' | 'time';
   choices: readonly ReadChoice[];
 }[] = [
   { id: 'cards', choices: ['notes', ...THEORY_FAMILIES] },
-  { id: 'time', choices: ['rhythm'] },
+  { id: 'time', choices: ['rhythm', 'sight'] },
 ];
 
 export const READ_CHOICES: readonly ReadChoice[] = READ_CHOICE_GROUPS.flatMap((g) => g.choices);

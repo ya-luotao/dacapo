@@ -42,6 +42,10 @@ describe('scaleFor', () => {
       spacingLinear: 0.15,
       spacingNonLinear: 0.9,
     });
+    // A fragment's phrases each on a system of their own, where the page is wide enough.
+    expect(layoutOptions(1000)).toMatchObject({ breaks: 'auto' });
+    expect(layoutOptions(1000, 42, { phrases: true })).toMatchObject({ breaks: 'encoded' });
+    expect(layoutOptions(360, 34, { phrases: true })).toMatchObject({ breaks: 'auto' });
   });
 });
 

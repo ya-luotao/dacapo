@@ -157,6 +157,10 @@ Chinese and Latin letters, digits and placeholders (`第 {n} 张`, `MIDI 键盘`
 | count (1 trip let) / Show the counts                           | 数拍（1 连 音）/ 显示数拍                |
 | tap / pad / extra tap / click                                  | 按 / 按板 / 多按 / 节拍声                |
 | early, late, missed / rush, drag                               | 早了、晚了、漏了 / 抢拍、拖拍            |
+| Sight-reading / fragment / look first                          | 视奏 / 片段（量词：段）/ 先看            |
+| Read ahead (off, on, hard) / Wait (mode)                       | 往前看（关、开、难）/ 等待               |
+| position (C position) / position shift                         | 位置（C 位置）/ 换把位                   |
+| right and in time / wrong / extra                              | 弹对且在拍子上 / 弹错 / 多按             |
 | Harmony (the page) / Chords (its practice)                     | 和声 / 和弦                              |
 | chord symbol / slash chord / in the bass                       | 和弦记号 / 斜线和弦 / 在最低（低音）     |
 | sus2, sus4 / 6, m6 / add9 / diminished 7th                     | 挂二、挂四 / 大六、小六 / 加九 / 减七    |
@@ -253,6 +257,10 @@ terms throughout. Address the learner as 你, as zh-CN does.
 | triplet / count (1 trip let)                                   | 三連音 / 數拍（1 連 音）                 | 数拍（1 连 音）                 |
 | tap / pad / extra tap / click                                  | 按 / 按板 / 多按 / 節拍聲                |                                 |
 | early, late, missed / rush, drag                               | 早了、晚了、漏了 / 搶拍、拖拍            | 抢拍、拖拍                      |
+| Sight-reading / fragment / look first                          | 視奏 / 片段（量詞：段）/ 先看            |                                 |
+| Read ahead (off, on, hard) / Wait (mode)                       | 往前看（關、開、難）/ 等待               |                                 |
+| position / position shift / tie                                | 位置 / 換把位 / 連結線                   | 延音线                          |
+| right and in time / wrong / extra                              | 彈對且在拍子上 / 彈錯 / 多按             |                                 |
 | Harmony (the page) / Chords                                    | 和聲 / 和弦                              | 和声                            |
 | chord symbol / slash chord                                     | 和弦記號 / 斜線和弦                      | 和弦记号 / 斜线和弦             |
 | sus2, sus4 / diminished 7th                                    | 掛二、掛四 / 減七                        | 挂二、挂四 / 减七               |
@@ -348,6 +356,10 @@ verb phrases for labels and buttons (設定, 開始, もう一度, 補正する)
 | count (1 trip let) / Show the counts                           | カウント（1 trip let のまま）/ カウントを表示                |
 | tap / pad / extra tap / click                                  | タップ / パッド / 余分なタップ / クリック音                  |
 | early, late, missed / rush, drag                               | 早い、遅い、抜けた / 走る、もたる                            |
+| Sight-reading / fragment / look first                          | 初見（初見演奏）/ 曲（〜曲目）/ 下見                         |
+| Read ahead (off, on, hard) / Wait (mode)                       | 先読み（オフ、オン、ハード）/ 待つ                           |
+| position (C position) / position shift                         | ポジション（Cポジション）/ ポジション移動                    |
+| right and in time / wrong / extra                              | 正しく拍どおり / 間違い / 余分                               |
 | Harmony (the page) / Chords (its practice)                     | 和声 / コード                                                |
 | chord symbol / slash chord / lowest (bass)                     | コードネーム / 分数コード / いちばん下（ベース）             |
 | sus2, sus4 / 6, add9 / diminished 7th                          | 掛留2度、掛留4度 / 付加六、付加九 / 減七の和音               |
@@ -444,6 +456,10 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 | count (1 trip let) / Show the counts                           | 세기 (1 trip let 그대로) / 세는 법 보이기                            |
 | tap / pad / extra tap / click                                  | 두드리기 / 패드 / 더 누름 / 클릭                                     |
 | early, late, missed / rush, drag                               | 빠름, 늦음, 놓침 / 앞질러 가다, 처지다                               |
+| Sight-reading / fragment / look first                          | 초견 / 곡 / 미리 보기                                                |
+| Read ahead (off, on, hard) / Wait (mode)                       | 앞서 읽기 (끔, 켬, 어렵게) / 기다리기                                |
+| position (C position) / position shift                         | 포지션 (C 포지션) / 포지션 이동                                      |
+| right and in time / wrong / extra                              | 맞게, 박에 맞춰 / 틀림 / 더 누름                                     |
 | Harmony (the page) / Chords (its practice)                     | 화성 / 코드                                                          |
 | chord symbol / slash chord / lowest (bass)                     | 코드 기호 / 슬래시 코드 / 가장 아래(베이스)                          |
 | sus2, sus4 / 6, add9 / diminished 7th                          | 서스2, 서스4 / 부가6, 부가9 / 감7화음                                |

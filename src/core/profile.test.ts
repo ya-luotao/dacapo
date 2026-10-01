@@ -152,6 +152,40 @@ const harmony = (startedAt: number): SessionRecord => ({
   missed: [],
 });
 
+const sight = (startedAt: number): SessionRecord => ({
+  kind: 'sight',
+  id: `si${startedAt}`,
+  level: 'F3',
+  startedAt,
+  endedAt: startedAt + 3 * MIN,
+  activeMs: 3 * MIN,
+  length: 4,
+  fragments: [
+    {
+      seed: 7,
+      version: 1,
+      runs: [
+        {
+          mode: 'time',
+          bpm: 72,
+          readAhead: 'off',
+          startedAt: startedAt + MIN,
+          endedAt: startedAt + 3 * MIN,
+          notes: 20,
+          inTime: 18,
+          early: 1,
+          late: 0,
+          wrong: 1,
+          missed: 0,
+          extras: 0,
+          medianDeviation: 14,
+          tendency: -5,
+        },
+      ],
+    },
+  ],
+});
+
 const stored = (id: string, title: string, fileName = `${id}.musicxml`) =>
   ({ id, title, fileName }) as StoredPiece;
 /** The stored pieces of `sessions`, titled as when practised. */
@@ -242,12 +276,20 @@ describe('buildProfile', () => {
       theory(NOW + 20 * MIN),
       rhythm(NOW + 30 * MIN),
       harmony(NOW + 40 * MIN),
+      sight(NOW + 50 * MIN),
     ];
     const document = build({ sessions, settings: { visibility: 'public', titles: false } })!;
-    // The theory cards and the rhythm lines on Read are reading too, and so are the chord symbols
-    // of Harmony.
-    expect(document.activity!['2026-09-29']!.kinds).toEqual({ read: 18 * MIN });
-    expect(document.days['2026-09-29']).toBe(18 * MIN);
+    // The theory cards, the rhythm lines and the sight-reading on Read are reading too, and so are
+    // the chord symbols of Harmony.
+    expect(document.activity!['2026-09-29']!.kinds).toEqual({ read: 21 * MIN });
+    expect(document.days['2026-09-29']).toBe(21 * MIN);
+    // From version 2, sight-reading under its own name.
+    const named = build({
+      sessions: [sight(NOW)],
+      settings: { visibility: 'public', titles: false },
+      profileVersion: NAMED_PROFILE_VERSION,
+    })!;
+    expect(named.activity!['2026-09-29']!.kinds).toEqual({ sight: 3 * MIN });
   });
 
   it('is what it was before version 2 for a service that does not say one', () => {
@@ -335,6 +377,7 @@ describe('buildProfile', () => {
       theory: true,
       rhythm: true,
       harmony: true,
+      sight: true,
     } satisfies Record<SessionRecord['kind'], true>;
     // At most 16 a day.
     expect(Object.keys(kinds).length).toBeLessThanOrEqual(16);

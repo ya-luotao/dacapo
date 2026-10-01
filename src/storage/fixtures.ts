@@ -9,8 +9,10 @@ import type {
   HarmonySessionRecord,
   RhythmSessionRecord,
   SessionRecord,
+  SightSessionRecord,
   TheorySessionRecord,
 } from '../core/log.ts';
+import { summarizeSightSession, type SightRunFigures } from '../core/sightRead.ts';
 import { parseNoteKey } from '../core/levels.ts';
 import {
   pieceSession,
@@ -537,6 +539,51 @@ export function sampleRhythmAnswers(run: number, sessionId = 'r1'): RhythmAnswer
       at: end,
     };
   });
+}
+
+/**
+ * Sight-reading run `n` (F5, two fragments at most): even runs in time at 72 (the first all but
+ * two notes in time, later ones rushing a little), odd ones in wait mode with two wrong keys.
+ */
+export function sampleSightRun(n: number): SightRunFigures {
+  const startedAt = T0 + 14_000_000 + n * 40_000;
+  const endedAt = startedAt + 27_000;
+  if (n % 2 === 1) return { mode: 'wait', startedAt, endedAt, notes: 40, wrong: 2 };
+  return {
+    mode: 'time',
+    bpm: 72,
+    readAhead: n === 0 ? 'off' : 'on',
+    startedAt,
+    endedAt,
+    notes: 40,
+    inTime: 36 - n,
+    early: 1 + n,
+    late: 1,
+    wrong: 1,
+    missed: 1,
+    extras: 2,
+    medianDeviation: 18 + n,
+    tendency: -4 - n,
+  };
+}
+
+/** A sight-reading session of `runs` runs, two to a fragment, with its record. */
+export function sampleSightSession(sessionId: string, runs: number): SightSessionRecord {
+  const fragments = Array.from({ length: Math.ceil(runs / 2) }, (_, f) => ({
+    seed: 1000 + f,
+    version: 1,
+    runs: Array.from({ length: Math.min(2, runs - 2 * f) }, (_, r) => sampleSightRun(2 * f + r)),
+  }));
+  return {
+    kind: 'sight',
+    ...summarizeSightSession({
+      id: sessionId,
+      level: 'F5',
+      length: 4,
+      startedAt: T0 + 14_000_000 - 5_000,
+      fragments,
+    })!,
+  };
 }
 
 /** A rhythm session of `runs` runs with its record. */

@@ -2708,6 +2708,125 @@ kbd {
   }
 }
 
+/*
+ * Read: sight-reading. The fragment on its sheet with room above each system for the bars'
+ * figures after a run; while reading ahead, the bars played covered with a hatched card.
+ */
+
+.sight-sheet {
+  min-height: 12rem;
+}
+
+.sight-sheet .score-page {
+  padding-top: 1.75rem;
+}
+
+.sight-cover {
+  position: absolute;
+  border-radius: var(--radius-sm);
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      transparent 0 6px,
+      color-mix(in oklab, var(--border) 60%, transparent) 6px 7px
+    ),
+    var(--sunk);
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+.sight-bar-label {
+  position: absolute;
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  transform: translateY(-50%);
+}
+
+.sight-bar-label.is-ok {
+  color: var(--ok);
+}
+
+.sight-bar-label.is-warn {
+  color: var(--warn);
+}
+
+.sight-bar-label.is-bad {
+  color: var(--bad);
+}
+
+.sight-result .figures {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.sight-bars {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+}
+
+.sight-bars summary {
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.sight-bars-table {
+  width: 100%;
+  margin-top: 0.5rem;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.sight-bars-table th,
+.sight-bars-table td {
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  text-align: end;
+}
+
+.sight-bars-table th:first-child {
+  text-align: start;
+}
+
+.sight-bars-table thead th {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.sight-result .help {
+  margin-top: 0.5rem;
+}
+
+.sight-summary .figures {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.sight-fragments {
+  margin-top: 1.5rem;
+}
+
+.sight-fragments ol {
+  padding-inline-start: 1.5rem;
+}
+
+.sight-fragments li span + span {
+  margin-inline-start: 0.5rem;
+}
+
+@media (max-width: 40rem) {
+  .sight-result .figures,
+  .sight-summary .figures {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .sight-bars-table th,
+  .sight-bars-table td {
+    padding-inline: 0.25rem;
+  }
+}
+
 /* Read: theory cards. The Read session's music stand; the answer buttons beside the sheet. */
 
 .theory-main {

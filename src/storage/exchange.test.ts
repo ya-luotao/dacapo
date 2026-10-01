@@ -34,6 +34,7 @@ import {
   sampleTheorySession,
   sampleRhythmAnswers,
   sampleRhythmSession,
+  sampleSightSession,
   T0,
 } from './fixtures.ts';
 import { createIndexedDbRepository, type PracticeRepository } from './repository.ts';
@@ -1223,6 +1224,65 @@ describe('versions', () => {
       { collection: 'answers', index: 15, field: 'bpm', problem: 'invalid' },
       { collection: 'answers', index: 16, field: 'answer', problem: 'invalid' },
       { collection: 'answers', index: 17, field: 'prompt', problem: 'invalid' },
+    ]);
+  });
+
+  it('imports sight-reading sessions and refuses broken ones', () => {
+    const session = sampleSightSession('ss', 3);
+    const [first, second] = session.fragments;
+    const run = first!.runs[0]!;
+    const file = parsed(
+      fileWith({
+        version: 8,
+        pieces: [],
+        pieceSteps: [],
+        scaleRuns: [],
+        takes: [],
+        answers: [],
+        sessions: [
+          { ...session, extra: 1 },
+          { ...session, id: 'x1', level: 'F9' },
+          { ...session, id: 'x2', length: 0 },
+          { ...session, id: 'x3', fragments: [] },
+          { ...session, id: 'x4', fragments: [{ ...first!, seed: -1 }, second] },
+          { ...session, id: 'x5', fragments: [{ ...first!, version: 0 }, second] },
+          {
+            ...session,
+            id: 'x6',
+            fragments: [{ ...first!, runs: [{ ...run, inTime: 37 }] }, second],
+          },
+          {
+            ...session,
+            id: 'x7',
+            fragments: [{ ...first!, runs: [{ ...run, bpm: 200 }] }, second],
+          },
+          {
+            ...session,
+            id: 'x8',
+            fragments: [{ ...first!, runs: [{ ...run, readAhead: 'always' }] }, second],
+          },
+          { ...session, id: 'x9', endedAt: session.endedAt + 1 },
+          { ...session, id: 'x10', fragments: [{ ...first!, runs: [] }, second] },
+          // A newer build's generator: kept, though this one cannot draw it again.
+          { ...session, id: 'x11', fragments: [{ ...first!, version: 2 }, second] },
+        ],
+      }),
+    );
+    expect(file.sessions).toEqual([
+      session,
+      { ...session, id: 'x11', fragments: [{ ...first!, version: 2 }, second] },
+    ]);
+    expect(file.invalid).toEqual([
+      { collection: 'sessions', index: 1, field: 'level', problem: 'invalid' },
+      { collection: 'sessions', index: 2, field: 'length', problem: 'invalid' },
+      { collection: 'sessions', index: 3, field: 'fragments', problem: 'invalid' },
+      { collection: 'sessions', index: 4, field: 'fragments', problem: 'invalid' },
+      { collection: 'sessions', index: 5, field: 'fragments', problem: 'invalid' },
+      { collection: 'sessions', index: 6, field: 'fragments', problem: 'invalid' },
+      { collection: 'sessions', index: 7, field: 'fragments', problem: 'invalid' },
+      { collection: 'sessions', index: 8, field: 'fragments', problem: 'invalid' },
+      { collection: 'sessions', index: 9, field: 'endedAt', problem: 'invalid' },
+      { collection: 'sessions', index: 10, field: 'fragments', problem: 'invalid' },
     ]);
   });
 

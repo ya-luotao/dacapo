@@ -112,7 +112,15 @@ export interface Engraving {
    * whose counts the page writes under each beat (Read's rhythm, docs/READING.md).
    */
   rhythm?: boolean;
+  /**
+   * Systems break where the file says (`<print new-system>`: a sight-reading fragment's second
+   * phrase), from `PHRASE_BREAKS_FROM` px wide; a narrower page breaks where it must.
+   */
+  phrases?: boolean;
 }
+
+/** The narrowest page that keeps a phrase of four bars on one system. */
+export const PHRASE_BREAKS_FROM = 560;
 
 /** Verovio's own threshold for stretching the last system. */
 const DEFAULT_LAST_JUSTIFICATION = 0.8;
@@ -127,7 +135,7 @@ const RHYTHM_SPACING = { spacingLinear: 0.15, spacingNonLinear: 0.9, spacingSyst
 
 /** The engraving as a value: equal engravings give equal keys, whatever object holds them. */
 export const engravingKey = (e: Engraving): string =>
-  `${e.lastJustification ?? DEFAULT_LAST_JUSTIFICATION}:${e.ottavaText === true}:${e.rhythm === true}`;
+  `${e.lastJustification ?? DEFAULT_LAST_JUSTIFICATION}:${e.ottavaText === true}:${e.rhythm === true}:${e.phrases === true}`;
 
 const sameEngraving = (a: Engraving, b: Engraving) => engravingKey(a) === engravingKey(b);
 
@@ -142,7 +150,7 @@ export function layoutOptions(
     pageHeight: 60000,
     adjustPageHeight: true,
     scale,
-    breaks: 'auto',
+    breaks: engraving.phrases === true && width >= PHRASE_BREAKS_FROM ? 'encoded' : 'auto',
     font: 'Bravura',
     header: 'none',
     footer: 'none',

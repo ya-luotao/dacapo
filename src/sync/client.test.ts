@@ -19,6 +19,7 @@ import {
   sampleTheoryAnswers,
   sampleTheorySession,
   sampleRhythmSession,
+  sampleSightSession,
   T0,
 } from '../storage/fixtures.ts';
 import { createIndexedDbRepository } from '../storage/repository.ts';
@@ -678,6 +679,36 @@ describe('rhythm on Read', () => {
     expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
     expect(mac.store.getSnapshot().answers).toEqual(rhythm.answers);
     expect(mac.store.getSnapshot().sessions).toEqual([rhythm.session]);
+  });
+});
+
+describe('sight-reading on Read', () => {
+  it('syncs a session as it grows, and pulls it again after a build that skipped it', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    await signIn(ipad);
+    await signIn(mac);
+    // Stored again after every run: the copy with more runs is the later one.
+    ipad.store.recordSession(sampleSightSession('s1', 1));
+    await ipad.client.syncNow();
+    const session = sampleSightSession('s1', 3);
+    ipad.store.recordSession(session);
+    await ipad.client.syncNow();
+    expect(service.body('sessions', 's1')).toEqual(session);
+    await mac.client.syncNow();
+    expect(mac.store.getSnapshot().sessions).toEqual([session]);
+
+    // As a build before schema 13 left it: the session skipped, the cursor past it.
+    const state = (await mac.db.get('meta', SYNC_STATE_KEY)) as SyncState;
+    await mac.db.delete('sessions', session.id);
+    await mac.db.put('meta', { ...state, schema: 12 }, SYNC_STATE_KEY);
+    await mac.store.reloadAll();
+    const sync = vi.spyOn(service.api, 'sync');
+    await mac.client.syncNow();
+    expect(SYNC_SCHEMA).toBeGreaterThanOrEqual(13);
+    expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
+    expect(mac.store.getSnapshot().sessions).toEqual([session]);
   });
 });
 

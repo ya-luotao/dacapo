@@ -38,8 +38,16 @@ import type {
   RhythmSessionRecord,
   ScaleSessionRecord,
   SessionRecord,
+  SightSessionRecord,
   TheorySessionRecord,
 } from '../core/log.ts';
+import { isSightLevelId, isSightSeed } from '../core/sightLevels.ts';
+import {
+  isSightBpm,
+  READ_AHEADS,
+  type SightFragmentRecord,
+  type SightRunFigures,
+} from '../core/sightRead.ts';
 import { isMidiNote, type Clef } from '../core/note.ts';
 import type { SpelledPitch } from '../core/score.ts';
 import {
@@ -938,7 +946,120 @@ export function validateSession(value: unknown): Validation<SessionRecord> {
   if (value.kind === 'theory') return validateTheorySession(value);
   if (value.kind === 'rhythm') return validateRhythmSession(value);
   if (value.kind === 'harmony') return validateHarmonySession(value);
+  if (value.kind === 'sight') return validateSightSession(value);
   return fail('kind');
+}
+
+// --- Sight-reading on Read -------------------------------------------------------------------
+
+/** Keys a fragment asks for: eight bars of chords in both hands stay far below this. */
+const MAX_SIGHT_NOTES = 1000;
+/** Fragments a session may plan. */
+const MAX_SIGHT_FRAGMENTS = 100;
+/** Runs of one fragment ("Again" plays it again). */
+const MAX_SIGHT_RUNS = 100;
+/** A generator version: this build may not know it (a newer build's record), but it is one. */
+const isVersion = (v: unknown): v is number =>
+  Number.isInteger(v) && (v as number) >= 1 && (v as number) <= 10_000;
+const isKeyCount = (v: unknown): v is number => isCount(v) && v <= MAX_SIGHT_NOTES;
+/** Note-ons that matched nothing: a hand mashing the keys for eight bars. */
+const isExtraCount = (v: unknown): v is number => isCount(v) && v <= 10_000;
+
+function cleanSightRun(v: unknown): SightRunFigures | null {
+  if (!isObject(v)) return null;
+  const times = isTime(v.startedAt) && isTime(v.endedAt) && v.endedAt >= v.startedAt;
+  if (!times) return null;
+  if (v.mode === 'wait') {
+    if (!isKeyCount(v.notes) || !isExtraCount(v.wrong)) return null;
+    return {
+      mode: 'wait',
+      startedAt: v.startedAt as number,
+      endedAt: v.endedAt as number,
+      notes: v.notes,
+      wrong: v.wrong,
+    };
+  }
+  if (v.mode !== 'time') return null;
+  const field = firstInvalid(v, {
+    bpm: isSightBpm,
+    readAhead: (x) => (READ_AHEADS as readonly unknown[]).includes(x),
+    notes: isKeyCount,
+    inTime: isKeyCount,
+    early: isKeyCount,
+    late: isKeyCount,
+    wrong: isKeyCount,
+    missed: isKeyCount,
+    extras: isExtraCount,
+    medianDeviation: (x) => x === null || (isTime(x) && x <= MAX_WINDOW_MS),
+    tendency: (x) => x === null || (isFiniteNumber(x) && Math.abs(x) <= MAX_WINDOW_MS),
+  });
+  if (field) return null;
+  const r = v as unknown as Extract<SightRunFigures, { mode: 'time' }>;
+  const played = r.inTime + r.early + r.late;
+  // Every key asked is in time, early, late, wrong or missed; the figures are of the keys played.
+  if (played + r.wrong + r.missed !== r.notes) return null;
+  if ((played === 0) !== (r.medianDeviation === null)) return null;
+  if ((played === 0) !== (r.tendency === null)) return null;
+  return {
+    mode: 'time',
+    bpm: r.bpm,
+    readAhead: r.readAhead,
+    startedAt: r.startedAt,
+    endedAt: r.endedAt,
+    notes: r.notes,
+    inTime: r.inTime,
+    early: r.early,
+    late: r.late,
+    wrong: r.wrong,
+    missed: r.missed,
+    extras: r.extras,
+    medianDeviation: r.medianDeviation,
+    tendency: r.tendency,
+  };
+}
+
+function cleanSightFragment(v: unknown): SightFragmentRecord | null {
+  if (!isObject(v) || !isSightSeed(v.seed) || !isVersion(v.version)) return null;
+  if (!Array.isArray(v.runs) || v.runs.length === 0 || v.runs.length > MAX_SIGHT_RUNS) return null;
+  const runs = v.runs.map(cleanSightRun);
+  if (runs.some((r) => r === null)) return null;
+  return { seed: v.seed, version: v.version, runs: runs as SightRunFigures[] };
+}
+
+function validateSightSession(value: Fields): Validation<SightSessionRecord> {
+  const field = firstInvalid(value, {
+    id: isId,
+    level: isSightLevelId,
+    startedAt: isTime,
+    endedAt: isTime,
+    activeMs: isTime,
+    // Any length, so a later build may offer others: fragments planned, 4 or 8 here.
+    length: (v) => isCount(v) && v > 0 && v <= MAX_SIGHT_FRAGMENTS,
+    fragments: (v) => Array.isArray(v) && v.length >= 1,
+  });
+  if (field) return fail(field);
+  const s = value as unknown as SightSessionRecord;
+  if (s.fragments.length > s.length) return fail('fragments');
+  const fragments = s.fragments.map(cleanSightFragment);
+  if (fragments.some((f) => f === null)) return fail('fragments');
+  const runs = (fragments as SightFragmentRecord[]).flatMap((f) => f.runs);
+  // Stored again after every run: it ends with its last one, and every run is within it.
+  if (s.endedAt !== Math.max(...runs.map((r) => r.endedAt))) return fail('endedAt');
+  if (runs.some((r) => r.startedAt < s.startedAt)) return fail('startedAt');
+  if (s.activeMs > s.endedAt - s.startedAt) return fail('activeMs');
+  return {
+    ok: true,
+    value: {
+      kind: 'sight',
+      id: s.id,
+      level: s.level,
+      startedAt: s.startedAt,
+      endedAt: s.endedAt,
+      activeMs: s.activeMs,
+      length: s.length,
+      fragments: fragments as SightFragmentRecord[],
+    },
+  };
 }
 
 // --- Rhythm on Read --------------------------------------------------------------------------

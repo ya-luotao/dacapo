@@ -10,6 +10,13 @@ import {
   type RhythmLevelProgress,
 } from '../../core/rhythmRead.ts';
 import { DEFAULT_SESSION_LENGTH, summarize, type SessionLength } from '../../core/session.ts';
+import { nextSightLevel, SIGHT_LEVEL_IDS, type SightLevelId } from '../../core/sightLevels.ts';
+import {
+  sightLevelProgress,
+  suggestedSightLevel,
+  summarizeSightSession,
+  type SightLevelProgress,
+} from '../../core/sightRead.ts';
 import {
   getTheoryLevel,
   nextTheoryLevel,
@@ -54,25 +61,41 @@ import { createTheoryController } from '../read/theoryController.ts';
 import { TheorySession } from '../read/TheorySession.tsx';
 import { TheorySetup } from '../read/TheorySetup.tsx';
 import { TheorySummary } from '../read/TheorySummary.tsx';
+import { createSightController } from '../read/sightController.ts';
+import {
+  readSightPrefs,
+  sightTempoOf,
+  withSightTempo,
+  writeSightPrefs,
+  type SightPrefs,
+} from '../read/sightPrefs.ts';
+import { SightSession } from '../read/SightSession.tsx';
+import { SightSetup } from '../read/SightSetup.tsx';
+import { SightSummary } from '../read/SightSummary.tsx';
+import { sharedClickTrack } from '../pieces/useRhythmPlayer.ts';
 import { loadMusicFont } from '../staff/font.ts';
+import { prefetchVerovio } from '../notation/verovio.ts';
 import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
 
 export function ReadPage() {
   const t = useT();
   const practice = usePracticeStore();
-  const { attempts, answers } = usePractice();
+  const { attempts, answers, sessions } = usePractice();
   const { loaded } = useStorageStatus();
   const { hub } = useInput();
   const [controller] = useState(() => createReadController({ practice }));
   const [theory] = useState(() => createTheoryController({ practice }));
   const [rhythm] = useState(() => createRhythmController({ practice }));
+  const [sight] = useState(() => createSightController({ practice }));
   const session = useSyncExternalStore(controller.subscribe, controller.getState);
   const theorySession = useSyncExternalStore(theory.subscribe, theory.getState);
   const rhythmSession = useSyncExternalStore(rhythm.subscribe, rhythm.getState);
+  const sightSession = useSyncExternalStore(sight.subscribe, sight.getState);
   useKeepAwake(
     session?.phase === 'running' ||
       theorySession?.phase === 'running' ||
-      rhythmSession?.phase === 'running',
+      rhythmSession?.phase === 'running' ||
+      sightSession?.phase === 'running',
     KEEP_AWAKE_IDLE_MS,
   );
 
@@ -109,20 +132,33 @@ export function ReadPage() {
   const [rhythmPicked, setRhythmPicked] = useState<RhythmLevelId | null>(null);
   const rhythmLevel = rhythmPicked ?? suggestedRhythmLevel(rhythmProgress);
   const [rhythmPrefs, setRhythmPrefs] = useState(readRhythmPrefs);
+  const sightProgress = useMemo(() => {
+    const ofSight = sessions.filter((s) => s.kind === 'sight');
+    return new Map<SightLevelId, SightLevelProgress>(
+      SIGHT_LEVEL_IDS.map((id) => [id, sightLevelProgress(ofSight, id)] as const),
+    );
+  }, [sessions]);
+  const [sightPicked, setSightPicked] = useState<SightLevelId | null>(null);
+  const sightLevel = sightPicked ?? suggestedSightLevel(sightProgress);
+  const [sightPrefs, setSightPrefs] = useState(readSightPrefs);
   // The latency is read afresh when the setup shows (a session may have calibrated meanwhile).
   const [, setLatency] = useState<Latency | null>(null);
   const [calibrating, setCalibrating] = useState(false);
 
-  const family = choice === 'notes' || choice === 'rhythm' ? null : choice;
+  const family = choice === 'notes' || choice === 'rhythm' || choice === 'sight' ? null : choice;
   const theoryLevel = family
     ? (theoryPicked[family] ?? suggestedTheoryLevel(family, theoryProgress))
     : null;
 
   // Fetch the notation font while the user picks a level, so the first card is not delayed.
   useEffect(loadMusicFont, []);
+  // The rhythm lines and the fragments are drawn by Verovio: fetched while the setup is open.
+  const timed = choice === 'rhythm' || choice === 'sight';
+  useEffect(() => (timed ? prefetchVerovio() : undefined), [timed]);
   useEffect(() => () => controller.dispose(), [controller]);
   useEffect(() => () => theory.dispose(), [theory]);
   useEffect(() => () => rhythm.dispose(), [rhythm]);
+  useEffect(() => () => sight.dispose(), [sight]);
 
   useEffect(
     () =>
@@ -149,10 +185,17 @@ export function ReadPage() {
         : null,
     [rhythmSession],
   );
+  const sightSummary = useMemo(
+    () => (sightSession?.phase === 'done' ? summarizeSightSession(sightSession) : null),
+    [sightSession],
+  );
   // A session stopped before any run was played leaves nothing to sum up.
   useEffect(() => {
     if (rhythmSession?.phase === 'done' && rhythmSession.answers.length === 0) rhythm.close();
   }, [rhythmSession, rhythm]);
+  useEffect(() => {
+    if (sightSession?.phase === 'done' && !summarizeSightSession(sightSession)) sight.close();
+  }, [sightSession, sight]);
 
   function changePrefs(patch: Partial<ReadPrefs>) {
     const next = { ...prefs, ...patch };
@@ -184,6 +227,21 @@ export function ReadPage() {
     rhythm.start({ level: next, bpm: tempoOf(rhythmPrefs, next), length: rhythmPrefs.length });
   }
 
+  function changeSightPrefs(patch: Partial<SightPrefs>) {
+    setSightPrefs((prefs) => {
+      const next = { ...prefs, ...patch };
+      writeSightPrefs(next);
+      return next;
+    });
+  }
+
+  function startSight(next: SightLevelId) {
+    // From the click: the click track can sound when a run starts after the look by itself.
+    sharedClickTrack();
+    setSightPicked(next);
+    sight.start({ level: next, length: sightPrefs.length });
+  }
+
   function onHint(next: boolean) {
     setHint(next);
     controller.setHint(next);
@@ -213,6 +271,21 @@ export function ReadPage() {
           controller={rhythm}
           prefs={rhythmPrefs}
           onPrefs={changeRhythmPrefs}
+        />
+      </section>
+    );
+  }
+
+  if (sightSession?.phase === 'running') {
+    return (
+      <section className="read">
+        <h1 className="visually-hidden">{t('read.title')}</h1>
+        <SightSession
+          key={sightSession.id}
+          session={sightSession}
+          controller={sight}
+          prefs={sightPrefs}
+          bpm={sightTempoOf(sightPrefs, sightSession.level)}
         />
       </section>
     );
@@ -253,6 +326,14 @@ export function ReadPage() {
           }
           onChooseLevel={rhythm.close}
         />
+      ) : sightSummary ? (
+        <SightSummary
+          summary={sightSummary}
+          progress={sightProgress.get(sightSummary.level)!}
+          onAgain={() => startSight(sightSummary.level)}
+          onNextLevel={() => startSight(nextSightLevel(sightSummary.level) ?? sightSummary.level)}
+          onChooseLevel={sight.close}
+        />
       ) : theorySummary ? (
         <TheorySummary
           summary={theorySummary}
@@ -270,9 +351,11 @@ export function ReadPage() {
             {t(
               choice === 'rhythm'
                 ? 'rhythm.intro'
-                : family
-                  ? `theory.intro.${family}`
-                  : 'read.intro',
+                : choice === 'sight'
+                  ? 'sight.intro'
+                  : family
+                    ? `theory.intro.${family}`
+                    : 'read.intro',
             )}
           </p>
           {choice === 'rhythm' ? (
@@ -296,6 +379,34 @@ export function ReadPage() {
                   onStart={() => {
                     setCalibrating(false);
                     startRhythm(rhythmLevel);
+                  }}
+                  onRunning={() => undefined}
+                  onChange={setLatency}
+                  onClose={() => setCalibrating(false)}
+                />
+              )}
+            </>
+          ) : choice === 'sight' ? (
+            <>
+              <SightSetup
+                level={sightLevel}
+                prefs={sightPrefs}
+                progress={sightProgress}
+                suggested={suggestedSightLevel(sightProgress)}
+                latency={readLatency()}
+                onLevel={setSightPicked}
+                onTempo={(bpm) => changeSightPrefs(withSightTempo(sightPrefs, sightLevel, bpm))}
+                onPrefs={changeSightPrefs}
+                onCalibrate={() => setCalibrating(true)}
+                onStart={() => startSight(sightLevel)}
+              />
+              {calibrating && (
+                <CalibrationSheet
+                  offer={false}
+                  onCalibrate={() => undefined}
+                  onStart={() => {
+                    setCalibrating(false);
+                    startSight(sightLevel);
                   }}
                   onRunning={() => undefined}
                   onChange={setLatency}

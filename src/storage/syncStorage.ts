@@ -1,5 +1,5 @@
 import type { Answer } from '../core/answers.ts';
-import { byTime, type SessionRecord } from '../core/log.ts';
+import { byTime, sessionRuns, type SessionRecord } from '../core/log.ts';
 import type { PieceStep } from '../core/pieceRecords.ts';
 import type { StoredScaleRun } from '../core/scaleRecords.ts';
 import type { Attempt } from '../core/session.ts';
@@ -109,19 +109,21 @@ function byText(a: unknown, b: unknown): number {
 /** Whether two copies of a record differ once serialized as the service compares them. */
 const differs = (a: unknown, b: unknown) => canonicalText(a) !== canonicalText(b);
 
-const runCount = (session: SessionRecord) => (session.kind === 'scale' ? session.runs.length : 0);
 const finished = (session: SessionRecord) =>
   session.kind === 'piece' && session.completed ? 1 : 0;
 
 /**
  * Orders two copies of a session: a session grows while it is played, so the one with more runs
- * (a scale session), or else the one that ended later, is the later copy; of two that ended at the
+ * (a scale or sight-reading session), or else the one that ended later, is the later copy; of two that ended at the
  * same step, a run played to the end beats one rebuilt from its steps. Their text breaks a
  * remaining tie, so every device picks the same copy. 0 only for the same record.
  */
 export function compareSessions(a: SessionRecord, b: SessionRecord): number {
   return (
-    runCount(a) - runCount(b) || a.endedAt - b.endedAt || finished(a) - finished(b) || byText(a, b)
+    sessionRuns(a) - sessionRuns(b) ||
+    a.endedAt - b.endedAt ||
+    finished(a) - finished(b) ||
+    byText(a, b)
   );
 }
 

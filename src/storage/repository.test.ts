@@ -16,6 +16,7 @@ import {
   sampleRhythmRun,
   sampleRun,
   sampleScaleSession,
+  sampleSightSession,
   sampleStep,
   sampleTake,
   T0,
@@ -841,6 +842,26 @@ describe.each([
       });
     }
     expect((await repo.load()).sessions).toEqual([long.session]);
+  });
+
+  it('replaces a stored sight-reading session with an imported copy that has more runs', async () => {
+    const repo = await create();
+    await repo.putSession(sampleSightSession('s1', 2));
+    const empty = {
+      attempts: [],
+      pieces: [],
+      pieceSteps: [],
+      scaleRuns: [],
+      answers: [],
+      takes: [],
+    };
+    const long = sampleSightSession('s1', 3);
+    expect((await repo.merge({ ...empty, sessions: [long] })).sessions).toBe(1);
+    expect((await repo.load()).sessions).toEqual([long]);
+    expect((await repo.merge({ ...empty, sessions: [sampleSightSession('s1', 1)] })).sessions).toBe(
+      0,
+    );
+    expect((await repo.load()).sessions).toEqual([long]);
   });
 
   it('keeps a stored session of another kind that has a scale session’s id', async () => {

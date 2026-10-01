@@ -3,7 +3,14 @@ import { DEFAULT_READ_PREFS, parseReadPrefs, READ_CHOICE_GROUPS, READ_CHOICES } 
 
 describe('read prefs', () => {
   it('offers notes and the three kinds of theory card, then what is read in time', () => {
-    expect(READ_CHOICES).toEqual(['notes', 'readInterval', 'keySignature', 'readChord', 'rhythm']);
+    expect(READ_CHOICES).toEqual([
+      'notes',
+      'readInterval',
+      'keySignature',
+      'readChord',
+      'rhythm',
+      'sight',
+    ]);
     expect(READ_CHOICE_GROUPS.map((g) => g.id)).toEqual(['cards', 'time']);
   });
 
@@ -16,7 +23,8 @@ describe('read prefs', () => {
   it('falls back to the default for anything missing, unknown or broken', () => {
     expect(parseReadPrefs(null)).toEqual(DEFAULT_READ_PREFS);
     expect(parseReadPrefs('{')).toEqual(DEFAULT_READ_PREFS);
-    expect(parseReadPrefs(JSON.stringify({ choice: 'sight', chordBy: 'hum' }))).toEqual(
+    expect(parseReadPrefs(JSON.stringify({ choice: 'sight' })).choice).toBe('sight');
+    expect(parseReadPrefs(JSON.stringify({ choice: 'dictation', chordBy: 'hum' }))).toEqual(
       DEFAULT_READ_PREFS,
     );
     expect(parseReadPrefs(JSON.stringify({ choice: 'keySignature' }))).toEqual({

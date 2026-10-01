@@ -117,7 +117,7 @@ winner.
 | `pieces`                                                  | `StoredPiece` without `xml` and `facts`, plus `xmlHash` | the later copy wins (below); a deletion is final                             |
 
 - **Sessions.** A session grows while it is played, so of two copies the one with more runs (a
-  scale session), or else the one that ended later, wins. That matters because a device can hold
+  scale or sight-reading session, both stored again after every run), or else the one that ended later, wins. That matters because a device can hold
   a copy that is not the last: the session it rebuilds at startup for answers that arrived before
   their session (as it does for a tab closed mid-session), which the finished session replaces.
 - **Pieces.** `updatedAt` (epoch ms) is set when a piece is renamed or its hands are changed, to
@@ -153,7 +153,8 @@ winner.
   `chordSymbol` and sessions of kind `harmony`, which older builds skip; 9: the technique
   exercises' runs and sessions, whose exercise keys older builds do not validate; 10: the same for
   S7's — the sevenths, repeated notes, trills, thirds and octaves; 11: cadences by ear, answers
-  and ear sessions of the family `cadence`, which older builds skip), and the sync state keeps the
+  and ear sessions of the family `cadence`, which older builds skip; 13: sight-reading on Read,
+  sessions of kind `sight`, which older builds skip), and the sync state keeps the
   schema its cursor was reached with. When the build's is higher, the next round starts again from
   cursor 0. Pulling a record already stored changes nothing, except where the stored copy differs:
   an older build that did not know a field kept the record without it. A record that never changes

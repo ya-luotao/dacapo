@@ -1,6 +1,6 @@
 # dacapo — Reading in time specification
 
-Status: R1 (Rhythm on Read) is built; R2 and R3 are planned. This extends [MVP.md](MVP.md),
+Status: R1 (Rhythm on Read) and R3 (Sight-reading on Read) are built; R2 is planned. This extends [MVP.md](MVP.md),
 [PIECES.md](PIECES.md) and [EAR.md](EAR.md); their principles and fixed decisions still apply (staff
 first, measure don't guess, local data, English of record, every UI language, 3-day dependency
 cooldown, no backend).
@@ -217,9 +217,119 @@ once through.
   again from the seed, and its per-note detail is not needed for progress). A level is mastered
   when the last 5 fragments in time each have at least 90 % of their notes right and in time.
 
+### Clarifications (decided during R3)
+
+- **Where.** Read's second row, what is read in time, is **Rhythm** and **Sight-reading**. The
+  setup is Read's: the levels with their progress (how many of the last five fragments in time
+  reached the mark) and the suggested one, then **Play** (In time, the default, or Wait), **Read
+  ahead** (Off, On, Hard; in time only), the seconds to **look first** (10, 15, 20 by default, 25,
+  30), the tempo of the level, **fragments per session** (4 by default, or 8), **Count-in only** and
+  the latency with **Calibrate**, all kept in this browser (`dacapo.read.sight`).
+- **The generator** is `core/sightFragment.ts` (its algorithm is written at its top) and the
+  MusicXML `core/sightXml.ts`. A fragment is `generateFragment(level, seed, version)`: one seeded
+  rng (`random.ts`'s mulberry32) draws everything in a fixed order, so the stored level, seed and
+  version give the same music on any device. `SIGHT_GENERATOR_VERSION` is 1; any change of output
+  needs a new version, and two fragments are pinned in the tests to make that visible. A version
+  this build does not know cannot be drawn again (its records still import and count).
+- **Levels, as built.**
+  - _Meters_: F1–F3 4/4 or 3/4; F4 4/4 or 2/4 (a held bass note fills its bar, and the dotted
+    half is R3's); F5–F8 4/4, 3/4 or 2/4, 4/4 most often. The last bar is one note filling the bar;
+    in 3/4 before R3 that dotted half is the final note, as R1's exercises have it, not a cell.
+  - _Keys_: the table's; "up to three (four) sharps or flats" is every major and minor key with
+    that many (F7: C G D A F B♭ E♭, A E B F♯ D G C minor; F8 adds E, A♭, C♯ and F minor).
+  - _Rhythm_: the melody's cells are drawn from the level's R-levels (quarters and halves most;
+    eighths from F4; the dotted half and dotted quarter from F5; a note tied over the barline into
+    a downbeat, at most two, from F7; sixteenths from F8), a half or a dotted rhythm only on a strong
+    beat, at most two pairs of eighths and one sixteenth figure in a bar. `er-e` is not used: an
+    off-beat entry is R7's matter. The third bar often repeats the first one's rhythm, and the
+    second bar of a phrase may end with a quarter rest (a breath).
+  - _Phrases_: four bars are one phrase ending on I; eight bars are two, the first ending on a half
+    cadence (V), the second beginning as the first in about half of them (a parallel period; bars
+    5–6 repeat bars 1–2, an octave up when the hand moved an octave).
+  - _Harmony_ per bar: I first; the second bar IV, V or I (ii and vi from F6); the bar before the
+    cadence V, or from F5 a pre-dominant or I on its first half and V on its second (beat 3 in 4/4
+    and 3/4, beat 2 in 2/4); the last bar I. In minor the chords are i, iv, V (major, with the raised
+    leading tone) and VI; ii, diminished there, is left out.
+  - _Positions_: "five-finger positions until F5" is read as F1–F4 in one five-finger position on
+    the tonic for the whole fragment; from F5 the position may stretch a step (the leading tone
+    below or the sixth above, a span of a sixth); in F7–F8 the right hand may move between the
+    phrases (up an octave, or to the dominant's position), never within one, staying between G3 and
+    A5. The right hand's tonic is in octave 4; the left hand's an octave or two below, from F2 to
+    E3 (G2 to F♯3 for F8's chords), so its position lies on the bass staff.
+  - _Leaps_: steps and repeated notes only until F4 (F3's line passes between the hands by its
+    degrees, an octave or two apart); up to a fifth in F5 and a sixth from F6. A skip or leap joins
+    two chord tones; after a leap of a fourth or more the line turns back by a step or a third; no
+    melodic tritone, augmented second or augmented fifth; a note repeats only between notes of a
+    beat or more, and never three times.
+  - _Chord tones_: every note on the downbeat, on beat 3 of 4/4, at a change of chord or a half
+    note or longer is a chord tone; the others are passing or neighbour notes, left by step. The
+    leading tone rises to the tonic (in minor always, in major into I); the last note is the tonic,
+    reached by step until F4 and from F5 also from the dominant.
+  - _Accidentals_: a minor key's raised leading tone (under V) from F5 is no accidental of F7's;
+    F7–F8's accidentals are up to two chromatic lower neighbours a whole step below their note, to
+    the dominant, and in major also to the supertonic, mediant and submediant (in minor to the
+    subdominant), only where they make a sharp on a black key or a natural from a flat (no B♯, E♯
+    or double sharp), never against the same letter in the left hand in the bar, and never into a
+    fifth or octave with a bass struck with them.
+  - _The left hand_: F1 rests and F2 plays the line (the right hand rests); F3 passes the line bar
+    by bar (patterns such as right, left, right, left); F4 holds the root of each bar; F5 a note
+    each half bar (root and fifth or third; the roots of two chords; a held root at the end of a
+    phrase); F6–F7 a pattern per phrase of fifths and sixths (I 1–5, IV and vi 1–6, V 7–5, ii 2–6),
+    single notes per half bar or a walking line in quarters (chord tones on the strong beats,
+    passing and neighbour notes between, reaching the next bar's bass by step or third); F8 one
+    pattern per fragment of block chords (per bar or half bar; a waltz bass and chord in 3/4),
+    Alberti eighths or chords broken in quarters, in close voicings that move least (I, IV6/4, V6,
+    ii, vi6). The melody stays above the left hand, never on a key it strikes at the same moment,
+    never in parallel fifths or octaves with its bass (a note held on by a tie is not struck), and
+    a passing note never strikes a semitone against it.
+  - _Fingering_: only each hand's first note or chord: from the five fingers of its first phrase
+    (the thumb, or the left hand's fifth finger, on the lowest note when the phrase starts there),
+    a chord 5–3–1 or 5–2–1 by its shape.
+- **The last bar** is held from its downbeat by both hands, so rhythm mode's plan gives it one beat
+  (`sightPlan`), as R1's final note: the run and the click end a beat after the last notes are
+  struck. Systems break between the phrases of eight bars where the page is 560 px wide or more
+  (Verovio's encoded breaks); every system is stretched to the width.
+- **Look first** counts down from the moment the score is drawn; at zero the run starts by itself
+  (the count-in in time, the cursor on the first notes in Wait); **Start now** skips it. Before the
+  first run with a click in a browser the calibration is offered, once, before the first look.
+  **Again** plays the same fragment at once, without the look; **Next** shows the next fragment and
+  its look. While a run goes, its own Stop is the only one on the page; the session's Stop (ending
+  it) shows between runs. Rhythm on Read does the same.
+- **Read ahead** is for runs in time: with On a bar is covered when its first beat arrives, with
+  Hard half a bar sooner (bar 1 then in the second half of the count-in), and the bars played stay
+  covered until the run ends. A cover hides the bar from its first note or rest (its accidental
+  included) to the barline, and a little above and below the staves (ledger notes, fingering), so a
+  system's clef, key and time signatures stay in sight. In Wait nothing is covered: it is the first
+  look.
+- **Judging in time** is rhythm mode's matcher on every key (a chord is each of its keys).
+  Deviations are whole ms; a key is right and in time within 50 ms, early or late within its
+  window; a key not played whose step drew a note-on that matched nothing is **wrong** (as many as
+  the smaller of the two), the rest **missed** and **extra**. Per bar: right and in time of the keys
+  asked, early or late, wrong, missed, extra; per run: the share right and in time, the median
+  |deviation| and rhythm mode's tendency. Each note is inked as R1's are (a tie's second note as
+  its first; a wrong key inks its note as missed), each bar's figure is written over it, and a table
+  of the bars folds out. **Wait** counts the keys asked and the wrong keys pressed, per bar.
+- **Listen** plays the fragment as written at the session's tempo on the selected output, as
+  Pieces' demo (it needs an output); **Play it back** waits for P5.
+- **Records.** A session is kind `sight`: `level`, `startedAt`, `endedAt`, `activeMs`, `length`
+  (4 or 8) and `fragments`, each `{ seed, version, runs }` with every run played to its end: in time
+  `{ mode: 'time', bpm, readAhead, startedAt, endedAt, notes, inTime, early, late, wrong, missed,
+extras, medianDeviation, tendency }`, in wait mode `{ mode: 'wait', startedAt, endedAt, notes,
+wrong }`. No note played is kept. The record is stored again after every run (`endedAt` is the
+  end of the last run), so a closed tab loses nothing and nothing needs rebuilding; of two copies
+  the one with more runs is the later, for sync (`compareSessions`) and imports alike. A session
+  stopped before its first run leaves nothing. Validation is strict (counts that add up, a seed of
+  32 bits; any version from 1 and any length, for a later build's records); `SYNC_SCHEMA` 13; the export file needs no new version; the public
+  profile counts these sessions as reading.
+- **Mastery** counts fragments, not runs: a fragment counts by its first run in time (sight-reading
+  is the first reading; Again is practice, Wait a first look and not counted). A level is mastered
+  when its last five fragments so counted each had at least 90 % of their keys right and in time.
+- **Tempo** is quarters a minute, 72 to start (60 in F8, which draws sixteenths), 40–160, kept per
+  level; the session keeps the tempo it started with.
+
 ## Milestones
 
 1. ✓ **R1 Rhythm** — the choice of what to read on Read, cells, levels R1–R10, generated rhythm lines,
    judging, records, sessions, mastery; the Rhythm II lesson before it (LEARN.md).
 2. **R2 Rhythm dictation** — on Ear: tap it back and choose it, confusions.
-3. **R3 Sight-reading** — fragments F1–F8, in time and wait, read ahead, the look before, records.
+3. ✓ **R3 Sight-reading** — fragments F1–F8, in time and wait, read ahead, the look before, records.

@@ -63,6 +63,11 @@ practising the notes you are slowest at. Progress is visible day by day.
   **rhythm**: a line of rhythm on a one-line staff, tapped on any key after a bar of count-in,
   every note timed against the click; ten levels from quarter notes through ties, sixteenths,
   triplets, syncopation and 6/8 to two hands in two rhythms ([docs/READING.md](docs/READING.md)).
+  And **sight-reading**: short music never seen before, generated on the grand staff in eight
+  levels from the right hand in C position to chords in the left hand in keys of four sharps or
+  flats; look at it for a few seconds, then play it through once in time (or note by note, for a
+  first look), the bars covered as you play them if you want to read ahead, and see every bar
+  judged.
 - **Ear training.** Intervals and chords by ear, in twelve levels from the octave, fifth and
   major third to compound intervals, inversions and seventh chords. Your instrument or the
   built-in piano plays the question; play it back on the keys (the first note or the root is

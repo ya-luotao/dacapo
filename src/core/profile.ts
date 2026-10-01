@@ -130,7 +130,8 @@ function longest<T extends { ms: number }>(
  * The day kind a session counts as with a service before version 2, which accepts the four
  * `LEGACY_KINDS` only and rejects a document with any other: ear training counts as reading (the
  * nearest: drills by level, away from the pieces; docs/EAR.md, "Clarifications"); the theory
- * cards on Read (kind `theory`) and its rhythm lines (kind `rhythm`) are reading, and so are the
+ * cards on Read (kind `theory`), its rhythm lines (kind `rhythm`) and its sight-reading (kind
+ * `sight`) are reading, and so are the
  * chord symbols of the Harmony page (kind `harmony`), cards by level as Read's are
  * (docs/HARMONY.md, "Clarifications"). From version 2 each kind is its own.
  */

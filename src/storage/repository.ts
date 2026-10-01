@@ -1,6 +1,6 @@
 import { byAnswerTime, type Answer } from '../core/answers.ts';
 import type { FreePlaySession, OpenFreePlay } from '../core/freePlay.ts';
-import { byStartDescending, byTime, type SessionRecord } from '../core/log.ts';
+import { byStartDescending, byTime, sessionRuns, type SessionRecord } from '../core/log.ts';
 import {
   byStepTime,
   type PieceRunHeader,
@@ -43,7 +43,7 @@ export interface StoredData {
 }
 
 export interface MergeResult {
-  /** Added, and scale sessions replaced by a longer copy. */
+  /** Added, and scale and sight-reading sessions replaced by a longer copy. */
   sessions: number;
   attempts: number;
   pieces: number;
@@ -178,19 +178,20 @@ function validHeaders(values: readonly unknown[]): PieceRunHeader[] {
 }
 
 /**
- * The scale sessions of `records` that are stored with fewer runs, first occurrence only. A scale
- * session grows while it is played, so a longer copy (from another device, say) is the later one.
+ * The scale and sight-reading sessions of `records` that are stored with fewer runs, first
+ * occurrence only. Such a session grows while it is played (it is stored again after every run),
+ * so a longer copy (from another device, say) is the later one.
  */
-function longerScaleSessions(
+function longerSessions(
   records: readonly SessionRecord[],
   stored: (id: string) => SessionRecord | undefined,
-): ScaleSession[] {
+): SessionRecord[] {
   const seen = new Set<string>();
-  return records.filter((record): record is ScaleSession => {
-    if (record.kind !== 'scale' || seen.has(record.id)) return false;
+  return records.filter((record) => {
+    if ((record.kind !== 'scale' && record.kind !== 'sight') || seen.has(record.id)) return false;
     seen.add(record.id);
     const known = stored(record.id);
-    return known?.kind === 'scale' && record.runs.length > known.runs.length;
+    return known?.kind === record.kind && sessionRuns(record) > sessionRuns(known);
   });
 }
 
@@ -466,7 +467,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
       ]);
       const byId = new Map(storedSessions.map((s) => [s.id, s]));
       const addedSessions = notStored(input.sessions, byId.keys());
-      const longerSessions = longerScaleSessions(input.sessions, (id) => byId.get(id));
+      const longer = longerSessions(input.sessions, (id) => byId.get(id));
       const addedAttempts = notStored(
         input.attempts,
         storedAttempts.map((a) => a.id),
@@ -482,7 +483,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
       );
       const stats = statsFromAttempts([...storedAttempts, ...addedAttempts]);
       const tracked: Tracked[] = [
-        ...[...addedSessions, ...longerSessions].map((r) => ['sessions', r.id] as const),
+        ...[...addedSessions, ...longer].map((r) => ['sessions', r.id] as const),
         ...addedAttempts.map((r) => ['attempts', r.id] as const),
         ...addedPieces.map((r) => ['pieces', r.id] as const),
         ...addedSteps.map((r) => ['pieceSteps', r.id] as const),
@@ -492,7 +493,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
       ];
       await writeAll(tx, [
         ...addedSessions.map((session) => () => sessions.add(session)),
-        ...longerSessions.map((session) => () => sessions.put(session)),
+        ...longer.map((session) => () => sessions.put(session)),
         ...addedAttempts.map((attempt) => () => attempts.add(attempt)),
         ...addedPieces.map((piece) => () => pieces.add(piece)),
         ...addedSteps.map((step) => () => pieceSteps.add(step)),
@@ -504,7 +505,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         ...track(tx.objectStore('outbox'), syncing, tracked),
       ]);
       return {
-        sessions: addedSessions.length + longerSessions.length,
+        sessions: addedSessions.length + longer.length,
         attempts: addedAttempts.length,
         pieces: addedPieces.length,
         pieceSteps: addedSteps.length,
@@ -630,7 +631,7 @@ export function createMemoryRepository(): PracticeRepository {
     takeIds: () => Promise.resolve([...takes.keys()]),
     merge(input) {
       const addedSessions = notStored(input.sessions, sessions.keys());
-      const longerSessions = longerScaleSessions(input.sessions, (id) => sessions.get(id));
+      const longer = longerSessions(input.sessions, (id) => sessions.get(id));
       const addedAttempts = notStored(input.attempts, attempts.keys());
       const addedPieces = notStored(input.pieces, pieces.keys()).filter(
         (p) => !deletions.has(p.id),
@@ -643,7 +644,7 @@ export function createMemoryRepository(): PracticeRepository {
       const addedTakes = notStored(input.takes, takes.keys()).filter(
         (chunk) => !deletions.get(chunk.pieceId)?.withSteps,
       );
-      for (const session of [...addedSessions, ...longerSessions]) {
+      for (const session of [...addedSessions, ...longer]) {
         sessions.set(session.id, copy(session));
       }
       for (const attempt of addedAttempts) attempts.set(attempt.id, copy(attempt));
@@ -654,7 +655,7 @@ export function createMemoryRepository(): PracticeRepository {
       for (const chunk of addedTakes) takes.set(chunk.id, copy(chunk));
       stats = statsFromAttempts([...attempts.values()]);
       return Promise.resolve({
-        sessions: addedSessions.length + longerSessions.length,
+        sessions: addedSessions.length + longer.length,
         attempts: addedAttempts.length,
         pieces: addedPieces.length,
         pieceSteps: addedSteps.length,

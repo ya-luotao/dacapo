@@ -14,6 +14,32 @@ sessions go in the same lists), the
 click's tempo and grid of scale runs played with it (from version 7), and the takes of piece runs
 (from version 8). Version 1 to 7 files still import.
 
+### Sight-reading on Read (R3, [docs/READING.md](docs/READING.md))
+
+- **Read**'s row of what is read in time gains **Sight-reading**: short music never seen before,
+  generated on the grand staff and drawn by Verovio, four bars (eight from F5, in two phrases).
+  Look at it for 10 to 30 seconds with a countdown, as in an exam (Start skips it), then play it
+  through once **in time** (a bar of count-in, and nothing waits) or note by note in **Wait** for a
+  first look. **Read ahead** covers each bar as its first beat arrives (Hard: half a bar sooner).
+- Eight levels: the right hand in C position by step; the left hand; the hands in turn; a melody
+  over held bass notes; skips and a bass note each half bar (eight bars, D and B♭ major, A minor);
+  two moving hands with fifths and sixths in the bass (E and D minor); position shifts,
+  accidentals and ties (up to three sharps or flats); chords, broken chords and Alberti basses in
+  the left hand with sixteenths in the right (up to four). Each fragment is made by rules from a
+  seed: a harmony of I, IV and V (ii and vi from F6) ending on a cadence, chord tones on the strong
+  beats, steps mostly and leaps limited by level, hand positions, never parallel fifths or
+  octaves; only each hand's first note is fingered.
+- After a run every note is inked in time, early, late or missed, each bar shows its notes right
+  and in time (a table gives wrong, missed and extra notes), and the run its share right and in
+  time, the distance from the beat and whether you rush or drag; **Listen** plays it as written,
+  **Again** plays it again, **Next** brings a new one. Sessions are 4 or 8 fragments; the tempo is
+  kept for each level.
+- A session is stored as one record of kind `sight` with each fragment's level, seed and generator
+  version and each run's figures (not the notes), again after every run, so a closed tab loses
+  nothing; the minutes, the streak and the session list count it (the public profile as reading).
+  A level is mastered when the last five fragments played in time each had 90% of their notes
+  right and in time at first sight. `SYNC_SCHEMA` 13; the export file needs no new version.
+
 ### Harmony: progressions (H2)
 
 - Harmony gains a second practice, **Progressions**: choose a progression (`I–IV–V–I`,

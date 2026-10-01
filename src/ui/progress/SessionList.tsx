@@ -10,6 +10,8 @@ import { useEarFormat } from '../ear/format.ts';
 import { useHarmonyFormat } from '../harmony/format.ts';
 import { useReadFormat } from '../read/format.ts';
 import { useRhythmFormat } from '../read/rhythmFormat.ts';
+import { useSightFormat } from '../read/sightFormat.ts';
+import { firstTimeRun } from '../../core/sightRead.ts';
 import { useTheoryFormat } from '../read/theoryFormat.ts';
 import { useExerciseLabel } from '../scales/format.ts';
 import { useLogFormat } from './format.ts';
@@ -77,6 +79,7 @@ function SessionRow({ session }: { session: SessionRecord }) {
   const rhythm = useRhythmFormat();
   const harmony = useHarmonyFormat();
   const exerciseLabel = useExerciseLabel();
+  const sight = useSightFormat();
   const none = t('read.none');
 
   const when: [MessageKey, ReactNode] = [
@@ -224,6 +227,39 @@ function SessionRow({ session }: { session: SessionRecord }) {
         ['progress.session.median', read.seconds(session.medianMs)],
       ];
       break;
+    case 'sight': {
+      const firsts = session.fragments.flatMap((f) => {
+        const run = firstTimeRun(f);
+        return run ? [run] : [];
+      });
+      const notes = firsts.reduce((n, r) => n + r.notes, 0);
+      cells = [
+        when,
+        ['progress.session.kind', t('progress.kind.sight')],
+        [
+          'progress.session.level',
+          <abbr title={sight.levelName(session.level)}>{session.level}</abbr>,
+        ],
+        duration,
+        [
+          'sight.summary.fragments',
+          session.fragments.length < session.length
+            ? `${session.fragments.length}/${session.length}`
+            : session.fragments.length,
+        ],
+        [
+          'sight.result.inTime',
+          read.percent(notes === 0 ? null : firsts.reduce((n, r) => n + r.inTime, 0) / notes),
+        ],
+        [
+          'rhythm.summary.median',
+          rhythm.ms(
+            median(firsts.flatMap((r) => (r.medianDeviation === null ? [] : [r.medianDeviation]))),
+          ),
+        ],
+      ];
+      break;
+    }
     case 'scale': {
       const exercises = [...new Set(session.runs.map((r) => r.exercise))].map(parseExerciseKey);
       const only = exercises.length === 1 ? exercises[0] : null;
