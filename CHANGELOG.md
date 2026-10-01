@@ -31,7 +31,9 @@ import.
   this browser, not synced and not exported.
 - **Every practice page says what is playing** when no MIDI keyboard is connected: “No MIDI
   keyboard connected: the computer keys play, A to K.” on Read, Ear, Harmony, Scales and a
-  piece's page. The line can be dismissed, and comes back if the reason changes.
+  piece's page. The line can be dismissed, and comes back if the reason changes. On a phone or a
+  tablet, which has no computer keys, it names the keys on the screen, and the start page draws
+  a keyboard to play by touch instead of the computer keys' letters.
 
 ### First pieces, with fingering (G5a, [docs/PIECES.md](docs/PIECES.md))
 

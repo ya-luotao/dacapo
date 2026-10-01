@@ -25,12 +25,13 @@ const STATUS: Readonly<Record<NoticeReason, MessageKey>> = {
 };
 
 /**
- * The line for a status: Play's own words for it, then what plays instead. Null when there is
- * nothing to say. The app's wording (no browser to name there) comes with `t`.
+ * The line for a status: Play's own words for it, then what plays instead: the computer keys,
+ * or on a device played by touch alone (`touch`, ui/input/touchOnly.ts) the keys on the screen.
+ * Null when there is nothing to say. The app's wording (no browser to name there) comes with `t`.
  */
-export function noticeText(state: MidiStatus['state'], t: Translate): string | null {
+export function noticeText(state: MidiStatus['state'], t: Translate, touch = false): string | null {
   const reason = noticeReason(state);
-  return reason && t('input.notice', { status: t(STATUS[reason]) });
+  return reason && t(touch ? 'input.notice.touch' : 'input.notice', { status: t(STATUS[reason]) });
 }
 
 /**

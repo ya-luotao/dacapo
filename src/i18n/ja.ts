@@ -125,6 +125,7 @@ export const ja: Dictionary = {
   'start.reads.begins.unknown': '譜読みの音符は、まだ習得していない最初のレベルから始まります。',
   'start.play': '何で弾きますか？',
   'start.press': '鍵盤を押してみてください。',
+  'start.press.touch': '鍵盤を押してみてください。画面の鍵盤で弾けます。',
   'start.heard': '届いています。',
   'start.keys': 'パソコンのキーと画面の鍵盤も使えます。',
   'start.sound.nothing': '音が出ませんか？',
@@ -206,6 +207,7 @@ export const ja: Dictionary = {
   'keys.offPiano': 'ピアノの音域外',
 
   'input.notice': '{status}。パソコンのキーボードのA〜Kで弾けます。',
+  'input.notice.touch': '{status}。画面の鍵盤で弾けます。',
 
   'read.title': '譜読み',
   'read.intro': '大譜表に音符がひとつ出ます。鍵盤でその音を、オクターブも合わせて弾いてください。',

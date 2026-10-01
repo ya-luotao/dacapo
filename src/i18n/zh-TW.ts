@@ -120,6 +120,7 @@ export const zhTW: Dictionary = {
   'start.reads.begins.unknown': '識譜的音符從你還沒熟練的第一個等級開始。',
   'start.play': '你用什麼彈？',
   'start.press': '按任意一個鍵。',
+  'start.press.touch': '按任意一個鍵：螢幕上的琴鍵在這裡就能彈。',
   'start.heard': '聽到了。',
   'start.keys': '電腦鍵盤和螢幕上的琴鍵在這裡都能彈。',
   'start.sound.nothing': '沒有聲音？',
@@ -198,6 +199,7 @@ export const zhTW: Dictionary = {
   'keys.offPiano': '超出鋼琴音域',
 
   'input.notice': '{status}：電腦鍵盤的 A 到 K 可以彈。',
+  'input.notice.touch': '{status}：螢幕上的琴鍵可以彈。',
 
   'read.title': '識譜',
   'read.intro': '大譜表上會出現一個音符，請在琴鍵上找到它——八度也要對。',

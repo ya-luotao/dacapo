@@ -7,6 +7,7 @@ import { SENTENCE_GAP, useI18n, useT } from '../../i18n/index.ts';
 import { audioContext } from '../../output/audio.ts';
 import { isBuiltin } from '../../output/output.ts';
 import { useHubState, useInput } from '../input/context.ts';
+import { useTouchOnly } from '../input/touchOnly.ts';
 import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
 import { readDone } from '../learn/progress.ts';
 import { useOutputState, useSampleStatus } from '../output/context.ts';
@@ -88,6 +89,8 @@ function Keys() {
   const { hub, pointer } = useInput();
   const { held, sustained } = useHubState();
   const fallback = useKeyboardFallback();
+  // Played by touch alone, a device has no computer keys to draw: the keys on the screen play.
+  const touch = useTouchOnly();
   // The last key that arrived, from any keyboard: it is heard.
   const [heard, setHeard] = useState<number | null>(null);
   const [range, setRange] = useState(KEYS);
@@ -115,10 +118,14 @@ function Keys() {
       />
       <p className={heard === null ? 'start-heard' : 'start-heard is-heard'} role="status">
         {heard === null ? (
-          <>
-            {t('start.press')}
-            {fallback && SENTENCE_GAP[locale] + t('start.keys')}
-          </>
+          fallback && touch ? (
+            t('start.press.touch')
+          ) : (
+            <>
+              {t('start.press')}
+              {fallback && SENTENCE_GAP[locale] + t('start.keys')}
+            </>
+          )
         ) : (
           <>
             <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
@@ -128,7 +135,7 @@ function Keys() {
           </>
         )}
       </p>
-      {fallback && <Keycaps held={held} />}
+      {fallback && !touch && <Keycaps held={held} />}
       <SoundCheck />
     </section>
   );

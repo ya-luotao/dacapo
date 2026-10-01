@@ -123,6 +123,7 @@ export const en = {
   'start.reads.begins.unknown': 'Read’s notes begin at the first level you have not mastered.',
   'start.play': 'What will you play on?',
   'start.press': 'Press any key.',
+  'start.press.touch': 'Press any key: the keys on the screen play here.',
   'start.heard': 'It is heard.',
   'start.keys': 'The computer keys and the keys on the screen work here.',
   'start.sound.nothing': 'Nothing heard?',
@@ -204,6 +205,7 @@ export const en = {
   'keys.offPiano': 'not on the piano',
 
   'input.notice': '{status}: the computer keys play, A to K.',
+  'input.notice.touch': '{status}: the keys on the screen play.',
 
   'read.title': 'Read',
   'read.intro': 'One note on the grand staff. Find it on your keyboard — in the right octave.',

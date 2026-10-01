@@ -123,6 +123,7 @@ export const ko: Dictionary = {
   'start.reads.begins.unknown': '악보 읽기의 음표는 아직 마스터하지 않은 첫 레벨부터 시작해요.',
   'start.play': '무엇으로 연주하나요?',
   'start.press': '아무 건반이나 눌러 보세요.',
+  'start.press.touch': '아무 건반이나 눌러 보세요. 여기서는 화면의 건반으로 칠 수 있어요.',
   'start.heard': '잘 들려요.',
   'start.keys': '여기서는 컴퓨터 키보드와 화면의 건반으로 칠 수 있어요.',
   'start.sound.nothing': '소리가 안 나나요?',
@@ -202,6 +203,7 @@ export const ko: Dictionary = {
   'keys.offPiano': '피아노 음역 밖',
 
   'input.notice': '{status}. 컴퓨터 키보드의 A–\u2060K로 칠 수 있어요.',
+  'input.notice.touch': '{status}. 화면의 건반으로 칠 수 있어요.',
 
   'read.title': '악보 읽기',
   'read.intro': '큰보표에 음표가 하나 나와요. 건반에서 찾아 치세요. 옥타브까지 맞아야 해요.',

@@ -10704,6 +10704,18 @@ a.today-step-name::after {
   max-height: none;
 }
 
+/* Played by touch alone, the keys are a finger wide and the keyboard scrolls sideways, as on
+   Play. */
+@media (hover: none) and (pointer: coarse) {
+  .start-piano.piano-scroller {
+    --white-min: 30px;
+  }
+
+  .start-piano .piano {
+    height: 7rem;
+  }
+}
+
 .start-heard {
   display: flex;
   align-items: center;

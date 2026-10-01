@@ -130,6 +130,14 @@ their fuller help.
   piece's page. It reads "{status}: the computer keys play, A to K." with Play's words for the
   status. While the browser is still looking there is no reason to give, so nothing flashes as
   a page loads.
+- **Played by touch alone.** A phone or a tablet in a browser has no computer keys to speak of.
+  It is told by what the device says of its own input, `(hover: none) and (pointer: coarse)`,
+  never by its name (`ui/input/touchOnly.ts`; read when the page opens, and again when an answer
+  changes). There the line reads "{status}: the keys on the screen play.", in the app too; the
+  start page leaves out the computer keys' letters and the Z and X row and says "Press any key:
+  the keys on the screen play here."; and its keyboard has keys a finger wide (30 px, as on
+  Play) and scrolls sideways within itself, middle C in view. A computer with a touch screen
+  (it hovers, with a fine pointer) keeps the computer keys' wording, and so does a narrow window.
 - **Dismissed.** `dacapo.input.notice` keeps the one reason dismissed (`no-device`,
   `unsupported` or `no-permission`). The line stays away while that is the reason, also after a
   keyboard was plugged in and taken away again; another reason brings it back, and dismissing
@@ -138,7 +146,7 @@ their fuller help.
   player's four reading levels open, none connected, no MIDI, blocked), in English and
   Simplified Chinese; on a phone the second part follows the first.
 - **The start.** The files `index.html` loads were 911,201 bytes (275,013 gzipped) before and
-  are 918,280 (277,787) now: about 4 kB of styles, the 28 strings in English, and the answer as
+  are 918,585 (277,841) now: about 4 kB of styles, the 30 strings in English, and the answer as
   data with where it is kept. The page itself, its questions and the line are chunks of their
   own (3.5, 1.8 and 1.2 kB), loaded when they are shown.
 

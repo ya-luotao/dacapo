@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useT } from '../../i18n/index.ts';
 import { useMidiStatus } from './context.ts';
 import { noticeReason, noticeShown, noticeText, readDismissed, writeDismissed } from './notice.ts';
+import { useTouchOnly } from './touchOnly.ts';
 
 /**
  * What is playing, on a practice page (docs/START.md): while no MIDI keyboard is connected, one
@@ -11,6 +12,7 @@ import { noticeReason, noticeShown, noticeText, readDismissed, writeDismissed } 
 export function InputNotice() {
   const t = useT();
   const { state } = useMidiStatus();
+  const touch = useTouchOnly();
   // The reason dismissed on this device: another reason brings the line back.
   const [dismissed, setDismissed] = useState(readDismissed);
   const reason = noticeReason(state);
@@ -22,7 +24,7 @@ export function InputNotice() {
   }
   return (
     <p className="input-notice" role="status">
-      <span>{noticeText(state, t)}</span>
+      <span>{noticeText(state, t, touch)}</span>
       <button
         type="button"
         className="button-icon"

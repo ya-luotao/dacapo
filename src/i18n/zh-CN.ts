@@ -120,6 +120,7 @@ export const zhCN: Dictionary = {
   'start.reads.begins.unknown': '识谱的音符从你还没掌握的第一个级别开始。',
   'start.play': '你用什么弹？',
   'start.press': '按任意一个键。',
+  'start.press.touch': '按任意一个键：屏幕上的琴键在这里就能弹。',
   'start.heard': '听到了。',
   'start.keys': '电脑键盘和屏幕上的琴键在这里都能弹。',
   'start.sound.nothing': '没有声音？',
@@ -198,6 +199,7 @@ export const zhCN: Dictionary = {
   'keys.offPiano': '超出钢琴音域',
 
   'input.notice': '{status}：电脑键盘的 A 到 K 可以弹。',
+  'input.notice.touch': '{status}：屏幕上的琴键可以弹。',
 
   'read.title': '识谱',
   'read.intro': '大谱表上出现一个音符，在琴上找到它——八度也要对。',

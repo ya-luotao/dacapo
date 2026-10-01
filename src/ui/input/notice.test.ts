@@ -87,6 +87,34 @@ describe('what is playing when no MIDI keyboard is', () => {
     expect(noticeText('connected', app)).toBeNull();
   });
 
+  it('names the keys on the screen on a device played by touch alone', () => {
+    const web = say('web');
+    expect(noticeText('no-device', web, true)).toBe(
+      'No MIDI keyboard connected: the keys on the screen play.',
+    );
+    expect(noticeText('unsupported', web, true)).toBe(
+      'MIDI is not available in this browser: the keys on the screen play.',
+    );
+    expect(noticeText('no-permission', web, true)).toBe(
+      'MIDI access is blocked: the keys on the screen play.',
+    );
+    // In the app too, on a phone or a tablet without a keyboard: no computer keys are named.
+    const app = say('apple');
+    expect(noticeText('no-device', app, true)).toBe(
+      'No MIDI keyboard connected: the keys on the screen play.',
+    );
+    expect(noticeText('unsupported', app, true)).toBe(
+      'MIDI is not available: the keys on the screen play.',
+    );
+    for (const state of STATES) {
+      // Touch changes what plays instead, never whether there is something to say.
+      expect(noticeText(state, web, true) === null).toBe(noticeText(state, web) === null);
+      expect(noticeText(state, web, true) ?? '').not.toMatch(/computer|A to K/);
+    }
+    // A computer with a touch screen is not played by touch alone: today's wording.
+    expect(noticeText('no-device', web, false)).toBe(noticeText('no-device', web));
+  });
+
   it('shows until its reason is dismissed, and again for another reason', () => {
     expect(noticeShown(null, null)).toBe(false);
     expect(noticeShown(null, 'no-device')).toBe(false);
