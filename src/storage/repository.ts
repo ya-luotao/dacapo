@@ -23,7 +23,6 @@ import {
   type PieceDeletion,
   type SyncCollection,
 } from './syncTypes.ts';
-import { isOpenFreePlay, validatePieceRunHeader } from './validate.ts';
 import { writeAll } from './writeAll.ts';
 
 export interface StoredData {
@@ -183,11 +182,24 @@ const REVIEW_OFF = 'review:off:';
 const reviewOffKey = (id: string) => REVIEW_OFF + id;
 const reviewOffRange = () => IDBKeyRange.bound(REVIEW_OFF, `${REVIEW_OFF}￿`);
 
-function validHeaders(values: readonly unknown[]): PieceRunHeader[] {
-  return values.flatMap((value) => {
-    const result = validatePieceRunHeader(value);
-    return result.ok ? [result.value] : [];
-  });
+/**
+ * The runs and the free play a closed tab left open, validated. The validators (and every
+ * practice's rules, which they judge records by) are loaded only when there is something left
+ * open, on an import and on a sync pull: never at a plain start.
+ */
+async function leftOpen(
+  freePlay: readonly unknown[],
+  runs: readonly unknown[],
+): Promise<{ openFreePlay: OpenFreePlay[]; openPieceRuns: PieceRunHeader[] }> {
+  if (freePlay.length === 0 && runs.length === 0) return { openFreePlay: [], openPieceRuns: [] };
+  const { isOpenFreePlay, validatePieceRunHeader } = await import('./validate.ts');
+  return {
+    openFreePlay: freePlay.filter(isOpenFreePlay),
+    openPieceRuns: runs.flatMap((value) => {
+      const result = validatePieceRunHeader(value);
+      return result.ok ? [result.value] : [];
+    }),
+  };
 }
 
 /**
@@ -250,9 +262,8 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         attempts,
         stats: Object.fromEntries(stats.map((s) => [s.key, s])),
         sessions,
-        openFreePlay: meta.filter(isOpenFreePlay),
         pieces,
-        openPieceRuns: validHeaders(runs),
+        ...(await leftOpen(meta, runs)),
         answers,
         reviewOff: reviewOff.map((key) => String(key).slice(REVIEW_OFF.length)),
       });

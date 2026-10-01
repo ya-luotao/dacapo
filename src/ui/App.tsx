@@ -4,11 +4,8 @@ import { useHashLocation } from 'wouter/use-hash-location';
 import { Footer } from './Footer.tsx';
 import { Header } from './Header.tsx';
 import { HomePage } from './home/HomePage.tsx';
-import { AboutPage } from './pages/AboutPage.tsx';
 import { NotFoundPage } from './pages/NotFoundPage.tsx';
 import { PlayPage } from './pages/PlayPage.tsx';
-import { ProgressPage } from './pages/ProgressPage.tsx';
-import { SettingsPage } from './pages/SettingsPage.tsx';
 import { StorageNotice } from './StorageNotice.tsx';
 import { useDocumentTitle } from './useDocumentTitle.ts';
 
@@ -42,6 +39,15 @@ const LessonPage = lazy(() =>
 );
 const MetronomePage = lazy(() =>
   import('./metronome/MetronomePage.tsx').then((m) => ({ default: m.MetronomePage })),
+);
+const ProgressPage = lazy(() =>
+  import('./pages/ProgressPage.tsx').then((m) => ({ default: m.ProgressPage })),
+);
+const SettingsPage = lazy(() =>
+  import('./pages/SettingsPage.tsx').then((m) => ({ default: m.SettingsPage })),
+);
+const AboutPage = lazy(() =>
+  import('./pages/AboutPage.tsx').then((m) => ({ default: m.AboutPage })),
 );
 
 export function App() {

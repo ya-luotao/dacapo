@@ -13,6 +13,17 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
+  build: {
+    rolldownOptions: {
+      output: {
+        // React in a chunk of its own: it changes with a dependency update, not with every
+        // release, so a returning visitor keeps it cached while the app's own chunk changes.
+        codeSplitting: {
+          groups: [{ name: 'react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ }],
+        },
+      },
+    },
+  },
   test: {
     include: ['src/**/*.test.ts'],
   },

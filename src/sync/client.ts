@@ -6,22 +6,31 @@ import type { AppliedCounts, PulledRecords, SyncStorage } from '../storage/syncS
 import { nothingApplied } from '../storage/syncStorage.ts';
 import type { OutboxEntry, ProfileState, SyncAccount, SyncState } from '../storage/syncTypes.ts';
 import { ApiError, type ApiErrorCode, type PulledPage, type SyncApi } from './api.ts';
+import type { Incoming } from './incoming.ts';
 import {
   byteLength,
-  incoming,
   MAX_BODY_BYTES,
   outgoing,
-  pieceWithXml,
   sha256Hex,
   SYNC_SCHEMA,
   type Change,
-  type Incoming,
 } from './records.ts';
 
 // The sync engine (docs/SYNC.md, "The client"): rounds of push-then-pull against the service,
 // run on the practice store's write queue so they never interleave with a write, never while
 // something is being practised, and in one tab at a time. After a round, the public profile
 // (docs/PROFILE.md) is published when it is on and has changed.
+
+const NOTHING_PULLED: PulledRecords = {
+  attempts: [],
+  sessions: [],
+  pieces: [],
+  deletions: [],
+  pieceSteps: [],
+  scaleRuns: [],
+  answers: [],
+  takes: [],
+};
 
 /** Outbox entries per request (the service takes 500). */
 export const PUSH_LIMIT = 500;
@@ -247,6 +256,9 @@ export function createSyncClient({
 
   /** Validates a pulled page, completes its pieces with their MusicXML, and applies it. */
   async function applyPage(token: string, page: PulledPage): Promise<AppliedCounts> {
+    // Nothing pulled: nothing to validate, and the validators stay unloaded.
+    if (page.changes.length === 0) return storage((sync) => sync.apply(NOTHING_PULLED));
+    const { incoming, pieceWithXml } = await import('./incoming.ts');
     const parsed = page.changes.map(incoming).filter((c): c is Incoming => c !== null);
     const skipped = page.changes.length - parsed.length;
     if (skipped > 0) console.warn(`dacapo: skipped ${skipped} synced records that do not validate`);
