@@ -55,6 +55,8 @@ const LIBRARY: TodayPiece[] = BUILT_IN.map((p) => ({
   facts: p.facts,
   out: false,
 }));
+/** The library's first Initial piece: the one a player with no piece yet is given. */
+const FIRST = 'turk-aller-anfang';
 const ODE = 'beethoven-ode-to-joy';
 const MINUET = 'petzold-minuet-in-g';
 const MARCH = 'schumann-soldiers-march';
@@ -254,7 +256,12 @@ describe('where every practice stands', () => {
       { id: MINUET, overdue: 0 },
     ]);
     expect(state.pieces.grades.map((g) => g.grade)).toEqual([0, 1, 2, 3, 4, 5]);
-    expect(state.pieces.grades[0]).toEqual({ grade: 0, played: 2, of: 3 });
+    // Initial: the pieces written out and the two lead sheets.
+    expect(state.pieces.grades[0]).toEqual({
+      grade: 0,
+      played: 2,
+      of: BUILT_IN.filter((p) => p.level === 0).length,
+    });
     expect(state.pieces.grades[1]).toMatchObject({ played: 1 });
     expect(state.pieces.grades[2]).toMatchObject({ played: 0 });
     expect(state.pieces.grades.reduce((n, g) => n + g.of, 0)).toBe(BUILT_IN.length);
@@ -449,7 +456,7 @@ describe('the piece', () => {
     ]);
     // Left longer, it gives way to the next piece.
     expect(work(withSessions(played('a', MINUET, -14, { hour: 23 })))).toMatchObject([
-      { piece: ODE, why: { kind: 'newPiece' } },
+      { piece: FIRST, why: { kind: 'newPiece' } },
     ]);
   });
 
@@ -470,21 +477,32 @@ describe('the piece', () => {
   it('is the next piece when none is in hand and Pieces is open', () => {
     expect(work(EMPTY)).toEqual([]);
     expect(work(EMPTY, { lessonsDone: open })).toMatchObject([
-      { id: 'work', piece: ODE, goal: 'work', why: { kind: 'newPiece' } },
+      { id: 'work', piece: FIRST, goal: 'work', why: { kind: 'newPiece' } },
     ]);
     // An imported piece opens Pieces too.
     const mine: TodayPiece = { id: 'mine', grade: null, leadSheet: false, facts: null, out: false };
-    expect(work({ ...EMPTY, pieces: [...LIBRARY, mine] })).toMatchObject([{ piece: ODE }]);
+    expect(work({ ...EMPTY, pieces: [...LIBRARY, mine] })).toMatchObject([{ piece: FIRST }]);
   });
 
   it('goes up a grade once a piece of the grade below was played to its end', () => {
     const ode = played('a', ODE, -30, { whole: true });
-    expect(work(withSessions(ode))).toMatchObject([{ piece: MINUET, why: { kind: 'newPiece' } }]);
+    // The Initial pieces not begun come before a grade up.
+    expect(work(withSessions(ode))).toMatchObject([{ piece: FIRST, why: { kind: 'newPiece' } }]);
+    // The other pieces up to grade 1, but for the two minuets, begun long ago and left.
+    const minuets = [MINUET, 'petzold-minuet-in-g-minor'];
+    const begun = LIBRARY.filter(
+      (p) => !p.leadSheet && p.grade !== null && p.grade <= 1 && p.id !== ODE,
+    )
+      .filter((p) => !minuets.includes(p.id))
+      .map((p, i) => played(`g${i}`, p.id, -40));
+    expect(work(withSessions(...begun, ode))).toMatchObject([
+      { piece: MINUET, why: { kind: 'newPiece' } },
+    ]);
     // Begun long ago and left: it has a session, so it is not proposed again.
     const tried = [ode, played('b', MINUET, -25), played('c', 'petzold-minuet-in-g-minor', -24)];
-    expect(work(withSessions(...tried))).toEqual([]);
+    expect(work(withSessions(...begun, ...tried))).toEqual([]);
     // A grade 1 piece finished: grade 2 is within reach.
-    const first = [ode, played('b', MINUET, -25, { whole: true })];
+    const first = [...begun, ode, played('b', MINUET, -25, { whole: true })];
     expect(work(withSessions(...first))).toMatchObject([{ piece: 'petzold-minuet-in-g-minor' }]);
     const both = [...first, played('c', 'petzold-minuet-in-g-minor', -24)];
     expect(work(withSessions(...both))).toMatchObject([{ piece: MARCH }]);
@@ -830,9 +848,9 @@ describe('the plan', () => {
       played('t3', 'burgmuller-arabesque', 0, { whole: true }),
     );
     const next = todayPlan(ended, options({ today: '2026-09-25', minutes: 45 }));
-    // The piece in hand was played to its end: a new piece is begun, and it has come due for
-    // review, last in the line.
-    expect(names(next, 'work')).toEqual(['petzold-minuet-in-g-minor']);
+    // The piece in hand was played to its end: a new piece is begun (the first by grade that
+    // has no session yet), and it has come due for review, last in the line.
+    expect(names(next, 'work')).toEqual([FIRST]);
     expect(names(next, 'play')).toEqual([MARCH, ODE, MINUET]);
     const state = curriculumState(ended, options({ today: '2026-09-25' }));
     expect(state.pieces.due.at(-1)).toEqual({ id: 'burgmuller-arabesque', overdue: 0 });

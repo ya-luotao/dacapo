@@ -245,19 +245,41 @@ describe('the next piece', () => {
     leadSheet: p.leadSheet === true,
   }));
   const none = new Set<string>();
+  /** The pieces of a grade written for two hands, in the library's order. */
+  const written = (grade: number) =>
+    library.filter((p) => p.grade === grade && !p.leadSheet).map((p) => p.id);
 
-  it('is the Initial piece written for two hands when nothing was played to its end', () => {
-    expect(nextPiece(library, none, none)).toBe('beethoven-ode-to-joy');
+  it('is the first Initial piece written for two hands when nothing was played to its end', () => {
+    expect(written(0).slice(0, 3)).toEqual([
+      'turk-aller-anfang',
+      'beethoven-ode-to-joy',
+      'czerny-op599-no11',
+    ]);
+    expect(nextPiece(library, none, none)).toBe('turk-aller-anfang');
+    // One begun: the next in the library's order.
+    expect(nextPiece(library, new Set(['turk-aller-anfang']), none)).toBe('beethoven-ode-to-joy');
     // The Initial lead sheets are not proposed, and nothing above Initial is yet.
-    expect(nextPiece(library, new Set(['beethoven-ode-to-joy']), none)).toBeNull();
+    expect(nextPiece(library, new Set(written(0)), none)).toBeNull();
   });
 
   it('goes by grade, then by the library’s order, among pieces without a session', () => {
     const ode = new Set(['beethoven-ode-to-joy']);
-    expect(nextPiece(library, ode, ode)).toBe('petzold-minuet-in-g');
-    const two = new Set([...ode, 'petzold-minuet-in-g']);
+    // An Initial piece played to its end: the Initial pieces not begun still come first.
+    expect(nextPiece(library, ode, ode)).toBe('turk-aller-anfang');
+    // Initial used up: grade 1, in the library's order.
+    const initial = new Set(written(0));
+    expect(written(1)).toEqual([
+      'turk-bey-der-wiege',
+      'beyer-abendlied',
+      'beyer-op101-no66',
+      'schumann-melodie',
+      'petzold-minuet-in-g',
+      'petzold-minuet-in-g-minor',
+    ]);
+    expect(nextPiece(library, initial, ode)).toBe('turk-bey-der-wiege');
+    const two = new Set([...initial, ...written(1).slice(0, 5)]);
     expect(nextPiece(library, two, ode)).toBe('petzold-minuet-in-g-minor');
-    // Grade 1 is used up and only the Initial piece was finished: nothing within a grade above.
+    // Grade 1 is used up and only an Initial piece was finished: nothing within a grade above.
     const three = new Set([...two, 'petzold-minuet-in-g-minor']);
     expect(nextPiece(library, three, ode)).toBeNull();
   });
@@ -287,8 +309,6 @@ describe('the next piece', () => {
     ];
     expect(nextPiece(pieces, none, none)).toBeNull();
     // An imported piece played to its end sets no grade either.
-    expect(nextPiece([...pieces, ...library], none, new Set(['mine']))).toBe(
-      'beethoven-ode-to-joy',
-    );
+    expect(nextPiece([...pieces, ...library], none, new Set(['mine']))).toBe('turk-aller-anfang');
   });
 });

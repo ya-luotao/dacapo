@@ -1241,6 +1241,57 @@ export const zhTW: Dictionary = {
   'library.beethoven-ode-to-joy.note':
     '《第九號交響曲》的主題，C 大調，配上簡單的左手。右手大多在中央 C 附近。',
   'library.beethoven-ode-to-joy.style': '古典樂派 · 由四個樂句組成的主題：a a′ b a′',
+  'library.turk-aller-anfang.title': '萬事起頭難',
+  'library.turk-aller-anfang.composer': '蒂爾克',
+  'library.turk-aller-anfang.note':
+    '蒂爾克《初學者小品六十首》（1792）的第一首：右手只用五個鍵，彈四分音符和二分音符，左手每小節一個長音。',
+  'library.turk-aller-anfang.style':
+    '古典樂派 · 八小節：兩小節的動機，高一級再彈一次，後四小節收尾',
+  'library.czerny-op599-no11.title': '五指練習，作品 599 之 11',
+  'library.czerny-op599-no11.composer': '徹爾尼',
+  'library.czerny-op599-no11.note':
+    '選自徹爾尼《鋼琴初步教本》：右手在五個鍵上彈四分音符的旋律，左手每小節按住一個和弦，兩隻手都不必移動位置。',
+  'library.czerny-op599-no11.style': '古典樂派 · 練習曲，前後兩半各八小節，各反覆一次',
+  'library.turk-muntere-knabe.title': '活潑的男孩',
+  'library.turk-muntere-knabe.composer': '蒂爾克',
+  'library.turk-muntere-knabe.note':
+    '選自蒂爾克的初學者小品：2/4 拍的八個小節，右手有兩音一組的圓滑線和短促的斷音，左手只有幾個音。',
+  'library.turk-muntere-knabe.style': '古典樂派 · 兩個四小節樂句，一問一答',
+  'library.beyer-kinderlied.title': '兒歌，作品 101 之 24',
+  'library.beyer-kinderlied.composer': '拜爾',
+  'library.beyer-kinderlied.note':
+    '選自《拜爾鋼琴教本》：右手彈德國兒歌〈嗡嗡嗡〉，左手是一條四分音符的旋律線。兩隻手都讀高音譜號。',
+  'library.beyer-kinderlied.style': '浪漫樂派 · 兒歌，三段各四小節：a b a',
+  'library.turk-hans-ohne-sorgen.title': '無憂無慮的漢斯',
+  'library.turk-hans-ohne-sorgen.composer': '蒂爾克',
+  'library.turk-hans-ohne-sorgen.note':
+    '選自蒂爾克的初學者小品，G 大調：右手有同音反覆和成對的八分音符，左手是長長的低音，其中有 F♯。',
+  'library.turk-hans-ohne-sorgen.style': '古典樂派 · 兩個四小節樂句：前一句停在 D，後一句回到 G',
+  'library.turk-matt-und-krank.title': '我如此虛弱多病',
+  'library.turk-matt-und-krank.composer': '蒂爾克',
+  'library.turk-matt-und-krank.note':
+    '選自蒂爾克的初學者小品，標題取自詩人畢爾格的詩句：E 小調，3/4 拍，很慢、很輕。左手在每小節的第二拍回應。',
+  'library.turk-matt-und-krank.style': '古典樂派 · 性格小品，兩個四小節樂句，從弱起拍開始',
+  'library.turk-bey-der-wiege.title': '搖籃邊的歌',
+  'library.turk-bey-der-wiege.composer': '蒂爾克',
+  'library.turk-bey-der-wiege.note':
+    '蒂爾克初學者小品中的一首搖籃曲，F 大調：雙手一起彈四分音符，相隔六度或十度，兩隻手都會碰到 B♭。',
+  'library.turk-bey-der-wiege.style': '古典樂派 · 搖籃曲，兩個四小節樂句，從弱起拍開始',
+  'library.beyer-abendlied.title': '晚歌，作品 101 之 58',
+  'library.beyer-abendlied.composer': '拜爾',
+  'library.beyer-abendlied.note':
+    '選自《拜爾鋼琴教本》：德國晚歌〈月亮升起了〉，寫成兩個聲部。左手也記在高音譜號上，有自己的旋律線，帶八分音符和附點四分音符。',
+  'library.beyer-abendlied.style': '浪漫樂派 · 六小節的歌曲，彈兩次',
+  'library.beyer-op101-no66.title': 'C 大調小快板，作品 101 之 66',
+  'library.beyer-op101-no66.composer': '拜爾',
+  'library.beyer-op101-no66.note':
+    '選自《拜爾鋼琴教本》，6/8 拍：右手是搖曳的長音旋律，左手彈分解和弦，每拍三個八分音符。',
+  'library.beyer-op101-no66.style': '浪漫樂派 · 三個樂句 a b a，其中 b a 反覆',
+  'library.schumann-melodie.title': '旋律，作品 68 之 1',
+  'library.schumann-melodie.composer': '舒曼',
+  'library.schumann-melodie.note':
+    '《青少年曲集》的第一首：如歌的旋律，配上左手平穩的八分音符；左手也記在高音譜號上。',
+  'library.schumann-melodie.style': '浪漫樂派 · 性格小品：a（反覆），接著 b a′ 兩次',
   'library.petzold-minuet-in-g.title': 'G 大調小步舞曲',
   'library.petzold-minuet-in-g.composer': '佩佐爾德',
   'library.petzold-minuet-in-g.note':
@@ -2734,9 +2785,9 @@ export const zhTW: Dictionary = {
     'Source Serif 4 和 Source Sans 3，內文字型。© Adobe, with Reserved Font Name "Source". SIL Open Font License 1.1.',
   'about.accidentals':
     'dacapo Accidentals，內文裡的 ♭、♮、♯：取自 Bravura Text 的五個字形，依其授權對修改版本的要求更名。© Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
-  'about.music.intro': '二十一首內建樂曲都屬於公有領域。',
+  'about.music.intro': '三十一首內建樂曲都屬於公有領域。',
   'about.music.ours':
-    '其中十八首由 dacapo 專案編碼，以 MIT 授權釋出：〈快樂頌〉的改編，以及依據 Mutopia 專案排印的公有領域版本編碼的〈G 大調小步舞曲〉〈G 小調小步舞曲〉（佩佐爾德）、〈D 大調風笛舞曲〉（巴哈）、〈給愛麗絲〉（貝多芬）、〈純潔〉（布爾格彌勒）、〈古老的法國歌曲〉〈晨禱〉（柴可夫斯基）、〈C 小調前奏曲〉（蕭邦）和〈裸體歌舞第 1 號〉（薩提）；還有八份旋律譜，旋律取自公有領域的歌集和聖詩集，和弦記號由我們編寫：〈小星星〉〈划船曲〉〈友誼萬歲〉（《富蘭克林廣場歌集》，1881）、〈兩隻老虎（雅克兄弟）〉（韋克蘭，1885）、〈奇異恩典〉（埃克塞爾《加冕聖詩》，1910）、〈鈴兒響叮噹〉〈噢！蘇珊娜〉〈輕搖，可愛的馬車〉（《心之歌》，1909）。',
+    '其中二十八首由 dacapo 專案編碼，以 MIT 授權釋出：〈快樂頌〉的改編，以及依據 Mutopia 專案排印的公有領域版本編碼的〈G 大調小步舞曲〉〈G 小調小步舞曲〉（佩佐爾德）、〈D 大調風笛舞曲〉（巴哈）、〈給愛麗絲〉（貝多芬）、〈純潔〉（布爾格彌勒）、〈古老的法國歌曲〉〈晨禱〉（柴可夫斯基）、〈C 小調前奏曲〉（蕭邦）和〈裸體歌舞第 1 號〉（薩提）；十首入門小品依據公有領域版本的掃描檔編碼，並附上這些版本印出的指法：蒂爾克《初學者小品六十首》中的五首（1797 年版，巴伐利亞邦立圖書館藏）、拜爾《鋼琴教本》作品 101 中的三首（彼得斯版，魯特哈特校訂）、徹爾尼作品 599 之 11（席爾默版，1893，博納米奇指法）和舒曼的〈旋律〉作品 68 之 1（J. Schuberth 出版，1867，克勞澤指法）；還有八份旋律譜，旋律取自公有領域的歌集和聖詩集，和弦記號由我們編寫：〈小星星〉〈划船曲〉〈友誼萬歲〉（《富蘭克林廣場歌集》，1881）、〈兩隻老虎（雅克兄弟）〉（韋克蘭，1885）、〈奇異恩典〉（埃克塞爾《加冕聖詩》，1910）、〈鈴兒響叮噹〉〈噢！蘇珊娜〉〈輕搖，可愛的馬車〉（《心之歌》，1909）。',
   'about.music.pdmx':
     '〈阿拉貝斯克〉（布爾格彌勒）、〈士兵進行曲〉（舒曼）和〈C 大調前奏曲〉（巴哈）是 MuseScore 上的樂譜，上傳者 PianoXML、jadr 和 OpenGoldberg 已將它們貢獻到公有領域（CC0）；dacapo 專案刪去了其中的指法。它們來自 Phillip Long、Zachary Novack、Julian McAuley 和 Taylor Berg-Kirkpatrick 的 PDMX 資料集，該資料集以 CC BY 4.0 授權釋出。',
   'about.music.hanon':

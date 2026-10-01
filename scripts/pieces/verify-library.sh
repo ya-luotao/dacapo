@@ -17,8 +17,12 @@
 #   01MorningPrayer.mid    https://www.mutopiaproject.org/ftp/TchaikovskyPI/O39/01MorningPrayer/01MorningPrayer.mid
 #   Chop-28-20.mid         https://www.mutopiaproject.org/ftp/ChopinFF/O28/Chop-28-20/Chop-28-20.mid
 #   gymnopedie_1.mid       https://www.mutopiaproject.org/ftp/SatieE/gymnopedie_1/gymnopedie_1.mid
+#   schumann-op68-01-melodie.mid (CC BY-SA 2.5: a check only, never bundled)
+#                          https://www.mutopiaproject.org/ftp/SchumannR/O68/schumann-op68-01-melodie/schumann-op68-01-melodie.mid
 # Ode to Joy is our own arrangement and has no oracle. Nor have the lead sheets (trad-*, lyte-*,
-# pierpont-*, foster-*): their melodies were read from scans of songbooks and proofread blind.
+# pierpont-*, foster-*): their melodies were read from scans of songbooks and proofread blind. Nor
+# have the first pieces from Türk, Beyer and Czerny (turk-*, beyer-*, czerny-*): each was read
+# from a scan of its edition and proofread blind by a second reader, fingering included.
 set -eu
 oracles=${1:?usage: verify-library.sh <oracle dir>}
 lib=src/pieces/library
@@ -41,3 +45,6 @@ verify "$lib/chopin-prelude-in-c-minor.musicxml" "$oracles/Chop-28-20.mid"
 # The oracle's staves are the edition's: the left hand's chords printed on the treble staff count
 # as right-hand notes there, so its "hands" line shows fewer left-hand matches. Only the total counts.
 verify "$lib/satie-gymnopedie-1.musicxml" "$oracles/gymnopedie_1.mid"
+# This oracle plays the repeat. The file is our reading of the Schuberth edition of 1867; the
+# oracle follows Edition Peters.
+verify "$lib/schumann-melodie.musicxml" "$oracles/schumann-op68-01-melodie.mid" --order play

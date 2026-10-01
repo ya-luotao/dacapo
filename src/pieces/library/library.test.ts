@@ -13,12 +13,17 @@ import bachMusetteInD from './bach-musette-in-d.musicxml?raw';
 import bachPreludeInC from './bach-prelude-in-c.musicxml?raw';
 import beethovenFurElise from './beethoven-fur-elise.musicxml?raw';
 import beethovenOdeToJoy from './beethoven-ode-to-joy.musicxml?raw';
+import beyerAbendlied from './beyer-abendlied.musicxml?raw';
+import beyerKinderlied from './beyer-kinderlied.musicxml?raw';
+import beyerOp101No66 from './beyer-op101-no66.musicxml?raw';
 import burgmullerArabesque from './burgmuller-arabesque.musicxml?raw';
 import burgmullerCandeur from './burgmuller-candeur.musicxml?raw';
 import chopinPreludeInCMinor from './chopin-prelude-in-c-minor.musicxml?raw';
+import czernyOp599No11 from './czerny-op599-no11.musicxml?raw';
 import petzoldMinuetInG from './petzold-minuet-in-g.musicxml?raw';
 import petzoldMinuetInGMinor from './petzold-minuet-in-g-minor.musicxml?raw';
 import satieGymnopedie1 from './satie-gymnopedie-1.musicxml?raw';
+import schumannMelodie from './schumann-melodie.musicxml?raw';
 import schumannSoldiersMarch from './schumann-soldiers-march.musicxml?raw';
 import tchaikovskyMorningPrayer from './tchaikovsky-morning-prayer.musicxml?raw';
 import tchaikovskyOldFrenchSong from './tchaikovsky-old-french-song.musicxml?raw';
@@ -30,6 +35,11 @@ import tradAuldLangSyne from './trad-auld-lang-syne.musicxml?raw';
 import tradFrereJacques from './trad-frere-jacques.musicxml?raw';
 import tradSwingLow from './trad-swing-low.musicxml?raw';
 import tradTwinkleTwinkle from './trad-twinkle-twinkle.musicxml?raw';
+import turkAllerAnfang from './turk-aller-anfang.musicxml?raw';
+import turkBeyDerWiege from './turk-bey-der-wiege.musicxml?raw';
+import turkHansOhneSorgen from './turk-hans-ohne-sorgen.musicxml?raw';
+import turkMattUndKrank from './turk-matt-und-krank.musicxml?raw';
+import turkMuntereKnabe from './turk-muntere-knabe.musicxml?raw';
 
 const Q = TICKS_PER_QUARTER;
 
@@ -47,6 +57,16 @@ const FILES: Record<string, string> = {
   'tchaikovsky-morning-prayer': tchaikovskyMorningPrayer,
   'chopin-prelude-in-c-minor': chopinPreludeInCMinor,
   'satie-gymnopedie-1': satieGymnopedie1,
+  'turk-aller-anfang': turkAllerAnfang,
+  'czerny-op599-no11': czernyOp599No11,
+  'turk-muntere-knabe': turkMuntereKnabe,
+  'beyer-kinderlied': beyerKinderlied,
+  'turk-hans-ohne-sorgen': turkHansOhneSorgen,
+  'turk-matt-und-krank': turkMattUndKrank,
+  'turk-bey-der-wiege': turkBeyDerWiege,
+  'beyer-abendlied': beyerAbendlied,
+  'beyer-op101-no66': beyerOp101No66,
+  'schumann-melodie': schumannMelodie,
   'trad-twinkle-twinkle': tradTwinkleTwinkle,
   'trad-frere-jacques': tradFrereJacques,
   'lyte-row-your-boat': lyteRowYourBoat,
@@ -99,6 +119,16 @@ const LOCKED: Record<string, { notes: number; checksum: string }> = {
   'tchaikovsky-morning-prayer': { notes: 252, checksum: '9e16a928' },
   'chopin-prelude-in-c-minor': { notes: 286, checksum: '842bdcd3' },
   'satie-gymnopedie-1': { notes: 289, checksum: 'db34d100' },
+  'turk-aller-anfang': { notes: 35, checksum: '09efdf72' },
+  'czerny-op599-no11': { notes: 116, checksum: 'a2c6a2a0' },
+  'turk-muntere-knabe': { notes: 42, checksum: '6be48d2b' },
+  'beyer-kinderlied': { notes: 79, checksum: '12d399be' },
+  'turk-hans-ohne-sorgen': { notes: 52, checksum: 'b8164335' },
+  'turk-matt-und-krank': { notes: 32, checksum: '7c04d493' },
+  'turk-bey-der-wiege': { notes: 55, checksum: 'a0ae966d' },
+  'beyer-abendlied': { notes: 98, checksum: 'b1609557' },
+  'beyer-op101-no66': { notes: 175, checksum: 'a4109d0e' },
+  'schumann-melodie': { notes: 256, checksum: 'b99b28f6' },
   'trad-twinkle-twinkle': { notes: 42, checksum: 'eeb5c6ad' },
   'trad-frere-jacques': { notes: 44, checksum: '778fec8a' },
   'lyte-row-your-boat': { notes: 29, checksum: 'f8cdf8f2' },
@@ -160,6 +190,26 @@ const MARKINGS: Record<string, string> = {
     'dynamics: ff p pp; hairpins: < <(words); pedal: start×2 change×4 stop×2; slurs: 7; fermatas: 2; articulations: accent×2; ornaments: ; graces: 0',
   'satie-gymnopedie-1':
     'dynamics: pp f pp p; hairpins: <×6 >×6; pedal: ; slurs: 6; fermatas: 0; articulations: ; ornaments: ; graces: 0',
+  'turk-aller-anfang':
+    'dynamics: ; hairpins: ; pedal: ; slurs: 0; fermatas: 0; articulations: ; ornaments: ; graces: 0',
+  'czerny-op599-no11':
+    'dynamics: ; hairpins: ; pedal: ; slurs: 2; fermatas: 0; articulations: ; ornaments: ; graces: 0',
+  'turk-muntere-knabe':
+    'dynamics: ; hairpins: ; pedal: ; slurs: 5; fermatas: 0; articulations: staccatissimo×6; ornaments: ; graces: 0',
+  'beyer-kinderlied':
+    'dynamics: ; hairpins: ; pedal: ; slurs: 6; fermatas: 0; articulations: ; ornaments: ; graces: 0',
+  'turk-hans-ohne-sorgen':
+    'dynamics: ; hairpins: ; pedal: ; slurs: 0; fermatas: 0; articulations: ; ornaments: ; graces: 0',
+  'turk-matt-und-krank':
+    'dynamics: pp pp; hairpins: ; pedal: ; slurs: 0; fermatas: 0; articulations: ; ornaments: ; graces: 0',
+  'turk-bey-der-wiege':
+    'dynamics: p; hairpins: ; pedal: ; slurs: 5; fermatas: 0; articulations: ; ornaments: ; graces: 0',
+  'beyer-abendlied':
+    'dynamics: p; hairpins: <×4 >×4; pedal: ; slurs: 10; fermatas: 2; articulations: ; ornaments: ; graces: 0',
+  'beyer-op101-no66':
+    'dynamics: ; hairpins: <×4 >×4; pedal: ; slurs: 6; fermatas: 0; articulations: ; ornaments: ; graces: 0',
+  'schumann-melodie':
+    'dynamics: p sf p sf p; hairpins: >×5; pedal: ; slurs: 24; fermatas: 0; articulations: ; ornaments: ; graces: 0',
   'trad-twinkle-twinkle':
     'dynamics: ; hairpins: ; pedal: ; slurs: 0; fermatas: 0; articulations: ; ornaments: ; graces: 0',
   'trad-frere-jacques':
@@ -178,6 +228,34 @@ const MARKINGS: Record<string, string> = {
     'dynamics: ; hairpins: ; pedal: ; slurs: 0; fermatas: 4; articulations: ; ornaments: ; graces: 0',
 };
 
+/**
+ * The fingering of the pieces that carry their edition's (G5a; the source files name the edition
+ * and its editor): the fingers of each hand's notes in the file's order, a note without one left
+ * out. The checksum leaves fingers out, so they are locked here. The other pieces have none.
+ */
+const FINGERING: Record<string, { right: string; left: string }> = {
+  'turk-aller-anfang': { right: '153125423125321', left: '12415' },
+  'czerny-op599-no11': { right: '1313525423254212353542125421', left: '421531421521421531421521' },
+  'turk-muntere-knabe': { right: '25', left: '41' },
+  'beyer-kinderlied': { right: '5', left: '35' },
+  'turk-hans-ohne-sorgen': { right: '33', left: '14' },
+  'turk-matt-und-krank': { right: '5211', left: '112' },
+  'turk-bey-der-wiege': { right: '13', left: '321' },
+  'beyer-abendlied': { right: '12323', left: '412311' },
+  'beyer-op101-no66': { right: '1514415315', left: '531212131535' },
+  'schumann-melodie': {
+    right: '5151433451435421324125414132413234543241254',
+    left: '52341323243252345151314153234333',
+  },
+};
+
+function fingering(score: Score, hand: 'right' | 'left'): string {
+  return score.notes
+    .filter((n) => n.hand === hand && n.finger != null)
+    .map((n) => n.finger)
+    .join('');
+}
+
 describe('built-in pieces', () => {
   it.each(Object.keys(FILES))('%s: the markings are locked too', (id) => {
     expect(markings(parse(id))).toBe(MARKINGS[id]);
@@ -193,9 +271,17 @@ describe('built-in pieces', () => {
     expect(builtInPiece(id)!.facts).toEqual(pieceFacts(parse(id)));
   });
 
-  it.each(Object.keys(FILES))('%s: provenance, no fingering, both hands', (id) => {
+  it.each(Object.keys(FILES))('%s: provenance, the fingering locked, both hands', (id) => {
     const xml = FILES[id]!;
-    expect(xml).not.toMatch(/<fingering\b/);
+    // Fingering only where an edition's was read and checked; then every figure is locked.
+    const fingers = FINGERING[id] ?? { right: '', left: '' };
+    expect(xml.match(/<fingering\b/g) ?? []).toHaveLength(
+      fingers.right.length + fingers.left.length,
+    );
+    expect({ right: fingering(parse(id), 'right'), left: fingering(parse(id), 'left') }).toEqual(
+      fingers,
+    );
+    if (FINGERING[id]) expect(xml).toMatch(/Fingering[^<]* as printed in/);
     const doc = new DOMParser().parseFromString(xml, 'application/xml');
     const identification = doc.querySelector('score-partwise > identification')!;
     expect(identification.querySelector('creator[type="composer"]')?.textContent).toBeTruthy();
@@ -415,6 +501,233 @@ describe('built-in pieces', () => {
         .slice(0, 6)
         .map((s) => s.midis),
     ).toEqual([[78], [81], [79], [78], [73], [71]]);
+  });
+
+  // The first pieces (G5a): what each asks of a beginner, and its edition's fingering.
+  const keys = (score: Score, hand: 'right' | 'left') =>
+    [...new Set(score.notes.filter((n) => n.hand === hand).map((n) => n.midi))].sort(
+      (a, b) => a - b,
+    );
+
+  it('Aller Anfang ist schwer: eight bars, the right hand on five white keys', () => {
+    const score = parse('turk-aller-anfang');
+    expect(score.title).toBe('Aller Anfang ist schwer');
+    expect(score.measures).toHaveLength(8);
+    expect(score.measures.every((m) => m.beats === 4 && m.beatType === 4)).toBe(true);
+    expect(runs(score)).toBe('0-7');
+    expect(keys(score, 'right')).toEqual([72, 74, 76, 77, 79]);
+    expect(keys(score, 'left')).toEqual([48, 55, 59, 60]);
+    expect(score.warnings).toEqual([]);
+    expect(score.tempos).toEqual([{ tick: 0, bpm: 132 }]);
+    // Türk's fingers: C5 with the thumb, G5 with the fifth finger; the left hand's C4 with 1.
+    const right = score.notes.filter((n) => n.hand === 'right');
+    expect(right.slice(0, 4).map((n) => [n.midi, n.finger])).toEqual([
+      [72, 1],
+      [72, null],
+      [72, null],
+      [79, 5],
+    ]);
+    expect(score.notes.find((n) => n.hand === 'left')).toMatchObject({ midi: 60, finger: 1 });
+    expect(buildSteps(score, 'both').at(-1)!.midis).toEqual([48]);
+  });
+
+  it('Czerny Op. 599 No. 11: both staves in the treble clef, three chords, both halves repeated', () => {
+    const score = parse('czerny-op599-no11');
+    expect(score.measures).toHaveLength(16);
+    expect(runs(score)).toBe('0-7,0-15,8-15');
+    expect(FILES['czerny-op599-no11']).toMatch(
+      /<clef number="1"><sign>G<\/sign><line>2<\/line><\/clef><clef number="2"><sign>G<\/sign>/,
+    );
+    expect(keys(score, 'right')).toEqual([72, 74, 76, 77, 79]);
+    expect(keys(score, 'left')).toEqual([59, 60, 62, 64, 65, 67]);
+    const chords = new Set(buildSteps(score, 'left').map((s) => s.midis.join(' ')));
+    expect([...chords].sort()).toEqual(['59 62 67', '59 65 67', '60 64 67']);
+    // Each key of a chord has its own finger: C–E–G with 4 2 1, B–D–G with 5 3 1.
+    const bar = (measure: number) =>
+      score.notes
+        .filter((n) => n.measure === measure && n.hand === 'left')
+        .map((n) => [n.midi, n.finger]);
+    expect(bar(0)).toEqual([
+      [60, 4],
+      [64, 2],
+      [67, 1],
+    ]);
+    expect(bar(2)).toEqual([
+      [59, 5],
+      [62, 3],
+      [67, 1],
+    ]);
+    expect(score.tempos).toEqual([]);
+  });
+
+  it('Der muntere Knabe: eight bars of 2/4, slurred pairs and staccato strokes', () => {
+    const score = parse('turk-muntere-knabe');
+    expect(score.measures).toHaveLength(8);
+    expect(score.measures.every((m) => m.beats === 2 && m.beatType === 4)).toBe(true);
+    expect(runs(score)).toBe('0-7');
+    expect(
+      buildSteps(score, 'right')
+        .slice(0, 4)
+        .map((s) => s.midis),
+    ).toEqual([[76], [77], [79], [79]]);
+    // Bar 3: the hands run down in tenths, the left hand above its staff.
+    expect(
+      buildSteps(score, 'both')
+        .filter((s) => s.measure === 2)
+        .map((s) => s.midis),
+    ).toEqual([
+      [65, 81],
+      [64, 79],
+      [62, 77],
+      [60, 76],
+    ]);
+    expect(buildSteps(score, 'both').at(-1)!.midis).toEqual([48]);
+  });
+
+  it('Kinderlied: twelve bars, each hand in its five-finger position on white keys', () => {
+    const score = parse('beyer-kinderlied');
+    expect(score.measures).toHaveLength(12);
+    expect(runs(score)).toBe('0-11');
+    expect(keys(score, 'right')).toEqual([72, 74, 76, 77, 79]);
+    expect(keys(score, 'left')).toEqual([60, 62, 64, 65, 67]);
+    expect(FILES['beyer-kinderlied']).toMatch(/<clef number="2"><sign>G<\/sign>/);
+    // The third part is the first again, but for its close.
+    const bars = (from: number) =>
+      score.notes
+        .filter((n) => n.measure >= from && n.measure < from + 3)
+        .map((n) => [n.onset - score.measures[from]!.start, n.midi, n.duration, n.hand]);
+    expect(bars(8)).toEqual(bars(0));
+    expect(buildSteps(score, 'both')[0]!.midis).toEqual([64, 79]);
+    expect(score.tempos).toEqual([]);
+  });
+
+  it('Hans ohne Sorgen: eight bars in G, a C sharp on the way to D', () => {
+    const score = parse('turk-hans-ohne-sorgen');
+    expect(score.measures).toHaveLength(8);
+    expect(runs(score)).toBe('0-7');
+    const black = score.notes.filter((n) => isBlack(n.midi));
+    // F sharp in the left hand (the key's), C sharp once in the right (bar 3).
+    expect(black.map((n) => [n.measure, n.midi, n.hand])).toEqual([
+      [1, 54, 'left'],
+      [2, 73, 'right'],
+      [3, 54, 'left'],
+      [5, 54, 'left'],
+      [5, 54, 'left'],
+    ]);
+    // Bar 5: C natural again.
+    expect(score.notes.find((n) => n.measure === 4 && n.midi === 72)).toBeDefined();
+    expect(buildSteps(score, 'both').at(-1)!.midis).toEqual([43, 67]);
+  });
+
+  it('Ich bin so matt und krank: E minor in 3/4, an upbeat, the left hand after the beat', () => {
+    const score = parse('turk-matt-und-krank');
+    expect(score.measures).toHaveLength(9);
+    expect(score.measures[0]).toMatchObject({ number: '0', duration: Q, beats: 3, beatType: 4 });
+    // With the upbeat, the last bar is a full bar.
+    expect(score.measures[0]!.duration + score.measures[8]!.duration).toBe(3 * Q);
+    expect(runs(score)).toBe('0-8');
+    expect(buildSteps(score, 'right')[0]!.midis).toEqual([71]);
+    // The left hand's first note comes on the second beat of bar 1.
+    expect(buildSteps(score, 'left')[0]).toMatchObject({ measure: 1, beat: 2, midis: [55] });
+    // D sharp, the leading note: in the right hand in bars 2 and 5, in the left in bar 3.
+    expect(
+      score.notes.filter((n) => n.midi % 12 === 3).map((n) => [n.measure, n.midi, n.hand]),
+    ).toEqual([
+      [2, 63, 'right'],
+      [2, 63, 'right'],
+      [3, 51, 'left'],
+      [5, 63, 'right'],
+    ]);
+    expect(buildSteps(score, 'both').at(-1)!.midis).toEqual([40]);
+  });
+
+  it('Bey der Wiege zu singen: F major, an upbeat, the hands together in sixths and tenths', () => {
+    const score = parse('turk-bey-der-wiege');
+    expect(score.measures).toHaveLength(9);
+    expect(score.measures[0]).toMatchObject({ number: '0', duration: Q });
+    expect(score.measures[0]!.duration + score.measures[8]!.duration).toBe(4 * Q);
+    expect(runs(score)).toBe('0-8');
+    // Upbeat and bar 1: F4 A4 G4 F4 G4 over A3 C4 B♭3 A3 B♭3.
+    expect(
+      buildSteps(score, 'both')
+        .slice(0, 5)
+        .map((s) => s.midis),
+    ).toEqual([
+      [57, 65],
+      [60, 69],
+      [58, 67],
+      [57, 65],
+      [58, 67],
+    ]);
+    expect(score.notes.some((n) => n.hand === 'right' && n.midi === 70)).toBe(true);
+    expect(buildSteps(score, 'both').at(-1)!.midis).toEqual([41]);
+  });
+
+  it('Abendlied: an upbeat and twelve bars, the left hand in the treble clef down to G3', () => {
+    const score = parse('beyer-abendlied');
+    expect(score.measures).toHaveLength(13);
+    expect(score.measures[0]).toMatchObject({ number: '0', duration: Q });
+    expect(score.measures[0]!.duration + score.measures[12]!.duration).toBe(4 * Q);
+    expect(runs(score)).toBe('0-12');
+    expect(FILES['beyer-abendlied']).toMatch(/<clef number="2"><sign>G<\/sign>/);
+    // No signature and no black key: the tune is in G, and no F occurs.
+    expect(FILES['beyer-abendlied']).toMatch(/<fifths>0<\/fifths>/);
+    expect(score.notes.some((n) => isBlack(n.midi) || n.midi % 12 === 5)).toBe(false);
+    expect(Math.min(...keys(score, 'left'))).toBe(55);
+    expect(buildSteps(score, 'both')[0]!.midis).toEqual([59, 67]);
+    expect(buildSteps(score, 'both').at(-1)!.midis).toEqual([59, 67]);
+    expect(score.tempos).toEqual([{ tick: 0, bpm: 72 }]);
+  });
+
+  it('Beyer No. 66: twenty bars of 6/8, bars 9–20 repeated', () => {
+    const score = parse('beyer-op101-no66');
+    expect(score.measures).toHaveLength(20);
+    expect(score.measures.every((m) => m.beats === 6 && m.beatType === 8)).toBe(true);
+    expect(score.measures[8]!.repeat.forward).toBe(true);
+    expect(runs(score)).toBe('0-19,8-19');
+    // The left hand: broken chords, three eighths to the beat.
+    expect(
+      buildSteps(score, 'left')
+        .slice(0, 6)
+        .map((s) => s.midis),
+    ).toEqual([[48], [52], [55], [48], [52], [55]]);
+    // The last C5 is tied over the middle of the bar: one key press.
+    expect(score.notes.filter((n) => n.tieStop)).toHaveLength(1);
+    expect(score.tempos).toEqual([{ tick: 0, bpm: 90 }]);
+  });
+
+  it('Melodie: twenty bars, the first four repeated, the left hand in the treble clef', () => {
+    const score = parse('schumann-melodie');
+    expect(score.title).toBe('Melodie');
+    expect(score.measures).toHaveLength(20);
+    expect(runs(score)).toBe('0-3,0-19');
+    expect(FILES['schumann-melodie']).toMatch(/<clef number="2"><sign>G<\/sign>/);
+    expect(score.warnings).toEqual([]);
+    expect(
+      buildSteps(score, 'right')
+        .slice(0, 4)
+        .map((s) => s.midis),
+    ).toEqual([[76], [74], [72], [71]]);
+    // Bars 8 and 16: the two voices end on one D5, one key to press.
+    for (const measure of [7, 15]) {
+      const last = buildSteps(score, 'right')
+        .filter((s) => s.measure === measure)
+        .at(-1)!;
+      expect(last).toMatchObject({ beat: 4.5, midis: [74] });
+    }
+    // Bar 11: the G5 is taken with 4 and changed to 5 (the first figure is the finger to start
+    // with), the chords have a finger for each key.
+    const bar11 = score.notes.filter((n) => n.measure === 10 && n.hand === 'right');
+    expect(bar11.map((n) => [n.midi, n.finger])).toEqual([
+      [81, 5],
+      [79, 4],
+      [71, 1],
+      [77, 4],
+      [72, 1],
+      [76, 3],
+    ]);
+    expect(FILES['schumann-melodie']).toMatch(/<fingering placement="above">4-5<\/fingering>/);
+    expect(buildSteps(score, 'both').at(-1)!.midis).toEqual([60]);
   });
 
   it.each(Object.keys(FILES))(

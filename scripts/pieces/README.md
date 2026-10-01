@@ -15,11 +15,16 @@ runs from the repository root.
   the licence (`<rights>`), the encoder (`<encoding><encoder>`) and the source edition with a URL
   (`<source>`); `<work>` has the catalogue number and title. The library's `index.ts` repeats
   them for the app.
-- **No fingering** unless it has been checked against a public-domain edition. Fingering in
-  uploaded files is of unknown origin; `prepare-pdmx.ts` removes all of it.
+- **No fingering** unless it is a public-domain edition's, read from that edition and checked
+  against it: on the notes where the edition prints it, and nowhere else. The first pieces added
+  with G5a carry theirs (the source file names the edition and its editor); the older pieces have
+  none. Fingering in uploaded files is of unknown origin; `prepare-pdmx.ts` removes all of it.
 - **Checked against an oracle.** Where an independent source exists (usually the MIDI file of a
   public-domain Mutopia edition), `verify.ts` must match it note for note. Without one, a second
-  person proofreads the file against a public-domain scan.
+  reader transcribes the piece blind from the same public-domain scan (pitch, rhythm, fingering
+  and markings), the two transcriptions are compared mechanically, and every difference is
+  settled against the scan. A MIDI file says nothing about fingering, so a fingered piece gets
+  the second reading either way. The source file says which method verified the piece.
 - **Locked.** `src/pieces/library/library.test.ts` holds a checksum of each piece's notes, so any
   later change to a file is deliberate.
 
@@ -109,17 +114,21 @@ It prints `matched/total`, every difference with its bar, and exits non-zero on 
 
 `verify-library.sh` runs the check for every built-in piece and lists where to download the
 oracles; they are not in the repository. The lead sheets have no oracle: each melody was read from a scan of
-its source, bar by bar, and proofread blind by a second reader.
+its source, bar by bar, and proofread blind by a second reader. Nor have the first pieces from
+Türk, Beyer and Czerny (G5a): each was read from a scan of its edition and proofread the same
+way, fingering included.
 
 ## Adding a piece
 
-1. Pick one public-domain edition (a Mutopia source edition or an IMSLP scan marked public
-   domain) and, if one exists, an oracle for it.
+1. Pick one public-domain edition (a Mutopia source edition, or a scan marked public domain on
+   IMSLP, at the Internet Archive or in a library's digital collection; for fingering, an
+   edition whose editor died more than seventy years ago) and, if one exists, an oracle for it.
 2. Encode it: a `sources/<id>.py` for `generate.py`, or a `pdmx/<id>.json` for `prepare-pdmx.ts`.
-3. Run `verify.ts` until it matches; settle every difference against the edition and note any
-   editorial decision in the file's comment.
+3. Run `verify.ts` until it matches, or have the piece read blind a second time; settle every
+   difference against the edition and note any editorial decision in the file's comment.
 4. Add the piece to `src/pieces/library/index.ts` (metadata, level) and its strings to every
    dictionary in `src/i18n/`.
-5. Add it to `library.test.ts`: a checksum line and a test of its structure (bars, repeats).
+5. Add it to `library.test.ts`: a checksum line, a markings line, a fingering line if it has
+   any, and a test of its structure (bars, repeats).
 6. Add the oracle to `verify-library.sh`, and a line to `THIRD_PARTY_NOTICES.md` if the encoding
    is not ours.

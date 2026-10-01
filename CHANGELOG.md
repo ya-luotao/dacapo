@@ -15,6 +15,22 @@ click's tempo and grid of scale runs played with it (from version 7), the takes 
 (from version 8), and assignments and kept reports (from version 9). Version 1 to 8 files still
 import.
 
+### First pieces, with fingering (G5a, [docs/PIECES.md](docs/PIECES.md))
+
+- **Ten first pieces** in the library, so that the way from the lessons to the Minuet in G has
+  steps. At Initial: Türk's _Aller Anfang ist schwer_, _Der muntere Knabe_, _Hans ohne Sorgen_
+  and _Ich bin so matt und krank_ (from his sixty Handstücke for beginners), Czerny's Op. 599
+  No. 11 and Beyer's _Kinderlied_, Op. 101 No. 24. At grade 1: Türk's _Bey der Wiege zu singen_,
+  Beyer's _Abendlied_ (No. 58) and Allegretto in 6/8 (No. 66), and Schumann's _Melodie_,
+  Op. 68 No. 1.
+- They carry **their editions' fingering**, on the notes where the edition prints it: Türk's
+  own (the edition of 1797), Ruthardt's Edition Peters print of Beyer, Buonamici's Schirmer
+  edition of Czerny, and Klauser's fingering of Schumann (Schuberth, 1867). The figures are
+  drawn in the score, and with Show keys a marked key carries its finger. The older built-in
+  pieces still have none.
+- Each was read from a scan of its public-domain edition and proofread blind by a second
+  reader, fingering included; the _Melodie_ also matches an independent MIDI file note for note.
+
 ### Today, and where you are (G1, [docs/TODAY.md](docs/TODAY.md))
 
 - **Today**: once you have practised here, the home page opens on a plan for the day, made from

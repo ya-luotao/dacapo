@@ -7,7 +7,17 @@ import type { PieceFacts } from '../../core/pieceRecords.ts';
 export type PieceLevel = 0 | 1 | 2 | 3 | 4 | 5;
 
 export const BUILT_IN_IDS = [
+  'turk-aller-anfang',
   'beethoven-ode-to-joy',
+  'czerny-op599-no11',
+  'turk-muntere-knabe',
+  'beyer-kinderlied',
+  'turk-hans-ohne-sorgen',
+  'turk-matt-und-krank',
+  'turk-bey-der-wiege',
+  'beyer-abendlied',
+  'beyer-op101-no66',
+  'schumann-melodie',
   'petzold-minuet-in-g',
   'burgmuller-arabesque',
   'schumann-soldiers-march',
@@ -56,6 +66,22 @@ export interface BuiltInPiece {
 
 export const BUILT_IN: readonly BuiltInPiece[] = [
   {
+    id: 'turk-aller-anfang',
+    level: 0,
+    composer: 'Daniel Gottlob Türk',
+    work: 'Sechzig Handstücke für angehende Klavierspieler, part 1, No. 1: Aller Anfang ist schwer',
+    source:
+      'Sechzig Handstücke für angehende Klavierspieler, part 1, 2nd edition (Leipzig and Halle, 1797); scan of the Bayerische Staatsbibliothek',
+    sourceUrl: 'https://www.digitale-sammlungen.de/en/view/bsb00086024?page=9',
+    encoder: 'dacapo project',
+    licence: 'Public-domain work; encoding MIT',
+    facts: {
+      checksum: '09efdf72',
+      bars: { right: 8, left: 8, both: 8 },
+      notes: { play: 35, skip: 35 },
+    },
+  },
+  {
     id: 'beethoven-ode-to-joy',
     level: 0,
     composer: 'Ludwig van Beethoven',
@@ -69,6 +95,147 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: '7a47ee21',
       bars: { right: 16, left: 16, both: 16 },
       notes: { play: 85, skip: 85 },
+    },
+  },
+  {
+    id: 'czerny-op599-no11',
+    level: 0,
+    composer: 'Carl Czerny',
+    work: 'Practical Method for Beginners on the Pianoforte, Op. 599, No. 11',
+    source:
+      'G. Schirmer (New York, 1893), edited and fingered by Giuseppe Buonamici; scan on IMSLP',
+    sourceUrl: 'https://imslp.org/wiki/Practical_Exercises_for_Beginners,_Op.599_(Czerny,_Carl)',
+    encoder: 'dacapo project',
+    licence: 'Public-domain work; encoding MIT',
+    facts: {
+      checksum: 'a2c6a2a0',
+      bars: { right: 16, left: 16, both: 16 },
+      notes: { play: 232, skip: 116 },
+    },
+  },
+  {
+    id: 'turk-muntere-knabe',
+    level: 0,
+    composer: 'Daniel Gottlob Türk',
+    work: 'Sechzig Handstücke für angehende Klavierspieler, part 1, No. 3: Der muntere Knabe',
+    source:
+      'Sechzig Handstücke für angehende Klavierspieler, part 1, 2nd edition (Leipzig and Halle, 1797); scan of the Bayerische Staatsbibliothek',
+    sourceUrl: 'https://www.digitale-sammlungen.de/en/view/bsb00086024?page=9',
+    encoder: 'dacapo project',
+    licence: 'Public-domain work; encoding MIT',
+    facts: {
+      checksum: '6be48d2b',
+      bars: { right: 8, left: 8, both: 8 },
+      notes: { play: 42, skip: 42 },
+    },
+  },
+  {
+    id: 'beyer-kinderlied',
+    level: 0,
+    composer: 'Ferdinand Beyer',
+    work: 'Vorschule im Klavierspiel, Op. 101, No. 24: Kinderlied',
+    source: 'Edition Peters No. 2721, revised by Adolf Ruthardt (Leipzig, c. 1895); scan on IMSLP',
+    sourceUrl: 'https://imslp.org/wiki/Vorschule_im_Klavierspiel,_Op.101_(Beyer,_Ferdinand)',
+    encoder: 'dacapo project',
+    licence: 'Public-domain work; encoding MIT',
+    facts: {
+      checksum: '12d399be',
+      bars: { right: 12, left: 12, both: 12 },
+      notes: { play: 79, skip: 79 },
+    },
+  },
+  {
+    id: 'turk-hans-ohne-sorgen',
+    level: 0,
+    composer: 'Daniel Gottlob Türk',
+    work: 'Sechzig Handstücke für angehende Klavierspieler, part 1, No. 4: Hans ohne Sorgen',
+    source:
+      'Sechzig Handstücke für angehende Klavierspieler, part 1, 2nd edition (Leipzig and Halle, 1797); scan of the Bayerische Staatsbibliothek',
+    sourceUrl: 'https://www.digitale-sammlungen.de/en/view/bsb00086024?page=10',
+    encoder: 'dacapo project',
+    licence: 'Public-domain work; encoding MIT',
+    facts: {
+      checksum: 'b8164335',
+      bars: { right: 8, left: 8, both: 8 },
+      notes: { play: 52, skip: 52 },
+    },
+  },
+  {
+    id: 'turk-matt-und-krank',
+    level: 0,
+    composer: 'Daniel Gottlob Türk',
+    work: 'Sechzig Handstücke für angehende Klavierspieler, part 1, No. 9: Ich bin so matt und krank',
+    source:
+      'Sechzig Handstücke für angehende Klavierspieler, part 1, 2nd edition (Leipzig and Halle, 1797); scan of the Bayerische Staatsbibliothek',
+    sourceUrl: 'https://www.digitale-sammlungen.de/en/view/bsb00086024?page=11',
+    encoder: 'dacapo project',
+    licence: 'Public-domain work; encoding MIT',
+    facts: {
+      checksum: '7c04d493',
+      bars: { right: 9, left: 8, both: 9 },
+      notes: { play: 32, skip: 32 },
+    },
+  },
+  {
+    id: 'turk-bey-der-wiege',
+    level: 1,
+    composer: 'Daniel Gottlob Türk',
+    work: 'Sechzig Handstücke für angehende Klavierspieler, part 1, No. 5: Bey der Wiege zu singen',
+    source:
+      'Sechzig Handstücke für angehende Klavierspieler, part 1, 2nd edition (Leipzig and Halle, 1797); scan of the Bayerische Staatsbibliothek',
+    sourceUrl: 'https://www.digitale-sammlungen.de/en/view/bsb00086024?page=10',
+    encoder: 'dacapo project',
+    licence: 'Public-domain work; encoding MIT',
+    facts: {
+      checksum: 'a0ae966d',
+      bars: { right: 9, left: 9, both: 9 },
+      notes: { play: 55, skip: 55 },
+    },
+  },
+  {
+    id: 'beyer-abendlied',
+    level: 1,
+    composer: 'Ferdinand Beyer',
+    work: 'Vorschule im Klavierspiel, Op. 101, No. 58: Abendlied',
+    source: 'Edition Peters No. 2721, revised by Adolf Ruthardt (Leipzig, c. 1895); scan on IMSLP',
+    sourceUrl: 'https://imslp.org/wiki/Vorschule_im_Klavierspiel,_Op.101_(Beyer,_Ferdinand)',
+    encoder: 'dacapo project',
+    licence: 'Public-domain work; encoding MIT',
+    facts: {
+      checksum: 'b1609557',
+      bars: { right: 13, left: 13, both: 13 },
+      notes: { play: 98, skip: 98 },
+    },
+  },
+  {
+    id: 'beyer-op101-no66',
+    level: 1,
+    composer: 'Ferdinand Beyer',
+    work: 'Vorschule im Klavierspiel, Op. 101, No. 66',
+    source: 'Edition Peters No. 2721, revised by Adolf Ruthardt (Leipzig, c. 1895); scan on IMSLP',
+    sourceUrl: 'https://imslp.org/wiki/Vorschule_im_Klavierspiel,_Op.101_(Beyer,_Ferdinand)',
+    encoder: 'dacapo project',
+    licence: 'Public-domain work; encoding MIT',
+    facts: {
+      checksum: 'a4109d0e',
+      bars: { right: 20, left: 20, both: 20 },
+      notes: { play: 278, skip: 174 },
+    },
+  },
+  {
+    id: 'schumann-melodie',
+    level: 1,
+    composer: 'Robert Schumann',
+    work: 'Album für die Jugend, Op. 68 No. 1: Melodie',
+    source:
+      'J. Schuberth & Co. (Leipzig, 1867), fingered by Karl Klauser; scan at the Internet Archive',
+    sourceUrl: 'https://archive.org/details/b26976821/page/n2/',
+    encoder: 'dacapo project',
+    licence: 'Public-domain work; encoding MIT',
+    facts: {
+      checksum: 'b99b28f6',
+      bars: { right: 20, left: 20, both: 20 },
+      notes: { play: 303, skip: 254 },
     },
   },
   {

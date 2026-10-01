@@ -116,8 +116,8 @@ practising the notes you are slowest at. Progress is visible day by day.
 - **Weakness heatmap.** Every note you have practised, on the grand staff or on the keyboard,
   coloured by how fast you usually find it and marked with how often you missed it lately,
   with the three weakest notes named and a table view.
-- **Pieces, in wait mode and in rhythm.** Twenty-one public-domain works from Initial to about grade 5,
-  eight of them lead sheets: a folk song, hymn or spiritual with chord symbols of our own, its left
+- **Pieces, in wait mode and in rhythm.** Thirty-one public-domain works from Initial to about grade 5,
+  ten of them first pieces with their editions’ fingering, eight of them lead sheets: a folk song, hymn or spiritual with chord symbols of our own, its left
   hand made from the symbols in a pattern you choose (block chords, Alberti bass, a waltz, stride)
   and written on the bass staff;
   plus your own MusicXML (`.musicxml`, `.xml` or `.mxl`, for example from MuseScore). The cursor waits on

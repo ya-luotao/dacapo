@@ -126,7 +126,11 @@ for drawing.
 - **Built-in library:** our own encodings of Mutopia public-domain editions, our own _Ode to Joy_
   (in C, for the right hand's C position), and CC0 MuseScore files from PDMX with fingering
   removed. Each is checked against an independent MIDI file where one exists
-  (`scripts/pieces/`), and its notes are locked by a checksum test. Since H3 it also holds lead
+  (`scripts/pieces/`), and its notes are locked by a checksum test. Since G5a it also holds ten
+  first pieces at Initial and grade 1 (Türk, Czerny, Beyer, Schumann's _Melodie_), read from
+  scans of public-domain editions and proofread blind by a second reader; these carry the
+  fingering their edition prints, on the notes where it prints it, locked by a test like the
+  notes. The older pieces still have no fingering. Since H3 it also holds lead
   sheets (`leadSheet: true`): our own encodings of a public-domain print of a tune, with chord
   symbols of our own and an empty bass staff, proofread blind against the scan where no oracle
   exists ([HARMONY.md](HARMONY.md), "Clarifications (decided during H3)"). The Pieces page lists
@@ -233,7 +237,8 @@ for drawing.
 - **Fingering on the keyboard.** The parser keeps the first printed finger of a note (not an
   `alternate` or `substitution` one, in any of its `<notations>`; "3-1" starts with 3) as
   `ScoreNote.finger`. With Show keys, a marked key carries its finger in place of the triangle.
-  Only imported pieces can have fingering: the built-in files have none (see Clarifications). The
+  The built-in pieces added with G5a carry their edition's fingering (see Clarifications); the
+  older built-in files have none, and an imported piece has whatever its file gives. The
   checksum leaves the finger out, so records made before stay valid.
 - **The screen stays on in a browser too**, through the Screen Wake Lock API where there is one,
   taken again when the page comes back into view (the app keeps doing it natively).

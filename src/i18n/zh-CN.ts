@@ -1240,6 +1240,57 @@ export const zhCN: Dictionary = {
   'library.beethoven-ode-to-joy.note':
     '第九交响曲中的主题，C 大调，配简单的左手。右手基本在中央 C 附近。',
   'library.beethoven-ode-to-joy.style': '古典主义 · 由四个乐句组成的主题：a a′ b a′',
+  'library.turk-aller-anfang.title': '万事开头难',
+  'library.turk-aller-anfang.composer': '蒂尔克',
+  'library.turk-aller-anfang.note':
+    '蒂尔克《初学者小曲六十首》（1792）的第一首：右手只用五个键，弹四分音符和二分音符，左手每小节一个长音。',
+  'library.turk-aller-anfang.style':
+    '古典主义 · 八小节：两小节的动机，高一级再来一遍，后四小节收束',
+  'library.czerny-op599-no11.title': '五指练习，作品 599 第 11 首',
+  'library.czerny-op599-no11.composer': '车尔尼',
+  'library.czerny-op599-no11.note':
+    '选自车尔尼《钢琴初步教程》：右手在五个键上弹四分音符的旋律，左手每小节按住一个和弦，两只手都不用移动位置。',
+  'library.czerny-op599-no11.style': '古典主义 · 练习曲，前后两半各八小节，各反复一次',
+  'library.turk-muntere-knabe.title': '活泼的男孩',
+  'library.turk-muntere-knabe.composer': '蒂尔克',
+  'library.turk-muntere-knabe.note':
+    '选自蒂尔克的初学者小曲：2/4 拍的八个小节，右手有两音一组的连音和短促的断音，左手只有几个音。',
+  'library.turk-muntere-knabe.style': '古典主义 · 两个四小节乐句，一问一答',
+  'library.beyer-kinderlied.title': '儿歌，作品 101 第 24 首',
+  'library.beyer-kinderlied.composer': '拜厄',
+  'library.beyer-kinderlied.note':
+    '选自《拜厄钢琴基本教程》：右手弹德国儿歌《嗡嗡嗡》，左手是一条四分音符的旋律线。两只手都看高音谱号。',
+  'library.beyer-kinderlied.style': '浪漫主义 · 儿歌，三段各四小节：a b a',
+  'library.turk-hans-ohne-sorgen.title': '无忧无虑的汉斯',
+  'library.turk-hans-ohne-sorgen.composer': '蒂尔克',
+  'library.turk-hans-ohne-sorgen.note':
+    '选自蒂尔克的初学者小曲，G 大调：右手有同音反复和成对的八分音符，左手是长长的低音，其中有 F♯。',
+  'library.turk-hans-ohne-sorgen.style': '古典主义 · 两个四小节乐句：前一句停在 D 上，后一句回到 G',
+  'library.turk-matt-und-krank.title': '我如此虚弱多病',
+  'library.turk-matt-und-krank.composer': '蒂尔克',
+  'library.turk-matt-und-krank.note':
+    '选自蒂尔克的初学者小曲，标题取自诗人毕尔格的诗句：E 小调，3/4 拍，很慢，很轻。左手在每小节的第二拍应答。',
+  'library.turk-matt-und-krank.style': '古典主义 · 性格小品，两个四小节乐句，从弱起拍开始',
+  'library.turk-bey-der-wiege.title': '摇篮边的歌',
+  'library.turk-bey-der-wiege.composer': '蒂尔克',
+  'library.turk-bey-der-wiege.note':
+    '蒂尔克初学者小曲中的一首摇篮曲，F 大调：双手一起弹四分音符，相隔六度或十度，两只手都会碰到 B♭。',
+  'library.turk-bey-der-wiege.style': '古典主义 · 摇篮曲，两个四小节乐句，从弱起拍开始',
+  'library.beyer-abendlied.title': '晚歌，作品 101 第 58 首',
+  'library.beyer-abendlied.composer': '拜厄',
+  'library.beyer-abendlied.note':
+    '选自《拜厄钢琴基本教程》：德国晚歌《月亮升起来了》，写成两个声部。左手也记在高音谱号上，有自己的旋律线，带八分音符和附点四分音符。',
+  'library.beyer-abendlied.style': '浪漫主义 · 六小节的歌曲，弹两遍',
+  'library.beyer-op101-no66.title': 'C 大调小快板，作品 101 第 66 首',
+  'library.beyer-op101-no66.composer': '拜厄',
+  'library.beyer-op101-no66.note':
+    '选自《拜厄钢琴基本教程》，6/8 拍：右手是摇曳的长音旋律，左手弹分解和弦，每拍三个八分音符。',
+  'library.beyer-op101-no66.style': '浪漫主义 · 三个乐句 a b a，其中 b a 反复',
+  'library.schumann-melodie.title': '旋律，作品 68 第 1 首',
+  'library.schumann-melodie.composer': '舒曼',
+  'library.schumann-melodie.note':
+    '《少年曲集》的第一首：如歌的旋律，配左手平稳的八分音符；左手也记在高音谱号上。',
+  'library.schumann-melodie.style': '浪漫主义 · 性格小品：a（反复），然后 b a′ 两遍',
   'library.petzold-minuet-in-g.title': 'G 大调小步舞曲',
   'library.petzold-minuet-in-g.composer': '佩措尔德',
   'library.petzold-minuet-in-g.note':
@@ -2732,9 +2783,9 @@ export const zhCN: Dictionary = {
     'Source Serif 4 和 Source Sans 3，正文字体。© Adobe, with Reserved Font Name "Source". SIL Open Font License 1.1.',
   'about.accidentals':
     'dacapo Accidentals，正文里的 ♭、♮、♯：取自 Bravura Text 的五个字形，按其许可证对修改版本的要求改了名。© Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
-  'about.music.intro': '二十一首内置作品都属于公有领域。',
+  'about.music.intro': '三十一首内置作品都属于公有领域。',
   'about.music.ours':
-    '其中十八首由 dacapo 项目编码，以 MIT 许可证发布：《欢乐颂》的改编，以及依据 Mutopia 项目排印的公有领域版本编码的《G 大调小步舞曲》《G 小调小步舞曲》（佩措尔德）、《D 大调风笛舞曲》（巴赫）、《致爱丽丝》（贝多芬）、《纯洁》（布格缪勒）、《古老的法国歌曲》《晨祷》（柴可夫斯基）、《C 小调前奏曲》（肖邦）和《裸体歌舞第 1 号》（萨蒂）；还有八份旋律谱，旋律取自公有领域的歌集和赞美诗集，和弦记号由我们编写：《小星星》《划船曲》《友谊地久天长》（《富兰克林广场歌集》，1881）、《两只老虎（雅克兄弟）》（韦克兰，1885）、《奇异恩典》（埃克塞尔《加冕赞美诗》，1910）、《铃儿响叮当》《噢！苏珊娜》《轻摇，可爱的马车》（《心之歌》，1909）。',
+    '其中二十八首由 dacapo 项目编码，以 MIT 许可证发布：《欢乐颂》的改编，以及依据 Mutopia 项目排印的公有领域版本编码的《G 大调小步舞曲》《G 小调小步舞曲》（佩措尔德）、《D 大调风笛舞曲》（巴赫）、《致爱丽丝》（贝多芬）、《纯洁》（布格缪勒）、《古老的法国歌曲》《晨祷》（柴可夫斯基）、《C 小调前奏曲》（肖邦）和《裸体歌舞第 1 号》（萨蒂）；十首入门小曲依据公有领域版本的扫描件编码，并带有这些版本印出的指法：蒂尔克《初学者小曲六十首》中的五首（1797 年版，巴伐利亚州立图书馆藏）、拜厄《钢琴基本教程》作品 101 中的三首（彼得斯版，鲁特哈特校订）、车尔尼作品 599 第 11 首（席尔默版，1893，博纳米奇指法）和舒曼的《旋律》作品 68 第 1 首（J. Schuberth 出版，1867，克劳泽指法）；还有八份旋律谱，旋律取自公有领域的歌集和赞美诗集，和弦记号由我们编写：《小星星》《划船曲》《友谊地久天长》（《富兰克林广场歌集》，1881）、《两只老虎（雅克兄弟）》（韦克兰，1885）、《奇异恩典》（埃克塞尔《加冕赞美诗》，1910）、《铃儿响叮当》《噢！苏珊娜》《轻摇，可爱的马车》（《心之歌》，1909）。',
   'about.music.pdmx':
     '《阿拉伯风格曲》（布格缪勒）、《士兵进行曲》（舒曼）和《C 大调前奏曲》（巴赫）是 MuseScore 上的编码，上传者 PianoXML、jadr 和 OpenGoldberg 已将其贡献到公有领域（CC0）；dacapo 项目删去了其中的指法。它们来自 Phillip Long、Zachary Novack、Julian McAuley 和 Taylor Berg-Kirkpatrick 的 PDMX 数据集，该数据集以 CC BY 4.0 许可发布。',
   'about.music.hanon':

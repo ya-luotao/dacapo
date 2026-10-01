@@ -1275,6 +1275,59 @@ export const ko: Dictionary = {
   'library.beethoven-ode-to-joy.note':
     '교향곡 9번의 주제를 C장조로 옮기고 왼손 반주를 간단히 붙였어요. 오른손은 가운데 C 근처에 머물러요.',
   'library.beethoven-ode-to-joy.style': '고전파 · 네 프레이즈로 된 주제, a a′ b a′',
+  'library.turk-aller-anfang.title': '모든 시작은 어렵다',
+  'library.turk-aller-anfang.composer': '다니엘 고틀로프 튀르크',
+  'library.turk-aller-anfang.note':
+    '튀르크의 「초보자를 위한 소품 60곡」(1792) 가운데 첫 곡이에요. 오른손은 다섯 건반 안에서 4분음표와 2분음표를 치고, 왼손은 마디마다 긴 음 하나를 눌러요.',
+  'library.turk-aller-anfang.style':
+    '고전파 · 여덟 마디: 두 마디 동기를 한 음 높여 되풀이한 뒤 네 마디로 마무리',
+  'library.czerny-op599-no11.title': '다섯 손가락 연습, Op. 599 No. 11',
+  'library.czerny-op599-no11.composer': '카를 체르니',
+  'library.czerny-op599-no11.note':
+    '체르니의 「초보자를 위한 실용 교본」(Op. 599)에 실린 곡이에요. 오른손은 다섯 건반 위에서 4분음표 선율을 치고, 왼손은 한 마디씩 화음을 길게 눌러요. 두 손 모두 자리를 옮기지 않아요.',
+  'library.czerny-op599-no11.style': '고전파 · 여덟 마디씩 앞뒤 절반을 각각 반복하는 연습곡',
+  'library.turk-muntere-knabe.title': '명랑한 소년',
+  'library.turk-muntere-knabe.composer': '다니엘 고틀로프 튀르크',
+  'library.turk-muntere-knabe.note':
+    '튀르크의 초보자를 위한 소품이에요. 2/4박자 여덟 마디로, 오른손에는 두 음씩 이은 이음줄과 짧게 끊는 음이 나오고 왼손은 음이 몇 개뿐이에요.',
+  'library.turk-muntere-knabe.style': '고전파 · 네 마디 프레이즈 둘, 묻고 답하기',
+  'library.beyer-kinderlied.title': '어린이의 노래, Op. 101 No. 24',
+  'library.beyer-kinderlied.composer': '페르디난트 바이어',
+  'library.beyer-kinderlied.note':
+    '「바이엘 피아노 교본」에 실린 곡이에요. 오른손은 독일 동요 「붕붕붕」의 선율을, 왼손은 4분음표로 된 또 하나의 선율을 쳐요. 두 손 모두 높은음자리표로 읽어요.',
+  'library.beyer-kinderlied.style': '낭만파 · 네 마디씩 세 부분으로 된 동요, a b a',
+  'library.turk-hans-ohne-sorgen.title': '걱정 없는 한스',
+  'library.turk-hans-ohne-sorgen.composer': '다니엘 고틀로프 튀르크',
+  'library.turk-hans-ohne-sorgen.note':
+    '튀르크의 초보자를 위한 소품으로 G장조예요. 오른손에는 같은 음의 반복과 둘씩 묶인 8분음표가, 왼손에는 F♯이 들어간 긴 베이스 음이 나와요.',
+  'library.turk-hans-ohne-sorgen.style':
+    '고전파 · 네 마디 프레이즈 둘: 앞은 D에서 멈추고 뒤는 G로 돌아옴',
+  'library.turk-matt-und-krank.title': '나는 이토록 지치고 아프네',
+  'library.turk-matt-und-krank.composer': '다니엘 고틀로프 튀르크',
+  'library.turk-matt-und-krank.note':
+    '튀르크의 초보자를 위한 소품으로, 제목은 시인 뷔르거의 시구예요. E단조, 3/4박자로 아주 느리고 아주 여리게 쳐요. 왼손은 마디마다 둘째 박에 답해요.',
+  'library.turk-matt-und-krank.style':
+    '고전파 · 성격 소품, 못갖춘마디로 시작하는 네 마디 프레이즈 둘',
+  'library.turk-bey-der-wiege.title': '요람 곁에서 부르는 노래',
+  'library.turk-bey-der-wiege.composer': '다니엘 고틀로프 튀르크',
+  'library.turk-bey-der-wiege.note':
+    '튀르크의 초보자를 위한 소품에 실린 F장조 자장가예요. 두 손이 6도나 10도 간격으로 함께 4분음표를 치고, 양손 모두 B♭이 나와요.',
+  'library.turk-bey-der-wiege.style': '고전파 · 자장가, 못갖춘마디로 시작하는 네 마디 프레이즈 둘',
+  'library.beyer-abendlied.title': '저녁 노래, Op. 101 No. 58',
+  'library.beyer-abendlied.composer': '페르디난트 바이어',
+  'library.beyer-abendlied.note':
+    '「바이엘 피아노 교본」에 실린 곡으로, 독일의 저녁 노래 「달이 떠올랐네」를 두 성부로 쳐요. 왼손도 높은음자리표로 적혀 있고, 8분음표와 점4분음표가 섞인 제 선율이 있어요.',
+  'library.beyer-abendlied.style': '낭만파 · 여섯 마디 노래를 두 번',
+  'library.beyer-op101-no66.title': '알레그레토 C장조, Op. 101 No. 66',
+  'library.beyer-op101-no66.composer': '페르디난트 바이어',
+  'library.beyer-op101-no66.note':
+    '「바이엘 피아노 교본」에 실린 6/8박자 곡이에요. 오른손은 긴 음으로 흔들리듯 노래하고, 왼손은 한 박에 8분음표 셋씩 펼침화음을 쳐요.',
+  'library.beyer-op101-no66.style': '낭만파 · 세 프레이즈 a b a, 뒤의 b a를 반복',
+  'library.schumann-melodie.title': '멜로디, Op. 68 No. 1',
+  'library.schumann-melodie.composer': '로베르트 슈만',
+  'library.schumann-melodie.note':
+    '「어린이를 위한 앨범」의 첫 곡이에요. 노래하는 선율을 왼손의 고른 8분음표가 받쳐 줘요. 왼손도 높은음자리표로 적혀 있어요.',
+  'library.schumann-melodie.style': '낭만파 · 성격 소품: a(반복), 이어서 b a′를 두 번',
   'library.petzold-minuet-in-g.title': '미뉴에트 G장조',
   'library.petzold-minuet-in-g.composer': '크리스티안 페촐트',
   'library.petzold-minuet-in-g.note':
@@ -2837,9 +2890,9 @@ export const ko: Dictionary = {
     'Source Serif 4와 Source Sans 3: 본문 글꼴이에요. © Adobe, with Reserved Font Name "Source". SIL Open Font License 1.1.',
   'about.accidentals':
     'dacapo Accidentals: 본문의 ♭, ♮, ♯. Bravura Text의 글리프 다섯 개를, 라이선스가 수정본에 요구하는 대로 이름을 바꿔 썼어요. © Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
-  'about.music.intro': '기본 곡 21곡은 모두 퍼블릭 도메인 작품이에요.',
+  'about.music.intro': '기본 곡 31곡은 모두 퍼블릭 도메인 작품이에요.',
   'about.music.ours':
-    '그중 18곡은 dacapo 프로젝트가 MIT 라이선스로 입력했어요. 환희의 송가 편곡, 그리고 Mutopia Project가 조판한 퍼블릭 도메인 판을 바탕으로 한 미뉴에트 G장조와 G단조(페촐트), 뮈제트 D장조(바흐), 엘리제를 위하여(베토벤), 순수(부르크뮐러), 옛 프랑스 노래와 아침 기도(차이콥스키), 전주곡 C단조(쇼팽), 짐노페디 제1번(사티), 그리고 퍼블릭 도메인 노래책과 찬송가집의 선율에 우리가 코드 기호를 붙인 리드 시트 8곡, 반짝반짝 작은 별, 노를 저어라, 올드 랭 사인(『프랭클린 스퀘어 노래집』, 1881), 프레르 자크(베커를랭, 1885), 어메이징 그레이스(엑셀 『대관식 찬송가』, 1910), 징글벨, 오! 수재너, 스윙 로, 스위트 채리엇(『하트 송스』, 1909)이에요.',
+    '그중 28곡은 dacapo 프로젝트가 MIT 라이선스로 입력했어요. 환희의 송가 편곡, 그리고 Mutopia Project가 조판한 퍼블릭 도메인 판을 바탕으로 한 미뉴에트 G장조와 G단조(페촐트), 뮈제트 D장조(바흐), 엘리제를 위하여(베토벤), 순수(부르크뮐러), 옛 프랑스 노래와 아침 기도(차이콥스키), 전주곡 C단조(쇼팽), 짐노페디 제1번(사티), 퍼블릭 도메인 판의 스캔을 보고 입력하고 그 판에 인쇄된 운지를 그대로 실은 첫걸음 곡 10곡(튀르크 「초보자를 위한 소품 60곡」 1797년판(바이에른 주립도서관 소장)에서 5곡, 바이엘 「피아노 교본」 Op. 101에서 페터스판(루트하르트 교정)의 3곡, 체르니 Op. 599 No. 11(셔머판, 1893, 부오나미치 운지), 슈만 멜로디 Op. 68 No. 1(J. Schuberth 출판, 1867, 클라우저 운지)), 그리고 퍼블릭 도메인 노래책과 찬송가집의 선율에 우리가 코드 기호를 붙인 리드 시트 8곡, 반짝반짝 작은 별, 노를 저어라, 올드 랭 사인(『프랭클린 스퀘어 노래집』, 1881), 프레르 자크(베커를랭, 1885), 어메이징 그레이스(엑셀 『대관식 찬송가』, 1910), 징글벨, 오! 수재너, 스윙 로, 스위트 채리엇(『하트 송스』, 1909)이에요.',
   'about.music.pdmx':
     '아라베스크(부르크뮐러), 병사의 행진(슈만), 전주곡 C장조(바흐)는 MuseScore에 악보를 올린 PianoXML, jadr, OpenGoldberg가 퍼블릭 도메인(CC0)으로 공개한 악보이고, dacapo 프로젝트가 운지 번호를 지웠어요. 모두 Phillip Long, Zachary Novack, Julian McAuley, Taylor Berg-Kirkpatrick의 PDMX 데이터셋에서 가져왔으며, 이 데이터셋은 CC BY 4.0 라이선스를 따라요.',
   'about.music.hanon':

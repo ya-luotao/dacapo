@@ -82,12 +82,24 @@ Mohit Muthanna Cheppudira and the VexFlow contributors. MIT License.
 
 ## Music (built-in pieces)
 
-All six works are in the public domain. Each file in `src/pieces/library/` records its own source
+All built-in works are in the public domain. Each file in `src/pieces/library/` records its own source
 in `<identification>`.
 
 - **Encoded by the dacapo project, MIT:** Petzold's _Minuet in G major_ and Beethoven's _Für Elise_.
   Both were taken from public-domain editions typeset by the [Mutopia Project](https://www.mutopiaproject.org)
   (pieces 75 and 931). The _Ode to Joy_ arrangement (key, left hand) is also ours.
+- **Encoded by the dacapo project, MIT, with the edition's fingering:** ten first pieces read
+  from scans of public-domain editions, whose fingering they carry on the notes where the
+  edition prints it. Five of Daniel Gottlob Türk's _Sechzig Handstücke für angehende
+  Klavierspieler_, part 1 (second edition, Leipzig and Halle, 1797; the copy of the Bayerische
+  Staatsbibliothek, <https://www.digitale-sammlungen.de/en/view/bsb00086024>, public domain
+  mark): Türk's own fingering. Ferdinand Beyer's _Vorschule im Klavierspiel_, Op. 101, Nos. 24,
+  58 and 66 (Edition Peters No. 2721, revised by Adolf Ruthardt, 1849–1934; IMSLP #81208,
+  <https://imslp.org/wiki/Vorschule_im_Klavierspiel,_Op.101_(Beyer,_Ferdinand)>). Carl Czerny's
+  Op. 599 No. 11 (G. Schirmer, New York, 1893, edited and fingered by Giuseppe Buonamici,
+  1846–1914; IMSLP, <https://imslp.org/wiki/Practical_Exercises_for_Beginners,_Op.599_(Czerny,_Carl)>).
+  Robert Schumann's _Melodie_, Op. 68 No. 1 (J. Schuberth & Co., Leipzig, 1867, fingered by Karl
+  Klauser, 1823–1905; <https://archive.org/details/b26976821>).
 - **CC0 encodings from MuseScore, via PDMX.** Each was dedicated to the public domain by its
   uploader; the dacapo project removed the fingering:
   - Burgmüller's _Arabesque_, Op. 100 No. 2, by PianoXML:
@@ -117,5 +129,5 @@ corrections are in `scripts/scales/hanon/`.
 ## Checks only, never shipped
 
 The Mutopia MIDI files that the built-in pieces were checked against (see
-`scripts/pieces/README.md`) are not part of the repository or the app. One of them, Schumann Op. 68
-No. 2, is CC BY-SA and was used only for comparison.
+`scripts/pieces/README.md`) are not part of the repository or the app. Two of them, Schumann Op. 68
+Nos. 1 and 2, are CC BY-SA and were used only for comparison.

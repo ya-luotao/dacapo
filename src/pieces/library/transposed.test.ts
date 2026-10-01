@@ -122,9 +122,21 @@ describe('the library as written', () => {
       }),
     );
     // Without a `<mode>` in the file, by the note the piece ends on. The Musette ends on its
-    // dominant (its first half is played again to end), so its file names the mode.
+    // dominant (its first half is played again to end), so its file names the mode. Beyer's
+    // Abendlied is in G but printed without a signature (no F occurs in it), and is encoded as
+    // printed: it ends on B over no sharps, so both keys of its signature are named.
     expect(names).toEqual({
+      'turk-aller-anfang': '0 major',
       'beethoven-ode-to-joy': '0 major',
+      'czerny-op599-no11': '0 major',
+      'turk-muntere-knabe': '0 major',
+      'beyer-kinderlied': '0 major',
+      'turk-hans-ohne-sorgen': '1 major',
+      'turk-matt-und-krank': '1 minor',
+      'turk-bey-der-wiege': '-1 major',
+      'beyer-abendlied': '0 null',
+      'beyer-op101-no66': '0 major',
+      'schumann-melodie': '0 major',
       'petzold-minuet-in-g': '1 major',
       'burgmuller-arabesque': '0 minor',
       'schumann-soldiers-march': '1 major',

@@ -1281,6 +1281,59 @@ export const ja: Dictionary = {
   'library.beethoven-ode-to-joy.note':
     '交響曲第9番の主題を、ハ長調でシンプルな左手をつけてアレンジしています。右手はずっと中央Cのあたりで弾けます。',
   'library.beethoven-ode-to-joy.style': '古典派 · 四つのフレーズからなる主題、a a′ b a′',
+  'library.turk-aller-anfang.title': 'はじめは何でもむずかしい',
+  'library.turk-aller-anfang.composer': 'テュルク',
+  'library.turk-aller-anfang.note':
+    'テュルクの『初心者のための60の小品』（1792年）の第1曲。右手は5つの鍵盤だけで4分音符と2分音符を弾き、左手は1小節に長い音が1つです。',
+  'library.turk-aller-anfang.style':
+    '古典派 · 8小節：2小節のモチーフを1音高くくり返し、後半の4小節でまとめる',
+  'library.czerny-op599-no11.title': '5指の練習（Op.599-11）',
+  'library.czerny-op599-no11.composer': 'ツェルニー',
+  'library.czerny-op599-no11.note':
+    'ツェルニーの『第一課程練習曲（Op.599）』より。右手は5つの鍵盤の上で4分音符の旋律を弾き、左手は1小節ずつ和音をのばします。両手とも位置を動かしません。',
+  'library.czerny-op599-no11.style': '古典派 · 練習曲、8小節ずつの前半と後半をそれぞれくり返す',
+  'library.turk-muntere-knabe.title': '元気な少年',
+  'library.turk-muntere-knabe.composer': 'テュルク',
+  'library.turk-muntere-knabe.note':
+    'テュルクの初心者のための小品より。2/4拍子の8小節で、右手には2音ずつのスラーと短く切る音が出てきます。左手は音が少なめです。',
+  'library.turk-muntere-knabe.style': '古典派 · 4小節のフレーズが2つ、問いと答え',
+  'library.beyer-kinderlied.title': '子供の歌（バイエル Op.101-24）',
+  'library.beyer-kinderlied.composer': 'バイエル',
+  'library.beyer-kinderlied.note':
+    '『バイエルピアノ教則本』より。右手はドイツの童謡「ぶんぶんぶん」の旋律、左手は4分音符のもう1本の線を弾きます。両手ともト音記号で読みます。',
+  'library.beyer-kinderlied.style': 'ロマン派 · 童謡、4小節ずつの三部形式 a b a',
+  'library.turk-hans-ohne-sorgen.title': '気楽なハンス',
+  'library.turk-hans-ohne-sorgen.composer': 'テュルク',
+  'library.turk-hans-ohne-sorgen.note':
+    'テュルクの初心者のための小品より、ト長調。右手は同じ音のくり返しと2つずつの8分音符、左手は長い低音で、F♯が出てきます。',
+  'library.turk-hans-ohne-sorgen.style':
+    '古典派 · 4小節のフレーズが2つ：前半はDで止まり、後半はGに戻る',
+  'library.turk-matt-und-krank.title': 'わたしは弱り、病んでいる',
+  'library.turk-matt-und-krank.composer': 'テュルク',
+  'library.turk-matt-und-krank.note':
+    'テュルクの初心者のための小品より。題は詩人ビュルガーの詩の一節です。ホ短調、3/4拍子で、とてもゆっくり、とても弱く。左手は各小節の2拍目で応えます。',
+  'library.turk-matt-und-krank.style':
+    '古典派 · 性格的小品、アウフタクトで始まる4小節のフレーズが2つ',
+  'library.turk-bey-der-wiege.title': 'ゆりかごのそばで歌う',
+  'library.turk-bey-der-wiege.composer': 'テュルク',
+  'library.turk-bey-der-wiege.note':
+    'テュルクの初心者のための小品にある子守歌、ヘ長調。両手が6度か10度はなれて、いっしょに4分音符で動きます。どちらの手にもB♭が出てきます。',
+  'library.turk-bey-der-wiege.style': '古典派 · 子守歌、アウフタクトで始まる4小節のフレーズが2つ',
+  'library.beyer-abendlied.title': '夕べの歌（バイエル Op.101-58）',
+  'library.beyer-abendlied.composer': 'バイエル',
+  'library.beyer-abendlied.note':
+    '『バイエルピアノ教則本』より。ドイツの夕べの歌「月は昇りぬ」を2つの声部で弾きます。左手もト音記号で書かれ、8分音符や付点4分音符のある自分の旋律をもっています。',
+  'library.beyer-abendlied.style': 'ロマン派 · 6小節の歌を2回',
+  'library.beyer-op101-no66.title': 'アレグレット ハ長調（バイエル Op.101-66）',
+  'library.beyer-op101-no66.composer': 'バイエル',
+  'library.beyer-op101-no66.note':
+    '『バイエルピアノ教則本』より、6/8拍子。右手は長い音でゆれるように歌い、左手は1拍に8分音符3つの分散和音を弾きます。',
+  'library.beyer-op101-no66.style': 'ロマン派 · 3つのフレーズ a b a、b a をくり返す',
+  'library.schumann-melodie.title': 'メロディー（Op.68-1）',
+  'library.schumann-melodie.composer': 'シューマン',
+  'library.schumann-melodie.note':
+    '『子供のためのアルバム（ユーゲントアルバム）』の第1曲。歌うような旋律を、左手のむらのない8分音符が支えます。左手もト音記号で書かれています。',
+  'library.schumann-melodie.style': 'ロマン派 · 性格的小品：a（くり返す）、そのあと b a′ を2回',
   'library.petzold-minuet-in-g.title': 'メヌエット ト長調',
   'library.petzold-minuet-in-g.composer': 'ペツォールト',
   'library.petzold-minuet-in-g.note':
@@ -2872,9 +2925,9 @@ export const ja: Dictionary = {
     'Source Serif 4とSource Sans 3：本文のフォントです。© Adobe, with Reserved Font Name "Source". SIL Open Font License 1.1.',
   'about.accidentals':
     'dacapo Accidentals：本文中の♭・♮・♯。Bravura Textの5つの字形を、ライセンスが改変版に求めるとおり名前を変えて使っています。© Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
-  'about.music.intro': '内蔵の21曲はすべてパブリックドメインの作品です。',
+  'about.music.intro': '内蔵の31曲はすべてパブリックドメインの作品です。',
   'about.music.ours':
-    'そのうち18曲はdacapoプロジェクトがMITライセンスで入力したものです。「歓喜の歌」の編曲と、Mutopia Projectが組んだパブリックドメイン版にもとづく「メヌエット ト長調」「メヌエット ト短調」（ペツォールト）、「ミュゼット ニ長調」（バッハ）、「エリーゼのために」（ベートーヴェン）、「素直な心」（ブルグミュラー）、「古いフランスの歌」「朝の祈り」（チャイコフスキー）、「前奏曲 ハ短調」（ショパン）、「ジムノペディ第1番」（サティ）、そしてパブリックドメインの歌集・賛美歌集の旋律に私たちがコードネームをつけた8曲のリードシート、「きらきら星」「こげこげボート」「オールド・ラング・サイン（蛍の光）」（『フランクリン・スクエア歌集』1881年）、「フレール・ジャック」（ヴェッケルラン、1885年）、「アメイジング・グレイス」（エクセル『戴冠賛美歌集』1910年）、「ジングル・ベル」「おお、スザンナ」「スウィング・ロウ、スウィート・チャリオット」（『ハート・ソングズ』1909年）です。',
+    'そのうち28曲はdacapoプロジェクトがMITライセンスで入力したものです。「歓喜の歌」の編曲と、Mutopia Projectが組んだパブリックドメイン版にもとづく「メヌエット ト長調」「メヌエット ト短調」（ペツォールト）、「ミュゼット ニ長調」（バッハ）、「エリーゼのために」（ベートーヴェン）、「素直な心」（ブルグミュラー）、「古いフランスの歌」「朝の祈り」（チャイコフスキー）、「前奏曲 ハ短調」（ショパン）、「ジムノペディ第1番」（サティ）、パブリックドメインの版のスキャンから入力し、その版に印刷された指使いをつけた初歩の10曲（テュルク『初心者のための60の小品』1797年版・バイエルン州立図書館蔵より5曲、バイエル『ピアノ教則本』Op.101よりペータース版・ルートハルト校訂の3曲、ツェルニー Op.599-11（シャーマー版、1893年、ブオナミーチの運指）、シューマン「メロディー」Op.68-1（J. Schuberth社、1867年、クラウザーの運指））、そしてパブリックドメインの歌集・賛美歌集の旋律に私たちがコードネームをつけた8曲のリードシート、「きらきら星」「こげこげボート」「オールド・ラング・サイン（蛍の光）」（『フランクリン・スクエア歌集』1881年）、「フレール・ジャック」（ヴェッケルラン、1885年）、「アメイジング・グレイス」（エクセル『戴冠賛美歌集』1910年）、「ジングル・ベル」「おお、スザンナ」「スウィング・ロウ、スウィート・チャリオット」（『ハート・ソングズ』1909年）です。',
   'about.music.pdmx':
     '「アラベスク」（ブルグミュラー）、「兵士の行進」（シューマン）、「前奏曲 ハ長調」（J.S.バッハ）は、MuseScoreに投稿したPianoXML、jadr、OpenGoldbergの各氏がパブリックドメイン（CC0）として公開した楽譜で、dacapoプロジェクトが運指を削除しました。いずれもPhillip Long、Zachary Novack、Julian McAuley、Taylor Berg-KirkpatrickによるPDMXデータセットに収録されており、このデータセットはCC BY 4.0で公開されています。',
   'about.music.hanon':

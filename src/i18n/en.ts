@@ -1288,6 +1288,60 @@ export const en = {
   'library.beethoven-ode-to-joy.note':
     'The theme from the Ninth Symphony, in C major with a simple left hand. The right hand stays around middle C.',
   'library.beethoven-ode-to-joy.style': 'Classical · a theme in four phrases, a a′ b a′',
+  'library.turk-aller-anfang.title': 'Every Beginning Is Hard',
+  'library.turk-aller-anfang.composer': 'Daniel Gottlob Türk',
+  'library.turk-aller-anfang.note':
+    'The first of Türk’s sixty pieces for beginners (1792), “Aller Anfang ist schwer”: the right hand stays on five keys, in quarter and half notes, over one long note to a bar.',
+  'library.turk-aller-anfang.style':
+    'Classical · eight bars: a two-bar idea, the same a step higher, and a four-bar close',
+  'library.czerny-op599-no11.title': 'Five-Finger Exercise, Op. 599 No. 11',
+  'library.czerny-op599-no11.composer': 'Carl Czerny',
+  'library.czerny-op599-no11.note':
+    'From Czerny’s Practical Method for Beginners: a tune in quarter notes on five keys over chords held for a whole bar. Neither hand leaves its place.',
+  'library.czerny-op599-no11.style': 'Classical · study in two repeated halves of eight bars',
+  'library.turk-muntere-knabe.title': 'The Lively Boy',
+  'library.turk-muntere-knabe.composer': 'Daniel Gottlob Türk',
+  'library.turk-muntere-knabe.note':
+    'From Türk’s pieces for beginners, “Der muntere Knabe”: eight quick bars in 2/4, with slurred pairs and short, detached notes in the right hand over a few notes in the left.',
+  'library.turk-muntere-knabe.style': 'Classical · two four-bar phrases, a question and its answer',
+  'library.beyer-kinderlied.title': 'Child’s Song, Op. 101 No. 24',
+  'library.beyer-kinderlied.composer': 'Ferdinand Beyer',
+  'library.beyer-kinderlied.note':
+    'From Beyer’s method: the German children’s song “Summ, summ, summ” in the right hand, with a second line in quarter notes for the left. Both hands read the treble clef.',
+  'library.beyer-kinderlied.style': 'Romantic · children’s song in three four-bar parts, a b a',
+  'library.turk-hans-ohne-sorgen.title': 'Carefree Hans',
+  'library.turk-hans-ohne-sorgen.composer': 'Daniel Gottlob Türk',
+  'library.turk-hans-ohne-sorgen.note':
+    'From Türk’s pieces for beginners, “Hans ohne Sorgen”, in G major: repeated notes and pairs of eighth notes in the right hand, long bass notes with F♯ in the left.',
+  'library.turk-hans-ohne-sorgen.style':
+    'Classical · two four-bar phrases: the first ends on D, the second comes home to G',
+  'library.turk-matt-und-krank.title': 'I Am So Weak and Ill',
+  'library.turk-matt-und-krank.composer': 'Daniel Gottlob Türk',
+  'library.turk-matt-und-krank.note':
+    'From Türk’s pieces for beginners, on a line by the poet Bürger: slow and very soft, in E minor and 3/4. The left hand answers on the second beat of the bar.',
+  'library.turk-matt-und-krank.style':
+    'Classical · character piece in two four-bar phrases, beginning on an upbeat',
+  'library.turk-bey-der-wiege.title': 'To Be Sung at the Cradle',
+  'library.turk-bey-der-wiege.composer': 'Daniel Gottlob Türk',
+  'library.turk-bey-der-wiege.note':
+    'A lullaby in F major from Türk’s pieces for beginners: the two hands move together in quarter notes, a sixth or a tenth apart, and both meet B♭.',
+  'library.turk-bey-der-wiege.style':
+    'Classical · lullaby in two four-bar phrases, beginning on an upbeat',
+  'library.beyer-abendlied.title': 'Evening Song, Op. 101 No. 58',
+  'library.beyer-abendlied.composer': 'Ferdinand Beyer',
+  'library.beyer-abendlied.note':
+    'From Beyer’s method: the German evening song “Der Mond ist aufgegangen” in two parts. The left hand, written in the treble clef, has a line of its own with eighth notes and dotted quarters.',
+  'library.beyer-abendlied.style': 'Romantic · a six-bar song verse, played twice',
+  'library.beyer-op101-no66.title': 'Allegretto in C major, Op. 101 No. 66',
+  'library.beyer-op101-no66.composer': 'Ferdinand Beyer',
+  'library.beyer-op101-no66.note':
+    'From Beyer’s method, in 6/8: a swaying tune of long notes over broken chords in the left hand, three eighth notes to each beat.',
+  'library.beyer-op101-no66.style': 'Romantic · three phrases, a b a, the b a repeated',
+  'library.schumann-melodie.title': 'Melody, Op. 68 No. 1',
+  'library.schumann-melodie.composer': 'Robert Schumann',
+  'library.schumann-melodie.note':
+    'The first piece of the Album for the Young: a singing tune over steady eighth notes in the left hand, which is written in the treble clef too.',
+  'library.schumann-melodie.style': 'Romantic · character piece: a (repeated), then b a′ twice',
   'library.petzold-minuet-in-g.title': 'Minuet in G major',
   'library.petzold-minuet-in-g.composer': 'Christian Petzold',
   'library.petzold-minuet-in-g.note':
@@ -2883,9 +2937,9 @@ export const en = {
     'Source Serif 4 and Source Sans 3, the text fonts. © Adobe, with Reserved Font Name “Source”. SIL Open Font License 1.1.',
   'about.accidentals':
     'dacapo Accidentals, the ♭, ♮ and ♯ in the text: five glyphs of Bravura Text, renamed as its licence asks of a modified version. © Steinberg Media Technologies GmbH, with Reserved Font Name “Bravura”. SIL Open Font License 1.1.',
-  'about.music.intro': 'All twenty-one built-in works are in the public domain.',
+  'about.music.intro': 'All thirty-one built-in works are in the public domain.',
   'about.music.ours':
-    'Eighteen are encoded by the dacapo project under the MIT licence: the Ode to Joy arrangement; from public-domain editions typeset for the Mutopia Project, the Minuets in G major and G minor (Petzold), the Musette in D major (Bach), Für Elise (Beethoven), La Candeur (Burgmüller), Old French Song and Morning Prayer (Tchaikovsky), the Prelude in C minor (Chopin) and Gymnopédie No. 1 (Satie); and eight lead sheets, the melody from a public-domain songbook or hymnal and the chord symbols ours: Twinkle, Twinkle, Little Star, Row, Row, Row Your Boat and Auld Lang Syne (Franklin Square Song Collection, 1881), Frère Jacques (Weckerlin, 1885), Amazing Grace (Excell’s Coronation Hymns, 1910), Jingle Bells, Oh! Susanna and Swing Low, Sweet Chariot (Heart Songs, 1909).',
+    'Twenty-eight are encoded by the dacapo project under the MIT licence: the Ode to Joy arrangement; from public-domain editions typeset for the Mutopia Project, the Minuets in G major and G minor (Petzold), the Musette in D major (Bach), Für Elise (Beethoven), La Candeur (Burgmüller), Old French Song and Morning Prayer (Tchaikovsky), the Prelude in C minor (Chopin) and Gymnopédie No. 1 (Satie); ten first pieces read from scans of public-domain editions, with the fingering those editions print: five of Türk’s Handstücke für angehende Klavierspieler (the edition of 1797, Bayerische Staatsbibliothek), three numbers of Beyer’s Vorschule im Klavierspiel, Op. 101 (Edition Peters, revised by Adolf Ruthardt), Czerny’s Op. 599 No. 11 (G. Schirmer, 1893, fingered by Giuseppe Buonamici) and Schumann’s Melodie, Op. 68 No. 1 (J. Schuberth, 1867, fingered by Karl Klauser); and eight lead sheets, the melody from a public-domain songbook or hymnal and the chord symbols ours: Twinkle, Twinkle, Little Star, Row, Row, Row Your Boat and Auld Lang Syne (Franklin Square Song Collection, 1881), Frère Jacques (Weckerlin, 1885), Amazing Grace (Excell’s Coronation Hymns, 1910), Jingle Bells, Oh! Susanna and Swing Low, Sweet Chariot (Heart Songs, 1909).',
   'about.music.pdmx':
     'Arabesque (Burgmüller), Soldiers’ March (Schumann) and the Prelude in C major (Bach) are encodings from MuseScore that their uploaders PianoXML, jadr and OpenGoldberg dedicated to the public domain (CC0); the dacapo project removed the fingering. They come from the PDMX dataset by Phillip Long, Zachary Novack, Julian McAuley and Taylor Berg-Kirkpatrick, licensed under CC BY 4.0.',
   'about.music.hanon':
