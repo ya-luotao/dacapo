@@ -6,6 +6,7 @@
 import { IDLE_MS } from './activity.ts';
 import type { PieceSessionRecord } from './log.ts';
 import type { PieceFacts, PieceStep } from './pieceRecords.ts';
+import { barStats, bySlowest, type BarStat } from './pieceRun.ts';
 import type { HandSelection } from './score.ts';
 import { median } from './session.ts';
 import { addDays, dayKey, type DayKey } from './streak.ts';
@@ -63,33 +64,54 @@ export function playsEveryNote(hands: HandSelection, facts: Pick<PieceFacts, 'ba
 }
 
 /**
- * A run to the end: completed, without a loop, in the written key, with hands that play every
- * note of the piece, and (when its step records are here) through every bar those hands play. A
- * run in another key is practice at transposing, not a review of the piece as written.
+ * A run through everything its hands play: completed, without a loop, in the written key, and
+ * (when its step records are here) through every bar those hands play. A run in another key is
+ * practice at transposing, not a run of the piece as written.
  */
+export function isWholeRun(
+  session: Pick<PieceSessionRecord, 'completed' | 'loop' | 'transpose' | 'hands'>,
+  steps: readonly Pick<PieceStep, 'measure'>[] | undefined,
+  facts: Pick<PieceFacts, 'bars'>,
+): boolean {
+  if (!session.completed || session.loop !== null || session.transpose !== undefined) return false;
+  if (!steps || steps.length === 0) return true;
+  return new Set(steps.map((s) => s.measure)).size >= facts.bars[session.hands];
+}
+
+/** A run to the end: a whole run (`isWholeRun`) with hands that play every note of the piece. */
 export function isRunToTheEnd(
   session: PieceSessionRecord,
   steps: readonly PieceStep[] | undefined,
   facts: Pick<PieceFacts, 'bars'>,
 ): boolean {
-  if (!session.completed || session.loop !== null || session.transpose !== undefined) return false;
-  if (!playsEveryNote(session.hands, facts)) return false;
-  if (!steps || steps.length === 0) return true;
-  return new Set(steps.map((s) => s.measure)).size >= facts.bars[session.hands];
+  return playsEveryNote(session.hands, facts) && isWholeRun(session, steps, facts);
+}
+
+/**
+ * The bars that held a run up: those whose mean time per step is over `SLOW_BAR` times the run's
+ * median step (each capped), the slowest first.
+ */
+export function slowBars(steps: readonly Pick<PieceStep, 'measure' | 'ms' | 'wrong'>[]): BarStat[] {
+  const middle = median(steps.map((s) => Math.min(s.ms, IDLE_MS)));
+  if (middle === null) return [];
+  return barStats(steps)
+    .filter((bar) => bar.meanMs > SLOW_BAR * middle)
+    .sort(bySlowest);
 }
 
 /** No bar's mean time per step over `SLOW_BAR` times the run's median step (each capped). */
-export function evenBars(steps: readonly PieceStep[]): boolean {
-  const capped = (s: PieceStep) => Math.min(s.ms, IDLE_MS);
-  const middle = median(steps.map(capped));
-  if (middle === null) return false;
-  const bars = new Map<number, number[]>();
-  for (const s of steps) bars.set(s.measure, [...(bars.get(s.measure) ?? []), capped(s)]);
-  for (const times of bars.values()) {
-    const mean = times.reduce((a, b) => a + b, 0) / times.length;
-    if (mean > SLOW_BAR * middle) return false;
-  }
-  return true;
+export function evenBars(steps: readonly Pick<PieceStep, 'measure' | 'ms' | 'wrong'>[]): boolean {
+  return steps.length > 0 && slowBars(steps).length === 0;
+}
+
+/**
+ * The grade of a run from its figures: its wrong and missed notes against the notes it is counted
+ * against, and whether it was steady (in time in rhythm mode, no slow bar in wait mode).
+ */
+export function gradeFigures(errors: number, notes: number, steady: boolean): ReviewGrade {
+  if (notes <= 0) return 'same';
+  if (errors * POOR_NOTES > notes) return 'worse';
+  return errors * CLEAN_NOTES <= notes && steady ? 'better' : 'same';
 }
 
 /**
@@ -108,13 +130,10 @@ export function gradeRun(
   const written = session.leftHand === undefined ? facts.notes?.[session.repeats] : undefined;
   const notes = rhythm ? rhythm.notes : (written ?? session.steps);
   const errors = session.wrong + (rhythm ? rhythm.notes - rhythm.hits : 0);
-  if (notes <= 0) return 'same';
-  if (errors * POOR_NOTES > notes) return 'worse';
-  const clean = errors * CLEAN_NOTES <= notes;
   const steady = rhythm
     ? rhythm.inTime >= IN_TIME_SHARE * rhythm.notes
     : Boolean(steps && steps.length > 0 && evenBars(steps));
-  return clean && steady ? 'better' : 'same';
+  return gradeFigures(errors, notes, steady);
 }
 
 /**

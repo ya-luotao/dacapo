@@ -2019,6 +2019,108 @@ kbd {
   margin-top: 2rem;
 }
 
+/*
+ * What to work on next: one sentence under a summary's figures, set apart by a hairline, with
+ * the button that does it beside it (under it on a phone) and a quiet line beneath.
+ */
+.advice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  margin: 1rem 0 0;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--border);
+}
+
+.advice-words {
+  flex: 1 1 18rem;
+  min-width: 0;
+  max-width: 40rem;
+}
+
+.advice p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.advice-text {
+  font-size: 1.0625rem;
+  line-height: 1.5;
+}
+
+.advice-note {
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.advice-text + .advice-note {
+  margin-top: 0.25rem;
+}
+
+.advice .button {
+  flex: none;
+}
+
+/*
+ * After a run of a piece the advice stands beside the bars that held it up, behind a hairline as
+ * the figures stand beside each other, its button under it: the summary's own row of buttons
+ * stays one row.
+ */
+.run-notes {
+  flex-wrap: nowrap;
+  gap: 0 1.5rem;
+}
+
+.run-notes > :first-child:not(:only-child) {
+  flex: none;
+  max-width: 55%;
+}
+
+.run-notes > .advice {
+  flex: 1 1 0;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  align-self: stretch;
+  justify-content: flex-start;
+  gap: 0.625rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0 0 0 1.5rem;
+  border-top: 0;
+  border-inline-start: 1px solid var(--border);
+}
+
+.run-notes > .advice > .advice-words {
+  flex: none;
+}
+
+.piece-summary .run-notes + .actions {
+  margin-top: 1rem;
+}
+
+@media (max-width: 40rem) {
+  .run-notes {
+    flex-wrap: wrap;
+  }
+
+  .run-notes > :first-child:not(:only-child) {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+
+  .run-notes > .advice {
+    flex-basis: 100%;
+    margin-top: 0.875rem;
+    padding: 0.875rem 0 0;
+    border-top: 1px solid var(--border);
+    border-inline-start: 0;
+  }
+}
+
 @media (max-width: 30rem) {
   .figures div {
     padding-inline: 0.75rem;
@@ -7235,6 +7337,10 @@ select.is-compact {
   margin: 0 0 0.5rem;
   font-size: 1.0625rem;
   line-height: 1.5;
+}
+
+.rhythm-summary .advice {
+  margin: 0.75rem 0;
 }
 
 .deviation {

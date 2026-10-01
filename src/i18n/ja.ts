@@ -2062,6 +2062,49 @@ export const ja: Dictionary = {
   'pieces.weak.aria.memory':
     '{bar}：ヒント{time}、{band}。{steps}ステップでミスタッチ{wrong}回。{runs}回。',
   'pieces.ms': '{value}ミリ秒',
+  'pieces.advice.wrong.hands':
+    'ミスタッチが多めです（{steps}ステップ中{wrong}回）。まずは片手ずつ練習しましょう。',
+  'pieces.advice.wrong.bars':
+    'ミスタッチが多めです（{steps}ステップ中{wrong}回）。数小節ずつ練習しましょう。',
+  'pieces.advice.slowBar':
+    '{bar}はほかの小節の2倍の時間がかかりました。ほかと同じように弾けるまでループしましょう。',
+  'pieces.advice.prompts.one': '{bar}でヒントが1回必要でした。暗譜で弾けるまでループしましょう。',
+  'pieces.advice.prompts.other':
+    '{bar}でヒントが{n}回必要でした。暗譜で弾けるまでループしましょう。',
+  'pieces.advice.clean': 'ミスなく、むらなく弾けました。',
+  'pieces.advice.clean.rhythm': '次は拍に合わせて、リズムモードを{tempo}で。',
+  'pieces.advice.clean.memory': '次は楽譜をもっと隠して弾きましょう。',
+  'pieces.advice.rhythmAt': 'リズムモード（{tempo}）',
+  'pieces.advice.missed': '{tempo}で{notes}音中{n}音を弾き逃しました。{lower}で弾きましょう。',
+  'pieces.advice.missed.extra':
+    '{tempo}で{notes}音中{n}音を弾き逃し、余分な音が{extra}音ありました。{lower}で弾きましょう。',
+  'pieces.advice.notInTime': '{tempo}で拍に合った音は{percent}でした。まずは{lower}で。',
+  'pieces.advice.againAt': '{tempo}でもう一度',
+  'pieces.advice.faster.bars':
+    '{bars}で速くなっています。クリックに合わせてここをループしましょう。',
+  'pieces.advice.faster.bar':
+    '{bars}で速くなっています。クリックに合わせてここをループしましょう。',
+  'pieces.advice.slower.bars':
+    '{bars}で遅くなっています。クリックに合わせてここをループしましょう。',
+  'pieces.advice.slower.bar':
+    '{bars}で遅くなっています。クリックに合わせてここをループしましょう。',
+  'pieces.advice.late.calibrate':
+    '全体に{ms}ミリ秒遅れています。拍に合っていると感じたなら、パソコン側の遅延です。補正しましょう。',
+  'pieces.advice.late':
+    '全体に{ms}ミリ秒遅れています。クリックのあとではなくクリックに重なるように、どの音も少し早めに。',
+  'pieces.advice.early':
+    '全体に{ms}ミリ秒早くなっています。クリックの前ではなくクリックに重なるように、どの音も少し遅めに。',
+  'pieces.advice.inTime.next': '{tempo}でミスなく、拍どおりに弾けました。次は{next}です。',
+  'pieces.advice.inTime.score': '楽譜のテンポでミスなく、拍どおりに弾けました。',
+  'pieces.advice.review.new': '復習に入りました。次は明日です。',
+  'pieces.advice.review.better.one': '復習しました。よく弾けたので、次は明日です。',
+  'pieces.advice.review.better.other': '復習しました。よく弾けたので、次は{n}日後です。',
+  'pieces.advice.review.same.one': '復習しました。次は前と同じく明日です。',
+  'pieces.advice.review.same.other': '復習しました。次は前と同じく{n}日後です。',
+  'pieces.advice.review.worse.one': '復習しました。ミスタッチが多かったので、次は明日です。',
+  'pieces.advice.review.worse.other': '復習しました。ミスタッチが多かったので、次は{n}日後です。',
+  'pieces.progress.ladder': '{tempo}でミスなく弾けています',
+  'pieces.tempo.reached': '{tempo} · ミスなし',
 
   'storage.loading': '練習記録を読み込んでいます…',
   'storage.blocked':
@@ -2910,6 +2953,8 @@ export const ja: Dictionary = {
     'この曲は見つかりません。削除されたか、別の端末でインポートされた可能性があります。',
   'pieces.engineFailed.app':
     '楽譜エンジンを読み込めませんでした。dacapoを閉じて、もう一度開いてください。',
+  'pieces.advice.late.calibrate.app':
+    '全体に{ms}ミリ秒遅れています。拍に合っていると感じたなら、端末側の遅延です。補正しましょう。',
   'storage.blocked.app':
     '古いバージョンのdacapoが練習記録を使用しています。dacapoを閉じてもう一度開くと、練習記録を読み込めます。',
   'storage.unavailable.app':

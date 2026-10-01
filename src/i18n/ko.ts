@@ -2042,6 +2042,45 @@ export const ko: Dictionary = {
   'pieces.weak.aria.memory':
     '{bar}: 도움 {time}, {band}; {steps}스텝 중 틀린 음 {wrong}개; {runs}번.',
   'pieces.ms': '{value}ms',
+  'pieces.advice.wrong.hands':
+    '틀린 음이 많아요({steps}스텝 중 {wrong}번). 먼저 한 손씩 연습하세요.',
+  'pieces.advice.wrong.bars':
+    '틀린 음이 많아요({steps}스텝 중 {wrong}번). 몇 마디씩 나눠서 연습하세요.',
+  'pieces.advice.slowBar':
+    '{bar}: 다른 마디보다 두 배 오래 걸렸어요. 다른 마디처럼 될 때까지 반복하세요.',
+  'pieces.advice.prompts.one': '{bar}: 도움이 1번 필요했어요. 외워서 칠 수 있을 때까지 반복하세요.',
+  'pieces.advice.prompts.other':
+    '{bar}: 도움이 {n}번 필요했어요. 외워서 칠 수 있을 때까지 반복하세요.',
+  'pieces.advice.clean': '틀린 음 없이 고르게 쳤어요.',
+  'pieces.advice.clean.rhythm': '이제 박자에 맞춰 보세요. 리듬 모드, {tempo}.',
+  'pieces.advice.clean.memory': '이제 악보를 더 가리고 쳐 보세요.',
+  'pieces.advice.rhythmAt': '리듬 모드 {tempo}',
+  'pieces.advice.missed': '{tempo}에서 {notes}음 중 {n}음을 놓쳤어요. {lower}에서 다시 쳐 보세요.',
+  'pieces.advice.missed.extra':
+    '{tempo}에서 {notes}음 중 {n}음을 놓치고 {extra}음을 더 쳤어요. {lower}에서 다시 쳐 보세요.',
+  'pieces.advice.notInTime': '{tempo}에서 박자에 맞은 음: {percent}. 먼저 {lower}에서 쳐 보세요.',
+  'pieces.advice.againAt': '{tempo}에서 다시',
+  'pieces.advice.faster.bars': '{bars} 구간에서 빨라져요. 클릭에 맞춰 이 구간을 반복하세요.',
+  'pieces.advice.faster.bar': '{bars} 구간에서 빨라져요. 클릭에 맞춰 이 구간을 반복하세요.',
+  'pieces.advice.slower.bars': '{bars} 구간에서 느려져요. 클릭에 맞춰 이 구간을 반복하세요.',
+  'pieces.advice.slower.bar': '{bars} 구간에서 느려져요. 클릭에 맞춰 이 구간을 반복하세요.',
+  'pieces.advice.late.calibrate':
+    '전체적으로 {ms}ms 늦어요. 박자에 맞게 쳤다고 느꼈다면 컴퓨터의 지연이에요. 보정해 보세요.',
+  'pieces.advice.late':
+    '전체적으로 {ms}ms 늦어요. 클릭 뒤가 아니라 클릭에 맞게, 음마다 조금 더 일찍 치세요.',
+  'pieces.advice.early':
+    '전체적으로 {ms}ms 빨라요. 클릭 앞이 아니라 클릭에 맞게, 음마다 조금 더 늦게 치세요.',
+  'pieces.advice.inTime.next': '{tempo}에서 틀린 음 없이 박자에 맞게 쳤어요. 다음은 {next}.',
+  'pieces.advice.inTime.score': '악보의 빠르기에서 틀린 음 없이 박자에 맞게 쳤어요.',
+  'pieces.advice.review.new': '이제 복습에 들어갔어요. 내일 다시 나와요.',
+  'pieces.advice.review.better.one': '복습했어요. 잘 쳐서 내일 다시 나와요.',
+  'pieces.advice.review.better.other': '복습했어요. 잘 쳐서 {n}일 뒤에 다시 나와요.',
+  'pieces.advice.review.same.one': '복습했어요. 전과 같이 내일 다시 나와요.',
+  'pieces.advice.review.same.other': '복습했어요. 전과 같이 {n}일 뒤에 다시 나와요.',
+  'pieces.advice.review.worse.one': '복습했어요. 틀린 음이 많아서 내일 다시 나와요.',
+  'pieces.advice.review.worse.other': '복습했어요. 틀린 음이 많아서 {n}일 뒤에 다시 나와요.',
+  'pieces.progress.ladder': '{tempo}에서 깔끔하게 침',
+  'pieces.tempo.reached': '{tempo} · 깔끔',
 
   'storage.loading': '연습 기록을 불러오는 중…',
   'storage.blocked':
@@ -2877,6 +2916,8 @@ export const ko: Dictionary = {
     'MuseScore 등에서 내보낸 MusicXML(.musicxml, .xml, 압축된 .mxl)을 가져올 수 있어요. 가져온 곡은 이 기기에만 저장되고, 데이터를 내보낼 때 함께 포함돼요.',
   'pieces.notFound.app': '이 곡을 찾을 수 없어요. 삭제됐거나 다른 기기에서 가져온 곡일 수 있어요.',
   'pieces.engineFailed.app': '악보 엔진을 불러오지 못했어요. dacapo를 닫았다가 다시 여세요.',
+  'pieces.advice.late.calibrate.app':
+    '전체적으로 {ms}ms 늦어요. 박자에 맞게 쳤다고 느꼈다면 기기의 지연이에요. 보정해 보세요.',
   'storage.blocked.app':
     '예전 버전의 dacapo가 연습 기록을 쓰고 있어요. dacapo를 닫았다가 다시 열면 기록을 불러올 수 있어요.',
   'storage.unavailable.app':

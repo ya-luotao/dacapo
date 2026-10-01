@@ -1,8 +1,9 @@
 # dacapo — Advice specification (what to work on next)
 
-Status: planned. This extends [MVP.md](MVP.md) and the later specifications; their principles and
-fixed decisions still apply — **measure, don't guess** above all: every sentence of advice rests
-on a figure the summary already shows, and says which.
+Status: G2a (Pieces: the tempo ladder, the advice after a run, the review line) is built; G2b
+(Scales) and G2c (Cards) are planned. This extends [MVP.md](MVP.md) and the later specifications;
+their principles and fixed decisions still apply — **measure, don't guess** above all: every
+sentence of advice rests on a figure the summary already shows, and says which.
 
 Goal: a summary says what happened ("You speed up in bars 5–8", "Bar 7: 2.4 s per step, 3 wrong")
 and stops there. A teacher would go on: _so loop those bars_, _so take it at 60 %_, _that is clean:
@@ -129,9 +130,84 @@ Nothing new is stored: the ladder, the review line and the advice are worked out
 sessions and their figures, and a session of chosen items is stored as a session of its level.
 `SYNC_SCHEMA` and the export format stay.
 
+## Clarifications (decided during G2a/G2b)
+
+- **Read at once, from the run itself.** The summary reads the run as its records will have it:
+  the recorder's own mapping (`recordedRun` in `ui/pieces/record.ts`) gives its session and step
+  records before they are stored, and `afterRun` (`ui/pieces/advice.ts`) sets them among the
+  piece's stored runs. So the advice, the ladder and the review line are there when the summary
+  appears, they agree with what the card and the review will say, and nothing new is kept.
+- **A run to the end, for those hands** (`core/review.ts`, `isWholeRun`): completed, without a
+  loop, in the written key, through every bar its hands play. The review's `isRunToTheEnd` is
+  that with hands that play every note. The ladder also leaves out a left hand made from the
+  chord symbols (`countsForLadder`), which the review counts.
+- **The ladder** (`core/tempoLadder.ts`). Its rungs are the tempo control's choices (40–200 % in
+  tens, now in the core). The next rung is the first choice above the tempo reached, and none
+  once that is 100 % or more. Before a clean run in time it starts at 60 %, or ten under the last
+  rhythm run of the piece as written with those hands, ended or stopped, when that is lower, and
+  not under 40 %. The advice reads the ladder with the run just played counted: after a clean run
+  at 60 % of a piece already clean at 80 %, the next rung is 90 %.
+- **Clean, with one hand of two.** The review counts wrong notes against the keys of the whole
+  piece, both hands'. A run with one hand of two is counted against its own steps, as the review
+  counts a run whose notes it does not know: a little stricter.
+- **Many wrong notes** are counted against the run's steps, as the rule says, whatever the hands.
+  "One hand at a time" is said only when the piece has notes for each hand: a lead sheet with its
+  left hand as written is taken a few bars at a time, also with Both chosen. The step records
+  keep no hand for a wrong note, so the hand to start with is told by the steps only one hand
+  plays: a wrong note there is that hand's, and a step both hands play tells nothing. The left
+  hand comes first only when it has more of them.
+- **A few bars at a time** are the bar with most wrong notes (the earliest of equals) and the bar
+  played before and after it, of the bars the run played. A run that played nothing outside them
+  (a loop of three bars or fewer) is not told to cut down to what it is: the rules after it have
+  their say.
+- **A bar that held you up** is the slowest of the bars over the line (the first of the summary's
+  list), and needs a run of more than one bar: a single bar has no rest to be slower than. In
+  memory mode the bar that needed most prompts is named with them ("Bar 7 needed 3 prompts: loop
+  it until it comes from memory."), since "twice as long" would not be true of it; a memory run
+  without a prompt is read as a wait run. Its button is the summary's own "Loop bar 7": it is not
+  shown twice.
+- **Clean and even** in memory mode at the last stage advises rhythm mode, as after a wait run.
+  When the ladder is climbed (the score's tempo is reached) nothing is advised.
+- **Notes went missing** counts missed and extra notes, as the review does (extra notes are
+  rhythm mode's wrong notes). The sentence names the extra ones when there are any: "21 of 62
+  notes missed and 5 extra at 90%: take it at 70%." At the slowest tempo (40 %) there is nothing
+  slower to take, so this rule and "not in time" do not apply there, and the rules after them
+  have their say.
+- **A stretch that moved** is the summary's own: the first stretch within one time round and in
+  written order, and none when the tempo moved through the whole run. A stretch of one bar reads
+  "loop it". The click is left as the player has set it.
+- **Always early or late** is a tendency of 10 ms or more (under it the summary says "on the
+  beat") in a run with no stretch reported. Never calibrated is what this browser has stored when
+  the summary is shown. The calibration is offered for a run that was late only: no delay makes a
+  note early, so an early run gets the plain sentence, calibrated or not.
+- **Clean and in time** names the ladder's next rung. A clean run under the score's tempo of a
+  piece that has reached it already is told nothing.
+- **Runs not to the end.** A looped run, a run from a later bar and a rhythm run stopped early get
+  the advice their figures give by every rule but the last, which wants a run to the end.
+- **The review line** is for a run that set a date: the first run to the end, or the first on or
+  after the date due. A run before the date counts only for the figures and gets no line, nor
+  does one hand of two. It waits for the piece's other step records, which the other runs'
+  grades need. An interval of one day reads "tomorrow".
+- **The buttons.** Other hands, a loop or another stage in wait and memory mode start a new run,
+  which begins at the first key as every run there does. In rhythm mode, and for "Rhythm mode at
+  60%", the page is set up and then does what Start does: the count-in begins, or the calibration
+  is offered first to a player it was never offered to. "Calibrate" opens the calibration, whose
+  own button starts the run.
+- **On the summaries.** After a wait or memory run the sentence stands beside the bars that held
+  the run up (under them on a phone) with its button under it, and the summary's own buttons
+  stay one row; "Saved…" moved under that row, so the buttons still show on a 1280 × 800 screen.
+  After a rhythm run it stands under the verdict with its button beside it. "Again" steps down
+  to an ordinary button only when the advice has a button.
+- **The ladder shown.** On a card, after the steady bars, which name the hands last chosen
+  ("right hand: 8 of 16 bars steady · clean at 70%"). On the piece's page it is the mark in the
+  tempo control ("70% · clean", for the hands chosen): no line of its own, so the control row
+  stays one row.
+- **Words.** A tempo reads "60%", as the tempo control writes it. In the Apple apps the delay is
+  "the device's" (`pieces.advice.late.calibrate.app`): they have no computer to speak of.
+
 ## Milestones
 
-1. **G2a Pieces** — `core/tempoLadder.ts`, `core/advice.ts` for wait, memory and rhythm runs, the
+1. ✓ **G2a Pieces** — `core/tempoLadder.ts`, `core/advice.ts` for wait, memory and rhythm runs, the
    review line, the ladder on the card and in the tempo control.
 2. **G2b Scales** — the advice for a run's verdict.
 3. **G2c Cards** — mastered just now, Practise these, the buttons on Progress, a level too far.

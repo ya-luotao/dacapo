@@ -140,7 +140,9 @@ practising the notes you are slowest at. Progress is visible day by day.
   after a day, then two, four, a week and up to two months while they go well. To learn a piece
   by heart, memory mode fades the score bar by bar, with a peek when you need one. Any piece can
   be transposed up to six semitones up or down: the score is redrawn in the new key, and
-  everything plays and is judged there.
+  everything plays and is judged there. After a run, one sentence says what to work on next and
+  a button sets it up: one hand at a time, a few bars in a loop, a slower tempo, or the next
+  rung of a tempo ladder that takes the piece up to the score's tempo ten per cent at a time.
 - **Scales, measured for evenness.** Major, the three minors, chromatic and the major and minor
   arpeggios in every key, one to four octaves, one hand, both, or in contrary motion from one
   tonic, drawn with Hanon's fingering. Play at your own tempo or with the

@@ -11,6 +11,7 @@ import {
 } from 'react';
 import { flushSync } from 'react-dom';
 import { Link } from 'wouter';
+import { rhythmAdvice, waitAdvice, type AdviceAction } from '../../core/advice.ts';
 import { barHeatmap, weakestLoop, type BarMetric } from '../../core/barHeatmap.ts';
 import { analyzeExpression, type Melody } from '../../core/expression.ts';
 import { leftHandFor, leftHandPatterns, type LeftHandChoice } from '../../core/leadSheet.ts';
@@ -44,6 +45,7 @@ import {
   type TakePlayback,
 } from '../../core/takePlayback.ts';
 import { summarizeRhythm } from '../../core/rhythmRun.ts';
+import { tempoLadder } from '../../core/tempoLadder.ts';
 import { playOrder, type RepeatMode } from '../../core/repeats.ts';
 import { buildSteps, keyRange, type HandSelection, type Score } from '../../core/score.ts';
 import { waitRange, type BarLoop, type WaitState } from '../../core/wait.ts';
@@ -68,7 +70,14 @@ import { usePieceSteps, usePracticeStore } from '../practice/context.ts';
 import { usePieceFormat } from './format.ts';
 import { readPiecePrefs, TEMPOS, WEAK_ALL_KEYS_PREF, withStart, writePiecePrefs } from './prefs.ts';
 import { startLoop, type PieceStart } from '../startParams.ts';
-import { useRunRecorder, waitRecording, type RecordableRun, type RecordInput } from './record.ts';
+import {
+  recordedRun,
+  useRunRecorder,
+  waitRecording,
+  type RecordableRun,
+  type RecordInput,
+  type RunContext,
+} from './record.ts';
 import { RunSummary } from './RunSummary.tsx';
 import { runReducer, startRun, takeDone } from './run.ts';
 import { idleRhythm, rhythmReducer, rhythmTakeDone } from './rhythm.ts';
@@ -112,6 +121,7 @@ import {
 } from '../../core/memory.ts';
 import { HiddenBarNumbers, MemoryStageSelect } from './MemoryParts.tsx';
 import { usePieceReview, useReviewOut } from './review.ts';
+import { afterRun, stepHand } from './advice.ts';
 import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
 
 const SHOW_KEYS_PREF = 'dacapo.pieces.showKeys';
@@ -360,27 +370,27 @@ export function PieceSession({
         : waitRecording(run),
     [rhythmMode, rhythm, run, loop],
   );
-  useRunRecorder(
-    recorded,
-    {
-      pieceId: piece.id,
-      checksum,
-      title: piece.title,
-      hands,
-      loop: loop && {
-        ...loop,
-        fromLabel: score.measures[loop.from]?.number ?? String(loop.from + 1),
-        toLabel: score.measures[loop.to]?.number ?? String(loop.to + 1),
-      },
-      repeats,
-      tempo,
-      ...(rhythmMode && { mode: 'rhythm' as const }),
-      ...(memoryMode && { mode: 'memory' as const }),
-      ...(leftHand !== 'written' && { leftHand }),
-      ...(transpose !== 0 && { transpose }),
-    },
-    store,
-  );
+  /** A loop with its bars' printed numbers, as the log keeps it. */
+  const labelled = (bars: BarLoop | null) =>
+    bars && {
+      ...bars,
+      fromLabel: score.measures[bars.from]?.number ?? String(bars.from + 1),
+      toLabel: score.measures[bars.to]?.number ?? String(bars.to + 1),
+    };
+  const context: RunContext = {
+    pieceId: piece.id,
+    checksum,
+    title: piece.title,
+    hands,
+    loop: labelled(loop),
+    repeats,
+    tempo,
+    ...(rhythmMode && { mode: 'rhythm' as const }),
+    ...(memoryMode && { mode: 'memory' as const }),
+    ...(leftHand !== 'written' && { leftHand }),
+    ...(transpose !== 0 && { transpose }),
+  };
+  useRunRecorder(recorded, context, store);
 
   // The measure heatmap: this piece's step records, read when the page opens.
   const allRecords = usePieceSteps(piece.id);
@@ -590,6 +600,15 @@ export function PieceSession({
     }
     startRhythm();
   }
+
+  // An advice's button sets the page up and starts the run (docs/ADVICE.md): as Start would, once
+  // the page has rendered with the new settings and the silence a new run brings is over.
+  const startNext = useRef(false);
+  useEffect(() => {
+    if (!startNext.current) return;
+    startNext.current = false;
+    onStart();
+  });
 
   function setMode(next: PracticeMode) {
     // The run's last steps are recorded before the mode (and the recorded run) changes.
@@ -810,6 +829,38 @@ export function PieceSession({
     setLoop({ from, to });
     setStartBar(from);
     dispatchRhythm({ type: 'reset', id: newRunId() });
+    settle();
+  }
+
+  /** An advice's button: the page is set up as it says, and the run starts (docs/ADVICE.md). */
+  function takeAdvice(action: AdviceAction) {
+    switch (action.kind) {
+      // Wait and memory mode start at the first key: other hands or another stage is a new run.
+      case 'hands':
+        setHands(action.hands);
+        break;
+      case 'stage':
+        setStage(action.stage);
+        break;
+      case 'calibrate':
+        setCalibration('open');
+        return;
+      case 'loop':
+        setLoop({ from: action.from, to: action.to });
+        setStartBar(action.from);
+        break;
+      case 'rhythm':
+        setMode('rhythm');
+        changeTempo(action.tempo);
+        break;
+      case 'tempo':
+        changeTempo(action.tempo);
+        break;
+    }
+    if (action.kind === 'rhythm' || rhythmMode) {
+      dispatchRhythm({ type: 'reset', id: newRunId() });
+      startNext.current = true;
+    }
     settle();
   }
 
@@ -1068,6 +1119,67 @@ export function PieceSession({
     return out;
   }, [step, notesById]);
 
+  // What to work on next (docs/ADVICE.md): the run just played, as its records will have it,
+  // among the piece's other runs; then the first rule that applies to its figures.
+  const over = summary !== null || rhythmSummary !== null;
+  const played = useMemo(() => {
+    if (!over) return null;
+    // A rhythm run is read against what it was started with, whatever was changed since.
+    const settings = rhythmMode ? rhythmSettings : null;
+    const run = recordedRun(
+      recorded,
+      settings
+        ? {
+            ...context,
+            hands: settings.hands,
+            repeats: settings.repeats,
+            loop: labelled(settings.loop),
+            tempo: settings.tempo,
+          }
+        : context,
+    );
+    if (!run) return null;
+    return {
+      run,
+      after: afterRun(run, { sessions: runs, steps: allRecords }, piece.facts, reviewOut),
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the context is the run's: it is read when the run is over
+  }, [over, recorded, rhythmSettings, runs, allRecords, piece.facts, reviewOut]);
+  const twoHands = playable.right && playable.left;
+  const advice = useMemo(() => {
+    if (!played) return null;
+    const { after } = played;
+    if (rhythmSummary)
+      return rhythmAdvice({
+        tempo: played.run.session.tempo,
+        summary: rhythmSummary,
+        calibrated: latency !== null,
+        whole: after.whole,
+        next: after.ladder.next,
+      });
+    if (!summary) return null;
+    return waitAdvice({
+      stage: run.memory?.stage ?? null,
+      hands,
+      twoHands,
+      steps: run.records.map((r) => ({
+        measure: r.measure,
+        ms: r.ms,
+        wrong: r.wrong,
+        prompts: r.prompts,
+        hand: stepHand(run.steps[r.step], (id) => notesById.get(id)?.hand),
+      })),
+      notes: after.notes,
+      whole: after.whole,
+      next: after.ladder.next,
+    });
+  }, [played, rhythmSummary, summary, latency, run, hands, twoHands, notesById]);
+  // The rung reached with these hands, marked in the tempo control.
+  const reached = useMemo(
+    () => tempoLadder(piece.id, hands, runs, allRecords, piece.facts).reached,
+    [piece.id, hands, runs, allRecords, piece.facts],
+  );
+
   const barOptions = playedBars.map((index) => (
     <option key={index} value={index}>
       {format.barNumber(index)}
@@ -1238,7 +1350,9 @@ export function PieceSession({
           >
             {TEMPOS.map((percent) => (
               <option key={percent} value={percent}>
-                {t('pieces.tempo.percent', { percent })}
+                {percent === reached
+                  ? t('pieces.tempo.reached', { tempo: t('pieces.tempo.percent', { percent }) })
+                  : t('pieces.tempo.percent', { percent })}
               </option>
             ))}
           </select>
@@ -1623,6 +1737,9 @@ export function PieceSession({
                 setLoop({ from: bar, to: bar });
                 settle();
               }}
+              advice={advice}
+              review={played?.after.review}
+              onAdvice={takeAdvice}
               expression={expressionPanel(
                 waitExpression,
                 { hands, repeats, loop, tempo, latency: 0, transpose },
@@ -1673,6 +1790,9 @@ export function PieceSession({
                 dispatchRhythm({ type: 'hide' });
                 settle();
               }}
+              advice={advice}
+              review={played?.after.review}
+              onAdvice={takeAdvice}
               expression={
                 rhythmSettings &&
                 expressionPanel(rhythmExpression, rhythmSettings, rhythm.take, 'rhythm')

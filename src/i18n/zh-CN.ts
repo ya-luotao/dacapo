@@ -1970,6 +1970,39 @@ export const zhCN: Dictionary = {
     '取自你用这只手（或双手）最近 {n} 遍弹到该小节的背谱练习；反复的两遍都算。',
   'pieces.weak.aria.memory': '{bar}：提示{time}，{band}；{steps} 步中错音 {wrong} 次；{runs} 遍。',
   'pieces.ms': '{value} 毫秒',
+  'pieces.advice.wrong.hands': '错音偏多（{steps} 步里错了 {wrong} 次）：先分手练。',
+  'pieces.advice.wrong.bars': '错音偏多（{steps} 步里错了 {wrong} 次）：先几小节几小节地练。',
+  'pieces.advice.slowBar': '{bar}用的时间是其他小节的两倍：循环练它，直到和别的小节一样顺。',
+  'pieces.advice.prompts.one': '{bar}提示了 1 次：循环练它，直到能背出来。',
+  'pieces.advice.prompts.other': '{bar}提示了 {n} 次：循环练它，直到能背出来。',
+  'pieces.advice.clean': '弹得干净，也均匀。',
+  'pieces.advice.clean.rhythm': '接下来跟上拍子：节奏模式，{tempo}。',
+  'pieces.advice.clean.memory': '接下来多隐藏一些乐谱。',
+  'pieces.advice.rhythmAt': '节奏模式，{tempo}',
+  'pieces.advice.missed': '速度 {tempo} 时，{notes} 个音里漏了 {n} 个：先用 {lower} 弹。',
+  'pieces.advice.missed.extra':
+    '速度 {tempo} 时，{notes} 个音里漏了 {n} 个，还多弹了 {extra} 个：先用 {lower} 弹。',
+  'pieces.advice.notInTime': '速度 {tempo} 时，{percent} 的音在拍子上：先用 {lower}。',
+  'pieces.advice.againAt': '用 {tempo} 再来一遍',
+  'pieces.advice.faster.bars': '你在{bars}越弹越快：跟着节拍器循环练这几小节。',
+  'pieces.advice.faster.bar': '你在{bars}越弹越快：跟着节拍器循环练这一小节。',
+  'pieces.advice.slower.bars': '你在{bars}越弹越慢：跟着节拍器循环练这几小节。',
+  'pieces.advice.slower.bar': '你在{bars}越弹越慢：跟着节拍器循环练这一小节。',
+  'pieces.advice.late.calibrate':
+    '整遍都晚 {ms} 毫秒：如果你觉得自己是踩在拍子上的，那是电脑的延迟，校准一下。',
+  'pieces.advice.late': '整遍都晚 {ms} 毫秒：每个音再早一点，落在拍点上，而不是拍点之后。',
+  'pieces.advice.early': '整遍都早 {ms} 毫秒：每个音再晚一点，落在拍点上，而不是拍点之前。',
+  'pieces.advice.inTime.next': '速度 {tempo} 弹得干净，也在拍子上：下一步，{next}。',
+  'pieces.advice.inTime.score': '按乐谱的速度弹得干净，也在拍子上。',
+  'pieces.advice.review.new': '已加入复习，明天复习。',
+  'pieces.advice.review.better.one': '已复习：弹得不错，明天再复习。',
+  'pieces.advice.review.better.other': '已复习：弹得不错，{n} 天后再复习。',
+  'pieces.advice.review.same.one': '已复习：和之前一样，明天再复习。',
+  'pieces.advice.review.same.other': '已复习：和之前一样，{n} 天后再复习。',
+  'pieces.advice.review.worse.one': '已复习：错音太多，明天再复习。',
+  'pieces.advice.review.worse.other': '已复习：错音太多，{n} 天后再复习。',
+  'pieces.progress.ladder': '已能干净地弹到 {tempo}',
+  'pieces.tempo.reached': '{tempo} · 已弹干净',
 
   'storage.loading': '正在读取练习记录…',
   'storage.blocked':
@@ -2767,6 +2800,8 @@ export const zhCN: Dictionary = {
     '导入 MusicXML 文件（.musicxml、.xml 或压缩的 .mxl），例如从 MuseScore 导出的文件。导入的曲目只保存在这台设备上，导出数据时也会一并导出。',
   'pieces.notFound.app': '找不到这首曲子。它可能已被删除，或者是在另一台设备上导入的。',
   'pieces.engineFailed.app': '记谱引擎加载失败。请关闭 dacapo 再重新打开。',
+  'pieces.advice.late.calibrate.app':
+    '整遍都晚 {ms} 毫秒：如果你觉得自己是踩在拍子上的，那是设备的延迟，校准一下。',
   'storage.blocked.app':
     '旧版本的 dacapo 仍在使用你的练习记录。请关闭 dacapo 再重新打开，以便读取记录。',
   'storage.unavailable.app':

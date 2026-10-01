@@ -24,7 +24,9 @@ export interface RunSummary {
   slowest: BarStat[];
 }
 
-export function barStats(records: readonly StepRecord[]): BarStat[] {
+export function barStats(
+  records: readonly Pick<StepRecord, 'measure' | 'ms' | 'wrong'>[],
+): BarStat[] {
   const bars = new Map<number, { steps: number; ms: number; wrong: number }>();
   for (const r of records) {
     const bar = bars.get(r.measure) ?? { steps: 0, ms: 0, wrong: 0 };
@@ -41,14 +43,13 @@ export function barStats(records: readonly StepRecord[]): BarStat[] {
   }));
 }
 
-/**
- * The slowest bars are those whose steps took longest on average, ties broken by wrong notes; at
- * most `count`.
- */
+/** The bar whose steps took longest on average first, ties broken by wrong notes. */
+export const bySlowest = (a: BarStat, b: BarStat): number =>
+  b.meanMs - a.meanMs || b.wrong - a.wrong || a.measure - b.measure;
+
+/** The slowest bars are those whose steps took longest on average; at most `count`. */
 export function summarizeRun(records: readonly StepRecord[], count = 3): RunSummary {
-  const slowest = barStats(records)
-    .sort((a, b) => b.meanMs - a.meanMs || b.wrong - a.wrong || a.measure - b.measure)
-    .slice(0, count);
+  const slowest = barStats(records).sort(bySlowest).slice(0, count);
   return {
     activeMs: records.reduce((sum, r) => sum + Math.min(r.ms, IDLE_MS), 0),
     steps: records.length,

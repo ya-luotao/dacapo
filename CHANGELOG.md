@@ -15,6 +15,25 @@ click's tempo and grid of scale runs played with it (from version 7), the takes 
 (from version 8), and assignments and kept reports (from version 9). Version 1 to 8 files still
 import.
 
+### What to work on next: pieces (G2a, [docs/ADVICE.md](docs/ADVICE.md))
+
+- After a run of a piece its summary says **in one sentence what to work on next**, with the
+  figure it rests on, and a button sets it up. After a wait or memory run: many wrong notes
+  with both hands, one hand at a time; with one hand, the bar with most of them and the bar
+  either side in a loop; a bar that took twice as long as the rest (by heart, the bar that
+  needed most prompts), that bar in a loop; clean and even, rhythm mode (by heart, more of the
+  score hidden). After a rhythm run: notes missing or not in time, a slower tempo; a stretch
+  where the tempo moved, that stretch in a loop; always late and never calibrated, the
+  calibration; clean and in time, the next tempo. When no rule applies nothing is said.
+- **A tempo ladder** for each piece and hands: the highest tempo at which a rhythm run to the
+  end was clean and in time, and ten per cent more as the next rung, up to the score's tempo.
+  It starts at 60%. The piece's card says how far it has got ("clean at 70%") and the tempo
+  control marks the rung reached.
+- After a run to the end, a line says **what it did to the piece's review**: that it is in
+  review now, or when it comes back and why.
+- The rules use the lines the review schedule and rhythm mode already draw; nothing new is
+  stored, synced or exported.
+
 ### Offline (G6a, [docs/OFFLINE.md](docs/OFFLINE.md))
 
 - The web app **opens and works without a network** once it has been opened with one. A service

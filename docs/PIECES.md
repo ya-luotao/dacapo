@@ -116,7 +116,8 @@ for drawing.
   step: the score must ask for it again and it must be struck again. The clock starts at the first
   key of a run, not when the page opens. Without a loop the run finishes after its last step; with
   a loop it goes round until Finish. Each step's time is capped at 60 s in the summary. "Slowest
-  bars" ranks written bars by mean time per step, both passes together.
+  bars" ranks written bars by mean time per step, both passes together. The summary also says in
+  one sentence what to work on next, with the button that does it ([ADVICE.md](ADVICE.md)).
 - **Records.** Per-step records (step, written bar, pass, ms, wrong, time) are kept in memory in
   P1, shaped for P3's measure heatmap.
 - **Storage moved forward.** Imported pieces persist from P1 on: IndexedDB version 2 adds a
@@ -201,7 +202,9 @@ for drawing.
   loop counted apart): a stretch is reported when its line moves at least 30 ms, the notes of its
   last bar have moved at least 30 ms from its first, and the change is at least 5 standard errors
   from noise; the clearest wins, and a shorter one inside it nearly as clear and steeper is
-  preferred. A drift over the whole run is reported as such when it is the clearest.
+  preferred. A drift over the whole run is reported as such when it is the clearest. Under these
+  the summary says in one sentence what to work on next ([ADVICE.md](ADVICE.md)): a slower
+  tempo, a stretch to loop, the calibration, or the next rung of the tempo ladder.
 - **Expression (EXPRESSION.md, X1).** Both summaries, wait and rhythm, end with the run's
   Expression panel, computed from its take: the Dynamics tab (the loudness per hand and beat under
   the bar numbers with the score's dynamics above, every dynamic, hairpin and accent judged in

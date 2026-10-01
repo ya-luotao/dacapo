@@ -51,6 +51,19 @@ export interface RhythmSummary {
   timeline: RunNote[];
 }
 
+/**
+ * The first stretch that can be looped: one within a single time round and in written order. None
+ * when the tempo moved through the whole run (there is nothing to cut out).
+ */
+export function loopableDrift(
+  summary: Pick<RhythmSummary, 'drift' | 'wholeRun'>,
+): RhythmStretch | null {
+  if (summary.wholeRun) return null;
+  return (
+    summary.drift.find((s) => s.from.round === s.to.round && s.from.measure <= s.to.measure) ?? null
+  );
+}
+
 export function summarizeRhythm(timings: readonly StepTiming[]): RhythmSummary {
   const ordered = [...timings].sort((a, b) => a.due - b.due);
   const origin = ordered[0]?.due ?? 0;

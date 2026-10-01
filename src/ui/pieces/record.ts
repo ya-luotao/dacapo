@@ -4,6 +4,7 @@ import {
   stepId,
   type LoopRange,
   type PieceRunHeader,
+  type PieceSession,
   type PieceStep,
 } from '../../core/pieceRecords.ts';
 import type { RepeatMode } from '../../core/repeats.ts';
@@ -71,6 +72,80 @@ export function waitRecording(run: Run): RecordableRun {
     take: run.take,
     takeDone: takeDone(run),
   };
+}
+
+/** What is known about a run at its first step: what it practises, and when it began. */
+export function runHeader(
+  run: Pick<RecordableRun, 'id' | 'startedEpoch'>,
+  first: RecordInput,
+  c: RunContext,
+): PieceRunHeader {
+  return {
+    id: run.id,
+    pieceId: c.pieceId,
+    title: c.title,
+    hands: c.hands,
+    loop: c.loop,
+    repeats: c.repeats,
+    tempo: c.tempo,
+    startedAt: run.startedEpoch ?? first.epoch - first.ms,
+    ...(c.mode && { mode: c.mode }),
+    ...(c.leftHand && { leftHand: c.leftHand }),
+    ...(c.transpose && { transpose: c.transpose }),
+  };
+}
+
+/** The `n`th step of a run, as it is stored. */
+export function storedStep(
+  header: PieceRunHeader,
+  checksum: string,
+  n: number,
+  record: RecordInput,
+): PieceStep {
+  return {
+    id: stepId(header.id, n),
+    sessionId: header.id,
+    pieceId: header.pieceId,
+    checksum,
+    hands: header.hands,
+    measure: record.measure,
+    pass: record.pass,
+    ms: Math.round(record.ms),
+    wrong: record.wrong,
+    at: record.epoch,
+    ...(record.notes && {
+      mode: 'rhythm' as const,
+      notes: record.notes.map((n) => ({
+        midi: n.midi,
+        deviation: n.deviation === null ? null : Math.round(n.deviation),
+      })),
+    }),
+    ...(record.stage && {
+      mode: 'memory' as const,
+      prompts: record.prompts ?? 0,
+      stage: record.stage,
+    }),
+    ...(header.transpose !== undefined && { transpose: header.transpose }),
+  };
+}
+
+/** A run as the log has it: its session and its step records. */
+export interface RecordedRun {
+  session: PieceSession;
+  steps: PieceStep[];
+}
+
+/**
+ * A run as the recorder writes it, worked out here from the run itself: the summary of a run
+ * reads its session and steps at once, before they are stored (docs/ADVICE.md). Null before its
+ * first step.
+ */
+export function recordedRun(run: RecordableRun, context: RunContext): RecordedRun | null {
+  const first = run.records[0];
+  if (!first) return null;
+  const header = runHeader(run, first, context);
+  const steps = run.records.map((record, n) => storedStep(header, context.checksum, n, record));
+  return { session: pieceSession(header, steps, run.ended?.completed ?? false), steps };
 }
 
 interface Tracked {
@@ -147,47 +222,8 @@ export function useRunRecorder(
     for (; t.count < r.records.length; t.count++) {
       const record = r.records[t.count]!;
       let header: PieceRunHeader | null = null;
-      if (!t.header) {
-        const c = latest.current;
-        header = t.header = {
-          id: r.id,
-          pieceId: c.pieceId,
-          title: c.title,
-          hands: c.hands,
-          loop: c.loop,
-          repeats: c.repeats,
-          tempo: c.tempo,
-          startedAt: r.startedEpoch ?? record.epoch - record.ms,
-          ...(c.mode && { mode: c.mode }),
-          ...(c.leftHand && { leftHand: c.leftHand }),
-          ...(c.transpose && { transpose: c.transpose }),
-        };
-      }
-      const step: PieceStep = {
-        id: stepId(r.id, t.count),
-        sessionId: r.id,
-        pieceId: t.header.pieceId,
-        checksum: t.checksum,
-        hands: t.header.hands,
-        measure: record.measure,
-        pass: record.pass,
-        ms: Math.round(record.ms),
-        wrong: record.wrong,
-        at: record.epoch,
-        ...(record.notes && {
-          mode: 'rhythm' as const,
-          notes: record.notes.map((n) => ({
-            midi: n.midi,
-            deviation: n.deviation === null ? null : Math.round(n.deviation),
-          })),
-        }),
-        ...(record.stage && {
-          mode: 'memory' as const,
-          prompts: record.prompts ?? 0,
-          stage: record.stage,
-        }),
-        ...(t.header.transpose !== undefined && { transpose: t.header.transpose }),
-      };
+      if (!t.header) header = t.header = runHeader(r, record, latest.current);
+      const step = storedStep(t.header, t.checksum, t.count, record);
       t.steps.push(step);
       store.recordPieceStep(step, header);
     }

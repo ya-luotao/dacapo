@@ -2071,6 +2071,43 @@ export const en = {
   'pieces.weak.aria.memory':
     '{bar}: prompts {time}, {band}; {wrong} wrong notes in {steps} steps; {runs} runs.',
   'pieces.ms': '{value} ms',
+  'pieces.advice.wrong.hands': 'Many wrong notes ({wrong} in {steps}): one hand at a time first.',
+  'pieces.advice.wrong.bars': 'Many wrong notes ({wrong} in {steps}): a few bars at a time.',
+  'pieces.advice.slowBar':
+    '{bar} took twice as long as the rest: loop it until it goes like the others.',
+  'pieces.advice.prompts.one': '{bar} needed 1 prompt: loop it until it comes from memory.',
+  'pieces.advice.prompts.other': '{bar} needed {n} prompts: loop it until it comes from memory.',
+  'pieces.advice.clean': 'Clean and even.',
+  'pieces.advice.clean.rhythm': 'Now in time: rhythm mode at {tempo}.',
+  'pieces.advice.clean.memory': 'Now with more of the score hidden.',
+  'pieces.advice.rhythmAt': 'Rhythm mode at {tempo}',
+  'pieces.advice.missed': '{n} of {notes} notes missed at {tempo}: take it at {lower}.',
+  'pieces.advice.missed.extra':
+    '{n} of {notes} notes missed and {extra} extra at {tempo}: take it at {lower}.',
+  'pieces.advice.notInTime': '{percent} in time at {tempo}: {lower} first.',
+  'pieces.advice.againAt': 'Again at {tempo}',
+  'pieces.advice.faster.bars': 'You speed up in {bars}: loop them with the click.',
+  'pieces.advice.faster.bar': 'You speed up in {bars}: loop it with the click.',
+  'pieces.advice.slower.bars': 'You slow down in {bars}: loop them with the click.',
+  'pieces.advice.slower.bar': 'You slow down in {bars}: loop it with the click.',
+  'pieces.advice.late.calibrate':
+    '{ms} ms late throughout: if it felt in time, the delay is the computer’s — calibrate it.',
+  'pieces.advice.late':
+    '{ms} ms late throughout: place each note a little earlier, on the click rather than after it.',
+  'pieces.advice.early':
+    '{ms} ms early throughout: place each note a little later, on the click rather than before it.',
+  'pieces.advice.inTime.next': 'Clean and in time at {tempo}: next, {next}.',
+  'pieces.advice.inTime.score': 'Clean and in time at the score’s tempo.',
+  'pieces.advice.review.new': 'It is in review now and comes back tomorrow.',
+  'pieces.advice.review.better.one': 'Reviewed: it went well, so it comes back tomorrow.',
+  'pieces.advice.review.better.other': 'Reviewed: it went well, so it comes back in {n} days.',
+  'pieces.advice.review.same.one': 'Reviewed: it comes back tomorrow, as before.',
+  'pieces.advice.review.same.other': 'Reviewed: it comes back in {n} days, as before.',
+  'pieces.advice.review.worse.one': 'Reviewed: too many wrong notes, so it comes back tomorrow.',
+  'pieces.advice.review.worse.other':
+    'Reviewed: too many wrong notes, so it comes back in {n} days.',
+  'pieces.progress.ladder': 'clean at {tempo}',
+  'pieces.tempo.reached': '{tempo} · clean',
 
   'storage.loading': 'Loading your progress…',
   'storage.blocked':
@@ -2925,6 +2962,8 @@ export const en = {
     'This piece is not here. It may have been deleted, or it was imported on another device.',
   'pieces.engineFailed.app':
     'The notation engine could not be loaded. Close dacapo and open it again.',
+  'pieces.advice.late.calibrate.app':
+    '{ms} ms late throughout: if it felt in time, the delay is the device’s — calibrate it.',
   'storage.blocked.app':
     'An older version of dacapo is still using your progress. Close dacapo and open it again to load it.',
   'storage.unavailable.app':

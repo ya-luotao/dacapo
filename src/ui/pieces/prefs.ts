@@ -3,6 +3,7 @@ import { isLeftHandChoice, type LeftHandChoice } from '../../core/leadSheet.ts';
 import { isMemoryStage, type MemoryStage } from '../../core/memory.ts';
 import type { TrillStart } from '../../core/ornaments.ts';
 import { isHandSelection, type PieceFacts, type PracticeMode } from '../../core/pieceRecords.ts';
+import { SCORE_TEMPO, TEMPOS } from '../../core/tempoLadder.ts';
 import { isTransposition } from '../../core/transpose.ts';
 import type { HandSelection } from '../../core/score.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
@@ -21,11 +22,9 @@ const PIECE_PREFS = 'dacapo.pieces.byPiece';
 export const WEAK_ALL_KEYS_PREF = 'dacapo.pieces.weakAllKeys';
 /** The hands chosen last on any piece: the default for a piece not practised yet. */
 export const HANDS_PREF = 'dacapo.pieces.hands';
-export const DEFAULT_TEMPO = 100;
-/** Tempo choices, in percent of the score's tempo marks. */
-export const TEMPOS = [
-  40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200,
-] as const;
+export const DEFAULT_TEMPO = SCORE_TEMPO;
+/** The tempo choices (the ladder's rungs are among them: `core/tempoLadder.ts`). */
+export { TEMPOS };
 
 export interface PiecePrefs {
   hands: HandSelection;

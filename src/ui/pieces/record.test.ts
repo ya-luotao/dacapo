@@ -8,7 +8,13 @@ import { performanceOrder } from '../../core/repeats.ts';
 import { buildSteps, type Score, type ScoreNote } from '../../core/score.ts';
 import { waitRange } from '../../core/wait.ts';
 import { createPracticeStore, type PracticeStore } from '../practice/store.ts';
-import { useRunRecorder, waitRecording, type RecordableRun, type RunContext } from './record.ts';
+import {
+  recordedRun,
+  useRunRecorder,
+  waitRecording,
+  type RecordableRun,
+  type RunContext,
+} from './record.ts';
 import type { TakeEvent, TakeInput, TakeState } from '../../core/takes.ts';
 import { runReducer, startRun, type Run } from './run.ts';
 
@@ -158,6 +164,25 @@ describe('recording runs', () => {
         completed: true,
       },
     ]);
+  });
+
+  it('tells a run as the log will have it, before it is stored', async () => {
+    let run = newRun('r1');
+    expect(recordedRun(waitRecording(run), CONTEXT)).toBeNull();
+    run = press(run, 72, 1_000);
+    expect(recordedRun(waitRecording(run), CONTEXT)).toMatchObject({
+      session: { id: 'r1', steps: 1, completed: false },
+      steps: [{ id: 'r1:00000' }],
+    });
+    run = press(press(run, 60, 1_300), 74, 1_800);
+    run = press(press(run, 76, 2_500), 77, 3_000);
+    const told = recordedRun(waitRecording(run), CONTEXT)!;
+    render(run);
+    store.loadPieceSteps('two-bars');
+    await store.settled();
+    await new Promise((resolve) => setTimeout(resolve));
+    expect(pieceSessions()).toEqual([told.session]);
+    expect(store.getPieceSteps('two-bars')).toEqual(told.steps);
   });
 
   it('records a run that is restarted or left after a step, and none without a step', () => {

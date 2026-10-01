@@ -1,11 +1,15 @@
 import { useEffect, useRef, type ReactNode } from 'react';
+import type { AdviceAction, PieceAdvice, ReviewLine } from '../../core/advice.ts';
 import {
   IN_TIME_MS,
+  loopableDrift,
   TENDENCY_MS,
   type RhythmStretch,
   type RhythmSummary as Summary,
 } from '../../core/rhythmRun.ts';
 import { SENTENCE_GAP, useI18n } from '../../i18n/index.ts';
+import { Advice } from '../Advice.tsx';
+import { usePieceAdviceWords } from './adviceWords.ts';
 import { DeviationChart } from './DeviationChart.tsx';
 import type { PieceFormat } from './format.ts';
 import { PlayBackButton } from './PlayBackButton.tsx';
@@ -22,6 +26,10 @@ interface RhythmSummaryProps {
   /** Loop the written bars of a stretch. */
   onLoopBars: (from: number, to: number) => void;
   onClose: () => void;
+  /** What to work on next, and what the run did to the piece's review (docs/ADVICE.md). */
+  advice?: PieceAdvice | null;
+  review?: ReviewLine | null;
+  onAdvice?: (action: AdviceAction) => void;
   /** The run's Expression panel. */
   expression?: ReactNode;
   /** Plays the run back (absent when nothing of it was kept). */
@@ -39,11 +47,15 @@ export function RhythmSummary({
   onAgain,
   onLoopBars,
   onClose,
+  advice = null,
+  review = null,
+  onAdvice,
   expression,
   onPlayBack,
   onSaveMidi,
 }: RhythmSummaryProps) {
   const { t, locale } = useI18n();
+  const words = usePieceAdviceWords(format);
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => heading.current?.focus({ preventScroll: true }), []);
   const percent = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
@@ -65,10 +77,11 @@ export function RhythmSummary({
       m: s.to.round + 1,
     });
   };
-  // A stretch within one time round and in written order can be looped.
-  const loopable = summary.drift.find(
-    (s) => s.from.round === s.to.round && s.from.measure <= s.to.measure,
-  );
+  // The advice's button is the summary's primary one; "Again" steps down beside it.
+  const said = advice && words.advice(advice);
+  const action = advice?.action ?? null;
+  // A stretch that can be looped has its button here, unless looping it is the advice.
+  const loopable = advice?.rule === 'drift' ? null : loopableDrift(summary);
 
   return (
     <section
@@ -89,10 +102,14 @@ export function RhythmSummary({
               : t('pieces.rhythm.stopped')}
         </h2>
         <div className="actions">
-          <button type="button" className="button button-primary is-compact" onClick={onAgain}>
+          <button
+            type="button"
+            className={said?.label ? 'button is-compact' : 'button button-primary is-compact'}
+            onClick={onAgain}
+          >
             {t('pieces.rhythm.again')}
           </button>
-          {loopable && !summary.wholeRun && (
+          {loopable && (
             <button
               type="button"
               className="button is-compact"
@@ -150,6 +167,16 @@ export function RhythmSummary({
                 )
                 .join(gap)}
       </p>
+      <Advice
+        text={said?.text ?? null}
+        note={review && words.review(review)}
+        action={
+          said?.label && action && onAdvice
+            ? { label: said.label, onClick: () => onAdvice(action) }
+            : null
+        }
+        compact
+      />
       <DeviationChart summary={summary} format={format} />
       <p className="help">{t('pieces.rhythm.saved')}</p>
       {expression}
