@@ -20,6 +20,7 @@ import type {
   MinutesTask,
   PieceRunFigures,
   PieceTask,
+  Report,
   ScaleRunFigures,
   ScaleTask,
   SessionFigures,
@@ -638,4 +639,75 @@ export function windowDays(window: DayWindow, limit = 400): DayKey[] {
     days.push(day);
   }
   return days;
+}
+
+// --- The report ----------------------------------------------------------------------------------
+
+/**
+ * Whole minutes practised on each day from the window's start on, as far as `today` (the due day
+ * at most): what a report carries. Empty before the start day.
+ */
+export function reportDays(
+  sessions: readonly SessionRecord[],
+  window: DayWindow,
+  today: DayKey,
+  timeZone?: string,
+): number[] {
+  const last = today < window.due ? today : window.due;
+  const practised = new Map(
+    minutesPerDay(sessions, window, timeZone).map((d) => [d.day, d.minutes] as const),
+  );
+  // A day has 1,440 minutes; sessions that began on it may still add up to more.
+  return windowDays({ start: window.start, due: last }).map((day) =>
+    Math.min(1440, practised.get(day) ?? 0),
+  );
+}
+
+/** A report's days with their dates: the first is the start day. */
+export function reportDayList(
+  report: Pick<Report, 'start' | 'days'>,
+): { day: DayKey; minutes: number }[] {
+  return report.days.map((minutes, i) => ({ day: addDays(report.start, i), minutes }));
+}
+
+/**
+ * The report on an assignment (docs/ASSIGNMENTS.md, "The report"): its checklist as it stands,
+ * task by task (the task, so the report reads on its own, and its figures), the minutes of each
+ * day so far, and what the student typed. Figures only: no record, and nothing from outside the
+ * assignment's tasks and days.
+ */
+export function buildReport(
+  assignment: Assignment,
+  progress: readonly TaskProgress[],
+  details: {
+    id: string;
+    from: string;
+    note: string;
+    /** Epoch ms: when it is made. */
+    now: number;
+    sessions: readonly SessionRecord[];
+    timeZone?: string;
+  },
+): Report {
+  return {
+    id: details.id,
+    assignmentId: assignment.id,
+    assignmentVersion: assignment.updatedAt,
+    title: assignment.title,
+    start: assignment.start,
+    due: assignment.due,
+    from: details.from,
+    note: details.note,
+    createdAt: details.now,
+    tasks: assignment.tasks.map((task, i) => ({
+      task,
+      progress: progress[i] ?? NOT_KNOWN,
+    })),
+    days: reportDays(
+      details.sessions,
+      assignment,
+      dayKey(details.now, details.timeZone),
+      details.timeZone,
+    ),
+  };
 }

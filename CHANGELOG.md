@@ -13,7 +13,19 @@ and sessions (from version 6; the theory cards', Read's rhythm, rhythm dictation
 symbols' answers and
 sessions go in the same lists), the
 click's tempo and grid of scale runs played with it (from version 7), the takes of piece runs
-(from version 8), and assignments (from version 9). Version 1 to 8 files still import.
+(from version 8), and assignments and kept reports (from version 9). Version 1 to 8 files still
+import.
+
+### Reports (T2, [docs/ASSIGNMENTS.md](docs/ASSIGNMENTS.md))
+
+- **Send a report**, under an assignment's checklist, turns it into a report for whoever set it:
+  each task with its figure, whether it is done, the best and the last run, and the minutes of
+  each day, with your name and a note if you like. Figures only: no recordings, and nothing
+  outside the assignment.
+- It is shared the same way, as a link to copy or a file, and dacapo sends it nowhere.
+- The teacher opens it and reads it task by task, next to the assignment it answers, and can
+  **keep** it: kept reports are listed under their assignment, the latest first. A report whose
+  assignment is not on the device can still be read.
 
 ### Assignments (T1, [docs/ASSIGNMENTS.md](docs/ASSIGNMENTS.md))
 

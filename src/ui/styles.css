@@ -12686,6 +12686,147 @@ h2.assignment-name:focus {
   border-top: 1px solid var(--border);
 }
 
+/* A report: the assignment's tasks with their figures, then the minutes of each day as bars. */
+.report .tasks {
+  margin-top: 1.25rem;
+}
+
+.report-days {
+  margin-top: 1.5rem;
+}
+
+.report-days .eyebrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.report-total {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.report-days ol {
+  display: grid;
+  grid-template-columns: auto minmax(2rem, 1fr) auto;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+  max-width: 34rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.report-days li {
+  display: contents;
+}
+
+.report-bar {
+  height: 0.5rem;
+  border-radius: 1px;
+  background: linear-gradient(var(--accent), var(--accent)) left / calc(var(--share) * 100%) 100%
+    no-repeat var(--sunk);
+}
+
+.report-minutes {
+  text-align: right;
+}
+
+.report-days .is-none > * {
+  color: var(--text-muted);
+}
+
+@media (forced-colors: active) {
+  .report-bar {
+    border: 1px solid CanvasText;
+  }
+}
+
+.report-form {
+  max-width: 44rem;
+}
+
+.report-form .field {
+  margin-top: 1.25rem;
+}
+
+.report-form .field > .text-input {
+  width: 100%;
+  max-width: 40rem;
+}
+
+.report-form .share {
+  margin-top: 1.5rem;
+}
+
+/* Kept reports: one line each, folding open to the report. */
+.kept-reports {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  border-top: 1px solid var(--border);
+  list-style: none;
+}
+
+.kept-reports > li {
+  border-bottom: 1px solid var(--border);
+}
+
+.kept-reports summary {
+  padding: 0.75rem 0.75rem 0.75rem 2rem;
+  cursor: pointer;
+  list-style: none;
+  position: relative;
+}
+
+.kept-reports summary::-webkit-details-marker {
+  display: none;
+}
+
+.kept-reports summary::before {
+  content: '';
+  position: absolute;
+  left: 0.75rem;
+  top: 1.25rem;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform var(--dur-fast) ease-out;
+}
+
+.kept-reports details[open] > summary::before {
+  transform: rotate(45deg);
+}
+
+.kept-reports summary .assignment-meta {
+  margin: 0;
+}
+
+.kept-reports details > .report,
+.kept-reports details > .actions {
+  margin: 0 0.75rem 1.25rem 2rem;
+}
+
+@media (max-width: 40rem) {
+  .kept-reports details > .report,
+  .kept-reports details > .actions {
+    margin-inline: 0;
+  }
+}
+
+@media (hover: hover) {
+  .kept-reports summary:hover {
+    background: var(--sunk);
+  }
+}
+
 /* The editor: the fields of an assignment, then its tasks, each with a form of its kind. */
 .assignment-edit .field {
   max-width: 40rem;

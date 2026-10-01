@@ -10,9 +10,19 @@ import {
   sampleSightSession,
   sampleTheorySession,
 } from '../storage/fixtures.ts';
-import type { LevelTask, PieceTask, ScaleTask, TaskProgress } from './assignmentRecords.ts';
+import type {
+  Assignment,
+  LevelTask,
+  PieceTask,
+  ScaleTask,
+  TaskProgress,
+} from './assignmentRecords.ts';
+import { decodeShare, encodeShare, parseReport } from './assignmentShare.ts';
 import {
   assignmentProgress,
+  buildReport,
+  reportDayList,
+  reportDays,
   isTaskTempo,
   LEVEL_FAMILIES,
   levelsOfFamily,
@@ -672,5 +682,131 @@ describe('the window', () => {
       '2026-10-02',
     ]);
     expect(windowDays({ start: '2026-01-01', due: '2026-12-31' }, 3)).toHaveLength(3);
+  });
+});
+
+describe('the report', () => {
+  const free = (id: string, day: number, minutes: number): SessionRecord => ({
+    kind: 'free',
+    id,
+    startedAt: MON + day * DAY,
+    endedAt: MON + day * DAY + minutes * 60_000,
+    activeMs: minutes * 60_000,
+    notes: 10,
+  });
+  const assignment: Assignment = {
+    id: 'assignment-1',
+    title: 'Week 1',
+    note: 'Slowly first.',
+    teacher: 'Ms Clara',
+    ...WEEK,
+    tasks: [
+      pieceTask({ goal: { measure: 'right', percent: 90 } }),
+      { kind: 'scale', id: 't2', exercise: 'major:D:2:both', click: null, runs: 2 },
+      { kind: 'level', id: 't3', family: 'notes', level: 'L1', goal: 'mastery' },
+      { kind: 'lesson', id: 't4', slug: 'staff' },
+      { kind: 'minutes', id: 't5', minutes: 20, days: 2 },
+      { kind: 'unknown', id: 't6', raw: { kind: 'duet', id: 't6' } },
+    ],
+    createdAt: MON - DAY,
+    updatedAt: MON - DAY + 5,
+  };
+  const laps = run('secret-session-id', { loop: [4, 7], steps: 16, wrongAt: [9] });
+  const read = readSession('s1', 1, 12);
+  const input = withRuns([laps], {
+    sessions: [
+      laps.session,
+      scaleSession('k1', [{ spread: 7.25 }]),
+      read.session,
+      free('a', 0, 25),
+      free('b', 2, 1500),
+      free('c', 5, 40),
+    ],
+    attempts: read.attempts,
+    lessonsDone: new Set(['staff']),
+  });
+  // Made on the Wednesday: three days of the week so far.
+  const now = MON + 2 * DAY + 3 * 3_600_000;
+  const progress = assignmentProgress(assignment, input);
+  const report = buildReport(assignment, progress, {
+    id: 'report-0001',
+    from: 'Robin',
+    note: 'Bar 7 is still hard.',
+    now,
+    sessions: input.sessions,
+    timeZone: TZ,
+  });
+
+  it('carries each task with its goal and its figures, in the assignment’s order', () => {
+    expect(report).toMatchObject({
+      id: 'report-0001',
+      assignmentId: 'assignment-1',
+      assignmentVersion: assignment.updatedAt,
+      title: 'Week 1',
+      start: WEEK.start,
+      due: WEEK.due,
+      from: 'Robin',
+      note: 'Bar 7 is still hard.',
+      createdAt: now,
+    });
+    expect(report.tasks.map((entry) => entry.task)).toEqual(assignment.tasks);
+    expect(report.tasks.map((entry) => entry.progress)).toEqual(progress);
+    expect(report.tasks[0]!.progress).toMatchObject({
+      kind: 'piece',
+      done: 1,
+      target: 3,
+      met: false,
+      played: 2,
+      best: { right: 1 },
+      last: { right: 0.875 },
+    });
+    expect(report.tasks[1]!.progress).toMatchObject({ done: 1, target: 2, best: { spread: 7.3 } });
+    expect(report.tasks[2]!.progress).toMatchObject({
+      met: false,
+      mastery: { counted: 12, window: 40, accuracy: 1 },
+    });
+    expect(report.tasks[3]!.progress).toMatchObject({ kind: 'lesson', met: true });
+    expect(report.tasks[4]!.progress).toMatchObject({ kind: 'minutes', done: 3, met: true });
+    expect(report.tasks[5]!.progress).toEqual({ kind: 'unknown', done: 0, target: 0, met: false });
+  });
+
+  it('has the minutes of each day from the start to the day it is made', () => {
+    // A day never has more minutes than it is long, whatever the sessions begun on it add up to.
+    expect(report.days).toEqual([25, 0, 1440]);
+    expect(reportDayList(report)).toEqual([
+      { day: '2026-09-21', minutes: 25 },
+      { day: '2026-09-22', minutes: 0 },
+      { day: '2026-09-23', minutes: 1440 },
+    ]);
+    // Before the start there are none; after the due day, the whole window and no more.
+    expect(reportDays(input.sessions, WEEK, '2026-09-20', TZ)).toEqual([]);
+    expect(reportDays(input.sessions, WEEK, '2026-09-21', TZ)).toEqual([25]);
+    expect(reportDays(input.sessions, WEEK, '2026-10-30', TZ)).toEqual([25, 0, 1440, 0, 0, 40, 0]);
+  });
+
+  it('holds figures only: no record, no id of one, nothing outside the assignment', () => {
+    const text = JSON.stringify(report);
+    for (const secret of ['secret-session-id', 's1', 'k1', '"steps"', '"sessions"', '"attempts"']) {
+      expect(text, secret).not.toContain(secret);
+    }
+    expect(Object.keys(report).sort()).toEqual([
+      'assignmentId',
+      'assignmentVersion',
+      'createdAt',
+      'days',
+      'due',
+      'from',
+      'id',
+      'note',
+      'start',
+      'tasks',
+      'title',
+    ]);
+  });
+
+  it('is a report by the rules a link is read with, and travels in one', () => {
+    expect(parseReport(JSON.parse(JSON.stringify(report)))).toEqual(report);
+    const data = encodeShare({ kind: 'report', report })!;
+    expect(decodeShare(data)).toEqual({ ok: true, value: { kind: 'report', report } });
   });
 });

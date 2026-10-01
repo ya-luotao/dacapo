@@ -1825,7 +1825,7 @@ export const zhCN: Dictionary = {
 
   'assignments.title': '作业',
   'assignments.intro':
-    '把一周的练习列成清单：曲目（哪几小节、哪只手、什么速度）、音阶、各项练习的级别、入门课程、每天练多少分钟。老师布置好，用链接或文件发给你；你练了什么，清单就自己打勾。',
+    '把一周的练习列成清单：曲目（哪几小节、哪只手、什么速度）、音阶、各项练习的级别、入门课程、每天练多少分钟。老师布置好，用链接或文件发给你；你练了什么，清单就自己打勾；练得怎么样，再用同样的办法把报告发回去。',
   'assignments.privacy':
     'dacapo 不会把任何内容发到任何地方：你分享的东西，只会到你把链接或文件发去的地方。',
   'assignments.forMe': '我要做的',
@@ -1935,10 +1935,11 @@ export const zhCN: Dictionary = {
   'assignments.open.missing':
     '你的曲目里没有，这次也没一起带来：{titles}。请对方把作业存成文件发来。',
   'assignments.open.failed': '打不开',
-  'assignments.open.error.malformed': '这不是 dacapo 的作业，或者内容已损坏。请对方重新发一次。',
-  'assignments.open.error.tooLarge': '它超出了作业允许的大小，所以没有打开。',
+  'assignments.open.error.malformed':
+    '这不是 dacapo 的作业或报告，或者内容已损坏。请对方重新发一次。',
+  'assignments.open.error.tooLarge': '它超出了作业或报告允许的大小，所以没有打开。',
   'assignments.open.error.newer': '它是用比现在更新的 dacapo 做的，这个版本打不开。',
-  'assignments.open.error.invalid': '里面不是一份有效的作业。',
+  'assignments.open.error.invalid': '里面不是一份有效的作业或报告。',
   'assignments.edit': '修改作业',
   'assignments.edit.back': '返回作业',
   'assignments.edit.title': '标题',
@@ -1999,9 +2000,33 @@ export const zhCN: Dictionary = {
   'assignments.unfollow': '从“我要做的”里拿掉',
   'assignments.unfollow.help': '它也列在“我要做的”里。拿不拿掉，你的练习记录都还在。',
   'assignments.delete': '删除',
-  'assignments.delete.confirm': '删除“{title}”？已经分享出去的，对方那里还会保留。',
+  'assignments.delete.confirm':
+    '删除“{title}”？它下面保留的报告会一起删除。已经分享出去的，对方那里还会保留。',
   'assignments.remove': '移除',
   'assignments.remove.confirm': '把“{title}”从你的作业里移除？你的练习记录不受影响。',
+  'assignments.report.title': '报告',
+  'assignments.report.help':
+    '报告会告诉布置作业的人这一周练得怎么样：每项任务的进度、是否完成、最好的一遍和最近的一遍，还有每天练了多少分钟。只有这些数字：没有录音，也没有这份作业之外的任何内容。',
+  'assignments.report.send': '生成报告',
+  'assignments.report.note': '附上留言',
+  'assignments.report.link.help': '把链接发给布置作业的人。里面只有这些数字和你的留言。',
+  'assignments.report.tooLarge': '这份报告太长，放不进链接。请用文件分享。',
+  'assignments.report.failed': '报告没能生成。',
+  'assignments.report.eyebrow': '一份报告',
+  'assignments.report.made': '{date} 生成',
+  'assignments.report.days': '每天的练习时间',
+  'assignments.report.total': '共 {n} 分钟',
+  'assignments.report.days.none': '生成这份报告时，作业还没开始。',
+  'assignments.report.keep': '保留这份报告',
+  'assignments.report.keep.help': '保留后，它会存在这台设备上，列在对应的作业下面。',
+  'assignments.report.kept': '这份报告已保留在对应的作业下面。',
+  'assignments.report.noAssignment': '这台设备上没有这份报告对应的作业：可以在这里看，但不能保留。',
+  'assignments.report.otherVersion': '这份报告对应的作业版本，和这里现在的版本不同。照样可以保留。',
+  'assignments.report.assignment': '打开作业',
+  'assignments.report.delete': '删除这份报告',
+  'assignments.reports': '收到的报告',
+  'assignments.reports.empty':
+    '还没有保留的报告。收到报告后，打开它的链接或文件，就可以保留在这里。',
 
   'settings.title': '设置',
   'settings.language': '语言',

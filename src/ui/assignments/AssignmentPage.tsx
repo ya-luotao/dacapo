@@ -1,6 +1,11 @@
 import { useId, useMemo, useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { storedAssignments, type StoredAssignment } from '../../core/assignmentRecords.ts';
+import {
+  storedAssignments,
+  storedReports,
+  type StoredAssignment,
+  type TaskProgress,
+} from '../../core/assignmentRecords.ts';
 import { tasksMet } from '../../core/assignments.ts';
 import { piecesToShare, type Shared } from '../../core/assignmentShare.ts';
 import { dayKey } from '../../core/streak.ts';
@@ -10,16 +15,23 @@ import { EmptyState } from '../EmptyState.tsx';
 import { usePractice, usePracticeStore, useStorageStatus } from '../practice/context.ts';
 import { useNow } from '../progress/useNow.ts';
 import { useAssignmentFormat } from './format.ts';
+import { KeptReports, SendReport } from './ReportView.tsx';
 import { ShareBox } from './ShareBox.tsx';
 import { TaskList } from './TaskList.tsx';
 import { useChecklist, useKnownPieces } from './useChecklist.ts';
 
 /** The checklist of an assignment for me: each task's figure, its tick, and the way to start it. */
-function Checklist({ record }: { record: StoredAssignment }) {
+function Checklist({
+  record,
+  progress,
+}: {
+  record: StoredAssignment;
+  /** Null while the records are being read. */
+  progress: TaskProgress[] | null;
+}) {
   const t = useT();
   const id = useId();
   const pieces = useKnownPieces();
-  const progress = useChecklist(record.assignment);
   const met = progress && tasksMet(progress);
   return (
     <section className="assignment-section" aria-labelledby={`${id}-title`}>
@@ -90,6 +102,8 @@ export function AssignmentPage({ id }: { id: string }) {
   const [, navigate] = useLocation();
   const [deleting, setDeleting] = useState(false);
   const record = storedAssignments(assignments).find((r) => r.id === id);
+  // The checklist, for the assignment's own list and for its report.
+  const progress = useChecklist(record?.following ? record.assignment : null);
 
   if (!record) {
     return (
@@ -131,7 +145,7 @@ export function AssignmentPage({ id }: { id: string }) {
       {assignment.note && <p className="assignment-note">{assignment.note}</p>}
 
       {following ? (
-        <Checklist record={record} />
+        <Checklist record={record} progress={progress} />
       ) : (
         <section className="assignment-section" aria-label={t('assignments.tasks')}>
           <h2>{t('assignments.tasks')}</h2>
@@ -139,7 +153,9 @@ export function AssignmentPage({ id }: { id: string }) {
         </section>
       )}
 
+      {following && <SendReport assignment={assignment} progress={progress} />}
       {made && <Share record={record} />}
+      {made && <KeptReports assignmentId={id} />}
 
       <div className="actions assignment-actions">
         {made && (
@@ -183,6 +199,10 @@ export function AssignmentPage({ id }: { id: string }) {
               className="button button-danger"
               autoFocus
               onClick={() => {
+                // The reports kept under it go with it.
+                for (const kept of storedReports(assignments)) {
+                  if (kept.report.assignmentId === id) store.deleteAssignment(kept.id);
+                }
                 store.deleteAssignment(id);
                 navigate('/assignments', { replace: true });
               }}

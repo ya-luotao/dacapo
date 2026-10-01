@@ -1892,7 +1892,7 @@ export const ko: Dictionary = {
 
   'assignments.title': '과제',
   'assignments.intro':
-    '한 주의 연습을 체크리스트로 만들어요. 곡(마디, 손, 템포), 스케일, 연습별 레벨, 레슨, 하루 연습 시간까지요. 선생님이 만들어 링크나 파일로 보내면, 연주한 만큼 체크리스트가 저절로 채워져요.',
+    '한 주의 연습을 체크리스트로 만들어요. 곡(마디, 손, 템포), 스케일, 연습별 레벨, 레슨, 하루 연습 시간까지요. 선생님이 만들어 링크나 파일로 보내면, 연주한 만큼 체크리스트가 저절로 채워져요. 어떻게 했는지 담은 보고서도 같은 방법으로 돌려보낼 수 있어요.',
   'assignments.privacy':
     'dacapo는 어디로도 아무것도 보내지 않아요. 공유한 내용은 링크나 파일을 직접 보낸 곳에만 전해져요.',
   'assignments.forMe': '내가 할 과제',
@@ -2006,11 +2006,11 @@ export const ko: Dictionary = {
     '내 곡에 없고 함께 오지도 않았어요: {titles}. 과제를 파일로 보내 달라고 하세요.',
   'assignments.open.failed': '열 수 없어요',
   'assignments.open.error.malformed':
-    'dacapo 과제가 아니거나 손상되었어요. 다시 보내 달라고 하세요.',
-  'assignments.open.error.tooLarge': '과제에 허용된 크기를 넘어서 열지 않았어요.',
+    'dacapo 과제나 보고서가 아니거나 손상되었어요. 다시 보내 달라고 하세요.',
+  'assignments.open.error.tooLarge': '과제나 보고서에 허용된 크기를 넘어서 열지 않았어요.',
   'assignments.open.error.newer':
     '지금보다 새 버전의 dacapo로 만들어져 이 버전에서는 열 수 없어요.',
-  'assignments.open.error.invalid': '올바른 과제가 들어 있지 않아요.',
+  'assignments.open.error.invalid': '올바른 과제나 보고서가 들어 있지 않아요.',
   'assignments.edit': '과제 수정',
   'assignments.edit.back': '과제로 돌아가기',
   'assignments.edit.title': '제목',
@@ -2075,9 +2075,34 @@ export const ko: Dictionary = {
     '“내가 할 과제”에도 표시돼 있어요. 빼더라도 연습 기록은 그대로 남아요.',
   'assignments.delete': '삭제',
   'assignments.delete.confirm':
-    '“{title}” 과제를 삭제할까요? 이미 공유한 과제는 받은 사람에게 그대로 남아요.',
+    '“{title}” 과제를 삭제할까요? 그 아래 보관한 보고서도 함께 삭제돼요. 이미 공유한 과제는 받은 사람에게 그대로 남아요.',
   'assignments.remove': '빼기',
   'assignments.remove.confirm': '“{title}” 과제를 내 과제에서 뺄까요? 연습 기록은 그대로 남아요.',
+  'assignments.report.title': '보고서',
+  'assignments.report.help':
+    '보고서는 과제를 낸 사람에게 한 주가 어땠는지 알려 줘요. 항목별 진행 상황과 완료 여부, 가장 좋았던 연주와 최근 연주의 수치, 날마다 연습한 시간이 담겨요. 수치만 담기며, 녹음이나 이 과제 밖의 내용은 들어가지 않아요.',
+  'assignments.report.send': '보고서 만들기',
+  'assignments.report.note': '함께 보낼 메모',
+  'assignments.report.link.help': '과제를 낸 사람에게 링크를 보내세요. 수치와 메모만 담겨 있어요.',
+  'assignments.report.tooLarge': '이 보고서는 링크로 만들기에 너무 길어요. 파일로 공유하세요.',
+  'assignments.report.failed': '보고서를 만들지 못했어요.',
+  'assignments.report.eyebrow': '보고서',
+  'assignments.report.made': '작성: {date}',
+  'assignments.report.days': '날짜별 연습 시간',
+  'assignments.report.total': '모두 {n}분',
+  'assignments.report.days.none': '이 보고서를 만들 때는 과제가 아직 시작되지 않았어요.',
+  'assignments.report.keep': '이 보고서 보관',
+  'assignments.report.keep.help': '보관하면 이 기기에서 해당 과제 아래에 저장돼요.',
+  'assignments.report.kept': '이 보고서는 해당 과제 아래에 보관되어 있어요.',
+  'assignments.report.noAssignment':
+    '이 보고서에 해당하는 과제가 이 기기에 없어요. 여기서 읽을 수는 있지만 보관할 수는 없어요.',
+  'assignments.report.otherVersion':
+    '이 보고서는 지금 여기 있는 과제와 다른 버전에 대한 것이에요. 그대로 보관할 수 있어요.',
+  'assignments.report.assignment': '과제 열기',
+  'assignments.report.delete': '이 보고서 삭제',
+  'assignments.reports': '받은 보고서',
+  'assignments.reports.empty':
+    '아직 보관한 보고서가 없어요. 보고서를 받으면 링크나 파일을 열어 여기에 보관할 수 있어요.',
 
   'settings.title': '설정',
   'settings.language': '언어',

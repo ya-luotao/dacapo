@@ -13,6 +13,7 @@ import { isBuiltInId } from '../../pieces/library/index.ts';
 import { readScore } from '../../pieces/load.ts';
 import { usePractice, usePracticeStore, useStorageStatus } from '../practice/context.ts';
 import { useAssignmentFormat } from './format.ts';
+import { ReportPreview } from './ReportView.tsx';
 import { TaskList } from './TaskList.tsx';
 import { useKnownPieces } from './useChecklist.ts';
 
@@ -209,15 +210,11 @@ export function AssignmentPreview({
   );
 }
 
-/** What a link or a file held, opened: in T1 an assignment. */
+/** What a link or a file held, opened: an assignment to add, or a report to read and keep. */
 export function SharedPreview({ shared }: { shared: Shared }) {
-  const t = useT();
-  if (shared.kind === 'assignment') {
-    return <AssignmentPreview assignment={shared.assignment} pieces={shared.pieces} />;
-  }
-  return (
-    <p className="data-message is-error" role="alert">
-      {t('assignments.open.error.invalid')}
-    </p>
+  return shared.kind === 'assignment' ? (
+    <AssignmentPreview assignment={shared.assignment} pieces={shared.pieces} />
+  ) : (
+    <ReportPreview report={shared.report} />
   );
 }

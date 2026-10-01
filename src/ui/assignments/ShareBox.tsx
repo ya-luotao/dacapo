@@ -20,30 +20,36 @@ export function ShareBox({
   shared,
   fileOnly,
   linkHelp,
+  tooLarge = 'assignments.share.tooLarge',
 }: {
   shared: Shared;
   fileOnly?: MessageKey;
   linkHelp: MessageKey;
+  /** What to say of one too large for a link. */
+  tooLarge?: MessageKey;
 }) {
   const t = useT();
   const id = useId();
   const field = useRef<HTMLInputElement>(null);
-  const [copied, setCopied] = useState<'copied' | 'failed' | null>(null);
+  // What became of copying which link: a link changed since (a report's note) is not the one copied.
+  const [copy, setCopy] = useState<{ url: string; state: 'copied' | 'failed' } | null>(null);
   const url = useMemo(() => {
     if (fileOnly) return null;
     const data = encodeShare(shared);
     return data === null ? null : shareLink(appUrl(), data);
   }, [shared, fileOnly]);
 
-  async function copy() {
+  const copied = copy && copy.url === url ? copy.state : null;
+
+  async function copyLink() {
     if (!url) return;
     try {
       await navigator.clipboard.writeText(url);
-      setCopied('copied');
+      setCopy({ url, state: 'copied' });
     } catch {
       // No clipboard here: the link is selected, to be copied by hand.
       field.current?.select();
-      setCopied('failed');
+      setCopy({ url, state: 'failed' });
     }
   }
 
@@ -63,7 +69,7 @@ export function ShareBox({
               value={url}
               onFocus={(e) => e.target.select()}
             />
-            <button type="button" className="button button-primary" onClick={() => void copy()}>
+            <button type="button" className="button button-primary" onClick={() => void copyLink()}>
               {t('settings.profile.copy')}
             </button>
           </div>
@@ -79,7 +85,7 @@ export function ShareBox({
           )}
         </div>
       ) : (
-        <p className="help">{t(fileOnly ?? 'assignments.share.tooLarge')}</p>
+        <p className="help">{t(fileOnly ?? tooLarge)}</p>
       )}
       <div className="share-way">
         <span className="share-label">{t('assignments.share.file')}</span>

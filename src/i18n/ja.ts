@@ -1912,7 +1912,7 @@ export const ja: Dictionary = {
 
   'assignments.title': '課題',
   'assignments.intro':
-    '1週間の練習をチェックリストにします。曲（小節・手・テンポ）、スケール、各練習のレベル、レッスン、1日の練習時間。先生が作ってリンクかファイルで渡すと、弾いた内容に応じてチェックが自動で付きます。',
+    '1週間の練習をチェックリストにします。曲（小節・手・テンポ）、スケール、各練習のレベル、レッスン、1日の練習時間。先生が作ってリンクかファイルで渡すと、弾いた内容に応じてチェックが自動で付きます。結果のレポートも同じ方法で返せます。',
   'assignments.privacy':
     'dacapoはどこにも何も送信しません。共有したものが届くのは、あなたがリンクやファイルを送った相手だけです。',
   'assignments.forMe': '取り組む課題',
@@ -2029,10 +2029,11 @@ export const ja: Dictionary = {
     '手元になく、一緒にも届いていない曲：{titles}。課題をファイルで送ってもらってください。',
   'assignments.open.failed': '開けませんでした',
   'assignments.open.error.malformed':
-    'dacapoの課題ではないか、壊れています。もう一度送ってもらってください。',
-  'assignments.open.error.tooLarge': '課題の上限サイズを超えているため、開きませんでした。',
+    'dacapoの課題・レポートではないか、壊れています。もう一度送ってもらってください。',
+  'assignments.open.error.tooLarge':
+    '課題・レポートの上限サイズを超えているため、開きませんでした。',
   'assignments.open.error.newer': 'この版より新しいdacapoで作られているため、開けません。',
-  'assignments.open.error.invalid': '有効な課題が入っていません。',
+  'assignments.open.error.invalid': '有効な課題・レポートが入っていません。',
   'assignments.edit': '課題を編集',
   'assignments.edit.back': '課題に戻る',
   'assignments.edit.title': 'タイトル',
@@ -2097,9 +2098,36 @@ export const ja: Dictionary = {
     '「取り組む課題」にも表示されています。外しても練習の記録は残ります。',
   'assignments.delete': '削除',
   'assignments.delete.confirm':
-    '「{title}」を削除しますか？すでに共有した課題は、相手の手元に残ります。',
+    '「{title}」を削除しますか？保存したレポートも一緒に削除されます。すでに共有した課題は、相手の手元に残ります。',
   'assignments.remove': '外す',
   'assignments.remove.confirm': '「{title}」を自分の課題から外しますか？練習の記録は残ります。',
+  'assignments.report.title': 'レポート',
+  'assignments.report.help':
+    'レポートは、課題を出した人に1週間の様子を伝えます。項目ごとの達成状況、完了したかどうか、最高と直近の演奏の数値、そして1日ごとの練習時間です。含まれるのは数値だけで、録音や、この課題以外の内容は含まれません。',
+  'assignments.report.send': 'レポートを作る',
+  'assignments.report.note': '添えるメモ',
+  'assignments.report.link.help':
+    'リンクを課題を出した人に送ってください。含まれるのは数値とメモだけです。',
+  'assignments.report.tooLarge':
+    'このレポートはリンクにするには長すぎます。ファイルで共有してください。',
+  'assignments.report.failed': 'レポートを作成できませんでした。',
+  'assignments.report.eyebrow': 'レポート',
+  'assignments.report.made': '作成：{date}',
+  'assignments.report.days': '1日ごとの練習時間',
+  'assignments.report.total': '合計{n}分',
+  'assignments.report.days.none': 'このレポートの作成時、課題はまだ始まっていませんでした。',
+  'assignments.report.keep': 'このレポートを保存',
+  'assignments.report.keep.help': '保存すると、このデバイスの対応する課題の下に残ります。',
+  'assignments.report.kept': 'このレポートは課題の下に保存されています。',
+  'assignments.report.noAssignment':
+    'このレポートに対応する課題がこのデバイスにありません。ここで読めますが、保存はできません。',
+  'assignments.report.otherVersion':
+    'このレポートは、ここにある課題とは別の版に対するものです。そのまま保存できます。',
+  'assignments.report.assignment': '課題を開く',
+  'assignments.report.delete': 'このレポートを削除',
+  'assignments.reports': '届いたレポート',
+  'assignments.reports.empty':
+    'まだ保存したレポートはありません。レポートが届いたら、リンクかファイルを開いてここに保存できます。',
 
   'settings.title': '設定',
   'settings.language': '言語',

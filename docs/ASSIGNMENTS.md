@@ -1,7 +1,7 @@
 # dacapo — Assignments specification (teacher and student)
 
-Status: T1 (assignments, their links and files, the checklist, starting a task, Home) is built;
-T2 (reports) is next. This extends [MVP.md](MVP.md) and the later specifications; their principles and
+Status: T1 (assignments, their links and files, the checklist, starting a task, Home) and T2
+(reports) are built. This extends [MVP.md](MVP.md) and the later specifications; their principles and
 fixed decisions still apply — in particular **no backend is required**: nothing here goes through
 the sync service, and nothing leaves a device unless its owner shares it.
 
@@ -191,6 +191,34 @@ assignment, pieces }`, each piece as importing it kept it (title, composer, file
 - **Code.** `core/assignmentRecords.ts` has the records (and what the app needs of them at
   startup), `core/assignments.ts` the checklist, `core/assignmentShare.ts` the link, the file and
   the reading of both; the last two are loaded only when an assignment is looked at.
+- **What a report holds** (`buildReport` in `core/assignments.ts`). For each task of the
+  assignment, in its order: the task itself (its goal; so the report reads on its own, and a
+  later edit of the assignment does not change what was answered) and the checklist's figures for
+  it: how far of how much, met or not, and the best and the last run. A piece's run is its tempo
+  and its shares of notes right and in time; a scale's its timing spread and the click's tempo; a
+  level's best and last are its sessions' shares right, with where mastery stands (answers
+  counted of the window, and their share right) when that is the goal. Shares are kept to four
+  decimals, a spread to a tenth of a millisecond. Then the whole minutes of each day from the
+  start day to the day the report is made (a number per day, 0 without practice), the name the
+  student types and a note. Nothing else: no record, no id of one, nothing outside the
+  assignment's tasks and days. A task the reader's version does not know shows how far it got
+  and nothing more.
+- **Sending it.** **Send a report**, under the checklist, makes the report from the checklist as
+  it stands and shows it as a link to copy and a file to save, like an assignment (the link's
+  JSON is `{"report": …}`; the file is `<title>.dacapo-report.json`, `{ format: 'dacapo-report',
+version: 1, report }`; a report may be 60 KB). The link follows the name and the note as they
+  are typed. The report is not stored on the student's device: it can be made again at any time,
+  and each time it is a new report. One name is remembered per device (in the browser's
+  preferences), offered for assignments and reports alike.
+- **Opening it.** A report opens where an assignment does (the same route, the same field and
+  file chooser). It is matched to the assignment stored under its `assignmentId`, and can then be
+  **kept**: stored in `assignments` under its own id (`type: 'report'`), listed on that
+  assignment's page under **Reports**, the latest first, each folding open to its figures;
+  opening the same report again finds it kept. A report whose assignment is not on the device
+  can be read but not kept; one that answers another version of the assignment than the one
+  stored (it was edited since) says so and can be kept. A kept report can be deleted; deleting an
+  assignment deletes the reports kept under it. Kept reports are exported and synced like
+  assignments.
 - **Privacy.** The app sends nothing: the link is put together on the device and shown, copied
   when Copy link is pressed; the file is saved by the browser (in the Apple app, handed to the
   share sheet or the save panel). Whoever shares it chooses where it goes. Sharing never goes
@@ -201,4 +229,4 @@ assignment, pieces }`, each piece as importing it kept it (title, composer, file
 
 1. ✓ **T1 Assignments** — the page, making and editing, the `assignments` store, links and files,
    opening, the checklist, starting a task, Home.
-2. **T2 Reports** — the report, sharing it, opening it next to its assignment.
+2. ✓ **T2 Reports** — the report, sharing it, opening it next to its assignment.

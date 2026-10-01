@@ -1828,7 +1828,7 @@ export const zhTW: Dictionary = {
 
   'assignments.title': '作業',
   'assignments.intro':
-    '把一週的練習列成清單：樂曲（哪幾小節、哪隻手、什麼速度）、音階、各項練習的等級、入門課程、每天練多少分鐘。老師出好作業，用連結或檔案傳給你；你練了什麼，清單就自己打勾。',
+    '把一週的練習列成清單：樂曲（哪幾小節、哪隻手、什麼速度）、音階、各項練習的等級、入門課程、每天練多少分鐘。老師出好作業，用連結或檔案傳給你；你練了什麼，清單就自己打勾；練得怎麼樣，再用同樣的方式把報告傳回去。',
   'assignments.privacy':
     'dacapo 不會把任何內容送到任何地方：你分享的東西，只會到你把連結或檔案傳去的地方。',
   'assignments.forMe': '我要做的',
@@ -1937,10 +1937,11 @@ export const zhTW: Dictionary = {
   'assignments.open.missing':
     '你的樂曲裡沒有，這次也沒一起帶來：{titles}。請對方把作業存成檔案傳來。',
   'assignments.open.failed': '無法開啟',
-  'assignments.open.error.malformed': '這不是 dacapo 的作業，或者內容已損壞。請對方再傳一次。',
-  'assignments.open.error.tooLarge': '它超出了作業允許的大小，所以沒有開啟。',
+  'assignments.open.error.malformed':
+    '這不是 dacapo 的作業或報告，或者內容已損壞。請對方再傳一次。',
+  'assignments.open.error.tooLarge': '它超出了作業或報告允許的大小，所以沒有開啟。',
   'assignments.open.error.newer': '它是用比現在更新的 dacapo 做的，這個版本無法開啟。',
-  'assignments.open.error.invalid': '裡面不是一份有效的作業。',
+  'assignments.open.error.invalid': '裡面不是一份有效的作業或報告。',
   'assignments.edit': '修改作業',
   'assignments.edit.back': '返回作業',
   'assignments.edit.title': '標題',
@@ -2001,9 +2002,33 @@ export const zhTW: Dictionary = {
   'assignments.unfollow': '從「我要做的」裡拿掉',
   'assignments.unfollow.help': '它也列在「我要做的」裡。拿不拿掉，你的練習紀錄都還在。',
   'assignments.delete': '刪除',
-  'assignments.delete.confirm': '要刪除「{title}」嗎？已經分享出去的，對方那裡還會保留。',
+  'assignments.delete.confirm':
+    '要刪除「{title}」嗎？它下面保留的報告會一起刪除。已經分享出去的，對方那裡還會保留。',
   'assignments.remove': '移除',
   'assignments.remove.confirm': '要把「{title}」從你的作業裡移除嗎？你的練習紀錄不受影響。',
+  'assignments.report.title': '報告',
+  'assignments.report.help':
+    '報告會告訴出作業的人這一週練得怎麼樣：每個項目的進度、是否完成、最好的一遍和最近的一遍，還有每天練了多少分鐘。只有這些數字：沒有錄音，也沒有這份作業以外的任何內容。',
+  'assignments.report.send': '產生報告',
+  'assignments.report.note': '附上留言',
+  'assignments.report.link.help': '把連結傳給出作業的人。裡面只有這些數字和你的留言。',
+  'assignments.report.tooLarge': '這份報告太長，放不進連結。請用檔案分享。',
+  'assignments.report.failed': '報告沒能產生。',
+  'assignments.report.eyebrow': '一份報告',
+  'assignments.report.made': '{date} 產生',
+  'assignments.report.days': '每天的練習時間',
+  'assignments.report.total': '共 {n} 分鐘',
+  'assignments.report.days.none': '產生這份報告時，作業還沒開始。',
+  'assignments.report.keep': '保留這份報告',
+  'assignments.report.keep.help': '保留後，它會存在這台裝置上，列在對應的作業下面。',
+  'assignments.report.kept': '這份報告已保留在對應的作業下面。',
+  'assignments.report.noAssignment': '這台裝置上沒有這份報告對應的作業：可以在這裡看，但不能保留。',
+  'assignments.report.otherVersion': '這份報告對應的作業版本，和這裡現在的版本不同。照樣可以保留。',
+  'assignments.report.assignment': '開啟作業',
+  'assignments.report.delete': '刪除這份報告',
+  'assignments.reports': '收到的報告',
+  'assignments.reports.empty':
+    '還沒有保留的報告。收到報告後，打開它的連結或檔案，就可以保留在這裡。',
 
   'settings.title': '設定',
   'settings.language': '語言',

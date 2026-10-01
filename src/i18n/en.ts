@@ -1919,7 +1919,7 @@ export const en = {
 
   'assignments.title': 'Assignments',
   'assignments.intro':
-    'A week’s practice as a checklist: pieces with their bars, hands and tempo, scales, levels, lessons, minutes a day. A teacher sets it and shares it as a link or a file; the checklist ticks itself from what you play.',
+    'A week’s practice as a checklist: pieces with their bars, hands and tempo, scales, levels, lessons, minutes a day. A teacher sets it and shares it as a link or a file; the checklist ticks itself from what you play, and a report of how it went goes back the same way.',
   'assignments.privacy':
     'dacapo sends nothing anywhere: what you share goes only where you send its link or its file.',
   'assignments.forMe': 'For me',
@@ -2036,11 +2036,11 @@ export const en = {
     'Not among your pieces, and not sent along: {titles}. Ask for the assignment as a file.',
   'assignments.open.failed': 'This could not be opened',
   'assignments.open.error.malformed':
-    'This is not a dacapo assignment, or it is damaged. Ask for it again.',
+    'This is not a dacapo assignment or report, or it is damaged. Ask for it again.',
   'assignments.open.error.tooLarge':
-    'This is larger than an assignment may be, so it was not opened.',
+    'This is larger than an assignment or a report may be, so it was not opened.',
   'assignments.open.error.newer': 'This was made with a newer version of dacapo than this one.',
-  'assignments.open.error.invalid': 'This does not hold a valid assignment.',
+  'assignments.open.error.invalid': 'This does not hold a valid assignment or report.',
   'assignments.edit': 'Edit the assignment',
   'assignments.edit.back': 'Back to the assignment',
   'assignments.edit.title': 'Title',
@@ -2106,10 +2106,37 @@ export const en = {
     'It is listed under For me too. Your practice records stay either way.',
   'assignments.delete': 'Delete',
   'assignments.delete.confirm':
-    'Delete “{title}”? Copies you have shared stay with whoever has them.',
+    'Delete “{title}”? The reports kept under it go with it. Copies you have shared stay with whoever has them.',
   'assignments.remove': 'Remove',
   'assignments.remove.confirm':
     'Remove “{title}” from your assignments? Your practice records stay.',
+  'assignments.report.title': 'Report',
+  'assignments.report.help':
+    'A report tells whoever set this how it went: for each task its figure, whether it is done, and your best and last run, with the minutes of each day. Figures only: no recordings, and nothing outside this assignment.',
+  'assignments.report.send': 'Send a report',
+  'assignments.report.note': 'A note to go with it',
+  'assignments.report.link.help':
+    'Send the link to whoever set the assignment. It holds the figures and your note, nothing else.',
+  'assignments.report.tooLarge': 'This report is too long for a link. Share it as a file.',
+  'assignments.report.failed': 'The report could not be made.',
+  'assignments.report.eyebrow': 'A report',
+  'assignments.report.made': 'Made {date}',
+  'assignments.report.days': 'Minutes each day',
+  'assignments.report.total': '{n} min in all',
+  'assignments.report.days.none': 'The assignment had not started when this report was made.',
+  'assignments.report.keep': 'Keep this report',
+  'assignments.report.keep.help':
+    'Keeping it stores it on this device, under the assignment it answers.',
+  'assignments.report.kept': 'This report is kept under its assignment.',
+  'assignments.report.noAssignment':
+    'The assignment this report answers is not on this device: it can be read here, but not kept.',
+  'assignments.report.otherVersion':
+    'This report answers another version of the assignment than the one here. It can be kept all the same.',
+  'assignments.report.assignment': 'Open the assignment',
+  'assignments.report.delete': 'Delete this report',
+  'assignments.reports': 'Reports',
+  'assignments.reports.empty':
+    'No reports kept yet. When one comes back, open its link or file and keep it here.',
 
   'settings.title': 'Settings',
   'settings.language': 'Language',
