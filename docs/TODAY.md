@@ -41,8 +41,10 @@ and practices (G3's links between them read it too).
 
 - A practice is **open** once its lesson is ticked, or once the player has a record of it (a
   session, an answer, a run; for Pieces an imported piece too, which someone means to play):
-  someone who went there on their own is not sent back to a lesson. Open only decides what Today
-  and Where you are _propose_; no page reads it.
+  someone who went there on their own is not sent back to a lesson. A third way opens every
+  practice at once: the visitor said on the start page that they play already
+  ([START.md](START.md)). Open only decides what Today and Where you are _propose_; no page
+  reads it.
 - Harmony's Progressions and Improvise, the metronome and free play have no levels and no record
   of how far one has got: they are never proposed.
 - **The scale ladder**, for the next scale never played: the keys in the order C, G, F, D, A, E,
@@ -108,7 +110,8 @@ and practices (G3's links between them read it too).
   ASSIGNMENTS.md). **The lesson** is the first of the fifteen not ticked. In the 10-minute plan it
   takes the level's place while fewer than seven lessons are ticked (the first weeks belong to the
   lessons) and is left out after; the longer plans have it beside the levels. Done: ticked (it
-  was not when the plan was made).
+  was not when the plan was made). Someone who said they play already ([START.md](START.md)) has
+  no lesson in the plan at any length (Learn stays where it is): the 10-minute plan has a level.
 - **Play through**: the pieces due for review (PIECES.md, P6; those taken out of review are not),
   the longest overdue first. Done: a run to the end today.
 - **Order.** Warm-up, work, new (the lesson, then the levels), play through: lesson 14's session.
@@ -120,8 +123,9 @@ and practices (G3's links between them read it too).
 
 ## Home
 
-- **A returning player** (a session stored, or a lesson ticked) gets Today in place of the hero
-  and of the blocks "Your practice" and "Due for review", which it takes in:
+- **A returning player** (a session stored, a lesson ticked, or the start page answered,
+  [START.md](START.md)) gets Today in place of the hero and of the blocks "Your practice" and
+  "Due for review", which it takes in:
   the day as the eyebrow, the heading "Today", the figures the block "Your practice" had (minutes
   today, the streak, the longest), then the plan as a numbered programme in the manner of the
   contents below it: each row its part (Warm-up, Work, New, Play through), the step's name as the
@@ -229,8 +233,9 @@ returning). Nothing is synced or exported for this, and `SYNC_SCHEMA` stays.
 - **Returning.** `dacapo.returning` is `1` or absent. The lessons' ticks are read directly (they
   are in the browser already); the flag stands in for the sessions until they are read. Once
   they are, the records decide: the flag is set when there is a session or a tick, and removed
-  when there is neither (the data was deleted), and the first visit's page comes back. A first
-  visit with an assignment added still has it under the hero, as T1 built it.
+  when there is neither (the data was deleted), and the first visit's page comes back. An answer
+  on the start page counts as a tick does ([START.md](START.md)). A first visit with an
+  assignment added still has it under the hero, as T1 built it.
 - **The part names** are lesson 14's: Warm up, Hard spots, Something new, Play through (热身、
   难点、新内容、完整弹一遍); "Work" and "New" above are these. A part is named on the row
   where it begins; the rows after it are under the same name (a screen reader hears it on each).
@@ -264,8 +269,9 @@ returning). Nothing is synced or exported for this, and `SYNC_SCHEMA` stays.
   Scales counts every exercise played, technique too; "in review" leaves out the pieces taken
   out; a grade's pieces are all its built-in pieces, lead sheets among them. A practice not open
   links to its lesson by "After lesson 13, Chords and harmony" (the title in the lesson's
-  language). It is shown once there is a session or a ticked lesson: with ticks alone the page
-  has the day's figures and this section, and the charts once there are sessions.
+  language). It is shown once there is a session or a ticked lesson (or the start page
+  answered, [START.md](START.md)): with ticks alone the page has the day's figures and this
+  section, and the charts once there are sessions.
 - **The start.** The files `index.html` loads were 895,774 bytes (272,952 gzipped) before and are
   900,387 (273,041) with Today: about 4 kB of styles, the 36 strings in English, and the plan's
   heading, figures and length, less the review schedule, which the home page no longer loads

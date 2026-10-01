@@ -21,26 +21,35 @@ const PLACE: Record<string, { column: number; row: 1 | 2 }> = {
   KeyK: { column: 15, row: 2 },
 };
 
-export function KeyboardHint() {
-  const t = useT();
-  const octave = useKeyboardOctave();
-  const keys = NOTE_KEYS.map(([code, letter]) => ({
+/** The keys that play at `octave`, each with the note it plays (null: off the piano). */
+function keysAt(octave: number) {
+  return NOTE_KEYS.map(([code, letter]) => ({
     code,
     letter,
     midi: noteForKey(code, octave),
     ...PLACE[code]!,
   }));
-  const playable = keys.flatMap(({ midi }) => (midi === null ? [] : [midi]));
+}
+
+/**
+ * The computer keys that play, drawn as they lie on the keyboard with the note each plays, and
+ * the two that move the octave. With `held` (the keys down, by MIDI number), a key lights while
+ * its note sounds.
+ */
+export function Keycaps({ held }: { held?: ReadonlyMap<number, number> }) {
+  const t = useT();
+  const octave = useKeyboardOctave();
 
   return (
-    <section className="keys-hint" aria-labelledby="keys-hint-title">
-      <h2 id="keys-hint-title">{t('keys.title')}</h2>
-      <p className="help">{t('keys.body')}</p>
+    <>
       <div className="keycaps">
-        {keys.map(({ code, letter, midi, column, row }) => (
+        {keysAt(octave).map(({ code, letter, midi, column, row }) => (
           <div
             key={code}
-            className={row === 1 ? 'keycap is-upper' : 'keycap'}
+            className={
+              (row === 1 ? 'keycap is-upper' : 'keycap') +
+              (midi !== null && held?.has(midi) ? ' is-held' : '')
+            }
             style={{ gridColumn: `${column} / span 2`, gridRow: row }}
           >
             <kbd>{letter}</kbd>
@@ -66,6 +75,20 @@ export function KeyboardHint() {
           <kbd>X</kbd> {t('keys.octaveUp')}
         </span>
       </p>
+    </>
+  );
+}
+
+export function KeyboardHint() {
+  const t = useT();
+  const octave = useKeyboardOctave();
+  const playable = keysAt(octave).flatMap(({ midi }) => (midi === null ? [] : [midi]));
+
+  return (
+    <section className="keys-hint" aria-labelledby="keys-hint-title">
+      <h2 id="keys-hint-title">{t('keys.title')}</h2>
+      <p className="help">{t('keys.body')}</p>
+      <Keycaps />
       <p className="help">
         {t('keys.range', { low: midiName(playable[0]!), high: midiName(playable.at(-1)!) })}
       </p>

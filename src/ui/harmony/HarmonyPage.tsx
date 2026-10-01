@@ -26,6 +26,7 @@ import { useT } from '../../i18n/index.ts';
 import { isBuiltin } from '../../output/output.ts';
 import { browserClock } from '../../output/scheduler.ts';
 import { useInput } from '../input/context.ts';
+import { InputNotice } from '../input/InputNotice.tsx';
 import { useMetronome } from '../metronome/context.ts';
 import { useOutputSound, useOutputState } from '../output/context.ts';
 import { ACCOMPANIMENT_LEVELS, readAccompanimentLevel } from '../output/prefs.ts';
@@ -279,6 +280,7 @@ function PracticeSection({
         {t(`harmony.practice.${practice}`)}
       </h2>
       <p className="muted read-intro">{t(`harmony.intro.${practice}`)}</p>
+      <InputNotice />
       {children}
     </section>
   );

@@ -22,7 +22,7 @@ export const zhTW: Dictionary = {
   'home.eyebrow': '用 MIDI 鍵盤練鋼琴',
   'home.lede':
     '在真正的大譜表上識譜；音階彈得勻不勻，一測便知；真正的樂曲，樂譜會等你彈對；再加上一台節拍器。dacapo 為每次作答計時，哪些音讓你慢下來，就多練哪些。',
-  'home.start': '開始識譜',
+  'home.start': '開始',
   'home.play': '或者自由彈奏',
   'home.facts': '免費開源 · 不需要帳號 · MIDI 鍵盤或電腦鍵盤都能彈',
   'home.specimen.label': '大譜表上的一個音符，以及彈出它的琴鍵',
@@ -104,6 +104,29 @@ export const zhTW: Dictionary = {
   'home.faq.data.a':
     '儲存在這台裝置的這個瀏覽器裡。你隨時可以在「設定」中匯出，也可以登入，在自己的幾台裝置之間同步。',
 
+  'start.title': '開始',
+  'start.intro': '兩個問題，讓 dacapo 從你現在的程度開始。不回答也沒關係：每個頁面都照常能用。',
+  'start.from': '你從哪裡開始？',
+  'start.from.new': '我剛開始學鋼琴',
+  'start.from.new.text': '課程從認識鍵盤講起。',
+  'start.from.player': '我已經會彈',
+  'start.from.player.text': '所有練習都直接開放，你不問就不多解釋。',
+  'start.reads': '哪些譜不用數線就能讀？',
+  'start.reads.treble': '高音譜表',
+  'start.reads.both': '高音和低音譜表',
+  'start.reads.ledger': '加線、升降記號',
+  'start.reads.unknown': '說不準，先練練看',
+  'start.reads.begins': '識譜的音符從 {id}（{name}）開始。前面的等級照常能練，不會標成已熟練。',
+  'start.reads.begins.unknown': '識譜的音符從你還沒熟練的第一個等級開始。',
+  'start.play': '你用什麼彈？',
+  'start.press': '按任意一個鍵。',
+  'start.heard': '聽到了。',
+  'start.keys': '電腦鍵盤和螢幕上的琴鍵在這裡都能彈。',
+  'start.sound.nothing': '沒有聲音？',
+  'start.sound.link': '聲音設定',
+  'start.begin': '開始',
+  'start.change': '答案隨時可以到「設定」裡改。',
+
   'learn.title': '入門基礎',
   'learn.intro':
     '為剛開始學琴的你準備的幾堂短課：鍵盤、五線譜、節奏等等。每課都有可以動手彈的圖示，最後還有一個小練習。',
@@ -173,6 +196,8 @@ export const zhTW: Dictionary = {
   'keys.octaveUp': '升高',
   'keys.range': '目前音域：{low} 到 {high}',
   'keys.offPiano': '超出鋼琴音域',
+
+  'input.notice': '{status}：電腦鍵盤的 A 到 K 可以彈。',
 
   'read.title': '識譜',
   'read.intro': '大譜表上會出現一個音符，請在琴鍵上找到它——八度也要對。',
@@ -2176,6 +2201,9 @@ export const zhTW: Dictionary = {
   'settings.theme.system': '跟隨系統',
   'settings.theme.light': '淺色',
   'settings.theme.dark': '深色',
+  'settings.start': '你的起點',
+  'settings.start.help':
+    '就是開始頁問的那個問題，決定「今天」推薦什麼、識譜的音符從哪一級開始。今天的計畫不變，下一份計畫起生效。',
   'settings.sound': '聲音',
   'settings.sound.help': '示範和另一隻手由你的樂器透過 MIDI 彈奏，或是由內建鋼琴彈奏。',
   'settings.output': '聲音輸出到',
@@ -2717,6 +2745,7 @@ export const zhTW: Dictionary = {
     'dacapo 無法在這台裝置上啟動 MIDI。請關閉 dacapo 再重新開啟；在那之前，可以用畫面上的鍵盤或電腦鍵盤彈奏。',
   'midi.status.noPermission.app': '無法使用 MIDI',
   'midi.help.noPermission.app': 'dacapo 無法在這台裝置上開啟 MIDI。',
+  'midi.help.noDevice.app': '連接 MIDI 鍵盤並開啟電源，連接後就會自動顯示在這裡。',
   'staff.fontFailed.app': '樂譜字型載入失敗。請關閉 dacapo 再重新開啟。',
   'pieces.yours.help.app':
     '匯入 MusicXML 檔案（.musicxml、.xml 或壓縮的 .mxl），例如從 MuseScore 匯出的檔案。匯入的樂曲只儲存在這台裝置上，匯出資料時也會一併匯出。',
@@ -2752,6 +2781,8 @@ export const zhTW: Dictionary = {
   'settings.export.help.app':
     '儲存 {file}，內含你的練習紀錄、作答紀錄、匯入的樂曲、樂曲和音階的練習明細、演奏實錄、作業以及偏好設定。',
   'metronome.noAudio.app': '這台裝置無法播放節拍聲，擺錘照樣打拍子。',
+  'start.keys.app': '螢幕上的琴鍵和電腦鍵盤在這裡都能彈。',
+  'input.notice.app': '{status}：螢幕上的琴鍵可以彈，電腦鍵盤的 A 到 K 也可以。',
 
   'about.title': '關於 dacapo',
   'about.intro':

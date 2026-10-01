@@ -42,7 +42,37 @@ export function levelProgress(attempts: readonly Attempt[], level: LevelId): Lev
   };
 }
 
-/** The first level not mastered yet, or the last level once all are. */
-export function suggestedLevel(progress: readonly LevelProgress[]): LevelId {
-  return progress.find((p) => !p.mastered)?.level ?? LEVEL_IDS.at(-1)!;
+/** Of `levels` in their order, the first not mastered from `floor` on; null once those all are. */
+function firstFrom<L extends string>(
+  levels: readonly { level: L; mastered: boolean }[],
+  floor: L | null,
+): L | null {
+  const from = floor === null ? -1 : levels.findIndex((l) => l.level === floor);
+  return levels.slice(Math.max(0, from)).find((l) => !l.mastered)?.level ?? null;
+}
+
+/**
+ * What is left to master, for today's plan and "Where you are" (core/today.ts): the first level
+ * not mastered from `floor` on, and once every level from the floor on is mastered, the first not
+ * mastered below it; null once all are. The levels below a floor are not taken for mastered
+ * (nothing was measured, docs/START.md): they are only passed over while a later one is left.
+ */
+export function firstNotMastered<L extends string>(
+  levels: readonly { level: L; mastered: boolean }[],
+  floor: L | null = null,
+): L | null {
+  return firstFrom(levels, floor) ?? firstFrom(levels, null);
+}
+
+/**
+ * The level the page opens on: the first not mastered yet, or the last level once all are. With a
+ * floor (where the reading of someone who plays already begins, docs/START.md), the later of the
+ * two: the first not mastered from the floor on, and the last level once those all are. The
+ * levels below the floor are not where the page opens. `progress` is in the levels' order.
+ */
+export function suggestedLevel(
+  progress: readonly LevelProgress[],
+  floor: LevelId | null = null,
+): LevelId {
+  return firstFrom(progress, floor) ?? LEVEL_IDS.at(-1)!;
 }

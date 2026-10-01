@@ -13,13 +13,15 @@ import { SessionList } from '../progress/SessionList.tsx';
 import { Trends } from '../progress/trends/Trends.tsx';
 import { useNow } from '../progress/useNow.ts';
 import { WhereYouAre } from '../progress/WhereYouAre.tsx';
+import { readStartPref } from '../start/prefs.ts';
 
 export function ProgressPage() {
   const t = useT();
   const { loaded } = useStorageStatus();
   const { sessions, stats, answers, attempts } = usePractice();
-  // A lesson ticked is practice too: with ticks alone the page has where the player is.
-  const [ticked] = useState(() => readDone().size > 0);
+  // A lesson ticked is practice too: with ticks alone the page has where the player is. So it
+  // has for whoever said on the start page where they start from (docs/START.md).
+  const [begun] = useState(() => readDone().size > 0 || readStartPref() !== null);
   const now = useNow();
   const log = useMemo(() => practiceLog(sessions, { now }), [sessions, now]);
   const piecesToday = useMemo(() => {
@@ -37,7 +39,7 @@ export function ProgressPage() {
         <p className="muted" role="status">
           {t('storage.loading')}
         </p>
-      ) : sessions.length === 0 && !ticked ? (
+      ) : sessions.length === 0 && !begun ? (
         <EmptyState action={{ href: '/read', label: t('progress.empty.action') }}>
           {t('progress.empty')}
         </EmptyState>

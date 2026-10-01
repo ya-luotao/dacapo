@@ -56,6 +56,7 @@ import { createAccompanist } from '../../output/accompany.ts';
 import { createDemoPlayer, type DemoState } from '../../output/demo.ts';
 import { browserClock } from '../../output/scheduler.ts';
 import { useHubState, useInput, useKeyboardOctave } from '../input/context.ts';
+import { InputNotice } from '../input/InputNotice.tsx';
 import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
 import { useMetronome, useOfferTempo } from '../metronome/context.ts';
 import { ScoreView, type ScoreStatus } from '../notation/ScoreView.tsx';
@@ -1838,6 +1839,7 @@ export function PieceSession({
             {patterns.length > 0 && leftHand === 'written' && !playable.left && (
               <p className="muted">{t('pieces.leftHand.none')}</p>
             )}
+            <InputNotice />
             <KeyboardLine />
             {!hasOutput && (
               <p className="muted">

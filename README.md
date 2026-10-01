@@ -96,6 +96,11 @@ practising the notes you are slowest at. Progress is visible day by day.
   marked on the keyboard, each note tinted as a chord tone, a scale tone or outside, call and
   response, then feedback rather than a score and the take played back with its backing
   ([docs/HARMONY.md](docs/HARMONY.md)).
+- **A first visit.** Start asks where you start from (new to the piano, or playing already and
+  how far you read) and shows whether your keys are heard, with a note to check the sound. For
+  someone who plays already every practice is open at once and Read begins where their reading
+  does. Every practice page says what plays when no MIDI keyboard is connected
+  ([docs/START.md](docs/START.md)).
 - **Today.** Once you have practised, the home page opens on a plan for the day made from your
   own records: a scale to warm up with, the piece in hand, the next lesson and a level of the
   practice you have left alone longest, and the pieces due for review, for 10 to 45 minutes. Each

@@ -32,6 +32,7 @@ import {
 } from '../../core/theorySession.ts';
 import { useT } from '../../i18n/index.ts';
 import { useInput } from '../input/context.ts';
+import { InputNotice } from '../input/InputNotice.tsx';
 import { CalibrationSheet } from '../pieces/RhythmParts.tsx';
 import { readLatency, type Latency } from '../pieces/rhythmPrefs.ts';
 import { usePractice, usePracticeStore, useStorageStatus } from '../practice/context.ts';
@@ -79,6 +80,8 @@ import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
 import { useRouteSearch } from '../hashRoute.ts';
 import { readStart } from '../read/start.ts';
 import { parseLevelStart } from '../startParams.ts';
+import { readingFloor } from '../../core/startingPoint.ts';
+import { readStartPref } from '../start/prefs.ts';
 
 /** The Read page; opened with a level (a task of an assignment), it starts over on it. */
 export function ReadPage() {
@@ -121,7 +124,9 @@ function Read({ search }: { search: string }) {
     () => new Map(LEVEL_IDS.map((id) => [id, levelProgress(attempts, id)] as const)),
     [attempts],
   );
-  const suggested = suggestedLevel([...progress.values()]);
+  // Someone who plays already begins where their reading does (docs/START.md).
+  const [floor] = useState(() => readingFloor(readStartPref()));
+  const suggested = suggestedLevel([...progress.values()], floor);
   // Follows the suggestion until the user picks a level.
   const [picked, setPicked] = useState<LevelId | null>(
     opened?.choice === 'notes' ? opened.level : null,
@@ -379,6 +384,7 @@ function Read({ search }: { search: string }) {
                     : 'read.intro',
             )}
           </p>
+          <InputNotice />
           {choice === 'rhythm' ? (
             <>
               <RhythmSetup

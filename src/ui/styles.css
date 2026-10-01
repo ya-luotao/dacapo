@@ -949,6 +949,52 @@ kbd {
   margin-top: 0.5rem;
 }
 
+/* What is playing when no MIDI keyboard is (docs/START.md): one line on a practice page, in the
+   margin's voice like the device line, with the button that dismisses it. */
+.input-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 46rem;
+  margin: 0.75rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.input-notice > span {
+  min-width: 0;
+  text-wrap: pretty;
+}
+
+/* The button keeps to the line's height, so the line is one line. */
+.input-notice .button-icon {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  margin-block: -0.25rem;
+}
+
+@media (pointer: coarse) {
+  .input-notice .button-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-block: -0.625rem;
+  }
+}
+
+/* On Scales the line heads the page, above the picker. */
+.scales > .input-notice {
+  margin: 0 0 0.75rem;
+}
+
+/* On a piece's page it is one of the notes beside the status, set as they are. */
+.piece-notes .input-notice {
+  margin: 0;
+  font-size: inherit;
+  line-height: inherit;
+}
+
 .play-now {
   display: flex;
   flex-wrap: wrap;
@@ -1240,6 +1286,19 @@ kbd {
   border-color: var(--control);
   background: var(--key-black-top);
   color: var(--key-white-top);
+}
+
+/* A key held lights its cap, as it lights its key on the keyboard. */
+.keycap.is-held kbd {
+  border-color: var(--key-held);
+  background: var(--key-held);
+  color: var(--key-white-top);
+}
+
+.keycap.is-upper.is-held kbd {
+  border-color: var(--key-held-black);
+  background: var(--key-held-black);
+  color: var(--key-black);
 }
 
 .keycap-note {
@@ -10522,6 +10581,209 @@ a.today-step-name::after {
   justify-content: space-between;
   gap: 0.25rem 1.5rem;
   margin: 0;
+}
+
+/* Start: the first visit's two questions (docs/START.md). A quiet page: where you start from
+   beside what you will play on, each under an ink rule like the contents, and the way on under a
+   hairline. On a phone the one follows the other. */
+.main:has(> .start-page) {
+  padding-top: 1.5rem;
+}
+
+.start-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: clamp(3rem, 6vw, 5.5rem);
+}
+
+.start-head h1 {
+  margin-bottom: 0.25rem;
+}
+
+.start-head .read-intro {
+  max-width: 60rem;
+}
+
+.start-page > .start-fields,
+.start-keys {
+  margin-top: 1.125rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--text);
+}
+
+@media (min-width: 60rem) {
+  .start-page {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .start-head,
+  .start-end {
+    grid-column: 1 / -1;
+  }
+}
+
+/* The two questions are sentences, set as sentences; on the start page each heads its part. */
+.start-fields .field > legend {
+  margin-bottom: 0.625rem;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.start-page .start-from > legend,
+.start-keys h2 {
+  margin: 0 0 0.625rem;
+  color: var(--text);
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+
+:is(.start-page .start-from > legend, .start-keys h2):is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.start-fields .field:first-child {
+  margin-top: 0;
+}
+
+/* An answer is a row to choose, as a level is: its name, and one line saying what it means. */
+.level.start-choice {
+  grid-template-columns: 1.125rem minmax(0, 1fr);
+}
+
+.start-choice-name {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.start-choice-name:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-size: 1.1875rem;
+  font-weight: 600;
+}
+
+/* What a player reads follows from their answer: set in from it, in smaller rows. */
+.start-fields .start-reads {
+  margin-top: 1.125rem;
+}
+
+.start-reads .level {
+  padding-block: 0.5rem;
+}
+
+@media (min-width: 40rem) {
+  .start-fields .start-reads {
+    margin-inline-start: 2.875rem;
+  }
+}
+
+/* What will you play on: Play's status line and help, a small keyboard, and the sound. */
+.start-keys .device-help {
+  margin-top: 0.375rem;
+}
+
+/* The keyboard fits its column whatever it reaches, at one height: no scrolling to find a key. */
+.start-piano.piano-scroller {
+  --white-min: 0px;
+  margin-top: 0.75rem;
+}
+
+.start-piano .piano {
+  width: 100%;
+  height: 4rem;
+  min-height: 0;
+  max-height: none;
+}
+
+.start-heard {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 1.75rem;
+  margin: 0.625rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.start-heard.is-heard {
+  color: var(--ok);
+  font-weight: 600;
+}
+
+.start-heard svg {
+  flex: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  padding: 0.125rem;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.start-heard strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.start-keys .keycaps {
+  margin: 0.5rem 0 0.375rem;
+}
+
+.start-keys .keys-octave {
+  font-size: 0.9375rem;
+}
+
+/* The sound: one note through the output in effect, and where to look when nothing is heard. */
+.start-sound {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 1.25rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.start-sound-help {
+  margin: 0;
+}
+
+.start-end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.75rem;
+  margin-top: 1rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--border);
+}
+
+.start-end p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.start-end .button {
+  min-width: 9rem;
+}
+
+/* Settings: the same two questions, under the section's title. */
+.start-point .start-fields {
+  margin-top: 1.25rem;
 }
 
 /* Contents: numbered like the movements of a sonata, each a row to open. */

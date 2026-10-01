@@ -34,6 +34,7 @@ import { buildSteps, keyRange, type Hand } from '../../core/score.ts';
 import { useT } from '../../i18n/index.ts';
 import type { MidiStatus } from '../../input/index.ts';
 import { useHubState, useInput } from '../input/context.ts';
+import { InputNotice } from '../input/InputNotice.tsx';
 import { useMetronome, useMetronomeState } from '../metronome/context.ts';
 import { usePractice, usePracticeStore } from '../practice/context.ts';
 import { useNow } from '../progress/useNow.ts';
@@ -176,6 +177,7 @@ function Scales({ search }: { search: string }) {
   return (
     <section className={focus.on ? 'scales is-focus' : 'scales'}>
       <h1 className="visually-hidden">{t('scales.title')}</h1>
+      {!focus.on && <InputNotice />}
       {focus.on && (
         <FocusBar
           heading={<h2 className="focus-title">{title(exercise)}</h2>}

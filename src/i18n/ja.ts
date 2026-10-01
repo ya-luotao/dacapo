@@ -22,7 +22,7 @@ export const ja: Dictionary = {
   'home.eyebrow': 'MIDIキーボードでピアノ練習',
   'home.lede':
     '本物の大譜表で譜読み。粒のそろいまで測るスケール。弾くまで待ってくれる本物の曲。そしてメトロノーム。dacapoはすべての解答の時間を計り、時間のかかる音を重点的に出題します。',
-  'home.start': '譜読みを始める',
+  'home.start': 'はじめる',
   'home.play': '自由に弾いてみる',
   'home.facts':
     '無料のオープンソース · アカウント不要 · MIDIキーボードでもパソコンのキーボードでも',
@@ -107,6 +107,31 @@ export const ja: Dictionary = {
   'home.faq.data.a':
     'この端末のこのブラウザに保存されます。「設定」からいつでもエクスポートできるほか、ログインすれば自分の端末どうしで同期できます。',
 
+  'start.title': 'はじめに',
+  'start.intro':
+    '質問は2つ。今のあなたに合ったところから始めるためです。答えなくても、どのページもそのまま使えます。',
+  'start.from': 'どこから始めますか？',
+  'start.from.new': 'ピアノは初めて',
+  'start.from.new.text': 'レッスンは鍵盤そのものから始まります。',
+  'start.from.player': 'もう弾ける',
+  'start.from.player.text': 'すべての練習が最初から開き、説明は聞かれたときだけします。',
+  'start.reads': '線を数えずに読めるのはどこまで？',
+  'start.reads.treble': 'ト音記号',
+  'start.reads.both': 'ト音記号とヘ音記号',
+  'start.reads.ledger': '加線、シャープとフラット',
+  'start.reads.unknown': 'やってみて確かめたい',
+  'start.reads.begins':
+    '譜読みの音符は{id}（{name}）から始まります。その前のレベルもそのまま練習でき、習得済みにはなりません。',
+  'start.reads.begins.unknown': '譜読みの音符は、まだ習得していない最初のレベルから始まります。',
+  'start.play': '何で弾きますか？',
+  'start.press': '鍵盤を押してみてください。',
+  'start.heard': '届いています。',
+  'start.keys': 'パソコンのキーと画面の鍵盤も使えます。',
+  'start.sound.nothing': '音が出ませんか？',
+  'start.sound.link': 'サウンドの設定',
+  'start.begin': 'はじめる',
+  'start.change': '答えはいつでも「設定」で変えられます。',
+
   'learn.title': 'ピアノの基礎',
   'learn.intro':
     'ピアノを始めたばかりの人のための短いレッスンです。鍵盤、五線譜、リズムなど。どの回にも実際に弾ける図があり、最後に小さな練習があります。',
@@ -179,6 +204,8 @@ export const ja: Dictionary = {
   'keys.octaveUp': '上げる',
   'keys.range': '現在の音域：{low}〜{high}',
   'keys.offPiano': 'ピアノの音域外',
+
+  'input.notice': '{status}。パソコンのキーボードのA〜Kで弾けます。',
 
   'read.title': '譜読み',
   'read.intro': '大譜表に音符がひとつ出ます。鍵盤でその音を、オクターブも合わせて弾いてください。',
@@ -2278,6 +2305,9 @@ export const ja: Dictionary = {
   'settings.theme.system': 'システム',
   'settings.theme.light': 'ライト',
   'settings.theme.dark': 'ダーク',
+  'settings.start': 'スタート地点',
+  'settings.start.help':
+    '「はじめに」のページで聞かれる質問です。「今日」の提案と、譜読みの音符が始まるレベルを決めます。今日の練習メニューはそのままで、次のメニューから反映されます。',
   'settings.sound': 'サウンド',
   'settings.sound.help': 'お手本ともう片方の手は、楽器がMIDIで弾くか、内蔵ピアノが弾きます。',
   'settings.output': '音の出力先',
@@ -2851,6 +2881,8 @@ export const ja: Dictionary = {
     'この端末でMIDIを開始できませんでした。dacapoを閉じて、もう一度開いてください。それまでは、画面の鍵盤かパソコンのキーボードで弾けます。',
   'midi.status.noPermission.app': 'MIDIを使えません',
   'midi.help.noPermission.app': 'この端末でMIDIを開けませんでした。',
+  'midi.help.noDevice.app':
+    'MIDIキーボードをつないで電源を入れてください。つながると自動的にここに表示されます。',
   'staff.fontFailed.app':
     '楽譜用フォントを読み込めませんでした。dacapoを閉じて、もう一度開いてください。',
   'pieces.yours.help.app':
@@ -2891,6 +2923,8 @@ export const ja: Dictionary = {
     'セッション、解答、インポートした曲、曲とスケールの練習記録、テイク、課題、設定を含む{file}を保存します。',
   'metronome.noAudio.app':
     'この端末ではクリック音を鳴らせません。振り子はそのままテンポを刻みます。',
+  'start.keys.app': '画面の鍵盤とキーボードも使えます。',
+  'input.notice.app': '{status}。画面の鍵盤か、キーボードのA〜Kで弾けます。',
 
   'about.title': 'dacapoについて',
   'about.intro':

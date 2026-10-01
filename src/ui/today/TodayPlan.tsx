@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'wouter';
+import type { StartingPoint } from '../../core/startingPoint.ts';
 import type { DayKey } from '../../core/streak.ts';
 import {
   assignmentComesFirst,
@@ -14,6 +15,7 @@ import { useT } from '../../i18n/index.ts';
 import { AssignmentBlock } from '../assignments/HomeAssignment.tsx';
 import { useCurrentAssignment } from '../assignments/useChecklist.ts';
 import { readDone } from '../learn/progress.ts';
+import { readStartPref } from '../start/prefs.ts';
 import { useTodayFormat } from './format.ts';
 import { readKeptPlan, writeKeptPlan } from './prefs.ts';
 import { useTodayRecords } from './useTodayRecords.ts';
@@ -36,11 +38,12 @@ function usePlan(
   today: DayKey,
   minutes: PlanMinutes,
   lessonsDone: ReadonlySet<string>,
+  start: StartingPoint | null,
 ): Plan | null {
   const [kept, setKept] = useState(() => readPlan(readKeptPlan()));
   const plan = useMemo(
-    () => (records ? planFor(kept, records, { today, minutes, lessonsDone }) : null),
-    [kept, records, today, minutes, lessonsDone],
+    () => (records ? planFor(kept, records, { today, minutes, lessonsDone, start }) : null),
+    [kept, records, today, minutes, lessonsDone, start],
   );
   // A plan just made is the kept one from here on: the next render finds it standing.
   if (plan !== null && plan !== kept) setKept(plan);
@@ -71,8 +74,10 @@ export function TodayPlan({ today, minutes, waiting, onSteps }: TodayPlanProps) 
   const records = useTodayRecords();
   // The lessons ticked on this device, as they are when the page opens.
   const [lessonsDone] = useState(readDone);
+  // Where the visitor said they start from: the next plan made follows it (docs/START.md).
+  const [start] = useState(readStartPref);
   const assignment = useCurrentAssignment(today);
-  const plan = usePlan(records, today, minutes, lessonsDone);
+  const plan = usePlan(records, today, minutes, lessonsDone, start);
   const done = useMemo(
     () => (plan && records ? planProgress(plan, records, { lessonsDone }) : null),
     [plan, records, lessonsDone],

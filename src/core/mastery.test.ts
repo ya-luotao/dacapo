@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { levelProgress, MASTERY_WINDOW, suggestedLevel, type LevelProgress } from './mastery.ts';
+import {
+  firstNotMastered,
+  levelProgress,
+  MASTERY_WINDOW,
+  suggestedLevel,
+  type LevelProgress,
+} from './mastery.ts';
 import type { Attempt } from './session.ts';
 import { LEVEL_IDS, type LevelId } from './levels.ts';
 
@@ -109,5 +115,64 @@ describe('suggestedLevel', () => {
     expect(suggestedLevel(progress(['L1', 'L2']))).toBe('L3');
     expect(suggestedLevel(progress(['L1', 'L3']))).toBe('L2');
     expect(suggestedLevel(progress([...LEVEL_IDS]))).toBe('L7');
+  });
+
+  // docs/START.md: someone who plays already says what they read; Read begins beyond it.
+  it('begins at the floor: the later of the first level not mastered and the floor', () => {
+    expect(suggestedLevel(progress([]), 'L3')).toBe('L3');
+    expect(suggestedLevel(progress([]), 'L5')).toBe('L5');
+    expect(suggestedLevel(progress([]), 'L7')).toBe('L7');
+    // No floor ("I would rather find out") is the rule as it was.
+    expect(suggestedLevel(progress([]), null)).toBe('L1');
+    expect(suggestedLevel(progress(['L1']), null)).toBe('L2');
+    // The first level not mastered is the later of the two.
+    expect(suggestedLevel(progress(['L1', 'L2', 'L3', 'L4', 'L5']), 'L3')).toBe('L6');
+    expect(suggestedLevel(progress(['L1', 'L2']), 'L3')).toBe('L3');
+  });
+
+  it('moves on from the floor as its levels are mastered', () => {
+    expect(suggestedLevel(progress(['L3']), 'L3')).toBe('L4');
+    expect(suggestedLevel(progress(['L5', 'L6']), 'L5')).toBe('L7');
+    // A level mastered above the floor is passed over, one not mastered is not.
+    expect(suggestedLevel(progress(['L3', 'L5']), 'L3')).toBe('L4');
+  });
+
+  it('stays above the floor: the last level once everything from the floor on is mastered', () => {
+    // The levels below the floor are not where the page opens, mastered or not.
+    expect(suggestedLevel(progress(['L7']), 'L7')).toBe('L7');
+    expect(suggestedLevel(progress(['L1', 'L5', 'L6', 'L7']), 'L5')).toBe('L7');
+    expect(suggestedLevel(progress(['L3', 'L4', 'L5', 'L6', 'L7']), 'L3')).toBe('L7');
+    expect(suggestedLevel(progress([...LEVEL_IDS]), 'L5')).toBe('L7');
+  });
+
+  it('never rests on a mastered floor while a later level is left', () => {
+    // Read as a plain maximum, the rule would hold the page at a mastered L5: the first level
+    // not mastered stays L1 for someone who never plays the levels below.
+    expect(suggestedLevel(progress(['L5']), 'L5')).toBe('L6');
+    expect(suggestedLevel(progress(['L3', 'L4']), 'L3')).toBe('L5');
+  });
+
+  it('does not report the levels below the floor as mastered', () => {
+    // The floor changes the suggestion alone: a level's own figures say what was measured.
+    const none = LEVEL_IDS.map((level) => levelProgress([], level));
+    expect(suggestedLevel(none, 'L5')).toBe('L5');
+    expect(none.every((p) => !p.mastered && p.cards === 0)).toBe(true);
+  });
+});
+
+describe('firstNotMastered', () => {
+  const levels = (mastered: string) =>
+    ['a', 'b', 'c', 'd'].map((level) => ({ level, mastered: mastered.includes(level) }));
+
+  it('is the first not mastered, from the floor on and then below it; null once all are', () => {
+    expect(firstNotMastered(levels(''))).toBe('a');
+    expect(firstNotMastered(levels('ab'))).toBe('c');
+    expect(firstNotMastered(levels(''), 'c')).toBe('c');
+    expect(firstNotMastered(levels('c'), 'c')).toBe('d');
+    expect(firstNotMastered(levels('cd'), 'c')).toBe('a');
+    expect(firstNotMastered(levels('abcd'), 'c')).toBeNull();
+    expect(firstNotMastered(levels('abcd'))).toBeNull();
+    // A floor that is no level of these is no floor.
+    expect(firstNotMastered(levels('a'), 'z')).toBe('b');
   });
 });

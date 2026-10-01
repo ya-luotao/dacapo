@@ -31,6 +31,7 @@ import {
   type Practice,
 } from './curriculum.ts';
 import type { PieceSessionRecord, SessionRecord } from './log.ts';
+import { firstNotMastered } from './mastery.ts';
 import type { PieceFacts, PieceStep } from './pieceRecords.ts';
 import { byReview, daysBetween, isRunToTheEnd, reviewSchedule, reviewStatus } from './review.ts';
 import {
@@ -42,6 +43,7 @@ import {
 } from './scaleRanking.ts';
 import { exerciseKeyParts } from './scaleTypes.ts';
 import type { Attempt } from './session.ts';
+import { opensEverything, readingFloor, type StartingPoint } from './startingPoint.ts';
 import { addDays, dayKey, type DayKey } from './streak.ts';
 import {
   DEFAULT_PLAN_MINUTES,
@@ -102,7 +104,11 @@ export interface FamilyState {
   /** Its levels, and how many of them are mastered (a tune learnt counts as a level). */
   levels: number;
   mastered: number;
-  /** The family's own suggestion, its first level not mastered; null once all are. */
+  /**
+   * The family's own suggestion, its first level not mastered; null once all are. Read's notes
+   * begin at the floor of a player's starting point, as on its page; once every level from the
+   * floor on is mastered, the levels below it are what is left.
+   */
   suggested: string | null;
   /** Epoch ms of the start of its latest session; null when it was never practised. */
   lastAt: number | null;
@@ -155,6 +161,12 @@ export interface StateOptions {
   lessonsDone: ReadonlySet<string>;
   /** An IANA name; the system zone when omitted. */
   timeZone?: string;
+  /**
+   * What the visitor said of themselves on the start page (docs/START.md); none when omitted.
+   * Someone who plays already has every practice open, no lesson in the plan, and Read's notes
+   * suggested from where their reading begins.
+   */
+  start?: StartingPoint | null;
 }
 
 const utcNoon = (day: DayKey): number => {
@@ -196,7 +208,7 @@ function sessionsByPiece(sessions: readonly SessionRecord[]): Map<string, PieceS
 
 function piecesState(
   records: TodayRecords,
-  { today, lessonsDone, timeZone }: StateOptions,
+  { today, lessonsDone, timeZone, start }: StateOptions,
   had: ReadonlySet<Practice>,
 ): PiecesState {
   const byPiece = sessionsByPiece(records.sessions);
@@ -227,7 +239,7 @@ function piecesState(
     if (day >= lately && (inHand === null || at > inHand.at)) inHand = { id: piece.id, at, day };
   }
 
-  const open = isOpen('pieces', lessonsDone, had);
+  const open = isOpen('pieces', lessonsDone, had, start);
   return {
     open,
     inReview: reviews.length,
@@ -248,7 +260,7 @@ function piecesState(
  * rung, the pieces in review and due, and the piece in hand or the next one.
  */
 export function curriculumState(records: TodayRecords, options: StateOptions): CurriculumState {
-  const { today, lessonsDone, timeZone } = options;
+  const { today, lessonsDone, timeZone, start = null } = options;
   const { sessions, attempts, answers } = records;
   const had = practised({
     sessions,
@@ -270,14 +282,17 @@ export function curriculumState(records: TodayRecords, options: StateOptions): C
   );
   const mastered = levelsMastered(levels, today, input);
   const families = LEVEL_FAMILIES.map((family): FamilyState => {
-    const own = levels.flatMap((l, i) => (l.family === family ? [{ ...l, is: mastered[i]! }] : []));
+    const own = levels.flatMap((l, i) =>
+      l.family === family ? [{ level: l.level, mastered: mastered[i]! }] : [],
+    );
     return {
       family,
-      open: isOpen(family, lessonsDone, had),
+      open: isOpen(family, lessonsDone, had, start),
       lesson: OPENS_WITH[family],
       levels: own.length,
-      mastered: own.filter((l) => l.is).length,
-      suggested: own.find((l) => !l.is)?.level ?? null,
+      mastered: own.filter((l) => l.mastered).length,
+      // The levels below a player's floor are not counted as mastered: only passed over.
+      suggested: firstNotMastered(own, family === 'notes' ? readingFloor(start) : null),
       lastAt: lastAt.get(family) ?? null,
     };
   });
@@ -294,7 +309,7 @@ export function curriculumState(records: TodayRecords, options: StateOptions): C
     },
     families,
     scales: {
-      open: isOpen('scales', lessonsDone, had),
+      open: isOpen('scales', lessonsDone, had, start),
       played: progress.length,
       weakest: weakestLately(progress, today, timeZone),
       settled: lately.every((p) => p.runs >= RECENT_RUNS),
@@ -418,14 +433,15 @@ export function planOf(state: CurriculumState, options: PlanOptions): TodayPlan 
   }
 
   // New: the lesson, then the suggested levels of the families longest left alone. A stable sort
-  // keeps equals in the order the pages list them.
-  const lesson = state.lessons.next;
+  // keeps equals in the order the pages list them. Someone who plays already is not proposed the
+  // lessons (docs/START.md): Learn stays where it is.
+  const lesson = opensEverything(options.start ?? null) ? null : state.lessons.next;
   const levels = state.families
     .filter((f) => f.open && f.suggested !== null)
     .sort((a, b) => (a.lastAt ?? -Infinity) - (b.lastAt ?? -Infinity));
   // The 10-minute plan has one new thing: the lesson in the first weeks, a level after.
   const short = minutes === 10;
-  const lessonOnly = short && state.lessons.done < LESSON_FIRST;
+  const lessonOnly = short && lesson !== null && state.lessons.done < LESSON_FIRST;
   if (lesson !== null && (!short || lessonOnly)) {
     steps.push({
       kind: 'task',

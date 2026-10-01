@@ -36,6 +36,8 @@ export function isPracticePage(location: string): boolean {
 export function pageLabel(location: string): MessageKey | null {
   if (location === '/') return null;
   if (location === '/about') return 'settings.about';
+  // The start page is reached from the first visit's page alone (docs/START.md).
+  if (location === '/start') return 'start.title';
   const item = NAV_ITEMS.find(({ path }) => location === path || location.startsWith(`${path}/`));
   return item ? item.label : 'notFound.title';
 }

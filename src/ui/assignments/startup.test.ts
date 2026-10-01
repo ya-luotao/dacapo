@@ -127,6 +127,30 @@ describe('what the start loads', () => {
       expect(chain(block, '/src/core/scaleProgress.ts'), block).toBeNull();
   });
 
+  // The start page (docs/START.md) is for whoever presses Start on a first visit: the start has
+  // the answer as data and where it is kept (the home page tells a visitor who answered from a
+  // first visit by it), and the page itself comes on demand.
+  it('the start loads the starting point as data, and the start page on demand', () => {
+    for (const light of ['/src/ui/start/prefs.ts', '/src/core/startingPoint.ts'])
+      expect(chain('/src/main.tsx', light)).not.toBeNull();
+    for (const page of [
+      '/src/ui/start/StartPage.tsx',
+      '/src/ui/start/StartingPointFields.tsx',
+      '/src/ui/settings/StartSection.tsx',
+    ])
+      expect(chain('/src/main.tsx', page), page).toBeNull();
+    // The starting point is nothing but data: it brings no practice's rules with it.
+    expect([...loadedWith('/src/ui/start/prefs.ts').keys()].sort()).toEqual([
+      '/src/core/startingPoint.ts',
+      '/src/lib/localPrefs.ts',
+      '/src/ui/start/prefs.ts',
+    ]);
+    for (const heavy of HEAVY) expect(chain('/src/ui/start/StartPage.tsx', heavy)).toBeNull();
+    // The plan's rows and "Where you are" read the answer where it is kept.
+    expect(chain('/src/ui/today/TodayPlan.tsx', '/src/ui/start/prefs.ts')).not.toBeNull();
+    expect(chain('/src/ui/progress/WhereYouAre.tsx', '/src/ui/start/prefs.ts')).not.toBeNull();
+  });
+
   it('the Ear page loads the melodies, and the staff only on demand', () => {
     expect(chain('/src/ui/pages/EarPage.tsx', '/src/core/tuneData.ts')).not.toBeNull();
     expect(chain('/src/ui/pages/EarPage.tsx', '/src/ui/ear/TuneStaff.tsx')).toBeNull();

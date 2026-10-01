@@ -5,6 +5,7 @@ import type { Preferences } from '../../storage/exchange.ts';
 import { AccountSection } from '../settings/AccountSection.tsx';
 import { DataSection } from '../settings/DataSection.tsx';
 import { SoundSection } from '../settings/SoundSection.tsx';
+import { StartSection } from '../settings/StartSection.tsx';
 import { currentTheme, setTheme, THEME_PREFERENCES, type ThemePreference } from '../theme.ts';
 import { REPO_URL } from '../../lib/links.ts';
 
@@ -74,6 +75,8 @@ export function SettingsPage() {
           {t('settings.theme.help')}
         </p>
       </fieldset>
+
+      <StartSection />
 
       <SoundSection />
 

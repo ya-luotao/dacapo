@@ -23,7 +23,7 @@ with a MIDI keyboard. The MVP focuses on the first real bottleneck for beginners
 | Tests | Vitest (+ `fake-indexeddb` for storage tests), Testing Library only where it pays off |
 | Quality | ESLint (flat config) + Prettier + `.editorconfig`; GitHub Actions CI: typecheck, lint, test, build |
 | Audio | **None** in the MVP — the piano makes the sound |
-| Browsers | Chrome / Edge recommended. Support is decided by feature detection (`navigator.requestMIDIAccess`), never by browser name; without it the app shows a clear notice and still works with the fallback input |
+| Browsers | Chrome / Edge recommended. Support is decided by feature detection (`navigator.requestMIDIAccess`), never by browser name; without it the app shows a clear notice and still works with the fallback input (since on every practice page too, see [START.md](START.md)) |
 | Pitch naming | Letter names in every UI language (no solfège or numbered notation in the MVP), scientific pitch notation: C4 = middle C = MIDI 60 |
 | i18n | English (`en`, source of truth) and Simplified Chinese (`zh-CN`); since added: Traditional Chinese (`zh-TW`), Japanese (`ja`) and Korean (`ko`), see [TRANSLATING.md](TRANSLATING.md). Tiny typed dictionary, no i18n library. Missing keys must be a compile error. Auto-detect from `navigator.language`, user toggle persisted in `localStorage` (wrapped in try/catch) |
 | License | MIT |
@@ -188,7 +188,7 @@ staff (e.g. `C4@treble`, `C4@bass` are separate — reading them is a different 
 
 - Screens: **Play** (live keyboard), **Read** (flashcards), **Progress** (heatmap +
   log), **Settings** (language, theme, data export/import; the MVP needs no
-  input options).
+  input options; since added: Your starting point, see [START.md](START.md)).
 - Light/dark via `prefers-color-scheme` plus a manual override. Accessible: keyboard
   navigable, visible focus, colour is never the only signal (icons/text too).
 - Designed so it can sit on a laptop or tablet next to the piano: large staff, large

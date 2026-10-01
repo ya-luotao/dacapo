@@ -18,6 +18,7 @@ import { BUILT_IN_IDS } from '../../pieces/library/index.ts';
 import { readDone } from '../learn/progress.ts';
 import { usePractice, useStorageStatus } from '../practice/context.ts';
 import { useNow } from '../progress/useNow.ts';
+import { readStartPref } from '../start/prefs.ts';
 import { readReturning, writeReturning } from '../today/prefs.ts';
 import { Specimen } from './Specimen.tsx';
 import { Today } from './Today.tsx';
@@ -137,16 +138,18 @@ function Arrow() {
 }
 
 /**
- * Whether the visitor has practised here before: a session stored, or a lesson ticked. The ticks
- * are read at once; the sessions take a moment, so until they are in, what was known last time
- * (kept in the browser) decides, and the page is laid out right before the records are read.
+ * Whether the visitor has practised here before: a session stored, or a lesson ticked; or has
+ * said on the start page where they start from (docs/START.md). The ticks and the answer are
+ * read at once; the sessions take a moment, so until they are in, what was known last time (kept
+ * in the browser) decides, and the page is laid out right before the records are read.
  */
 function useReturning(): boolean {
   const { loaded } = useStorageStatus();
   const { sessions } = usePractice();
   const [ticked] = useState(() => readDone().size > 0);
+  const [answered] = useState(() => readStartPref() !== null);
   const [known] = useState(readReturning);
-  const returning = ticked || (loaded ? sessions.length > 0 : known);
+  const returning = ticked || answered || (loaded ? sessions.length > 0 : known);
   useEffect(() => {
     if (loaded) writeReturning(returning);
   }, [loaded, returning]);
@@ -154,8 +157,9 @@ function useReturning(): boolean {
 }
 
 /**
- * A first visit: the tagline, the lede and the specimen. Someone sent an assignment before they
- * ever practised here has it under them.
+ * A first visit: the tagline, the lede and the specimen, and the way to the start page (where
+ * you start from, and whether your keys are heard). Someone sent an assignment before they ever
+ * practised here has it under them.
  */
 function FirstVisit() {
   const t = useT();
@@ -176,7 +180,7 @@ function FirstVisit() {
           </h1>
           <p className="home-lede">{t('home.lede')}</p>
           <div className="home-actions">
-            <Link href="/read" className="button button-primary button-large">
+            <Link href="/start" className="button button-primary button-large">
               {t('home.start')}
               <Arrow />
             </Link>

@@ -22,7 +22,7 @@ export const en = {
   'home.eyebrow': 'Piano practice with a MIDI keyboard',
   'home.lede':
     'Sight-reading on a real grand staff, scales measured for evenness, real pieces that wait for you, and a metronome. dacapo times every answer and keeps practising the notes that slow you down.',
-  'home.start': 'Start reading',
+  'home.start': 'Start',
   'home.play': 'Or just play',
   'home.facts': 'Free and open source · No account needed · A MIDI keyboard or your computer keys',
   'home.specimen.label': 'A note on the grand staff, and the key that plays it',
@@ -105,6 +105,31 @@ export const en = {
   'home.faq.data.a':
     'In this browser, on this device. You can export it from Settings at any time, or sign in to sync it between your own devices.',
 
+  'start.title': 'Start',
+  'start.intro':
+    'Two questions, so that dacapo begins where you are. Neither has to be answered: every page stays open.',
+  'start.from': 'Where are you starting from?',
+  'start.from.new': 'I am new to the piano',
+  'start.from.new.text': 'The lessons begin with the keyboard itself.',
+  'start.from.player': 'I play already',
+  'start.from.player.text': 'Everything is open, and nothing is explained unless you ask.',
+  'start.reads': 'What do you read without counting lines?',
+  'start.reads.treble': 'The treble staff',
+  'start.reads.both': 'Both staves',
+  'start.reads.ledger': 'Ledger lines, sharps and flats',
+  'start.reads.unknown': 'I would rather find out',
+  'start.reads.begins':
+    'Read’s notes begin at {id} ({name}). The levels before it stay open, and are not marked as mastered.',
+  'start.reads.begins.unknown': 'Read’s notes begin at the first level you have not mastered.',
+  'start.play': 'What will you play on?',
+  'start.press': 'Press any key.',
+  'start.heard': 'It is heard.',
+  'start.keys': 'The computer keys and the keys on the screen work here.',
+  'start.sound.nothing': 'Nothing heard?',
+  'start.sound.link': 'Sound settings',
+  'start.begin': 'Begin',
+  'start.change': 'You can change your answers in Settings at any time.',
+
   'learn.title': 'The basics',
   'learn.intro':
     'Short lessons for your first weeks at the piano: the keyboard, the staff, rhythm and more. Each has figures to play with, and an exercise to finish.',
@@ -177,6 +202,8 @@ export const en = {
   'keys.octaveUp': 'higher',
   'keys.range': 'Now playing {low} to {high}',
   'keys.offPiano': 'not on the piano',
+
+  'input.notice': '{status}: the computer keys play, A to K.',
 
   'read.title': 'Read',
   'read.intro': 'One note on the grand staff. Find it on your keyboard — in the right octave.',
@@ -2289,6 +2316,9 @@ export const en = {
   'settings.theme.system': 'System',
   'settings.theme.light': 'Light',
   'settings.theme.dark': 'Dark',
+  'settings.start': 'Your starting point',
+  'settings.start.help':
+    'What the start page asks. It decides what Today proposes and where Read’s notes begin. Today’s plan stays as it is; the next one follows.',
   'settings.sound': 'Sound',
   'settings.sound.help':
     'Demos and the other hand are played by your instrument over MIDI, or by the built-in piano.',
@@ -2866,6 +2896,8 @@ export const en = {
     'dacapo could not start MIDI on this device. Close dacapo and open it again — until then, play on the keyboard on screen or a computer keyboard.',
   'midi.status.noPermission.app': 'MIDI is not available',
   'midi.help.noPermission.app': 'dacapo could not open MIDI on this device.',
+  'midi.help.noDevice.app':
+    'Connect your MIDI keyboard and switch it on. It will appear here automatically.',
   'staff.fontFailed.app': 'The music font could not be loaded. Close dacapo and open it again.',
   'pieces.yours.help.app':
     'Import MusicXML (.musicxml, .xml or compressed .mxl), for example exported from MuseScore. Imported pieces stay on this device and are included when you export your data.',
@@ -2904,6 +2936,8 @@ export const en = {
   'settings.export.help.app':
     'Saves {file} with your sessions, answers, imported pieces, piece practice records and takes, scale runs, assignments and preferences.',
   'metronome.noAudio.app': 'The click cannot play on this device. The pendulum still keeps time.',
+  'start.keys.app': 'The keys on the screen and a computer keyboard work here.',
+  'input.notice.app': '{status}: the keys on the screen play, and a computer keyboard’s A to K.',
 
   'about.title': 'About dacapo',
   'about.intro':

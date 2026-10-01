@@ -15,6 +15,24 @@ click's tempo and grid of scale runs played with it (from version 7), the takes 
 (from version 8), and assignments and kept reports (from version 9). Version 1 to 8 files still
 import.
 
+### The first visit (G4, [docs/START.md](docs/START.md))
+
+- **Start**: the first page's button opens a short page before the first practice. **Where are
+  you starting from?** New to the piano: the lessons begin with the keyboard itself, and Today
+  proposes them. Playing already: every practice is open at once, the lessons are left out of
+  Today (Learn stays where it is), and you say what you read without counting lines, which sets
+  where Read's notes begin (L3, L5 or L7). The levels before it are not marked as mastered.
+- **What will you play on?** The page listens and says what it finds: your MIDI keyboard by name,
+  or that none is connected, that this browser has no MIDI, or that MIDI is blocked, with what to
+  do. Press a key, on the instrument, the computer keyboard or the screen, and a small keyboard
+  lights it: “It is heard.” One button plays a note through the output in effect.
+- Neither question has to be answered, and nothing is locked: the page is reached from the first
+  visit's button alone, and **Your starting point** in Settings changes the answer. It is kept in
+  this browser, not synced and not exported.
+- **Every practice page says what is playing** when no MIDI keyboard is connected: “No MIDI
+  keyboard connected: the computer keys play, A to K.” on Read, Ear, Harmony, Scales and a
+  piece's page. The line can be dismissed, and comes back if the reason changes.
+
 ### First pieces, with fingering (G5a, [docs/PIECES.md](docs/PIECES.md))
 
 - **Ten first pieces** in the library, so that the way from the lessons to the Minuet in G has

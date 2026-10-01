@@ -22,7 +22,7 @@ export const ko: Dictionary = {
   'home.eyebrow': 'MIDI 키보드로 하는 피아노 연습',
   'home.lede':
     '진짜 큰보표로 하는 악보 읽기, 얼마나 고르게 치는지 재 주는 스케일, 칠 때까지 기다려 주는 진짜 곡, 그리고 메트로놈. dacapo는 모든 답의 시간을 재고, 오래 걸리는 음을 더 자주 연습시켜요.',
-  'home.start': '악보 읽기 시작',
+  'home.start': '시작하기',
   'home.play': '그냥 쳐 보기',
   'home.facts': '무료 오픈 소스 · 계정 없이 사용 · MIDI 키보드나 컴퓨터 키보드로',
   'home.specimen.label': '큰보표 위의 음표와 그 음을 치는 건반',
@@ -105,6 +105,31 @@ export const ko: Dictionary = {
   'home.faq.data.a':
     '이 기기의 이 브라우저에 저장돼요. 설정에서 언제든 내보낼 수 있고, 로그인하면 내 기기끼리 동기화할 수 있어요.',
 
+  'start.title': '시작',
+  'start.intro':
+    '질문은 두 가지예요. dacapo가 지금 실력에 맞는 곳에서 시작하도록 돕는 질문이에요. 답하지 않아도 모든 페이지를 그대로 쓸 수 있어요.',
+  'start.from': '어디에서 시작하나요?',
+  'start.from.new': '피아노가 처음이에요',
+  'start.from.new.text': '레슨은 건반 자체부터 시작해요.',
+  'start.from.player': '이미 칠 줄 알아요',
+  'start.from.player.text': '모든 연습이 처음부터 열려 있고, 묻기 전에는 설명하지 않아요.',
+  'start.reads': '줄을 세지 않고 읽을 수 있는 것은?',
+  'start.reads.treble': '높은음자리표',
+  'start.reads.both': '높은음자리표와 낮은음자리표',
+  'start.reads.ledger': '덧줄, 올림표와 내림표',
+  'start.reads.unknown': '해 보면서 알아볼게요',
+  'start.reads.begins':
+    '악보 읽기의 음표는 {id}({name})부터 시작해요. 그 앞 레벨도 그대로 연습할 수 있고, 마스터한 것으로 표시되지 않아요.',
+  'start.reads.begins.unknown': '악보 읽기의 음표는 아직 마스터하지 않은 첫 레벨부터 시작해요.',
+  'start.play': '무엇으로 연주하나요?',
+  'start.press': '아무 건반이나 눌러 보세요.',
+  'start.heard': '잘 들려요.',
+  'start.keys': '여기서는 컴퓨터 키보드와 화면의 건반으로 칠 수 있어요.',
+  'start.sound.nothing': '소리가 안 나나요?',
+  'start.sound.link': '소리 설정',
+  'start.begin': '시작하기',
+  'start.change': '답은 언제든지 설정에서 바꿀 수 있어요.',
+
   'learn.title': '피아노 기초',
   'learn.intro':
     '피아노를 막 시작한 분을 위한 짧은 레슨이에요. 건반, 오선보, 리듬 등을 다루고, 레슨마다 직접 쳐 볼 수 있는 그림과 마지막 연습이 있어요.',
@@ -175,6 +200,8 @@ export const ko: Dictionary = {
   'keys.octaveUp': '높게',
   'keys.range': '지금 음역: {low}–{high}',
   'keys.offPiano': '피아노 음역 밖',
+
+  'input.notice': '{status}. 컴퓨터 키보드의 A–\u2060K로 칠 수 있어요.',
 
   'read.title': '악보 읽기',
   'read.intro': '큰보표에 음표가 하나 나와요. 건반에서 찾아 치세요. 옥타브까지 맞아야 해요.',
@@ -2253,6 +2280,9 @@ export const ko: Dictionary = {
   'settings.theme.system': '시스템',
   'settings.theme.light': '라이트',
   'settings.theme.dark': '다크',
+  'settings.start': '나의 시작점',
+  'settings.start.help':
+    '시작 페이지에서 묻는 질문이에요. 오늘 계획에 무엇을 제안할지, 악보 읽기의 음표가 어느 레벨에서 시작할지를 정해요. 오늘 계획은 그대로이고, 다음 계획부터 반영돼요.',
   'settings.sound': '소리',
   'settings.sound.help': '들어 보기와 반대 손은 악기가 MIDI로 연주하거나 내장 피아노가 연주해요.',
   'settings.output': '소리 출력',
@@ -2821,6 +2851,8 @@ export const ko: Dictionary = {
     '이 기기에서 MIDI를 시작하지 못했어요. dacapo를 닫았다가 다시 여세요. 그동안은 화면의 건반이나 컴퓨터 키보드로 칠 수 있어요.',
   'midi.status.noPermission.app': 'MIDI를 쓸 수 없어요',
   'midi.help.noPermission.app': '이 기기에서 MIDI를 열지 못했어요.',
+  'midi.help.noDevice.app':
+    'MIDI 키보드를 연결하고 전원을 켜세요. 연결되면 여기에 자동으로 나타나요.',
   'staff.fontFailed.app': '악보 글꼴을 불러오지 못했어요. dacapo를 닫았다가 다시 여세요.',
   'pieces.yours.help.app':
     'MuseScore 등에서 내보낸 MusicXML(.musicxml, .xml, 압축된 .mxl)을 가져올 수 있어요. 가져온 곡은 이 기기에만 저장되고, 데이터를 내보낼 때 함께 포함돼요.',
@@ -2857,6 +2889,8 @@ export const ko: Dictionary = {
   'settings.export.help.app':
     '연습 내역, 응답, 가져온 곡, 곡과 스케일의 연습 상세 기록, 연주 테이크, 과제, 환경설정을 담은 {file} 파일을 저장해요.',
   'metronome.noAudio.app': '이 기기에서는 클릭을 재생할 수 없어요. 진자는 그대로 박자를 짚어요.',
+  'start.keys.app': '여기서는 화면의 건반과 키보드로 칠 수 있어요.',
+  'input.notice.app': '{status}. 화면의 건반이나 키보드의 A–\u2060K로 칠 수 있어요.',
 
   'about.title': 'dacapo 정보',
   'about.intro':

@@ -10,7 +10,12 @@ import {
   sampleTheorySession,
 } from '../storage/fixtures.ts';
 import type { LevelTask, Task, TaskProgress } from './assignmentRecords.ts';
-import { LEVEL_FAMILIES, levelsOfFamily } from './assignments.ts';
+import {
+  assignmentProgress,
+  LEVEL_FAMILIES,
+  levelsMastered,
+  levelsOfFamily,
+} from './assignments.ts';
 import { CURRICULUM_LESSONS, MINOR_LESSON, scaleLadder } from './curriculum.ts';
 import { LEVEL_IDS, type LevelId } from './levels.ts';
 import type { PieceSessionRecord, ReadSessionRecord, SessionRecord } from './log.ts';
@@ -19,6 +24,7 @@ import { stepId, type PieceStep } from './pieceRecords.ts';
 import { RECENT_RUNS, scaleProgress, suggestedExercise } from './scaleProgress.ts';
 import { withRun, type ScaleSession } from './scaleRecords.ts';
 import { recoverSummary, type Attempt } from './session.ts';
+import { READS, type Reads, type StartingPoint } from './startingPoint.ts';
 import {
   assignmentComesFirst,
   curriculumState,
@@ -289,6 +295,145 @@ describe('where every practice stands', () => {
     expect(state.pieces).toMatchObject({ inReview: 0, inHand: { id: ODE } });
     // Without them, the session alone says it was.
     expect(curriculumState(withSessions(run), options()).pieces.inReview).toBe(1);
+  });
+});
+
+// docs/START.md: what a visitor said of themselves on the start page.
+describe('a starting point', () => {
+  const player = (reads: Reads): StartingPoint => ({ from: 'player', reads });
+  /** The piece a newcomer is given once lesson 3 has opened Pieces. */
+  const first = curriculumState(EMPTY, options({ lessonsDone: ticked('landmarks') })).pieces.next!;
+
+  it('opens every practice at once for someone who plays already', () => {
+    for (const reads of READS) {
+      const state = curriculumState(EMPTY, options({ start: player(reads) }));
+      expect(state.families.map((f) => f.open)).toEqual(LEVEL_FAMILIES.map(() => true));
+      expect(state.scales.open).toBe(true);
+      expect(state.pieces.open).toBe(true);
+      // Open, the pieces have one to begin and the scales their first rung.
+      expect(first).not.toBeNull();
+      expect(state.pieces.next).toBe(first);
+      expect(state.scales.next).toBe('major:C:1:right');
+    }
+  });
+
+  it('changes nothing for a newcomer, nor for someone who never answered', () => {
+    const records = withSessions(read('s1', -1).session, scales('k1', 'major:C:1:right', -1));
+    for (const lessonsDone of [ticked(), ticked('landmarks', 'rhythm'), lessons(15)]) {
+      const unasked = curriculumState(records, options({ lessonsDone }));
+      expect(curriculumState(records, options({ lessonsDone, start: null }))).toEqual(unasked);
+      expect(curriculumState(records, options({ lessonsDone, start: { from: 'new' } }))).toEqual(
+        unasked,
+      );
+      for (const minutes of PLAN_MINUTES) {
+        const plan = todayPlan(records, options({ lessonsDone, minutes }));
+        expect(
+          todayPlan(records, options({ lessonsDone, minutes, start: { from: 'new' } })),
+        ).toEqual(plan);
+      }
+    }
+  });
+
+  it('begins Read’s notes where a player’s reading does, and nowhere else', () => {
+    const suggested = (start: StartingPoint | null, records = EMPTY) =>
+      curriculumState(records, options({ start })).families[0]!.suggested;
+    expect(suggested(player('treble'))).toBe('L3');
+    expect(suggested(player('both'))).toBe('L5');
+    expect(suggested(player('ledger'))).toBe('L7');
+    expect(suggested(player('unknown'))).toBe('L1');
+    expect(suggested({ from: 'new' })).toBe('L1');
+    // The other families begin at their first level, whatever is read.
+    const state = curriculumState(EMPTY, options({ start: player('ledger') }));
+    for (const f of state.families.slice(1)) {
+      expect(f.suggested, f.family).toBe(levelsOfFamily(f.family)[0]);
+    }
+    // As on the Read page: the later of the first level not mastered and the floor.
+    const fifth = read('s1', -2, { level: 'L5', cards: MASTERY_WINDOW });
+    const records = { ...withSessions(fifth.session), attempts: fifth.attempts };
+    expect(suggested(player('both'), records)).toBe('L6');
+    expect(suggested(player('both'), records)).toBe(
+      suggestedLevel(
+        LEVEL_IDS.map((level) => levelProgress(fifth.attempts, level)),
+        'L5',
+      ),
+    );
+    expect(suggested(player('treble'), records)).toBe('L3');
+  });
+
+  it('does not report the levels below the floor as mastered', () => {
+    const start = player('ledger');
+    const state = curriculumState(EMPTY, options({ start }));
+    // Where you are: none of seven, with L7 as the next step.
+    expect(state.families[0]).toMatchObject({ levels: 7, mastered: 0, suggested: 'L7' });
+    // Mastery is each level's own, as an assignment's "until mastered" asks: nothing was measured.
+    const notes = LEVEL_IDS.map((level) => ({ family: 'notes' as const, level }));
+    const input = { ...EMPTY, pieces: [], lessonsDone: ticked(), timeZone: TZ };
+    expect(levelsMastered(notes, TODAY, input)).toEqual(LEVEL_IDS.map(() => false));
+    const task: LevelTask = {
+      kind: 'level',
+      id: 't',
+      family: 'notes',
+      level: 'L1',
+      goal: 'mastery',
+    };
+    const [progress] = assignmentProgress({ start: TODAY, due: TODAY, tasks: [task] }, input);
+    expect(progress).toMatchObject({ met: false, done: 0 });
+    // One level mastered is one of seven, floor or no floor.
+    const seventh = read('s1', -2, { level: 'L7', cards: MASTERY_WINDOW });
+    const records = { ...withSessions(seventh.session), attempts: seventh.attempts };
+    expect(curriculumState(records, options({ start })).families[0]).toMatchObject({
+      mastered: 1,
+      // Everything from the floor on is mastered: the levels below are what is left.
+      suggested: 'L1',
+    });
+  });
+
+  it('leaves the lesson out of a player’s plan, at every length', () => {
+    const start = player('both');
+    for (const minutes of PLAN_MINUTES) {
+      for (const n of [0, 3, LESSON_FIRST - 1, LESSON_FIRST, 14]) {
+        const plan = todayPlan(EMPTY, options({ minutes, lessonsDone: lessons(n), start }));
+        const fresh = names(plan, 'new');
+        expect(
+          fresh.filter((name) => name.startsWith('lesson:')),
+          `${minutes}, ${n}`,
+        ).toEqual([]);
+        // Every family is open, so the levels the length has are all there, Read's from the floor.
+        expect(fresh, `${minutes}, ${n}`).toHaveLength(PLAN_COUNTS[minutes].levels);
+        expect(fresh[0]).toBe('notes:L5');
+      }
+    }
+    // The 10-minute plan has a level where a newcomer's has the lesson alone.
+    expect(names(todayPlan(EMPTY, options({ minutes: 10 })), 'new')).toEqual(['lesson:keyboard']);
+    expect(names(todayPlan(EMPTY, options({ minutes: 10, start })), 'new')).toEqual(['notes:L5']);
+    // The rest of the plan is a player's too: the first rung and the first piece are open.
+    expect(todayPlan(EMPTY, options({ start })).steps.map(named)).toEqual([
+      'major:C:1:right',
+      first,
+      'notes:L5',
+    ]);
+    // Where you are still counts the lessons: Learn stays where it is.
+    expect(curriculumState(EMPTY, options({ start })).lessons).toEqual({
+      done: 0,
+      of: 15,
+      next: 'keyboard',
+    });
+  });
+
+  it('follows a changed answer at the next plan: today’s kept plan stands', () => {
+    const start = player('ledger');
+    const kept = todayPlan(EMPTY, options());
+    expect(kept.steps.map(named)).toEqual(['lesson:keyboard', 'notes:L1']);
+    // The answer changed in Settings: the plan of the day is the plan.
+    expect(planFor(kept, EMPTY, options({ start }))).toBe(kept);
+    // Another length, or another day, makes it again, for a player now.
+    expect(planFor(kept, EMPTY, options({ start, minutes: 10 })).steps.map(named)).toEqual([
+      'major:C:1:right',
+      first,
+      'notes:L7',
+    ]);
+    const tomorrow = planFor(kept, EMPTY, options({ start, today: '2026-09-25' }));
+    expect(names(tomorrow, 'new')).toEqual(['notes:L7']);
   });
 });
 

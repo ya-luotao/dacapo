@@ -33,6 +33,7 @@ import {
 import type { SessionRecord } from './log.ts';
 import { MAJOR_TONICS, MINOR_TONICS, parseExerciseKey } from './scales.ts';
 import { recoverSummary } from './session.ts';
+import { READS } from './startingPoint.ts';
 
 const NONE: PractisedInput = { sessions: [], attempts: [], answers: [], imported: false };
 const ticked = (...slugs: string[]) => new Set(slugs);
@@ -146,6 +147,30 @@ describe('a practice is open', () => {
     expect(isOpen('pieces', ticked(), practised(NONE))).toBe(false);
     expect(isOpen('pieces', ticked(), practised({ ...NONE, sessions: [run] }))).toBe(true);
     expect(isOpen('pieces', ticked(), practised({ ...NONE, imported: true }))).toBe(true);
+  });
+
+  // docs/START.md: the third way, beside a lesson's tick and a record.
+  it('at once for someone who said they play already, whatever they read', () => {
+    const none = practised(NONE);
+    for (const practice of Object.keys(OPENS_WITH) as Practice[]) {
+      for (const reads of READS) {
+        expect(isOpen(practice, ticked(), none, { from: 'player', reads }), practice).toBe(true);
+      }
+    }
+  });
+
+  it('as before for a newcomer, and for someone who never answered', () => {
+    const none = practised(NONE);
+    const had = practised({ ...NONE, answers: [sampleAnswer(0)] });
+    for (const practice of Object.keys(OPENS_WITH) as Practice[]) {
+      for (const lessonsDone of [ticked(), ticked('landmarks'), new Set(CURRICULUM_LESSONS)]) {
+        for (const records of [none, had]) {
+          const open = isOpen(practice, lessonsDone, records);
+          expect(isOpen(practice, lessonsDone, records, null), practice).toBe(open);
+          expect(isOpen(practice, lessonsDone, records, { from: 'new' }), practice).toBe(open);
+        }
+      }
+    }
   });
 
   it('never by free play or an improvisation', () => {

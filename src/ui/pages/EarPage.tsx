@@ -37,6 +37,7 @@ import { createRhythmEarController } from '../ear/rhythmController.ts';
 import { RhythmEarSession } from '../ear/RhythmEarSession.tsx';
 import { RhythmEarSummary } from '../ear/RhythmEarSummary.tsx';
 import { useInput } from '../input/context.ts';
+import { InputNotice } from '../input/InputNotice.tsx';
 import { useMetronome } from '../metronome/context.ts';
 import { useOutputSound } from '../output/context.ts';
 import { CalibrationSheet } from '../pieces/RhythmParts.tsx';
@@ -302,6 +303,7 @@ function Ear({ search }: { search: string }) {
       ) : (
         <>
           <p className="muted read-intro">{t('ear.intro')}</p>
+          <InputNotice />
           {sound === 'none' && (
             <p className="ear-sound" role="status">
               <span>{t('ear.sound.needed')}</span>{' '}

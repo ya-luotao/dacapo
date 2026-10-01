@@ -8,6 +8,7 @@ import type { Answer } from './answers.ts';
 import type { LevelFamily } from './assignmentRecords.ts';
 import type { SessionRecord } from './log.ts';
 import type { Attempt } from './session.ts';
+import { opensEverything, type StartingPoint } from './startingPoint.ts';
 
 /** What can be proposed: every family with levels, the scales and the pieces. */
 export type Practice = LevelFamily | 'scales' | 'pieces';
@@ -100,16 +101,21 @@ export function practised(input: PractisedInput): Set<Practice> {
 }
 
 /**
- * Whether a practice is open: its lesson is ticked, or the player has a record of it. Someone
- * who went there on their own is not sent back to a lesson.
+ * Whether a practice is open: its lesson is ticked, or the player has a record of it, or they
+ * said on the start page that they play already (`start`, docs/START.md), which opens every
+ * practice at once. Someone who went there on their own, or who needs no lesson, is not sent
+ * back to one.
  */
 export function isOpen(
   practice: Practice,
   lessonsDone: ReadonlySet<string>,
   records: ReadonlySet<Practice>,
+  start: StartingPoint | null = null,
 ): boolean {
   const lesson = OPENS_WITH[practice];
-  return lesson === null || lessonsDone.has(lesson) || records.has(practice);
+  return (
+    lesson === null || lessonsDone.has(lesson) || records.has(practice) || opensEverything(start)
+  );
 }
 
 // --- The scale ladder ----------------------------------------------------------------------------

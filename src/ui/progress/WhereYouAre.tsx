@@ -6,6 +6,7 @@ import { curriculumState, type FamilyState } from '../../core/today.ts';
 import { useI18n } from '../../i18n/index.ts';
 import { lessonBySlug, lessonLanguage } from '../../learn/lessons.ts';
 import { readDone } from '../learn/progress.ts';
+import { readStartPref } from '../start/prefs.ts';
 import { useTodayFormat } from '../today/format.ts';
 import { useTodayRecords } from '../today/useTodayRecords.ts';
 
@@ -21,9 +22,11 @@ export function WhereYouAre({ today }: { today: DayKey }) {
   const records = useTodayRecords();
   // The lessons ticked on this device, as they are when the page opens.
   const [lessonsDone] = useState(readDone);
+  // Where the visitor said they start from (docs/START.md): a player has every practice open.
+  const [start] = useState(readStartPref);
   const state = useMemo(
-    () => (records ? curriculumState(records, { today, lessonsDone }) : null),
-    [records, today, lessonsDone],
+    () => (records ? curriculumState(records, { today, lessonsDone, start }) : null),
+    [records, today, lessonsDone, start],
   );
 
   const lessonTitle = (slug: string) => lessonBySlug(slug)?.title[lessonLanguage(locale)] ?? slug;

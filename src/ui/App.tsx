@@ -49,6 +49,10 @@ const SettingsPage = lazy(() =>
 const AboutPage = lazy(() =>
   import('./pages/AboutPage.tsx').then((m) => ({ default: m.AboutPage })),
 );
+// The first visit's two questions (docs/START.md): only whoever presses Start loads them.
+const StartPage = lazy(() =>
+  import('./start/StartPage.tsx').then((m) => ({ default: m.StartPage })),
+);
 
 // Assignments (docs/ASSIGNMENTS.md): the checklist's rules and the link's codec load with them.
 const AssignmentsPage = lazy(() =>
@@ -82,6 +86,7 @@ function Shell() {
         <Suspense fallback={null}>
           <Switch>
             <Route path="/" component={HomePage} />
+            <Route path="/start" component={StartPage} />
             <Route path="/learn" component={LearnPage} />
             <Route path="/learn/:slug">{({ slug }) => <LessonPage key={slug} slug={slug} />}</Route>
             <Route path="/play" component={PlayPage} />
