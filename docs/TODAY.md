@@ -1,7 +1,7 @@
 # dacapo — Today specification (what to practise next)
 
 Status: G1 (the curriculum, today's plan, Home for a returning player, the kept plan, the length)
-is built; G1b (Where you are) is planned. This extends [MVP.md](MVP.md) and the later specifications;
+and G1b (Where you are) are built. This extends [MVP.md](MVP.md) and the later specifications;
 their principles and fixed decisions still apply — in particular **the next step is suggested,
 never forced**: nothing here locks a level, a piece or a page, and everything stays one click
 away as before.
@@ -183,7 +183,8 @@ returning). Nothing is synced or exported for this, and `SYNC_SCHEMA` stays.
   without `core/scales.ts`, like the assignment's block. `core/assignments.ts` now exports
   `untilDue` (the line where today began is the end of yesterday), `levelsMastered` (the mastery
   of many levels at once, by the checklist's own reading of each page's rule) and `openTasks`.
-  The hooks and components are in `ui/today/` and `ui/home/Today.tsx`.
+  The hooks and components are in `ui/today/` and `ui/home/Today.tsx`; the section on Progress is
+  `ui/progress/WhereYouAre.tsx`.
 - **Before today.** A session belongs to the day it began; a scale session grows run by run, so
   each of its runs goes by its own first key (one begun before midnight keeps its runs from
   before for the plan, and its later runs tick); an answer by its own time; a piece's step
@@ -258,8 +259,15 @@ returning). Nothing is synced or exported for this, and `SYNC_SCHEMA` stays.
 - **Nothing waiting** is rare: Read's notes are always open, so the plan is empty only when all
   fifteen lessons are ticked, every family is mastered throughout, no rung of the ladder is left
   with no scale played lately, no piece is in hand or next, and none is due.
+- **Where you are** has sixteen rows: Learn, the thirteen families each with its page ("Read ·
+  Notes"), Scales and Pieces. A level's link reads "L2 · Treble: C4 to C5", a tune's its title.
+  Scales counts every exercise played, technique too; "in review" leaves out the pieces taken
+  out; a grade's pieces are all its built-in pieces, lead sheets among them. A practice not open
+  links to its lesson by "After lesson 13, Chords and harmony" (the title in the lesson's
+  language). It is shown once there is a session or a ticked lesson: with ticks alone the page
+  has the day's figures and this section, and the charts once there are sessions.
 - **The start.** The files `index.html` loads were 895,774 bytes (272,952 gzipped) before and are
-  898,609 (272,634) with Today: about 3 kB of styles, the 20 strings in English, and the plan's
+  900,387 (273,041) with Today: about 4 kB of styles, the 36 strings in English, and the plan's
   heading, figures and length, less the review schedule, which the home page no longer loads
   with the app. The plan's rows are 55 kB more (22 kB gzipped), most of it what the assignment's
   block loads too (the checklist's rules), and only for a returning player.
@@ -268,4 +276,4 @@ returning). Nothing is synced or exported for this, and `SYNC_SCHEMA` stays.
 
 1. ✓ **G1 Today** — `core/curriculum.ts`, `core/today.ts`, Home for a returning player, the kept
    plan, the length.
-2. **G1b Where you are** — the section on Progress.
+2. ✓ **G1b Where you are** — the section on Progress.

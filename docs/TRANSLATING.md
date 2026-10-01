@@ -209,7 +209,7 @@ Chinese and Latin letters, digits and placeholders (`第 {n} 张`, `MIDI 键盘`
 | Tunes (the family) / tune / phrase 3 / the whole tune          | 歌曲 / 歌曲 / 第 3 句（乐句） / 整首歌          |
 | in its key / in another key / learnt (a tune)                  | 原调 / 换个调 / 学会                            |
 | today's plan / warm up / hard spots / something new            | 今天的计划 / 热身 / 难点 / 新内容               |
-| play through                                                   | 完整弹一遍                                      |
+| play through / in hand (a piece) / Where you are               | 完整弹一遍 / 正在练 / 练到哪儿了                |
 
 ## Traditional Chinese, Taiwan (`zh-TW`)
 
@@ -329,7 +329,7 @@ terms throughout. Address the learner as 你, as zh-CN does.
 | Tunes (the family) / tune / phrase 3 / the whole tune          | 歌曲 / 歌曲 / 第 3 句（樂句） / 整首歌     | 乐句                            |
 | in its key / in another key / learnt (a tune)                  | 原調 / 換個調 / 學會                       | 原调 / 换个调 / 学会            |
 | today's plan / warm up / hard spots / something new            | 今天的計畫 / 暖身 / 難點 / 新內容          | 今天的计划 / 热身 / 难点        |
-| play through                                                   | 完整彈一遍                                 | 完整弹一遍                      |
+| play through / in hand (a piece) / Where you are               | 完整彈一遍 / 正在練 / 練到哪裡了           | 练到哪儿了                      |
 
 Keys in titles: `G 大調`, `C 大調`. Composers as Taiwan writes them: 貝多芬, 巴哈 (not 巴赫), 舒曼,
 布爾格彌勒.
@@ -448,7 +448,7 @@ verb phrases for labels and buttons (設定, 開始, もう一度, 補正する)
 | Tunes (the family) / tune / phrase 3 / the whole tune          | 歌 / 歌 / フレーズ3 / 曲全体                                       |
 | in its key / in another key / learnt (a tune)                  | 原調で / 別の調で / 習得                                           |
 | today's plan / warm up / hard spots / something new            | 今日の練習メニュー / ウォームアップ / 難しい箇所 / 新しいこと      |
-| play through                                                   | 通して弾く                                                         |
+| play through / in hand (a piece) / Where you are               | 通して弾く / 練習中 / 現在地                                       |
 
 Keys in titles follow Japanese editions: ハ長調, ト長調. Middle C is 中央C. Scale names on the Scales
 page keep the letter names of the app (`D長音階`, `G♯和声的短音階`), not ニ長音階.
@@ -568,7 +568,7 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 | Tunes (the family) / tune / phrase 3 / the whole tune          | 노래 / 노래 / 악구 3 / 곡 전체                                       |
 | in its key / in another key / learnt (a tune)                  | 원래 조로 / 다른 조로 / 익히기                                       |
 | today's plan / warm up / hard spots / something new            | 오늘 계획 / 워밍업 / 어려운 부분 / 새로운 것                         |
-| play through                                                   | 끝까지 치기                                                          |
+| play through / in hand (a piece) / Where you are               | 끝까지 치기 / 연습 중 / 현재 위치                                    |
 
 Keys in titles use letters: G장조, C장조, matching the letter names in the app. Composer names
 follow the National Institute of Korean Language: 루트비히 판 베토벤, 요한 제바스티안 바흐.

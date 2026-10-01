@@ -15,7 +15,7 @@ click's tempo and grid of scale runs played with it (from version 7), the takes 
 (from version 8), and assignments and kept reports (from version 9). Version 1 to 8 files still
 import.
 
-### Today (G1, [docs/TODAY.md](docs/TODAY.md))
+### Today, and where you are (G1, [docs/TODAY.md](docs/TODAY.md))
 
 - **Today**: once you have practised here, the home page opens on a plan for the day, made from
   your own records: a warm-up (the scale to play next, or the next new one), the piece in hand
@@ -32,7 +32,10 @@ import.
 - While an **assignment** has open tasks, the home page shows it in the plan's place.
 - “Your practice” and “Due for review” on the home page are part of Today now. A first visit
   sees the title page as before.
-- It is worked out on the device from what is stored. Nothing new is recorded, synced or
+- **Where you are**, on Progress: each practice on a line, how far it has got (lessons read,
+  levels mastered, scales played, pieces in review and played to the end per grade) and its next
+  step as a link.
+- Both are worked out on the device from what is stored. Nothing new is recorded, synced or
   exported.
 
 ### Assignments on paper (G6b, [docs/ASSIGNMENTS.md](docs/ASSIGNMENTS.md))
