@@ -1,7 +1,7 @@
-// Progress on the scales: per exercise, how even the runs have been lately and over the weeks
-// (from the headline figures the sessions keep, so the list needs no raw run), which exercise to
-// play next, and, over the last runs of one exercise (re-analysed from their raw notes), where the
-// same place is off every time. See docs/SCALES.md, "Analysis → Where" and "Records and progress".
+// Progress on the scales: per exercise, how even the runs have been lately and over the weeks,
+// and which exercise to play next (scaleRanking.ts, from the headline figures the sessions keep);
+// and, over the last runs of one exercise (re-analysed from their raw notes), where the same
+// place is off every time. See docs/SCALES.md, "Analysis → Where" and "Records and progress".
 
 import {
   analyzeRun,
@@ -10,169 +10,31 @@ import {
   runFigures,
   type HandFigures,
 } from './evenness.ts';
-import type { SessionRecord } from './log.ts';
 import { quantile } from './robust.ts';
-import type { ScaleRunSummary, StoredScaleRun } from './scaleRecords.ts';
+import type { StoredScaleRun } from './scaleRecords.ts';
 import { parseExerciseKey, scaleNotes } from './scales.ts';
 import { stepsOf, type Crossing, type Direction } from './scaleTypes.ts';
 import type { Hand } from './score.ts';
-import { addDays, dayKey, type DayKey } from './streak.ts';
 
 // --- Progress per exercise -----------------------------------------------------------------------
 
-// A run's figures are read where its headline is made: what needs only them (an assignment's
-// checklist on the home page) then loads without the exercises' rules.
+// A run's figures are read where its headline is made, and the exercises are ranked in a file of
+// their own: what needs only them (an assignment's checklist and today's plan on the home page)
+// then loads without the exercises' rules.
 export { runFigures, type HandFigures };
-
-/** The trend covers the last this many calendar days, today included (the spec's 30). */
-export const TREND_DAYS = 30;
-/** A day is never longer than this, even across a clock change: enough margin for the window. */
-const DAY_MS = 25 * 60 * 60 * 1000;
-/**
- * Exercises are ranked on their last this many runs: enough that one warm-up or one lucky run
- * does not decide, few enough that practice shows within a session or two (the Pieces heatmap
- * judges a bar on its last 5 runs too).
- */
-export const RECENT_RUNS = 5;
-/**
- * The suggestion is picked among exercises played in the last this many calendar days: what the
- * player is working on now, not a scale tried once a season ago.
- */
-export const SUGGEST_DAYS = 14;
-
-export interface ExerciseProgress {
-  /** `exerciseKey`. */
-  exercise: string;
-  /** Runs recorded, old analysis versions included. */
-  runs: number;
-  /** Epoch ms of the latest run's first key. */
-  lastAt: number;
-  /** The latest run's figures; null when they were computed by another `ANALYSIS_VERSION`. */
-  latest: HandFigures | null;
-  /**
-   * The lowest spread of a run that is not rough, and when (the earliest run to reach it); when
-   * every run is rough (one octave), the lowest rough one, marked so.
-   */
-  best: { spread: number; spreadShare: number | null; at: number; rough: boolean } | null;
-  /** Median figures per local day, on the days of the last `TREND_DAYS` with runs, oldest first. */
-  days: { day: DayKey; spread: number; spreadShare: number | null; runs: number }[];
-  /** The median spread share of the last `RECENT_RUNS` runs that have one; ranks the list. */
-  recentShare: number | null;
-}
+export {
+  byWeakness,
+  playedLately,
+  RECENT_RUNS,
+  scaleProgress,
+  SUGGEST_DAYS,
+  suggestedExercise,
+  TREND_DAYS,
+  weakestLately,
+  type ExerciseProgress,
+} from './scaleRanking.ts';
 
 const median = (values: readonly number[]) => quantile(values, 0.5);
-
-/**
- * Every exercise played, weakest first (`byWeakness`). A rough run (one octave, or two with
- * several slips) is the best only when no run is not rough: a single rough run's spread can be
- * half or twice what the player does, which is just where "best" would pick it, so it is marked
- * rough — and a one-octave exercise, rough every time, still has one. A median over a day or over
- * `RECENT_RUNS` runs tames the noise, so rough runs count for the trend and the rank.
- */
-export function scaleProgress(
-  sessions: readonly SessionRecord[],
-  now: number,
-  timeZone?: string,
-): ExerciseProgress[] {
-  const byExercise = new Map<string, ScaleRunSummary[]>();
-  for (const session of sessions) {
-    if (session.kind !== 'scale') continue;
-    for (const run of session.runs) {
-      const list = byExercise.get(run.exercise);
-      if (list) list.push(run);
-      else byExercise.set(run.exercise, [run]);
-    }
-  }
-  const today = dayKey(now, timeZone);
-  const firstDay = addDays(today, -(TREND_DAYS - 1));
-
-  const progress: ExerciseProgress[] = [];
-  for (const [exercise, list] of byExercise) {
-    const runs = [...list].sort(
-      (a, b) => a.startedAt - b.startedAt || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
-    );
-    const figured = runs.map((run) => ({ run, figures: runFigures(run.headline) }));
-    const withSpread = figured.flatMap(({ run, figures }) =>
-      figures?.spread != null ? [{ run, figures, spread: figures.spread }] : [],
-    );
-
-    const lowest = (rough: boolean): ExerciseProgress['best'] => {
-      let found: ExerciseProgress['best'] = null;
-      for (const { run, figures, spread } of withSpread) {
-        if (figures.rough !== rough || (found && spread >= found.spread)) continue;
-        found = { spread, spreadShare: figures.spreadShare, at: run.startedAt, rough };
-      }
-      return found;
-    };
-    const best = lowest(false) ?? lowest(true);
-
-    const perDay = new Map<DayKey, { spreads: number[]; shares: number[] }>();
-    for (const { run, figures, spread } of withSpread) {
-      // Runs clearly before the window skip the day's name: `dayKey` (Intl) is the cost here.
-      if (run.startedAt < now - (TREND_DAYS + 1) * DAY_MS) continue;
-      const day = dayKey(run.startedAt, timeZone);
-      if (day < firstDay || day > today) continue;
-      let entry = perDay.get(day);
-      if (!entry) perDay.set(day, (entry = { spreads: [], shares: [] }));
-      entry.spreads.push(spread);
-      if (figures.spreadShare !== null) entry.shares.push(figures.spreadShare);
-    }
-    const days = [...perDay]
-      .sort(([a], [b]) => (a < b ? -1 : 1))
-      .map(([day, { spreads, shares }]) => ({
-        day,
-        spread: median(spreads)!,
-        spreadShare: median(shares),
-        runs: spreads.length,
-      }));
-
-    const shares = figured.flatMap(({ figures }) =>
-      figures?.spreadShare != null ? [figures.spreadShare] : [],
-    );
-    const last = figured.at(-1)!;
-    progress.push({
-      exercise,
-      runs: runs.length,
-      lastAt: last.run.startedAt,
-      latest: last.figures,
-      best,
-      days,
-      recentShare: median(shares.slice(-RECENT_RUNS)),
-    });
-  }
-  return progress.sort(byWeakness);
-}
-
-/**
- * Weakest first: the larger recent spread share first (least even for its note length, so a slow
- * scale and a fast one compare), exercises without one last, then the most recently played, then
- * by key so the order is total.
- */
-export function byWeakness(a: ExerciseProgress, b: ExerciseProgress): number {
-  if ((a.recentShare === null) !== (b.recentShare === null)) return a.recentShare === null ? 1 : -1;
-  return (
-    (b.recentShare ?? 0) - (a.recentShare ?? 0) ||
-    b.lastAt - a.lastAt ||
-    (a.exercise < b.exercise ? -1 : a.exercise > b.exercise ? 1 : 0)
-  );
-}
-
-/**
- * What to play next: the weakest (`byWeakness`) of the exercises played on one of the last
- * `SUGGEST_DAYS` calendar days that have a recent figure. Null when there is none: an exercise
- * without figures cannot be called weak, and one left for weeks is the player's choice, not ours.
- */
-export function suggestedExercise(
-  progress: readonly ExerciseProgress[],
-  now: number,
-  timeZone?: string,
-): string | null {
-  const since = addDays(dayKey(now, timeZone), -(SUGGEST_DAYS - 1));
-  const recent = progress.filter(
-    (p) => p.recentShare !== null && dayKey(p.lastAt, timeZone) >= since,
-  );
-  return [...recent].sort(byWeakness)[0]?.exercise ?? null;
-}
 
 // --- Places over runs ----------------------------------------------------------------------------
 

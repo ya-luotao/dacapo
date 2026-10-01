@@ -169,7 +169,7 @@ function inWindow(window: DayWindow, timeZone: string | undefined): (epochMs: nu
 }
 
 /** Whether an instant is on the due day or before it. */
-function untilDue(due: DayKey, timeZone: string | undefined): (epochMs: number) => boolean {
+export function untilDue(due: DayKey, timeZone: string | undefined): (epochMs: number) => boolean {
   const end = utcOf(due) + DAY_MS;
   return (at) => {
     if (at < end - ZONE_MS) return true;
@@ -456,7 +456,10 @@ function levelMastery(task: LevelTask, context: Context): MasteryFigures & { mas
   };
 }
 
-function masteryOf(task: LevelTask, context: Context): MasteryFigures & { mastered: boolean } {
+function masteryOf(
+  task: Pick<LevelTask, 'family' | 'level'>,
+  context: Context,
+): MasteryFigures & { mastered: boolean } {
   const { family, level } = task;
   const answers = context.answersUntilDue();
   if (family === 'notes') {
@@ -509,6 +512,20 @@ function masteryOf(task: LevelTask, context: Context): MasteryFigures & { master
   }
   const p = earLevelProgress(answers.filter(isEarAnswer), level as EarLevelId);
   return { counted: p.answers, window: p.window, accuracy: p.accuracy, mastered: p.mastered };
+}
+
+/**
+ * Whether each of `levels` is mastered, by the rules of its own page, on everything answered up
+ * to the end of `due`: what a level task with mastery for its goal asks, for many levels at once
+ * (where every practice stands, core/today.ts).
+ */
+export function levelsMastered(
+  levels: readonly Pick<LevelTask, 'family' | 'level'>[],
+  due: DayKey,
+  input: ProgressInput,
+): boolean[] {
+  const context = contextOf({ start: due, due }, input);
+  return levels.map((level) => masteryOf(level, context).mastered);
 }
 
 function levelTaskProgress(task: LevelTask, context: Context): TaskProgress {
@@ -624,6 +641,20 @@ export function assignmentProgress(
 ): TaskProgress[] {
   const context = contextOf(assignment, input);
   return assignment.tasks.map((task) => progressOf(task, context));
+}
+
+/**
+ * The tasks still to do, each with how far it is: those this version knows that are not met. The
+ * home page shows them, and while there are any, today's plan gives way to them (docs/TODAY.md).
+ */
+export function openTasks(
+  tasks: readonly Task[],
+  progress: readonly TaskProgress[],
+): { task: Task; done: TaskProgress }[] {
+  return tasks.flatMap((task, i) => {
+    const done = progress[i];
+    return task.kind === 'unknown' || !done || done.met ? [] : [{ task, done }];
+  });
 }
 
 /** How many of the tasks this version knows are met. */

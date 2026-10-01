@@ -15,6 +15,26 @@ click's tempo and grid of scale runs played with it (from version 7), the takes 
 (from version 8), and assignments and kept reports (from version 9). Version 1 to 8 files still
 import.
 
+### Today (G1, [docs/TODAY.md](docs/TODAY.md))
+
+- **Today**: once you have practised here, the home page opens on a plan for the day, made from
+  your own records: a warm-up (the scale to play next, or the next new one), the piece in hand
+  (or the next piece to begin), something new (the next lesson, and the suggested level of the
+  practices you have left alone longest) and the pieces due for review, to play through. Each
+  step is a link that starts it, with a line saying why it is there, and it ticks itself once it
+  is played.
+- The plan is for **10, 20, 30 or 45 minutes** (20 unless you choose). It is made once a day
+  from what you had played before today, so it stays as it is while you play it.
+- A lesson of Learn **opens** the practices it prepares (lesson 3 the intervals and the pieces,
+  lesson 4 rhythm and sight-reading, lesson 6 the scales, key signatures and tunes, lesson 13 the
+  chords), and a practice you went to on your own is open too: only what is open is proposed.
+  Nothing is locked: every page is one click away as before.
+- While an **assignment** has open tasks, the home page shows it in the plan's place.
+- “Your practice” and “Due for review” on the home page are part of Today now. A first visit
+  sees the title page as before.
+- It is worked out on the device from what is stored. Nothing new is recorded, synced or
+  exported.
+
 ### Assignments on paper (G6b, [docs/ASSIGNMENTS.md](docs/ASSIGNMENTS.md))
 
 - **Print** on an assignment's page and on a report: the browser's own print dialog, and a page

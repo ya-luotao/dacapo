@@ -96,6 +96,11 @@ practising the notes you are slowest at. Progress is visible day by day.
   marked on the keyboard, each note tinted as a chord tone, a scale tone or outside, call and
   response, then feedback rather than a score and the take played back with its backing
   ([docs/HARMONY.md](docs/HARMONY.md)).
+- **Today.** Once you have practised, the home page opens on a plan for the day made from your
+  own records: a scale to warm up with, the piece in hand, the next lesson and a level of the
+  practice you have left alone longest, and the pieces due for review, for 10 to 45 minutes. Each
+  step starts with a click and ticks itself once it is played
+  ([docs/TODAY.md](docs/TODAY.md)).
 - **Practice log.** Flashcard sessions and free play are saved: minutes today, a daily streak
   (5 minutes a day), a 30-day chart and the list of sessions. **How you are doing** charts each
   practice week by week over half a year (reading speed, sight-reading, theory, ear, rhythm by ear,

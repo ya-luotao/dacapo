@@ -282,8 +282,9 @@ Planned with [EXPRESSION.md](EXPRESSION.md), whose takes these build on.
   missed note per 50 notes (in rhythm mode, with at least 80 % in time) and no bar slower than
   twice its median in wait mode doubles the interval (to the next step); a worse run keeps it; a run
   with more than one wrong note in 10 halves it. Runs before the date count only for the figures.
-- **Due** pieces are listed first on the Pieces page and on the home page ("Due for review: 3
-  pieces"), each with how long it has been. A piece can be taken out of review (and put back).
+- **Due** pieces are listed first on the Pieces page, each with how long it has been, and named
+  on the home page ("Due for review: 3 pieces"; since G1 they are the pieces to play through in
+  today's plan, [TODAY.md](TODAY.md)). A piece can be taken out of review (and put back).
 - Computed from the step records and sessions (`core/review.ts`, pure), so it syncs and imports with
   them; only "taken out" is stored, per piece, on the piece record (`review: false`).
 
@@ -361,8 +362,10 @@ Planned with [EXPRESSION.md](EXPRESSION.md), whose takes these build on.
 - **Due** is the day of the date or later. The Pieces page lists the due pieces first, the longest
   overdue at the top, each with how long since it was last played through (the review that set the
   date) and "Take out of review"; each library card says "review due", "review in n days" or "out
-  of review". The home page says "Due for review: n pieces" with the first three and how long it
-  has been. A piece's Options have "Review schedule" (on or off) with where it stands.
+  of review". Until G1 the home page said "Due for review: n pieces" with the first three and
+  how long it had been; it now has them as the pieces to play through in today's plan, the
+  longest overdue first ([TODAY.md](TODAY.md)). A piece's Options have "Review schedule" (on or
+  off) with where it stands.
 - **Taken out of review.** An imported piece carries `review: false` on its record: a change of the
   piece (it sets `updatedAt`), so it syncs and imports; `SYNC_SCHEMA` 16 makes builds that stripped
   the field pull everything again. A built-in piece has no record of its own, so its choice is a

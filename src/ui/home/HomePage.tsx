@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link } from 'wouter';
 import { HARMONY_LEVELS } from '../../core/chordSymbols.ts';
 import { EAR_LEVELS } from '../../core/earItems.ts';
@@ -11,23 +11,21 @@ import { currentAssignments } from '../../core/assignmentRecords.ts';
 import { LEVELS } from '../../core/levels.ts';
 import { LESSONS } from '../../learn/lessons.ts';
 import { MAX_BPM, MIN_BPM } from '../../core/pulse.ts';
-import { dayKey, practiceLog, STREAK_GOAL_MS } from '../../core/streak.ts';
+import { dayKey, STREAK_GOAL_MS } from '../../core/streak.ts';
 import { useT, type MessageKey } from '../../i18n/index.ts';
 import { currentShell } from '../../lib/shell.ts';
 import { BUILT_IN_IDS } from '../../pieces/library/index.ts';
+import { readDone } from '../learn/progress.ts';
 import { usePractice, useStorageStatus } from '../practice/context.ts';
-import { useLogFormat } from '../progress/format.ts';
 import { useNow } from '../progress/useNow.ts';
+import { readReturning, writeReturning } from '../today/prefs.ts';
 import { Specimen } from './Specimen.tsx';
-import { usePieceReviews, useSinceLabel } from '../pieces/review.ts';
+import { Today } from './Today.tsx';
 
 // The current assignment's open tasks: loaded only when there is one (ui/assignments/).
 const HomeAssignment = lazy(() =>
   import('../assignments/HomeAssignment.tsx').then((m) => ({ default: m.HomeAssignment })),
 );
-
-/** Due pieces named on the home page; the rest are on the Pieces page. */
-const REVIEW_SHOWN = 3;
 
 const MINUTE_MS = 60_000;
 
@@ -138,96 +136,36 @@ function Arrow() {
   );
 }
 
-/** For a returning player: today, the streak and the way to the rest. */
-function Welcome() {
-  const t = useT();
-  const format = useLogFormat();
+/**
+ * Whether the visitor has practised here before: a session stored, or a lesson ticked. The ticks
+ * are read at once; the sessions take a moment, so until they are in, what was known last time
+ * (kept in the browser) decides, and the page is laid out right before the records are read.
+ */
+function useReturning(): boolean {
+  const { loaded } = useStorageStatus();
   const { sessions } = usePractice();
-  const now = useNow();
-  const log = useMemo(() => practiceLog(sessions, { now }), [sessions, now]);
-  const reached = log.todayMs >= STREAK_GOAL_MS;
-
-  return (
-    <section className="home-welcome" aria-labelledby="home-welcome">
-      <h2 id="home-welcome" className="eyebrow">
-        {t('home.welcome')}
-      </h2>
-      <dl className="figures">
-        <div>
-          <dt>{t('progress.today')}</dt>
-          <dd>{format.minutes(log.todayMs)}</dd>
-        </div>
-        <div>
-          <dt>{t('progress.streak')}</dt>
-          <dd>{format.days(log.currentStreak)}</dd>
-        </div>
-        <div>
-          <dt>{t('progress.longest')}</dt>
-          <dd>{format.days(log.longestStreak)}</dd>
-        </div>
-      </dl>
-      <DueForReview />
-      <p className="home-welcome-end">
-        <span className={reached ? 'goal is-reached' : 'goal'}>
-          {reached
-            ? t('progress.today.reached')
-            : t('progress.today.toGo', {
-                n: Math.ceil((STREAK_GOAL_MS - log.todayMs) / MINUTE_MS),
-              })}
-        </span>
-        <Link href="/progress" className="home-link">
-          {t('home.welcome.link')}
-          <Arrow />
-        </Link>
-      </p>
-    </section>
-  );
-}
-
-/** "Due for review: 3 pieces", the first of them with how long it has been (docs/PIECES.md, P6). */
-function DueForReview() {
-  const t = useT();
-  const { reviews } = usePieceReviews();
-  const since = useSinceLabel();
-  const due = reviews.filter((r) => r.status.isDue && !r.out);
-  if (due.length === 0) return null;
-  return (
-    <div className="home-review">
-      <p className="home-review-title">
-        <strong>
-          {due.length === 1 ? t('home.review.one') : t('home.review.other', { n: due.length })}
-        </strong>
-        <Link href="/pieces" className="home-link">
-          {t('home.review.link')}
-          <Arrow />
-        </Link>
-      </p>
-      <ul className="home-review-list">
-        {due.slice(0, REVIEW_SHOWN).map((review) => (
-          <li key={review.pieceId}>
-            <Link href={`/pieces/${review.pieceId}`}>{review.title}</Link>
-            <span className="muted">{since(review)}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+  const [ticked] = useState(() => readDone().size > 0);
+  const [known] = useState(readReturning);
+  const returning = ticked || (loaded ? sessions.length > 0 : known);
+  useEffect(() => {
+    if (loaded) writeReturning(returning);
+  }, [loaded, returning]);
+  return returning;
 }
 
 /**
- * The first page: what dacapo is and the way in, the practices it has as a contents page, and in
- * the web app the questions a newcomer asks. It is also the page search engines read.
+ * A first visit: the tagline, the lede and the specimen. Someone sent an assignment before they
+ * ever practised here has it under them.
  */
-export function HomePage() {
+function FirstVisit() {
   const t = useT();
   const { loaded } = useStorageStatus();
-  const { sessions, assignments } = usePractice();
-  const web = currentShell() === 'web';
+  const { assignments } = usePractice();
   const today = dayKey(useNow());
   const assigned = loaded && currentAssignments(assignments, today).length > 0;
 
   return (
-    <div className="home">
+    <>
       <section className="home-hero" aria-labelledby="home-title">
         <div className="home-hero-text">
           <p className="eyebrow">{t('home.eyebrow')}</p>
@@ -256,7 +194,24 @@ export function HomePage() {
           <HomeAssignment />
         </Suspense>
       )}
-      {loaded && sessions.length > 0 && <Welcome />}
+    </>
+  );
+}
+
+/**
+ * The first page. A first visit: what dacapo is and the way in. A returning player: today, with
+ * the figures of the practice log and the plan for the day (docs/TODAY.md). Then the practices
+ * as a contents page, and in the web app the questions a newcomer asks. It is also the page
+ * search engines read.
+ */
+export function HomePage() {
+  const t = useT();
+  const returning = useReturning();
+  const web = currentShell() === 'web';
+
+  return (
+    <div className="home">
+      {returning ? <Today /> : <FirstVisit />}
 
       <section className="home-contents" aria-labelledby="home-contents">
         <h2 id="home-contents" className="eyebrow">

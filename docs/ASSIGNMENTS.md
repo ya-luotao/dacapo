@@ -190,7 +190,9 @@ assignment, pieces }`, each piece as importing it kept it (title, composer, file
   practice), and then with the app, so it does without the exercises' rules (`core/scales.ts`,
   with Hanon's plates): it names a scale task from its exercise key alone — the name, the octaves
   of a scale or an arpeggio, the hands — where the Assignments pages name it by the rules
-  (`ui/assignments/taskFormat.ts` and `format.ts`; a test holds the start to this).
+  (`ui/assignments/taskFormat.ts` and `format.ts`; a test holds the start to this). For a
+  returning player it stands in the place of today's plan while it has open tasks
+  ([TODAY.md](TODAY.md)).
 - **Navigation.** Assignments is the first item to move into More when the header is narrow, and
   the Progress page links to it under its title.
 - **Code.** `core/assignmentRecords.ts` has the records (and what the app needs of them at

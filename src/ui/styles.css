@@ -5978,7 +5978,7 @@ tr.is-few .cm-row {
   padding: 0.875rem 0.75rem 0.25rem;
   color: var(--text-muted);
   font-size: 0.9375rem;
-  line-height: 1.5;
+  line-height: 1.375rem;
   text-wrap: pretty;
 }
 
@@ -9933,7 +9933,8 @@ select.is-compact {
 }
 
 /* The eyebrow is set off by a short rule in the accent, like a rehearsal mark. */
-.home-hero .eyebrow {
+.home-hero .eyebrow,
+.today-day {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -9941,7 +9942,8 @@ select.is-compact {
   color: var(--accent);
 }
 
-.home-hero .eyebrow::before {
+.home-hero .eyebrow::before,
+.today-day::before {
   content: '';
   flex: none;
   width: 1.5rem;
@@ -10145,62 +10147,295 @@ select.is-compact {
   }
 }
 
-/* A returning player's figures, between hairlines. */
-.home-welcome {
-  margin-top: var(--home-gap);
+/* Today: a returning player's first page. The day, the figures between hairlines, then the
+   day's programme, numbered like the contents below it. */
+.today {
+  /* The room kept for the plan while its rules load: its heading and the rule under it, each of
+     its rows (a name and a line under it, whose line box comes out half a pixel over its line
+     height, with the row's own rule), and on a phone the name of each part above the row it
+     begins. */
+  --today-head: calc(2.25rem + 1px);
+  --today-row: calc(5.375rem + 1.5px);
+  --today-part: 0rem;
 }
 
-.home-welcome .figures {
-  max-width: none;
+.today h1 {
   margin: 0;
 }
 
-/* Due for review: the pieces whose date has come, by name. */
-.home-review {
-  margin-top: 0.75rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border);
+.today .figures {
+  max-width: none;
+  margin: 1.5rem 0 0;
 }
 
+.today-plan,
+.today-waiting,
+.today .home-assignment {
+  margin-top: 2rem;
+}
+
+.today-waiting {
+  min-height: calc(
+    var(--today-head) + max(var(--rows), 1) * var(--today-row) + var(--parts) * var(--today-part)
+  );
+}
+
+.today-plan-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1.5rem;
+  min-height: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.today-plan-head .eyebrow,
+.today-plan-head .goal {
+  margin: 0;
+}
+
+.today-plan-head .goal {
+  line-height: 1.5rem;
+}
+
+.today-steps {
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--text);
+  list-style: none;
+}
+
+.today-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr) auto 1.25rem;
+  gap: 0 1.5rem;
+  align-items: baseline;
+  padding: 1rem 0.75rem 1.125rem 0;
+  border-bottom: 1px solid var(--border);
+  transition: background-color var(--dur) ease-out;
+}
+
+/* Line heights are set in rem, so a row is as tall in every language (and as the room kept). */
+.today-step > .contents-numeral {
+  grid-row: 1;
+  grid-column: 1;
+  align-self: start;
+  line-height: 1.75rem;
+}
+
+.today-step-body {
+  grid-row: 1;
+  grid-column: 2;
+  min-width: 0;
+}
+
+.today-step-name {
+  display: block;
+  color: var(--text);
+  font-family: var(--font-serif);
+  font-size: 1.375rem;
+  font-weight: 500;
+  line-height: 1.75rem;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  transition: color var(--dur-fast) ease-out;
+}
+
+.today-step-name:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* The name is the link; the whole row answers to it. */
+a.today-step-name::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.today-step-why {
+  display: block;
+  margin-top: 0.125rem;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+/* The part of the session, named where it begins. */
+.today-step-part {
+  grid-row: 1;
+  grid-column: 3;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.today-step-part:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-size: 0.875rem;
+  letter-spacing: 0.02em;
+}
+
+.today-step > .arrow,
+.today-step-tick {
+  grid-row: 1;
+  grid-column: 4;
+  align-self: center;
+}
+
+.today-step > .arrow {
+  color: var(--text-muted);
+}
+
+/* Done: a tick in place of the arrow, and the name steps back. */
+.today-step-tick {
+  display: inline-flex;
+  color: var(--ok);
+}
+
+.today-step-tick svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.today-step.is-done .today-step-name {
+  color: var(--text-muted);
+}
+
+@media (hover: hover) {
+  .today-step:has(a):hover {
+    background: linear-gradient(to right, transparent, var(--sunk) 12%, var(--sunk));
+  }
+
+  .today-step:hover a.today-step-name,
+  .today-step:has(a):hover > .arrow {
+    color: var(--accent);
+  }
+
+  .today-step:has(a):hover > .arrow {
+    transform: translateX(3px);
+  }
+}
+
+.today-empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 1.5rem;
+  min-height: calc(var(--today-row) + 1px);
+  margin: 0;
+  padding-block: 0.5rem;
+  border-block: 1px solid var(--border);
+  border-top-color: var(--text);
+}
+
+/* Under the plan: the daily goal, the plan's length, and the way to Progress. */
+.today-end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  margin-top: 1rem;
+}
+
+.today-end .goal {
+  margin: 0;
+}
+
+.today-end .goal[data-waiting] {
+  visibility: hidden;
+}
+
+.today-length {
+  margin: 0;
+}
+
+/* The segments say what they are ("20 min"): the legend is for a screen reader. */
+.today-length > legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.today-length .segmented {
+  display: flex;
+}
+
+.today-length .segmented span {
+  min-width: 0;
+  min-height: 2.5rem;
+  padding: 0.375rem 0.875rem;
+  font-size: 0.9375rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 40rem) {
+  .today {
+    --today-part: 1.5rem;
+  }
+
+  .today-step {
+    grid-template-columns: 2.25rem minmax(0, 1fr) 1.125rem;
+    gap: 0 0.75rem;
+    padding-inline-end: 0;
+  }
+
+  /* The part goes above the row it begins. */
+  .today-step-part {
+    grid-row: 1;
+    grid-column: 2;
+    margin-bottom: 0.25rem;
+  }
+
+  .today-step > .contents-numeral,
+  .today-step-body {
+    grid-row: 2;
+  }
+
+  .today-step > .arrow,
+  .today-step-tick {
+    grid-row: 2;
+    grid-column: 3;
+  }
+
+  .today-step-name {
+    font-size: 1.25rem;
+  }
+
+  /* One under the other: the row never wraps one way before the records are in and another after. */
+  .today-end {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .today-length .segmented span {
+    padding-inline: 0.75rem;
+  }
+}
+
+/* The current assignment's name, and what it is due. */
 .home-review-title {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
   gap: 0.25rem 1.5rem;
-  margin: 0;
-}
-
-.home-review-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 1.5rem;
-  margin: 0.375rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.home-review-list li {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 0.5rem;
-  align-items: baseline;
-}
-
-.home-review-list .muted {
-  font-size: 0.875rem;
-}
-
-.home-welcome-end {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem 1.5rem;
-  margin: 0.75rem 0 0;
-}
-
-.home-welcome-end .goal {
   margin: 0;
 }
 

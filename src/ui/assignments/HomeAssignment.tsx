@@ -1,11 +1,15 @@
 import { Link } from 'wouter';
-import { currentAssignments, type StoredAssignment } from '../../core/assignmentRecords.ts';
+import { openTasks } from '../../core/assignments.ts';
 import { dayKey, type DayKey } from '../../core/streak.ts';
 import { useT } from '../../i18n/index.ts';
-import { usePractice } from '../practice/context.ts';
 import { useNow } from '../progress/useNow.ts';
 import { useScaleKeyWords, useTaskFormat } from './taskFormat.ts';
-import { taskStartPath, useChecklist, useKnownPieces } from './useChecklist.ts';
+import {
+  taskStartPath,
+  useCurrentAssignment,
+  useKnownPieces,
+  type CurrentAssignment,
+} from './useChecklist.ts';
 
 /** Open tasks named on the home page; the rest are on the assignment's own page. */
 const TASKS_SHOWN = 4;
@@ -18,27 +22,20 @@ function Arrow() {
   );
 }
 
-function Current({
-  record,
+/** The current assignment on the home page: its open tasks, each a way to start it. */
+export function AssignmentBlock({
+  current: { record, more, progress },
   today,
-  more,
 }: {
-  record: StoredAssignment;
+  current: CurrentAssignment;
   today: DayKey;
-  more: number;
 }) {
   const t = useT();
   // Without the exercises' rules (Hanon's plates with them): the page is loaded at the start.
   const format = useTaskFormat(useScaleKeyWords());
   const pieces = useKnownPieces();
   const { assignment } = record;
-  const progress = useChecklist(assignment);
-  const open = progress
-    ? assignment.tasks.flatMap((task, i) => {
-        const done = progress[i]!;
-        return task.kind === 'unknown' || done.met ? [] : [{ task, done }];
-      })
-    : [];
+  const open = progress ? openTasks(assignment.tasks, progress) : [];
   return (
     <section className="home-assignment" aria-labelledby="home-assignment">
       <h2 id="home-assignment" className="eyebrow">
@@ -89,12 +86,11 @@ function Current({
 /**
  * The home page's assignment (docs/ASSIGNMENTS.md): the open tasks of the current one, each a
  * way to start it. Loaded only when there is one: working a checklist out takes the rules of
- * every practice.
+ * every practice. A returning player's is shown by today's plan (ui/today/TodayPlan.tsx), which
+ * gives way to it.
  */
 export function HomeAssignment() {
-  const { assignments } = usePractice();
   const today = dayKey(useNow());
-  const current = currentAssignments(assignments, today);
-  const first = current[0];
-  return first ? <Current record={first} today={today} more={current.length - 1} /> : null;
+  const current = useCurrentAssignment(today);
+  return current ? <AssignmentBlock current={current} today={today} /> : null;
 }

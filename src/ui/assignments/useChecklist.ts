@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useReducer, useState } from 'react';
-import type { Assignment, PieceTask, Task, TaskProgress } from '../../core/assignmentRecords.ts';
+import {
+  currentAssignments,
+  type Assignment,
+  type PieceTask,
+  type StoredAssignment,
+  type Task,
+  type TaskProgress,
+} from '../../core/assignmentRecords.ts';
 import {
   assignmentProgress,
   pageOfFamily,
@@ -8,6 +15,7 @@ import {
   type KnownPiece,
 } from '../../core/assignments.ts';
 import { pieceFacts, type PieceStep } from '../../core/pieceRecords.ts';
+import type { DayKey } from '../../core/streak.ts';
 import { BUILT_IN } from '../../pieces/library/index.ts';
 import { readScore } from '../../pieces/load.ts';
 import { readDone } from '../learn/progress.ts';
@@ -88,6 +96,27 @@ export function useChecklist(
     store,
     stepsVersion,
   ]);
+}
+
+/** The current assignment with its checklist. */
+export interface CurrentAssignment {
+  record: StoredAssignment;
+  /** The other assignments today falls in. */
+  more: number;
+  /** Every task's progress in its order; null while the records are being read. */
+  progress: TaskProgress[] | null;
+}
+
+/**
+ * The current assignment (of those for me that today falls in, the one due soonest) and how far
+ * its tasks are; null when there is none.
+ */
+export function useCurrentAssignment(today: DayKey): CurrentAssignment | null {
+  const { assignments } = usePractice();
+  const current = currentAssignments(assignments, today);
+  const first = current[0] ?? null;
+  const progress = useChecklist(first?.assignment ?? null);
+  return first && { record: first, more: current.length - 1, progress };
 }
 
 /**
