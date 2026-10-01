@@ -450,9 +450,9 @@ What the Key control changes on the practice page; the rules are HARMONY.md's ("
 
 ## A take as a MIDI file (G6b)
 
-Status: planned. A run is kept as a take (EXPRESSION.md, X0) and played back in the app (P5), and
-that is as far as it goes: it cannot be heard in another program, put into a notation program or
-sent to a teacher as sound.
+Status: built. A run is kept as a take (EXPRESSION.md, X0) and played back in the app (P5), and
+that was as far as it went: it could not be heard in another program, put into a notation program
+or sent to a teacher as sound.
 
 - **Save as MIDI** on each of **Your runs** that has a take, and on the run just played (beside
   **Play back**); on Improvise's takes too (the player's keys; the backing is not in the take).
@@ -469,6 +469,64 @@ sent to a teacher as sound.
   Apple app handed to the share sheet or the save panel, as the backup is.
 - `core/smfWrite.ts`, pure, with tests that read the bytes back.
 
+### Clarifications (decided during G6b)
+
+- **What is written.** The header, and one track: its name (the title, in UTF-8), the tempo, the
+  time signatures of a run with a beat, the take's events, and the end of the track at the last
+  of them. Every event has its status byte (no running status); a key up is a note-off, with the
+  release velocity MIDI gives one that has none (64), since a take keeps none. On one tick the
+  order is tempo and time signature, pedals, key ups, key downs. A pedal's value is kept within
+  0–127 and a key down's velocity within 1–127: velocity 0 would be read as a key up.
+- **Every key down has its key up.** A key struck again with no key up between ends where it is
+  struck again, as play back ends it; one the take never lets go of ends with the take's last
+  event; a key up for a key that is not down is left out. A key up comes at least a tick after
+  its key down and a key is not struck before its last stroke ended, so two strokes that fall on
+  one tick stay two notes.
+- **A take with no key down in it gives no file.** The summaries have the button once a key was
+  played (a take begins with the run's first key); a row of Your runs whose take is not on the
+  device, or has no key, says that the run kept nothing, as Play back does.
+- **Wait and memory mode.** A tick is 1/960 s, from the take's first event. Wrong keys are in the
+  file: they were played.
+- **Rhythm mode: the beat** (`runGrid`). The score's tempo marks times the run's percent (90 to
+  the quarter without a mark, as the click has it), laid out over the run's bars in the order
+  played: the repeats played or skipped, a loop round after round. Every event is put where its
+  time falls on the run's own clock, the latency taken off as the run's timing takes it off, so a
+  key played on the beat is on the beat in the file whatever the tempo there, and one played 30
+  ms late is 30 ms late.
+- **The bars.** A bar is written with the time signature of the length it has: a pickup of a
+  quarter in 3/4 is a bar of 1/4 and the bar that ends the piece one of 2/4, and the two parts a
+  repeat divides a bar into (Für Elise) are bars of their own. So every bar line of the score is
+  a bar line of the file. (The count-in runs the meter through a pickup with the beats before it;
+  the file cannot, the count-in being left out.) The click named in a time signature is the
+  beat, the dotted beat in compound meters, as the app clicks it.
+- **Where a rhythm run's file begins.** At the downbeat of the bar of the first key that was
+  matched to the score, in the round it was played in: a run keeps no start bar, and this is the
+  bar it began in (or, for a hand that rests at first, its first bar with a note). What was
+  played before it is moved to time 0: the count-in's keys and pedals, a first note struck a
+  little early, and on a run from a later bar the keys in the bars before; a key both struck and
+  let go before it is a note one tick long there. A loop started inside itself begins at that bar
+  and goes round from there. With no key matched, the file begins at the take's time 0.
+- **A run on other notes than the piece has now** (another left hand made from the chord symbols,
+  or a piece changed since) is saved with its own times at ♩ = 120, as a wait run is, with the
+  count-in's keys in their time: its steps cannot be read against the score at hand. A transposed
+  run is on its beat: bars and steps are the same in every key, and the keys are the keys played.
+- **Improvise** (HARMONY.md, H6). In 4/4 at the backing's tempo from the first bar's 1, which is
+  the take's time 0, with the latency taken off; the count-in is left out and its keys moved to
+  time 0. Track and file are named as the page names the backing ("12-bar blues in C major").
+  The button is on the feedback and on each of Your improvisations, and takes the loop just
+  played as playing it back does (still in memory, else from the store).
+- **The name.** The time is the local time at which the file's time 0 was played. Left out of the
+  title: `\ / : * ? " < > |` and control characters; white space becomes one space; no space or
+  dot stays at either end (a hidden file, a name Windows cuts); a title is cut at 80 characters.
+  Letters of every script stay. A piece without a title is "Untitled" in the language shown.
+- **The buttons** are beside Play back in both summaries, on every row of Your runs and on a past
+  run opened there. Unlike Play back they need no output. The file's type is `audio/midi`
+  (`downloadBytes` in `lib/download.ts`). The Apple app takes it as it takes the backup: any
+  `download` link becomes a download handed to the share sheet or the save panel
+  (`WebHost.swift`, `Downloads.swift`), whatever its type, and its name passes `safeFileName`
+  unchanged. No native code changed; this was read from the code, not tried on a device.
+- Nothing stored, synced or exported changes.
+
 ## Milestones
 
 1. ✓ **P0 Spike** — choose the renderer (OpenSheetMusicDisplay vs Verovio vs other), prove
@@ -481,3 +539,5 @@ sent to a teacher as sound.
 6. ✓ **P5 Play back** — takes played back with the cursor; compare with the written version.
 7. ✓ **P6 Review schedule** — review intervals, due pieces on Pieces and Home.
 8. ✓ **P7 Memorising** — memory mode, fading stages, prompts, start anywhere.
+9. ✓ **G6b A take as a MIDI file** — `core/smfWrite.ts`, Save as MIDI on the summaries, Your runs
+   and Improvise.

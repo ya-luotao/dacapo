@@ -62,6 +62,14 @@ export interface ImprovPlayback {
   notes: readonly PlayedNote[];
 }
 
+/** A session's take, as saving it as a MIDI file needs it. */
+export interface ImprovTake {
+  events: readonly TakeEvent[];
+  latency: number;
+  /** Epoch ms of time 0, the first bar's 1. */
+  startedAt: number;
+}
+
 export interface ImprovView {
   /** The setup (no loop yet or closed), a loop going, or its feedback. */
   phase: 'idle' | 'running' | 'done';
@@ -94,6 +102,8 @@ export interface ImprovController {
   /** Plays a take back with its backing: the loop just played, or a stored session's. */
   playBack: (session: ImprovSession, sound: { level: number; channel: number }) => void;
   stopPlayback: () => void;
+  /** A session's take: the loop just played, or a stored one; null when it is not on this device. */
+  take: (session: ImprovSession) => Promise<ImprovTake | null>;
   /** Leaves the feedback for the setup. */
   close: () => void;
   /** Stops everything and stores what is left. The controller stays usable. */
@@ -153,7 +163,7 @@ export function createImprovController(options: ImprovControllerOptions): Improv
   let player: BackingRun | null = null;
   let recording: Recording | null = null;
   /** The last loop's take, kept to play it back. */
-  let lastTake: { sessionId: string; events: readonly TakeEvent[]; latency: number } | null = null;
+  let lastTake: ({ sessionId: string } & ImprovTake) | null = null;
   let releaseHold: (() => void) | null = null;
   let releasePlaybackHold: (() => void) | null = null;
   let stopCheckpoints: (() => void) | null = null;
@@ -219,7 +229,12 @@ export function createImprovController(options: ImprovControllerOptions): Improv
     }
     if (final) {
       r.closed = true;
-      lastTake = { sessionId: r.id, events: r.take.events, latency: r.latency };
+      lastTake = {
+        sessionId: r.id,
+        events: r.take.events,
+        latency: r.latency,
+        startedAt: r.take.startedAt,
+      };
     }
   }
 
@@ -439,6 +454,26 @@ export function createImprovController(options: ImprovControllerOptions): Improv
     stopPlayback() {
       stopPlayback();
       publish({ loading: null });
+    },
+    take(session) {
+      // As playing back finds it: the loop just played is still here, an older one is read back.
+      const own = recording?.id === session.id ? recording : null;
+      if (own) {
+        const { events, startedAt } = own.take;
+        return Promise.resolve({ events, latency: own.latency, startedAt });
+      }
+      if (lastTake?.sessionId === session.id) return Promise.resolve(lastTake);
+      return practice.takes({ sessionId: session.id }).then(
+        (chunks) =>
+          chunks.length === 0
+            ? null
+            : {
+                events: takeEvents(chunks),
+                latency: chunks[0]!.latency ?? 0,
+                startedAt: chunks[0]!.startedAt,
+              },
+        () => null,
+      );
     },
     close() {
       stopPlayback();

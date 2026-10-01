@@ -9,7 +9,7 @@ import { useReadFormat } from '../read/format.ts';
 import { tonicName } from '../scales/format.ts';
 import { Segmented } from '../Segmented.tsx';
 import type { ImprovController, ImprovView } from './improvController.ts';
-import { PlayBackButton } from './ImprovFeedback.tsx';
+import { PlayBackButton, SaveImprovMidi } from './ImprovFeedback.tsx';
 import { backingSymbols, scaleNotes, useImprovFormat } from './improvFormat.ts';
 import type { BackingChoice, ImprovPrefs } from './improvPrefs.ts';
 import { NumeralsText } from './NumeralsText.tsx';
@@ -308,6 +308,7 @@ function YourImprovisations({
                     sound={playback}
                     className="button"
                   />
+                  <SaveImprovMidi session={s} controller={controller} />
                 </span>
               </li>
             );

@@ -861,6 +861,7 @@ export const zhCN: Dictionary = {
   'harmony.improv.playBack.stop': '停止回放',
   'harmony.improv.playBack.loading': '正在读取录音…',
   'harmony.improv.playBack.none': '这台设备上没有这次即兴的录音。',
+  'harmony.improv.saveMidi.help': '把你弹的存成 MIDI 文件，伴奏不在里面。',
   'harmony.improv.again': '再来一次',
   'harmony.improv.change': '换伴奏',
   'harmony.improv.yours': '你的即兴',
@@ -1797,6 +1798,9 @@ export const zhCN: Dictionary = {
   'pieces.playback.compare.help':
     '先按谱、用这一遍的速度弹这些小节，再放你弹的：一小节一小节地对照，或者整段一起。循环只对照第一遍。',
   'pieces.playback.close': '关闭',
+  'pieces.saveMidi': '存为 MIDI',
+  'pieces.saveMidi.help':
+    '把这一遍按你弹的样子存成 MIDI 文件：每个键的力度、按住多久，还有踏板。可以在别的软件里打开，也可以发给老师。',
 
   'pieces.memory.stage': '乐谱',
   'pieces.memory.stage.all': '全部显示',

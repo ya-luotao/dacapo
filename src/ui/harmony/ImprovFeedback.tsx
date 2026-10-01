@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { classifyNote, loopBars, type ImprovPlan, type NoteClass } from '../../core/improv.ts';
 import { readFigures, type ImprovSession, type PlayedNote } from '../../core/improvFigures.ts';
+import { steadyGrid } from '../../core/smfWrite.ts';
 import { useT } from '../../i18n/index.ts';
 import { useInput } from '../input/context.ts';
+import { saveMidi } from '../pieces/saveMidi.ts';
+import { SaveMidiButton } from '../pieces/SaveMidiButton.tsx';
 import { useLogFormat } from '../progress/format.ts';
 import { useReadFormat } from '../read/format.ts';
 import { useHarmonyFormat } from './format.ts';
@@ -69,6 +72,7 @@ export function ImprovFeedback({
             className="button"
           />
         )}
+        {session && <SaveImprovMidi session={session} controller={controller} />}
         <button type="button" className="button button-primary" onClick={onAgain}>
           {t('harmony.improv.again')}
         </button>
@@ -114,6 +118,46 @@ export function PlayBackButton({
         )}
       </button>
       {view.missing === session.id && (
+        <span className="help improv-missing" role="status">
+          {t('harmony.improv.playBack.none')}
+        </span>
+      )}
+    </>
+  );
+}
+
+/**
+ * Save a session's take as a MIDI file (docs/PIECES.md, "A take as a MIDI file"): the player's
+ * keys on the backing's beat, in 4/4 at its tempo from the first bar's 1. The backing is not in
+ * the take, so it is not in the file.
+ */
+export function SaveImprovMidi({
+  session,
+  controller,
+}: {
+  session: ImprovSession;
+  controller: ImprovController;
+}) {
+  const t = useT();
+  const format = useImprovFormat();
+  const [missing, setMissing] = useState(false);
+  async function save() {
+    const take = await controller.take(session);
+    const saved =
+      take !== null &&
+      saveMidi({
+        title: format.title(session.backing, session.key),
+        events: take.events,
+        startedAt: take.startedAt,
+        latency: take.latency,
+        grid: steadyGrid(session.bpm),
+      });
+    setMissing(!saved);
+  }
+  return (
+    <>
+      <SaveMidiButton onClick={() => void save()} help={t('harmony.improv.saveMidi.help')} />
+      {missing && (
         <span className="help improv-missing" role="status">
           {t('harmony.improv.playBack.none')}
         </span>

@@ -879,6 +879,7 @@ export const ko: Dictionary = {
   'harmony.improv.playBack.stop': '다시 듣기 멈추기',
   'harmony.improv.playBack.loading': '테이크를 읽는 중…',
   'harmony.improv.playBack.none': '이 즉흥 연주의 테이크가 이 기기에 없어요.',
+  'harmony.improv.saveMidi.help': '친 내용을 MIDI 파일로 저장해요. 반주는 들어 있지 않아요.',
   'harmony.improv.again': '다시 하기',
   'harmony.improv.change': '반주 바꾸기',
   'harmony.improv.yours': '내 즉흥 연주',
@@ -1858,6 +1859,9 @@ export const ko: Dictionary = {
   'pieces.playback.compare.help':
     '악보대로의 소리를 이 연주의 템포로 먼저 들려주고, 이어서 내 연주를 들려줘요. 마디마다 또는 한 번에 비교해요. 구간 반복은 첫 바퀴로 비교해요.',
   'pieces.playback.close': '닫기',
+  'pieces.saveMidi': 'MIDI로 저장',
+  'pieces.saveMidi.help':
+    '친 그대로 MIDI 파일로 저장해요. 건반마다 세기와 누르고 있던 길이, 페달까지 그대로예요. 다른 프로그램에서 열거나 선생님께 보낼 수 있어요.',
 
   'pieces.memory.stage': '악보',
   'pieces.memory.stage.all': '모두 보이기',

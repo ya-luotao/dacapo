@@ -11,6 +11,7 @@ import type { ExpressionAspect } from './expressionPrefs.ts';
 import type { PieceFormat } from './format.ts';
 import { PlayBackButton } from './PlayBackButton.tsx';
 import { RunList } from './RunList.tsx';
+import { SaveMidiButton } from './SaveMidiButton.tsx';
 import { usePieceRuns, useRunFacts, useRunTake } from './runs.ts';
 import { usePracticeStore } from '../practice/context.ts';
 
@@ -18,6 +19,14 @@ import { usePracticeStore } from '../practice/context.ts';
 export interface PastTake {
   events: readonly TakeEvent[];
   latency: number;
+}
+
+/** What saving a past run as a MIDI file needs of its take. */
+export interface PastMidiTake extends PastTake {
+  /** Epoch ms of the take's time 0. */
+  startedAt: number;
+  /** Played on the piece's notes as they are now: its steps can be read against the score. */
+  sameNotes: boolean;
 }
 
 /**
@@ -35,6 +44,7 @@ export function YourRuns({
   onMelody,
   onLoopBars,
   onPlayBack,
+  onSaveMidi,
   onClose,
 }: {
   pieceId: string;
@@ -51,13 +61,15 @@ export function YourRuns({
   onLoopBars: (from: number, to: number) => void;
   /** Plays a run back; absent without an output to play it on. */
   onPlayBack?: (run: PieceSessionRecord, take: PastTake) => void;
+  /** Saves a run as a MIDI file; false when its take has nothing to save. */
+  onSaveMidi: (run: PieceSessionRecord, take: PastMidiTake) => boolean;
   onClose: () => void;
 }) {
   const t = useT();
   const log = useLogFormat();
   const store = usePracticeStore();
   const runs = usePieceRuns(pieceId);
-  /** A row's take being read, or why it cannot be played back. */
+  /** A row's take being read, or why it cannot be played back or saved. */
   const [notice, setNotice] = useState<{ id: string; text: string } | null>(null);
 
   async function playBack(run: PieceSessionRecord) {
@@ -78,6 +90,22 @@ export function YourRuns({
     }
     setNotice(null);
     onPlayBack(run, { events: takeEvents(chunks), latency: chunks[0]!.latency ?? 0 });
+  }
+
+  /** A run saved needs no output, and a run of other notes than the piece has now is saved too. */
+  async function saveMidi(run: PieceSessionRecord) {
+    setNotice({ id: run.id, text: t('pieces.runs.loading') });
+    const chunks = await store.takes({ sessionId: run.id }).catch(() => null);
+    const saved =
+      chunks &&
+      chunks.length > 0 &&
+      onSaveMidi(run, {
+        events: takeEvents(chunks),
+        latency: chunks[0]!.latency ?? 0,
+        startedAt: chunks[0]!.startedAt,
+        sameNotes: chunks[0]!.checksum === checksum && (run.leftHand ?? 'written') === leftHand,
+      });
+    setNotice(saved ? null : { id: run.id, text: t('pieces.runs.noTake') });
   }
   const facts = useRunFacts();
   const [open, setOpen] = useState<PieceSessionRecord | null>(null);
@@ -123,6 +151,7 @@ export function YourRuns({
           onMelody={onMelody}
           onLoopBars={onLoopBars}
           onPlayBack={onPlayBack && ((take) => onPlayBack(open, take))}
+          onSaveMidi={(take) => onSaveMidi(open, take)}
         />
       ) : (
         <RunList
@@ -130,6 +159,7 @@ export function YourRuns({
           actions={(run) => (
             <>
               {onPlayBack && <PlayBackButton compact onClick={() => void playBack(run)} />}
+              <SaveMidiButton compact onClick={() => void saveMidi(run)} />
               {aspects.length > 0 && (
                 <button type="button" className="button is-compact" onClick={() => setOpen(run)}>
                   {t('pieces.expression')}
@@ -159,6 +189,7 @@ function PastRun({
   onMelody,
   onLoopBars,
   onPlayBack,
+  onSaveMidi,
 }: {
   run: PieceSessionRecord;
   checksum: string;
@@ -172,6 +203,7 @@ function PastRun({
   onMelody: (melody: Melody) => void;
   onLoopBars: (from: number, to: number) => void;
   onPlayBack?: (take: PastTake) => void;
+  onSaveMidi: (take: PastMidiTake) => boolean;
 }) {
   const t = useT();
   const take = useRunTake(run.id, checksum);
@@ -196,11 +228,24 @@ function PastRun({
   if (take.state === 'loading') return <p className="muted">{t('pieces.runs.loading')}</p>;
   if (take.state === 'none') return <p className="muted">{t('pieces.runs.noTake')}</p>;
   if (take.state === 'changed') return <p className="muted">{t('pieces.runs.changed')}</p>;
-  const playButton = onPlayBack && (
+  const playButton = (
     <p className="your-runs-play">
-      <PlayBackButton
+      {onPlayBack && (
+        <PlayBackButton
+          compact
+          onClick={() => onPlayBack({ events: take.events, latency: take.latency })}
+        />
+      )}
+      <SaveMidiButton
         compact
-        onClick={() => onPlayBack({ events: take.events, latency: take.latency })}
+        onClick={() =>
+          onSaveMidi({
+            events: take.events,
+            latency: take.latency,
+            startedAt: take.chunks[0]!.startedAt,
+            sameNotes: true,
+          })
+        }
       />
     </p>
   );

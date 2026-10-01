@@ -882,6 +882,7 @@ export const ja: Dictionary = {
   'harmony.improv.playBack.stop': '再生を止める',
   'harmony.improv.playBack.loading': 'テイクを読み込み中…',
   'harmony.improv.playBack.none': 'この即興のテイクはこの端末にありません。',
+  'harmony.improv.saveMidi.help': '弾いた内容をMIDIファイルとして保存します。伴奏は入りません。',
   'harmony.improv.again': 'もう一度',
   'harmony.improv.change': '伴奏を変える',
   'harmony.improv.yours': 'これまでの即興演奏',
@@ -1880,6 +1881,9 @@ export const ja: Dictionary = {
   'pieces.playback.compare.help':
     '楽譜どおりの音をこの演奏のテンポで流してから、あなたの演奏を流します。1小節ずつ、またはまとめて比べます。ループは1周目で比べます。',
   'pieces.playback.close': '閉じる',
+  'pieces.saveMidi': 'MIDIで保存',
+  'pieces.saveMidi.help':
+    'この演奏を弾いたとおりにMIDIファイルとして保存します。鍵ごとの強さと押さえていた長さ、ペダルもそのままです。ほかのソフトで開いたり、先生に送ったりできます。',
 
   'pieces.memory.stage': '楽譜',
   'pieces.memory.stage.all': 'すべて表示',

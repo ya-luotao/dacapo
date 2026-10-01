@@ -15,6 +15,19 @@ click's tempo and grid of scale runs played with it (from version 7), the takes 
 (from version 8), and assignments and kept reports (from version 9). Version 1 to 8 files still
 import.
 
+### A run as a MIDI file (G6b, [docs/PIECES.md](docs/PIECES.md))
+
+- **Save as MIDI**, beside Play back on both summaries and on each of Your runs, and on
+  Improvise's feedback and Your improvisations: the run as a Standard MIDI File, every key with
+  its velocity and its release and the three pedals, to hear in another program, open in a
+  notation program or send to a teacher.
+- A rhythm-mode run carries the score's tempo at the run's percent and its time signatures, a
+  pickup as a bar of its own length, so its bars line up in a notation program; the count-in is
+  left out. A wait or memory run has no beat: it is at ♩ = 120 with every key at its own time.
+- An improvisation is in 4/4 at its backing's tempo. The backing is not in the file.
+- The file is made on the device and named after the piece and the time of the run. Nothing
+  stored, synced or exported changes.
+
 ### Tunes by ear (H5, [docs/HARMONY.md](docs/HARMONY.md))
 
 - **Tunes**, a sixth practice on the Ear page: the melodies of the library's eight lead sheets,

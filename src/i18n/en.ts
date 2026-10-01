@@ -889,6 +889,7 @@ export const en = {
   'harmony.improv.playBack.stop': 'Stop playing back',
   'harmony.improv.playBack.loading': 'Reading the take…',
   'harmony.improv.playBack.none': 'This improvisation’s take is not on this device.',
+  'harmony.improv.saveMidi.help': 'Saves what you played as a MIDI file. The backing is not in it.',
   'harmony.improv.again': 'Again',
   'harmony.improv.change': 'Change the backing',
   'harmony.improv.yours': 'Your improvisations',
@@ -1885,6 +1886,9 @@ export const en = {
   'pieces.playback.compare.help':
     'Plays the bars as written, at the tempo of the run, then as you played them: a bar at a time, or all of them at once. A loop is compared on its first time round.',
   'pieces.playback.close': 'Close',
+  'pieces.saveMidi': 'Save as MIDI',
+  'pieces.saveMidi.help':
+    'Saves the run as a MIDI file, as you played it: each key as hard and as long as you held it, and the pedal. Open it in another program, or send it to your teacher.',
 
   'pieces.memory.stage': 'Score',
   'pieces.memory.stage.all': 'All shown',

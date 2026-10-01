@@ -861,6 +861,7 @@ export const zhTW: Dictionary = {
   'harmony.improv.playBack.stop': '停止回放',
   'harmony.improv.playBack.loading': '正在讀取錄音…',
   'harmony.improv.playBack.none': '這個裝置上沒有這次即興的錄音。',
+  'harmony.improv.saveMidi.help': '把你彈的存成 MIDI 檔，伴奏不在裡面。',
   'harmony.improv.again': '再來一次',
   'harmony.improv.change': '換伴奏',
   'harmony.improv.yours': '你的即興',
@@ -1801,6 +1802,9 @@ export const zhTW: Dictionary = {
   'pieces.playback.compare.help':
     '先照譜、用這一遍的速度彈這些小節，再播你彈的：一小節一小節對照，或整段一起。循環只對照第一輪。',
   'pieces.playback.close': '關閉',
+  'pieces.saveMidi': '存為 MIDI',
+  'pieces.saveMidi.help':
+    '把這一遍照你彈的樣子存成 MIDI 檔：每個鍵的力度、按住多久，還有踏板。可以在別的軟體裡打開，也可以傳給老師。',
 
   'pieces.memory.stage': '樂譜',
   'pieces.memory.stage.all': '全部顯示',

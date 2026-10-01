@@ -237,4 +237,35 @@ describe('improv controller', () => {
     expect(later.getState().playback).toBeNull();
     expect(held()).toBe(0);
   });
+
+  it('hands out a session’s take to be saved: the loop just played, a stored one, or none', async () => {
+    const { clock, controller, options, practice, make } = setup();
+    controller.start({ ...options, latency: 30 });
+    clock.advance(ZERO - START);
+    controller.press(72, 90, ZERO + 20);
+    clock.advance(3000);
+    controller.stop();
+    const session = controller.getState().session!;
+    // The key is still held: the take is not stored yet, and is handed out as it stands.
+    const held = await controller.take(session);
+    expect(held).toMatchObject({ events: [[20, 1, 72, 90, -1]], latency: 30 });
+    expect(held!.startedAt).toBe(EPOCH + ZERO - START);
+    controller.release(72, ZERO + 3300);
+    const events = [
+      [20, 1, 72, 90, -1],
+      [3300, 0, 72],
+    ];
+    expect((await controller.take(session))!.events).toEqual(events);
+
+    // From storage, on another visit to the page.
+    controller.close();
+    await practice.settled();
+    const later = make();
+    expect(await later.take(session)).toEqual({
+      events,
+      latency: 30,
+      startedAt: EPOCH + ZERO - START,
+    });
+    expect(await later.take({ ...session, id: 'elsewhere' })).toBeNull();
+  });
 });

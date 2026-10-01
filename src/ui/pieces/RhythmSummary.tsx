@@ -9,6 +9,7 @@ import { SENTENCE_GAP, useI18n } from '../../i18n/index.ts';
 import { DeviationChart } from './DeviationChart.tsx';
 import type { PieceFormat } from './format.ts';
 import { PlayBackButton } from './PlayBackButton.tsx';
+import { SaveMidiButton } from './SaveMidiButton.tsx';
 
 interface RhythmSummaryProps {
   summary: Summary;
@@ -25,6 +26,8 @@ interface RhythmSummaryProps {
   expression?: ReactNode;
   /** Plays the run back (absent when nothing of it was kept). */
   onPlayBack?: () => void;
+  /** Saves the run as a MIDI file (absent when nothing of it was kept). */
+  onSaveMidi?: () => void;
 }
 
 /** The end of a rhythm run: the figures, the tendency, where the tempo moved, and every note. */
@@ -38,6 +41,7 @@ export function RhythmSummary({
   onClose,
   expression,
   onPlayBack,
+  onSaveMidi,
 }: RhythmSummaryProps) {
   const { t, locale } = useI18n();
   const heading = useRef<HTMLHeadingElement>(null);
@@ -102,6 +106,7 @@ export function RhythmSummary({
             </button>
           )}
           {onPlayBack && <PlayBackButton onClick={onPlayBack} compact />}
+          {onSaveMidi && <SaveMidiButton onClick={onSaveMidi} compact />}
           <button type="button" className="button is-compact" onClick={onClose}>
             {t('pieces.weak.table.close')}
           </button>

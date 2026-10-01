@@ -5,6 +5,7 @@ import { useT } from '../../i18n/index.ts';
 import { useLogFormat } from '../progress/format.ts';
 import type { usePieceFormat } from './format.ts';
 import { PlayBackButton } from './PlayBackButton.tsx';
+import { SaveMidiButton } from './SaveMidiButton.tsx';
 
 interface RunSummaryProps {
   summary: Summary;
@@ -19,6 +20,8 @@ interface RunSummaryProps {
   expression?: ReactNode;
   /** Plays the run back (absent when nothing of it was kept). */
   onPlayBack?: () => void;
+  /** Saves the run as a MIDI file (absent when nothing of it was kept). */
+  onSaveMidi?: () => void;
 }
 
 /** The end of a run: a sheet laid over the score. */
@@ -31,6 +34,7 @@ export function RunSummary({
   onLoopBar,
   expression,
   onPlayBack,
+  onSaveMidi,
 }: RunSummaryProps) {
   const t = useT();
   const log = useLogFormat();
@@ -114,6 +118,7 @@ export function RunSummary({
           </button>
         )}
         {onPlayBack && <PlayBackButton onClick={onPlayBack} />}
+        {onSaveMidi && <SaveMidiButton onClick={onSaveMidi} />}
       </div>
       {expression}
     </section>

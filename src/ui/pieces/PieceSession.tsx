@@ -28,6 +28,7 @@ import {
 import type { TrillStart } from '../../core/ornaments.ts';
 import { isProgressionPieceId } from '../../core/progressions.ts';
 import { rhythmPlan } from '../../core/rhythm.ts';
+import { runGrid } from '../../core/smfWrite.ts';
 import {
   PEDALS_UP,
   type PedalPositions,
@@ -95,6 +96,7 @@ import {
   type ExpressionAspect,
 } from './expressionPrefs.ts';
 import { SaveTake } from './SaveTake.tsx';
+import { saveMidi } from './saveMidi.ts';
 import { usePieceRuns } from './runs.ts';
 import { YourRuns } from './YourRuns.tsx';
 import { PlaybackBar, type CompareChoice } from './PlaybackBar.tsx';
@@ -837,6 +839,22 @@ export function PieceSession({
     dispatch({ type: 'pauseClock' });
     setPlayback({ source, compare: 'off', data });
     player.play(data.plan, DEMO_VELOCITY);
+  }
+
+  /**
+   * Saves a run as a MIDI file (docs/PIECES.md, "A take as a MIDI file"): a rhythm run on its
+   * beat, read against the score (its bars and steps are the same in every key); any other run,
+   * and one played on other notes than the piece has now, with its own times.
+   */
+  function saveRun(source: PlaybackSource, startedAt: number, sameNotes = true): boolean {
+    const { events, settings } = source;
+    return saveMidi({
+      title: piece.title || t('pieces.untitled'),
+      events,
+      startedAt,
+      latency: settings.latency,
+      grid: source.mode === 'rhythm' && sameNotes ? runGrid({ score, ...settings, events }) : null,
+    });
   }
 
   function togglePlayback() {
@@ -1621,6 +1639,20 @@ export function PieceSession({
                       })
                   : undefined
               }
+              onSaveMidi={
+                run.take
+                  ? () =>
+                      saveRun(
+                        {
+                          events: run.take!.events,
+                          mode: 'wait',
+                          settings: { hands, repeats, loop, tempo, latency: 0, transpose },
+                          startedAt: null,
+                        },
+                        run.take!.startedAt,
+                      )
+                  : undefined
+              }
             />
           )}
           {rhythmSummary && !calibration && !runsOpen && (
@@ -1655,6 +1687,20 @@ export function PieceSession({
                       })
                   : undefined
               }
+              onSaveMidi={
+                rhythm.take && rhythmSettings
+                  ? () =>
+                      saveRun(
+                        {
+                          events: rhythm.take!.events,
+                          mode: 'rhythm',
+                          settings: rhythmSettings,
+                          startedAt: null,
+                        },
+                        rhythm.take!.startedAt,
+                      )
+                  : undefined
+              }
             />
           )}
           {runsOpen && (
@@ -1685,6 +1731,25 @@ export function PieceSession({
                         startedAt: session.startedAt,
                       })
                   : undefined
+              }
+              onSaveMidi={(session, take) =>
+                saveRun(
+                  {
+                    events: take.events,
+                    mode: session.mode === 'rhythm' ? 'rhythm' : 'wait',
+                    settings: {
+                      hands: session.hands,
+                      repeats: session.repeats,
+                      loop: session.loop,
+                      tempo: session.tempo,
+                      latency: take.latency,
+                      transpose: session.transpose ?? 0,
+                    },
+                    startedAt: session.startedAt,
+                  },
+                  take.startedAt,
+                  take.sameNotes,
+                )
               }
               onClose={() => {
                 setRunsOpen(false);

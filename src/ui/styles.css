@@ -7757,6 +7757,17 @@ select.is-compact {
   fill: currentColor;
 }
 
+/* "Save as MIDI", beside it: an arrow down onto a line, drawn in strokes. */
+.save-midi svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .run-notice {
   flex-basis: 100%;
   margin: 0;
@@ -7764,6 +7775,9 @@ select.is-compact {
 }
 
 .your-runs-play {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   margin: 0.75rem 0 0;
 }
 
