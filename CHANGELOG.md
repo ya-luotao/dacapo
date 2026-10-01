@@ -26,6 +26,9 @@ version 10). Version 1 to 9 files still import.
   quiet line names the lesson that explains it (“New to this? Lesson 4, Rhythm and the beat”),
   until you have read it or shown that you know the practice.
 - **The next lesson** is marked on the Learn page, which opens with a way to it.
+- **The level you chose is kept.** Read, Ear and Harmony open each family on the level you
+  picked last, until you have mastered it; then on the suggested one again. A task, a lesson's
+  button or today's plan still opens the level it names.
 - **A finished lesson is a record now**, kept with your practice: it is in the export file, and
   with an account it syncs, so a lesson finished on one device is ticked on the others (on the
   Learn page, in today's plan, in an assignment's checklist and under Where you are). A tick is

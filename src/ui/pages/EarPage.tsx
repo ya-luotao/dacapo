@@ -17,6 +17,7 @@ import {
   type EarLevelProgress,
 } from '../../core/earSession.ts';
 import { isEarAnswer, isRhythmEarAnswer } from '../../core/answers.ts';
+import { openingLevel } from '../../core/levelChoice.ts';
 import { isTuneId } from '../../core/tuneList.ts';
 import { getTune, tuneKey } from '../../core/tunes.ts';
 import {
@@ -139,15 +140,31 @@ function Ear({ search }: { search: string }) {
   const earFamily = prefs.family === 'rhythmEar' ? 'interval' : prefs.family;
   const suggested = suggestedEarLevel(earFamily, progress);
   const rhythmSuggested = suggestedRhythmEarLevel(rhythmProgress);
-  // Follows the suggestion until the user picks a level (one per family).
+  // Each family opens on what the page was opened with, else on the level picked last until
+  // that one is mastered, else on the suggestion; a level picked or started here stays while the
+  // page does.
   const [picked, setPicked] = useState<Partial<Record<EarPrefs['family'], EarLevelId>>>(
     opened && opened.family !== 'rhythmEar' ? { [opened.family]: opened.level } : {},
   );
   const [rhythmPicked, setRhythmPicked] = useState<RhythmEarLevelId | null>(
     opened?.family === 'rhythmEar' ? opened.level : null,
   );
-  const level = picked[earFamily] ?? suggested;
-  const rhythmLevel = rhythmPicked ?? rhythmSuggested;
+  const level =
+    picked[earFamily] ??
+    openingLevel(
+      prefs.levels[earFamily],
+      suggested,
+      levelsOf(earFamily).map((l) => l.id),
+      (id) => progress.get(id)!.mastered,
+    );
+  const rhythmLevel =
+    rhythmPicked ??
+    openingLevel(
+      prefs.levels.rhythmEar,
+      rhythmSuggested,
+      RHYTHM_EAR_LEVEL_IDS,
+      (id) => rhythmProgress.get(id)!.mastered,
+    );
   // A level of the family shown is mastered: its lesson is not named any more (LessonLine).
   const known = anyMastered(
     prefs.family === 'rhythmEar'
@@ -210,6 +227,11 @@ function Ear({ search }: { search: string }) {
     const next = { ...prefs, ...patch };
     setPrefs(next);
     writeEarPrefs(next);
+  }
+
+  /** A level picked (on the setup, or as the next level): kept for the next visit. */
+  function keepLevel(family: EarPrefs['family'], id: string) {
+    changePrefs({ levels: { ...prefs.levels, [family]: id } });
   }
 
   function start(id: EarLevelId, tuneKey: TuneKeyChoice = prefs.tuneKey) {
@@ -286,9 +308,11 @@ function Ear({ search }: { search: string }) {
           summary={rhythmSummary}
           progress={rhythmProgress.get(rhythmSummary.level)!}
           onAgain={() => startRhythm(rhythmSummary.level)}
-          onNextLevel={() =>
-            startRhythm(nextRhythmEarLevel(rhythmSummary.level) ?? rhythmSummary.level)
-          }
+          onNextLevel={() => {
+            const next = nextRhythmEarLevel(rhythmSummary.level) ?? rhythmSummary.level;
+            keepLevel('rhythmEar', next);
+            startRhythm(next);
+          }}
           onChooseLevel={rhythmController.close}
         />
       ) : summary ? (
@@ -296,7 +320,11 @@ function Ear({ search }: { search: string }) {
           summary={summary}
           progress={progress.get(summary.level)!}
           onAgain={() => again(summary)}
-          onNextLevel={() => start(nextEarLevel(summary.level) ?? summary.level)}
+          onNextLevel={() => {
+            const next = nextEarLevel(summary.level) ?? summary.level;
+            keepLevel(getEarLevel(next).family, next);
+            start(next);
+          }}
           onChooseLevel={controller.close}
           onAnotherKey={() => start(summary.level, 'other')}
         />
@@ -326,7 +354,10 @@ function Ear({ search }: { search: string }) {
             progress={progress}
             suggested={suggested}
             onPrefs={changePrefs}
-            onLevel={(id) => setPicked((p) => ({ ...p, [earFamily]: id }))}
+            onLevel={(id) => {
+              setPicked((p) => ({ ...p, [earFamily]: id }));
+              keepLevel(earFamily, id);
+            }}
             onStart={() => {
               if (sound === 'none') return;
               if (prefs.family === 'rhythmEar') startRhythm(rhythmLevel);
@@ -337,7 +368,10 @@ function Ear({ search }: { search: string }) {
               level: rhythmLevel,
               progress: rhythmProgress,
               suggested: rhythmSuggested,
-              onLevel: setRhythmPicked,
+              onLevel: (id) => {
+                setRhythmPicked(id);
+                keepLevel('rhythmEar', id);
+              },
               bpm: tempoOf(rhythmPrefs, rhythmLevel),
               onTempo: (bpm) => {
                 const next = withTempo(readRhythmPrefs(), rhythmLevel, bpm);

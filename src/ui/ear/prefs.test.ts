@@ -13,6 +13,7 @@ describe('ear prefs', () => {
       rhythmBy: 'name',
       rhythmLength: 20,
       tuneKey: 'other',
+      levels: { interval: 'I3', rhythmEar: 'R2', tune: 'trad-amazing-grace' },
     };
     expect(parseEarPrefs(JSON.stringify(stored))).toEqual(stored);
     expect(parseEarPrefs(JSON.stringify({ ...stored, family: 'tune' })).family).toBe('tune');
@@ -22,7 +23,7 @@ describe('ear prefs', () => {
     );
   });
 
-  it('reads what an earlier version stored, without a length of melodies or rhythm or a tune’s key', () => {
+  it('reads what an earlier version stored, without a length of melodies or rhythm, a tune’s key or a level kept', () => {
     const stored = {
       family: 'chord',
       by: 'name',
@@ -36,7 +37,14 @@ describe('ear prefs', () => {
       rhythmBy: 'play',
       rhythmLength: 10,
       tuneKey: 'own',
+      levels: {},
     });
+  });
+
+  it('keeps the level picked for each family, and nothing else under levels', () => {
+    const levels = { chord: 'C2', echo: 'EC3', notes: 'L3', cadence: null, interval: '' };
+    expect(parseEarPrefs(JSON.stringify({ levels })).levels).toEqual({ chord: 'C2', echo: 'EC3' });
+    expect(parseEarPrefs(JSON.stringify({ levels: ['I1'] })).levels).toEqual({});
   });
 
   it('falls back to the default for anything missing, unknown or broken', () => {

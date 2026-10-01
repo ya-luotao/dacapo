@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useState, useSyncExternalStore } from 'react';
 import { isRhythmAnswer, isTheoryAnswer } from '../../core/answers.ts';
 import { anyMastered } from '../../core/curriculum.ts';
+import { openingLevel } from '../../core/levelChoice.ts';
 import { LEVEL_IDS, nextLevel, type LevelId } from '../../core/levels.ts';
 import { levelProgress, suggestedLevel } from '../../core/mastery.ts';
 import { nextRhythmLevel, RHYTHM_LEVEL_IDS, type RhythmLevelId } from '../../core/rhythmCells.ts';
@@ -130,11 +131,15 @@ function Read({ search }: { search: string }) {
   // Someone who plays already begins where their reading does (docs/START.md).
   const [floor] = useState(() => readingFloor(readStartPref()));
   const suggested = suggestedLevel([...progress.values()], floor);
-  // Follows the suggestion until the user picks a level.
+  // Opens on what the page was opened with, else on the level picked last until that one is
+  // mastered (below a player's floor too: a pick is a pick), else on the suggestion; a level
+  // picked or started here stays while the page does.
   const [picked, setPicked] = useState<LevelId | null>(
     opened?.choice === 'notes' ? opened.level : null,
   );
-  const level = picked ?? suggested;
+  const level =
+    picked ??
+    openingLevel(prefs.levels.notes, suggested, LEVEL_IDS, (id) => progress.get(id)!.mastered);
   const [length, setLength] = useState<SessionLength>(DEFAULT_SESSION_LENGTH);
   const [hint, setHint] = useState(false);
 
@@ -157,7 +162,14 @@ function Read({ search }: { search: string }) {
   const [rhythmPicked, setRhythmPicked] = useState<RhythmLevelId | null>(
     opened?.choice === 'rhythm' ? opened.level : null,
   );
-  const rhythmLevel = rhythmPicked ?? suggestedRhythmLevel(rhythmProgress);
+  const rhythmLevel =
+    rhythmPicked ??
+    openingLevel(
+      prefs.levels.rhythm,
+      suggestedRhythmLevel(rhythmProgress),
+      RHYTHM_LEVEL_IDS,
+      (id) => rhythmProgress.get(id)!.mastered,
+    );
   const [rhythmPrefs, setRhythmPrefs] = useState(readRhythmPrefs);
   const sightProgress = useMemo(() => {
     const ofSight = sessions.filter((s) => s.kind === 'sight');
@@ -168,7 +180,14 @@ function Read({ search }: { search: string }) {
   const [sightPicked, setSightPicked] = useState<SightLevelId | null>(
     opened?.choice === 'sight' ? opened.level : null,
   );
-  const sightLevel = sightPicked ?? suggestedSightLevel(sightProgress);
+  const sightLevel =
+    sightPicked ??
+    openingLevel(
+      prefs.levels.sight,
+      suggestedSightLevel(sightProgress),
+      SIGHT_LEVEL_IDS,
+      (id) => sightProgress.get(id)!.mastered,
+    );
   const [sightPrefs, setSightPrefs] = useState(readSightPrefs);
   // The latency is read afresh when the setup shows (a session may have calibrated meanwhile).
   const [, setLatency] = useState<Latency | null>(null);
@@ -176,7 +195,13 @@ function Read({ search }: { search: string }) {
 
   const family = choice === 'notes' || choice === 'rhythm' || choice === 'sight' ? null : choice;
   const theoryLevel = family
-    ? (theoryPicked[family] ?? suggestedTheoryLevel(family, theoryProgress))
+    ? (theoryPicked[family] ??
+      openingLevel(
+        prefs.levels[family],
+        suggestedTheoryLevel(family, theoryProgress),
+        theoryLevelsOf(family).map((l) => l.id),
+        (id) => theoryProgress.get(id)!.mastered,
+      ))
     : null;
   // A level of what is chosen is mastered: its lesson is not named any more (LessonLine).
   const known = anyMastered(
@@ -240,6 +265,11 @@ function Read({ search }: { search: string }) {
     const next = { ...prefs, ...patch };
     setPrefs(next);
     writeReadPrefs(next);
+  }
+
+  /** A level picked (on the setup, or as the next level): kept for the next visit. */
+  function keepLevel(of: ReadChoice, id: string) {
+    changePrefs({ levels: { ...prefs.levels, [of]: id } });
   }
 
   function start(next: LevelId) {
@@ -352,7 +382,11 @@ function Read({ search }: { search: string }) {
           summary={summary}
           progress={progress.get(summary.level)!}
           onAgain={() => start(summary.level)}
-          onNextLevel={() => start(nextLevel(summary.level) ?? summary.level)}
+          onNextLevel={() => {
+            const next = nextLevel(summary.level) ?? summary.level;
+            keepLevel('notes', next);
+            start(next);
+          }}
           onChooseLevel={controller.close}
         />
       ) : rhythmSummary ? (
@@ -360,9 +394,11 @@ function Read({ search }: { search: string }) {
           summary={rhythmSummary}
           progress={rhythmProgress.get(rhythmSummary.level)!}
           onAgain={() => startRhythm(rhythmSummary.level)}
-          onNextLevel={() =>
-            startRhythm(nextRhythmLevel(rhythmSummary.level) ?? rhythmSummary.level)
-          }
+          onNextLevel={() => {
+            const next = nextRhythmLevel(rhythmSummary.level) ?? rhythmSummary.level;
+            keepLevel('rhythm', next);
+            startRhythm(next);
+          }}
           onChooseLevel={rhythm.close}
         />
       ) : sightSummary ? (
@@ -370,7 +406,11 @@ function Read({ search }: { search: string }) {
           summary={sightSummary}
           progress={sightProgress.get(sightSummary.level)!}
           onAgain={() => startSight(sightSummary.level)}
-          onNextLevel={() => startSight(nextSightLevel(sightSummary.level) ?? sightSummary.level)}
+          onNextLevel={() => {
+            const next = nextSightLevel(sightSummary.level) ?? sightSummary.level;
+            keepLevel('sight', next);
+            startSight(next);
+          }}
           onChooseLevel={sight.close}
         />
       ) : theorySummary ? (
@@ -378,9 +418,11 @@ function Read({ search }: { search: string }) {
           summary={theorySummary}
           progress={theoryProgress.get(theorySummary.level)!}
           onAgain={() => startTheory(theorySummary.level)}
-          onNextLevel={() =>
-            startTheory(nextTheoryLevel(theorySummary.level) ?? theorySummary.level)
-          }
+          onNextLevel={() => {
+            const next = nextTheoryLevel(theorySummary.level) ?? theorySummary.level;
+            keepLevel(getTheoryLevel(next).family, next);
+            startTheory(next);
+          }}
           onChooseLevel={theory.close}
         />
       ) : (
@@ -407,7 +449,10 @@ function Read({ search }: { search: string }) {
                 progress={rhythmProgress}
                 suggested={suggestedRhythmLevel(rhythmProgress)}
                 latency={readLatency()}
-                onLevel={setRhythmPicked}
+                onLevel={(id) => {
+                  setRhythmPicked(id);
+                  keepLevel('rhythm', id);
+                }}
                 onTempo={(bpm) => changeRhythmPrefs(withTempo(rhythmPrefs, rhythmLevel, bpm))}
                 onPrefs={changeRhythmPrefs}
                 onCalibrate={() => setCalibrating(true)}
@@ -435,7 +480,10 @@ function Read({ search }: { search: string }) {
                 progress={sightProgress}
                 suggested={suggestedSightLevel(sightProgress)}
                 latency={readLatency()}
-                onLevel={setSightPicked}
+                onLevel={(id) => {
+                  setSightPicked(id);
+                  keepLevel('sight', id);
+                }}
                 onTempo={(bpm) => changeSightPrefs(withSightTempo(sightPrefs, sightLevel, bpm))}
                 onPrefs={changeSightPrefs}
                 onCalibrate={() => setCalibrating(true)}
@@ -464,7 +512,10 @@ function Read({ search }: { search: string }) {
               chordBy={prefs.chordBy}
               progress={theoryProgress}
               suggested={suggestedTheoryLevel(family, theoryProgress)}
-              onLevel={(id) => setTheoryPicked((p) => ({ ...p, [family]: id }))}
+              onLevel={(id) => {
+                setTheoryPicked((p) => ({ ...p, [family]: id }));
+                keepLevel(family, id);
+              }}
               onLength={setLength}
               onHint={setHint}
               onChordBy={(chordBy) => changePrefs({ chordBy })}
@@ -477,7 +528,10 @@ function Read({ search }: { search: string }) {
               hint={hint}
               progress={progress}
               suggested={suggested}
-              onLevel={setPicked}
+              onLevel={(id) => {
+                setPicked(id);
+                keepLevel('notes', id);
+              }}
               onLength={setLength}
               onHint={setHint}
               onStart={() => start(level)}

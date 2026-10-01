@@ -1,4 +1,5 @@
 import { ANSWER_MODES, type AnswerMode } from '../../core/earSession.ts';
+import { keptLevels } from '../../core/levelChoice.ts';
 import { THEORY_FAMILIES, type TheoryFamily } from '../../core/theoryItems.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
 
@@ -24,11 +25,16 @@ export interface ReadPrefs {
   choice: ReadChoice;
   /** How chords are answered: played as written (the default) or named. */
   chordBy: AnswerMode;
+  /**
+   * The level picked last for each choice: its setup opens on it until that level is mastered
+   * (core/levelChoice.ts). A choice not here follows the level suggested.
+   */
+  levels: Partial<Record<ReadChoice, string>>;
 }
 
 export const READ_PREFS_KEY = 'dacapo.read';
 
-export const DEFAULT_READ_PREFS: ReadPrefs = { choice: 'notes', chordBy: 'play' };
+export const DEFAULT_READ_PREFS: ReadPrefs = { choice: 'notes', chordBy: 'play', levels: {} };
 
 const oneOf = <T>(values: readonly T[], value: unknown, fallback: T): T =>
   values.includes(value as T) ? (value as T) : fallback;
@@ -45,6 +51,7 @@ export function parseReadPrefs(text: string | null): ReadPrefs {
   return {
     choice: oneOf(READ_CHOICES, stored.choice, DEFAULT_READ_PREFS.choice),
     chordBy: oneOf(ANSWER_MODES, stored.chordBy, DEFAULT_READ_PREFS.chordBy),
+    levels: keptLevels(stored.levels, READ_CHOICES),
   };
 }
 

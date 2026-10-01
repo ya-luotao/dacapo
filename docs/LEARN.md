@@ -146,8 +146,8 @@ Fine") are replaced by what works in Chinese.
 
 ## Lessons and practice, joined (G3)
 
-Status: built, but for the kept level and the lessons in Traditional Chinese (the last two
-points below). A lesson ended with **Practise it**, which opened a page and left the reader to
+Status: built, but for the lessons in Traditional Chinese (the last point below), whose texts
+are being written. A lesson ended with **Practise it**, which opened a page and left the reader to
 find the level; no practice said which lesson explains it; the Learn page did not say which
 lesson comes next; and the tick stayed on one device. G3 joins them, by the table in
 [TODAY.md](TODAY.md) (`core/curriculum.ts`: which lesson opens which practice).
@@ -356,6 +356,18 @@ lesson comes next; and the tick stayed on one device. G3 joins them, by the tabl
   before its minutes, in the ink of the text, and is the list's current step for a screen
   reader. Over the list: "Begin: lesson 1, …" while no lesson is ticked, "Continue: lesson 5,
   …" after, nothing once all fifteen are. The line's place is kept while the ticks are read.
+- **The level kept** (`core/levelChoice.ts`) is stored with the page's other choices: `levels`,
+  by family, in `dacapo.read` and `dacapo.ear`, and `level` in `dacapo.harmony`. It is written
+  when a level is picked on the setup, and by a summary's **Next level**, which is a pick too;
+  Start, **Again** and a page opened with settings write nothing. On opening, a page takes the
+  settings it was opened with, else the level kept while that level is one of the family's and
+  not mastered, else the level suggested. A level mastered is not forgotten, only passed over:
+  should its mastery lapse (it is judged on the latest answers), the page opens on it again. A
+  level picked or started stays chosen for as long as the page is open, as before. Scales and
+  the pieces have no levels: they keep what they kept (the exercise, each piece's settings).
+  For Read's notes the level suggested is the one with a player's floor (START.md), and a
+  level picked below the floor is kept like any other: the pick wins until it is mastered,
+  and the page then opens on the floor's suggestion.
 
 ## Pictures
 

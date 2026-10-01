@@ -24,6 +24,7 @@ import {
   type RhythmEarMode,
   type RhythmEarSessionLength,
 } from '../../core/rhythmEar.ts';
+import { keptLevels } from '../../core/levelChoice.ts';
 import { DEFAULT_SESSION_LENGTH, SESSION_LENGTHS, type SessionLength } from '../../core/session.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
 
@@ -51,6 +52,11 @@ export interface EarPrefs {
   rhythmLength: RhythmEarSessionLength;
   /** Tunes: in the lead sheet's key, or in another. */
   tuneKey: TuneKeyChoice;
+  /**
+   * The level (or tune) picked last for each family: its setup opens on it until that level is
+   * mastered (core/levelChoice.ts). A family not here follows the level suggested.
+   */
+  levels: Partial<Record<EarPageFamily, string>>;
 }
 
 export const EAR_PREFS_KEY = 'dacapo.ear';
@@ -65,6 +71,7 @@ export const DEFAULT_EAR_PREFS: EarPrefs = {
   rhythmBy: 'play',
   rhythmLength: DEFAULT_RHYTHM_EAR_SESSION_LENGTH,
   tuneKey: 'own',
+  levels: {},
 };
 
 const oneOf = <T>(values: readonly T[], value: unknown, fallback: T): T =>
@@ -90,6 +97,7 @@ export function parseEarPrefs(text: string | null): EarPrefs {
     rhythmBy: oneOf(RHYTHM_EAR_MODES, stored.rhythmBy, d.rhythmBy),
     rhythmLength: oneOf(RHYTHM_EAR_SESSION_LENGTHS, stored.rhythmLength, d.rhythmLength),
     tuneKey: oneOf(TUNE_KEYS, stored.tuneKey, d.tuneKey),
+    levels: keptLevels(stored.levels, EAR_PAGE_FAMILIES),
   };
 }
 

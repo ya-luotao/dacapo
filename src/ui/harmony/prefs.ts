@@ -1,3 +1,4 @@
+import { isHarmonyLevelId, type HarmonyLevelId } from '../../core/chordSymbols.ts';
 import {
   isPatternId,
   isProgressionId,
@@ -11,10 +12,10 @@ import { DEFAULT_PROGRESSION_BPM } from '../../core/progressionXml.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
 import { HARMONY_PRACTICES, type HarmonyPractice } from './practices.ts';
 
-// The Harmony page's choices, remembered in this browser: the practice shown, the progression,
-// key, pattern and tempo chosen last, and the tempo each progression was last opened at (the
-// tempo is written into the score, not into its id: docs/HARMONY.md, "Clarifications (decided
-// during H2)").
+// The Harmony page's choices, remembered in this browser: the practice shown, the chord-symbol
+// level picked last, the progression, key, pattern and tempo chosen last, and the tempo each
+// progression was last opened at (the tempo is written into the score, not into its id:
+// docs/HARMONY.md, "Clarifications (decided during H2)").
 
 export const HARMONY_PREFS_KEY = 'dacapo.harmony';
 const TEMPOS_KEY = 'dacapo.harmony.tempos';
@@ -30,6 +31,11 @@ export interface HarmonyPrefs {
   minorKey: ProgressionKey;
   pattern: PatternId;
   bpm: number;
+  /**
+   * The chord-symbol level picked last: Chords opens on it until it is mastered
+   * (core/levelChoice.ts); null follows the level suggested.
+   */
+  level: HarmonyLevelId | null;
 }
 
 export const DEFAULT_HARMONY_PREFS: HarmonyPrefs = {
@@ -39,6 +45,7 @@ export const DEFAULT_HARMONY_PREFS: HarmonyPrefs = {
   minorKey: 'Am',
   pattern: 'block',
   bpm: DEFAULT_PROGRESSION_BPM,
+  level: null,
 };
 
 const isTempo = (v: unknown): v is number => (PROGRESSION_TEMPOS as readonly unknown[]).includes(v);
@@ -71,6 +78,7 @@ export function parseHarmonyPrefs(text: string | null): HarmonyPrefs {
       : d.minorKey,
     pattern: isPatternId(s.pattern) ? s.pattern : d.pattern,
     bpm: isTempo(s.bpm) ? s.bpm : d.bpm,
+    level: isHarmonyLevelId(s.level) ? s.level : d.level,
   };
 }
 

@@ -21,6 +21,7 @@ import {
   summarizeHarmony,
   type HarmonyLevelProgress,
 } from '../../core/harmonySession.ts';
+import { openingLevel } from '../../core/levelChoice.ts';
 import { DEFAULT_SESSION_LENGTH, type SessionLength } from '../../core/session.ts';
 import { PEDALS_UP, type PedalPositions } from '../../core/takes.ts';
 import { useT } from '../../i18n/index.ts';
@@ -98,17 +99,20 @@ function Harmony({ search }: { search: string }) {
     );
   }, [answers]);
   const suggested = suggestedHarmonyLevel(progress, HARMONY_LEVEL_IDS);
-  // Follows the suggestion until the user picks a level.
   // Opened on a level: that one, on Chords, in place of the suggestion and the practice shown last.
   const [opened] = useState(() => startLevel(search));
   const [picked, setPicked] = useState<HarmonyLevelId | null>(opened);
-  const level = picked ?? suggested;
   const [length, setLength] = useState<SessionLength>(DEFAULT_SESSION_LENGTH);
   const [hint, setHint] = useState(false);
   const [prefs, setPrefs] = useState(() => {
     const stored = readHarmonyPrefs();
     return opened ? { ...stored, practice: 'chords' as const } : stored;
   });
+  // Else on the level picked last until that one is mastered, else on the suggestion; a level
+  // picked or started here stays while the page does.
+  const level =
+    picked ??
+    openingLevel(prefs.level, suggested, HARMONY_LEVEL_IDS, (id) => progress.get(id)!.mastered);
   const choose = useId();
 
   function changePrefs(patch: Partial<HarmonyPrefs>) {
@@ -212,7 +216,11 @@ function Harmony({ search }: { search: string }) {
           summary={summary}
           progress={progress.get(summary.level)!}
           onAgain={() => start(summary.level)}
-          onNextLevel={() => start(nextHarmonyLevel(summary.level) ?? summary.level)}
+          onNextLevel={() => {
+            const next = nextHarmonyLevel(summary.level) ?? summary.level;
+            changePrefs({ level: next });
+            start(next);
+          }}
           onChooseLevel={controller.close}
         />
       ) : (
@@ -237,7 +245,11 @@ function Harmony({ search }: { search: string }) {
                 hint={hint}
                 progress={progress}
                 suggested={suggested}
-                onLevel={setPicked}
+                onLevel={(id) => {
+                  // A level picked is kept for the next visit.
+                  setPicked(id);
+                  changePrefs({ level: id });
+                }}
                 onLength={setLength}
                 onHint={setHint}
                 onStart={() => start(level)}
