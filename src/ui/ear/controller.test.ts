@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { givenKey, targetKey, type PlannedNote } from '../../core/earItems.ts';
-import { seededRng } from '../../core/random.ts';
+import { TONIC_CHORD_MS } from '../../core/earMelody.ts';
+import { seededRng, type Rng } from '../../core/random.ts';
+import { tunePrompt } from '../../core/tunes.ts';
 import { createPracticeStore } from '../practice/store.ts';
 import {
   ADVANCE_DELAY_MS,
@@ -19,7 +21,15 @@ const INTERVALS: EarConfig = {
   length: 10,
 };
 
-function setup() {
+const GRACE: EarConfig = {
+  level: 'trad-amazing-grace',
+  by: 'name',
+  directions: [],
+  chordStyle: 'broken',
+  length: 50,
+};
+
+function setup(rng: Rng = seededRng(9)) {
   const practice = createPracticeStore();
   const timers = new Map<number, { run: () => void; ms: number }>();
   let nextTimer = 1;
@@ -35,7 +45,7 @@ function setup() {
     },
     clock: () => time,
     now: () => 1_700_000_000_000,
-    rng: seededRng(9),
+    rng,
     newId: () => `s${++ids}`,
     setTimer: (run, ms) => {
       timers.set(nextTimer, { run, ms });
@@ -272,5 +282,142 @@ describe('ear controller', () => {
     controller.interrupted();
     expect(state().listening).toBe(false);
     expect(timers.size).toBe(0);
+  });
+});
+
+describe('ear controller: a tune', () => {
+  const midis = (notes: readonly PlannedNote[]) => notes.map((n) => n.midi);
+
+  it('plays a phrase after the chord of its key, in its own rhythm, and takes it back', () => {
+    const { controller, practice, played, card, now, listen, wait, state } = setup();
+    controller.start(GRACE);
+    // Played back, every phrase and the whole of it, whatever the page asked for.
+    expect(state().session).toMatchObject({
+      family: 'tune',
+      by: 'play',
+      length: 5,
+      key: { tonic: 'G', scale: 'major' },
+    });
+    const first = tunePrompt('tune:trad-amazing-grace:1', 0);
+    expect(card().prompt).toEqual(first);
+    expect(midis(played[0]!.notes)).toEqual([55, 59, 62, ...first.notes]);
+    // The chord, a beat's rest, then the line: the window opens at its last note-on.
+    const lead = TONIC_CHORD_MS + first.tune.restMs;
+    expect(played[0]!.notes[3]).toMatchObject({ midi: 62, on: lead });
+    expect(card().opensAt).toBe(now() + FIRST_LEAD_MS + lead + first.tune.events.at(-1)!.on);
+    listen();
+    for (const midi of first.notes.slice(0, -1)) controller.press(midi, now() + 100);
+    expect(practice.getSnapshot().answers).toEqual([]);
+    controller.press(first.notes.at(-1)!, now() + 4000);
+    expect(practice.getSnapshot().answers).toEqual([
+      expect.objectContaining({
+        family: 'tune',
+        level: 'trad-amazing-grace',
+        item: 'tune:trad-amazing-grace:1',
+        correct: true,
+        key: { tonic: 'G', scale: 'major' },
+      }),
+    ]);
+    // The next phrase, not one drawn by weakness.
+    wait(ADVANCE_DELAY_MS);
+    expect(card()).toMatchObject({ index: 1, status: 'waiting', played: [] });
+    expect(card().prompt.item).toBe('tune:trad-amazing-grace:2');
+  });
+
+  it('in another key: one key drawn for the session, from its first phrase to the whole', () => {
+    // The first lot of the draw: six semitones down, D flat major.
+    const { controller, practice, card, now, listen, wait, state } = setup(() => 0);
+    controller.start({ ...GRACE, tuneKey: 'other' });
+    expect(state().session.key).toEqual({ tonic: 'Db', scale: 'major' });
+    const items: string[] = [];
+    while (state().session.phase === 'running') {
+      const { prompt } = card();
+      items.push(prompt.item);
+      expect(prompt).toEqual(tunePrompt(prompt.item, -6));
+      listen();
+      for (const midi of prompt.notes) controller.press(midi, now() + 50);
+      wait(ADVANCE_DELAY_MS);
+    }
+    expect(items).toEqual([
+      'tune:trad-amazing-grace:1',
+      'tune:trad-amazing-grace:2',
+      'tune:trad-amazing-grace:3',
+      'tune:trad-amazing-grace:4',
+      'tune:trad-amazing-grace:whole',
+    ]);
+    const { answers, sessions } = practice.getSnapshot();
+    expect(answers).toEqual(
+      Array(5).fill(expect.objectContaining({ key: { tonic: 'Db', scale: 'major' } })),
+    );
+    expect(sessions).toEqual([
+      expect.objectContaining({
+        kind: 'ear',
+        family: 'tune',
+        level: 'trad-amazing-grace',
+        length: 5,
+        items: 5,
+        accuracy: 1,
+        key: { tonic: 'Db', scale: 'major' },
+      }),
+    ]);
+
+    // In its own key nothing is drawn: G major, whatever the rng.
+    controller.start({ ...GRACE, tuneKey: 'own' });
+    expect(state().session.key).toEqual({ tonic: 'G', scale: 'major' });
+    expect(card().prompt.tune?.semitones).toBe(0);
+  });
+
+  it('after a wrong key plays the phrase again alone, and so does Hear again', () => {
+    const { controller, played, card, now, listen } = setup();
+    controller.start(GRACE);
+    listen();
+    const { prompt } = card();
+    // Hear again before the answer: the chord and the phrase, counted.
+    controller.hearAgain();
+    expect(midis(played[1]!.notes)).toEqual([55, 59, 62, ...prompt.notes]);
+    expect(card().replays).toBe(1);
+    listen();
+    controller.press(prompt.notes[0]!, now() + 100);
+    controller.press(prompt.notes[1]! + 2, now() + 200);
+    expect(card()).toMatchObject({ status: 'wrong', answer: [62, 69] });
+    // The correction: the phrase in its rhythm, without the chord.
+    expect(midis(played[2]!.notes)).toEqual(prompt.notes);
+    expect(played[2]!.start).toBe(now() + CORRECTION_LEAD_MS);
+    expect(played[2]!.notes[0]!.on).toBe(0);
+    // Hear again now is the same, and is not counted.
+    controller.hearAgain();
+    expect(midis(played[3]!.notes)).toEqual(prompt.notes);
+    expect(card().replays).toBe(1);
+    listen();
+    controller.press(60, now() + 10);
+    expect(card().prompt.item).toBe('tune:trad-amazing-grace:2');
+  });
+
+  it('plays the phrase the whole tune went wrong in', () => {
+    const { controller, played, practice, card, now, listen, wait } = setup();
+    controller.start(GRACE);
+    for (let i = 0; i < 4; i++) {
+      listen();
+      for (const midi of card().prompt.notes) controller.press(midi, now() + 50);
+      wait(ADVANCE_DELAY_MS);
+    }
+    const { prompt } = card();
+    expect(prompt.item).toBe('tune:trad-amazing-grace:whole');
+    expect(prompt.notes).toHaveLength(35);
+    listen();
+    // Right up to the fourth key of the third line (keys 16–27), which goes wrong.
+    for (const midi of prompt.notes.slice(0, 19)) controller.press(midi, now() + 50);
+    const before = played.length;
+    controller.press(prompt.notes[19]! + 1, now() + 60);
+    expect(card().status).toBe('wrong');
+    expect(practice.getSnapshot().answers.at(-1)).toMatchObject({
+      item: 'tune:trad-amazing-grace:whole',
+      correct: false,
+      answer: [...prompt.notes.slice(0, 19), prompt.notes[19]! + 1],
+    });
+    expect(played).toHaveLength(before + 1);
+    expect(midis(played.at(-1)!.notes)).toEqual(prompt.notes.slice(16, 28));
+    controller.hearAgain();
+    expect(midis(played.at(-1)!.notes)).toEqual(prompt.notes.slice(16, 28));
   });
 });

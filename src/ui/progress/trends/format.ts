@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import type { FamilyLevelId } from '../../../core/answerProgress.ts';
 import { isLevelId } from '../../../core/levels.ts';
 import { isSightLevelId } from '../../../core/sightLevels.ts';
+import { isTuneId } from '../../../core/tuneList.ts';
 import type { TrendPractice, TrendRule } from '../../../core/trends.ts';
 import { useI18n } from '../../../i18n/index.ts';
 import { useFamilyFormat } from '../families/format.tsx';
@@ -50,6 +51,9 @@ export function useTrendFormat() {
       return family.levelName(id as FamilyLevelId);
     };
 
+    /** A level where its id stands: the id, or a tune's title (its id is the library's). */
+    const levelTag = (id: string): string => (isTuneId(id) ? t(`library.${id}.title`) : id);
+
     /** An axis tick: as `value`, a whole spread share without its tenth. */
     const tick = (practice: TrendPractice, v: number): string =>
       practice === 'scales' && Number.isInteger(v) ? whole.format(v / 100) : value(practice, v);
@@ -59,6 +63,7 @@ export function useTrendFormat() {
       tick,
       count,
       levelName,
+      levelTag,
       list: (items: readonly string[]) => list.format(items),
     };
   }, [t, locale, read, family]);

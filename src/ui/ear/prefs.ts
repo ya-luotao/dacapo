@@ -27,9 +27,13 @@ import {
 import { DEFAULT_SESSION_LENGTH, SESSION_LENGTHS, type SessionLength } from '../../core/session.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
 
-/** What the Ear page practises: intervals, chords, melodies, or rhythm (dictation). */
+/** What the Ear page practises: intervals, chords, melodies, cadences, tunes, or rhythm (dictation). */
 export type EarPageFamily = EarFamily | RhythmEarFamily;
 export const EAR_PAGE_FAMILIES: readonly EarPageFamily[] = [...EAR_FAMILIES, RHYTHM_EAR_FAMILY];
+
+/** A tune in the key of its lead sheet, or in another one drawn for the session. */
+export const TUNE_KEYS = ['own', 'other'] as const;
+export type TuneKeyChoice = (typeof TUNE_KEYS)[number];
 
 /** The choices of the Ear page's setup, remembered per browser. */
 export interface EarPrefs {
@@ -45,6 +49,8 @@ export interface EarPrefs {
   rhythmBy: RhythmEarMode;
   /** Bars per session of rhythm. (Its tempo is Read's, per level: `read/rhythmPrefs.ts`.) */
   rhythmLength: RhythmEarSessionLength;
+  /** Tunes: in the lead sheet's key, or in another. */
+  tuneKey: TuneKeyChoice;
 }
 
 export const EAR_PREFS_KEY = 'dacapo.ear';
@@ -58,6 +64,7 @@ export const DEFAULT_EAR_PREFS: EarPrefs = {
   echoLength: DEFAULT_ECHO_SESSION_LENGTH,
   rhythmBy: 'play',
   rhythmLength: DEFAULT_RHYTHM_EAR_SESSION_LENGTH,
+  tuneKey: 'own',
 };
 
 const oneOf = <T>(values: readonly T[], value: unknown, fallback: T): T =>
@@ -82,6 +89,7 @@ export function parseEarPrefs(text: string | null): EarPrefs {
     echoLength: oneOf(ECHO_SESSION_LENGTHS, stored.echoLength, d.echoLength),
     rhythmBy: oneOf(RHYTHM_EAR_MODES, stored.rhythmBy, d.rhythmBy),
     rhythmLength: oneOf(RHYTHM_EAR_SESSION_LENGTHS, stored.rhythmLength, d.rhythmLength),
+    tuneKey: oneOf(TUNE_KEYS, stored.tuneKey, d.tuneKey),
   };
 }
 

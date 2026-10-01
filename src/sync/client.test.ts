@@ -15,6 +15,7 @@ import {
   sampleTake,
   sampleChordSymbolAnswers,
   sampleCadenceSession,
+  sampleTuneSession,
   sampleHarmonySession,
   sampleTheoryAnswers,
   sampleTheorySession,
@@ -653,6 +654,37 @@ describe('ear training', () => {
     expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
     expect(mac.store.getSnapshot().answers).toEqual(cadences.answers);
     expect(mac.store.getSnapshot().sessions).toEqual([cadences.session]);
+  });
+
+  it('syncs a tune played by ear, and pulls it again after a build that skipped it', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    // Amazing Grace in A major: its four phrases and the whole of it.
+    const tune = sampleTuneSession('t1');
+    for (const answer of tune.answers) ipad.store.recordAnswer(answer);
+    ipad.store.recordSession(tune.session);
+    await ipad.store.settled();
+    await signIn(ipad);
+    // The whole tune's answer, the longest there is, goes as it is.
+    expect(service.body('answers', tune.answers[4]!.id)).toEqual(tune.answers[4]);
+    expect(service.body('sessions', tune.session.id)).toEqual(tune.session);
+    await signIn(mac);
+    expect(mac.store.getSnapshot().answers).toEqual(tune.answers);
+    expect(mac.store.getSnapshot().sessions).toEqual([tune.session]);
+
+    // As schema 19 left it: the tune's answers and session skipped, the cursor past them.
+    const state = (await mac.db.get('meta', SYNC_STATE_KEY)) as SyncState;
+    await mac.db.clear('answers');
+    await mac.db.delete('sessions', tune.session.id);
+    await mac.db.put('meta', { ...state, schema: 19 }, SYNC_STATE_KEY);
+    await mac.store.reloadAll();
+    const sync = vi.spyOn(service.api, 'sync');
+    await mac.client.syncNow();
+    expect(SYNC_SCHEMA).toBeGreaterThanOrEqual(20);
+    expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
+    expect(mac.store.getSnapshot().answers).toEqual(tune.answers);
+    expect(mac.store.getSnapshot().sessions).toEqual([tune.session]);
   });
 });
 

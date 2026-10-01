@@ -38,17 +38,21 @@ export function ConfusionGrid({
   const read = useReadFormat();
   const format = useFamilyFormat();
   const id = useId();
-  const echo = family === 'echo';
+  // A melody of Echo and a tune are both played back: the steps into their notes.
+  const echo = family === 'echo' || family === 'tune';
   const dictation = family === 'rhythmEar';
-  const otherKind = echo
-    ? 'echo'
-    : family === 'chordSymbol'
-      ? 'chordSymbol'
-      : dictation
-        ? 'rhythmEar'
-        : family === 'chord' || family === 'readChord'
-          ? 'chord'
-          : 'interval';
+  const otherKind =
+    family === 'tune'
+      ? 'tune'
+      : echo
+        ? 'echo'
+        : family === 'chordSymbol'
+          ? 'chordSymbol'
+          : dictation
+            ? 'rhythmEar'
+            : family === 'chord' || family === 'readChord'
+              ? 'chord'
+              : 'interval';
 
   /** What a cell counts, in words. */
   const sentence = (asked: string, answered: string, count: number, total: number) =>
@@ -73,11 +77,13 @@ export function ConfusionGrid({
       </h4>
       <p className="help cm-help">
         {t(
-          echo
-            ? 'families.confusion.help.echo'
-            : dictation
-              ? 'families.confusion.help.rhythmEar'
-              : 'families.confusion.help',
+          family === 'tune'
+            ? 'families.confusion.help.tune'
+            : echo
+              ? 'families.confusion.help.echo'
+              : dictation
+                ? 'families.confusion.help.rhythmEar'
+                : 'families.confusion.help',
         )}
         {matrix.columns.includes(OTHER) && <> {t(`families.confusion.other.${otherKind}`)}</>}
       </p>

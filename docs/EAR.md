@@ -2,9 +2,11 @@
 
 Status: E1 to E4 are built (the Ear page: intervals, chords and melodies by ear; Read's
 intervals, key signatures and chords on the staff; their progress per family on the Progress
-page), cadences by ear joined the Ear page with H2 ([HARMONY.md](HARMONY.md)), and rhythm
+page), cadences by ear joined the Ear page with H2 ([HARMONY.md](HARMONY.md)), rhythm
 dictation joined it with R2 ([READING.md](READING.md): a bar tapped back or chosen, family
-`rhythmEar`, sessions of kind `ear`); the instrument checks of E0 are still to do on the MP11SE.
+`rhythmEar`, sessions of kind `ear`), and tunes played by ear with H5 ([HARMONY.md](HARMONY.md):
+the lead sheets' melodies phrase by phrase, family `tune`); the instrument checks of E0 are
+still to do on the MP11SE.
 This extends [MVP.md](MVP.md) and [PIECES.md](PIECES.md); their
 principles and fixed decisions still apply (staff first, measure don't guess, local data, English of
 record, every UI language, 3-day dependency cooldown, no backend).
@@ -276,7 +278,7 @@ flats.
 
 - Raw answers are the source of truth. An **answer** record: id, session, family (`interval`,
   `chord`, `echo`, `readInterval`, `keySignature`, `readChord`; `rhythm` and `rhythmEar` of
-  [READING.md](READING.md)), level, item key (for example
+  [READING.md](READING.md); `cadence` and `tune` of [HARMONY.md](HARMONY.md)), level, item key (for example
   `int:M3:up`, `chord:min:1st`, `ks:3f:major`), how it was answered (`play` or `name`), the prompt
   (its keys, or the written notes), the answer (keys played or the name chosen), correct, ms,
   replays, when.
@@ -337,6 +339,9 @@ flats.
   - Cadences (H2, [HARMONY.md](HARMONY.md)): the cadence named, in the order of the levels
     (authentic, plagal, half, deceptive), headed by its two chords (`V–I`, `IV–I`, `…–V`,
     `V–vi`).
+  - Tunes (H5, [HARMONY.md](HARMONY.md)): as melodies, by the step into each note, with the
+    same note again a step of its own (headed `P1`): a tune repeats notes, a melody of Echo
+    never does. Only a leap past the octave is Other.
   - Key signatures: the key played is the key whose tonic it is, major or minor as asked, with the
     fewest sharps or flats (C♯ played is D♭ major, not C♯ major); of the two with six (F♯ and G♭
     major, D♯ and E♭ minor), the one on the side of the key asked (sharps from C major and A

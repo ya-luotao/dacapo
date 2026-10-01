@@ -178,7 +178,7 @@ export function TrendCard({ trend }: { trend: Trend }) {
                           {w.levels.map((l, i) => (
                             <span key={l.level} className="trend-table-level">
                               {i > 0 && ', '}
-                              {l.level} {l.count}
+                              {format.levelTag(l.level)} {l.count}
                             </span>
                           ))}
                         </td>
@@ -226,9 +226,9 @@ function Verdict({ trend, id }: { trend: Trend; id: string }) {
       </p>
       {trend.rule.levels && (comparison.levels.length > 1 || comparison.leftOut.length > 0) && (
         <p className="help trend-within">
-          {t('trends.within', { levels: format.list(comparison.levels) })}
+          {t('trends.within', { levels: format.list(comparison.levels.map(format.levelTag)) })}
           {comparison.leftOut.length > 0 &&
-            ` ${t('trends.leftOut', { levels: format.list(comparison.leftOut) })}`}
+            ` ${t('trends.leftOut', { levels: format.list(comparison.leftOut.map(format.levelTag)) })}`}
         </p>
       )}
     </div>
@@ -241,6 +241,11 @@ function LevelMix({ trend }: { trend: Trend }) {
   const format = useTrendFormat();
   const shares = trend.levels!;
   const percent = (share: number) => format.value('ear', share);
+  /** `EC3 · Up to the octave`; a tune, headed by its title, by that alone. */
+  const levelTitle = (level: string) =>
+    format.levelTag(level) === level
+      ? `${level} · ${format.levelName(level)}`
+      : format.levelName(level);
 
   return (
     <div className="trend-levels">
@@ -251,15 +256,17 @@ function LevelMix({ trend }: { trend: Trend }) {
             key={l.level}
             data-tone={i % 2}
             style={{ flexGrow: l.share }}
-            title={`${l.level} · ${format.levelName(l.level)}: ${percent(l.share)}`}
+            title={`${levelTitle(l.level)}: ${percent(l.share)}`}
           />
         ))}
       </div>
       <ul className="trend-levels-list">
         {shares.map((l) => (
           <li key={l.level} title={format.levelName(l.level)}>
-            <span className="trend-level-id">{l.level}</span>
-            <span className="visually-hidden"> · {format.levelName(l.level)}:</span>{' '}
+            <span className="trend-level-id">{format.levelTag(l.level)}</span>
+            <span className="visually-hidden">
+              {format.levelTag(l.level) === l.level ? ` · ${format.levelName(l.level)}:` : ':'}
+            </span>{' '}
             {percent(l.share)}
           </li>
         ))}

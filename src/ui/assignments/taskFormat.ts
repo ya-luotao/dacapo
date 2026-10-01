@@ -20,8 +20,12 @@ import { isBuiltInId } from '../../pieces/library/index.ts';
 import { useLogFormat } from '../progress/format.ts';
 import { useExerciseName } from '../scales/exerciseName.ts';
 
-/** Where a family's levels are named: Read's cards, rhythm, sight-reading, Ear's and Harmony's. */
+/**
+ * Where a family's levels are named: Read's cards, rhythm, sight-reading, Ear's and Harmony's. A
+ * tune played by ear (docs/HARMONY.md, H5) is named by its title in the library.
+ */
 export function levelKey(family: LevelFamily, level: string): MessageKey {
+  if (family === 'tune') return `library.${level}.title` as MessageKey;
   const prefix =
     family === 'notes'
       ? 'read'
@@ -137,8 +141,13 @@ export function useTaskFormat(scale: ScaleWords) {
           ? t('progress.session.bar', { bar: task.bars.fromLabel })
           : t('progress.session.barRange', { from: task.bars.fromLabel, to: task.bars.toLabel });
 
+    // A tune has no id to show: its title is the line under this one (`how`).
     const levelTitle = (task: LevelTask) =>
-      join([t(`nav.${pageOfFamily(task.family)}`), t(familyKey(task.family)), task.level]);
+      join([
+        t(`nav.${pageOfFamily(task.family)}`),
+        t(familyKey(task.family)),
+        task.family === 'tune' ? null : task.level,
+      ]);
 
     /** What the task is: a piece, a scale, a level, a lesson, minutes. */
     const title = (task: Task): string => {
@@ -202,7 +211,11 @@ export function useTaskFormat(scale: ScaleWords) {
           return count(task.runs, 'assignments.goal.runs.one', 'assignments.goal.runs.other');
         case 'level':
           return task.goal === 'mastery'
-            ? t('assignments.goal.mastery')
+            ? t(
+                task.family === 'tune'
+                  ? 'assignments.goal.mastery.tune'
+                  : 'assignments.goal.mastery',
+              )
             : count(task.goal, 'assignments.goal.sessions.one', 'assignments.goal.sessions.other');
         case 'lesson':
           return t('assignments.goal.lesson');
@@ -242,8 +255,19 @@ export function useTaskFormat(scale: ScaleWords) {
           return of('assignments.figure.runs.one', 'assignments.figure.runs');
         case 'level':
           if (task.kind === 'level' && task.goal === 'mastery') {
-            if (progress.met) return t('assignments.figure.mastered');
             const m = progress.mastery;
+            // A tune is learnt, not mastered: how many of its phrases and the whole of it are
+            // right without a replay.
+            if (task.family === 'tune') {
+              if (progress.met) return t('assignments.figure.tune.learnt');
+              return m && m.counted > 0
+                ? t('ear.level.stats.tune', {
+                    right: Math.round((m.accuracy ?? 0) * m.counted),
+                    window: m.window,
+                  })
+                : t('assignments.figure.tune.none');
+            }
+            if (progress.met) return t('assignments.figure.mastered');
             return m && m.counted > 0
               ? t('assignments.figure.mastery', {
                   counted: m.counted,

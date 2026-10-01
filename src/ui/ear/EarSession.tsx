@@ -1,4 +1,12 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, type CSSProperties } from 'react';
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  type CSSProperties,
+} from 'react';
 import {
   answerNameOf,
   answerNames,
@@ -12,6 +20,8 @@ import { accidentalMarks, spellInKey } from '../../core/earMelody.ts';
 import { CADENCE_NUMERALS, isCadence } from '../../core/cadences.ts';
 import type { EarCard } from '../../core/earSession.ts';
 import { formatPitch, pitchToMidi, type Pitch } from '../../core/note.ts';
+import { WHOLE_TUNE } from '../../core/tuneList.ts';
+import { getTune, tunePitch, tuneSpan } from '../../core/tunes.ts';
 import { useT } from '../../i18n/index.ts';
 import { useHubState, useInput, useKeyboardOctave } from '../input/context.ts';
 import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
@@ -25,6 +35,13 @@ import { keyNames, useEarFormat } from './format.ts';
 import { earShortcut, nameKey } from './shortcuts.ts';
 
 const NONE: ReadonlySet<number> = new Set();
+
+/** A tune's phrase drawn by Verovio: loaded when a tune is played, not with the page. */
+const loadTuneStaff = () => import('./TuneStaff.tsx');
+const TuneStaff = lazy(loadTuneStaff);
+
+/** A phrase's notes are dots; a whole tune's (and a phrase longer than this) a bar and a count. */
+const MAX_DOTS = 24;
 
 interface EarSessionProps {
   view: EarView;
@@ -82,21 +99,59 @@ export function EarSession({ view, controller }: EarSessionProps) {
   const turn = status === 'waiting' && !listening;
   const echo = item.family === 'echo';
   const cadence = item.family === 'cadence';
+  const tune = item.family === 'tune' ? prompt.tune : undefined;
+  /** Played back key by key: a melody of Echo, or a tune. */
+  const melodic = echo || item.family === 'tune';
   // A melody gone wrong: its note, the key asked for and the key played, each named as the key
-  // of the melody writes it (B♭4 in F major, not A♯4).
+  // of the melody writes it (B♭4 in F major, not A♯4). A tune's note is counted in its phrase.
   const miss = useMemo(() => {
     const { melody } = prompt;
-    if (!echo || !melody || status !== 'wrong' || !Array.isArray(card.answer)) return null;
+    if (status !== 'wrong' || !Array.isArray(card.answer)) return null;
     const index = card.answer.length - 1;
     const played = card.answer[index]!;
+    const expected = prompt.notes[index]!;
+    if (tune) {
+      const data = getTune(tune.tune);
+      const place = format.tunePlace(prompt.item, index);
+      const key = tuneSpan(data, tune.part).from + index;
+      const note = data.notes[key];
+      if (!place || !note) return null;
+      return {
+        n: place.note,
+        expected,
+        played,
+        expectedName: spelledName(tunePitch(data, note.pitch, tune.semitones)),
+        playedName: spelledName(spellInKey(played, tune.key)),
+        /** The phrase it went wrong in (1-based), and the key of the tune it was played for. */
+        at: { phrase: place.phrase, key },
+      };
+    }
+    if (!echo || !melody) return null;
     return {
       n: index + 1,
-      expected: prompt.notes[index]!,
+      expected,
       played,
       expectedName: spelledName(melody.written[index]!),
       playedName: spelledName(spellInKey(played, melody)),
+      at: null,
     };
-  }, [echo, status, card.answer, prompt]);
+  }, [echo, tune, status, card.answer, prompt, format]);
+
+  // A tune's first wrong answer is drawn by Verovio: fetch both while the first phrase plays.
+  const isTune = tune !== undefined;
+  useEffect(() => {
+    if (!isTune) return;
+    void loadTuneStaff().catch(() => undefined);
+    let cancel: (() => void) | undefined;
+    let cancelled = false;
+    void import('../notation/verovio.ts').then((m) => {
+      if (!cancelled) cancel = m.prefetchVerovio();
+    });
+    return () => {
+      cancelled = true;
+      cancel?.();
+    };
+  }, [isTune]);
 
   // Moving focus off the Start button means Enter or Space cannot trigger a control by accident.
   useEffect(() => region.current?.focus({ preventScroll: true }), []);
@@ -138,7 +193,7 @@ export function EarSession({ view, controller }: EarSessionProps) {
 
   const marked = useMemo(() => {
     // A melody: its first key to start from, then only the key its wrong note should have been.
-    if (echo) {
+    if (melodic) {
       if (status === 'waiting') return new Set([givenKey(prompt)]);
       return miss ? new Set([miss.expected]) : NONE;
     }
@@ -146,7 +201,7 @@ export function EarSession({ view, controller }: EarSessionProps) {
     if (cadence) return NONE;
     if (status !== 'waiting') return new Set(prompt.notes);
     return session.by === 'play' ? new Set([givenKey(prompt)]) : NONE;
-  }, [echo, cadence, status, prompt, session.by, miss]);
+  }, [melodic, cadence, status, prompt, session.by, miss]);
   const wrongKeys = useMemo(() => {
     if (miss) return new Set([miss.played]);
     return status === 'wrong' && Array.isArray(card.answer)
@@ -159,20 +214,34 @@ export function EarSession({ view, controller }: EarSessionProps) {
   const task =
     item.family === 'echo'
       ? t('ear.task.echo')
-      : item.family === 'cadence'
-        ? t('ear.task.cadence')
-        : session.by === 'name'
-          ? t('ear.task.name')
-          : item.family === 'chord'
-            ? t(
-                level.family === 'chord' && level.bassMatters
-                  ? 'ear.task.chordBass'
-                  : 'ear.task.chord',
-              )
-            : t(item.direction === 'down' ? 'ear.task.down' : 'ear.task.up');
-  const answerName = prompt.melody
-    ? format.key(prompt.melody.tonic, prompt.melody.scale)
+      : item.family === 'tune'
+        ? t(item.part === WHOLE_TUNE ? 'ear.task.tune.whole' : 'ear.task.tune')
+        : item.family === 'cadence'
+          ? t('ear.task.cadence')
+          : session.by === 'name'
+            ? t('ear.task.name')
+            : item.family === 'chord'
+              ? t(
+                  level.family === 'chord' && level.bassMatters
+                    ? 'ear.task.chordBass'
+                    : 'ear.task.chord',
+                )
+              : t(item.direction === 'down' ? 'ear.task.down' : 'ear.task.up');
+  // After the answer the card names what it was: a melody's or a tune's key.
+  const answerKey = prompt.melody ?? tune?.key;
+  const answerName = answerKey
+    ? format.key(answerKey.tonic, answerKey.scale)
     : format.capitalize(format.item(prompt.item, session.level));
+  const count =
+    item.family === 'tune'
+      ? item.part === WHOLE_TUNE
+        ? t('ear.tune.count.whole')
+        : t('ear.tune.count', { n: item.part, total: session.length - 1 })
+      : t(echo ? 'ear.echo.count' : 'ear.count', {
+          n: Math.min(card.index + 1, session.length),
+          total: session.length,
+        });
+  const notesPlayed = status === 'correct' ? prompt.notes.length : card.played.length;
   const title = status !== 'waiting' ? answerName : listening ? t('ear.listen') : t('ear.turn');
 
   return (
@@ -185,12 +254,7 @@ export function EarSession({ view, controller }: EarSessionProps) {
     >
       <div className="read-bar">
         <p className="read-level">{format.level(session.level)}</p>
-        <p className="read-count">
-          {t(echo ? 'ear.echo.count' : 'ear.count', {
-            n: Math.min(card.index + 1, session.length),
-            total: session.length,
-          })}
-        </p>
+        <p className="read-count">{count}</p>
         <button type="button" className="button ear-stop" onClick={controller.stop}>
           {t('read.stop')}
         </button>
@@ -210,22 +274,45 @@ export function EarSession({ view, controller }: EarSessionProps) {
             (listening ? <SpeakerIcon className="ear-state-icon is-sounding" /> : <KeyIcon />)}
           <p className="ear-title">{title}</p>
         </div>
-        {echo && (
-          <NoteDots
-            total={prompt.notes.length}
-            right={status === 'correct' ? prompt.notes.length : card.played.length}
-            wrong={status === 'wrong'}
-            label={t('ear.echo.progress', {
-              n: status === 'correct' ? prompt.notes.length : card.played.length,
-              total: prompt.notes.length,
-            })}
-          />
-        )}
+        {melodic &&
+          (prompt.notes.length <= MAX_DOTS ? (
+            <NoteDots
+              total={prompt.notes.length}
+              right={notesPlayed}
+              wrong={status === 'wrong'}
+              label={t('ear.echo.progress', { n: notesPlayed, total: prompt.notes.length })}
+            />
+          ) : (
+            <NoteCount
+              total={prompt.notes.length}
+              right={notesPlayed}
+              wrong={status === 'wrong'}
+              label={t('ear.echo.progress', { n: notesPlayed, total: prompt.notes.length })}
+            />
+          ))}
         {status === 'waiting' && (
           <>
             <p className="ear-task">{task}</p>
             <HearAgain onClick={controller.hearAgain} />
           </>
+        )}
+        {tune && miss?.at && (
+          <Suspense fallback={<div className="ear-tune-staff" data-state="loading" />}>
+            <TuneStaff
+              tune={tune.tune}
+              phrase={miss.at.phrase - 1}
+              semitones={tune.semitones}
+              wrongKey={miss.at.key}
+              wrongMidi={miss.played}
+              label={t('ear.tune.staff', {
+                phrase: miss.at.phrase,
+                key: answerName,
+                n: miss.n,
+                played: miss.playedName,
+                expected: miss.expectedName,
+              })}
+            />
+          </Suspense>
         )}
         {drawing && prompt.melody && miss && (
           <MelodyStaff
@@ -246,7 +333,7 @@ export function EarSession({ view, controller }: EarSessionProps) {
             numerals={prompt.cadence.numerals}
           />
         )}
-        {status === 'wrong' && !echo && !cadence && (
+        {status === 'wrong' && !melodic && !cadence && (
           <NotesStaff
             className="ear-staff"
             columns={columns}
@@ -268,7 +355,10 @@ export function EarSession({ view, controller }: EarSessionProps) {
         {status === 'correct' && scored && (
           <p className="read-result">
             <ResultIcon ok />
-            {t('read.correct.time', { time: read.seconds(scored.ms) })}
+            {/* How long a phrase took to play back says nothing of the ear. */}
+            {item.family === 'tune'
+              ? t('read.correct')
+              : t('read.correct.time', { time: read.seconds(scored.ms) })}
           </p>
         )}
         {status === 'wrong' && scored && (
@@ -276,17 +366,24 @@ export function EarSession({ view, controller }: EarSessionProps) {
             <p className={miss ? 'read-result is-long' : 'read-result'}>
               <ResultIcon ok={false} />
               {miss
-                ? t('ear.echo.wrong', {
-                    n: miss.n,
-                    played: miss.playedName,
-                    expected: miss.expectedName,
-                  })
+                ? miss.at && item.family === 'tune' && item.part === WHOLE_TUNE
+                  ? t('ear.tune.wrong.whole', {
+                      phrase: miss.at.phrase,
+                      n: miss.n,
+                      played: miss.playedName,
+                      expected: miss.expectedName,
+                    })
+                  : t('ear.echo.wrong', {
+                      n: miss.n,
+                      played: miss.playedName,
+                      expected: miss.expectedName,
+                    })
                 : typeof scored.answer === 'string'
                   ? t('ear.wrong.named', { name: format.name(scored.answer, session.level) })
                   : t('read.wrong', { played: keyNames(scored.answer) })}
             </p>
             {/* The sheet shows it; this is for screen readers. */}
-            {!echo && (
+            {!melodic && (
               <p className="visually-hidden">
                 {t('ear.wrong.answer', { answer: format.item(prompt.item, session.level) })}
               </p>
@@ -419,6 +516,31 @@ function NoteDots({
         />
       ))}
     </ol>
+  );
+}
+
+/**
+ * A whole tune's notes, too many for dots: a bar that fills as they are played back, and the
+ * count in words.
+ */
+function NoteCount({
+  total,
+  right,
+  wrong,
+  label,
+}: {
+  total: number;
+  right: number;
+  wrong: boolean;
+  label: string;
+}) {
+  return (
+    <div className={wrong ? 'ear-notes is-wrong' : 'ear-notes'}>
+      <div className="ear-notes-bar" aria-hidden="true">
+        <span style={{ transform: `scaleX(${total === 0 ? 0 : right / total})` }} />
+      </div>
+      <p className="ear-notes-count">{label}</p>
+    </div>
   );
 }
 

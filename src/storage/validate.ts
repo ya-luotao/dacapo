@@ -23,9 +23,16 @@ import {
   judgeSymbolKeys,
   parseSymbolItem,
 } from '../core/chordSymbols.ts';
-import { isMelodyKeyOf, judgeEchoAnswer } from '../core/earMelody.ts';
+import { isMelodyKeyOf, judgeEchoAnswer, type MelodyKey } from '../core/earMelody.ts';
 import { cadenceKeyOf } from '../core/cadences.ts';
-import type { EarAnswer, EarSessionSummary, MissedItem } from '../core/earSession.ts';
+import { tuneFits, tuneSemitones } from '../core/tunes.ts';
+import {
+  masteryWindow,
+  type EarAnswer,
+  type EarSessionSummary,
+  type MissedItem,
+} from '../core/earSession.ts';
+import { MAJOR_TONICS } from '../core/keys.ts';
 import type { PlayedNote, RunHeadline } from '../core/evenness.ts';
 import type { OpenFreePlay } from '../core/freePlay.ts';
 import type { ChordSymbolAnswer, HarmonyMissed } from '../core/harmonySession.ts';
@@ -515,24 +522,44 @@ const isItemKey = (v: unknown): v is string => typeof v === 'string' && parseIte
 /** A prompt or a played answer: a few keys (an interval's two, a chord's up to four). */
 const isKeys = (v: unknown, max: number): v is number[] =>
   Array.isArray(v) && v.length > 0 && v.length <= max && v.every(isMidi);
+const familyOfItem = (itemKey: unknown) =>
+  typeof itemKey === 'string' ? parseItem(itemKey)?.family : undefined;
+/** More keys than any tune has (Oh! Susanna, the longest, has 110). */
+const MAX_TUNE_KEYS = 400;
 /**
- * The most keys of an item's prompt: a cadence's four chords of four, a melody's eight otherwise.
- * Each item's own count is `promptMatches`'.
+ * The most keys of an item's prompt: a cadence's four chords of four, a whole tune's, a melody's
+ * eight otherwise. Each item's own count is `promptMatches`' (a tune's `tuneFits`').
  */
-const maxPromptKeys = (itemKey: unknown) =>
-  typeof itemKey === 'string' && parseItem(itemKey)?.family === 'cadence' ? 16 : 8;
+function maxPromptKeys(itemKey: unknown): number {
+  const family = familyOfItem(itemKey);
+  return family === 'cadence' ? 16 : family === 'tune' ? MAX_TUNE_KEYS : 8;
+}
+
+/** The key a tune is played in: one of the twelve major keys. */
+const isTuneKey = (v: unknown): v is MelodyKey =>
+  isObject(v) &&
+  Object.keys(v).length === 2 &&
+  v.scale === 'major' &&
+  (MAJOR_TONICS as readonly unknown[]).includes(v.tonic);
 
 /**
  * A melody's key, which every Echo answer and miss keeps (one of its level's), or a cadence's (one
- * of the twelve majors or minors; `promptMatches` checks it against the level); none otherwise.
+ * of the twelve majors or minors; `promptMatches` checks it against the level), or the key a
+ * tune's `prompt` is in; none otherwise.
  */
-function isKeyOfItem(itemKey: unknown, key: unknown): boolean {
+function isKeyOfItem(itemKey: unknown, key: unknown, prompt: unknown): boolean {
   const item = typeof itemKey === 'string' ? parseItem(itemKey) : null;
   if (item?.family === 'cadence') return cadenceKeyOf('CA4', key) !== null;
+  if (item?.family === 'tune') {
+    return isKeys(prompt, MAX_TUNE_KEYS) && tuneFits(itemKey as string, prompt, key);
+  }
   if (item?.family !== 'echo') return key === undefined;
   return isMelodyKeyOf(item.level, key);
 }
-const isAnswerValue = (v: unknown) => isKeys(v, 88) || (typeof v === 'string' && v.length <= 20);
+/** Keys played, or a name chosen: a tune's answer may be as long as the tune. */
+const isAnswerValue = (v: unknown, itemKey?: unknown) =>
+  isKeys(v, familyOfItem(itemKey) === 'tune' ? MAX_TUNE_KEYS : 88) ||
+  (typeof v === 'string' && v.length <= 20);
 
 /**
  * Whether a played or named `answer` to `prompt` of `item` at `level` is judged `correct`, by the
@@ -547,8 +574,8 @@ function judgedAnswer(
 ): boolean | null {
   const item = parseItem(itemKey)!;
   const earLevel = getEarLevel(level);
-  // A melody is played back, key by key, up to and including the first wrong key.
-  if (item.family === 'echo') {
+  // A melody or a tune is played back, key by key, up to and including the first wrong key.
+  if (item.family === 'echo' || item.family === 'tune') {
     return by === 'play' && typeof answer !== 'string' ? judgeEchoAnswer(prompt, answer) : null;
   }
   // A cadence is only ever named.
@@ -590,12 +617,14 @@ function validateEarAnswer(value: Fields): Validation<EarAnswer> {
     item: isItemKey,
     by: isAnswerMode,
     prompt: (v) => isKeys(v, maxPromptKeys(value.item)),
-    answer: isAnswerValue,
+    answer: (v) => isAnswerValue(v, value.item),
     correct: isBool,
     ms: isTime,
     replays: isCount,
     at: isTime,
-    key: (v) => isKeyOfItem(value.item, v),
+    // A tune's key is held to its keys below, once they are known to be the tune's.
+    key: (v) =>
+      familyOfItem(value.item) === 'tune' ? isTuneKey(v) : isKeyOfItem(value.item, v, value.prompt),
   });
   if (field) return fail(field);
   const a = value as unknown as EarAnswer;
@@ -603,7 +632,12 @@ function validateEarAnswer(value: Fields): Validation<EarAnswer> {
   const level = getEarLevel(a.level);
   if (level.family !== a.family) return fail('level');
   if (!itemInLevel(item, level)) return fail('item');
-  if (!promptMatches(item, a.prompt, a.key, a.level)) return fail('prompt');
+  // A tune's keys are its melody's (tuneData.ts), moved by up to six semitones into the key the
+  // answer names; the others are judged by the rules they were drawn with.
+  if (item.family === 'tune') {
+    if (tuneSemitones(a.item, a.prompt) === null) return fail('prompt');
+    if (!tuneFits(a.item, a.prompt, a.key)) return fail('key');
+  } else if (!promptMatches(item, a.prompt, a.key, a.level)) return fail('prompt');
   const judged = judgedAnswer(a.level, a.item, a.by, a.prompt, a.answer);
   if (judged === null) return fail('answer');
   if (judged !== a.correct) return fail('correct');
@@ -635,9 +669,9 @@ function isMissed(v: unknown): v is MissedItem[] {
       (m) =>
         isObject(m) &&
         isItemKey(m.item) &&
-        isAnswerValue(m.answer) &&
+        isAnswerValue(m.answer, m.item) &&
         isKeys(m.prompt, maxPromptKeys(m.item)) &&
-        isKeyOfItem(m.item, m.key),
+        isKeyOfItem(m.item, m.key, m.prompt),
     )
   );
 }
@@ -666,6 +700,19 @@ function validateEarSession(value: Fields): Validation<EarSessionRecord> {
   if (s.endedAt < s.startedAt) return fail('endedAt');
   if (s.correct > s.items) return fail('correct');
   if ((s.accuracy === null) !== (s.items === 0)) return fail('accuracy');
+  // A tune's session is played back, in one key, and misses nothing of another tune or key.
+  const tune = s.family === 'tune';
+  if (tune ? !isTuneKey(s.key) : s.key !== undefined) return fail('key');
+  if (tune) {
+    if (s.by !== 'play') return fail('by');
+    if (s.length !== masteryWindow(s.level) || s.items > s.length) return fail('length');
+    const { tonic } = s.key!;
+    const ofSession = (m: MissedItem) => {
+      const item = parseItem(m.item);
+      return item?.family === 'tune' && item.tune === s.level && m.key?.tonic === tonic;
+    };
+    if (!s.missed.every(ofSession)) return fail('missed');
+  }
   return {
     ok: true,
     value: {
@@ -689,6 +736,7 @@ function validateEarSession(value: Fields): Validation<EarSessionRecord> {
         prompt: [...m.prompt],
         ...(m.key && { key: { tonic: m.key.tonic, scale: m.key.scale } }),
       })),
+      ...(s.key && { key: { tonic: s.key.tonic, scale: s.key.scale } }),
     },
   };
 }

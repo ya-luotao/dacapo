@@ -115,6 +115,8 @@ function FamilySection({ family, answers, open, onToggle }: FamilySectionProps) 
   const matrix = useMemo(() => confusionMatrix(family, shown), [family, shown]);
   const top = useMemo(() => topConfusions(family, matrix), [family, matrix]);
   const mastered = levels.filter((l) => l.mastered).length;
+  // The tunes are no levels: each is a tune, learnt or not.
+  const tunes = family === 'tune';
 
   return (
     <details
@@ -126,7 +128,7 @@ function FamilySection({ family, answers, open, onToggle }: FamilySectionProps) 
       <summary>
         <h3 id={`${id}-title`}>{t(`families.family.${family}`)}</h3>
         <span className="family-meta">
-          {t('families.summary', {
+          {t(tunes ? 'families.summary.tune' : 'families.summary', {
             answers:
               own.length === 1
                 ? t('families.answers.one')
@@ -138,11 +140,13 @@ function FamilySection({ family, answers, open, onToggle }: FamilySectionProps) 
       </summary>
 
       <div className="family-body">
-        <LevelRow levels={levels} />
+        <LevelRow levels={levels} tunes={tunes} />
 
         <div className="hm-controls family-controls">
           <div className="hm-control">
-            <label htmlFor={`${id}-level`}>{t('families.filter.level')}</label>
+            <label htmlFor={`${id}-level`}>
+              {t(tunes ? 'families.filter.tune' : 'families.filter.level')}
+            </label>
             <select
               id={`${id}-level`}
               value={level}
@@ -151,7 +155,9 @@ function FamilySection({ family, answers, open, onToggle }: FamilySectionProps) 
                 setFilter({ ...filter, level: isFamilyLevel(family, value) ? value : 'all' });
               }}
             >
-              <option value="all">{t('families.filter.level.all')}</option>
+              <option value="all">
+                {t(tunes ? 'families.filter.tune.all' : 'families.filter.level.all')}
+              </option>
               {answeredLevels.map((l) => (
                 <option key={l} value={l}>
                   {format.level(l)}
@@ -195,15 +201,18 @@ function FamilySection({ family, answers, open, onToggle }: FamilySectionProps) 
   );
 }
 
-/** Every level of the family in one row: mastered, its figures so far, or new. */
-function LevelRow({ levels }: { levels: readonly FamilyLevel[] }) {
+/**
+ * Every level of the family in one row: mastered, its figures so far, or new. The tunes are
+ * headed by their titles.
+ */
+function LevelRow({ levels, tunes }: { levels: readonly FamilyLevel[]; tunes: boolean }) {
   const t = useT();
   const read = useReadFormat();
   const format = useFamilyFormat();
 
   return (
     <div className="family-levels-block">
-      <h4 className="families-subhead">{t('families.levels')}</h4>
+      <h4 className="families-subhead">{t(tunes ? 'families.tunes' : 'families.levels')}</h4>
       <ol className="family-levels">
         {levels.map((l) => {
           const status = l.mastered
@@ -217,10 +226,16 @@ function LevelRow({ levels }: { levels: readonly FamilyLevel[] }) {
                 });
           const state = l.mastered ? 'is-mastered' : l.total === 0 ? 'is-new' : 'is-started';
           return (
-            <li key={l.level} className={`family-level ${state}`} title={format.levelName(l.level)}>
+            <li
+              key={l.level}
+              className={`family-level ${state}${tunes ? ' is-named' : ''}`}
+              title={format.levelName(l.level)}
+            >
               <span className="family-level-id">
-                {l.level}
-                <span className="visually-hidden"> · {format.levelName(l.level)}:</span>
+                {format.levelTag(l.level)}
+                <span className="visually-hidden">
+                  {tunes ? ':' : ` · ${format.levelName(l.level)}:`}
+                </span>
               </span>
               <span className="family-level-status">
                 {l.mastered && (

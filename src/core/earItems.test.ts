@@ -20,6 +20,8 @@ import {
   intervalOfSemitones,
   isEarLevelId,
   itemInLevel,
+  levelsOf,
+  TUNE_LEVELS,
   judgeChordKeys,
   judgeIntervalKey,
   levelItems,
@@ -36,8 +38,104 @@ import {
 } from './earItems.ts';
 import { formatPitch, pitchToMidi } from './note.ts';
 import { seededRng } from './random.ts';
+import { tunePrompt } from './tunes.ts';
 
 const spelled = (prompt: Prompt) => spellPrompt(prompt)?.map(formatPitch);
+
+describe('a tune as items and levels', () => {
+  const grace = getEarLevel('trad-amazing-grace');
+
+  it('is a level of its family, its phrases in order and then the whole', () => {
+    expect(grace).toEqual({ id: 'trad-amazing-grace', family: 'tune', phrases: 4 });
+    expect(levelsOf('tune').map((l) => l.id)).toEqual(TUNE_LEVELS.map((l) => l.id));
+    expect(levelItems(grace, ['up'])).toEqual([
+      'tune:trad-amazing-grace:1',
+      'tune:trad-amazing-grace:2',
+      'tune:trad-amazing-grace:3',
+      'tune:trad-amazing-grace:4',
+      'tune:trad-amazing-grace:whole',
+    ]);
+    expect(answerNames(grace)).toEqual([]);
+    expect(nextEarLevel('trad-amazing-grace')).toBe('pierpont-jingle-bells');
+    expect(nextEarLevel('trad-swing-low')).toBeNull();
+  });
+
+  it('parses an item of a tune and a part it has, nothing else', () => {
+    expect(parseItem('tune:trad-amazing-grace:2')).toEqual({
+      family: 'tune',
+      tune: 'trad-amazing-grace',
+      part: 2,
+    });
+    expect(parseItem('tune:trad-amazing-grace:whole')).toMatchObject({ part: 'whole' });
+    expect(parseItem('tune:trad-auld-lang-syne:12')).toMatchObject({ part: 12 });
+    for (const bad of [
+      'tune:trad-amazing-grace:5',
+      'tune:trad-amazing-grace:0',
+      'tune:trad-amazing-grace:02',
+      'tune:trad-amazing-grace',
+      'tune:trad-amazing-grace:1:x',
+      'tune:beethoven-fur-elise:1',
+      'tune:trad-amazing-grace:all',
+    ]) {
+      expect(parseItem(bad), bad).toBeNull();
+    }
+    expect(itemInLevel(parseItem('tune:trad-amazing-grace:2')!, grace)).toBe(true);
+    expect(itemInLevel(parseItem('tune:trad-swing-low:2')!, grace)).toBe(false);
+    expect(itemInLevel(parseItem('echo:EC2')!, grace)).toBe(false);
+  });
+
+  it('takes its prompt from tunes.ts: nothing is drawn, and nothing matched, here', () => {
+    expect(() => makePrompt('tune:trad-amazing-grace:2', seededRng(1))).toThrow(RangeError);
+    const item = parseItem('tune:trad-amazing-grace:2')!;
+    expect(promptMatches(item, [62, 67, 71, 67, 71, 69, 74])).toBe(false);
+    expect(spellPrompt(tunePrompt('tune:trad-amazing-grace:2', 0))).toBeNull();
+  });
+
+  it('plays the tonic chord, a beat’s rest, then the phrase in its rhythm', () => {
+    // Amazing Grace's second line in G at 84: a quarter is 714 ms.
+    const prompt = tunePrompt('tune:trad-amazing-grace:2', 0);
+    const plan = promptPlan(prompt, 'block');
+    expect(plan.notes.slice(0, 3)).toEqual([
+      { midi: 55, on: 0, off: 900 },
+      { midi: 59, on: 0, off: 900 },
+      { midi: 62, on: 0, off: 900 },
+    ]);
+    const start = 900 + 714;
+    // D (a quarter) | G (a half) B G (eighths) | B (a half) A (a quarter) | D (a half).
+    expect(plan.notes.slice(3).map((n) => [n.midi, n.on - start])).toEqual([
+      [62, 0],
+      [67, 714],
+      [71, 2143],
+      [67, 2500],
+      [71, 2857],
+      [69, 4286],
+      [74, 5000],
+    ]);
+    expect(plan.lastOn).toBe(start + 5000);
+    expect(givenKey(prompt)).toBe(62);
+    // The first note is given: it sounds for nine tenths of its quarter.
+    expect(plan.notes[3]).toEqual({ midi: 62, on: start, off: start + 643 });
+  });
+
+  it('plays the phrase alone after a wrong answer: of the whole tune, the phrase it went wrong in', () => {
+    const phrase = tunePrompt('tune:trad-amazing-grace:2', 2);
+    const again = promptPlan(phrase, 'block', true, 4);
+    expect(again.notes.map((n) => n.midi)).toEqual(phrase.notes);
+    expect(again.notes[0]!.on).toBe(0);
+
+    const whole = tunePrompt('tune:trad-amazing-grace:whole', 0);
+    expect(promptPlan(whole, 'block').notes).toHaveLength(3 + 35);
+    // The 20th key is the fourth of the third line (keys 16–27).
+    const third = promptPlan(whole, 'block', true, 19);
+    expect(third.notes.map((n) => n.midi)).toEqual(whole.notes.slice(16, 28));
+    expect(third.notes[0]!.on).toBe(0);
+    expect(promptPlan(whole, 'block', true, 34).notes.map((n) => n.midi)).toEqual(
+      whole.notes.slice(28),
+    );
+    expect(promptPlan(whole, 'block', true, 0).notes).toHaveLength(9);
+    expect(() => promptPlan({ item: whole.item, notes: whole.notes }, 'block')).toThrow(RangeError);
+  });
+});
 
 describe('ear items', () => {
   it('keys intervals by name and direction, chords by quality and position', () => {
@@ -141,7 +239,18 @@ describe('ear items', () => {
       'CA2',
       'CA3',
       'CA4',
+      // The tunes played by ear: each a level of its family, by its id in the library.
+      'trad-twinkle-twinkle',
+      'trad-frere-jacques',
+      'lyte-row-your-boat',
+      'trad-amazing-grace',
+      'pierpont-jingle-bells',
+      'foster-oh-susanna',
+      'trad-auld-lang-syne',
+      'trad-swing-low',
     ]);
+    expect(isEarLevelId('trad-swing-low')).toBe(true);
+    expect(isEarLevelId('beethoven-fur-elise')).toBe(false);
     expect(isEarLevelId('C3')).toBe(true);
     expect(isEarLevelId('CA4')).toBe(true);
     expect(nextEarLevel('CA3')).toBe('CA4');
@@ -372,8 +481,10 @@ describe('spelling a prompt for the staff', () => {
 
   it('never needs a double accidental, and always sounds as played', () => {
     const rng = seededRng(11);
-    // A melody is written when it is drawn (earMelody.test.ts); a cadence is named.
-    for (const level of EAR_LEVELS.filter((l) => l.family !== 'echo' && l.family !== 'cadence')) {
+    // A melody is written when it is drawn (earMelody.test.ts), a tune by tuneXml.ts; a cadence
+    // is named.
+    const spelt = EAR_LEVELS.filter((l) => l.family === 'interval' || l.family === 'chord');
+    for (const level of spelt) {
       for (const item of levelItems(level, ['up', 'down', 'harm'])) {
         for (let i = 0; i < 40; i++) {
           const prompt = makePrompt(item, rng);

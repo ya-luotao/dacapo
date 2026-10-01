@@ -21,6 +21,8 @@ import { keyName } from '../harmony/progressionFormat.ts';
 import type { EarLevelProgress, MissedItem } from '../../core/earSession.ts';
 import { midiName } from '../../core/note.ts';
 import type { Tonic } from '../../core/scaleTypes.ts';
+import { isTuneId, TUNE_IDS, WHOLE_TUNE, type TuneId, type TunePart } from '../../core/tuneList.ts';
+import { getTune } from '../../core/tunes.ts';
 import { useI18n } from '../../i18n/index.ts';
 import { spelledName, tonicName } from '../scales/format.ts';
 
@@ -49,12 +51,26 @@ export function useEarFormat() {
     const withPosition = (level: EarLevelId | null, inversion: Inversion) =>
       inversion !== 'root' || level === 'C3';
 
-    /** `major 3rd up`, `minor triad, 1st inversion`; a melody by its level's name. */
+    /** A tune by its title in the library. */
+    const tuneTitle = (id: TuneId) => t(`library.${id}.title`);
+    /** `Phrase 3`, `The whole tune`. */
+    const tunePart = (part: TunePart) =>
+      part === WHOLE_TUNE ? t('ear.tune.part.whole') : t('ear.tune.part', { n: part });
+
+    /**
+     * `major 3rd up`, `minor triad, 1st inversion`; a melody by its level's name; a tune's phrase
+     * as `Amazing Grace: phrase 2`.
+     */
     const item = (key: string, level: EarLevelId | null = null) => {
       const parsed = parseItem(key);
       if (!parsed) return key;
       if (parsed.family === 'echo') return t(`ear.level.${parsed.level}`);
       if (parsed.family === 'cadence') return t(`ear.cadence.${parsed.cadence}`);
+      if (parsed.family === 'tune') {
+        return parsed.part === WHOLE_TUNE
+          ? t('ear.tune.item.whole', { tune: tuneTitle(parsed.tune) })
+          : t('ear.tune.item', { tune: tuneTitle(parsed.tune), n: parsed.part });
+      }
       if (parsed.family === 'interval') {
         return t(`ear.item.${parsed.direction}`, { name: interval(parsed.name) });
       }
@@ -119,9 +135,10 @@ export function useEarFormat() {
 
     /**
      * A melody missed, by the interval into its first wrong note: `Note 3: perfect 4th up (F4),
-     * played as perfect 5th up (G4)`.
+     * played as perfect 5th up (G4)`. `note` is the wrong note's number where it is not its place
+     * in the prompt (a whole tune's is counted in its phrase).
      */
-    const echoMiss = (missed: MissedItem) => {
+    const echoMiss = (missed: MissedItem, note?: number) => {
       if (typeof missed.answer === 'string') return missed.answer;
       const mistake = echoMistake(missed.prompt, missed.answer);
       if (!mistake) return keyNames(missed.answer);
@@ -132,10 +149,39 @@ export function useEarFormat() {
         });
       }
       return t('ear.echo.missed', {
-        n: mistake.note,
+        n: note ?? mistake.note,
         asked: step(mistake.asked, mistake.expected, missed.key),
         answered: step(mistake.answered, mistake.played, missed.key),
       });
+    };
+
+    /**
+     * Where a key of a tune's item is: its phrase (1-based) and its number in it. A phrase's keys
+     * are its own; a whole tune's are found in the phrase they belong to.
+     */
+    const tunePlace = (itemKey: string, index: number): { phrase: number; note: number } | null => {
+      const parsed = parseItem(itemKey);
+      if (parsed?.family !== 'tune') return null;
+      if (parsed.part !== WHOLE_TUNE) return { phrase: parsed.part, note: index + 1 };
+      const { phrases } = getTune(parsed.tune);
+      const phrase = phrases.findIndex((span) => index >= span.from && index < span.to);
+      if (phrase === -1) return null;
+      return { phrase: phrase + 1, note: index - phrases[phrase]!.from + 1 };
+    };
+
+    /**
+     * A phrase of a tune missed: `Phrase 3 · Note 5: major 2nd up (E5), played as …`; of the whole
+     * tune, the phrase it went wrong in: `The whole tune, phrase 3 · Note 5: …`.
+     */
+    const tuneMiss = (missed: MissedItem) => {
+      const parsed = parseItem(missed.item);
+      if (parsed?.family !== 'tune' || typeof missed.answer === 'string') return echoMiss(missed);
+      const place = tunePlace(missed.item, missed.answer.length - 1);
+      const part =
+        parsed.part === WHOLE_TUNE && place
+          ? t('ear.tune.part.wholeAt', { n: place.phrase })
+          : tunePart(parsed.part);
+      return t('ear.tune.missed', { part, miss: echoMiss(missed, place?.note) });
     };
 
     /**
@@ -175,12 +221,15 @@ export function useEarFormat() {
       button,
       name,
       answer,
-      /** `I1 · Octave, fifth and major third`. */
-      level: (id: EarLevelId) => `${id} · ${t(`ear.level.${id}`)}`,
-      levelName: (id: EarLevelId) => t(`ear.level.${id}`),
-      /** `5 intervals`, `6 chords`, `5–6 notes`. */
+      /** `I1 · Octave, fifth and major third`; a tune by its title alone. */
+      level: (id: EarLevelId) => (isTuneId(id) ? tuneTitle(id) : `${id} · ${t(`ear.level.${id}`)}`),
+      levelName: (id: EarLevelId) => (isTuneId(id) ? tuneTitle(id) : t(`ear.level.${id}`)),
+      /** What stands for a level where its id does: `EC3`; a tune's place in the list, `4`. */
+      levelId: (id: EarLevelId) => (isTuneId(id) ? String(TUNE_IDS.indexOf(id) + 1) : id),
+      /** `5 intervals`, `6 chords`, `5–6 notes`, `4 phrases`. */
       levelSize: (id: EarLevelId) => {
         const level = getEarLevel(id);
+        if (level.family === 'tune') return t('ear.level.phrases', { n: level.phrases });
         if (level.family === 'echo') {
           const [min, max] = level.rules.notes;
           return min === max
@@ -194,23 +243,33 @@ export function useEarFormat() {
           ? t('ear.level.intervals', { n: level.names.length })
           : t('ear.level.chords', { n: level.chords.length });
       },
-      /** `12/40 answers · 83% correct · median 1.9 s`, or `… melodies …` for Echo. */
-      levelStats: (progress: EarLevelProgress, percent: string, median: string) =>
-        t(
-          getEarLevel(progress.level).family === 'echo'
-            ? 'ear.level.stats.echo'
-            : 'ear.level.stats',
-          {
-            answers: progress.answers,
+      /**
+       * `12/40 answers · 83% correct · median 1.9 s`, or `… melodies …` for Echo; a tune by how
+       * much of it is right without a replay, `5 of 7 right without a replay`.
+       */
+      levelStats: (progress: EarLevelProgress, percent: string, median: string) => {
+        const { family } = getEarLevel(progress.level);
+        if (family === 'tune') {
+          return t('ear.level.stats.tune', {
+            right: Math.round((progress.accuracy ?? 0) * progress.answers),
             window: progress.window,
-            accuracy: percent,
-            median,
-          },
-        ),
+          });
+        }
+        return t(family === 'echo' ? 'ear.level.stats.echo' : 'ear.level.stats', {
+          answers: progress.answers,
+          window: progress.window,
+          accuracy: percent,
+          median,
+        });
+      },
       /** `D major`, `A minor (harmonic)`: the key of a melody. */
       key: (tonic: Tonic, scale: EchoScale) =>
         t(`ear.echo.key.${scale}`, { tonic: tonicName(tonic) }),
       echoMiss,
+      tuneTitle,
+      tunePart,
+      tunePlace,
+      tuneMiss,
     };
   }, [t, locale]);
 }

@@ -80,9 +80,11 @@ report contains only the figures listed above. The teacher's name is whatever th
   optionally "at least X % of the notes right" or, in rhythm mode, "in time" (50–100 %). A _scale_
   task names the exercise by its key, free or with the click (a tempo and the notes to the beat).
   A _level_ task names a family and a level: Read's notes, intervals, key signatures, chords,
-  rhythm and sight-reading; Ear's intervals, chords, melodies, cadences and rhythm; Harmony's
-  chord symbols; with a number of sessions, or mastery. Harmony's progressions and Improvise have
-  no levels and are not tasks. An assignment has at most 100 tasks, a title of 120 characters, a
+  rhythm and sight-reading; Ear's intervals, chords, melodies, cadences, tunes and rhythm;
+  Harmony's chord symbols; with a number of sessions, or mastery. A tune played by ear (H5,
+  [HARMONY.md](HARMONY.md)) is a level of its family, `tune`: the level is the tune's id in the
+  library (`trad-amazing-grace`), shown by its title, and its mastery reads **Learn the tune**.
+  Harmony's progressions and Improvise have no levels and are not tasks. An assignment has at most 100 tasks, a title of 120 characters, a
   note of 2,000, a name of 80, a window of a year, and 24 KB serialized: some seventy pieces, and
   small enough that its report, which carries every task with its figures, always fits the 64 KB
   a synced record may have (a report may be 60 KB). So the size, not the link's 8 KB, is what
@@ -127,7 +129,10 @@ report contains only the figures listed above. The teacher's name is whatever th
 - **A level task** counts sessions of the level that were played to their end (every card,
   exercise, bar or fragment planned), begun in the window, whatever their length. **Mastery** is
   the level's own, by the rules of its page, judged on everything answered up to the end of the
-  due day, the answers from before the start among them: mastery is a state, not a count.
+  due day, the answers from before the start among them: mastery is a state, not a count. A
+  tune's session is played to its end once the whole tune was asked, in whatever key; the tune is
+  learnt when every phrase and the whole of it were last played right without Hear again, and
+  the checklist says how many of them are ("3 of 5 right without a replay").
 - **A lesson task** is met by the lesson's tick on the device. The tick has no date and is not
   synced (LEARN.md), so it counts whenever it was earned, and on another device the lesson reads
   as not read until it is finished there.

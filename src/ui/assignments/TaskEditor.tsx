@@ -417,6 +417,8 @@ function LevelEditor({ task, adding, onSave, onCancel }: EditorProps<LevelTask>)
   const [mastery, setMastery] = useState(task.goal === 'mastery');
   const [sessions, setSessions] = useState(task.goal === 'mastery' ? 3 : task.goal);
   const levels = levelsOfFamily(family);
+  // A tune played by ear is named by its title and learnt, where a level is mastered.
+  const tune = family === 'tune';
   const current: LevelTask = {
     kind: 'level',
     id: task.id,
@@ -450,7 +452,7 @@ function LevelEditor({ task, adding, onSave, onCancel }: EditorProps<LevelTask>)
           </select>
         </div>
         <div className="field">
-          <label htmlFor={`${id}-level`}>{t('assignments.edit.level')}</label>
+          <label htmlFor={`${id}-level`}>{t(tune ? 'ear.tune' : 'assignments.edit.level')}</label>
           <select
             id={`${id}-level`}
             value={current.level}
@@ -458,7 +460,7 @@ function LevelEditor({ task, adding, onSave, onCancel }: EditorProps<LevelTask>)
           >
             {levels.map((l) => (
               <option key={l} value={l}>
-                {`${l} · ${t(levelKey(family, l))}`}
+                {tune ? t(levelKey(family, l)) : `${l} · ${t(levelKey(family, l))}`}
               </option>
             ))}
           </select>
@@ -477,7 +479,9 @@ function LevelEditor({ task, adding, onSave, onCancel }: EditorProps<LevelTask>)
                 <span>
                   {t(
                     choice
-                      ? 'assignments.edit.levelGoal.mastery'
+                      ? tune
+                        ? 'assignments.goal.mastery.tune'
+                        : 'assignments.edit.levelGoal.mastery'
                       : 'assignments.edit.levelGoal.sessions',
                   )}
                 </span>
@@ -497,7 +501,11 @@ function LevelEditor({ task, adding, onSave, onCancel }: EditorProps<LevelTask>)
       </div>
       <p className="help">
         {t(
-          mastery ? 'assignments.edit.level.help.mastery' : 'assignments.edit.level.help.sessions',
+          mastery
+            ? tune
+              ? 'ear.level.rule.tune'
+              : 'assignments.edit.level.help.mastery'
+            : 'assignments.edit.level.help.sessions',
         )}
       </p>
       <Actions task={current} adding={adding} onSave={onSave} onCancel={onCancel} />

@@ -12,11 +12,13 @@ import {
   type EarLevelProgress,
 } from '../../core/earSession.ts';
 import { SESSION_LENGTHS } from '../../core/session.ts';
+import { isTuneId } from '../../core/tuneList.ts';
+import { getTune, tuneKey } from '../../core/tunes.ts';
 import { useT } from '../../i18n/index.ts';
 import { useReadFormat } from '../read/format.ts';
 import { Segmented } from '../Segmented.tsx';
 import { useEarFormat } from './format.ts';
-import { EAR_PAGE_FAMILIES, type EarPrefs } from './prefs.ts';
+import { EAR_PAGE_FAMILIES, TUNE_KEYS, type EarPrefs } from './prefs.ts';
 import { RhythmEarLevels, RhythmEarOptions, type RhythmEarSetupProps } from './RhythmEarSetup.tsx';
 import { useRhythmFormat } from '../read/rhythmFormat.ts';
 
@@ -51,7 +53,10 @@ export function EarSetup({
   const id = useId();
   const echo = prefs.family === 'echo';
   const cadence = prefs.family === 'cadence';
+  const tune = prefs.family === 'tune';
   const family = prefs.family === 'rhythmEar' ? null : prefs.family;
+  // The key of the tune chosen, as its lead sheet is written.
+  const ownKey = isTuneId(level) ? tuneKey(getTune(level), 0) : null;
 
   return (
     <form
@@ -78,7 +83,7 @@ export function EarSetup({
           <RhythmEarLevels {...rhythm} />
         ) : (
           <fieldset className="field" aria-describedby={`${id}-rule`}>
-            <legend>{t('ear.level')}</legend>
+            <legend>{t(tune ? 'ear.tune' : 'ear.level')}</legend>
             <div className="levels">
               {levelsOf(family).map((l) => (
                 <LevelOption
@@ -98,7 +103,9 @@ export function EarSetup({
                   ? 'ear.level.rule.echo'
                   : cadence
                     ? 'ear.level.rule.cadence'
-                    : 'ear.level.rule',
+                    : tune
+                      ? 'ear.level.rule.tune'
+                      : 'ear.level.rule',
               )}
             </p>
           </fieldset>
@@ -108,7 +115,7 @@ export function EarSetup({
       {/* The session: beside the levels on a wide screen, as a card to start from. */}
       <div className="read-options">
         <p className="read-options-level" aria-hidden="true">
-          <span className="level-id">{family === null ? rhythm.level : level}</span>
+          <span className="level-id">{family === null ? rhythm.level : format.levelId(level)}</span>
           <span>
             {family === null ? rhythmFormat.levelName(rhythm.level) : format.levelName(level)}
           </span>
@@ -116,6 +123,22 @@ export function EarSetup({
         {/* A melody is only ever played back, a cadence only named: no choice of how to answer. */}
         {family === null ? (
           <RhythmEarOptions prefs={prefs} onPrefs={onPrefs} {...rhythm} />
+        ) : tune ? (
+          <>
+            <p className="help ear-echo-help">{t('ear.tune.help')}</p>
+            <Segmented
+              legend={t('ear.tune.key')}
+              name={`${id}-key`}
+              options={TUNE_KEYS.map((key) => ({ value: key, label: t(`ear.tune.key.${key}`) }))}
+              value={prefs.tuneKey}
+              onChange={(tuneKey) => onPrefs({ tuneKey })}
+              help={
+                prefs.tuneKey === 'own' && ownKey
+                  ? t('ear.tune.key.own.help', { key: format.key(ownKey.tonic, ownKey.scale) })
+                  : t('ear.tune.key.other.help')
+              }
+            />
+          </>
         ) : echo || cadence ? (
           <p className="help ear-echo-help">{t(echo ? 'ear.echo.help' : 'ear.cadence.help')}</p>
         ) : (
@@ -152,7 +175,7 @@ export function EarSetup({
             onChange={(chordStyle) => onPrefs({ chordStyle })}
           />
         )}
-        {family === null ? null : echo ? (
+        {family === null || tune ? null : echo ? (
           <Segmented
             legend={t('ear.echoLength')}
             name={`${id}-length`}
@@ -198,7 +221,7 @@ function LevelOption({ name, level, checked, suggested, progress, onChange }: Le
   return (
     <label className={checked ? 'level is-checked' : 'level'}>
       <input type="radio" name={name} value={level.id} checked={checked} onChange={onChange} />
-      <span className="level-id">{level.id}</span>
+      <span className="level-id">{format.levelId(level.id)}</span>
       <span className="level-body">
         <span className="level-name">{format.levelName(level.id)}</span>
         <span className="level-range">{format.levelSize(level.id)}</span>

@@ -5,6 +5,7 @@ import { EAR_LEVELS } from '../../core/earItems.ts';
 import { RHYTHM_LEVELS } from '../../core/rhythmCells.ts';
 import { RHYTHM_EAR_LEVEL_IDS } from '../../core/rhythmEar.ts';
 import { SIGHT_LEVELS } from '../../core/sightLevels.ts';
+import { TUNE_IDS } from '../../core/tuneList.ts';
 import { THEORY_LEVELS } from '../../core/theoryItems.ts';
 import { currentAssignments } from '../../core/assignmentRecords.ts';
 import { LEVELS } from '../../core/levels.ts';
@@ -63,7 +64,11 @@ const CONTENTS: readonly {
     title: 'nav.ear',
     text: 'home.ear.text',
     meta: 'home.ear.meta',
-    values: { n: EAR_LEVELS.length + RHYTHM_EAR_LEVEL_IDS.length },
+    // The tunes are counted apart: each is a tune, not a level.
+    values: {
+      n: EAR_LEVELS.length - TUNE_IDS.length + RHYTHM_EAR_LEVEL_IDS.length,
+      tunes: TUNE_IDS.length,
+    },
   },
   {
     path: '/harmony',

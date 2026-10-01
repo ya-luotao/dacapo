@@ -7,7 +7,7 @@ import type {
   StoredReport,
 } from '../core/assignmentRecords.ts';
 import { voiceCadence } from '../core/cadences.ts';
-import { recoverEarSummary, type EarAnswer } from '../core/earSession.ts';
+import { recoverEarSummary, type EarAnswer, type EarSessionSummary } from '../core/earSession.ts';
 import type { RunHeadline } from '../core/evenness.ts';
 import { recoverHarmonySummary, type ChordSymbolAnswer } from '../core/harmonySession.ts';
 import { backingChecksum, improvPieceId, improvPlan, isPlayerBar } from '../core/improv.ts';
@@ -46,6 +46,8 @@ import {
 import { recoverSummary, type Attempt } from '../core/session.ts';
 import { recoverTheorySummary, type TheoryAnswer } from '../core/theorySession.ts';
 import type { StoredPiece } from '../core/storedPiece.ts';
+import { tuneItems } from '../core/tuneList.ts';
+import { tunePrompt } from '../core/tunes.ts';
 import { TAKE_CHUNK_EVENTS, takeChunkId, type TakeChunk } from '../core/takes.ts';
 
 export const T0 = Date.UTC(2026, 8, 20, 10);
@@ -428,6 +430,37 @@ export function sampleCadenceAnswer(
     key: { tonic: 'D', scale: 'major' },
     ...patch,
   };
+}
+
+/**
+ * A tune played by ear from its first phrase to the whole of it: Amazing Grace (four phrases),
+ * `semitones` from G major (two up is A major). Its third phrase goes wrong at its ninth key;
+ * the second was heard again once.
+ */
+export function sampleTuneSession(
+  sessionId: string,
+  semitones = 2,
+): { answers: EarAnswer[]; session: EarSessionSummary & { kind: 'ear' } } {
+  const answers = tuneItems('trad-amazing-grace').map((item, i): EarAnswer => {
+    const { notes, tune } = tunePrompt(item, semitones);
+    const correct = i !== 2;
+    return {
+      id: `${sessionId}:${i}`,
+      sessionId,
+      family: 'tune',
+      level: 'trad-amazing-grace',
+      item,
+      by: 'play',
+      prompt: notes,
+      answer: correct ? [...notes] : [...notes.slice(0, 8), notes[8]! + 1],
+      correct,
+      ms: 4200 + i * 300,
+      replays: i === 1 ? 1 : 0,
+      at: T0 + 16_000_000 + i * 20_000,
+      key: { ...tune.key },
+    };
+  });
+  return { answers, session: { kind: 'ear', ...recoverEarSummary(answers)! } };
 }
 
 /** A session of `count` cadences (`sampleCadenceAnswer`) with its record. */

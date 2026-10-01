@@ -19,9 +19,11 @@ import {
   summarizeEar,
   type AnswerMode,
   type EarSessionState,
+  type PromptDraw,
 } from '../../core/earSession.ts';
 import { isEarAnswer } from '../../core/answers.ts';
 import type { Rng } from '../../core/random.ts';
+import { drawTransposition, getTune, tuneKey, tunePrompt } from '../../core/tunes.ts';
 import type { PracticeStore } from '../practice/store.ts';
 
 /** How long a right answer stays on screen before the next item. */
@@ -48,7 +50,10 @@ export interface EarConfig {
   directions: readonly Direction[];
   /** Chords: broken, then block, or block only. */
   chordStyle: ChordStyle;
+  /** Ignored for a tune: its phrases, then the whole of it. */
   length: number;
+  /** A tune: in the key of its lead sheet (the default), or in another drawn here. */
+  tuneKey?: 'own' | 'other';
 }
 
 export interface EarView {
@@ -115,6 +120,8 @@ export function createEarController({
   let view: EarView | null = null;
   let advanceTimer: number | null = null;
   let listenTimer: number | null = null;
+  /** How the session's prompts are drawn: a tune's in the session's key (`tunes.ts`). */
+  let draw: PromptDraw | undefined;
   const listeners = new Set<() => void>();
 
   function cancel(timer: number | null) {
@@ -139,12 +146,14 @@ export function createEarController({
 
   /**
    * Plays the current card's prompt from `lead` ms on; with `replay`, as "Hear again"; as the
-   * `correction` after a wrong answer, a melody without its tonic chord.
+   * `correction` after a wrong answer, a melody without its tonic chord (of a whole tune, the
+   * phrase it went wrong in).
    */
   function playPrompt(lead: number, replay: boolean, correction = false) {
     if (!view || view.session.phase !== 'running') return;
     const { card } = view.session;
-    const plan = promptPlan(card.prompt, view.chordStyle, correction);
+    const wrongAt = Array.isArray(card.answer) ? card.answer.length - 1 : 0;
+    const plan = promptPlan(card.prompt, view.chordStyle, correction, wrongAt);
     const start = clock() + lead;
     sound.play(plan.notes, start);
     const opensAt = start + plan.lastOn;
@@ -198,7 +207,7 @@ export function createEarController({
     if (!view) return;
     cancelTimers();
     const stats = earStats(practice.getSnapshot().answers.filter(isEarAnswer));
-    update(view, advanceEar(view.session, { at: now(), stats, rng }));
+    update(view, advanceEar(view.session, { at: now(), stats, rng, prompt: draw }));
   }
 
   function onAdvance() {
@@ -221,6 +230,10 @@ export function createEarController({
       stop();
       const level = getEarLevel(config.level);
       const stats = earStats(practice.getSnapshot().answers.filter(isEarAnswer));
+      // A tune is in one key from its first phrase to the whole of it.
+      const semitones =
+        level.family === 'tune' && config.tuneKey === 'other' ? drawTransposition(rng) : 0;
+      draw = level.family === 'tune' ? (item) => tunePrompt(item, semitones) : undefined;
       const session = startEarSession({
         id: newId(),
         level,
@@ -231,6 +244,8 @@ export function createEarController({
         at: now(),
         stats,
         rng,
+        prompt: draw,
+        ...(level.family === 'tune' && { key: tuneKey(getTune(level.id), semitones) }),
       });
       view = { session, chordStyle: config.chordStyle, listening: false };
       notify();
@@ -238,9 +253,11 @@ export function createEarController({
     },
     hearAgain() {
       if (!view || view.session.phase !== 'running') return;
+      const { card } = view.session;
       // Nothing waits for the right answer to be read: a replay is its own listening.
-      if (view.session.card.status === 'correct') return;
-      playPrompt(PROMPT_LEAD_MS, true);
+      if (card.status === 'correct') return;
+      // A tune gone wrong is heard again as it was corrected: the phrase, without the chord.
+      playPrompt(PROMPT_LEAD_MS, true, card.status === 'wrong' && card.prompt.tune !== undefined);
     },
     press(midi, time) {
       if (!view) return;

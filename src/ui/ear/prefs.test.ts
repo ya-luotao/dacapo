@@ -12,15 +12,17 @@ describe('ear prefs', () => {
       echoLength: 5,
       rhythmBy: 'name',
       rhythmLength: 20,
+      tuneKey: 'other',
     };
     expect(parseEarPrefs(JSON.stringify(stored))).toEqual(stored);
+    expect(parseEarPrefs(JSON.stringify({ ...stored, family: 'tune' })).family).toBe('tune');
     expect(parseEarPrefs(JSON.stringify({ ...stored, family: 'echo' })).family).toBe('echo');
     expect(parseEarPrefs(JSON.stringify({ ...stored, family: 'rhythmEar' })).family).toBe(
       'rhythmEar',
     );
   });
 
-  it('reads what an earlier version stored, without a length of melodies or rhythm', () => {
+  it('reads what an earlier version stored, without a length of melodies or rhythm or a tune’s key', () => {
     const stored = {
       family: 'chord',
       by: 'name',
@@ -33,6 +35,7 @@ describe('ear prefs', () => {
       echoLength: 10,
       rhythmBy: 'play',
       rhythmLength: 10,
+      tuneKey: 'own',
     });
   });
 
@@ -49,6 +52,7 @@ describe('ear prefs', () => {
           direction: 'x',
           rhythmBy: 'tap',
           rhythmLength: 8,
+          tuneKey: 'G',
         }),
       ),
     ).toEqual(DEFAULT_EAR_PREFS);

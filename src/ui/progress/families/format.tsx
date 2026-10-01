@@ -21,6 +21,7 @@ import {
   parseSymbolItem,
 } from '../../../core/chordSymbols.ts';
 import { isRhythmEarLevelId } from '../../../core/rhythmEar.ts';
+import { isTuneId } from '../../../core/tuneList.ts';
 import { parseSignature, parseTheoryItem, isTheoryLevelId } from '../../../core/theoryItems.ts';
 import { signatureTonic } from '../../../core/keys.ts';
 import { useI18n } from '../../../i18n/index.ts';
@@ -60,9 +61,13 @@ export function useFamilyFormat() {
       });
     };
 
-    /** `perfect 4th up`: a step of a melody, in signed semitones. */
+    /**
+     * `perfect 4th up`: a step of a melody, in signed semitones; a tune's `0`, the same note
+     * again.
+     */
     const step = (label: string) => {
       const semitones = Number(label);
+      if (semitones === 0) return t('ear.tune.same');
       const name = intervalOfSemitones(Math.abs(semitones));
       if (!name) return label;
       return t(semitones > 0 ? 'ear.echo.up' : 'ear.echo.down', { name: ear.interval(name) });
@@ -81,6 +86,7 @@ export function useFamilyFormat() {
         case 'interval':
           return ear.interval(label);
         case 'echo':
+        case 'tune':
           return step(label);
         case 'cadence':
           return isCadence(label) ? t(`ear.cadence.${label}`) : label;
@@ -101,8 +107,9 @@ export function useFamilyFormat() {
     };
 
     /**
-     * A label as a heading of the table: `m6`, `↑P4`, `A2`, `E♭` (a minor key in lower case,
-     * `c♯`), a chord symbol with its inversion's figures, or a lead sheet's symbol (`Dm7`).
+     * A label as a heading of the table: `m6`, `↑P4` (a tune's repeated note `P1`), `A2`, `E♭` (a
+     * minor key in lower case, `c♯`), a chord symbol with its inversion's figures, or a lead
+     * sheet's symbol (`Dm7`).
      */
     const short = (family: AnswerFamily, label: string): ReactNode => {
       if (label === OTHER) return t('families.confusion.other');
@@ -112,8 +119,10 @@ export function useFamilyFormat() {
           return label;
         case 'cadence':
           return isCadence(label) ? CADENCE_NUMERALS[label] : label;
-        case 'echo': {
+        case 'echo':
+        case 'tune': {
           const semitones = Number(label);
+          if (semitones === 0) return 'P1';
           const name = intervalOfSemitones(Math.abs(semitones));
           return `${semitones > 0 ? '↑' : '↓'}${name ?? Math.abs(semitones)}`;
         }
@@ -137,14 +146,19 @@ export function useFamilyFormat() {
 
     /**
      * An item in words: `minor 6th up`, `EC3 · Up to the octave`, `augmented 2nd, harmonic`,
-     * `Dm7 · D minor 7th chord`.
+     * `Dm7 · D minor 7th chord`, `Amazing Grace: phrase 2`.
      */
     const item = (family: AnswerFamily, itemKey: string): string => {
       if (family === 'echo') {
         const parsed = parseItem(itemKey);
         return parsed?.family === 'echo' ? ear.level(parsed.level) : itemKey;
       }
-      if (family === 'interval' || family === 'chord' || family === 'cadence') {
+      if (
+        family === 'interval' ||
+        family === 'chord' ||
+        family === 'cadence' ||
+        family === 'tune'
+      ) {
         return ear.item(itemKey);
       }
       if (family === 'chordSymbol') {
@@ -177,6 +191,8 @@ export function useFamilyFormat() {
       if (isRhythmEarLevelId(id)) return rhythm.levelName(id);
       return isTheoryLevelId(id) ? theory.levelName(id) : id;
     };
+    /** What a level is headed by where there is little room: its id, or a tune's title. */
+    const levelTag = (id: FamilyLevelId) => (isTuneId(id) ? ear.tuneTitle(id) : id);
 
     /** Replays of an Ear item, or hinted cards of a theory item. */
     const aids = (family: AnswerFamily, n: number) => {
@@ -201,7 +217,7 @@ export function useFamilyFormat() {
         figures.aids > 0 && aids(family, figures.aids),
       ].filter((part) => part !== false);
 
-    return { long, short, item, level, levelName, aids, figures };
+    return { long, short, item, level, levelName, levelTag, aids, figures };
   }, [t, ear, theory, read, harmony, rhythm, dictation]);
 }
 

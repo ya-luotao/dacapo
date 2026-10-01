@@ -77,4 +77,26 @@ describe('what the start loads', () => {
       for (const heavy of HEAVY) expect(chain(root, heavy)).toBeNull();
     },
   );
+
+  // The tunes played by ear (docs/HARMONY.md, H5): the start knows which they are and how many
+  // phrases each has; their melodies come with the Ear page, and the staff they are drawn on
+  // (Verovio) when a tune is played.
+  it.each(['/src/main.tsx', '/src/ui/assignments/HomeAssignment.tsx'])(
+    '%s loads the list of tunes, not their melodies',
+    (root) => {
+      expect(chain(root, '/src/core/tuneList.ts')).not.toBeNull();
+      for (const melodies of [
+        '/src/core/tuneData.ts',
+        '/src/core/tunes.ts',
+        '/src/core/tuneXml.ts',
+      ])
+        expect(chain(root, melodies)).toBeNull();
+    },
+  );
+
+  it('the Ear page loads the melodies, and the staff only on demand', () => {
+    expect(chain('/src/ui/pages/EarPage.tsx', '/src/core/tuneData.ts')).not.toBeNull();
+    expect(chain('/src/ui/pages/EarPage.tsx', '/src/ui/ear/TuneStaff.tsx')).toBeNull();
+    expect(chain('/src/ui/pages/EarPage.tsx', '/src/ui/notation/ScoreView.tsx')).toBeNull();
+  });
 });

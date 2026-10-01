@@ -60,6 +60,14 @@ and no Simplified-only characters in zh-TW.
   what is practised, as `Intervals` and `Chords` do: 旋律 (zh, ja), 선율 (ko), not a word for
   singing back (模唱). A melodic interval with its direction (`ear.echo.up`, `ear.echo.down`) is
   said as your teaching says it: 上行纯四度, 上行完全4度, 상행 완전4도, perfect 4th up.
+- **Tunes** (`ear.tune.*`, `ear.family.tune`) are the songs of the library's lead sheets, played
+  back by ear. The tab names what is practised, a plain word for a song: 歌曲 (zh), 歌 (ja), 노래
+  (ko). A tune is not a level and is never "mastered": it is learnt (学会, 習得, 익히다), and it
+  is named by its title in the library (`library.<id>.title`), which is translated there. A
+  phrase is the word your teaching uses for a line of a melody (乐句, フレーズ, 악구), counted
+  as your language counts lines (第 3 句, フレーズ3, 악구 3). "In its key" is the key the lead
+  sheet is written in (原调, 原調で, 원래 조로); "In another key" is said as a learner would say
+  it, not as a term for transposition (换个调, 別の調で, 다른 조로).
 - **Theory cards on Read** (`read.what.*`, `theory.*`): an interval is named from two parts,
   `theory.quality.*` (diminished … augmented) and `theory.number.*` (2nd … octave), joined by
   `theory.interval`. Write the parts so the whole reads as your teaching says it — 增二度, 纯八度,
@@ -198,6 +206,8 @@ Chinese and Latin letters, digits and placeholders (`第 {n} 张`, `MIDI 键盘`
 | assignment / teacher / task / checklist / due                  | 作业 / 老师 / 任务 / 清单 / 截止                |
 | set by me / for me / run (of a task) / session (of a level)    | 我布置的 / 我要做的 / 遍 / 组                   |
 | report / keep (a report)                                       | 报告 / 保留                                     |
+| Tunes (the family) / tune / phrase 3 / the whole tune          | 歌曲 / 歌曲 / 第 3 句（乐句） / 整首歌          |
+| in its key / in another key / learnt (a tune)                  | 原调 / 换个调 / 学会                            |
 
 ## Traditional Chinese, Taiwan (`zh-TW`)
 
@@ -314,6 +324,8 @@ terms throughout. Address the learner as 你, as zh-CN does.
 | assignment / teacher / task / checklist / due                  | 作業 / 老師 / 項目 / 清單 / 截止           | 作业 / 老师 / 任务 / 清单       |
 | set by me / for me / run (of a task) / session (of a level)    | 我出的 / 我要做的 / 遍 / 輪                | 我布置的 / 组                   |
 | report / keep (a report)                                       | 報告 / 保留                                | 报告                            |
+| Tunes (the family) / tune / phrase 3 / the whole tune          | 歌曲 / 歌曲 / 第 3 句（樂句） / 整首歌     | 乐句                            |
+| in its key / in another key / learnt (a tune)                  | 原調 / 換個調 / 學會                       | 原调 / 换个调 / 学会            |
 
 Keys in titles: `G 大調`, `C 大調`. Composers as Taiwan writes them: 貝多芬, 巴哈 (not 巴赫), 舒曼,
 布爾格彌勒.
@@ -429,6 +441,8 @@ verb phrases for labels and buttons (設定, 開始, もう一度, 補正する)
 | assignment / teacher / task / checklist / due                  | 課題 / 先生 / 項目 / チェックリスト / 期限                         |
 | set by me / for me / run (of a task) / session (of a level)    | 出した課題 / 取り組む課題 / 回 / 回                                |
 | report / keep (a report)                                       | レポート / 保存                                                    |
+| Tunes (the family) / tune / phrase 3 / the whole tune          | 歌 / 歌 / フレーズ3 / 曲全体                                       |
+| in its key / in another key / learnt (a tune)                  | 原調で / 別の調で / 習得                                           |
 
 Keys in titles follow Japanese editions: ハ長調, ト長調. Middle C is 中央C. Scale names on the Scales
 page keep the letter names of the app (`D長音階`, `G♯和声的短音階`), not ニ長音階.
@@ -545,6 +559,8 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 | assignment / teacher / task / checklist / due                  | 과제 / 선생님 / 항목 / 체크리스트 / 마감                             |
 | set by me / for me / run (of a task) / session (of a level)    | 내가 낸 과제 / 내가 할 과제 / 회 / 번                                |
 | report / keep (a report)                                       | 보고서 / 보관                                                        |
+| Tunes (the family) / tune / phrase 3 / the whole tune          | 노래 / 노래 / 악구 3 / 곡 전체                                       |
+| in its key / in another key / learnt (a tune)                  | 원래 조로 / 다른 조로 / 익히기                                       |
 
 Keys in titles use letters: G장조, C장조, matching the letter names in the app. Composer names
 follow the National Institute of Korean Language: 루트비히 판 베토벤, 요한 제바스티안 바흐.

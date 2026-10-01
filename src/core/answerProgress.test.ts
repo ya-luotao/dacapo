@@ -7,10 +7,12 @@ import {
   sampleRhythmAnswers,
   sampleRhythmEarChoice,
   sampleRhythmEarTaps,
+  sampleTuneSession,
 } from '../storage/fixtures.ts';
 import { recoverEarSessions } from './log.ts';
 import {
   ALL_ANSWERS,
+  ANSWER_FAMILIES,
   cellCount,
   compareLabels,
   CONFUSION_MIN_ASKED,
@@ -34,6 +36,7 @@ import type { EarAnswer } from './earSession.ts';
 import type { ChordSymbolAnswer } from './harmonySession.ts';
 import { SPEED_BUCKETS } from './heatmap.ts';
 import { seededRng } from './random.ts';
+import { TUNE_IDS } from './tuneList.ts';
 import type { TheoryAnswer } from './theorySession.ts';
 
 const T = 1_700_000_000_000;
@@ -600,6 +603,124 @@ describe('cadences', () => {
     expect(matrix.columns).toEqual(['authentic', 'deceptive']);
     expect(cellCount(matrix, 'deceptive', 'authentic')).toBe(3);
     expect(compareLabels('cadence', 'half', 'plagal')).toBeGreaterThan(0);
+  });
+});
+
+describe('tunes', () => {
+  // Amazing Grace in A major: its third phrase wrong at the ninth key, its second heard again.
+  const { answers } = sampleTuneSession('t1');
+  // Twinkle's first line: G G D D E E D.
+  const twinkle = (answer: number[], correct = false) =>
+    ear({
+      family: 'tune',
+      level: 'trad-twinkle-twinkle',
+      item: 'tune:trad-twinkle-twinkle:1',
+      prompt: [67, 67, 74, 74, 76, 76, 74],
+      answer,
+      correct,
+      key: { tonic: 'G', scale: 'major' },
+    });
+
+  it('are a family after the cadences, each tune a level learnt part by part', () => {
+    expect(ANSWER_FAMILIES.slice(0, 6)).toEqual([
+      'interval',
+      'chord',
+      'echo',
+      'cadence',
+      'tune',
+      'rhythmEar',
+    ]);
+    expect(familyLevelIds('tune')).toEqual([...TUNE_IDS]);
+    expect(isFamilyLevel('tune', 'trad-swing-low')).toBe(true);
+    expect(isFamilyLevel('tune', 'EC1')).toBe(false);
+    const levels = familyLevels('tune', answers);
+    expect(levels).toHaveLength(8);
+    // The phrase heard again is not counted; of the other four parts three are right.
+    expect(levels.find((l) => l.level === 'trad-amazing-grace')).toMatchObject({
+      total: 5,
+      counted: 4,
+      window: 5,
+      accuracy: 0.75,
+      mastered: false,
+    });
+    expect(levels.filter((l) => l.total > 0)).toHaveLength(1);
+  });
+
+  it('keep figures for each phrase and the whole tune, in the tune’s order, without a time', () => {
+    const items = itemFigures('tune', [...answers].reverse());
+    expect(items.map((i) => i.item)).toEqual([
+      'tune:trad-amazing-grace:1',
+      'tune:trad-amazing-grace:2',
+      'tune:trad-amazing-grace:3',
+      'tune:trad-amazing-grace:4',
+      'tune:trad-amazing-grace:whole',
+    ]);
+    expect(items.map((i) => [i.recentCorrect, i.aids, i.medianMs])).toEqual([
+      [1, 0, null],
+      [1, 1, null],
+      [0, 0, null],
+      [1, 0, null],
+      [1, 0, null],
+    ]);
+    // Weighed by the misses alone: a long phrase is not a weak one, the phrase missed is.
+    const [first, , third, , whole] = items;
+    expect(first!.weight).toBe(whole!.weight);
+    expect(third!.weight).toBeGreaterThan(first!.weight);
+    const thrice = [...answers, ...answers, ...answers];
+    expect(weakestItems(itemFigures('tune', thrice), 1)[0]!.item).toBe('tune:trad-amazing-grace:3');
+  });
+
+  it('are read step by step as a melody is, the same note again a step of its own', () => {
+    expect(confusionsOf(twinkle([67, 67, 74, 74, 76, 76, 74], true))).toEqual(
+      ['0', '+7', '0', '+2', '0', '-2'].map((step) => ({ asked: step, answered: step })),
+    );
+    // The second G left out: the same note again, played as up a 5th.
+    expect(confusionsOf(twinkle([67, 74]))).toEqual([{ asked: '0', answered: '+7' }]);
+    // G struck a third time where the tune leaps: up a 5th, played as the same note.
+    expect(confusionsOf(twinkle([67, 67, 67]))).toEqual([
+      { asked: '0', answered: '0' },
+      { asked: '+7', answered: '0' },
+    ]);
+    // Only a leap past the octave is other; a wrong first note has no step into it.
+    expect(confusionsOf(twinkle([67, 67, 81])).at(-1)).toEqual({ asked: '+7', answered: OTHER });
+    expect(confusionsOf(twinkle([65]))).toEqual([]);
+    // Keys that cannot be an answer to the phrase are left out.
+    expect(confusionsOf(twinkle([67, 67, 74, 74, 76, 76, 74, 72]))).toEqual([]);
+  });
+
+  it('count every step reached in the table, the repeated note between down and up', () => {
+    const matrix = confusionMatrix('tune', answers);
+    // The third phrase (B D B D B G D E G G E D, in A): its step into the ninth key, up a minor
+    // 3rd, was played a semitone high.
+    expect(cellCount(matrix, '+3', '+4')).toBe(1);
+    expect(topConfusions('tune', matrix)).toEqual([
+      expect.objectContaining({ asked: '+3', answered: '+4', count: 1 }),
+    ]);
+    // The whole tune played right has its three repeated notes on the diagonal: the G of the
+    // third line, and the D a line ends on and the next begins with, twice.
+    expect(cellCount(matrix, '0', '0')).toBe(3);
+    expect(matrix.rows.indexOf('0')).toBeGreaterThan(matrix.rows.indexOf('-2'));
+    expect(matrix.rows.indexOf('0')).toBeLessThan(matrix.rows.indexOf('+2'));
+    expect(compareLabels('tune', '0', '+2')).toBeLessThan(0);
+    expect(compareLabels('tune', '-2', '0')).toBeLessThan(0);
+    expect(compareLabels('tune', OTHER, '+12')).toBeGreaterThan(0);
+    // One tune's answers only.
+    expect(
+      confusionMatrix('tune', filterAnswers(answers, { level: 'trad-swing-low', by: 'all' })).rows,
+    ).toEqual([]);
+  });
+
+  it('recover a session closed before its end, with its key and the tune’s length', () => {
+    const [session] = recoverEarSessions(answers.slice(0, 3), []);
+    expect(session).toMatchObject({
+      kind: 'ear',
+      family: 'tune',
+      level: 'trad-amazing-grace',
+      length: 5,
+      items: 3,
+      correct: 2,
+      key: { tonic: 'A', scale: 'major' },
+    });
   });
 });
 

@@ -15,6 +15,8 @@ import {
   type EarLevelProgress,
 } from '../../core/earSession.ts';
 import { isEarAnswer, isRhythmEarAnswer } from '../../core/answers.ts';
+import { isTuneId } from '../../core/tuneList.ts';
+import { getTune, tuneKey } from '../../core/tunes.ts';
 import {
   nextRhythmEarLevel,
   rhythmEarLevelProgress,
@@ -30,7 +32,7 @@ import { createEarController, type EarSound } from '../ear/controller.ts';
 import { EarSession } from '../ear/EarSession.tsx';
 import { EarSetup } from '../ear/EarSetup.tsx';
 import { EarSummary } from '../ear/EarSummary.tsx';
-import { readEarPrefs, writeEarPrefs, type EarPrefs } from '../ear/prefs.ts';
+import { readEarPrefs, writeEarPrefs, type EarPrefs, type TuneKeyChoice } from '../ear/prefs.ts';
 import { createRhythmEarController } from '../ear/rhythmController.ts';
 import { RhythmEarSession } from '../ear/RhythmEarSession.tsx';
 import { RhythmEarSummary } from '../ear/RhythmEarSummary.tsx';
@@ -200,16 +202,18 @@ function Ear({ search }: { search: string }) {
     writeEarPrefs(next);
   }
 
-  function start(id: EarLevelId) {
+  function start(id: EarLevelId, tuneKey: TuneKeyChoice = prefs.tuneKey) {
     const family = getEarLevel(id).family;
     setPicked((p) => ({ ...p, [family]: id }));
     controller.start({
       level: id,
-      // A melody is only ever played back, a cadence only named.
-      by: family === 'echo' ? 'play' : family === 'cadence' ? 'name' : prefs.by,
+      // A melody or a tune is only ever played back, a cadence only named.
+      by:
+        family === 'echo' || family === 'tune' ? 'play' : family === 'cadence' ? 'name' : prefs.by,
       directions: family === 'interval' ? directionsOf(prefs.direction) : [],
       chordStyle: prefs.chordStyle,
       length: family === 'echo' ? prefs.echoLength : prefs.length,
+      tuneKey,
     });
   }
 
@@ -233,6 +237,13 @@ function Ear({ search }: { search: string }) {
       bpm: tempoOf(rhythmPrefs, id),
       length: prefs.rhythmLength,
     });
+  }
+
+  /** Again: a tune in the key it was just played in, its own or another one drawn anew. */
+  function again(summary: { level: EarLevelId; key?: { tonic: string } }) {
+    if (!isTuneId(summary.level) || !summary.key) return start(summary.level);
+    const own = tuneKey(getTune(summary.level), 0).tonic === summary.key.tonic;
+    start(summary.level, own ? 'own' : 'other');
   }
 
   if (view && running) {
@@ -274,9 +285,10 @@ function Ear({ search }: { search: string }) {
         <EarSummary
           summary={summary}
           progress={progress.get(summary.level)!}
-          onAgain={() => start(summary.level)}
+          onAgain={() => again(summary)}
           onNextLevel={() => start(nextEarLevel(summary.level) ?? summary.level)}
           onChooseLevel={controller.close}
+          onAnotherKey={() => start(summary.level, 'other')}
         />
       ) : calibration ? (
         <CalibrationSheet

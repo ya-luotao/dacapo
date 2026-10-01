@@ -11,6 +11,7 @@ import type { Attempt } from './session.ts';
 import type { SightSessionSummary, TimeRunFigures } from './sightRead.ts';
 import { addDays, type DayKey } from './streak.ts';
 import type { TheoryAnswer } from './theorySession.ts';
+import { sampleTuneSession } from '../storage/fixtures.ts';
 import {
   chordObservations,
   COMPARE_WEEKS,
@@ -462,6 +463,32 @@ describe('observations from the records', () => {
     expect(earObservations(answers)[0]).toMatchObject({ level: 'I2', at: 1000 });
     expect(theoryObservations(answers)).toEqual([{ at: 1000, value: 1, level: 'KS1' }]);
     expect(chordObservations(answers)).toEqual([{ at: 1000, value: 0, level: 'H1' }]);
+  });
+
+  it('ear: a tune’s phrases count with the rest, each tune compared with itself', () => {
+    // Amazing Grace: the second phrase heard again, the third missed.
+    const tune = sampleTuneSession('t1').answers;
+    expect(earObservations([...answers, ...tune]).slice(3)).toEqual(
+      tune.map((a, i) => ({
+        at: a.at,
+        value: i === 1 || i === 2 ? 0 : 1,
+        level: 'trad-amazing-grace',
+      })),
+    );
+    // Twenty answers a week, a tune among them: its share and the level it is compared within.
+    const weeks = [20, 21, 22, 23, 24, 25].flatMap((i) => [
+      ...week(i, 15, 1, { level: 'I2' }),
+      ...week(i, 10, i < 23 ? 0 : 1, { level: 'trad-amazing-grace' }),
+    ]);
+    const trend = trendOf('ear', weeks, UTC);
+    expect(trend.levels).toEqual([
+      { level: 'I2', share: 0.6 },
+      { level: 'trad-amazing-grace', share: 0.4 },
+    ]);
+    expect(trend.comparison).toMatchObject({
+      levels: ['I2', 'trad-amazing-grace'],
+      verdict: 'better',
+    });
   });
 
   it('rhythm lines and dictation tapped back: how far each onset was from the beat', () => {

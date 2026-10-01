@@ -282,8 +282,12 @@ const targetMsOf = (family: AnswerFamily) =>
         ? EAR_TARGET_MS
         : theoryTargetMs(family);
 
-/** The time an answer took, when it says something about hearing or reading; null otherwise. */
+/**
+ * The time an answer took, when it says something about hearing or reading; null otherwise. A
+ * phrase of a tune takes as long as it is: its time says nothing.
+ */
 function timedMs(answer: Answer): number | null {
+  if (answer.family === 'tune') return null;
   if (isRhythmEarAnswer(answer)) return isTimedRhythmEar(answer) ? answer.ms : null;
   if (isTheoryAnswer(answer)) return isTimedTheory(answer) ? answer.ms : null;
   if (isChordSymbolAnswer(answer)) return isTimedHarmony(answer) ? answer.ms : null;
@@ -307,6 +311,9 @@ export function itemFigures(family: AnswerFamily, answers: readonly Answer[]): I
   }
   const stats = statsOf(family, own);
   const target = targetMsOf(family);
+  // A tune's phrases are not weighed by their time, which is their length: by their misses alone.
+  const weigh = (of: NoteStats | undefined) =>
+    noteWeight(family === 'tune' && of ? { ...of, ewmaMs: null } : of, target);
   const order = itemOrder(family);
   const rank = (item: string) => {
     const i = order.indexOf(item);
@@ -323,7 +330,7 @@ export function itemFigures(family: AnswerFamily, answers: readonly Answer[]): I
         recentCorrect: recent.filter((a) => a.correct).length,
         medianMs: median(recent.map(timedMs).filter((ms) => ms !== null)),
         aids: recent.reduce((sum, a) => sum + aidsOf(a), 0),
-        weight: noteWeight(stats[item], target),
+        weight: weigh(stats[item]),
       };
     });
 }
@@ -358,7 +365,7 @@ export const OTHER = 'other';
  * One cell of the confusion table: what was asked, and what was answered, both as labels:
  * - `interval`: the interval's name, whatever the direction (`m6`);
  * - `chord`, `readChord`: the chord and its position (`min:1st`);
- * - `echo`: the melodic interval into a note, in signed semitones (`+5`, `-3`);
+ * - `echo`, `tune`: the melodic interval into a note, in signed semitones (`+5`, `-3`);
  * - `cadence`: the cadence (`half`), named;
  * - `readInterval`: the name as the level asks it (`A2`; RI1 the number alone, `3`);
  * - `keySignature`: the key (`3f:major`);
@@ -374,6 +381,12 @@ const signed = (semitones: number) => (semitones > 0 ? `+${semitones}` : String(
 /** A step of a melody as played: within the octave either way; the same key again is other. */
 const echoLabel = (semitones: number) =>
   semitones === 0 || Math.abs(semitones) > 12 ? OTHER : signed(semitones);
+
+/**
+ * A step of a tune, asked or played: a tune repeats notes (Twinkle's first two), so the same key
+ * again is a step of its own, `0`; only a leap past the octave is other.
+ */
+const tuneLabel = (semitones: number) => (Math.abs(semitones) > 12 ? OTHER : signed(semitones));
 
 const chordLabel = (quality: string, inversion: string) => `${quality}:${inversion}`;
 
@@ -468,19 +481,20 @@ function earConfusions(answer: EarAnswer): Pair[] {
   if (!item || item.family !== answer.family || !isEarLevelId(answer.level)) return [];
   const { prompt } = answer;
 
-  if (item.family === 'echo') {
+  if (item.family === 'echo' || item.family === 'tune') {
     if (!Array.isArray(answer.answer)) return [];
     const played = answer.answer;
     const judged = judgeEchoAnswer(prompt, played);
     if (judged === null) return [];
+    const label = item.family === 'tune' ? tuneLabel : echoLabel;
     // Every step reached: all of them for a melody played right, those up to the wrong note
     // otherwise. A wrong first note has no step into it.
     const reached = judged ? prompt.length - 1 : played.length - 1;
     const pairs: Pair[] = [];
     for (let i = 1; i <= reached; i++) {
-      const asked = signed(prompt[i]! - prompt[i - 1]!);
+      const asked = label(prompt[i]! - prompt[i - 1]!);
       pairs.push(
-        judged || i < reached ? right(asked) : wrong(asked, echoLabel(played[i]! - prompt[i - 1]!)),
+        judged || i < reached ? right(asked) : wrong(asked, label(played[i]! - prompt[i - 1]!)),
       );
     }
     return pairs;
@@ -668,6 +682,7 @@ function labelRank(family: AnswerFamily, label: string): number {
     case 'interval':
       return isIntervalName(label) ? INTERVAL_SEMITONES[label] : Number.MAX_VALUE;
     case 'echo':
+    case 'tune':
       return Number(label);
     case 'cadence':
       return isCadence(label) ? CADENCES.indexOf(label) : Number.MAX_VALUE;

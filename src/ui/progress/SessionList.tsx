@@ -13,6 +13,7 @@ import { useReadFormat } from '../read/format.ts';
 import { useRhythmFormat } from '../read/rhythmFormat.ts';
 import { useSightFormat } from '../read/sightFormat.ts';
 import { firstTimeRun } from '../../core/sightRead.ts';
+import { WHOLE_TUNE } from '../../core/tuneList.ts';
 import { useTheoryFormat } from '../read/theoryFormat.ts';
 import { useExerciseLabel } from '../scales/format.ts';
 import { useLogFormat } from './format.ts';
@@ -186,6 +187,53 @@ function SessionRow({ session }: { session: SessionRecord }) {
           session.by === 'play'
             ? ['rhythm.summary.median', rhythm.ms(session.medianDeviation)]
             : ['ear.summary.median', read.seconds(session.medianMs)],
+        ];
+        break;
+      }
+      // A tune played by ear: which, in which key, how many of its phrases, and the whole tune
+      // (asked once every phrase was); how long a phrase took to play says nothing. The table's
+      // columns are headed for cards and reaction times, so there a figure says what it is.
+      if (session.family === 'tune') {
+        const byWidth = (table: ReactNode, list: ReactNode) => (
+          <>
+            <span className="session-table-only">{table}</span>
+            <span className="session-list-only">{list}</span>
+          </>
+        );
+        const phrases = session.length - 1;
+        const whole = session.items >= session.length;
+        const wholeMissed = session.missed.some((m) => m.item.endsWith(`:${WHOLE_TUNE}`));
+        cells = [
+          when,
+          ['progress.session.kind', t('progress.kind.tune')],
+          [
+            'ear.tune',
+            <span className="session-piece">
+              {session.key
+                ? t('ear.tune.inKey', {
+                    tune: ear.levelName(session.level),
+                    key: ear.key(session.key.tonic, session.key.scale),
+                  })
+                : ear.levelName(session.level)}
+            </span>,
+          ],
+          duration,
+          [
+            'ear.summary.phrases',
+            whole
+              ? byWidth(t('ear.level.phrases', { n: phrases }), phrases)
+              : `${session.items}/${phrases}`,
+          ],
+          ['progress.session.accuracy', read.percent(session.accuracy)],
+          [
+            'ear.summary.whole',
+            whole
+              ? byWidth(
+                  t(wholeMissed ? 'progress.session.tune.wrong' : 'progress.session.tune.right'),
+                  t(wholeMissed ? 'ear.summary.whole.wrong' : 'ear.summary.whole.right'),
+                )
+              : none,
+          ],
         ];
         break;
       }

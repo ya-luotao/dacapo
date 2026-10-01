@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { recoverEarSummary, type EarAnswer } from '../core/earSession.ts';
 import type { SessionRecord } from '../core/log.ts';
 import { takeChunkId } from '../core/takes.ts';
+import { tunePrompt } from '../core/tunes.ts';
 import { openDacapoDB, type DacapoDB } from './db.ts';
 import {
   buildExport,
@@ -44,6 +45,7 @@ import {
   sampleReport,
   sampleStoredAssignment,
   sampleStoredReport,
+  sampleTuneSession,
   T0,
 } from './fixtures.ts';
 import { createIndexedDbRepository, type PracticeRepository } from './repository.ts';
@@ -1562,6 +1564,140 @@ describe('versions', () => {
       { collection: 'answers', index: 13, field: 'prompt', problem: 'invalid' },
       { collection: 'answers', index: 14, field: 'by', problem: 'invalid' },
     ]);
+  });
+
+  it('imports a tune played by ear, holding every answer to the tune again (H5)', () => {
+    // Amazing Grace in A major (two semitones up), and in its own G major.
+    const moved = sampleTuneSession('ts');
+    const own = sampleTuneSession('ts0', 0);
+    const { session } = moved;
+    const [first, , third, , whole] = moved.answers as [
+      EarAnswer,
+      EarAnswer,
+      EarAnswer,
+      EarAnswer,
+      EarAnswer,
+    ];
+    const miss = session.missed[0]!;
+    // A tritone away either way is D flat major.
+    const tritone = [6, -6].map((semitones, i): EarAnswer => {
+      const { notes, tune } = tunePrompt(first.item, semitones);
+      return { ...first, id: `z${i}`, prompt: notes, answer: notes, key: tune.key };
+    });
+    // Swing Low's first phrase in A major too, and the miss a semitone higher, in B flat.
+    const swing = tunePrompt('tune:trad-swing-low:1', 4);
+    const other = { item: swing.item, prompt: swing.notes, answer: [60], key: swing.tune.key };
+    const bFlat = {
+      ...miss,
+      prompt: miss.prompt.map((m) => m + 1),
+      key: { tonic: 'Bb', scale: 'major' },
+    };
+    const file = parsed(
+      fileWith({
+        version: 9,
+        pieces: [],
+        pieceSteps: [],
+        scaleRuns: [],
+        takes: [],
+        assignments: [],
+        sessions: [
+          { ...session, extra: 1 },
+          own.session,
+          // Another family's level; no key, a key no tune is named in, a minor one.
+          { ...session, id: 'x1', level: 'EC1' },
+          { ...session, id: 'x2', key: undefined },
+          { ...session, id: 'x3', key: { tonic: 'C#', scale: 'major' } },
+          { ...session, id: 'x4', key: { tonic: 'A', scale: 'naturalMinor' } },
+          // Named; not the tune's four phrases and the whole; more answered than it has.
+          { ...session, id: 'x5', by: 'name' },
+          { ...session, id: 'x6', length: 10 },
+          { ...session, id: 'x7', items: 6, correct: 5 },
+          // A miss of another tune, in another key, and one whose keys are not in its key.
+          { ...session, id: 'x8', missed: [other] },
+          { ...session, id: 'x9', missed: [bFlat] },
+          { ...session, id: 'x10', missed: [{ ...miss, key: { tonic: 'G', scale: 'major' } }] },
+          // Another family's session has no key.
+          { ...sampleEarSession('x11', 2).session, key: { tonic: 'G', scale: 'major' } },
+        ],
+        answers: [
+          { ...first, extra: 1 },
+          ...moved.answers.slice(1),
+          ...own.answers,
+          ...tritone,
+          // Not the phrase's keys: one a semitone out, the phrase seven semitones away.
+          { ...first, id: 'y1', prompt: first.prompt.map((m, i) => (i === 3 ? m + 1 : m)) },
+          {
+            ...first,
+            id: 'y2',
+            prompt: first.prompt.map((m) => m + 5),
+            answer: first.prompt.map((m) => m + 5),
+            key: { tonic: 'D', scale: 'major' },
+          },
+          // Another phrase's item, a phrase the tune has not, another tune's level.
+          { ...first, id: 'y3', item: 'tune:trad-amazing-grace:2' },
+          { ...first, id: 'y4', item: 'tune:trad-amazing-grace:5' },
+          { ...first, id: 'y5', level: 'trad-swing-low' },
+          // The key: missing, not the one the keys are in, a minor one, D flat named C sharp.
+          { ...first, id: 'y6', key: undefined },
+          { ...first, id: 'y7', key: { tonic: 'G', scale: 'major' } },
+          { ...first, id: 'y8', key: { tonic: 'A', scale: 'naturalMinor' } },
+          { ...tritone[0]!, id: 'y9', key: { tonic: 'C#', scale: 'major' } },
+          // Named, unfinished, a wrong key before the last, and judged wrongly.
+          { ...first, id: 'y10', by: 'name', answer: 'P5' },
+          { ...first, id: 'y11', answer: first.prompt.slice(0, 4) },
+          { ...third, id: 'y12', answer: [...(third.answer as number[]), 60] },
+          { ...third, id: 'y13', correct: true },
+          { ...whole, id: 'y14', correct: false },
+        ],
+      }),
+    );
+    expect(file.sessions).toEqual([session, own.session]);
+    expect(file.answers).toEqual([...moved.answers, ...own.answers, ...tritone]);
+    expect(tritone.map((a) => a.key)).toEqual(Array(2).fill({ tonic: 'Db', scale: 'major' }));
+    expect(file.invalid).toEqual([
+      { collection: 'sessions', index: 2, field: 'level', problem: 'invalid' },
+      { collection: 'sessions', index: 3, field: 'key', problem: 'invalid' },
+      { collection: 'sessions', index: 4, field: 'key', problem: 'invalid' },
+      { collection: 'sessions', index: 5, field: 'key', problem: 'invalid' },
+      { collection: 'sessions', index: 6, field: 'by', problem: 'invalid' },
+      { collection: 'sessions', index: 7, field: 'length', problem: 'invalid' },
+      { collection: 'sessions', index: 8, field: 'length', problem: 'invalid' },
+      { collection: 'sessions', index: 9, field: 'missed', problem: 'invalid' },
+      { collection: 'sessions', index: 10, field: 'missed', problem: 'invalid' },
+      { collection: 'sessions', index: 11, field: 'missed', problem: 'invalid' },
+      { collection: 'sessions', index: 12, field: 'key', problem: 'invalid' },
+      { collection: 'answers', index: 12, field: 'prompt', problem: 'invalid' },
+      { collection: 'answers', index: 13, field: 'prompt', problem: 'invalid' },
+      { collection: 'answers', index: 14, field: 'prompt', problem: 'invalid' },
+      { collection: 'answers', index: 15, field: 'item', problem: 'invalid' },
+      { collection: 'answers', index: 16, field: 'item', problem: 'invalid' },
+      { collection: 'answers', index: 17, field: 'key', problem: 'invalid' },
+      { collection: 'answers', index: 18, field: 'key', problem: 'invalid' },
+      { collection: 'answers', index: 19, field: 'key', problem: 'invalid' },
+      { collection: 'answers', index: 20, field: 'key', problem: 'invalid' },
+      { collection: 'answers', index: 21, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 22, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 23, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 24, field: 'correct', problem: 'invalid' },
+      { collection: 'answers', index: 25, field: 'correct', problem: 'invalid' },
+    ]);
+    // The whole tune, the longest answer there is, is kept key for key.
+    expect((file.answers[4] as EarAnswer).prompt).toHaveLength(35);
+  });
+
+  it('round-trips a tune played by ear through a file', async () => {
+    const source = await freshRepository();
+    const { answers, session } = sampleTuneSession('ts');
+    for (const answer of answers) await source.addAnswer(answer);
+    await source.putSession(session);
+    const exported = await exportOf(source);
+    const file = parsed(exportText(exported));
+    expect(file.invalid).toEqual([]);
+    const target = await freshRepository();
+    expect(await target.merge(file)).toMatchObject({ sessions: 1, answers: 5 });
+    expect(await target.load()).toEqual(await source.load());
+    // Again: nothing new.
+    expect(await target.merge(file)).toMatchObject({ sessions: 0, answers: 0 });
   });
 
   it('imports improvisations with their takes and refuses broken ones', async () => {

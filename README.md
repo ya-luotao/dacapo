@@ -76,7 +76,11 @@ practising the notes you are slowest at. Progress is visible day by day.
   minor keys and chromatic notes; play it back note by note, and a wrong note shows the melody on
   the staff with yours over it. **Rhythm** plays a bar after a bar of clicks, in Rhythm's eight
   one-line levels: tap it back in time, or choose it among bars written out that differ from it in
-  one cell ([docs/READING.md](docs/READING.md)). On the Progress page each kind of question, by ear or on the
+  one cell ([docs/READING.md](docs/READING.md)). **Tunes** plays the melodies of the library's
+  eight lead sheets phrase by phrase, each after the chord of its key and in its own rhythm: play
+  the phrase back, then the whole tune, in its key or in another one drawn for you, which is
+  transposing by ear; a wrong note shows the phrase on the staff with yours beside it
+  ([docs/HARMONY.md](docs/HARMONY.md)). On the Progress page each kind of question, by ear or on the
   staff, shows its levels, its weakest items and a table of what you answer instead (“minor 6th
   answered as perfect 5th: 4 of 12”) ([docs/EAR.md](docs/EAR.md)).
 - **Harmony: chords from symbols.** A chord symbol as a lead sheet prints it (`Am`, `G7`,

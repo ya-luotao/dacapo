@@ -23,6 +23,8 @@ import {
 } from './earSession.ts';
 import { recoverEarSessions, type SessionRecord } from './log.ts';
 import { seededRng } from './random.ts';
+import type { TuneId } from './tuneList.ts';
+import { getTune, tuneKey, tuneKeys, tunePrompt } from './tunes.ts';
 
 const AT = 1_700_000_000_000;
 
@@ -509,5 +511,279 @@ describe('a cadence session', () => {
   it('masters a level over its last 20 cadences', () => {
     expect(masteryWindow('CA1')).toBe(ECHO_MASTERY_WINDOW);
     expect(masteryWindow('C1')).toBe(EAR_MASTERY_WINDOW);
+  });
+});
+
+describe('a tune session', () => {
+  const ROW: TuneId = 'lyte-row-your-boat';
+
+  /** Row Your Boat (four phrases), `semitones` from its D major. */
+  function startTune(semitones = 0, tune: TuneId = ROW): EarSessionState {
+    const level = getEarLevel(tune);
+    return startEarSession({
+      id: 's1',
+      level,
+      // Neither is the session's to choose: a tune is played back, every phrase and the whole.
+      by: 'name',
+      length: 50,
+      directions: ['up'],
+      items: levelItems(level, ['up']),
+      at: AT,
+      stats: {},
+      rng: seededRng(1),
+      prompt: (item) => tunePrompt(item, semitones),
+      key: tuneKey(getTune(tune), semitones),
+    });
+  }
+  const advance = (state: EarSessionState, semitones = 0) =>
+    advanceEar(state, {
+      at: AT,
+      stats: {},
+      rng: seededRng(1),
+      prompt: (item) => tunePrompt(item, semitones),
+    });
+  /** The card's prompt heard, then its keys played in order, the `wrongAt`th a semitone out. */
+  function play(state: EarSessionState, wrongAt = -1): EarSessionState {
+    let next = promptScheduled(state, state.card.index, 1000, false);
+    for (const [i, midi] of state.card.prompt.notes.entries()) {
+      next = pressKey(next, i === wrongAt ? midi + 1 : midi, 1100 + i * 10, AT + i, newId);
+    }
+    return next;
+  }
+
+  it('plays back only: the first phrase first, in the session’s key', () => {
+    const state = startTune();
+    expect(state).toMatchObject({
+      family: 'tune',
+      level: ROW,
+      by: 'play',
+      directions: [],
+      length: 5,
+      key: { tonic: 'D', scale: 'major' },
+    });
+    expect(state.items).toEqual([
+      'tune:lyte-row-your-boat:1',
+      'tune:lyte-row-your-boat:2',
+      'tune:lyte-row-your-boat:3',
+      'tune:lyte-row-your-boat:4',
+      'tune:lyte-row-your-boat:whole',
+    ]);
+    // "Row, row, row your boat": D D D E F♯.
+    expect(state.card.prompt).toMatchObject({
+      item: 'tune:lyte-row-your-boat:1',
+      notes: [62, 62, 62, 64, 66],
+    });
+    expect(state.card.prompt.tune).toMatchObject({ semitones: 0, chord: [62, 66, 69] });
+    // Another family has no key of its session.
+    expect(start('EC2', 'play').key).toBeUndefined();
+  });
+
+  it('wants a note that comes twice struck twice, and ends at the first wrong key', () => {
+    let state = promptScheduled(startTune(), 0, 1000, false);
+    state = pressKey(state, 62, 1100, AT, newId);
+    state = pressKey(state, 62, 1200, AT, newId);
+    expect(state.card).toMatchObject({ status: 'waiting', played: [62, 62] });
+    // The third D left out: E is a wrong key here.
+    state = pressKey(state, 64, 1300, AT + 5, () => 't1');
+    expect(state.card).toMatchObject({ status: 'wrong', answer: [62, 62, 64] });
+    expect(state.answers).toEqual([
+      {
+        id: 't1',
+        sessionId: 's1',
+        family: 'tune',
+        level: ROW,
+        item: 'tune:lyte-row-your-boat:1',
+        by: 'play',
+        prompt: [62, 62, 62, 64, 66],
+        answer: [62, 62, 64],
+        correct: false,
+        ms: 300,
+        replays: 0,
+        at: AT + 5,
+        key: { tonic: 'D', scale: 'major' },
+      },
+    ]);
+    // Only the first attempt is scored.
+    expect(pressKey(state, 62, 1400, AT, newId)).toBe(state);
+  });
+
+  it('asks the phrases in order, then the whole tune, all in one key', () => {
+    // Three semitones up: F major.
+    let state = startTune(3);
+    expect(state.key).toEqual({ tonic: 'F', scale: 'major' });
+    const asked: string[] = [];
+    while (state.phase === 'running') {
+      asked.push(state.card.prompt.item);
+      // The third phrase goes wrong at its fourth key; a phrase missed is not asked again.
+      state = advance(play(state, state.card.index === 2 ? 3 : -1), 3);
+    }
+    expect(asked).toEqual(levelItems(getEarLevel(ROW), []));
+    expect(state.answers.map((a) => a.correct)).toEqual([true, true, false, true, true]);
+    expect(state.answers.every((a) => a.key?.tonic === 'F' && a.key.scale === 'major')).toBe(true);
+    const whole = state.answers[4]!;
+    expect(whole.prompt).toEqual(tuneKeys(getTune(ROW), 'whole', 3));
+    expect(whole.prompt).toHaveLength(27);
+    expect(whole.answer).toEqual(whole.prompt);
+
+    const summary = summarizeEar(state);
+    expect(summary).toMatchObject({
+      family: 'tune',
+      level: ROW,
+      by: 'play',
+      length: 5,
+      items: 5,
+      correct: 4,
+      accuracy: 0.8,
+      key: { tonic: 'F', scale: 'major' },
+    });
+    expect(summary.missed).toEqual([
+      {
+        item: 'tune:lyte-row-your-boat:3',
+        // "Merrily, merrily": F F F C, the C played a semitone high.
+        answer: [77, 77, 77, 73],
+        prompt: state.answers[2]!.prompt,
+        key: { tonic: 'F', scale: 'major' },
+      },
+    ]);
+  });
+
+  it('keeps the keys played before Hear again, and counts it', () => {
+    let state = promptScheduled(startTune(), 0, 1000, false);
+    state = pressKey(state, 62, 1100, AT, newId);
+    state = promptScheduled(state, 0, 9000, true);
+    expect(state.card).toMatchObject({ played: [62], replays: 1 });
+    for (const [i, midi] of [62, 62, 64, 66].entries()) {
+      state = pressKey(state, midi, 9100 + i, AT, newId);
+    }
+    expect(state.answers[0]).toMatchObject({ correct: true, replays: 1 });
+  });
+
+  it('recovers a session stopped part way: its length is the tune’s', () => {
+    let state = startTune(-2);
+    state = advance(play(state), -2);
+    state = play(state, 1);
+    const stopped = endEarSession(state, AT + 60_000);
+    expect(summarizeEar(stopped)).toMatchObject({ length: 5, items: 2, correct: 1 });
+    expect(recoverEarSummary(stopped.answers)).toMatchObject({
+      family: 'tune',
+      level: ROW,
+      length: 5,
+      items: 2,
+      correct: 1,
+      key: { tonic: 'C', scale: 'major' },
+    });
+  });
+
+  describe('is learnt', () => {
+    let n = 0;
+    /** An answer to part `i` of the tune (its last: the whole of it), `semitones` from its key. */
+    const answer = (
+      i: number,
+      correct = true,
+      replays = 0,
+      semitones = 0,
+      level: TuneId = ROW,
+    ): EarAnswer => {
+      const item = levelItems(getEarLevel(level), [])[i]!;
+      const { notes, tune } = tunePrompt(item, semitones);
+      return {
+        id: `m${++n}`,
+        sessionId: 's',
+        family: 'tune',
+        level,
+        item,
+        by: 'play',
+        prompt: notes,
+        answer: correct ? notes : [notes[0]! + 1],
+        correct,
+        ms: 3000,
+        replays,
+        at: AT + n,
+        key: tune.key,
+      };
+    };
+    const all = [0, 1, 2, 3, 4].map((i) => answer(i));
+
+    it('when every phrase and the whole tune were last played right without Hear again', () => {
+      expect(masteryWindow(ROW)).toBe(5);
+      expect(masteryWindow('trad-auld-lang-syne')).toBe(13);
+      expect(earLevelProgress(all, ROW)).toMatchObject({
+        total: 5,
+        answers: 5,
+        window: 5,
+        accuracy: 1,
+        mastered: true,
+      });
+      // Without the whole tune it is not: one answer to each part, not five answers.
+      expect(earLevelProgress([...all.slice(0, 4), answer(0)], ROW)).toMatchObject({
+        total: 5,
+        answers: 4,
+        accuracy: 1,
+        mastered: false,
+      });
+      expect(earLevelProgress([], ROW)).toMatchObject({
+        total: 0,
+        answers: 0,
+        window: 5,
+        accuracy: null,
+        mastered: false,
+      });
+    });
+
+    it('by the latest answer to each part, in any key', () => {
+      // A phrase missed since: not learnt, however many were right before.
+      const missed = [...all, answer(2, false)];
+      expect(earLevelProgress(missed, ROW)).toMatchObject({
+        total: 6,
+        answers: 5,
+        accuracy: 0.8,
+        mastered: false,
+      });
+      // Played right again, in another key: learnt again.
+      expect(earLevelProgress([...missed, answer(2, true, 0, 4)], ROW)).toMatchObject({
+        answers: 5,
+        accuracy: 1,
+        mastered: true,
+      });
+    });
+
+    it('with every part right: twelve of thirteen, Echo’s 90 %, is not enough', () => {
+      const AULD: TuneId = 'trad-auld-lang-syne';
+      const parts = [...Array(13).keys()];
+      expect(
+        earLevelProgress(
+          parts.map((i) => answer(i, true, 0, 0, AULD)),
+          AULD,
+        ).mastered,
+      ).toBe(true);
+      const oneWrong = parts.map((i) => answer(i, i !== 7, 0, 0, AULD));
+      const progress = earLevelProgress(oneWrong, AULD);
+      expect(progress).toMatchObject({ answers: 13, window: 13, mastered: false });
+      expect(progress.accuracy).toBeGreaterThan(0.9);
+    });
+
+    it('never by an answer given after Hear again', () => {
+      // The whole tune right, but heard again: its window lacks the whole tune.
+      expect(earLevelProgress([...all.slice(0, 4), answer(4, true, 1)], ROW)).toMatchObject({
+        total: 5,
+        answers: 4,
+        mastered: false,
+      });
+      // A replayed answer does not replace the one before it, right or wrong.
+      expect(earLevelProgress([...all, answer(4, false, 2)], ROW).mastered).toBe(true);
+      expect(
+        earLevelProgress([...all.slice(0, 4), answer(4, false), answer(4, true, 1)], ROW),
+      ).toMatchObject({ answers: 5, accuracy: 0.8, mastered: false });
+    });
+
+    it('and then the next tune is suggested', () => {
+      const TWINKLE: TuneId = 'trad-twinkle-twinkle';
+      const suggested = (answers: readonly EarAnswer[]) =>
+        suggestedEarLevel('tune', new Map([[TWINKLE, earLevelProgress(answers, TWINKLE)]]));
+      const twinkle = [...Array(7).keys()].map((i) => answer(i, true, 0, 0, TWINKLE));
+      expect(suggested([])).toBe(TWINKLE);
+      expect(suggested(twinkle.slice(0, 6))).toBe(TWINKLE);
+      expect(suggested(twinkle)).toBe('trad-frere-jacques');
+    });
   });
 });

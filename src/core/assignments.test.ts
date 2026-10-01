@@ -9,6 +9,7 @@ import {
   sampleRhythmSession,
   sampleSightSession,
   sampleTheorySession,
+  sampleTuneSession,
 } from '../storage/fixtures.ts';
 import type {
   Assignment,
@@ -37,12 +38,14 @@ import {
   windowDays,
   type ProgressInput,
 } from './assignments.ts';
+import { recoverEarSummary } from './earSession.ts';
 import type { ReadSessionRecord, SessionRecord } from './log.ts';
 import { MASTERY_WINDOW } from './mastery.ts';
 import { pieceSession, stepId, type PieceSession, type PieceStep } from './pieceRecords.ts';
 import { withRun, type ScaleSession } from './scaleRecords.ts';
 import { bar, bars, note, Q, score } from './scoreFixtures.ts';
 import { recoverSummary } from './session.ts';
+import { TUNE_IDS } from './tuneList.ts';
 
 const TZ = 'UTC';
 const DAY = 86_400_000;
@@ -577,6 +580,68 @@ describe('a level task', () => {
       expect(progress, family).toMatchObject({ kind: 'level', target: 1, met: false });
       expect(progress.kind === 'level' && progress.mastery!.counted, family).toBeGreaterThan(0);
     }
+  });
+
+  it('takes a tune as a level of Ear: sessions played to the whole tune, or the tune learnt (H5)', () => {
+    expect(LEVEL_FAMILIES.slice(LEVEL_FAMILIES.indexOf('echo'))).toEqual([
+      'echo',
+      'cadence',
+      'tune',
+      'rhythmEar',
+      'chordSymbol',
+    ]);
+    expect(pageOfFamily('tune')).toBe('ear');
+    expect(levelsOfFamily('tune')).toEqual([...TUNE_IDS]);
+    // Fixtures happen on 20 September. Amazing Grace in A major: its second phrase heard again,
+    // its third missed; then a session stopped after three phrases; then all of it right, in G.
+    const window = { start: '2026-09-20', due: '2026-09-20' };
+    const first = sampleTuneSession('u1');
+    const part = sampleTuneSession('u2').answers.slice(0, 3);
+    const stopped: SessionRecord = { kind: 'ear', ...recoverEarSummary(part)! };
+    const right = sampleTuneSession('u3', 0).answers.map((a) => ({
+      ...a,
+      answer: [...a.prompt],
+      correct: true,
+      replays: 0,
+      at: a.at + 3_600_000,
+    }));
+    const learnt: SessionRecord = { kind: 'ear', ...recoverEarSummary(right)! };
+    const of = (
+      goal: LevelTask['goal'],
+      input: Partial<ProgressInput>,
+      level = first.session.level,
+    ) =>
+      taskProgress({ kind: 'level', id: 'x', family: 'tune', level, goal }, window, {
+        ...EMPTY,
+        ...input,
+      });
+
+    // A session counts once the whole tune was asked, whatever was missed and in any key.
+    const sessions = [first.session, stopped, learnt];
+    expect(of(2, { sessions })).toMatchObject({
+      kind: 'level',
+      done: 2,
+      target: 2,
+      met: true,
+      best: { accuracy: 1 },
+      last: { at: learnt.startedAt, accuracy: 1 },
+      mastery: null,
+    });
+    expect(of(1, { sessions: [stopped] })).toMatchObject({ done: 0, met: false });
+    expect(of(1, { sessions }, 'trad-swing-low')).toMatchObject({ done: 0, met: false });
+
+    // Learnt: every phrase and the whole tune last played right without Hear again.
+    expect(of('mastery', { answers: first.answers })).toMatchObject({
+      done: 0,
+      target: 1,
+      met: false,
+      mastery: { counted: 4, window: 5, accuracy: 0.75 },
+    });
+    expect(of('mastery', { answers: [...first.answers, ...right] })).toMatchObject({
+      done: 1,
+      met: true,
+      mastery: { counted: 5, window: 5, accuracy: 1 },
+    });
   });
 
   it('masters an Ear level on its last 40 answers without a replay', () => {

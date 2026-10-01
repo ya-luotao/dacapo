@@ -304,6 +304,16 @@ describe('reading an assignment', () => {
     unknown(level, { goal: 'soon' });
     expect(kept(level, { goal: 'mastery' })).toMatchObject({ goal: 'mastery' });
     expect(kept(level, { family: 'cadence', level: 'CA2' })).toMatchObject({ family: 'cadence' });
+    // A tune played by ear (H5) is a level of its family, named by its id in the library.
+    expect(kept(level, { family: 'tune', level: 'trad-amazing-grace', goal: 'mastery' })).toEqual({
+      kind: 'level',
+      id: level.id,
+      family: 'tune',
+      level: 'trad-amazing-grace',
+      goal: 'mastery',
+    });
+    unknown(level, { family: 'tune', level: 'beethoven-fur-elise' });
+    unknown(level, { family: 'echo', level: 'trad-amazing-grace' });
 
     unknown(lesson, { slug: 'a-lesson-not-written-yet' });
     unknown(minutes, { minutes: 0 });

@@ -9,12 +9,31 @@ which is noted when it changes.
 Export format version 9: the file now includes imported pieces (from version 2), piece practice
 sessions and their step records (from version 3), rhythm-mode steps with their timings (from
 version 4), scale sessions with every scale run as played (from version 5), ear-training answers
-and sessions (from version 6; the theory cards', Read's rhythm, rhythm dictation's and the chord
-symbols' answers and
-sessions go in the same lists), the
+and sessions (from version 6; the theory cards', Read's rhythm, rhythm dictation's, the tunes'
+and the chord symbols' answers and sessions go in the same lists), the
 click's tempo and grid of scale runs played with it (from version 7), the takes of piece runs
 (from version 8), and assignments and kept reports (from version 9). Version 1 to 8 files still
 import.
+
+### Tunes by ear (H5, [docs/HARMONY.md](docs/HARMONY.md))
+
+- **Tunes**, a sixth practice on the Ear page: the melodies of the library's eight lead sheets,
+  played back by ear. The chord of the key sounds, then a phrase of the tune in its own rhythm,
+  its first note marked on the keyboard; play it back note by note. The phrases come in order,
+  as the song is sung, then the whole tune. Timing is not judged.
+- **In another key**: the same tune starting on another note, in a key drawn anew for each
+  session, up to six semitones up or down. That is transposing by ear; the summary offers it for
+  the tune just played.
+- After a wrong note the phrase is drawn on the staff in its rhythm and its key, the notes
+  played right in green and the wrong key in red beside the note it should have been, and the
+  phrase is played again; of the whole tune, the phrase it went wrong in.
+- A tune is **learnt** once every phrase of it and the whole tune were last played right without
+  “Hear again”, in any key. Progress has a section for the tunes, with each phrase's figures and
+  the steps played for the steps asked, and the Ear chart of “How you are doing” counts them,
+  each tune compared with itself.
+- An assignment's level task can name a tune: a number of sessions, or **Learn the tune**.
+- Tune answers sync and are exported with the other ear answers (older builds skip them); the
+  export format is unchanged.
 
 ### Reports (T2, [docs/ASSIGNMENTS.md](docs/ASSIGNMENTS.md))
 

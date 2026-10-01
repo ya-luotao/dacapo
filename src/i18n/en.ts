@@ -46,8 +46,8 @@ export const en = {
     'One note at a time on the grand staff, from middle C position to ledger lines and accidentals, then intervals, key signatures and chords, lines of rhythm to tap in time, and short music to sight-read in time. Every answer is timed, and the next card favours what you are slow on.',
   'home.read.meta': '{n} levels',
   'home.ear.text':
-    'Intervals, chords, short melodies, cadences and bars of rhythm by ear, from the octave to seventh chords, chromatic notes and syncopation. Play back what you hear on the keys, tap it, or name it; the next question favours the ones you miss.',
-  'home.ear.meta': '{n} levels',
+    'Intervals, chords, short melodies, cadences and bars of rhythm by ear, from the octave to seventh chords, chromatic notes and syncopation; then whole tunes, phrase by phrase, in their key or another. Play back what you hear on the keys, tap it, or name it; the next question favours the ones you miss.',
+  'home.ear.meta': '{n} levels · {tunes} tunes',
   'home.harmony.text':
     'Chord symbols as songbooks and lead sheets print them over a tune, from the triads of three major keys to seventh, slash and suspended chords. Play each one in any voicing; the next card favours the ones you are slow on. Then progressions in any key, the left hand in a pattern, practised as a piece. Or improvise over a backing in a loop, each note showing how it sounds against the chord.',
   'home.harmony.meta': '{n} levels',
@@ -502,7 +502,7 @@ export const en = {
 
   'ear.title': 'Ear',
   'ear.intro':
-    'Hear two notes, a chord, a short melody, the cadence that ends a phrase or a bar of rhythm, then play it back on your keyboard, name it or choose it.',
+    'Hear two notes, a chord, a short melody, the cadence that ends a phrase, a bar of rhythm or a phrase of a tune, then play it back on your keyboard, name it or choose it.',
   'ear.sound.needed':
     'Ear training needs sound: choose your instrument or the built-in piano as the output.',
   'ear.sound.link': 'Choose the sound in Settings',
@@ -693,6 +693,43 @@ export const en = {
   'ear.rhythm.missed.chosen': '{item}, chosen as {as}',
   'ear.rhythm.missed.time': '{item}: the right notes, not in time',
   'ear.rhythm.missed.none': '{item}: the taps make no rhythm of its length',
+  'ear.family.tune': 'Tunes',
+  'ear.tune': 'Tune',
+  'ear.level.phrases': '{n} phrases',
+  'ear.level.stats.tune': '{right} of {window} right without a replay',
+  'ear.level.rule.tune':
+    'A tune is learnt once every phrase of it and the whole tune were last played right without “Hear again”, in any key.',
+  'ear.tune.help':
+    'The chord of the key sounds, then a phrase of the tune in its own rhythm. Its first note is marked on the keyboard: play the phrase back, note by note. The phrases come in order, then the whole tune. Timing is not judged.',
+  'ear.tune.key': 'Key',
+  'ear.tune.key.own': 'In its key',
+  'ear.tune.key.other': 'In another key',
+  'ear.tune.key.own.help': '{key}, as its lead sheet is written.',
+  'ear.tune.key.other.help':
+    'The tune starts on another note, drawn anew each time: transposing by ear.',
+  'ear.tune.count': 'Phrase {n} of {total}',
+  'ear.tune.count.whole': 'The whole tune',
+  'ear.task.tune': 'Play the phrase back, note by note. Its first note is marked.',
+  'ear.task.tune.whole': 'Now the whole tune, from the beginning. Its first note is marked.',
+  'ear.tune.wrong.whole': 'Phrase {phrase}, note {n}: you played {played}, not {expected}',
+  'ear.tune.staff': 'Phrase {phrase} in {key}: note {n} is {expected}; you played {played}.',
+  'ear.tune.item': '{tune}: phrase {n}',
+  'ear.tune.item.whole': '{tune}: the whole tune',
+  'ear.tune.part': 'Phrase {n}',
+  'ear.tune.part.whole': 'The whole tune',
+  'ear.tune.part.wholeAt': 'The whole tune, phrase {n}',
+  'ear.tune.missed': '{part} · {miss}',
+  'ear.tune.inKey': '{tune} in {key}',
+  'ear.tune.same': 'the same note again',
+  'ear.tune.mastered':
+    '{tune} is learnt: every phrase and the whole tune, right without “Hear again”. Try it in another key.',
+  'ear.tune.progress': 'Towards learning “{tune}”: {stats}.',
+  'ear.tune.next': 'Next tune',
+  'ear.tune.choose': 'Choose a tune',
+  'ear.summary.phrases': 'Phrases',
+  'ear.summary.whole': 'Whole tune',
+  'ear.summary.whole.right': 'Right',
+  'ear.summary.whole.wrong': 'Not yet',
 
   'harmony.title': 'Harmony',
   'harmony.practice.chords': 'Chords',
@@ -941,6 +978,9 @@ export const en = {
   'progress.kind.chordSymbol': 'Chord symbols',
   'progress.kind.sight': 'Sight-reading',
   'progress.kind.rhythmEar': 'Rhythm dictation',
+  'progress.kind.tune': 'Tunes by ear',
+  'progress.session.tune.right': 'Whole tune right',
+  'progress.session.tune.wrong': 'Whole tune not yet',
   'progress.kind.improv': 'Improvisation',
   'progress.session.backing': 'Backing',
   'progress.session.strongChord': 'Chord tones on 1 and 3',
@@ -1029,13 +1069,18 @@ export const en = {
   'families.family.readChord': 'Chords on the staff',
   'families.family.chordSymbol': 'Chord symbols',
   'families.family.cadence': 'Cadences by ear',
+  'families.family.tune': 'Tunes by ear',
   'families.summary': '{answers} · {mastered} of {levels} levels mastered',
+  'families.summary.tune': '{answers} · {mastered} of {levels} tunes learnt',
   'families.answers.one': '1 answer',
   'families.answers.other': '{n} answers',
   'families.levels': 'Levels',
+  'families.tunes': 'Tunes',
   'families.level.figures': '{accuracy} · {counted}/{window}',
   'families.filter.level': 'Level',
   'families.filter.level.all': 'All levels',
+  'families.filter.tune': 'Tune',
+  'families.filter.tune.all': 'All tunes',
   'families.filter.by': 'Answers',
   'families.filter.by.all': 'All',
   'families.filter.by.play': 'Played',
@@ -1063,6 +1108,8 @@ export const en = {
     'A row for each thing asked and a column for each answer, with how many times it was given. Right answers are on the diagonal, in green; a wrong answer is coloured by its share of the row.',
   'families.confusion.help.echo':
     'A row for each step of the melodies, the interval into a note, and a column for the step you played into it. The steps before a wrong note count as right; those after it are not counted.',
+  'families.confusion.help.tune':
+    'A row for each step of the tunes, the interval into a note (the same note again is a step too), and a column for the step you played into it. The steps before a wrong note count as right; those after it are not counted.',
   'families.confusion.help.rhythmEar':
     'A row for each cell heard and a column for the cell it was chosen as, or that the taps in its time made. Right answers are on the diagonal, in green; a wrong answer is coloured by its share of the row.',
   'families.confusion.other.interval': '“Other” counts keys that make none of the intervals here.',
@@ -1070,6 +1117,7 @@ export const en = {
     '“Other” counts keys that make none of the chords here, and the right chord on a wrong root or in a wrong octave.',
   'families.confusion.other.echo':
     '“Other” counts the same key played again, and a leap past the octave.',
+  'families.confusion.other.tune': '“Other” counts a leap past the octave.',
   'families.confusion.other.chordSymbol':
     '“Other” counts keys that make no chord on the root asked.',
   'families.confusion.other.rhythmEar':
@@ -1975,6 +2023,7 @@ export const en = {
   'assignments.goal.sessions.one': '1 session',
   'assignments.goal.sessions.other': '{n} sessions',
   'assignments.goal.mastery': 'Master the level',
+  'assignments.goal.mastery.tune': 'Learn the tune',
   'assignments.goal.lesson': 'Read it to the end',
   'assignments.goal.minutes.one': 'At least {minutes} minutes on 1 day',
   'assignments.goal.minutes.other': 'At least {minutes} minutes on {n} days',
@@ -1987,6 +2036,8 @@ export const en = {
   'assignments.figure.mastered': 'Mastered',
   'assignments.figure.mastery': '{counted} of the last {window} answers, {percent} right',
   'assignments.figure.mastery.none': 'Not mastered yet',
+  'assignments.figure.tune.learnt': 'Learnt',
+  'assignments.figure.tune.none': 'Not learnt yet',
   'assignments.figure.lesson.done': 'Read',
   'assignments.figure.lesson.open': 'Not read yet',
   'assignments.figure.right': '{percent} right',

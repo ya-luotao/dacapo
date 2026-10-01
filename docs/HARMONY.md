@@ -3,9 +3,10 @@
 Status: H1 is built (the Harmony page with Chords: chord symbols to play, five levels, their
 answers and progress), H2 (Progressions, generated scores practised as pieces, and cadences by
 ear on the Ear page), H3 (lead sheets: chord symbols in the parser, eight tunes in the library,
-the left hand made from the symbols), H4 (transposing: the Key control of every piece) and H6
-(Improvise: backings to play over, feedback, call and response, the take played back with its
-backing); H5 is planned (after [EXPRESSION.md](EXPRESSION.md)).
+the left hand made from the symbols), H4 (transposing: the Key control of every piece), H5
+(playing by ear: the lead sheets' melodies played back phrase by phrase on the Ear page, in their
+key or another) and H6 (Improvise: backings to play over, feedback, call and response, the take
+played back with its backing).
 This extends [MVP.md](MVP.md), [PIECES.md](PIECES.md) and [EAR.md](EAR.md); their principles and fixed decisions still apply
 (staff first, measure don't guess, local data, English of record, every UI language, 3-day
 dependency cooldown, no backend).
@@ -465,6 +466,103 @@ written)`). The key is kept per piece in this browser. While a piece is transpos
   the tune on another note (the first note given again), which is transposing by ear.
 - Items are keyed by tune and phrase; the `answers` store (family `tune`); mastery as Echo's.
 
+### Clarifications (decided during H5)
+
+- **Where.** Tunes is a family of the Ear page, between Cadences and Rhythm: Intervals, Chords,
+  Echo, Cadences, Tunes, Rhythm, on Ear, on Progress and among an assignment's level tasks. Its
+  levels are the library's eight lead sheets, in the library's order, each named by its title (a
+  number stands where a level's id does); the suggested one is the first not learnt. There is no
+  session length and no way of answering to choose: the one choice is the key.
+- **No MusicXML at run time.** `core/tuneData.ts` holds each melody as it is sung (repeats played,
+  a D.C. written out), one phrase to a line, with its key signature, its meter and the tempo it is
+  played at; `core/tunes.ts` reads it into keys, bars and phrases. A test
+  (`src/pieces/library/tunes.test.ts`) reads the eight library files and holds the table to them
+  note for note (pitch and spelling, length, ties, rests, bars), and its keys to the keys a run of
+  the piece presses. So the Ear page, the summaries and the validators of imported and synced
+  answers need neither the files nor the parser. Only `core/tuneList.ts` (the ids, how many
+  phrases each has, the item keys) is loaded when the app starts; the melodies come with the Ear
+  page, and Verovio when a tune is played (the test of what the start loads holds this).
+- **Phrases** are the table's own: a line of the song as it is sung, from its upbeat where it has
+  one, 5 to 15 keys. Twinkle 6 of 4 bars; Frère Jacques 5 of 4 bars; Row Your Boat 4 of 2 bars;
+  Amazing Grace its 4 lines of 4, 3, 4 and 3 bars; Jingle Bells 8 of 2 bars; Oh! Susanna 8 of 4
+  bars (the chorus twice); Auld Lang Syne 12 half lines of 2 bars (the chorus twice); Swing Low 12
+  calls and responses of 2 bars (refrain, verse, refrain). A repeated section's phrases are asked
+  again where they are sung again, and the whole tune has them.
+- **Tempo.** Each tune at a pace of its own, kept moderate, in quarters a minute: Twinkle 96,
+  Frère Jacques 92, Row Your Boat 90 (its dotted quarter at 60), Amazing Grace 84, Jingle Bells
+  108 (the print's 132 is for playing it), Oh! Susanna 100, Auld Lang Syne 60, Swing Low 50 (the
+  print writes the song's quarters as eighths).
+- **The prompt.** The tonic triad, block, 900 ms, in root position, its root the highest tonic
+  that is not above the tune's lowest note (so the same chord sounds before every phrase, under
+  the tune); a beat's rest (a dotted quarter in 6/8); then the phrase in its own rhythm, its
+  rests kept, each note sounding 90 % of its length so that a note struck again is heard again.
+  The whole tune is played through once the same way. Answers count from the last note-on, as
+  everywhere on Ear.
+- **Answering** is Echo's: the first note is marked on the keyboard and is played too; every key
+  counts, in order, and a note that comes twice is struck twice; the first wrong key ends the
+  attempt, and only the first attempt is scored; timing is not judged. Dots show the phrase's
+  notes filling as they are played; the whole tune (more than 24 notes) has a bar and a count
+  instead. Hear again before the answer plays the chord and the phrase, is counted, and keeps the
+  keys already played.
+- **After a wrong key** the phrase is drawn and played again, alone: without the chord, and of
+  the whole tune only the phrase it went wrong in, which the result names with the note's number
+  in it ("Phrase 3, note 4: you played C♯5, not D5"). Hear again then plays that phrase again
+  and is not counted. This differs from Echo, whose Hear again after a wrong answer plays the
+  chord too: a tune's key has been in the ear since its first phrase.
+- **The drawing** is Verovio's, through `ScoreView` (`ui/ear/TuneStaff.tsx`, loaded on demand;
+  the engine is fetched while the first phrase plays). `core/tuneXml.ts` writes the phrase as
+  MusicXML: one treble staff, the key and time signatures, the phrase in its own rhythm from its
+  first note to the end of its last (an upbeat and a last bar cut short are short bars; beams by
+  the beat, ties and rests as the lead sheet has them), in the session's key. The key played
+  wrong stands beside the note that was asked, as a chord with it, in red; the keys played right
+  before it are green; what follows stays black. The wrong key has its own sign where it is not
+  a note of the key, which changes nothing of what follows; on the asked note's own line or space
+  (F for F♯) both notes are given their signs. A key far off the staff is drawn where it is, on
+  its ledger lines. The phrase is drawn at the largest of three sizes that keeps it on one system,
+  stretched across the card; a phrase too long for any of them (a long one on a phone) takes two
+  systems at the middle size, the second at its own width. Echo's staff (VexFlow) writes quarters
+  only, which a tune's rhythm is not.
+- **In another key** is a choice of the setup (In its key, the default, or In another key,
+  remembered in this browser) and a button of the summary. One key is drawn for the session, from
+  its first phrase to the whole tune: 1 to 6 semitones up or down, each of the eleven other keys
+  as likely as the next (six up and six down are one key an octave apart, so each of the two is
+  drawn half as often as another distance), named by H4's rule (the simpler signature, F♯ rather
+  than G♭). The tunes lie within C4–F5, so every key lies within F♯3–B5. **Again** on the summary
+  keeps the choice: the tune's own key again, or another one drawn anew.
+- **Records.** An answer per phrase and one for the whole tune: family `tune`, `level` the
+  tune's id in the library (`trad-amazing-grace`), item `tune:<id>:<n>` (the phrases as sung,
+  counted from one) or `tune:<id>:whole`, `by: 'play'`, the prompt the keys asked, the answer the
+  keys played up to and including the wrong one, `ms` from the window opening to the last key,
+  `replays`, and `key`, `{ tonic, scale: 'major' }`: the key it was played in. Its ear session has
+  the family `tune`, `length` the tune's phrases and one, and the session's `key`. Validation, on
+  import and sync, holds every answer to the table again: its keys must be the item's part of the
+  tune moved by 0 to 6 semitones either way, its key the one that distance names, and `correct`
+  what the keys say; a session's key is one of the twelve, its misses are of its own tune in its
+  key. `SYNC_SCHEMA` 20 (older builds skip `tune` answers and sessions); the export file needs no
+  new version. The phrases are therefore part of the records: an item names a phrase by its
+  number and a session's length is their count, so a tune phrased otherwise later, or a lead
+  sheet whose melody changes, needs the stored answers and sessions migrated with it.
+- **Learnt, not mastered by a share** (a change from "mastery as Echo's"). Echo's window is its
+  last 20 melodies, each a new one; a tune's phrases are always the same. A tune is learnt when
+  the latest answer given without Hear again to each of its phrases and to the whole tune is
+  right, in any key: one answer to each (7 for Twinkle, 13 for Auld Lang Syne), all of them
+  right, where Echo's 90 % would let a phrase stay wrong. A part missed since makes the tune not
+  learnt until it is played right again. The level's figure is "5 of 7 right without a replay".
+- **Summary and log.** The summary names the tune and its key, the phrases asked, the share
+  right, whether the whole tune was right, and the replays; each miss by its phrase and note (of
+  the whole tune, the phrase it went wrong in) with the step asked and the step played, named in
+  the session's key. No time is shown, here or after a right answer: a phrase takes as long as it
+  is. The session list says "Tunes by ear", the tune in its key, its phrases and the whole tune.
+- **Progress.** A section "Tunes by ear" after the cadences: a tile per tune under its title;
+  the items, each phrase and the whole tune, without a time and weighed by their misses alone;
+  and the confusion table as Echo's, the step into each note asked against played, except that
+  the same note again is a step of its own (`0`, headed `P1`), since tunes repeat notes, and only
+  a leap past the octave is Other. Under "How you are doing" tune answers count in the Ear chart
+  (right without Hear again), each tune compared with itself as a level is.
+- **Assignments.** A level task may name a tune (the family Tunes, the tune by its title): a
+  number of sessions, each played as far as the whole tune, in any key, or **Learn the tune**
+  ([ASSIGNMENTS.md](ASSIGNMENTS.md)). Its button opens Ear on the tune.
+
 ## Improvise (H6)
 
 - Choose a **backing** — a progression of H2 (the 12-bar blues in C, F or G; `I–vi–IV–V`; `ii–V–I`;
@@ -591,5 +689,5 @@ written)`). The key is kept per piece in this browser. While a piece is transpos
 3. ✓ **H3 Lead sheets** — symbols in the parser, the library's lead sheets, the left hand from the
    symbols.
 4. ✓ **H4 Transposing** — the Key control on every piece.
-5. **H5 Playing by ear** — tunes on Ear.
+5. ✓ **H5 Playing by ear** — tunes on Ear, phrase by phrase, in their key or another.
 6. ✓ **H6 Improvise** — backings, feedback, call and response.
