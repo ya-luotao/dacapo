@@ -35,7 +35,7 @@ import { isBlack } from './note.ts';
 import type { Rng } from './random.ts';
 import { seededRng } from './random.ts';
 import { CELLS } from './rhythmCells.ts';
-import { keySignature, scaleDegree, tonicPitch } from './scales.ts';
+import { keySignature, scaleDegree, tonicPitch } from './keys.ts';
 import { TICKS_PER_QUARTER, type Hand, type SpelledPitch } from './score.ts';
 
 import {

@@ -6,7 +6,8 @@
 // Verovio draws what the file says and infers nothing, so the file spells out the accidentals,
 // the beams, the clef changes and the octave signs.
 
-import { isArpeggio, keyAlters, keySignature, scaleNotes } from './scales.ts';
+import { keyAlters, keySignature } from './keys.ts';
+import { isArpeggio, scaleNotes } from './scales.ts';
 import { stepsOf, type ExerciseType, type ScaleExercise, type ScaleNote } from './scaleTypes.ts';
 import { LETTERS } from './note.ts';
 import { staffKey, type Hand, type SpelledPitch, type StaffHands } from './score.ts';

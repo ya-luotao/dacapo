@@ -22,7 +22,7 @@ import {
 } from '../../../core/chordSymbols.ts';
 import { isRhythmEarLevelId } from '../../../core/rhythmEar.ts';
 import { parseSignature, parseTheoryItem, isTheoryLevelId } from '../../../core/theoryItems.ts';
-import { signatureTonic } from '../../../core/scales.ts';
+import { signatureTonic } from '../../../core/keys.ts';
 import { useI18n } from '../../../i18n/index.ts';
 import { useEarFormat } from '../../ear/format.ts';
 import { CellFigure } from '../../ear/rhythmFigure.tsx';

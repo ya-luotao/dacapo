@@ -12,7 +12,7 @@ import {
 import { isSeventh } from '../../core/earItems.ts';
 import { midiOf } from '../../core/musicxml.ts';
 import { LETTERS, pitchClass, type Letter } from '../../core/note.ts';
-import { signatureTonic, tonicPitch } from '../../core/scales.ts';
+import { signatureTonic, tonicPitch } from '../../core/keys.ts';
 import {
   chordAnswerName,
   getTheoryLevel,

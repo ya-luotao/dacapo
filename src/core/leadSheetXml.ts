@@ -14,7 +14,7 @@ import {
 } from './leadSheet.ts';
 import { accidentals, type Accidentals } from './progressionXml.ts';
 import type { PatternId } from './progressions.ts';
-import { keyAlters } from './scales.ts';
+import { keyAlters } from './keys.ts';
 import { staffKey, TICKS_PER_QUARTER, type Score, type StaffHands } from './score.ts';
 
 function child(el: Element, name: string): Element | null {

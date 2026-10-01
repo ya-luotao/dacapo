@@ -8,7 +8,7 @@ import {
   type SymbolQuality,
 } from './chordSymbols.ts';
 import type { Letter } from './note.ts';
-import { keySignature, MAJOR_TONICS, MINOR_TONICS, tonicPitch } from './scales.ts';
+import { keySignature, MAJOR_TONICS, MINOR_TONICS, tonicPitch } from './keys.ts';
 import type { Hand, SpelledPitch } from './score.ts';
 import type { Root } from './theoryItems.ts';
 import { leadVoices, type LeadChord } from './voiceLeading.ts';

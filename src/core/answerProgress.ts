@@ -80,7 +80,7 @@ import {
 } from './harmonySession.ts';
 import { midiOf } from './musicxml.ts';
 import { pitchClass } from './note.ts';
-import { SIGNATURE_FIFTHS, signatureTonic, tonicPitch } from './scales.ts';
+import { SIGNATURE_FIFTHS, signatureTonic, tonicPitch } from './keys.ts';
 import { median } from './session.ts';
 import {
   getTheoryLevel,

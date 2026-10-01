@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
 import { parseMusicXml } from './musicxml.ts';
-import { isScaleExercise, keyAlters, keySignature, scaleNotes, tonicsOf } from './scales.ts';
+import { keyAlters, keySignature } from './keys.ts';
+import { isScaleExercise, scaleNotes, tonicsOf } from './scales.ts';
 import {
   clefs,
   octaveShifts,

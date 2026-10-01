@@ -142,3 +142,18 @@ export function hasChordSteps(notes: readonly Pick<ScaleNote, 'hand' | 'index'>[
   }
   return false;
 }
+
+/**
+ * The type, tonic and variant an exercise key names (`major:D:2:both`, `hanon:C:2:both:12`), for
+ * what only groups runs by them (the public profile). It does not check that the exercise exists:
+ * `parseExerciseKey` in scales.ts does, with every exercise's rules; stored runs passed it when
+ * they were made, imported or synced.
+ */
+export function exerciseKeyParts(
+  key: string,
+): { type: ExerciseType; tonic: Tonic; variant?: string } | null {
+  const [type, tonic, , , variant] = key.split(':');
+  if (!(EXERCISE_TYPES as readonly (string | undefined)[]).includes(type)) return null;
+  if (tonic === undefined || !/^[A-G](?:#|b)?$/.test(tonic)) return null;
+  return { type: type as ExerciseType, tonic, ...(variant !== undefined && { variant }) };
+}

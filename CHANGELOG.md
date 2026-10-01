@@ -593,9 +593,10 @@ click's tempo and grid of scale runs played with it (from version 7), and the ta
 
 ### A home page, and a sharper look
 
-- The app starts with about a fifth less to download: Progress, Settings and About load when
+- The app starts with about a third less to download: Progress, Settings and About load when
   opened, the rules that check imported and synced records load only when a file is imported or a
-  sync brings something, and React sits in a file of its own that stays cached between releases.
+  sync brings something, Hanon's fingering and exercises only with the Scales page, and React sits
+  in a file of its own that stays cached between releases.
 - ♭, ♮ and ♯ in the text are set in a small font of their own (five glyphs of Bravura Text), so
   they sit close to their letter in every language (B♭4, not B ♭4).
 - The About page credits all thirteen built-in pieces.

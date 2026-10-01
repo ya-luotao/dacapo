@@ -2,7 +2,7 @@ import { noteAbove, rootPc } from './chordSymbols.ts';
 import { fnv1a } from './pieceRecords.ts';
 import { leftHand, type KeyChord, type LeftBar, type ProgressionChord } from './progressions.ts';
 import { seededRng, type Rng } from './random.ts';
-import { tonicPitch } from './scales.ts';
+import { tonicPitch } from './keys.ts';
 import type { Root } from './theoryItems.ts';
 
 // Improvise on the Harmony page (docs/HARMONY.md, "Improvise (H6)" and "Clarifications (decided

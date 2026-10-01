@@ -15,7 +15,7 @@ import {
   type KeyChord,
   type ProgressionSpec,
 } from './progressions.ts';
-import { keyAlters } from './scales.ts';
+import { keyAlters } from './keys.ts';
 import { staffKey, type SpelledPitch, type StaffHands } from './score.ts';
 
 /** ♩ = 80 unless another tempo is chosen. */

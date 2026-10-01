@@ -1,7 +1,6 @@
 import { canonical } from '../lib/canonical.ts';
 import type { SessionRecord } from './log.ts';
-import { parseExerciseKey } from './scales.ts';
-import type { ExerciseType, ScaleType, Tonic } from './scaleTypes.ts';
+import { exerciseKeyParts, type ExerciseType, type ScaleType, type Tonic } from './scaleTypes.ts';
 import { titleFromFile, type StoredPiece } from './storedPiece.ts';
 import {
   currentStreak,
@@ -167,7 +166,7 @@ function dayActivity(
       pieces.set(session.pieceId, piece);
     } else if (session.kind === 'scale') {
       for (const run of session.runs) {
-        const exercise = parseExerciseKey(run.exercise);
+        const exercise = exerciseKeyParts(run.exercise);
         if (!exercise) continue;
         const { type } = exercise;
         if (!named && !isProfileScaleType(type)) {

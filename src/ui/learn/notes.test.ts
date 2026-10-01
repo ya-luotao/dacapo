@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MAJOR_TONICS } from '../../core/scales.ts';
+import { MAJOR_TONICS } from '../../core/keys.ts';
 import { phraseIn, pitchName, relativeMinor, scaleRun, scaleUp } from './notes.ts';
 
 const names = (run: ReturnType<typeof scaleRun>) => run.map((n) => pitchName(n.pitch)).join(' ');

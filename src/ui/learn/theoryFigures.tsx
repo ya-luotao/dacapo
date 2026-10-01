@@ -8,7 +8,7 @@ import {
   type Clef,
   type Pitch,
 } from '../../core/note.ts';
-import { keyAlters, keySignature, MAJOR_TONICS, MINOR_TONICS } from '../../core/scales.ts';
+import { keyAlters, keySignature, MAJOR_TONICS, MINOR_TONICS } from '../../core/keys.ts';
 import { formatMessage } from '../../i18n/locale.ts';
 import { EngravedStaff, type StaffLabel, type StaffNote } from '../engraving/EngravedStaff.tsx';
 import { bodyStart, HEAD_WIDTH } from '../engraving/geometry.ts';

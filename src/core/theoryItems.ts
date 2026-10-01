@@ -9,7 +9,7 @@ import {
   type Letter,
 } from './note.ts';
 import type { Rng } from './random.ts';
-import { keyAlters, SIGNATURE_FIFTHS, signatureTonic, tonicPitch } from './scales.ts';
+import { keyAlters, SIGNATURE_FIFTHS, signatureTonic, tonicPitch } from './keys.ts';
 import type { SpelledPitch } from './score.ts';
 
 // Theory on Read (docs/EAR.md, "Theory on the staff" and "Clarifications (decided during E3)"):

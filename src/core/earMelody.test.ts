@@ -23,7 +23,7 @@ import {
 import { midiOf } from './musicxml.ts';
 import { pitchClass } from './note.ts';
 import { seededRng } from './random.ts';
-import { scaleDegree, tonicPitch } from './scales.ts';
+import { scaleDegree, tonicPitch } from './keys.ts';
 
 const SEEDS = 600;
 

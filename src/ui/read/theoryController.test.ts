@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { isTheoryAnswer } from '../../core/answers.ts';
 import { midiOf } from '../../core/musicxml.ts';
 import { seededRng } from '../../core/random.ts';
-import { signatureTonic, tonicPitch } from '../../core/scales.ts';
+import { signatureTonic, tonicPitch } from '../../core/keys.ts';
 import { rightName } from '../../core/theorySession.ts';
 import { createPracticeStore } from '../practice/store.ts';
 import { ADVANCE_DELAY_MS } from './controller.ts';

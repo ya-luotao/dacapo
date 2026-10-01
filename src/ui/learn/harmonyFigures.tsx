@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { LETTERS, pitchToMidi, staffPosition, type Clef, type Pitch } from '../../core/note.ts';
-import { keyAlters, keySignature } from '../../core/scales.ts';
+import { keyAlters, keySignature } from '../../core/keys.ts';
 import { EngravedStaff, type StaffLabel, type StaffNote } from '../engraving/EngravedStaff.tsx';
 import { bodyStart, HEAD_WIDTH, WHOLE_WIDTH } from '../engraving/geometry.ts';
 import { ExerciseFrame } from './exercises.tsx';

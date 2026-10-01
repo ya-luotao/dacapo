@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseMusicXml } from './musicxml.ts';
 import { LETTERS } from './note.ts';
-import { keyAlters, tonicPitch } from './scales.ts';
+import { keyAlters, tonicPitch } from './keys.ts';
 import { buildSteps, TICKS_PER_QUARTER, type Hand, type SpelledPitch } from './score.ts';
 import { generateFragment, type SightFragment, type SightNote } from './sightFragment.ts';
 import {

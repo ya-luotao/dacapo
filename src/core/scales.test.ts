@@ -4,19 +4,21 @@ import hanonJson from '../../scripts/scales/hanon/hanon.json?raw';
 import { isBlack } from './note.ts';
 import { HANON_ARPEGGIOS, HANON_CORRECTIONS } from './scaleFingering.ts';
 import {
-  CHROMATIC_FINGERS,
   CHROMATIC_TONICS,
-  exerciseKey,
-  FINGERING_SOURCE,
-  isScaleExercise,
   keyAlters,
-  notesPerOctave,
-  SCALE_HANDS,
   keySignature,
   SIGNATURE_FIFTHS,
   signatureTonic,
   MAJOR_TONICS,
   MINOR_TONICS,
+} from './keys.ts';
+import {
+  CHROMATIC_FINGERS,
+  exerciseKey,
+  FINGERING_SOURCE,
+  isScaleExercise,
+  notesPerOctave,
+  SCALE_HANDS,
   parseExerciseKey,
   scaleFingering,
   rightHandFloor,
@@ -26,6 +28,7 @@ import {
   tonicsOf,
 } from './scales.ts';
 import {
+  exerciseKeyParts,
   SCALE_OCTAVES,
   SCALE_TYPES,
   type ScaleExercise,
@@ -792,3 +795,29 @@ describe('contrary motion', () => {
 function fingerMark(n: ScaleNote): string {
   return `${n.finger}${n.crossing === 'thumbUnder' ? 'u' : n.crossing === 'fingerOver' ? 'o' : ''}`;
 }
+
+describe('exerciseKeyParts', () => {
+  it('names the type, tonic and variant of every exercise key, as parseExerciseKey does', () => {
+    for (const key of [
+      'major:D:2:both',
+      'minorArpeggio:F#:1:left',
+      'chromatic:Eb:2:contrary',
+      'hanon:C:2:both:12',
+      'trill:D:1:right:23-4',
+    ]) {
+      const full = parseExerciseKey(key);
+      expect(full).not.toBeNull();
+      expect(exerciseKeyParts(key)).toEqual({
+        type: full!.type,
+        tonic: full!.tonic,
+        ...(full!.variant !== undefined && { variant: full!.variant }),
+      });
+    }
+  });
+
+  it('refuses a key of no known type or with no tonic', () => {
+    expect(exerciseKeyParts('polka:C:2:both')).toBeNull();
+    expect(exerciseKeyParts('major')).toBeNull();
+    expect(exerciseKeyParts('major:H:2:both')).toBeNull();
+  });
+});

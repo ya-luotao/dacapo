@@ -18,7 +18,7 @@ import {
   type TheoryLevelId,
 } from '../../core/theoryItems.ts';
 import type { TheoryMissed } from '../../core/theorySession.ts';
-import { signatureTonic } from '../../core/scales.ts';
+import { signatureTonic } from '../../core/keys.ts';
 import { useI18n } from '../../i18n/index.ts';
 import { spelledName, tonicName } from '../scales/format.ts';
 

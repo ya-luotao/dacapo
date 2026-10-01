@@ -1,5 +1,6 @@
 import { parsePitch, pitchToMidi, type Pitch } from '../../core/note.ts';
-import { keySignature, MINOR_TONICS, scaleNotes } from '../../core/scales.ts';
+import { keySignature, MINOR_TONICS } from '../../core/keys.ts';
+import { scaleNotes } from '../../core/scales.ts';
 import type { ScaleType } from '../../core/scaleTypes.ts';
 
 // Notes as the lessons write and print them.

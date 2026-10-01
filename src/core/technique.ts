@@ -6,7 +6,8 @@
 import { midiOf } from './musicxml.ts';
 import { HANON_PART_ONE, type HanonPartOne } from './hanonPartOne.ts';
 import { partsOf, plateParts, plateRun, type PlateDegree } from './techniquePlates.ts';
-import { MAJOR_TONICS, MINOR_TONICS, scaleDegree, startingTonics } from './scales.ts';
+import { MAJOR_TONICS, MINOR_TONICS, scaleDegree } from './keys.ts';
+import { startingTonics } from './scales.ts';
 import type {
   Direction,
   ScaleExercise,

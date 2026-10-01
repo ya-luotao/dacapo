@@ -7,7 +7,7 @@
 // (a bar's alterations holding to its end on their line, a courtesy one in the next bar), the
 // beams and the rests.
 
-import { keyAlters } from './scales.ts';
+import { keyAlters } from './keys.ts';
 import { type SightFragment, type SightNote } from './sightFragment.ts';
 import { barTicks, beatsOf } from './sightLevels.ts';
 import { staffKey, TICKS_PER_QUARTER, type Hand, type StaffHands } from './score.ts';

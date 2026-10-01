@@ -1,7 +1,7 @@
 import { midiOf } from './musicxml.ts';
 import { isBlack, midiToPitch, spellingsOf } from './note.ts';
 import type { Rng } from './random.ts';
-import { keyAlters, keySignature, scaleDegree, tonicPitch } from './scales.ts';
+import { keyAlters, keySignature, scaleDegree, tonicPitch } from './keys.ts';
 import type { Tonic } from './scaleTypes.ts';
 import type { SpelledPitch } from './score.ts';
 
