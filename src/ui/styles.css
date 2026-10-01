@@ -8247,7 +8247,12 @@ select.is-compact {
   gap: 0.75rem 1.5rem;
 }
 
+/* A field is never wider than the picker: a select whose longest option is wider than a phone
+   (the exercises' names in Japanese) shrinks to the width there is, and the page does not scroll
+   sideways. */
 .scale-picker .field {
+  min-width: 0;
+  max-width: 100%;
   margin: 0;
 }
 
