@@ -55,10 +55,13 @@ import { noteIdsOf, noteKey, type LoopPlace } from './loop.ts';
 import {
   readClickPrefs,
   readExercise,
+  startChoices,
   writeClickPrefs,
   writeExercise,
   type ClickPrefs,
 } from './prefs.ts';
+import { useRouteSearch } from '../hashRoute.ts';
+import { parseScaleStart } from '../startParams.ts';
 import { scaleRunRecord, useScaleRecorder, type SessionSlot } from './record.ts';
 import {
   runClick,
@@ -101,11 +104,18 @@ const GUIDE_PREF = 'dacapo.scales.guide';
 /** Offered once per browser, before the first run with the click (shared with Pieces). */
 const CALIBRATION_OFFERED_PREF = 'dacapo.latency.offered';
 
+/** The Scales page; opened with an exercise (a task of an assignment), it starts over on it. */
 export function ScalesPage() {
+  const search = useRouteSearch();
+  return <Scales key={search} search={search} />;
+}
+
+function Scales({ search }: { search: string }) {
   const t = useT();
   const title = useExerciseTitle();
-  const [exercise, setExerciseState] = useState(readExercise);
-  const [click, setClickState] = useState(readClickPrefs);
+  const [start] = useState(() => startChoices(parseScaleStart(search)));
+  const [exercise, setExerciseState] = useState(() => start?.exercise ?? readExercise());
+  const [click, setClickState] = useState(() => start?.click ?? readClickPrefs());
   const [loop, setLoop] = useState<LoopPlace | null>(null);
   // A clicked run is on: its settings stay put until it ends.
   const [clicking, setClicking] = useState(false);

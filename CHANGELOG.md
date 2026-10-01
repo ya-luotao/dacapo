@@ -6,14 +6,39 @@ which is noted when it changes.
 
 ## Unreleased
 
-Export format version 8: the file now includes imported pieces (from version 2), piece practice
+Export format version 9: the file now includes imported pieces (from version 2), piece practice
 sessions and their step records (from version 3), rhythm-mode steps with their timings (from
 version 4), scale sessions with every scale run as played (from version 5), ear-training answers
 and sessions (from version 6; the theory cards', Read's rhythm, rhythm dictation's and the chord
 symbols' answers and
 sessions go in the same lists), the
-click's tempo and grid of scale runs played with it (from version 7), and the takes of piece runs
-(from version 8). Version 1 to 7 files still import.
+click's tempo and grid of scale runs played with it (from version 7), the takes of piece runs
+(from version 8), and assignments (from version 9). Version 1 to 8 files still import.
+
+### Assignments (T1, [docs/ASSIGNMENTS.md](docs/ASSIGNMENTS.md))
+
+- A new page, **Assignments** (from Progress and the More menu): set a week's practice as tasks,
+  with a title, a note, your name, a start and a due date. A task is a **piece** with its bars,
+  hands, mode and tempo, and a number of runs (or runs with at least so many of the notes right,
+  or in time); a **scale** or technique exercise, free or with the click at a tempo; a **level**
+  of Read, Ear or Harmony, for a number of sessions or until it is mastered; a **lesson** to
+  read; or **minutes** a day on so many days.
+- **Shared without a server**: as a link to copy (the assignment is packed into the link itself,
+  after the `#`, which no server sees) or as a file. An assignment that names a piece you
+  imported goes as a file, which carries the score; a piece that is already there is not added
+  twice.
+- Whoever opens the link or the file sees the assignment, with the name its teacher typed,
+  before anything is stored, and adds it to theirs. It is then a **checklist** worked out from
+  what they practise between its dates: each task with its figure ("2 of 3 runs", "Best 94% in
+  time"), a tick when it is met, and a button that starts it with its settings: the piece with
+  its bars looped and its hand, mode and tempo set, the scale with its click, the level chosen.
+  Three times round a loop are three runs. A piece may be a lead sheet, with whatever left hand
+  each player has made from its chord symbols; a run counts in the piece's written key.
+- The **home page** shows the current assignment's open tasks.
+- Assignments are stored on the device, exported and imported with everything else, and synced
+  between your own devices when you are signed in. dacapo sends an assignment to no one: you do.
+- A damaged or foreign link or file is refused in a sentence. A task set with a later version
+  than yours is shown as such, and the rest of the assignment still works.
 
 ### Transposing (H4, [docs/HARMONY.md](docs/HARMONY.md))
 

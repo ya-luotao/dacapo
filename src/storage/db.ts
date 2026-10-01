@@ -1,5 +1,6 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Answer } from '../core/answers.ts';
+import type { AssignmentRecord } from '../core/assignmentRecords.ts';
 import type { SessionRecord } from '../core/log.ts';
 import type { PieceStep } from '../core/pieceRecords.ts';
 import type { StoredScaleRun } from '../core/scaleRecords.ts';
@@ -11,7 +12,7 @@ import type { OutboxEntry } from './syncTypes.ts';
 
 export const DB_NAME = 'dacapo';
 /** Bump when the schema changes and add a `case` to `upgrade`. */
-export const DB_VERSION = 7;
+export const DB_VERSION = 8;
 
 export interface DacapoSchema extends DBSchema {
   noteStats: { key: string; value: NoteStats };
@@ -51,6 +52,11 @@ export interface DacapoSchema extends DBSchema {
     value: TakeChunk;
     indexes: { 'by-piece': string; 'by-session': string };
   };
+  /**
+   * Assignments and kept reports (version 8), each under its own id; a deleted one stays as a
+   * record that says so (docs/ASSIGNMENTS.md).
+   */
+  assignments: { key: string; value: AssignmentRecord };
 }
 
 export type DacapoDB = IDBPDatabase<DacapoSchema>;
@@ -105,6 +111,10 @@ export function upgrade(db: DacapoDB, oldVersion: number, newVersion = DB_VERSIO
         const takes = db.createObjectStore('takes', { keyPath: 'id' });
         takes.createIndex('by-piece', 'pieceId');
         takes.createIndex('by-session', 'sessionId');
+        break;
+      }
+      case 7: {
+        db.createObjectStore('assignments', { keyPath: 'id' });
         break;
       }
     }

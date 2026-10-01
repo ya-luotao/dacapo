@@ -1,4 +1,9 @@
 import { byAnswerTime, type Answer } from '../core/answers.ts';
+import {
+  byRecordId,
+  type AssignmentRecord,
+  type LiveAssignmentRecord,
+} from '../core/assignmentRecords.ts';
 import type { FreePlaySession, OpenFreePlay } from '../core/freePlay.ts';
 import { byStartDescending, byTime, sessionRuns, type SessionRecord } from '../core/log.ts';
 import {
@@ -44,6 +49,11 @@ export interface StoredData {
    * imported piece says so itself (`StoredPiece.review`).
    */
   reviewOff: string[];
+  /**
+   * Assignments and kept reports (docs/ASSIGNMENTS.md), by id: every record, the deleted ones
+   * (which only say so) among them.
+   */
+  assignments: AssignmentRecord[];
 }
 
 export interface MergeResult {
@@ -55,6 +65,7 @@ export interface MergeResult {
   scaleRuns: number;
   answers: number;
   takes: number;
+  assignments: number;
 }
 
 /** What an import adds; records whose id is stored already are kept as they are. */
@@ -66,6 +77,8 @@ export interface MergeInput {
   scaleRuns: readonly StoredScaleRun[];
   answers: readonly Answer[];
   takes: readonly TakeChunk[];
+  /** Assignments and kept reports; one deleted here is not added again. */
+  assignments: readonly LiveAssignmentRecord[];
 }
 
 /** Which step records to read: those of a piece or of one session. */
@@ -133,6 +146,11 @@ export interface PracticeRepository {
   /** Every take chunk, in order: for the export file. */
   allTakes: () => Promise<TakeChunk[]>;
   takeIds: () => Promise<string[]>;
+  /**
+   * Adds or replaces the assignment or kept report with the same id; a deleted one is stored as
+   * the record that says so, so the deletion syncs like any other change.
+   */
+  putAssignment: (record: AssignmentRecord) => Promise<void>;
   /**
    * Adds the records whose id is not stored yet (stored ones are kept as they are, except a scale
    * session, which gives way to a copy with more runs), then rebuilds every note's stats from all
@@ -237,6 +255,7 @@ function sorted(data: StoredData): StoredData {
     sessions: data.sessions.sort(byStartDescending),
     pieces: data.pieces.sort(byImportedDescending),
     answers: data.answers.sort(byAnswerTime),
+    assignments: data.assignments.sort(byRecordId),
   };
 }
 
@@ -244,9 +263,17 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
   return {
     kind: 'indexeddb',
     async load() {
-      const tx = db.transaction(['attempts', 'noteStats', 'sessions', 'meta', 'pieces', 'answers']);
-      const [attempts, stats, sessions, meta, runs, pieces, answers, reviewOff] = await Promise.all(
-        [
+      const tx = db.transaction([
+        'attempts',
+        'noteStats',
+        'sessions',
+        'meta',
+        'pieces',
+        'answers',
+        'assignments',
+      ]);
+      const [attempts, stats, sessions, meta, runs, pieces, answers, reviewOff, assignments] =
+        await Promise.all([
           tx.objectStore('attempts').getAll(),
           tx.objectStore('noteStats').getAll(),
           tx.objectStore('sessions').getAll(),
@@ -255,9 +282,9 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
           tx.objectStore('pieces').getAll(),
           tx.objectStore('answers').getAll(),
           tx.objectStore('meta').getAllKeys(reviewOffRange()),
+          tx.objectStore('assignments').getAll(),
           tx.done,
-        ],
-      );
+        ]);
       return sorted({
         attempts,
         stats: Object.fromEntries(stats.map((s) => [s.key, s])),
@@ -266,6 +293,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         ...(await leftOpen(meta, runs)),
         answers,
         reviewOff: reviewOff.map((key) => String(key).slice(REVIEW_OFF.length)),
+        assignments,
       });
     },
     async setReviewOff(pieceId, off) {
@@ -452,6 +480,14 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
       return (await db.getAll('takes')).sort(byTakeChunk);
     },
     takeIds: () => db.getAllKeys('takes'),
+    async putAssignment(record) {
+      const tx = db.transaction(['assignments', 'meta', 'outbox'], 'readwrite');
+      const syncing = await isSyncing(tx.objectStore('meta'));
+      await writeAll(tx, [
+        () => tx.objectStore('assignments').put(record),
+        ...track(tx.objectStore('outbox'), syncing, [['assignments', record.id]]),
+      ]);
+    },
     async merge(input) {
       const tx = db.transaction(
         [
@@ -463,6 +499,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
           'scaleRuns',
           'answers',
           'takes',
+          'assignments',
           'meta',
           'outbox',
         ],
@@ -476,6 +513,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
       const scaleRuns = tx.objectStore('scaleRuns');
       const answers = tx.objectStore('answers');
       const takes = tx.objectStore('takes');
+      const assignments = tx.objectStore('assignments');
       const meta = tx.objectStore('meta');
       const [
         storedSessions,
@@ -485,6 +523,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         runIds,
         answerIds,
         takeIds,
+        assignmentIds,
         deletions,
         syncing,
       ] = await Promise.all([
@@ -495,6 +534,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         scaleRuns.getAllKeys(),
         answers.getAllKeys(),
         takes.getAllKeys(),
+        assignments.getAllKeys(),
         deletedPieces(meta),
         isSyncing(meta),
       ]);
@@ -514,6 +554,8 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
       const addedTakes = notStored(input.takes, takeIds).filter(
         (chunk) => !deletions.get(chunk.pieceId)?.withSteps,
       );
+      // A deleted assignment is still stored, as the record that says so: it is not added again.
+      const addedAssignments = notStored(input.assignments, assignmentIds);
       const stats = statsFromAttempts([...storedAttempts, ...addedAttempts]);
       const tracked: Tracked[] = [
         ...[...addedSessions, ...longer].map((r) => ['sessions', r.id] as const),
@@ -523,6 +565,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         ...addedRuns.map((r) => ['scaleRuns', r.id] as const),
         ...addedAnswers.map((r) => ['answers', r.id] as const),
         ...addedTakes.map((r) => ['takes', r.id] as const),
+        ...addedAssignments.map((r) => ['assignments', r.id] as const),
       ];
       await writeAll(tx, [
         ...addedSessions.map((session) => () => sessions.add(session)),
@@ -533,6 +576,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         ...addedRuns.map((run) => () => scaleRuns.add(run)),
         ...addedAnswers.map((answer) => () => answers.add(answer)),
         ...addedTakes.map((chunk) => () => takes.add(chunk)),
+        ...addedAssignments.map((record) => () => assignments.add(record)),
         () => noteStats.clear(),
         ...Object.values(stats).map((s) => () => noteStats.put(s)),
         ...track(tx.objectStore('outbox'), syncing, tracked),
@@ -545,6 +589,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         scaleRuns: addedRuns.length,
         answers: addedAnswers.length,
         takes: addedTakes.length,
+        assignments: addedAssignments.length,
       };
     },
     sync: createSyncStorage(db),
@@ -565,6 +610,7 @@ export function createMemoryRepository(): PracticeRepository {
   const takes = new Map<string, TakeChunk>();
   const deletions = new Map<string, PieceDeletion>();
   const reviewOff = new Set<string>();
+  const assignments = new Map<string, AssignmentRecord>();
   let stats: Record<string, NoteStats> = {};
   const copy = <T>(value: T): T => structuredClone(value);
 
@@ -581,6 +627,7 @@ export function createMemoryRepository(): PracticeRepository {
           openPieceRuns: [...openRuns.values()].map(copy),
           answers: [...answers.values()].map(copy),
           reviewOff: [...reviewOff],
+          assignments: [...assignments.values()].map(copy),
         }),
       ),
     setReviewOff(pieceId, off) {
@@ -669,6 +716,10 @@ export function createMemoryRepository(): PracticeRepository {
     },
     allTakes: () => Promise.resolve([...takes.values()].map(copy).sort(byTakeChunk)),
     takeIds: () => Promise.resolve([...takes.keys()]),
+    putAssignment(record) {
+      assignments.set(record.id, copy(record));
+      return Promise.resolve();
+    },
     merge(input) {
       const addedSessions = notStored(input.sessions, sessions.keys());
       const longer = longerSessions(input.sessions, (id) => sessions.get(id));
@@ -693,6 +744,8 @@ export function createMemoryRepository(): PracticeRepository {
       for (const run of addedRuns) scaleRuns.set(run.id, copy(run));
       for (const answer of addedAnswers) answers.set(answer.id, copy(answer));
       for (const chunk of addedTakes) takes.set(chunk.id, copy(chunk));
+      const addedAssignments = notStored(input.assignments, assignments.keys());
+      for (const record of addedAssignments) assignments.set(record.id, copy(record));
       stats = statsFromAttempts([...attempts.values()]);
       return Promise.resolve({
         sessions: addedSessions.length + longer.length,
@@ -702,6 +755,7 @@ export function createMemoryRepository(): PracticeRepository {
         scaleRuns: addedRuns.length,
         answers: addedAnswers.length,
         takes: addedTakes.length,
+        assignments: addedAssignments.length,
       });
     },
     sync: null,

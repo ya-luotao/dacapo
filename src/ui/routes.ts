@@ -20,6 +20,8 @@ export const NAV_ITEMS: readonly {
   { path: '/pieces', label: 'nav.pieces', priority: 6, practice: true },
   { path: '/metronome', label: 'nav.metronome', priority: 2 },
   { path: '/progress', label: 'nav.progress', priority: 3 },
+  // The first to give way: it is reached from Progress too.
+  { path: '/assignments', label: 'nav.assignments', priority: 0.5 },
   { path: '/settings', label: 'nav.settings', priority: 1 },
 ];
 

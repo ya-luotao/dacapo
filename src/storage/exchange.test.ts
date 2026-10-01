@@ -18,6 +18,7 @@ import {
 import {
   resetIndexedDB,
   sampleAnswer,
+  sampleAssignment,
   sampleData,
   sampleEarSession,
   sampleEchoAnswer,
@@ -40,6 +41,9 @@ import {
   sampleRhythmEarChoice,
   sampleRhythmEarSession,
   sampleRhythmEarTaps,
+  sampleReport,
+  sampleStoredAssignment,
+  sampleStoredReport,
   T0,
 } from './fixtures.ts';
 import { createIndexedDbRepository, type PracticeRepository } from './repository.ts';
@@ -110,6 +114,7 @@ describe('export', () => {
       scaleRuns: [],
       answers: [],
       takes: [],
+      assignments: [],
     });
     const file = await exportOf(repo);
     expect(file).toMatchObject({
@@ -197,6 +202,7 @@ describe('export → import', () => {
       scaleRuns: 5,
       answers: 0,
       takes: 3,
+      assignments: 0,
     });
     expect(await exportOf(target)).toEqual(exported);
     expect(await target.load()).toEqual(await source.load());
@@ -219,6 +225,7 @@ describe('export → import', () => {
       scaleRuns: 0,
       answers: 0,
       takes: 0,
+      assignments: 0,
     });
     expect(await repo.load()).toEqual(once);
   });
@@ -366,6 +373,7 @@ describe('planImport', () => {
       scaleRunIds: new Set(),
       answerIds: new Set(),
       takeIds: new Set<string>(),
+      assignmentIds: new Set<string>(),
     });
     expect(plan).toEqual({
       sessions: { new: sessions.length - 1, present: 1, invalid: 0 },
@@ -375,6 +383,7 @@ describe('planImport', () => {
       scaleRuns: { new: 0, present: 0, invalid: 0 },
       answers: { new: 0, present: 0, invalid: 0 },
       takes: { new: 0, present: 0, invalid: 0 },
+      assignments: { new: 0, present: 0, invalid: 0 },
     });
   });
 
@@ -406,6 +415,7 @@ describe('planImport', () => {
       scaleRunIds: new Set(),
       answerIds: new Set(),
       takeIds: new Set([takes[1]!.id]),
+      assignmentIds: new Set<string>(),
     });
     expect(plan.takes).toEqual({ new: 2, present: 1, invalid: 2 });
   });
@@ -421,6 +431,7 @@ describe('planImport', () => {
       scaleRunIds: new Set(),
       answerIds: new Set(),
       takeIds: new Set<string>(),
+      assignmentIds: new Set<string>(),
     });
     expect(plan.pieceSteps).toEqual({ new: 3, present: 1, invalid: 0 });
   });
@@ -445,6 +456,7 @@ describe('planImport', () => {
       scaleRunIds: new Set([runs[2]!.id]),
       answerIds: new Set(),
       takeIds: new Set<string>(),
+      assignmentIds: new Set<string>(),
     });
     expect(plan.sessions).toEqual({ new: 1, present: 0, invalid: 0 });
     expect(plan.scaleRuns).toEqual({ new: 2, present: 1, invalid: 1 });
@@ -462,6 +474,7 @@ describe('planImport', () => {
       scaleRunIds: new Set(),
       answerIds: new Set(),
       takeIds: new Set<string>(),
+      assignmentIds: new Set<string>(),
     });
     expect(plan.pieces).toEqual({ new: 1, present: 1, invalid: 1 });
   });
@@ -830,7 +843,7 @@ describe('versions', () => {
     ]);
   });
 
-  it('writes version 8 with pieces, piece sessions, step records, scale runs, answers and takes', async () => {
+  it('writes version 9 with pieces, piece sessions, step records, scale runs, answers, takes and assignments', async () => {
     const repo = await freshRepository();
     await repo.putPiece(samplePiece(1));
     const { steps, session } = sampleRun('r1', 2);
@@ -843,14 +856,26 @@ describe('versions', () => {
     await repo.putSession(ear.session);
     const take = sampleTake('r1', 0);
     await repo.addTake(take);
+    const assignment = sampleStoredAssignment(1, { following: true });
+    const report = sampleStoredReport(1);
+    await repo.putAssignment(report);
+    await repo.putAssignment(assignment);
+    // A deleted one stays out of the file.
+    await repo.putAssignment({
+      id: 'assignment-2',
+      type: 'assignment',
+      deleted: true,
+      updatedAt: T0,
+    });
     const file = await exportOf(repo);
-    expect(EXPORT_VERSION).toBe(8);
-    expect(file.version).toBe(8);
+    expect(EXPORT_VERSION).toBe(9);
+    expect(file.version).toBe(9);
     expect(file.takes).toEqual([take]);
     expect(file.pieces).toEqual([samplePiece(1)]);
     expect(file.pieceSteps).toEqual(steps);
     expect(file.scaleRuns).toEqual(scales.runs);
     expect(file.answers).toEqual(ear.answers);
+    expect(file.assignments).toEqual([assignment, report]);
     const back = parsed(JSON.stringify(file));
     expect(back.invalid).toEqual([]);
     expect(back.pieces).toEqual([samplePiece(1)]);
@@ -858,7 +883,81 @@ describe('versions', () => {
     expect(back.scaleRuns).toEqual(scales.runs);
     expect(back.answers).toEqual(ear.answers);
     expect(back.takes).toEqual([take]);
+    expect(back.assignments).toEqual([assignment, report]);
     expect(back.sessions).toEqual([scales.session, session, ear.session]);
+    // Into another browser: both arrive, as they were.
+    const target = await freshRepository();
+    expect((await target.merge(back)).assignments).toBe(2);
+    expect((await target.load()).assignments).toEqual([assignment, report]);
+  });
+
+  it('imports a version 8 file, which has no assignments, and refuses a version 9 file without them', () => {
+    const lists = { pieces: [], pieceSteps: [], scaleRuns: [], answers: [], takes: [] };
+    const file = parsed(fileWith({ version: 8, ...lists }));
+    expect(file).toMatchObject({ version: 8, assignments: [], invalid: [] });
+    expect(parseImport(fileWith({ version: 9, ...lists }))).toEqual({
+      ok: false,
+      error: { kind: 'wrong-format' },
+    });
+  });
+
+  it('checks assignments and reports as a link is checked, and lists the bad ones', () => {
+    const lists = { pieces: [], pieceSteps: [], scaleRuns: [], answers: [], takes: [] };
+    const good = sampleStoredAssignment(1);
+    const report = sampleStoredReport(1);
+    const duet = { kind: 'duet', id: 't9', with: 'teacher' };
+    const newer = sampleStoredAssignment(3, {
+      assignment: { ...sampleAssignment(3), tasks: [duet as never] },
+    });
+    const file = parsed(
+      fileWith({
+        version: 9,
+        ...lists,
+        assignments: [
+          { ...good, extra: 1 },
+          report,
+          newer,
+          { ...sampleStoredAssignment(2), id: 'assignment-9' },
+          { ...sampleStoredAssignment(4), made: 'yes' },
+          { ...sampleStoredAssignment(5), assignment: { ...sampleAssignment(5), due: 'soon' } },
+          { ...sampleStoredReport(2), report: { ...sampleReport(2), days: 3 } },
+          { id: 'assignment-6', type: 'assignment', deleted: true, updatedAt: T0 },
+          { ...sampleStoredAssignment(7), type: 'homework' },
+          good,
+          'assignment',
+        ],
+      }),
+    );
+    expect(file.assignments).toEqual([
+      good,
+      report,
+      // A task this version does not know is kept as it came.
+      {
+        ...newer,
+        assignment: { ...newer.assignment, tasks: [{ kind: 'unknown', id: 't9', raw: duet }] },
+      },
+    ]);
+    expect(file.invalid).toEqual([
+      { collection: 'assignments', index: 3, field: 'assignment', problem: 'invalid' },
+      { collection: 'assignments', index: 4, field: 'made', problem: 'invalid' },
+      { collection: 'assignments', index: 5, field: 'assignment', problem: 'invalid' },
+      { collection: 'assignments', index: 6, field: 'report', problem: 'invalid' },
+      { collection: 'assignments', index: 7, field: 'deleted', problem: 'invalid' },
+      { collection: 'assignments', index: 8, field: 'type', problem: 'invalid' },
+      { collection: 'assignments', index: 9, field: 'id', problem: 'duplicate' },
+      { collection: 'assignments', index: 10, field: 'record', problem: 'invalid' },
+    ]);
+    const plan = planImport(file, {
+      sessionIds: new Set(),
+      attemptIds: new Set(),
+      pieceIds: new Set(),
+      pieceStepIds: new Set(),
+      scaleRunIds: new Set(),
+      answerIds: new Set(),
+      takeIds: new Set(),
+      assignmentIds: new Set([report.id]),
+    });
+    expect(plan.assignments).toEqual({ new: 2, present: 1, invalid: 8 });
   });
 
   it('imports scale runs played with the click, their grid and their session’s tempo', () => {
@@ -1182,6 +1281,7 @@ describe('versions', () => {
         pieceSteps: [],
         scaleRuns: [],
         takes: [],
+        assignments: [],
         sessions: [
           { ...session, extra: 1, missed: session.missed.map((m) => ({ ...m, extra: 1 })) },
           { ...session, id: 'x1', level: 'RC1' },
@@ -1247,6 +1347,7 @@ describe('versions', () => {
         pieceSteps: [],
         scaleRuns: [],
         takes: [],
+        assignments: [],
         sessions: [
           session,
           { ...session, id: 'x1', level: 'EC1' },
@@ -1297,6 +1398,7 @@ describe('versions', () => {
         pieceSteps: [],
         scaleRuns: [],
         takes: [],
+        assignments: [],
         sessions: [
           { ...session, extra: 1 },
           { ...session, id: 'x1', level: 'R9' },
@@ -1353,6 +1455,7 @@ describe('versions', () => {
         pieceSteps: [],
         scaleRuns: [],
         takes: [],
+        assignments: [],
         answers: [],
         sessions: [
           { ...session, extra: 1 },
@@ -1413,6 +1516,7 @@ describe('versions', () => {
         pieceSteps: [],
         scaleRuns: [],
         takes: [],
+        assignments: [],
         sessions: [
           { ...tapped.session, extra: 1 },
           chosen.session,
@@ -1519,6 +1623,7 @@ describe('versions', () => {
       scaleRuns: [],
       answers: [],
       takes,
+      assignments: [],
     });
     expect(await repo.takes({ sessionId: 'im1' })).toEqual(takes);
     const back = parsed(JSON.stringify(await exportOf(repo)));

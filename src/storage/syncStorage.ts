@@ -1,4 +1,5 @@
 import type { Answer } from '../core/answers.ts';
+import type { AssignmentRecord } from '../core/assignmentRecords.ts';
 import { byTime, sessionRuns, type SessionRecord } from '../core/log.ts';
 import type { PieceStep } from '../core/pieceRecords.ts';
 import type { StoredScaleRun } from '../core/scaleRecords.ts';
@@ -40,6 +41,8 @@ export interface PulledRecords {
   scaleRuns: readonly StoredScaleRun[];
   answers: readonly Answer[];
   takes: readonly TakeChunk[];
+  /** Assignments and kept reports, the deleted ones (which only say so) among them. */
+  assignments: readonly AssignmentRecord[];
 }
 
 /** What applying changed here. */
@@ -53,6 +56,8 @@ export interface AppliedCounts {
   scaleRuns: number;
   answers: number;
   takes: number;
+  /** Assignments and kept reports added, replaced by a later copy, or deleted. */
+  assignments: number;
 }
 
 export const nothingApplied = (counts: AppliedCounts) =>
@@ -136,6 +141,15 @@ const withoutFacts = (piece: StoredPiece) => ({ ...piece, facts: undefined });
  */
 export function comparePieces(a: StoredPiece, b: StoredPiece): number {
   return pieceVersion(a) - pieceVersion(b) || byText(withoutFacts(a), withoutFacts(b));
+}
+
+/**
+ * Orders two copies of an assignment or a kept report: the one changed later wins, and deleting
+ * is a change like any other (so the same link can be added again afterwards); their text breaks
+ * a tie. 0 only for the same record.
+ */
+export function compareAssignments(a: AssignmentRecord, b: AssignmentRecord): number {
+  return a.updatedAt - b.updatedAt || byText(a, b);
 }
 
 const deletionRange = () =>
@@ -257,6 +271,7 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
           'scaleRuns',
           'answers',
           'takes',
+          'assignments',
           'meta',
           'outbox',
         ],
@@ -269,6 +284,7 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
       const runs = tx.objectStore('scaleRuns');
       const answers = tx.objectStore('answers');
       const takesStore = tx.objectStore('takes');
+      const assignments = tx.objectStore('assignments');
       const meta = tx.objectStore('meta');
 
       const [
@@ -281,6 +297,7 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
         storedRuns,
         storedAnswers,
         storedTakes,
+        storedAssignments,
       ] = await Promise.all([
         deletedPieces(meta),
         meta.getKey(SYNC_STATE_KEY).then((key) => key !== undefined),
@@ -291,6 +308,7 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
         Promise.all(pulled.scaleRuns.map((r) => runs.get(r.id))),
         Promise.all(pulled.answers.map((a) => answers.get(a.id))),
         Promise.all(pulled.takes.map((c) => takesStore.get(c.id))),
+        Promise.all(pulled.assignments.map((r) => assignments.get(r.id))),
       ]);
 
       // Records whose copy here wins over a different pulled one: sent again.
@@ -382,6 +400,14 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
           !deletions.get(chunk.pieceId)?.withSteps &&
           first(chunk, 'tk:'),
       );
+      // The later copy wins, a deletion like any other change; an earlier one goes back.
+      const addedAssignments = pulled.assignments.filter((record, i) => {
+        if (!first(record, 'as:')) return false;
+        const known = storedAssignments[i];
+        const order = known ? compareAssignments(record, known) : 1;
+        if (order < 0) requeued.push(outboxEntry('assignments', record.id));
+        return order > 0;
+      });
 
       // Note stats depend on the order of answers: rebuilt from all attempts, only when some
       // were added (or replaced).
@@ -409,6 +435,7 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
         ...addedRuns.map((run) => () => runs.put(run)),
         ...addedAnswers.map((answer) => () => answers.put(answer)),
         ...addedTakes.map((chunk) => () => takesStore.put(chunk)),
+        ...addedAssignments.map((record) => () => assignments.put(record)),
         ...(stats
           ? [() => noteStats.clear(), ...Object.values(stats).map((s) => () => noteStats.put(s))]
           : []),
@@ -425,6 +452,7 @@ export function createSyncStorage(db: DacapoDB): SyncStorage {
         scaleRuns: addedRuns.length,
         answers: addedAnswers.length,
         takes: addedTakes.length,
+        assignments: addedAssignments.length,
       };
     },
   };

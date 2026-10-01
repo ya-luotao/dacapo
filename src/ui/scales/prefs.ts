@@ -9,6 +9,7 @@ import {
 import { exerciseKey, parseExerciseKey } from '../../core/scales.ts';
 import type { ScaleExercise } from '../../core/scaleTypes.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
+import type { ScaleStart } from '../startParams.ts';
 
 export const EXERCISE_PREF = 'dacapo.scales.exercise';
 export const CLICK_PREF = 'dacapo.scales.click';
@@ -69,4 +70,30 @@ export function writeClickPrefs(prefs: ClickPrefs): void {
   const isDefault =
     on === DEFAULT_CLICK.on && bpm === DEFAULT_CLICK.bpm && perBeat === DEFAULT_CLICK.perBeat;
   writePref(CLICK_PREF, isDefault ? null : JSON.stringify({ on, bpm, perBeat }));
+}
+
+/**
+ * What the page opens on when it is opened with an exercise (a task of an assignment): that
+ * exercise and its click over what the browser remembers; null when the exercise is not one.
+ * Nothing is stored until a choice is changed.
+ */
+export function startChoices(
+  start: ScaleStart | null,
+): { exercise: ScaleExercise; click: ClickPrefs } | null {
+  const exercise = start && parseExerciseKey(start.exercise);
+  if (!start || !exercise) return null;
+  const stored = readClickPrefs();
+  const { click } = start;
+  if (click === null) return { exercise, click: stored };
+  if (click === 'off') return { exercise, click: { ...stored, on: false } };
+  if (!isClickTempo(click.bpm)) return { exercise, click: stored };
+  return {
+    exercise,
+    click: {
+      on: true,
+      bpm: click.bpm,
+      // An exercise with a rhythm of its own keeps it, whatever is chosen here.
+      perBeat: isNotesPerBeat(click.perBeat) ? click.perBeat : stored.perBeat,
+    },
+  };
 }

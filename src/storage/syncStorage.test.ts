@@ -11,6 +11,8 @@ import {
   samplePiece,
   sampleRun,
   sampleScaleSession,
+  sampleStoredAssignment,
+  sampleStoredReport,
   sampleTake,
   T0,
 } from './fixtures.ts';
@@ -43,6 +45,7 @@ const nothing: PulledRecords = {
   scaleRuns: [],
   answers: [],
   takes: [],
+  assignments: [],
 };
 
 describe('signing in and out', () => {
@@ -63,6 +66,7 @@ describe('signing in and out', () => {
       scaleRuns: [],
       answers: [],
       takes: [],
+      assignments: [],
     });
     await repo.putPiece(samplePiece(1));
     await repo.putPiece(samplePiece(2));
@@ -76,6 +80,9 @@ describe('signing in and out', () => {
     await repo.putSession(ear.session);
     const take = sampleTake('r1', 0, { pieceId: 'p1' });
     await repo.addTake(take);
+    await repo.putAssignment(sampleStoredAssignment(1));
+    const gone = { id: 'assignment-2', type: 'assignment' as const, deleted: true as const };
+    await repo.putAssignment({ ...gone, updatedAt: T0 });
 
     await sync.signIn(account, 'token-1');
     expect(await sync.state()).toEqual({ account, token: 'token-1', cursor: 0, lastSyncAt: null });
@@ -89,8 +96,16 @@ describe('signing in and out', () => {
         ...scales.runs.map((r) => `scaleRuns/${r.id}`),
         ...ear.answers.map((a) => `answers/${a.id}`),
         `takes/${take.id}`,
+        'assignments/assignment-1',
+        'assignments/assignment-2',
       ].sort(),
     );
+    // A deleted assignment is sent as the record that says so.
+    const pending = await sync.pending(1000);
+    expect(pending.find((p) => p.entry.key === 'assignments/assignment-2')!.record).toEqual({
+      ...gone,
+      updatedAt: T0,
+    });
     expect((await db.get('outbox', 'pieces/p2'))!.deletion).toEqual({
       deleted: true,
       at: T0,
@@ -156,8 +171,11 @@ describe('the outbox while signed in', () => {
     const take = sampleTake('r1', 0, { pieceId: 'p1' });
     await repo.addTake(take);
     await repo.addTake(take); // stored already
+    await repo.putAssignment(sampleStoredAssignment(1));
+    await repo.putAssignment(sampleStoredAssignment(1, { following: true })); // changed
     expect(await outboxKeys()).toEqual(
       [
+        'assignments/assignment-1',
         `attempts/${sampleAttempt(0).id}`,
         `answers/${ear.answers[0]!.id}`,
         `takes/${take.id}`,
@@ -262,6 +280,7 @@ describe('the outbox while signed in', () => {
       scaleRuns: [],
       answers: [],
       takes: [],
+      assignments: [],
     });
     expect(await outboxKeys()).toEqual(
       [
@@ -346,6 +365,55 @@ describe('applying pulled records', () => {
     expect(pieces.get('p3')).toEqual(samplePiece(3));
   });
 
+  it('keeps the later copy of an assignment or a kept report, a deletion like any change', async () => {
+    const stored = sampleStoredAssignment(1, { updatedAt: T0 + 10 });
+    const report = sampleStoredReport(1);
+    await repo.putAssignment(stored);
+    await repo.putAssignment(sampleStoredAssignment(2, { updatedAt: T0 + 10 }));
+    await repo.putAssignment(report);
+    await sync.signIn(account, 't');
+    await db.clear('outbox');
+    const deleted = { id: report.id, type: 'report' as const, deleted: true as const };
+    const counts = await sync.apply({
+      ...nothing,
+      assignments: [
+        // Changed later elsewhere: taken.
+        { ...stored, following: true, updatedAt: T0 + 20 },
+        // An earlier copy: the one here stays, and goes back to the service.
+        sampleStoredAssignment(2, { following: true, updatedAt: T0 + 5 }),
+        // New here.
+        sampleStoredAssignment(3),
+        // Deleted elsewhere after it was kept here: the deletion is the later copy.
+        { ...deleted, updatedAt: report.updatedAt + 1 },
+      ],
+    });
+    expect(counts.assignments).toBe(3);
+    const records = new Map((await repo.load()).assignments.map((r) => [r.id, r]));
+    expect(records.get('assignment-1')).toMatchObject({ following: true, updatedAt: T0 + 20 });
+    expect(records.get('assignment-2')).toMatchObject({ following: false, updatedAt: T0 + 10 });
+    expect(records.get('assignment-3')).toEqual(sampleStoredAssignment(3));
+    expect(records.get(report.id)).toEqual({ ...deleted, updatedAt: report.updatedAt + 1 });
+    expect(await outboxKeys()).toEqual(['assignments/assignment-2']);
+    // The same page again changes nothing, and what was deleted can be added again later.
+    expect(
+      (await sync.apply({ ...nothing, assignments: [sampleStoredAssignment(3)] })).assignments,
+    ).toBe(0);
+    const again = { ...report, updatedAt: report.updatedAt + 2 };
+    expect((await sync.apply({ ...nothing, assignments: [again] })).assignments).toBe(1);
+    expect((await repo.load()).assignments.find((r) => r.id === report.id)).toEqual(again);
+  });
+
+  it('picks the same copy of two assignments changed at the same moment, on every device', async () => {
+    const a = sampleStoredAssignment(1, { following: false });
+    const b = sampleStoredAssignment(1, { following: true });
+    // Their text decides, whichever of them a device holds.
+    await repo.putAssignment(a);
+    expect((await sync.apply({ ...nothing, assignments: [b] })).assignments).toBe(0);
+    await repo.putAssignment(b);
+    expect((await sync.apply({ ...nothing, assignments: [a] })).assignments).toBe(1);
+    expect((await repo.load()).assignments).toEqual([a]);
+  });
+
   it('deletes a piece deleted elsewhere, with its step records if deleted with them, for good', async () => {
     await repo.putPiece(samplePiece(1));
     await repo.putPiece(samplePiece(2));
@@ -402,6 +470,7 @@ describe('applying pulled records', () => {
       scaleRuns: 0,
       answers: 0,
       takes: 0,
+      assignments: 0,
     });
     expect(await db.get('meta', 'deleted:piece:p1')).toMatchObject({ withSteps: true });
   });
@@ -459,6 +528,7 @@ describe('applying pulled records', () => {
       scaleRuns: [],
       answers: [],
       takes: [],
+      assignments: [],
     });
     await repo.putPiece(samplePiece(1));
     await repo.putPiece(samplePiece(2));
@@ -487,6 +557,7 @@ describe('applying pulled records', () => {
       scaleRuns: scales.runs,
       answers: ear.answers,
       takes: [take],
+      assignments: [],
     });
     expect(Object.values(counts).every((n) => n === 0)).toBe(true);
     expect(await repo.load()).toEqual(before);

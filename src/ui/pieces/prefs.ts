@@ -6,6 +6,7 @@ import { isHandSelection, type PieceFacts, type PracticeMode } from '../../core/
 import { isTransposition } from '../../core/transpose.ts';
 import type { HandSelection } from '../../core/score.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
+import type { PieceStart } from '../startParams.ts';
 
 // What each piece was last practised with, kept in this browser: the hands, the tempo and the
 // mode; which note is its melody, for the balance, and where its trills start (docs/EXPRESSION.md);
@@ -110,6 +111,23 @@ export function readPiecePrefs(pieceId: string): PiecePrefs {
     leftHand: own?.leftHand ?? null,
     practised: own?.practised ?? null,
     transpose: own?.transpose ?? 0,
+  };
+}
+
+/**
+ * The settings a piece opens with when it is opened with some (a task of an assignment): those,
+ * where the piece can take them, over what it remembers, and in its written key (a run in
+ * another key is no run of the task); the left hand stays the one chosen for the piece. Nothing
+ * is stored until one is changed.
+ */
+export function withStart(prefs: PiecePrefs, start: PieceStart | null | undefined): PiecePrefs {
+  if (!start) return prefs;
+  return {
+    ...prefs,
+    transpose: 0,
+    ...(start.hands && { hands: start.hands }),
+    ...(start.mode && { mode: start.mode }),
+    ...(isTempo(start.tempo) && { tempo: start.tempo }),
   };
 }
 

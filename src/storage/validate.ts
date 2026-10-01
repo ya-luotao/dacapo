@@ -12,6 +12,8 @@ import {
   type EarLevelId,
 } from '../core/earItems.ts';
 import type { Answer } from '../core/answers.ts';
+import type { AssignmentRecord, SharedPiece } from '../core/assignmentRecords.ts';
+import { isShareId, parseAssignment, parseReport } from '../core/assignmentShare.ts';
 import {
   getHarmonyLevel,
   harmonyItemInLevel,
@@ -1567,6 +1569,49 @@ export function validatePiece(value: unknown): Validation<StoredPiece> {
       }),
     },
   };
+}
+
+// --- Assignments (docs/ASSIGNMENTS.md) ---------------------------------------------------------
+
+/**
+ * An assignment or a kept report as stored (or the record a deleted one leaves): the record's own
+ * fields here, what it holds by the rules a link or a file is read with (`assignmentShare.ts`).
+ */
+export function validateAssignmentRecord(value: unknown): Validation<AssignmentRecord> {
+  if (!isObject(value)) return fail('record');
+  const { id, type, updatedAt, addedAt } = value;
+  if (!isShareId(id)) return fail('id');
+  if (type !== 'assignment' && type !== 'report') return fail('type');
+  if (!isTime(updatedAt)) return fail('updatedAt');
+  if (value.deleted !== undefined) {
+    return value.deleted === true
+      ? { ok: true, value: { id, type, deleted: true, updatedAt } }
+      : fail('deleted');
+  }
+  if (!isTime(addedAt)) return fail('addedAt');
+  if (type === 'report') {
+    const report = parseReport(value.report);
+    if (!report || report.id !== id) return fail('report');
+    return { ok: true, value: { id, type, report, addedAt, updatedAt } };
+  }
+  const assignment = parseAssignment(value.assignment);
+  if (!assignment || assignment.id !== id) return fail('assignment');
+  const { made, following } = value;
+  if (!isBool(made)) return fail('made');
+  if (!isBool(following)) return fail('following');
+  return { ok: true, value: { id, type, assignment, made, following, addedAt, updatedAt } };
+}
+
+/**
+ * A piece as an assignment's file carries it: checked like an imported piece's record, and only
+ * what the file is meant to carry is kept. Null when it is not one.
+ */
+export function validateSharedPiece(value: unknown): SharedPiece | null {
+  if (!isObject(value)) return null;
+  const checked = validatePiece({ ...value, importedAt: 0, updatedAt: undefined });
+  if (!checked.ok) return null;
+  const { id, title, composer, fileName, xml, hands, warnings } = checked.value;
+  return { id, title, composer, fileName, xml, hands, warnings };
 }
 
 // --- Rhythm dictation on Ear -----------------------------------------------------------------

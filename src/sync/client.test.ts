@@ -22,6 +22,8 @@ import {
   sampleSightSession,
   sampleImprovSession,
   sampleRhythmEarSession,
+  sampleStoredAssignment,
+  sampleStoredReport,
   T0,
 } from '../storage/fixtures.ts';
 import { createIndexedDbRepository } from '../storage/repository.ts';
@@ -920,6 +922,89 @@ describe('memory mode', () => {
     expect(mac.store.getSnapshot().sessions).toContainEqual(session);
     mac.store.loadPieceSteps('p1');
     await vi.waitFor(() => expect(mac.store.getPieceSteps('p1')).toEqual(steps));
+  });
+});
+
+describe('assignments', () => {
+  it('syncs an assignment, a change of it and its deletion: the later copy wins', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    const assignment = sampleStoredAssignment(1);
+    const report = sampleStoredReport(1);
+    ipad.store.saveAssignment(assignment);
+    ipad.store.saveAssignment(report);
+    await ipad.store.settled();
+    await signIn(ipad);
+    await signIn(mac);
+    const made = ipad.store.getSnapshot().assignments;
+    expect(made.map((r) => r.id)).toEqual([assignment.id, report.id]);
+    expect(service.body('assignments', assignment.id)).toEqual(made[0]);
+    expect(mac.store.getSnapshot().assignments).toEqual(made);
+
+    // Changed on the Mac: its copy is the later one everywhere.
+    mac.store.saveAssignment({ ...assignment, following: true });
+    await mac.store.settled();
+    await mac.client.syncNow();
+    await ipad.client.syncNow();
+    expect(ipad.store.getSnapshot().assignments[0]).toMatchObject({ following: true });
+    expect(ipad.store.getSnapshot().assignments).toEqual(mac.store.getSnapshot().assignments);
+
+    // Deleted on the iPad: the record that says so replaces it on both, and on the service.
+    ipad.store.deleteAssignment(assignment.id);
+    await ipad.store.settled();
+    await ipad.client.syncNow();
+    await mac.client.syncNow();
+    expect(service.body('assignments', assignment.id)).toMatchObject({ deleted: true });
+    for (const d of [ipad, mac]) {
+      const records = d.store.getSnapshot().assignments;
+      expect(records[0]).toMatchObject({ id: assignment.id, type: 'assignment', deleted: true });
+      expect(records[1]).toEqual(made[1]);
+    }
+
+    // Added again on the Mac (the same link, opened once more): later than its deletion.
+    mac.store.saveAssignment({ ...assignment, made: false, following: true });
+    await mac.store.settled();
+    await mac.client.syncNow();
+    await ipad.client.syncNow();
+    expect(ipad.store.getSnapshot().assignments[0]).toMatchObject({ made: false, following: true });
+    expect(await ipad.db.count('outbox')).toBe(0);
+    expect(await mac.db.count('outbox')).toBe(0);
+  });
+
+  it('pulls them again after a build that skipped the collection, and skips what does not validate', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    ipad.store.saveAssignment(sampleStoredAssignment(1));
+    await ipad.store.settled();
+    await signIn(ipad);
+    await signIn(mac);
+    const stored = mac.store.getSnapshot().assignments;
+    expect(stored).toHaveLength(1);
+
+    // As schema 17 left it: the collection skipped, the cursor past it.
+    const state = (await mac.db.get('meta', SYNC_STATE_KEY)) as SyncState;
+    await mac.db.clear('assignments');
+    await mac.db.put('meta', { ...state, schema: 17 }, SYNC_STATE_KEY);
+    await mac.store.reloadAll();
+    // A record another build wrote that is no assignment: skipped, never stored.
+    const token = (await ipad.store.withSync((sync) => sync.state()))!.token;
+    await service.api.sync(token, 0, [
+      {
+        collection: 'assignments',
+        id: 'assignment-bad',
+        body: { id: 'assignment-bad', type: 'assignment' },
+      },
+    ]);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const sync = vi.spyOn(service.api, 'sync');
+    await mac.client.syncNow();
+    expect(SYNC_SCHEMA).toBeGreaterThanOrEqual(19);
+    expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
+    expect(mac.store.getSnapshot().assignments).toEqual(stored);
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(await mac.db.count('outbox')).toBe(0);
   });
 });
 

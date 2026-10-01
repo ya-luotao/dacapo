@@ -76,8 +76,17 @@ import { sharedClickTrack } from '../pieces/useRhythmPlayer.ts';
 import { loadMusicFont } from '../staff/font.ts';
 import { prefetchVerovio } from '../notation/verovio.ts';
 import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
+import { useRouteSearch } from '../hashRoute.ts';
+import { readStart } from '../read/start.ts';
+import { parseLevelStart } from '../startParams.ts';
 
+/** The Read page; opened with a level (a task of an assignment), it starts over on it. */
 export function ReadPage() {
+  const search = useRouteSearch();
+  return <Read key={search} search={search} />;
+}
+
+function Read({ search }: { search: string }) {
   const t = useT();
   const practice = usePracticeStore();
   const { attempts, answers, sessions } = usePractice();
@@ -99,7 +108,13 @@ export function ReadPage() {
     KEEP_AWAKE_IDLE_MS,
   );
 
-  const [prefs, setPrefs] = useState(readReadPrefs);
+  // What the page was opened on, in place of what it remembers and what it would suggest.
+  const [opened] = useState(() => readStart(parseLevelStart(search)));
+  const [prefs, setPrefs] = useState(() => {
+    const stored = readReadPrefs();
+    if (!opened) return stored;
+    return { ...stored, choice: opened.choice === 'theory' ? opened.family : opened.choice };
+  });
   const { choice } = prefs;
 
   const progress = useMemo(
@@ -108,7 +123,9 @@ export function ReadPage() {
   );
   const suggested = suggestedLevel([...progress.values()]);
   // Follows the suggestion until the user picks a level.
-  const [picked, setPicked] = useState<LevelId | null>(null);
+  const [picked, setPicked] = useState<LevelId | null>(
+    opened?.choice === 'notes' ? opened.level : null,
+  );
   const level = picked ?? suggested;
   const [length, setLength] = useState<SessionLength>(DEFAULT_SESSION_LENGTH);
   const [hint, setHint] = useState(false);
@@ -121,7 +138,7 @@ export function ReadPage() {
   }, [answers]);
   // Each kind of card follows its suggestion until a level of it is picked.
   const [theoryPicked, setTheoryPicked] = useState<Partial<Record<TheoryFamily, TheoryLevelId>>>(
-    {},
+    opened?.choice === 'theory' ? { [opened.family]: opened.level } : {},
   );
   const rhythmProgress = useMemo(() => {
     const ofRhythm = answers.filter(isRhythmAnswer);
@@ -129,7 +146,9 @@ export function ReadPage() {
       RHYTHM_LEVEL_IDS.map((id) => [id, rhythmLevelProgress(ofRhythm, id)] as const),
     );
   }, [answers]);
-  const [rhythmPicked, setRhythmPicked] = useState<RhythmLevelId | null>(null);
+  const [rhythmPicked, setRhythmPicked] = useState<RhythmLevelId | null>(
+    opened?.choice === 'rhythm' ? opened.level : null,
+  );
   const rhythmLevel = rhythmPicked ?? suggestedRhythmLevel(rhythmProgress);
   const [rhythmPrefs, setRhythmPrefs] = useState(readRhythmPrefs);
   const sightProgress = useMemo(() => {
@@ -138,7 +157,9 @@ export function ReadPage() {
       SIGHT_LEVEL_IDS.map((id) => [id, sightLevelProgress(ofSight, id)] as const),
     );
   }, [sessions]);
-  const [sightPicked, setSightPicked] = useState<SightLevelId | null>(null);
+  const [sightPicked, setSightPicked] = useState<SightLevelId | null>(
+    opened?.choice === 'sight' ? opened.level : null,
+  );
   const sightLevel = sightPicked ?? suggestedSightLevel(sightProgress);
   const [sightPrefs, setSightPrefs] = useState(readSightPrefs);
   // The latency is read afresh when the setup shows (a session may have calibrated meanwhile).

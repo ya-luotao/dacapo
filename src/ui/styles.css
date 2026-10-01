@@ -12268,3 +12268,560 @@ select.is-compact {
   outline: 2px solid var(--focus);
   outline-offset: 1px;
 }
+
+/* Assignments (docs/ASSIGNMENTS.md): a week's practice as a checklist, in the library's lines. */
+
+.assignments,
+.assignment {
+  max-width: 52rem;
+}
+
+.assignments-intro {
+  max-width: 40rem;
+  margin: 0;
+  font-size: 1.125rem;
+  text-wrap: pretty;
+}
+
+.assignments-list,
+.assignment-section {
+  margin-top: 2.75rem;
+}
+
+.assignments-list h2,
+.assignment-section h2,
+.task-editor h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1.5rem;
+  margin: 0 0 0.5rem;
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 1.3rem + 0.8vw, 1.75rem);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.012em;
+}
+
+.task-editor h3 {
+  font-size: 1.3125rem;
+}
+
+:is(.assignments-list h2, .assignment-section h2, .task-editor h3):is(
+  :lang(zh),
+  :lang(ja),
+  :lang(ko)
+) {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.assignment-count {
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+.assignment-rows,
+.tasks {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  border-top: 1px solid var(--border);
+  list-style: none;
+}
+
+.assignment-rows > li,
+.tasks > li {
+  border-bottom: 1px solid var(--border);
+}
+
+.assignment-link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 0 1rem;
+  padding: 0.75rem 0.75rem 0.875rem;
+  color: var(--text);
+  text-decoration: none;
+  transition: background-color var(--dur-fast) ease-out;
+}
+
+@media (hover: hover) {
+  .assignment-link:hover {
+    background: var(--sunk);
+  }
+
+  .assignment-link:hover .assignment-link-title {
+    color: var(--accent);
+  }
+}
+
+.assignment-link-title {
+  font-family: var(--font-serif);
+  font-size: 1.3125rem;
+  font-weight: 500;
+  letter-spacing: -0.012em;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  transition: color var(--dur-fast) ease-out;
+}
+
+.assignment-link-title:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.assignment-link-meta {
+  grid-column: 1;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+
+.assignment-link-count {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.assignment-link-count.is-done {
+  color: var(--ok);
+}
+
+.assignment-row.is-past .assignment-link-title {
+  color: var(--text-muted);
+}
+
+/* Where a link is pasted or a file chosen: one row that wraps. */
+.assignments-open {
+  margin-top: 1.5rem;
+}
+
+.share-link {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  max-width: 44rem;
+}
+
+.share-link .text-input {
+  flex: 1 1 16rem;
+  font-size: 0.9375rem;
+}
+
+.assignments-privacy {
+  margin-top: 2.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+/* One assignment: its name, who set it and when, its note as the teacher wrote it. */
+.assignment-name {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+h2.assignment-name {
+  font-family: var(--font-serif);
+  font-size: clamp(1.75rem, 1.5rem + 1vw, 2.25rem);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.016em;
+}
+
+h2.assignment-name:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+h2.assignment-name:focus {
+  outline: none;
+}
+
+.assignment-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.125rem 0;
+  margin: 0.5rem 0 0;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* The dot closes what it follows, so a wrapped line never starts with one. */
+.assignment-meta > span:not(:last-child)::after {
+  content: '·';
+  margin: 0 0.5rem;
+  font-weight: 400;
+}
+
+.assignment-note {
+  max-width: 40rem;
+  margin: 1rem 0 0;
+  padding-left: 1rem;
+  border-left: 2px solid var(--border);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+/* A task: its tick, what it asks for, how far it is, and the way to start it. */
+.task {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.25rem 1rem;
+  padding: 0.75rem 0.75rem 0.875rem;
+}
+
+.task-tick {
+  display: grid;
+  place-items: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  border: 1.5px solid var(--control);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.task-tick.is-met {
+  border-color: var(--ok);
+  background: var(--ok);
+  color: var(--surface);
+}
+
+.task-tick svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.task-body {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.tasks:not(.is-checklist) .task-body {
+  grid-column: 1 / span 2;
+}
+
+.task-body p {
+  margin: 0;
+}
+
+.task-title {
+  font-family: var(--font-serif);
+  font-size: 1.1875rem;
+  font-weight: 500;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.task-title:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-weight: 600;
+}
+
+.task-composer {
+  margin-left: 0.625rem;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  font-weight: 400;
+}
+
+.task-details,
+.task-goal,
+.task-missing {
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.task-body .task-goal {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.task-body .task-missing {
+  color: var(--warn);
+}
+
+.task-figure {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.task-figure span {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.task.is-met .task-figure strong {
+  color: var(--ok);
+}
+
+.task-start {
+  min-height: 2.5rem;
+  padding: 0.25rem 1rem;
+  font-size: 0.9375rem;
+}
+
+.task-actions {
+  display: flex;
+  gap: 1rem;
+  grid-column: 3 / span 2;
+  justify-self: end;
+}
+
+.task-actions .button-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* On a phone the figure and the button go under the words. */
+@media (max-width: 40rem) {
+  .task {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .task-figure {
+    grid-column: 2;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .tasks:not(.is-checklist) .task-figure {
+    grid-column: 1 / span 2;
+  }
+
+  .task-start {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
+
+  .task-actions {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+/* Sharing: a link to copy, or a file. */
+.share {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 0.75rem;
+}
+
+.share-way {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.share-way .help,
+.share-way .data-status {
+  margin: 0;
+}
+
+.share-label {
+  font-weight: 600;
+}
+
+.assignment-actions {
+  align-items: center;
+  margin-top: 2.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+/* What a link or a file held, before it is added: a sheet laid on the page. */
+.assignment-preview {
+  max-width: 46rem;
+  margin: 1.5rem 0 0;
+  padding: 1.5rem 1.5rem 1.75rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-sheet);
+}
+
+.assignment-preview .eyebrow {
+  margin-bottom: 0.5rem;
+}
+
+.assignment-preview .tasks {
+  margin-top: 1.25rem;
+}
+
+.assignment-pieces {
+  margin-top: 1.5rem;
+}
+
+.assignment-pieces ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.assignment-pieces li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 1rem;
+  padding: 0.375rem 0;
+  border-top: 1px solid var(--border);
+}
+
+/* The editor: the fields of an assignment, then its tasks, each with a form of its kind. */
+.assignment-edit .field {
+  max-width: 40rem;
+}
+
+.assignment-edit .field > .text-input {
+  width: 100%;
+}
+
+.assignment-dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.5rem;
+}
+
+.assignment-dates .field {
+  flex: 0 1 12rem;
+}
+
+.assignment-note-input {
+  display: block;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.task-add {
+  margin-top: 1.5rem;
+}
+
+.task-add-kinds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.task-editor {
+  margin-top: 1.5rem;
+  padding: 1.25rem 1.25rem 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.task-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem 1.5rem;
+  margin-top: 0.75rem;
+}
+
+.task-form .field,
+.task-editor .scale-picker {
+  margin: 0;
+}
+
+.task-editor .scale-picker {
+  margin-top: 0.75rem;
+}
+
+.task-form select {
+  min-width: 9rem;
+}
+
+/* A bar, a tempo, a share: as wide as what they say, as tall as the fields beside them. */
+.task-form select.is-compact {
+  min-width: 4.25rem;
+  min-height: 2.75rem;
+}
+
+.task-number .text-input {
+  display: block;
+  width: 6rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.task-bars {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.task-editor .segmented input:disabled:not(:checked) + span {
+  cursor: not-allowed;
+}
+
+.assignment-follow {
+  margin-top: 2.25rem;
+}
+
+/* On the Progress page: the way to the assignments, under the title. */
+.progress-assignments {
+  margin: 0 0 1.5rem;
+}
+
+/* The home page's assignment: its open tasks, each a way to start it. */
+.home-assignment {
+  margin-top: var(--home-gap);
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.home-assignment-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.home-assignment .goal {
+  margin-top: 0.375rem;
+}
+
+.home-tasks {
+  margin: 0.375rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home-tasks li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 1rem;
+  padding: 0.25rem 0;
+}
+
+.home-tasks .muted,
+.home-assignment-more {
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-assignment-more {
+  margin: 0.25rem 0 0;
+}

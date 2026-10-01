@@ -5,7 +5,14 @@ import type { ProfileSettings } from '../core/profile.ts';
 
 /** The collections sent to the sync service, named as the stores that hold them. */
 export type SyncCollection =
-  'attempts' | 'sessions' | 'pieces' | 'pieceSteps' | 'scaleRuns' | 'answers' | 'takes';
+  | 'attempts'
+  | 'sessions'
+  | 'pieces'
+  | 'pieceSteps'
+  | 'scaleRuns'
+  | 'answers'
+  | 'takes'
+  | 'assignments';
 
 export const SYNC_COLLECTIONS: readonly SyncCollection[] = [
   'attempts',
@@ -15,6 +22,7 @@ export const SYNC_COLLECTIONS: readonly SyncCollection[] = [
   'scaleRuns',
   'answers',
   'takes',
+  'assignments',
 ];
 
 /** A deleted piece, sent under the piece's id. A deletion is final. */

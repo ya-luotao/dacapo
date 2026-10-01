@@ -709,6 +709,38 @@ export function runHeadline(run: RunAnalysis): RunHeadline {
   };
 }
 
+/** The timing figures of one run, from its headline. */
+export interface HandFigures {
+  /** Ms; null with too few intervals. */
+  spread: number | null;
+  /** % of the median interval. */
+  spreadShare: number | null;
+  rough: boolean;
+  hesitations: number;
+}
+
+/**
+ * A run's figures are its hand's; hands together, the hand with the larger spread (the weaker hand
+ * is what needs the practice; a hand without a spread gives way to one with). Null for figures of
+ * another analysis version, which were computed by other rules and do not compare with today's:
+ * such a run still counts as played (`runs`, `lastAt`), and its figures come back once it is
+ * re-analysed from its raw notes. Recorded runs are scale runs; anything else has no figures.
+ */
+export function runFigures(headline: RunHeadline): HandFigures | null {
+  if (headline.version !== ANALYSIS_VERSION || headline.quality !== 'ok') return null;
+  let pick: RunHeadline['hands'][number] | null = null;
+  for (const h of headline.hands) {
+    if (!pick || (h.spread !== null && (pick.spread === null || h.spread > pick.spread))) pick = h;
+  }
+  if (!pick) return null;
+  return {
+    spread: pick.spread,
+    spreadShare: pick.spreadShare,
+    rough: pick.rough,
+    hesitations: pick.hesitations,
+  };
+}
+
 /** An interval between two consecutive notes of a hand, both played right. */
 interface Interval {
   /** Expected index of the note it leads into. */

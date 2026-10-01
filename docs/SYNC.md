@@ -115,6 +115,7 @@ winner.
 | `attempts`, `pieceSteps`, `scaleRuns`, `answers`, `takes` | the record as stored                                    | added when its id is not stored; replaces a stored copy that differs (below) |
 | `sessions`                                                | the record as stored                                    | the later copy wins (below)                                                  |
 | `pieces`                                                  | `StoredPiece` without `xml` and `facts`, plus `xmlHash` | the later copy wins (below); a deletion is final                             |
+| `assignments`                                             | the record as stored                                    | the later copy wins by `updatedAt` (below); a deletion is a copy too         |
 
 - **Sessions.** A session grows while it is played, so of two copies the one with more runs (a
   scale or sight-reading session, both stored again after every run), or else the one that ended later, wins. That matters because a device can hold
@@ -135,6 +136,13 @@ winner.
   record or a take of it, that arrives later (from a device that practised it offline) is dropped, and so
   is one in an import file. (Importing the same MusicXML file again makes a new piece with a new
   id.)
+- **Assignments** and kept reports ([ASSIGNMENTS.md](ASSIGNMENTS.md)) sync as `assignments`, one
+  record each under its id, with a `type`. Every change made on a device sets the record's
+  `updatedAt` later than the copy it changes (as a piece's), and the copy with the later
+  `updatedAt` wins; deleting one replaces it with `{ id, type, deleted: true, updatedAt }`, which
+  is a later copy like any other, so the same assignment can be added again afterwards (later
+  still). Sharing an assignment with someone else never goes through the service: that is a link
+  or a file.
 - **Answers** (ear training and theory cards, [EAR.md](EAR.md)) sync as `answers`, like
   `attempts`: added when the id is not stored, never changed afterwards.
 - **Takes** (what was played in a piece run, [EXPRESSION.md](EXPRESSION.md)) sync as `takes`, one
@@ -161,12 +169,13 @@ winner.
   strip; 17: memory mode's step records, sessions and takes, `mode: 'memory'`, which older builds
   refuse; 18: the left hand a piece run made from the chord symbols, `leftHand` on the session,
   and the semitones a run was transposed by, `transpose` on the session, its steps and its take,
-  both of which older builds strip), and the sync state keeps the
+  both of which older builds strip; 19: the collection `assignments`, which older builds skip),
+  and the sync state keeps the
   schema its cursor was reached with. When the build's is higher, the next round starts again from
   cursor 0. Pulling a record already stored changes nothing, except where the stored copy differs:
   an older build that did not know a field kept the record without it. A record that never changes
   (`attempts`, `pieceSteps`, `scaleRuns`, `answers`, `takes`) is then replaced by the pulled copy,
-  and where two copies of a session or a piece tie by the rules above, the longer text wins before
+  and where two copies of a session, a piece or an assignment tie by the rules above, the longer text wins before
   the text's order decides, so the copy with the field is kept and sent again, never the one
   without it.
 - **Not synced:** `noteStats` (rebuilt from attempts), the free-play sessions and piece runs still

@@ -1,4 +1,5 @@
 import type { Answer } from '../core/answers.ts';
+import type { AssignmentRecord } from '../core/assignmentRecords.ts';
 import type { SessionRecord } from '../core/log.ts';
 import type { PieceStep } from '../core/pieceRecords.ts';
 import type { StoredScaleRun } from '../core/scaleRecords.ts';
@@ -8,6 +9,7 @@ import type { TakeChunk } from '../core/takes.ts';
 import type { PieceDeletion } from '../storage/syncTypes.ts';
 import {
   validateAnswer,
+  validateAssignmentRecord,
   validateAttempt,
   validatePiece,
   validatePieceStep,
@@ -30,6 +32,7 @@ export type Incoming =
   | { collection: 'scaleRuns'; record: StoredScaleRun }
   | { collection: 'answers'; record: Answer }
   | { collection: 'takes'; record: TakeChunk }
+  | { collection: 'assignments'; record: AssignmentRecord }
   | { collection: 'pieces'; id: string; deletion: PieceDeletion }
   | { collection: 'pieces'; id: string; piece: PieceBody };
 
@@ -107,6 +110,12 @@ export function incoming(value: unknown): Incoming | null {
       const checked = validateTake(body);
       return checked.ok && matches(checked.value)
         ? { collection: 'takes', record: checked.value }
+        : null;
+    }
+    case 'assignments': {
+      const checked = validateAssignmentRecord(body);
+      return checked.ok && matches(checked.value)
+        ? { collection: 'assignments', record: checked.value }
         : null;
     }
     case 'pieces': {

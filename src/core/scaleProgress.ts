@@ -5,10 +5,10 @@
 
 import {
   analyzeRun,
-  ANALYSIS_VERSION,
   PROBLEM_MIN_MS,
   PROBLEM_MIN_Z,
-  type RunHeadline,
+  runFigures,
+  type HandFigures,
 } from './evenness.ts';
 import type { SessionRecord } from './log.ts';
 import { quantile } from './robust.ts';
@@ -19,6 +19,10 @@ import type { Hand } from './score.ts';
 import { addDays, dayKey, type DayKey } from './streak.ts';
 
 // --- Progress per exercise -----------------------------------------------------------------------
+
+// A run's figures are read where its headline is made: what needs only them (an assignment's
+// checklist on the home page) then loads without the exercises' rules.
+export { runFigures, type HandFigures };
 
 /** The trend covers the last this many calendar days, today included (the spec's 30). */
 export const TREND_DAYS = 30;
@@ -35,16 +39,6 @@ export const RECENT_RUNS = 5;
  * player is working on now, not a scale tried once a season ago.
  */
 export const SUGGEST_DAYS = 14;
-
-/** The timing figures of one run, from its headline. */
-export interface HandFigures {
-  /** Ms; null with too few intervals. */
-  spread: number | null;
-  /** % of the median interval. */
-  spreadShare: number | null;
-  rough: boolean;
-  hesitations: number;
-}
 
 export interface ExerciseProgress {
   /** `exerciseKey`. */
@@ -64,28 +58,6 @@ export interface ExerciseProgress {
   days: { day: DayKey; spread: number; spreadShare: number | null; runs: number }[];
   /** The median spread share of the last `RECENT_RUNS` runs that have one; ranks the list. */
   recentShare: number | null;
-}
-
-/**
- * A run's figures are its hand's; hands together, the hand with the larger spread (the weaker hand
- * is what needs the practice; a hand without a spread gives way to one with). Null for figures of
- * another analysis version, which were computed by other rules and do not compare with today's:
- * such a run still counts as played (`runs`, `lastAt`), and its figures come back once it is
- * re-analysed from its raw notes. Recorded runs are scale runs; anything else has no figures.
- */
-export function runFigures(headline: RunHeadline): HandFigures | null {
-  if (headline.version !== ANALYSIS_VERSION || headline.quality !== 'ok') return null;
-  let pick: RunHeadline['hands'][number] | null = null;
-  for (const h of headline.hands) {
-    if (!pick || (h.spread !== null && (pick.spread === null || h.spread > pick.spread))) pick = h;
-  }
-  if (!pick) return null;
-  return {
-    spread: pick.spread,
-    spreadShare: pick.spreadShare,
-    rough: pick.rough,
-    hesitations: pick.hesitations,
-  };
 }
 
 const median = (values: readonly number[]) => quantile(values, 0.5);

@@ -1,4 +1,9 @@
 import { byAnswerTime, type Answer } from '../core/answers.ts';
+import {
+  byRecordId,
+  type AssignmentRecord,
+  type LiveAssignmentRecord,
+} from '../core/assignmentRecords.ts';
 import { byStartDescending, byTime, type SessionRecord } from '../core/log.ts';
 import { byStepTime, type PieceStep } from '../core/pieceRecords.ts';
 import { byRunTime, type StoredScaleRun } from '../core/scaleRecords.ts';
@@ -11,6 +16,7 @@ import { isLocale, type Locale } from '../i18n/locale.ts';
 import { isThemePreference, type ThemePreference } from '../lib/themePreference.ts';
 import {
   validateAnswer,
+  validateAssignmentRecord,
   validateAttempt,
   validatePiece,
   validatePieceStep,
@@ -30,13 +36,13 @@ export const EXPORT_FORMAT = 'dacapo';
  * and their timings; records without a mode are wait mode's, as in version 3), version 5 scale
  * sessions and scale runs, version 6 ear-training answers and sessions, version 7 scale runs played
  * with the click (their grid, and the tempo on their session's summary), version 8 the takes of
- * piece runs. New kinds of record in a list the file has (Echo answers, the theory cards' answers
+ * piece runs, version 9 assignments and kept reports. New kinds of record in a list the file has (Echo answers, the theory cards' answers
  * and `theory` sessions, Read's rhythm answers and `rhythm` sessions, the chord symbols' answers
  * and `harmony` sessions, rhythm dictation's answers and its `ear` sessions, memory mode's steps,
  * sessions and takes) need no new version:
  * an older build lists them among the records it could not read, and imports the rest.
  */
-export const EXPORT_VERSION = 8;
+export const EXPORT_VERSION = 9;
 
 export interface Preferences {
   /** null follows the browser language. */
@@ -67,6 +73,8 @@ export interface ExportFile {
   answers: Answer[];
   /** Takes of piece runs, in chunks, oldest first. */
   takes: TakeChunk[];
+  /** Assignments and kept reports, by id; deleted ones are left out. */
+  assignments: LiveAssignmentRecord[];
 }
 
 export interface ExportInput {
@@ -78,6 +86,8 @@ export interface ExportInput {
   scaleRuns: readonly StoredScaleRun[];
   answers: readonly Answer[];
   takes: readonly TakeChunk[];
+  /** As stored: the records of deleted ones are left out of the file. */
+  assignments: readonly AssignmentRecord[];
 }
 
 export function buildExport(
@@ -99,6 +109,9 @@ export function buildExport(
     scaleRuns: [...data.scaleRuns].sort(byRunTime),
     answers: [...data.answers].sort(byAnswerTime),
     takes: [...data.takes].sort(byTakeChunk),
+    assignments: data.assignments
+      .filter((r): r is LiveAssignmentRecord => !('deleted' in r))
+      .sort(byRecordId),
   };
 }
 
@@ -124,7 +137,14 @@ export type ImportError =
   { kind: 'malformed' } | { kind: 'wrong-format' } | { kind: 'future-version'; version: number };
 
 export type Collection =
-  'sessions' | 'attempts' | 'pieces' | 'pieceSteps' | 'scaleRuns' | 'answers' | 'takes';
+  | 'sessions'
+  | 'attempts'
+  | 'pieces'
+  | 'pieceSteps'
+  | 'scaleRuns'
+  | 'answers'
+  | 'takes'
+  | 'assignments';
 
 export interface InvalidRecord {
   collection: Collection | 'preferences';
@@ -151,6 +171,8 @@ export interface ParsedImport {
   answers: Answer[];
   /** Empty before version 8. */
   takes: TakeChunk[];
+  /** Empty before version 9. */
+  assignments: LiveAssignmentRecord[];
   /** null when the file has none or they are invalid (then listed in `invalid`). */
   preferences: Preferences | null;
   invalid: InvalidRecord[];
@@ -188,6 +210,17 @@ function validateAll<T extends { id: string }>(
     }
   });
   return valid;
+}
+
+/** The file holds what is there, never what was deleted: such a record is listed as invalid. */
+function validateLiveAssignment(
+  value: unknown,
+): { ok: true; value: LiveAssignmentRecord } | { ok: false; field: string } {
+  const checked = validateAssignmentRecord(value);
+  if (!checked.ok) return checked;
+  return 'deleted' in checked.value
+    ? { ok: false, field: 'deleted' }
+    : { ok: true, value: checked.value };
 }
 
 /** Parses and validates an export file. Invalid records are listed, never dropped silently. */
@@ -229,6 +262,10 @@ export function parseImport(text: string): ParseResult {
   if (version >= 8 && !Array.isArray(json.takes)) {
     return { ok: false, error: { kind: 'wrong-format' } };
   }
+  // Assignments and kept reports with version 9.
+  if (version >= 9 && !Array.isArray(json.assignments)) {
+    return { ok: false, error: { kind: 'wrong-format' } };
+  }
 
   const invalid: InvalidRecord[] = [];
   const sessions = validateAll('sessions', json.sessions, validateSession, invalid);
@@ -247,6 +284,9 @@ export function parseImport(text: string): ParseResult {
     : [];
   const takes = Array.isArray(json.takes)
     ? validateAll('takes', json.takes, validateTake, invalid)
+    : [];
+  const assignments = Array.isArray(json.assignments)
+    ? validateAll('assignments', json.assignments, validateLiveAssignment, invalid)
     : [];
   let preferences: Preferences | null = null;
   if (json.preferences !== undefined) {
@@ -271,6 +311,7 @@ export function parseImport(text: string): ParseResult {
       scaleRuns,
       answers,
       takes,
+      assignments,
       preferences,
       invalid,
     },
@@ -297,6 +338,8 @@ export function planImport(
     scaleRunIds: ReadonlySet<string>;
     answerIds: ReadonlySet<string>;
     takeIds: ReadonlySet<string>;
+    /** Of every stored record, the deleted ones' too: those are not added again. */
+    assignmentIds: ReadonlySet<string>;
   },
 ): ImportPlan {
   const count = (
@@ -319,5 +362,6 @@ export function planImport(
     scaleRuns: count(parsed.scaleRuns, existing.scaleRunIds, 'scaleRuns'),
     answers: count(parsed.answers, existing.answerIds, 'answers'),
     takes: count(parsed.takes, existing.takeIds, 'takes'),
+    assignments: count(parsed.assignments, existing.assignmentIds, 'assignments'),
   };
 }

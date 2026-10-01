@@ -134,6 +134,7 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
         scaleRuns: parsed.scaleRuns,
         answers: parsed.answers,
         takes: parsed.takes,
+        assignments: parsed.assignments,
       });
       if (applyPreferences && parsed.preferences) onApplyPreferences(parsed.preferences);
       setState({ step: 'done', added });
@@ -212,6 +213,7 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
             scaleRunIds: state.stored.scaleRuns,
             answerIds: new Set(data.answers.map((a) => a.id)),
             takeIds: state.stored.takes,
+            assignmentIds: new Set(data.assignments.map((a) => a.id)),
           })}
           working={state.working}
           onApply={(applyPreferences) =>
@@ -230,6 +232,7 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
             scaleRuns: state.added.scaleRuns,
             ear: state.added.answers,
             takes: state.added.takes,
+            assignments: state.added.assignments,
           })}
         </p>
       )}

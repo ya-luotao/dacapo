@@ -195,6 +195,8 @@ Chinese and Latin letters, digits and placeholders (`第 {n} 张`, `MIDI 键盘`
 | play back (a run) / compare / as written                       | 回放 / 对照 / 按谱                              |
 | review (a piece) / due for review / take out of review         | 复习 / 待复习 / 移出复习                        |
 | memory (mode) / prompt / peek / start anywhere                 | 背谱 / 提示 / 偷看 / 随便从哪里开始             |
+| assignment / teacher / task / checklist / due                  | 作业 / 老师 / 任务 / 清单 / 截止                |
+| set by me / for me / run (of a task) / session (of a level)    | 我布置的 / 我要做的 / 遍 / 组                   |
 
 ## Traditional Chinese, Taiwan (`zh-TW`)
 
@@ -308,6 +310,8 @@ terms throughout. Address the learner as 你, as zh-CN does.
 | play back (a run) / compare / as written                       | 重播 / 對照 / 照譜                         | 回放 / 对照 / 按谱              |
 | review (a piece) / due for review / take out of review         | 複習 / 待複習 / 移出複習                   | 复习 / 待复习 / 移出复习        |
 | memory (mode) / prompt / peek / start anywhere                 | 背譜 / 提示 / 偷看 / 隨意從某處開始        | 背谱 / 随便从哪里开始           |
+| assignment / teacher / task / checklist / due                  | 作業 / 老師 / 項目 / 清單 / 截止           | 作业 / 老师 / 任务 / 清单       |
+| set by me / for me / run (of a task) / session (of a level)    | 我出的 / 我要做的 / 遍 / 輪                | 我布置的 / 组                   |
 
 Keys in titles: `G 大調`, `C 大調`. Composers as Taiwan writes them: 貝多芬, 巴哈 (not 巴赫), 舒曼,
 布爾格彌勒.
@@ -420,6 +424,8 @@ verb phrases for labels and buttons (設定, 開始, もう一度, 補正する)
 | play back (a run) / compare / as written                       | 演奏を再生 / 聴き比べ / 楽譜どおり                                 |
 | review (a piece) / due for review / take out of review         | 復習 / 復習の時期 / 復習から外す                                   |
 | memory (mode) / prompt / peek / start anywhere                 | 暗譜 / ヒント / のぞく / 途中から始める                            |
+| assignment / teacher / task / checklist / due                  | 課題 / 先生 / 項目 / チェックリスト / 期限                         |
+| set by me / for me / run (of a task) / session (of a level)    | 出した課題 / 取り組む課題 / 回 / 回                                |
 
 Keys in titles follow Japanese editions: ハ長調, ト長調. Middle C is 中央C. Scale names on the Scales
 page keep the letter names of the app (`D長音階`, `G♯和声的短音階`), not ニ長音階.
@@ -533,6 +539,8 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 | play back (a run) / compare / as written                       | 다시 듣기 / 비교 / 악보대로                                          |
 | review (a piece) / due for review / take out of review         | 복습 / 복습할 곡 / 복습에서 빼기                                     |
 | memory (mode) / prompt / peek / start anywhere                 | 암보 / 도움 / 살짝 보기 / 아무 데서나 시작                           |
+| assignment / teacher / task / checklist / due                  | 과제 / 선생님 / 항목 / 체크리스트 / 마감                             |
+| set by me / for me / run (of a task) / session (of a level)    | 내가 낸 과제 / 내가 할 과제 / 회 / 번                                |
 
 Keys in titles use letters: G장조, C장조, matching the letter names in the app. Composer names
 follow the National Institute of Korean Language: 루트비히 판 베토벤, 요한 제바스티안 바흐.

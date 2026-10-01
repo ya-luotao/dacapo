@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { Link } from 'wouter';
 import { dailyTotals, practiceLog } from '../../core/streak.ts';
 import { useT } from '../../i18n/index.ts';
 import { EmptyState } from '../EmptyState.tsx';
@@ -25,6 +26,9 @@ export function ProgressPage() {
   return (
     <section className="progress">
       <h1>{t('progress.title')}</h1>
+      <p className="progress-assignments">
+        <Link href="/assignments">{t('progress.assignments')}</Link>
+      </p>
       {!loaded ? (
         <p className="muted" role="status">
           {t('storage.loading')}

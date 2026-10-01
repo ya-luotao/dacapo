@@ -1,4 +1,10 @@
 import { byAnswerTime, type Answer } from '../../core/answers.ts';
+import {
+  byRecordId,
+  nextRecordVersion,
+  type AssignmentRecord,
+  type AssignmentRecordDraft,
+} from '../../core/assignmentRecords.ts';
 import { closeFreePlay, type FreePlaySession, type OpenFreePlay } from '../../core/freePlay.ts';
 import {
   byStartDescending,
@@ -52,6 +58,11 @@ export interface PracticeData {
   answers: readonly Answer[];
   /** Built-in pieces taken out of the review schedule on this device. */
   reviewOff: readonly string[];
+  /**
+   * Assignments and kept reports (docs/ASSIGNMENTS.md), by id: every record, the deleted ones
+   * (which only say so) among them. `storedAssignments` and `storedReports` pick the live ones.
+   */
+  assignments: readonly AssignmentRecord[];
 }
 
 /**
@@ -97,6 +108,13 @@ export interface PracticeStore {
   setPieceReview: (pieceId: string, review: boolean) => void;
   /** Deletes an imported piece, and with `steps` its step records and takes. Its sessions stay. */
   deletePiece: (id: string, options?: { steps: boolean }) => void;
+  /**
+   * Adds or changes an assignment or a kept report (everything but its `updatedAt`, which is set
+   * here: later than the stored copy's, so this copy wins on every device).
+   */
+  saveAssignment: (record: AssignmentRecordDraft) => void;
+  /** Deletes an assignment or a kept report: the deletion syncs like any other change. */
+  deleteAssignment: (id: string) => void;
   /** Stores a completed wait-mode step; `header` goes with the run's first step. */
   recordPieceStep: (step: PieceStep, header: PieceRunHeader | null) => void;
   /** A run ended: records its session (null when it had no step) and drops its header. */
@@ -174,6 +192,7 @@ export type SyncMessage =
   | { type: 'piece'; piece: StoredPiece }
   | { type: 'pieceDeleted'; id: string; steps: boolean }
   | { type: 'reviewOff'; id: string; off: boolean }
+  | { type: 'assignment'; record: AssignmentRecord }
   | { type: 'pieceStep'; step: PieceStep }
   | { type: 'scaleRun'; run: StoredScaleRun; session: ScaleSession }
   | { type: 'reload' };
@@ -202,6 +221,7 @@ export const EMPTY_PRACTICE: PracticeData = {
   pieces: [],
   answers: [],
   reviewOff: [],
+  assignments: [],
 };
 
 const openInMemory = (): Promise<OpenResult> =>
@@ -225,6 +245,10 @@ function upsertSession(sessions: readonly SessionRecord[], session: SessionRecor
 
 function upsertPiece(pieces: readonly StoredPiece[], piece: StoredPiece) {
   return [...pieces.filter((p) => p.id !== piece.id), piece].sort(byImportedDescending);
+}
+
+function upsertAssignment(records: readonly AssignmentRecord[], record: AssignmentRecord) {
+  return [...records.filter((r) => r.id !== record.id), record].sort(byRecordId);
 }
 
 function withReviewOff(list: readonly string[], id: string, off: boolean): string[] {
@@ -384,7 +408,9 @@ export function createPracticeStore({
       if (!answerIds.has(answer.id)) answers = insertAnswer(answers, answer);
     }
     const reviewOff = [...new Set([...stored.reviewOff, ...early.reviewOff])];
-    return { attempts, stats, sessions, pieces, answers, reviewOff };
+    let assignments: AssignmentRecord[] = stored.assignments;
+    for (const record of early.assignments) assignments = upsertAssignment(assignments, record);
+    return { attempts, stats, sessions, pieces, answers, reviewOff, assignments };
   }
 
   /**
@@ -442,6 +468,7 @@ export function createPracticeStore({
         pieces: stored.pieces,
         answers: stored.answers,
         reviewOff: stored.reviewOff,
+        assignments: stored.assignments,
       });
       // Loaded again when next asked for.
       stepCache = new Map();
@@ -488,6 +515,9 @@ export function createPracticeStore({
       case 'reviewOff':
         set({ ...data, reviewOff: withReviewOff(data.reviewOff, m.id, m.off) });
         return;
+      case 'assignment':
+        set({ ...data, assignments: upsertAssignment(data.assignments, m.record) });
+        return;
       case 'pieceStep':
         cacheSteps([m.step]);
         return;
@@ -508,6 +538,16 @@ export function createPracticeStore({
     void enqueue(async (repo) => {
       await repo.putPiece(piece);
       broadcast({ type: 'piece', piece });
+      requestPersistence();
+    });
+  }
+
+  /** Stores a record of the assignments store as the copy every device should keep. */
+  function putAssignment(record: AssignmentRecord) {
+    set({ ...data, assignments: upsertAssignment(data.assignments, record) });
+    void enqueue(async (repo) => {
+      await repo.putAssignment(record);
+      broadcast({ type: 'assignment', record });
       requestPersistence();
     });
   }
@@ -602,6 +642,21 @@ export function createPracticeStore({
       void enqueue(async (repo) => {
         await repo.deletePiece(id, { steps });
         broadcast({ type: 'pieceDeleted', id, steps });
+      });
+    },
+    saveAssignment(record) {
+      const stored = data.assignments.find((r) => r.id === record.id);
+      const updatedAt = nextRecordVersion(stored, Date.now());
+      putAssignment({ ...record, updatedAt });
+    },
+    deleteAssignment(id) {
+      const stored = data.assignments.find((r) => r.id === id);
+      if (!stored || 'deleted' in stored) return;
+      putAssignment({
+        id,
+        type: stored.type,
+        deleted: true,
+        updatedAt: nextRecordVersion(stored, Date.now()),
       });
     },
     recordPieceStep(step, header) {

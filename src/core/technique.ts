@@ -17,7 +17,7 @@ import type {
   TechniqueType,
   Tonic,
 } from './scaleTypes.ts';
-import { TECHNIQUE_TYPES } from './scaleTypes.ts';
+import { HANON_TRILL, TECHNIQUE_TYPES, trillForm } from './scaleTypes.ts';
 import type { Hand, SpelledPitch } from './score.ts';
 import type { Letter } from './note.ts';
 
@@ -44,6 +44,10 @@ export interface TechniqueRules {
   tonicsOf?: (variant: string | undefined) => readonly Tonic[];
 }
 
+// A trill's form is read from its key alone (scaleTypes.ts), for what names an exercise without
+// these rules.
+export { HANON_TRILL, trillForm };
+
 const HANDS: readonly ScaleHands[] = ['right', 'left', 'both'];
 
 /** Hanon's Part I, by number: the exercises transcribed (all twenty). */
@@ -57,22 +61,10 @@ export const HANON_NUMBERS: readonly string[] = HANON_PART_ONE.map((h) => String
 export const TRILL_PAIRS = ['12', '23', '34', '45', '13', '24', '35'] as const;
 /** Bars of the trill on a pair, sixteen sixteenths a bar. */
 export const TRILL_BARS = [4, 8, 16] as const;
-/** Hanon's No. 46 as a form of the trill: its first six bars. */
-export const HANON_TRILL = '46';
 const TRILL_VARIANTS = [
   HANON_TRILL,
   ...TRILL_PAIRS.flatMap((pair) => TRILL_BARS.map((bars) => `${pair}-${bars}`)),
 ];
-
-/** A trill's form read: Hanon's, or a pair of fingers and a length. */
-export function trillForm(
-  variant: string | undefined,
-): { hanon: true } | { hanon: false; lower: number; upper: number; bars: number } {
-  if (variant === HANON_TRILL) return { hanon: true };
-  const match = /^([1-5])([1-5])-(\d+)$/.exec(variant ?? '');
-  if (!match) throw new Error(`not a trill: ${variant}`);
-  return { hanon: false, lower: Number(match[1]), upper: Number(match[2]), bars: Number(match[3]) };
-}
 
 /** The parts of a Hanon plate a type offers by key: No. 42's sections, No. 53's keys. */
 const partTonics = (number: number, suffix = '') =>

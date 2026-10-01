@@ -18,6 +18,8 @@ import {
   sampleScaleSession,
   sampleSightSession,
   sampleStep,
+  sampleStoredAssignment,
+  sampleStoredReport,
   sampleTake,
   T0,
 } from './fixtures.ts';
@@ -47,12 +49,13 @@ afterEach(() => {
 });
 
 describe('schema', () => {
-  it('creates the ten stores with their keys and indexes', async () => {
+  it('creates the eleven stores with their keys and indexes', async () => {
     const db = await openDb();
     expect(db.version).toBe(DB_VERSION);
-    expect(DB_VERSION).toBe(7);
+    expect(DB_VERSION).toBe(8);
     expect([...db.objectStoreNames].sort()).toEqual([
       'answers',
+      'assignments',
       'attempts',
       'meta',
       'noteStats',
@@ -322,7 +325,7 @@ describe('schema', () => {
     old.close();
 
     const db = await openDb();
-    expect(db.version).toBe(7);
+    expect(db.version).toBe(DB_VERSION);
     const repo = createIndexedDbRepository(db);
     expect((await repo.load()).sessions).toEqual([session]);
     expect(await repo.allPieceSteps()).toEqual(steps);
@@ -330,6 +333,37 @@ describe('schema', () => {
     const take = sampleTake('r1', 0);
     await repo.addTake(take);
     expect(await repo.takes({ sessionId: 'r1' })).toEqual([take]);
+  });
+
+  it('migrates a version 7 database to version 8: its records and outbox stay, assignments are stored', async () => {
+    const old = await openDB(DB_NAME, 7, {
+      upgrade: (database, oldVersion) => upgrade(database as DacapoDB, oldVersion, 7),
+    });
+    expect([...old.objectStoreNames]).not.toContain('assignments');
+    const { steps, session } = sampleRun('r1', 3);
+    const take = sampleTake('r1', 0);
+    const tx = old.transaction(['sessions', 'pieceSteps', 'takes', 'outbox'], 'readwrite');
+    void tx.objectStore('sessions').put(session);
+    for (const step of steps) void tx.objectStore('pieceSteps').put(step);
+    void tx.objectStore('takes').put(take);
+    void tx
+      .objectStore('outbox')
+      .put({ key: 'sessions/r1', collection: 'sessions', id: 'r1', rev: 'r' });
+    await tx.done;
+    old.close();
+
+    const db = await openDb();
+    expect(db.version).toBe(8);
+    expect(db.transaction('assignments').objectStore('assignments').keyPath).toBe('id');
+    const repo = createIndexedDbRepository(db);
+    const data = await repo.load();
+    expect(data.sessions).toEqual([session]);
+    expect(data.assignments).toEqual([]);
+    expect(await repo.allPieceSteps()).toEqual(steps);
+    expect(await repo.allTakes()).toEqual([take]);
+    expect(await db.count('outbox')).toBe(1);
+    await repo.putAssignment(sampleStoredAssignment(1));
+    expect((await repo.load()).assignments).toEqual([sampleStoredAssignment(1)]);
   });
 
   it('never reads takes at startup', async () => {
@@ -471,6 +505,7 @@ describe.each([
       scaleRuns: [],
       answers: [{ ...answers[0]!, ms: 1 }, ...answers.slice(1)],
       takes: [],
+      assignments: [],
     };
     expect(await repo.merge(input)).toMatchObject({ sessions: 1, answers: 3 });
     expect((await repo.load()).answers).toEqual(answers);
@@ -502,6 +537,7 @@ describe.each([
       scaleRuns: [],
       answers: [],
       takes: [],
+      assignments: [],
     });
     expect(added).toEqual({
       sessions: 2,
@@ -511,6 +547,7 @@ describe.each([
       scaleRuns: 0,
       answers: 0,
       takes: 0,
+      assignments: 0,
     });
     const data = await repo.load();
     expect(data.attempts).toEqual(attempts);
@@ -529,6 +566,7 @@ describe.each([
       scaleRuns: [],
       answers: [],
       takes: [],
+      assignments: [],
     });
     const before = await repo.load();
     expect(
@@ -540,6 +578,7 @@ describe.each([
         scaleRuns: [],
         answers: [],
         takes: [],
+        assignments: [],
       }),
     ).toEqual({
       sessions: 0,
@@ -549,6 +588,7 @@ describe.each([
       scaleRuns: 0,
       answers: 0,
       takes: 0,
+      assignments: 0,
     });
     expect(await repo.load()).toEqual(before);
   });
@@ -581,6 +621,7 @@ describe.each([
       scaleRuns: [],
       answers: [],
       takes: [],
+      assignments: [],
     });
     expect(added).toEqual({
       sessions: 0,
@@ -590,12 +631,77 @@ describe.each([
       scaleRuns: 0,
       answers: 0,
       takes: 0,
+      assignments: 0,
     });
     const { pieces } = await repo.load();
     expect(pieces.map((p) => [p.id, p.title])).toEqual([
       ['p2', 'Piece 2'],
       ['p1', 'Mine'],
     ]);
+  });
+
+  it('stores assignments and kept reports by id, a deleted one as the record that says so', async () => {
+    const repo = await create();
+    const assignment = sampleStoredAssignment(2);
+    const report = sampleStoredReport(1);
+    await repo.putAssignment(assignment);
+    await repo.putAssignment(sampleStoredAssignment(1));
+    await repo.putAssignment(report);
+    expect((await repo.load()).assignments).toEqual([
+      sampleStoredAssignment(1),
+      assignment,
+      report,
+    ]);
+    // Changed, then deleted: one record per id throughout.
+    await repo.putAssignment({ ...assignment, following: true, updatedAt: T0 + 9_000_000 });
+    const gone = {
+      id: report.id,
+      type: 'report' as const,
+      deleted: true as const,
+      updatedAt: report.updatedAt + 1,
+    };
+    await repo.putAssignment(gone);
+    const { assignments } = await repo.load();
+    expect(assignments).toHaveLength(3);
+    expect(assignments[1]).toMatchObject({ id: assignment.id, following: true });
+    expect(assignments[2]).toEqual(gone);
+  });
+
+  it('merges assignments by id, and does not add a deleted one again', async () => {
+    const repo = await create();
+    const mine = sampleStoredAssignment(1, { following: true });
+    await repo.putAssignment(mine);
+    await repo.putAssignment({
+      id: 'assignment-2',
+      type: 'assignment',
+      deleted: true,
+      updatedAt: T0,
+    });
+    const added = await repo.merge({
+      sessions: [],
+      attempts: [],
+      pieces: [],
+      pieceSteps: [],
+      scaleRuns: [],
+      answers: [],
+      takes: [],
+      assignments: [
+        sampleStoredAssignment(1),
+        sampleStoredAssignment(2),
+        sampleStoredAssignment(3),
+        sampleStoredAssignment(3),
+        sampleStoredReport(1),
+      ],
+    });
+    expect(added.assignments).toBe(2);
+    const { assignments } = await repo.load();
+    expect(assignments.map((r) => [r.id, 'deleted' in r])).toEqual([
+      ['assignment-1', false],
+      ['assignment-2', true],
+      ['assignment-3', false],
+      ['report-0001', false],
+    ]);
+    expect(assignments[0]).toEqual(mine);
   });
 
   it('stores step records once, with the run header until the run is finished', async () => {
@@ -660,6 +766,7 @@ describe.each([
       scaleRuns: [],
       answers: [],
       takes: [],
+      assignments: [],
     });
     expect(added).toEqual({
       sessions: 0,
@@ -669,6 +776,7 @@ describe.each([
       scaleRuns: 0,
       answers: 0,
       takes: 0,
+      assignments: 0,
     });
     expect((await repo.load()).pieces.map((p) => p.id)).toEqual(['p3']);
     expect(await repo.pieceSteps({ pieceId: 'p1' })).toEqual([]);
@@ -687,6 +795,7 @@ describe.each([
       scaleRuns: [],
       answers: [],
       takes: [],
+      assignments: [],
     });
     expect(added).toEqual({
       sessions: 1,
@@ -696,6 +805,7 @@ describe.each([
       scaleRuns: 0,
       answers: 0,
       takes: 0,
+      assignments: 0,
     });
     expect((await repo.pieceSteps({ sessionId: 'r1' }))[0]!.ms).toBe(5);
   });
@@ -735,6 +845,7 @@ describe.each([
       scaleRuns: [],
       answers: [],
       takes: [one, later, two, sampleTake('r3', 0, { pieceId: 'p3' })],
+      assignments: [],
     });
     expect(added.takes).toBe(1);
     expect((await repo.allTakes()).map((c) => c.pieceId)).toEqual(['p2', 'p3']);
@@ -786,6 +897,7 @@ describe.each([
       scaleRuns: runs,
       answers: [],
       takes: [],
+      assignments: [],
     });
     // The imported session has more runs, so it replaces the stored one.
     expect(added).toEqual({
@@ -796,6 +908,7 @@ describe.each([
       scaleRuns: 3,
       answers: 0,
       takes: 0,
+      assignments: 0,
     });
     const stored = await repo.scaleRuns({ sessionId: 'k1' });
     expect(stored.map((r) => r.id)).toEqual(runs.map((r) => r.id));
@@ -814,6 +927,7 @@ describe.each([
       scaleRuns: long.runs,
       answers: [],
       takes: [],
+      assignments: [],
     });
     // Counted with the sessions taken from the file.
     expect(added).toEqual({
@@ -824,13 +938,21 @@ describe.each([
       scaleRuns: 2,
       answers: 0,
       takes: 0,
+      assignments: 0,
     });
     expect((await repo.load()).sessions).toEqual([long.session]);
     expect(await repo.scaleRuns({ sessionId: 'k1' })).toEqual(long.runs);
     // A copy with fewer runs, or as many, is not taken.
     for (const session of [short.session, { ...long.session, activeMs: 1 }]) {
       expect(
-        await repo.merge({ ...input, sessions: [session], scaleRuns: [], answers: [], takes: [] }),
+        await repo.merge({
+          ...input,
+          sessions: [session],
+          scaleRuns: [],
+          answers: [],
+          takes: [],
+          assignments: [],
+        }),
       ).toEqual({
         sessions: 0,
         attempts: 0,
@@ -839,6 +961,7 @@ describe.each([
         scaleRuns: 0,
         answers: 0,
         takes: 0,
+        assignments: 0,
       });
     }
     expect((await repo.load()).sessions).toEqual([long.session]);
@@ -854,6 +977,7 @@ describe.each([
       scaleRuns: [],
       answers: [],
       takes: [],
+      assignments: [],
     };
     const long = sampleSightSession('s1', 3);
     expect((await repo.merge({ ...empty, sessions: [long] })).sessions).toBe(1);
@@ -877,6 +1001,7 @@ describe.each([
       scaleRuns: [],
       answers: [],
       takes: [],
+      assignments: [],
     });
     expect(added.sessions).toBe(0);
     expect((await repo.load()).sessions).toEqual([free]);
@@ -895,6 +1020,7 @@ describe.each([
       scaleRuns: [],
       answers: [],
       takes: [],
+      assignments: [],
     });
     expect((await rebuilt.load()).stats).toEqual((await incremental.load()).stats);
   });
@@ -928,6 +1054,7 @@ describe('transactions', () => {
         scaleRuns: [],
         answers: [],
         takes: [],
+        assignments: [],
       }),
     ).rejects.toThrow();
     const data = await repo.load();

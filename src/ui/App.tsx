@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Route, Router, Switch } from 'wouter';
-import { useHashLocation } from 'wouter/use-hash-location';
 import { Footer } from './Footer.tsx';
+import { useHashRoute } from './hashRoute.ts';
 import { Header } from './Header.tsx';
 import { HomePage } from './home/HomePage.tsx';
 import { NotFoundPage } from './pages/NotFoundPage.tsx';
@@ -50,9 +50,23 @@ const AboutPage = lazy(() =>
   import('./pages/AboutPage.tsx').then((m) => ({ default: m.AboutPage })),
 );
 
+// Assignments (docs/ASSIGNMENTS.md): the checklist's rules and the link's codec load with them.
+const AssignmentsPage = lazy(() =>
+  import('./assignments/AssignmentsPage.tsx').then((m) => ({ default: m.AssignmentsPage })),
+);
+const AssignmentPage = lazy(() =>
+  import('./assignments/AssignmentPage.tsx').then((m) => ({ default: m.AssignmentPage })),
+);
+const AssignmentEditPage = lazy(() =>
+  import('./assignments/AssignmentEditPage.tsx').then((m) => ({ default: m.AssignmentEditPage })),
+);
+const AssignmentOpenPage = lazy(() =>
+  import('./assignments/AssignmentOpenPage.tsx').then((m) => ({ default: m.AssignmentOpenPage })),
+);
+
 export function App() {
   return (
-    <Router hook={useHashLocation}>
+    <Router hook={useHashRoute}>
       <Shell />
     </Router>
   );
@@ -89,6 +103,15 @@ function Shell() {
             <Route path="/pieces/:id">{({ id }) => <PiecePage key={id} id={id} />}</Route>
             <Route path="/metronome" component={MetronomePage} />
             <Route path="/progress" component={ProgressPage} />
+            <Route path="/assignments" component={AssignmentsPage} />
+            <Route path="/assignments/new">{() => <AssignmentEditPage />}</Route>
+            <Route path="/assignments/open/:data">
+              {({ data }) => <AssignmentOpenPage key={data} data={data} />}
+            </Route>
+            <Route path="/assignments/:id/edit">
+              {({ id }) => <AssignmentEditPage key={id} id={id} />}
+            </Route>
+            <Route path="/assignments/:id">{({ id }) => <AssignmentPage key={id} id={id} />}</Route>
             <Route path="/settings" component={SettingsPage} />
             <Route path="/about" component={AboutPage} />
             <Route component={NotFoundPage} />

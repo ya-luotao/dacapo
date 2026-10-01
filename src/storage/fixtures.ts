@@ -1,5 +1,11 @@
 // Sample records for storage tests. Not imported by the app.
 import { IDBFactory } from 'fake-indexeddb';
+import type {
+  Assignment,
+  Report,
+  StoredAssignment,
+  StoredReport,
+} from '../core/assignmentRecords.ts';
 import { voiceCadence } from '../core/cadences.ts';
 import { recoverEarSummary, type EarAnswer } from '../core/earSession.ts';
 import type { RunHeadline } from '../core/evenness.ts';
@@ -791,4 +797,142 @@ export function sampleImprovSession(
     });
   }
   return { session, takes };
+}
+
+/**
+ * Assignment `i`: a week from 21 September 2026 with one task of each kind (bars 5–8 of the
+ * Minuet in rhythm, the left hand, three runs with 90 % in time; D major with the click; a Read
+ * level; a lesson; minutes a day).
+ */
+export function sampleAssignment(i: number, patch: Partial<Assignment> = {}): Assignment {
+  return {
+    id: `assignment-${i}`,
+    title: `Week ${i}`,
+    note: 'Slowly first.',
+    teacher: 'Ms Clara',
+    start: '2026-09-21',
+    due: '2026-09-27',
+    tasks: [
+      {
+        kind: 'piece',
+        id: 't1',
+        piece: {
+          id: 'petzold-minuet-in-g',
+          title: 'Minuet in G major',
+          composer: 'Christian Petzold',
+          checksum: 'b80fe0e1',
+        },
+        bars: { from: 4, to: 7, fromLabel: '5', toLabel: '8' },
+        hands: 'left',
+        mode: 'rhythm',
+        tempo: 80,
+        runs: 3,
+        goal: { measure: 'inTime', percent: 90 },
+        pass: { play: 12, skip: 12 },
+      },
+      {
+        kind: 'scale',
+        id: 't2',
+        exercise: 'major:D:2:both',
+        click: { bpm: 72, perBeat: 4 },
+        runs: 5,
+      },
+      { kind: 'level', id: 't3', family: 'notes', level: 'L3', goal: 2 },
+      { kind: 'lesson', id: 't4', slug: 'staff' },
+      { kind: 'minutes', id: 't5', minutes: 20, days: 5 },
+    ],
+    createdAt: T0 + i * 60_000,
+    updatedAt: T0 + i * 60_000,
+    ...patch,
+  };
+}
+
+/** Assignment `i` as stored on the device that made it. */
+export function sampleStoredAssignment(
+  i: number,
+  patch: Partial<StoredAssignment> = {},
+): StoredAssignment {
+  const assignment = patch.assignment ?? sampleAssignment(i);
+  return {
+    id: assignment.id,
+    type: 'assignment',
+    assignment,
+    made: true,
+    following: false,
+    addedAt: assignment.createdAt,
+    updatedAt: assignment.updatedAt,
+    ...patch,
+  };
+}
+
+/** Report `i` on assignment 1: its tasks as far as a week got, and the minutes of its first four days. */
+export function sampleReport(i: number, patch: Partial<Report> = {}): Report {
+  const assignment = sampleAssignment(1);
+  const [piece, scale, level, lesson, minutes] = assignment.tasks;
+  const at = Date.UTC(2026, 8, 24, 17);
+  return {
+    id: `report-000${i}`,
+    assignmentId: assignment.id,
+    assignmentVersion: assignment.updatedAt,
+    title: assignment.title,
+    start: assignment.start,
+    due: assignment.due,
+    from: 'Robin',
+    note: 'Bar 7 is still hard.',
+    createdAt: T0 + 7 * 86_400_000 + i * 60_000,
+    tasks: [
+      {
+        task: piece!,
+        progress: {
+          kind: 'piece',
+          done: 2,
+          target: 3,
+          met: false,
+          played: 4,
+          best: { at, tempo: 80, right: 1, inTime: 0.96 },
+          last: { at: at + 3_600_000, tempo: 90, right: 0.9, inTime: 0.85 },
+        },
+      },
+      {
+        task: scale!,
+        progress: {
+          kind: 'scale',
+          done: 5,
+          target: 5,
+          met: true,
+          best: { at, spread: 9.5, bpm: 80 },
+          last: { at: at + 60_000, spread: 12, bpm: 72 },
+        },
+      },
+      {
+        task: level!,
+        progress: {
+          kind: 'level',
+          done: 1,
+          target: 2,
+          met: false,
+          best: { at, accuracy: 0.95 },
+          last: { at, accuracy: 0.95 },
+          mastery: null,
+        },
+      },
+      { task: lesson!, progress: { kind: 'lesson', done: 1, target: 1, met: true } },
+      { task: minutes!, progress: { kind: 'minutes', done: 3, target: 5, met: false } },
+    ],
+    days: [25, 0, 31, 20],
+    ...patch,
+  };
+}
+
+/** Report `i` as a teacher kept it. */
+export function sampleStoredReport(i: number, patch: Partial<StoredReport> = {}): StoredReport {
+  const report = patch.report ?? sampleReport(i);
+  return {
+    id: report.id,
+    type: 'report',
+    report,
+    addedAt: report.createdAt + 1000,
+    updatedAt: report.createdAt + 1000,
+    ...patch,
+  };
 }

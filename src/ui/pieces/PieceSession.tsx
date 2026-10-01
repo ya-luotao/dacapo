@@ -64,7 +64,8 @@ import { Piano } from '../piano/Piano.tsx';
 import { keyboardRange, whiteKeys } from '../piano/range.ts';
 import { usePieceSteps, usePracticeStore } from '../practice/context.ts';
 import { usePieceFormat } from './format.ts';
-import { readPiecePrefs, TEMPOS, WEAK_ALL_KEYS_PREF, writePiecePrefs } from './prefs.ts';
+import { readPiecePrefs, TEMPOS, WEAK_ALL_KEYS_PREF, withStart, writePiecePrefs } from './prefs.ts';
+import { startLoop, type PieceStart } from '../startParams.ts';
 import { useRunRecorder, waitRecording, type RecordableRun, type RecordInput } from './record.ts';
 import { RunSummary } from './RunSummary.tsx';
 import { runReducer, startRun, takeDone } from './run.ts';
@@ -130,10 +131,19 @@ export interface PieceBack {
   label: string;
 }
 
-export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBack }) {
+export function PieceSession({
+  piece,
+  back,
+  start,
+}: {
+  piece: OpenPiece;
+  back?: PieceBack;
+  /** What to open with in place of the piece's own settings (a task of an assignment). */
+  start?: PieceStart | null;
+}) {
   const t = useT();
   const backTo = back ?? { href: '/pieces', label: t('pieces.back') };
-  const [prefs] = useState(() => readPiecePrefs(piece.id));
+  const [prefs] = useState(() => withStart(readPiecePrefs(piece.id), start));
   // The left hand: as written, or a pattern made from the chord symbols and written into the
   // score (docs/HARMONY.md, "Lead sheets (H3)"). A progression's pattern is its own.
   // (The piece is a new object whenever the page renders: its parts are what stays the same.)
@@ -195,8 +205,8 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
       ? opposite(handsChoice)
       : handsChoice;
   const [repeats, setRepeats] = useState<RepeatMode>('play');
-  const [loop, setLoop] = useState<BarLoop | null>(null);
-  const [startBar, setStartBar] = useState(0);
+  const [loop, setLoop] = useState<BarLoop | null>(() => startLoop(start, score.measures.length));
+  const [startBar, setStartBar] = useState(() => loop?.from ?? 0);
   const [showKeys, setShowKeysState] = useState(() => readPref(SHOW_KEYS_PREF) === '1');
   const [scoreStatus, setScoreStatus] = useState<ScoreStatus>({ state: 'loading' });
   const [tempo, setTempo] = useState(prefs.tempo);

@@ -16,6 +16,8 @@ import {
   sampleChordSymbolAnswers,
   sampleTheoryAnswers,
   sampleRhythmAnswers,
+  sampleStoredAssignment,
+  sampleStoredReport,
   T0,
 } from '../../storage/fixtures.ts';
 import {
@@ -99,6 +101,7 @@ describe('loading', () => {
         scaleRuns: [],
         answers: [],
         takes: [],
+        assignments: [],
       }),
     );
     const store = startStore();
@@ -383,6 +386,7 @@ describe('several tabs', () => {
       scaleRuns: [],
       answers: [],
       takes: [],
+      assignments: [],
     });
     await vi.waitFor(() => expect(tabB.getSnapshot()).toEqual(tabA.getSnapshot()));
     expect(tabB.getSnapshot().pieces.map((p) => p.id)).toEqual(['p3']);
@@ -438,6 +442,57 @@ describe('several tabs', () => {
     const stored = await onDisk();
     expect(stored.reviewOff).toEqual([]);
     expect(stored.pieces[0]!.review).toBeUndefined();
+  });
+
+  it('saves, changes and deletes assignments and kept reports, each change the later copy', async () => {
+    const tabA = startStore();
+    const tabB = startStore();
+    await loaded(tabA);
+    await loaded(tabB);
+    const now = vi.spyOn(Date, 'now').mockReturnValue(T0 + 5_000_000);
+    const assignment = sampleStoredAssignment(1);
+    tabA.saveAssignment(assignment);
+    tabA.saveAssignment(sampleStoredReport(1));
+    // The store gives each record its version: the moment it was saved.
+    expect(tabA.getSnapshot().assignments.map((r) => [r.id, r.updatedAt])).toEqual([
+      [assignment.id, T0 + 5_000_000],
+      ['report-0001', T0 + 5_000_000],
+    ]);
+    await vi.waitFor(() =>
+      expect(tabB.getSnapshot().assignments).toEqual(tabA.getSnapshot().assignments),
+    );
+    // A change on a device whose clock is behind is still later than the copy it changes.
+    now.mockReturnValue(T0);
+    tabB.saveAssignment({ ...assignment, following: true });
+    expect(tabB.getSnapshot().assignments[0]).toMatchObject({
+      following: true,
+      updatedAt: T0 + 5_000_001,
+    });
+    tabB.deleteAssignment('report-0001');
+    tabB.deleteAssignment('never-stored');
+    await vi.waitFor(() =>
+      expect(tabA.getSnapshot().assignments).toEqual(tabB.getSnapshot().assignments),
+    );
+    expect(tabA.getSnapshot().assignments[1]).toEqual({
+      id: 'report-0001',
+      type: 'report',
+      deleted: true,
+      updatedAt: T0 + 5_000_001,
+    });
+    // Deleting it again changes nothing; adding it again is later than its deletion.
+    tabA.deleteAssignment('report-0001');
+    tabA.saveAssignment(sampleStoredReport(1));
+    expect(tabA.getSnapshot().assignments[1]).toMatchObject({
+      type: 'report',
+      updatedAt: T0 + 5_000_002,
+    });
+    await tabA.settled();
+    await tabB.settled();
+    expect((await onDisk()).assignments).toEqual(tabA.getSnapshot().assignments);
+    // And the next start finds them.
+    const later = startStore();
+    await loaded(later);
+    expect(later.getSnapshot().assignments).toEqual(tabA.getSnapshot().assignments);
   });
 
   it('stops saving and asks for a reload when another tab upgrades the database', async () => {
@@ -604,6 +659,7 @@ describe('piece runs', () => {
       scaleRuns: [],
       answers: [],
       takes: [],
+      assignments: [],
     });
     await vi.waitFor(() => expect(tabB.getPieceSteps('p1')).toBeNull());
     tabB.loadPieceSteps('p2');
@@ -636,6 +692,7 @@ describe('reloads', () => {
       scaleRuns: [],
       answers: [],
       takes: [],
+      assignments: [],
     });
     await new Promise((resolve) => setTimeout(resolve, 50));
     expect(tabB.getSnapshot().sessions).toEqual([]);
@@ -760,6 +817,7 @@ describe('scale runs', () => {
       scaleRuns: more.runs,
       answers: [],
       takes: [],
+      assignments: [],
     });
     await vi.waitFor(() => expect(tabB.getScaleRuns('major:C:1:right')).toBeNull());
     expect(tabB.getSnapshot().sessions).toEqual([more.session, two.session]);

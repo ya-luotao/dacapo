@@ -143,6 +143,19 @@ export function hasChordSteps(notes: readonly Pick<ScaleNote, 'hand' | 'index'>[
   return false;
 }
 
+/** Hanon's No. 46 as a form of the trill: its first six bars. */
+export const HANON_TRILL = '46';
+
+/** A trill's form read: Hanon's, or a pair of fingers and a length. */
+export function trillForm(
+  variant: string | undefined,
+): { hanon: true } | { hanon: false; lower: number; upper: number; bars: number } {
+  if (variant === HANON_TRILL) return { hanon: true };
+  const match = /^([1-5])([1-5])-(\d+)$/.exec(variant ?? '');
+  if (!match) throw new Error(`not a trill: ${variant}`);
+  return { hanon: false, lower: Number(match[1]), upper: Number(match[2]), bars: Number(match[3]) };
+}
+
 /**
  * The type, tonic and variant an exercise key names (`major:D:2:both`, `hanon:C:2:both:12`), for
  * what only groups runs by them (the public profile). It does not check that the exercise exists:

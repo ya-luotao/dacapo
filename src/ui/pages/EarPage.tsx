@@ -45,11 +45,20 @@ import { readRhythmPrefs, tempoOf, withTempo, writeRhythmPrefs } from '../read/r
 import { tapKeysFor } from '../read/tapKeys.ts';
 import { loadMusicFont } from '../staff/font.ts';
 import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
+import { earStart } from '../ear/start.ts';
+import { useRouteSearch } from '../hashRoute.ts';
+import { parseLevelStart } from '../startParams.ts';
 
 /** Offered once per browser, before the first run with a click (shared with Pieces and Read). */
 const CALIBRATION_OFFERED_PREF = 'dacapo.latency.offered';
 
+/** The Ear page; opened with a level (a task of an assignment), it starts over on it. */
 export function EarPage() {
+  const search = useRouteSearch();
+  return <Ear key={search} search={search} />;
+}
+
+function Ear({ search }: { search: string }) {
   const t = useT();
   const practice = usePracticeStore();
   const { answers: allAnswers } = usePractice();
@@ -100,7 +109,12 @@ export function EarPage() {
   const rhythmRunning = rhythmView?.session.phase === 'running';
   useKeepAwake(running || rhythmRunning, KEEP_AWAKE_IDLE_MS);
 
-  const [prefs, setPrefs] = useState(readEarPrefs);
+  // What the page was opened on, in place of what it remembers and what it would suggest.
+  const [opened] = useState(() => earStart(parseLevelStart(search)));
+  const [prefs, setPrefs] = useState(() => {
+    const stored = readEarPrefs();
+    return opened ? { ...stored, family: opened.family } : stored;
+  });
   const [rhythmPrefs, setRhythmPrefs] = useState(readRhythmPrefs);
   const progress = useMemo(
     () =>
@@ -120,8 +134,12 @@ export function EarPage() {
   const suggested = suggestedEarLevel(earFamily, progress);
   const rhythmSuggested = suggestedRhythmEarLevel(rhythmProgress);
   // Follows the suggestion until the user picks a level (one per family).
-  const [picked, setPicked] = useState<Partial<Record<EarPrefs['family'], EarLevelId>>>({});
-  const [rhythmPicked, setRhythmPicked] = useState<RhythmEarLevelId | null>(null);
+  const [picked, setPicked] = useState<Partial<Record<EarPrefs['family'], EarLevelId>>>(
+    opened && opened.family !== 'rhythmEar' ? { [opened.family]: opened.level } : {},
+  );
+  const [rhythmPicked, setRhythmPicked] = useState<RhythmEarLevelId | null>(
+    opened?.family === 'rhythmEar' ? opened.level : null,
+  );
   const level = picked[earFamily] ?? suggested;
   const rhythmLevel = rhythmPicked ?? rhythmSuggested;
   const [calibration, setCalibration] = useState<'offer' | 'open' | null>(null);

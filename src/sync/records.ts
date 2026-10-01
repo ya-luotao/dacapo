@@ -23,10 +23,12 @@ import type { SyncCollection } from '../storage/syncTypes.ts';
  * out of the review schedule (`review: false`, which older builds strip); 17, memory mode's steps,
  * sessions and takes (`mode: 'memory'`, which older builds refuse); 18, a piece run's left hand
  * from the chord symbols (`leftHand` on the session) and its transposition (`transpose` on the
- * session, its steps and its take), both of which older builds strip. Bump it whenever a build
- * learns a collection, a session kind, or records that older builds skipped or stripped.
+ * session, its steps and its take), both of which older builds strip; 19, the collection
+ * `assignments`: assignments and kept reports (docs/ASSIGNMENTS.md), which older builds skip.
+ * Bump it whenever a build learns a collection, a session kind, or records that older builds
+ * skipped or stripped.
  */
-export const SYNC_SCHEMA = 18;
+export const SYNC_SCHEMA = 19;
 
 // Records as the sync service carries them (docs/SYNC.md, "What syncs"): the stored record as it
 // is, except a piece, which goes without its MusicXML (sent as a file named by its hash) and

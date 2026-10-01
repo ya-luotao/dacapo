@@ -10,6 +10,7 @@ import {
 import { isChordSymbolAnswer } from '../../core/answers.ts';
 import {
   HARMONY_LEVEL_IDS,
+  isHarmonyLevelId,
   nextHarmonyLevel,
   type HarmonyLevelId,
 } from '../../core/chordSymbols.ts';
@@ -45,8 +46,22 @@ import { HARMONY_PRACTICES, type HarmonyPractice } from './practices.ts';
 import { readHarmonyPrefs, writeHarmonyPrefs, type HarmonyPrefs } from './prefs.ts';
 import { ProgressionsSetup } from './ProgressionsSetup.tsx';
 import { Segmented } from '../Segmented.tsx';
+import { useRouteSearch } from '../hashRoute.ts';
+import { parseLevelStart } from '../startParams.ts';
 
+/** The Harmony page; opened with a level (a task of an assignment), it starts over on it. */
 export function HarmonyPage() {
+  const search = useRouteSearch();
+  return <Harmony key={search} search={search} />;
+}
+
+/** The chord-symbol level a start names; null when it names none. */
+function startLevel(search: string): HarmonyLevelId | null {
+  const start = parseLevelStart(search);
+  return start?.family === 'chordSymbol' && isHarmonyLevelId(start.level) ? start.level : null;
+}
+
+function Harmony({ search }: { search: string }) {
   const t = useT();
   const practice = usePracticeStore();
   const { answers } = usePractice();
@@ -81,11 +96,16 @@ export function HarmonyPage() {
   }, [answers]);
   const suggested = suggestedHarmonyLevel(progress, HARMONY_LEVEL_IDS);
   // Follows the suggestion until the user picks a level.
-  const [picked, setPicked] = useState<HarmonyLevelId | null>(null);
+  // Opened on a level: that one, on Chords, in place of the suggestion and the practice shown last.
+  const [opened] = useState(() => startLevel(search));
+  const [picked, setPicked] = useState<HarmonyLevelId | null>(opened);
   const level = picked ?? suggested;
   const [length, setLength] = useState<SessionLength>(DEFAULT_SESSION_LENGTH);
   const [hint, setHint] = useState(false);
-  const [prefs, setPrefs] = useState(readHarmonyPrefs);
+  const [prefs, setPrefs] = useState(() => {
+    const stored = readHarmonyPrefs();
+    return opened ? { ...stored, practice: 'chords' as const } : stored;
+  });
   const choose = useId();
 
   function changePrefs(patch: Partial<HarmonyPrefs>) {

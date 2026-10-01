@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import { Link } from 'wouter';
 import { HARMONY_LEVELS } from '../../core/chordSymbols.ts';
 import { EAR_LEVELS } from '../../core/earItems.ts';
@@ -6,10 +6,11 @@ import { RHYTHM_LEVELS } from '../../core/rhythmCells.ts';
 import { RHYTHM_EAR_LEVEL_IDS } from '../../core/rhythmEar.ts';
 import { SIGHT_LEVELS } from '../../core/sightLevels.ts';
 import { THEORY_LEVELS } from '../../core/theoryItems.ts';
+import { currentAssignments } from '../../core/assignmentRecords.ts';
 import { LEVELS } from '../../core/levels.ts';
 import { LESSONS } from '../../learn/lessons.ts';
 import { MAX_BPM, MIN_BPM } from '../../core/pulse.ts';
-import { practiceLog, STREAK_GOAL_MS } from '../../core/streak.ts';
+import { dayKey, practiceLog, STREAK_GOAL_MS } from '../../core/streak.ts';
 import { useT, type MessageKey } from '../../i18n/index.ts';
 import { currentShell } from '../../lib/shell.ts';
 import { BUILT_IN_IDS } from '../../pieces/library/index.ts';
@@ -18,6 +19,11 @@ import { useLogFormat } from '../progress/format.ts';
 import { useNow } from '../progress/useNow.ts';
 import { Specimen } from './Specimen.tsx';
 import { usePieceReviews, useSinceLabel } from '../pieces/review.ts';
+
+// The current assignment's open tasks: loaded only when there is one (ui/assignments/).
+const HomeAssignment = lazy(() =>
+  import('../assignments/HomeAssignment.tsx').then((m) => ({ default: m.HomeAssignment })),
+);
 
 /** Due pieces named on the home page; the rest are on the Pieces page. */
 const REVIEW_SHOWN = 3;
@@ -210,8 +216,10 @@ function DueForReview() {
 export function HomePage() {
   const t = useT();
   const { loaded } = useStorageStatus();
-  const { sessions } = usePractice();
+  const { sessions, assignments } = usePractice();
   const web = currentShell() === 'web';
+  const today = dayKey(useNow());
+  const assigned = loaded && currentAssignments(assignments, today).length > 0;
 
   return (
     <div className="home">
@@ -238,6 +246,11 @@ export function HomePage() {
         <Specimen />
       </section>
 
+      {assigned && (
+        <Suspense fallback={null}>
+          <HomeAssignment />
+        </Suspense>
+      )}
       {loaded && sessions.length > 0 && <Welcome />}
 
       <section className="home-contents" aria-labelledby="home-contents">
