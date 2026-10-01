@@ -156,9 +156,9 @@ winner.
   and ear sessions of the family `cadence`, which older builds skip; 13: sight-reading on Read,
   sessions of kind `sight`, which older builds skip; 14: rhythm dictation on Ear, answers of the
   family `rhythmEar` and `ear` sessions of that family, which older builds skip; 15: improvising on
-  Harmony, sessions of kind `improv`, which older builds skip, and their takes, which they keep),
-  and the sync
-  state keeps the
+  Harmony, sessions of kind `improv`, which older builds skip, and their takes, which they keep;
+  16: a piece taken out of the review schedule, `review: false` on the piece, which older builds
+  strip), and the sync state keeps the
   schema its cursor was reached with. When the build's is higher, the next round starts again from
   cursor 0. Pulling a record already stored changes nothing, except where the stored copy differs:
   an older build that did not know a field kept the record without it. A record that never changes

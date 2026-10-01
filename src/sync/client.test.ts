@@ -788,6 +788,34 @@ describe('improvising on Harmony', () => {
   });
 });
 
+describe('the review schedule', () => {
+  it('syncs a piece taken out of review, and takes it back from a build that stripped it', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    const out = samplePiece(1, { review: false, updatedAt: T0 + 100 });
+    ipad.store.savePiece(out);
+    await ipad.store.settled();
+    await signIn(ipad);
+    expect(service.body('pieces', 'p1')).toMatchObject({ review: false });
+    await signIn(mac);
+    expect(mac.store.getSnapshot().pieces).toEqual([out]);
+
+    // As schema 10 left it: the piece kept without the field, the cursor past it.
+    const state = (await mac.db.get('meta', SYNC_STATE_KEY)) as SyncState;
+    const stripped = { ...out };
+    delete stripped.review;
+    await mac.db.put('pieces', stripped);
+    await mac.db.put('meta', { ...state, schema: 15 }, SYNC_STATE_KEY);
+    await mac.store.reloadAll();
+    const sync = vi.spyOn(service.api, 'sync');
+    await mac.client.syncNow();
+    expect(SYNC_SCHEMA).toBeGreaterThanOrEqual(16);
+    expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
+    expect(mac.store.getSnapshot().pieces).toEqual([out]);
+  });
+});
+
 describe('takes', () => {
   it('brings takes to the other device, and pulls again those a build before takes skipped', async () => {
     const service = fakeService();

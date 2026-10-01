@@ -26,6 +26,11 @@ export interface StoredPiece {
    * files; filled in when the piece is next listed or opened).
    */
   facts?: PieceFacts;
+  /**
+   * Taken out of the review schedule (docs/PIECES.md, P6); absent while in it. Changing it is a
+   * change of the piece: it sets `updatedAt` and syncs.
+   */
+  review?: false;
 }
 
 /** A piece's version, for "the later copy wins" (docs/SYNC.md). */

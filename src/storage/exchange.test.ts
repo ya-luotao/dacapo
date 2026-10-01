@@ -1432,4 +1432,27 @@ describe('versions', () => {
       { collection: 'pieces', index: 1, field: 'facts', problem: 'invalid' },
     ]);
   });
+
+  it('keeps a piece taken out of review and the notes its facts count (P6)', () => {
+    const facts = {
+      checksum: '0123abcd',
+      bars: { right: 3, left: 2, both: 3 },
+      notes: { play: 40, skip: 30 },
+    };
+    const file = parsed(
+      fileWith({
+        version: 2,
+        pieces: [
+          samplePiece(1, { facts, review: false }),
+          { ...samplePiece(2), review: true },
+          { ...samplePiece(3), facts: { ...facts, notes: { play: -1, skip: 0 } } },
+        ],
+      }),
+    );
+    expect(file.pieces).toEqual([samplePiece(1, { facts, review: false })]);
+    expect(file.invalid).toEqual([
+      { collection: 'pieces', index: 1, field: 'review', problem: 'invalid' },
+      { collection: 'pieces', index: 2, field: 'facts', problem: 'invalid' },
+    ]);
+  });
 });

@@ -35,10 +35,11 @@ import {
  * `cadence` (older builds skip them); 13, sight-reading on Read: sessions of kind `sight` (older
  * builds skip them); 14, rhythm dictation on Ear: answers of the family `rhythmEar` and `ear`
  * sessions of that family (older builds skip them); 15, improvising on Harmony: sessions of kind
- * `improv` and their takes (older builds skip the sessions; the takes they keep). Bump it whenever
- * a build learns a collection, a session kind, or records that older builds skipped.
+ * `improv` and their takes (older builds skip the sessions; the takes they keep); 16, a piece taken
+ * out of the review schedule (`review: false`, which older builds strip). Bump it whenever a build
+ * learns a collection, a session kind, or records that older builds skipped or stripped.
  */
-export const SYNC_SCHEMA = 15;
+export const SYNC_SCHEMA = 16;
 
 // Records as the sync service carries them (docs/SYNC.md, "What syncs"): the stored record as it
 // is, except a piece, which goes without its MusicXML (sent as a file named by its hash) and
@@ -74,6 +75,7 @@ function pieceBody(piece: Omit<StoredPiece, 'xml' | 'facts'>, xmlHash: string): 
     ...(piece.updatedAt !== undefined && { updatedAt: piece.updatedAt }),
     hands: piece.hands,
     warnings: piece.warnings,
+    ...(piece.review === false && { review: false as const }),
     xmlHash,
   };
 }

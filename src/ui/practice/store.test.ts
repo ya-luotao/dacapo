@@ -409,6 +409,37 @@ describe('several tabs', () => {
     expect((await onDisk()).pieces.map((p) => p.title)).toEqual(['Renamed']);
   });
 
+  it('takes pieces out of review: an imported one on itself, a built-in one on this device', async () => {
+    const tabA = startStore();
+    const tabB = startStore();
+    await loaded(tabA);
+    await loaded(tabB);
+    tabA.savePiece(samplePiece(1));
+    tabA.setPieceReview('p1', false);
+    tabA.setPieceReview('petzold-minuet-in-g', false);
+    const piece = tabA.getSnapshot().pieces[0]!;
+    expect(piece.review).toBe(false);
+    // A change of the piece: later than its import, so it syncs and wins.
+    expect(piece.updatedAt).toBeGreaterThan(samplePiece(1).importedAt);
+    expect(tabA.getSnapshot().reviewOff).toEqual(['petzold-minuet-in-g']);
+    await vi.waitFor(() => {
+      expect(tabB.getSnapshot().reviewOff).toEqual(['petzold-minuet-in-g']);
+      expect(tabB.getSnapshot().pieces[0]?.review).toBe(false);
+    });
+    await tabA.settled();
+    expect((await onDisk()).reviewOff).toEqual(['petzold-minuet-in-g']);
+
+    // And back.
+    tabB.setPieceReview('p1', true);
+    tabB.setPieceReview('petzold-minuet-in-g', true);
+    expect('review' in tabB.getSnapshot().pieces[0]!).toBe(false);
+    await vi.waitFor(() => expect(tabA.getSnapshot().reviewOff).toEqual([]));
+    await tabB.settled();
+    const stored = await onDisk();
+    expect(stored.reviewOff).toEqual([]);
+    expect(stored.pieces[0]!.review).toBeUndefined();
+  });
+
   it('stops saving and asks for a reload when another tab upgrades the database', async () => {
     const store = startStore();
     await loaded(store);

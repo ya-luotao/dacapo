@@ -92,6 +92,7 @@ import { SaveTake } from './SaveTake.tsx';
 import { YourRuns } from './YourRuns.tsx';
 import { PlaybackBar, type CompareChoice } from './PlaybackBar.tsx';
 import { useLogFormat } from '../progress/format.ts';
+import { usePieceReview, useReviewOut } from './review.ts';
 import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
 
 const SHOW_KEYS_PREF = 'dacapo.pieces.showKeys';
@@ -130,6 +131,8 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
   if (!focus.on && settingsOpen) setSettingsOpen(false);
 
   const store = usePracticeStore();
+  const review = usePieceReview(piece.id, piece.facts);
+  const reviewOut = useReviewOut(piece.id);
   const [prefs] = useState(() => readPiecePrefs(piece.id));
   const [mode, setModeState] = useState<PracticeMode>(prefs.mode);
   const [hands, setHandsState] = useState<HandSelection>(prefs.hands);
@@ -1155,6 +1158,29 @@ export function PieceSession({ piece, back }: { piece: OpenPiece; back?: PieceBa
                 {t('pieces.expression.judge.help')}
               </span>
             </div>
+
+            <p className="piece-option piece-review-option">
+              <label className="check">
+                <input
+                  type="checkbox"
+                  checked={!reviewOut}
+                  onChange={(e) => store.setPieceReview(piece.id, e.target.checked)}
+                  aria-describedby={`${showKeysId}-review`}
+                />
+                <span>{t('pieces.review.option')}</span>
+              </label>
+              <span id={`${showKeysId}-review`} className="muted">
+                {reviewOut
+                  ? t('pieces.review.out.help')
+                  : !review
+                    ? t('pieces.review.none')
+                    : review.status.isDue
+                      ? t('pieces.review.due.help')
+                      : t('pieces.review.next.date', {
+                          date: format.date(Date.parse(`${review.schedule.due}T12:00:00`)),
+                        })}
+              </span>
+            </p>
 
             <p className="piece-option">
               <button

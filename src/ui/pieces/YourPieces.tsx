@@ -49,8 +49,9 @@ export function YourPieces() {
   const [dragging, setDragging] = useState(false);
   const busy = state.step === 'reading' || state.step === 'checking';
 
-  // Pieces imported before their facts were kept get them now, one at a time.
-  const missing = pieces.find((p) => !p.facts);
+  // Pieces imported before their facts were kept (or before they counted the notes, P6) get them
+  // now, one at a time.
+  const missing = pieces.find((p) => !p.facts?.notes);
   useEffect(() => {
     if (!missing) return;
     const id = setTimeout(() => {

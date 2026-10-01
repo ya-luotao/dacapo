@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useT } from '../../i18n/index.ts';
 import { prefetchVerovio } from '../notation/verovio.ts';
 import { Library } from './Library.tsx';
+import { ReviewList } from './ReviewList.tsx';
 import { YourPieces } from './YourPieces.tsx';
 
 export function PiecesPage() {
@@ -13,6 +14,7 @@ export function PiecesPage() {
     <section className="pieces">
       <h1>{t('pieces.title')}</h1>
       <p className="muted pieces-intro">{t('pieces.intro')}</p>
+      <ReviewList />
       <Library />
       <YourPieces />
     </section>

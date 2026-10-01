@@ -7,6 +7,7 @@ import { useT } from '../../i18n/index.ts';
 import { usePieceSteps, usePractice } from '../practice/context.ts';
 import { usePieceFormat } from './format.ts';
 import { readPiecePrefs } from './prefs.ts';
+import { usePieceReview } from './review.ts';
 
 /**
  * A quiet line on a library card: when the piece was last practised, how many runs, and how many
@@ -31,7 +32,28 @@ export function PieceProgress({ pieceId, facts }: { pieceId: string; facts?: Pie
         ? t('pieces.progress.runs.one')
         : t('pieces.progress.runs.other', { n: runs.length })}
       {facts && <Steady pieceId={pieceId} facts={facts} />}
+      {facts && <Review pieceId={pieceId} facts={facts} />}
     </span>
+  );
+}
+
+/** Where the piece stands in the review schedule: due, next in n days, or taken out. */
+function Review({ pieceId, facts }: { pieceId: string; facts: PieceFacts }) {
+  const t = useT();
+  const review = usePieceReview(pieceId, facts);
+  if (!review) return null;
+  const { status, out } = review;
+  return (
+    <>
+      {' · '}
+      {out
+        ? t('pieces.review.out')
+        : status.isDue
+          ? t('pieces.review.due')
+          : status.overdue === -1
+            ? t('pieces.review.next.one')
+            : t('pieces.review.next.other', { n: -status.overdue })}
+    </>
   );
 }
 

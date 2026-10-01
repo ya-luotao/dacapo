@@ -50,7 +50,11 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
     sourceUrl: 'https://imslp.org/wiki/Symphony_No.9,_Op.125_(Beethoven,_Ludwig_van)',
     encoder: 'dacapo project',
     licence: 'Public-domain work; arrangement and encoding MIT',
-    facts: { checksum: '7a47ee21', bars: { right: 16, left: 16, both: 16 } },
+    facts: {
+      checksum: '7a47ee21',
+      bars: { right: 16, left: 16, both: 16 },
+      notes: { play: 85, skip: 85 },
+    },
   },
   {
     id: 'petzold-minuet-in-g',
@@ -61,7 +65,11 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
     sourceUrl: 'https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=75',
     encoder: 'dacapo project',
     licence: 'Public-domain work; encoding MIT',
-    facts: { checksum: 'b80fe0e1', bars: { right: 32, left: 32, both: 32 } },
+    facts: {
+      checksum: 'b80fe0e1',
+      bars: { right: 32, left: 32, both: 32 },
+      notes: { play: 406, skip: 203 },
+    },
   },
   {
     id: 'burgmuller-arabesque',
@@ -72,7 +80,11 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
     sourceUrl: 'https://musescore.com/user/9292486/scores/5849868',
     encoder: 'PianoXML (fingering removed by the dacapo project)',
     licence: 'CC0 1.0; PDMX dataset CC BY 4.0',
-    facts: { checksum: '7db61cc9', bars: { right: 31, left: 33, both: 33 } },
+    facts: {
+      checksum: '7db61cc9',
+      bars: { right: 31, left: 33, both: 33 },
+      notes: { play: 480, skip: 271 },
+    },
   },
   {
     id: 'schumann-soldiers-march',
@@ -83,7 +95,11 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
     sourceUrl: 'https://musescore.com/user/31901603/scores/5860733',
     encoder: 'jadr (fingering removed by the dacapo project)',
     licence: 'CC0 1.0; PDMX dataset CC BY 4.0',
-    facts: { checksum: '3deaa5fc', bars: { right: 32, left: 32, both: 32 } },
+    facts: {
+      checksum: '3deaa5fc',
+      bars: { right: 32, left: 32, both: 32 },
+      notes: { play: 312, skip: 212 },
+    },
   },
   {
     id: 'beethoven-fur-elise',
@@ -94,7 +110,11 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
     sourceUrl: 'https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=931',
     encoder: 'dacapo project',
     licence: 'Public-domain work; encoding MIT',
-    facts: { checksum: '2718f11a', bars: { right: 25, left: 20, both: 25 } },
+    facts: {
+      checksum: '2718f11a',
+      bars: { right: 25, left: 20, both: 25 },
+      notes: { play: 293, skip: 146 },
+    },
   },
   {
     id: 'bach-prelude-in-c',
@@ -105,7 +125,11 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
     sourceUrl: 'https://musescore.com/user/9836/scores/719631',
     encoder: 'OpenGoldberg (Open WTC)',
     licence: 'CC0 1.0; PDMX dataset CC BY 4.0',
-    facts: { checksum: 'aaa8934c', bars: { right: 35, left: 35, both: 35 } },
+    facts: {
+      checksum: 'aaa8934c',
+      bars: { right: 35, left: 35, both: 35 },
+      notes: { play: 549, skip: 549 },
+    },
   },
   {
     id: 'petzold-minuet-in-g-minor',
@@ -116,7 +140,11 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
     sourceUrl: 'https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=76',
     encoder: 'dacapo project',
     licence: 'Public-domain work; encoding MIT',
-    facts: { checksum: '1bd02b28', bars: { right: 32, left: 32, both: 32 } },
+    facts: {
+      checksum: '1bd02b28',
+      bars: { right: 32, left: 32, both: 32 },
+      notes: { play: 398, skip: 199 },
+    },
   },
   {
     id: 'bach-musette-in-d',
@@ -127,7 +155,11 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
     sourceUrl: 'https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=79',
     encoder: 'dacapo project',
     licence: 'Public-domain work; encoding MIT',
-    facts: { checksum: '57131154', bars: { right: 20, left: 20, both: 20 } },
+    facts: {
+      checksum: '57131154',
+      bars: { right: 20, left: 20, both: 20 },
+      notes: { play: 342, skip: 171 },
+    },
   },
   {
     id: 'burgmuller-candeur',
@@ -138,7 +170,11 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
     sourceUrl: 'https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=202',
     encoder: 'dacapo project',
     licence: 'Public-domain work; encoding MIT',
-    facts: { checksum: '77bc647c', bars: { right: 23, left: 22, both: 23 } },
+    facts: {
+      checksum: '77bc647c',
+      bars: { right: 23, left: 22, both: 23 },
+      notes: { play: 408, skip: 235 },
+    },
   },
   {
     id: 'tchaikovsky-old-french-song',
@@ -149,7 +185,11 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
     sourceUrl: 'https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=2080',
     encoder: 'dacapo project',
     licence: 'Public-domain work; encoding MIT',
-    facts: { checksum: 'f8a3c552', bars: { right: 33, left: 32, both: 33 } },
+    facts: {
+      checksum: 'f8a3c552',
+      bars: { right: 33, left: 32, both: 33 },
+      notes: { play: 188, skip: 188 },
+    },
   },
   {
     id: 'tchaikovsky-morning-prayer',
@@ -160,7 +200,11 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
     sourceUrl: 'https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=2032',
     encoder: 'dacapo project',
     licence: 'Public-domain work; encoding MIT',
-    facts: { checksum: '9e16a928', bars: { right: 24, left: 24, both: 24 } },
+    facts: {
+      checksum: '9e16a928',
+      bars: { right: 24, left: 24, both: 24 },
+      notes: { play: 246, skip: 246 },
+    },
   },
   {
     id: 'chopin-prelude-in-c-minor',
@@ -171,7 +215,11 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
     sourceUrl: 'https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=472',
     encoder: 'dacapo project',
     licence: 'Public-domain work; encoding MIT',
-    facts: { checksum: '842bdcd3', bars: { right: 13, left: 13, both: 13 } },
+    facts: {
+      checksum: '842bdcd3',
+      bars: { right: 13, left: 13, both: 13 },
+      notes: { play: 286, skip: 286 },
+    },
   },
   {
     id: 'satie-gymnopedie-1',
@@ -182,7 +230,11 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
     sourceUrl: 'https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=37',
     encoder: 'dacapo project',
     licence: 'Public-domain work; encoding MIT',
-    facts: { checksum: 'db34d100', bars: { right: 38, left: 47, both: 47 } },
+    facts: {
+      checksum: 'db34d100',
+      bars: { right: 38, left: 47, both: 47 },
+      notes: { play: 455, skip: 228 },
+    },
   },
 ];
 

@@ -6,7 +6,7 @@ import { IDLE_MS } from './activity.ts';
 import { IN_TIME_MS } from './rhythmRun.ts';
 import type { NoteTiming } from './rhythm.ts';
 import type { RepeatMode } from './repeats.ts';
-import { performanceOrder } from './repeats.ts';
+import { performanceOrder, playOrder } from './repeats.ts';
 import { buildSteps, type HandSelection, type Score } from './score.ts';
 import type { BarLoop } from './wait.ts';
 
@@ -179,14 +179,26 @@ export interface PieceFacts {
   checksum: string;
   /** Written bars with something to play, per hand selection. */
   bars: Readonly<Record<HandSelection, number>>;
+  /**
+   * The keys a run of the whole piece with both hands strikes, the repeats played or skipped: what
+   * the review schedule counts wrong notes against (docs/PIECES.md, P6). Absent in facts kept
+   * before it, until they are filled in again.
+   */
+  notes?: Readonly<Record<RepeatMode, number>>;
 }
 
 export function pieceFacts(score: Score): PieceFacts {
   const order = performanceOrder(score.measures);
   const count = (hands: HandSelection) =>
     new Set(buildSteps(score, hands, order).map((s) => s.measure)).size;
+  const keys = (repeats: RepeatMode) =>
+    buildSteps(score, 'both', playOrder(score.measures, repeats)).reduce(
+      (sum, step) => sum + step.midis.length,
+      0,
+    );
   return {
     checksum: pieceChecksum(score),
     bars: { right: count('right'), left: count('left'), both: count('both') },
+    notes: { play: keys('play'), skip: keys('skip') },
   };
 }

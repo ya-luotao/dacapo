@@ -111,7 +111,8 @@ practising the notes you are slowest at. Progress is visible day by day.
   off the beat you were, in your last runs, and one click loops the weakest ones. If the file has
   fingering, the keys marked on the keyboard show which finger to use. Any run can be played back
   as you played it, with the score following and wrong notes shown where they fell, and compared
-  bar by bar with the score as written.
+  bar by bar with the score as written. Pieces you have played to the end come back for review
+  after a day, then two, four, a week and up to two months while they go well.
 - **Scales, measured for evenness.** Major, the three minors, chromatic and the major and minor
   arpeggios in every key, one to four octaves, one hand, both, or in contrary motion from one
   tonic, drawn with Hanon's fingering. Play at your own tempo or with the

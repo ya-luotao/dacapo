@@ -19,7 +19,11 @@ import {
 } from '../../core/pieceRecords.ts';
 import { byRunTime, type ScaleSession, type StoredScaleRun } from '../../core/scaleRecords.ts';
 import type { Attempt } from '../../core/session.ts';
-import { byImportedDescending, type StoredPiece } from '../../core/storedPiece.ts';
+import {
+  byImportedDescending,
+  nextPieceVersion,
+  type StoredPiece,
+} from '../../core/storedPiece.ts';
 import type { TakeChunk } from '../../core/takes.ts';
 import { emptyStats, updateStats, type NoteStats, type StatsByKey } from '../../core/weakness.ts';
 import type { OpenHandlers } from '../../storage/db.ts';
@@ -46,6 +50,8 @@ export interface PracticeData {
   pieces: readonly StoredPiece[];
   /** Ear-training, theory and chord-symbol answers, in order (small: all loaded at startup). */
   answers: readonly Answer[];
+  /** Built-in pieces taken out of the review schedule on this device. */
+  reviewOff: readonly string[];
 }
 
 /**
@@ -84,6 +90,11 @@ export interface PracticeStore {
   finishFreePlay: (id: string, session: FreePlaySession | null) => void;
   /** Adds or replaces an imported piece (a new import, a rename, other hands). */
   savePiece: (piece: StoredPiece) => void;
+  /**
+   * Takes a piece out of the review schedule or puts it back: on an imported piece itself (a
+   * change of the piece, synced), for a built-in one on this device.
+   */
+  setPieceReview: (pieceId: string, review: boolean) => void;
   /** Deletes an imported piece, and with `steps` its step records and takes. Its sessions stay. */
   deletePiece: (id: string, options?: { steps: boolean }) => void;
   /** Stores a completed wait-mode step; `header` goes with the run's first step. */
@@ -162,6 +173,7 @@ export type SyncMessage =
   | { type: 'session'; session: SessionRecord }
   | { type: 'piece'; piece: StoredPiece }
   | { type: 'pieceDeleted'; id: string; steps: boolean }
+  | { type: 'reviewOff'; id: string; off: boolean }
   | { type: 'pieceStep'; step: PieceStep }
   | { type: 'scaleRun'; run: StoredScaleRun; session: ScaleSession }
   | { type: 'reload' };
@@ -189,6 +201,7 @@ export const EMPTY_PRACTICE: PracticeData = {
   sessions: [],
   pieces: [],
   answers: [],
+  reviewOff: [],
 };
 
 const openInMemory = (): Promise<OpenResult> =>
@@ -212,6 +225,11 @@ function upsertSession(sessions: readonly SessionRecord[], session: SessionRecor
 
 function upsertPiece(pieces: readonly StoredPiece[], piece: StoredPiece) {
   return [...pieces.filter((p) => p.id !== piece.id), piece].sort(byImportedDescending);
+}
+
+function withReviewOff(list: readonly string[], id: string, off: boolean): string[] {
+  const rest = list.filter((x) => x !== id);
+  return off ? [...rest, id] : rest;
 }
 
 function addSteps(steps: readonly PieceStep[], added: readonly PieceStep[]): PieceStep[] {
@@ -365,7 +383,8 @@ export function createPracticeStore({
     for (const answer of early.answers) {
       if (!answerIds.has(answer.id)) answers = insertAnswer(answers, answer);
     }
-    return { attempts, stats, sessions, pieces, answers };
+    const reviewOff = [...new Set([...stored.reviewOff, ...early.reviewOff])];
+    return { attempts, stats, sessions, pieces, answers, reviewOff };
   }
 
   /**
@@ -422,6 +441,7 @@ export function createPracticeStore({
         sessions: stored.sessions,
         pieces: stored.pieces,
         answers: stored.answers,
+        reviewOff: stored.reviewOff,
       });
       // Loaded again when next asked for.
       stepCache = new Map();
@@ -465,6 +485,9 @@ export function createPracticeStore({
         set({ ...data, pieces: data.pieces.filter((p) => p.id !== m.id) });
         if (m.steps && stepCache.has(m.id)) setStepCache(m.id, { ready: true, steps: [] });
         return;
+      case 'reviewOff':
+        set({ ...data, reviewOff: withReviewOff(data.reviewOff, m.id, m.off) });
+        return;
       case 'pieceStep':
         cacheSteps([m.step]);
         return;
@@ -478,6 +501,15 @@ export function createPracticeStore({
         else void reload();
         return;
     }
+  }
+
+  function savePiece(piece: StoredPiece) {
+    set({ ...data, pieces: upsertPiece(data.pieces, piece) });
+    void enqueue(async (repo) => {
+      await repo.putPiece(piece);
+      broadcast({ type: 'piece', piece });
+      requestPersistence();
+    });
   }
 
   function requestPersistence() {
@@ -544,12 +576,23 @@ export function createPracticeStore({
         requestPersistence();
       });
     },
-    savePiece(piece) {
-      set({ ...data, pieces: upsertPiece(data.pieces, piece) });
+    savePiece,
+    setPieceReview(pieceId, review) {
+      const piece = data.pieces.find((p) => p.id === pieceId);
+      if (piece) {
+        if ((piece.review !== false) === review) return;
+        const next: StoredPiece = { ...piece, updatedAt: nextPieceVersion(piece, Date.now()) };
+        if (review) delete next.review;
+        else next.review = false;
+        savePiece(next);
+        return;
+      }
+      const off = !review;
+      if (data.reviewOff.includes(pieceId) === off) return;
+      set({ ...data, reviewOff: withReviewOff(data.reviewOff, pieceId, off) });
       void enqueue(async (repo) => {
-        await repo.putPiece(piece);
-        broadcast({ type: 'piece', piece });
-        requestPersistence();
+        await repo.setReviewOff(pieceId, off);
+        broadcast({ type: 'reviewOff', id: pieceId, off });
       });
     },
     deletePiece(id, options) {

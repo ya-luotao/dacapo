@@ -332,6 +332,46 @@ Planned with [EXPRESSION.md](EXPRESSION.md), whose takes these build on.
   Close, which brings the sheet back. Anything that silences the instrument (other hands, bars or
   mode) closes it. A run from before takes, or of another version of the notes, says so instead.
 
+## Clarifications (decided during P6)
+
+- **A run to the end** is a session completed without a loop, whose hands play every note of the
+  piece (both, or the only hand that has notes), and whose step records, when they are here, cover
+  every bar those hands play (a run from bar 9 to the end is not one). Wait, rhythm and later
+  memory runs all count; so do runs of an earlier version of the notes, since what is reviewed is
+  the player's hold on the piece.
+- **The schedule** (`core/review.ts`): the first run to the end puts the piece in review, due one
+  calendar day after the day it was played (local days, as the streak counts them). From then on
+  the first run to the end on or after the date due is the review: it moves the interval a step up
+  (doubles it: 1, 2, 4, 7, 14, 30, 60 days, no further), keeps it, or a step down (halves it: 60
+  to 30, 30 to 14, …, 2 to 1, not below), and the next date is that many days after its own day;
+  a late review counts all the same. Runs between two dates count only for the figures.
+- **The grade.** Wrong notes, and in rhythm mode missed ones too (extra notes are rhythm mode's
+  wrong notes), are counted against the run's notes: in rhythm mode the notes due; in wait mode
+  the keys the whole piece asks for with its repeats played or skipped, which the piece's facts now
+  carry (`PieceFacts.notes`, locked for the library by its test, filled in for an imported piece
+  when it is next listed; until then the run's step count stands in, which is stricter). At most
+  one in 50, and in rhythm mode at least 80 % of the notes in time, and in wait mode no bar whose
+  mean time per step is over twice the run's median step (each step capped at 60 s), moves it up;
+  more than one in 10 moves it down; anything else keeps it. A wait run whose step records are not
+  here can keep the interval, not move it up.
+- **Due** is the day of the date or later. The Pieces page lists the due pieces first, the longest
+  overdue at the top, each with how long since it was last played through (the review that set the
+  date) and "Take out of review"; each library card says "review due", "review in n days" or "out
+  of review". The home page says "Due for review: n pieces" with the first three and how long it
+  has been. A piece's Options have "Review schedule" (on or off) with where it stands.
+- **Taken out of review.** An imported piece carries `review: false` on its record: a change of the
+  piece (it sets `updatedAt`), so it syncs and imports; `SYNC_SCHEMA` 16 makes builds that stripped
+  the field pull everything again. A built-in piece has no record of its own, so its choice is a
+  `meta` entry (`review:off:<id>`) on this device, kept beside the deletions. Its schedule goes on
+  being computed; putting it back shows it as it stands.
+- **Known limit: a built-in piece is taken out of review on one device only.** Its `meta` entry is
+  neither synced nor exported, so the piece stays in review on the user's other devices and comes
+  back in review after an import into a new browser. A small synced record for it (like a piece
+  deletion's) can follow later.
+- **Reading the records.** The Pieces page and the home page read the step records of each piece
+  with a completed run without a loop (the Pieces page's cards read them already); they stay in
+  the store's cache for the page's life.
+
 ## Milestones
 
 1. ✓ **P0 Spike** — choose the renderer (OpenSheetMusicDisplay vs Verovio vs other), prove
@@ -342,5 +382,5 @@ Planned with [EXPRESSION.md](EXPRESSION.md), whose takes these build on.
 4. ✓ **P3 Records** — persistence (DB v3), measure heatmap, log and streak integration, export.
 5. ✓ **P4 Rhythm mode** — metronome, calibration, timing analysis.
 6. ✓ **P5 Play back** — takes played back with the cursor; compare with the written version.
-7. **P6 Review schedule** — review intervals, due pieces on Pieces and Home.
+7. ✓ **P6 Review schedule** — review intervals, due pieces on Pieces and Home.
 8. **P7 Memorising** — memory mode, fading stages, prompts, start anywhere.

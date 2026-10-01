@@ -1483,7 +1483,8 @@ function isFacts(v: unknown): v is PieceFacts {
     isObject(v.bars) &&
     isIndex(v.bars.right) &&
     isIndex(v.bars.left) &&
-    isIndex(v.bars.both)
+    isIndex(v.bars.both) &&
+    (v.notes === undefined || (isObject(v.notes) && isIndex(v.notes.play) && isIndex(v.notes.skip)))
   );
 }
 
@@ -1515,6 +1516,7 @@ export function validatePiece(value: unknown): Validation<StoredPiece> {
     hands: (v) => v === null || isStaffHands(v),
     warnings: (v) => Array.isArray(v) && v.every(isScoreWarning),
     facts: (v) => v === undefined || isFacts(v),
+    review: (v) => v === undefined || v === false,
   });
   if (field) return fail(field);
   const p = value as unknown as StoredPiece;
@@ -1530,10 +1532,14 @@ export function validatePiece(value: unknown): Validation<StoredPiece> {
       ...(p.updatedAt !== undefined && { updatedAt: p.updatedAt }),
       hands: p.hands === null ? null : { ...p.hands },
       warnings: [...new Set(p.warnings)],
+      ...(p.review === false && { review: false }),
       ...(p.facts && {
         facts: {
           checksum: p.facts.checksum,
           bars: { right: p.facts.bars.right, left: p.facts.bars.left, both: p.facts.bars.both },
+          ...(p.facts.notes && {
+            notes: { play: p.facts.notes.play, skip: p.facts.notes.skip },
+          }),
         },
       }),
     },

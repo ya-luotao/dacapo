@@ -17,6 +17,10 @@ import { usePractice, useStorageStatus } from '../practice/context.ts';
 import { useLogFormat } from '../progress/format.ts';
 import { useNow } from '../progress/useNow.ts';
 import { Specimen } from './Specimen.tsx';
+import { usePieceReviews, useSinceLabel } from '../pieces/review.ts';
+
+/** Due pieces named on the home page; the rest are on the Pieces page. */
+const REVIEW_SHOWN = 3;
 
 const MINUTE_MS = 60_000;
 
@@ -151,6 +155,7 @@ function Welcome() {
           <dd>{format.days(log.longestStreak)}</dd>
         </div>
       </dl>
+      <DueForReview />
       <p className="home-welcome-end">
         <span className={reached ? 'goal is-reached' : 'goal'}>
           {reached
@@ -165,6 +170,36 @@ function Welcome() {
         </Link>
       </p>
     </section>
+  );
+}
+
+/** "Due for review: 3 pieces", the first of them with how long it has been (docs/PIECES.md, P6). */
+function DueForReview() {
+  const t = useT();
+  const { reviews } = usePieceReviews();
+  const since = useSinceLabel();
+  const due = reviews.filter((r) => r.status.isDue && !r.out);
+  if (due.length === 0) return null;
+  return (
+    <div className="home-review">
+      <p className="home-review-title">
+        <strong>
+          {due.length === 1 ? t('home.review.one') : t('home.review.other', { n: due.length })}
+        </strong>
+        <Link href="/pieces" className="home-link">
+          {t('home.review.link')}
+          <Arrow />
+        </Link>
+      </p>
+      <ul className="home-review-list">
+        {due.slice(0, REVIEW_SHOWN).map((review) => (
+          <li key={review.pieceId}>
+            <Link href={`/pieces/${review.pieceId}`}>{review.title}</Link>
+            <span className="muted">{since(review)}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

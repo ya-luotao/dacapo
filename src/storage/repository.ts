@@ -40,6 +40,11 @@ export interface StoredData {
   openPieceRuns: PieceRunHeader[];
   /** Ear-training, theory and chord-symbol answers, in the order they happened. */
   answers: Answer[];
+  /**
+   * Built-in pieces taken out of the review schedule on this device (docs/PIECES.md, P6). An
+   * imported piece says so itself (`StoredPiece.review`).
+   */
+  reviewOff: string[];
 }
 
 export interface MergeResult {
@@ -117,6 +122,11 @@ export interface PracticeRepository {
   scaleRunIds: () => Promise<string[]>;
   /** Stores an ear-training, theory or chord-symbol answer; one already stored changes nothing. */
   addAnswer: (answer: Answer) => Promise<void>;
+  /**
+   * Takes a built-in piece out of the review schedule, or puts it back: a meta entry on this
+   * device, neither synced nor exported (docs/PIECES.md, "Clarifications (decided during P6)").
+   */
+  setReviewOff: (pieceId: string, off: boolean) => Promise<void>;
   /** Stores a chunk of a take; one whose id is stored already changes nothing. */
   addTake: (chunk: TakeChunk) => Promise<void>;
   /** Take chunks by index (a piece's, or one run's), in order. Never read at startup. */
@@ -169,6 +179,9 @@ const openFreePlayRange = () => IDBKeyRange.bound(OPEN_FREE_PLAY, `${OPEN_FREE_P
 const OPEN_PIECE_RUN = 'pieceRun:';
 const openPieceRunKey = (id: string) => OPEN_PIECE_RUN + id;
 const openPieceRunRange = () => IDBKeyRange.bound(OPEN_PIECE_RUN, `${OPEN_PIECE_RUN}￿`);
+const REVIEW_OFF = 'review:off:';
+const reviewOffKey = (id: string) => REVIEW_OFF + id;
+const reviewOffRange = () => IDBKeyRange.bound(REVIEW_OFF, `${REVIEW_OFF}￿`);
 
 function validHeaders(values: readonly unknown[]): PieceRunHeader[] {
   return values.flatMap((value) => {
@@ -220,16 +233,19 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
     kind: 'indexeddb',
     async load() {
       const tx = db.transaction(['attempts', 'noteStats', 'sessions', 'meta', 'pieces', 'answers']);
-      const [attempts, stats, sessions, meta, runs, pieces, answers] = await Promise.all([
-        tx.objectStore('attempts').getAll(),
-        tx.objectStore('noteStats').getAll(),
-        tx.objectStore('sessions').getAll(),
-        tx.objectStore('meta').getAll(openFreePlayRange()),
-        tx.objectStore('meta').getAll(openPieceRunRange()),
-        tx.objectStore('pieces').getAll(),
-        tx.objectStore('answers').getAll(),
-        tx.done,
-      ]);
+      const [attempts, stats, sessions, meta, runs, pieces, answers, reviewOff] = await Promise.all(
+        [
+          tx.objectStore('attempts').getAll(),
+          tx.objectStore('noteStats').getAll(),
+          tx.objectStore('sessions').getAll(),
+          tx.objectStore('meta').getAll(openFreePlayRange()),
+          tx.objectStore('meta').getAll(openPieceRunRange()),
+          tx.objectStore('pieces').getAll(),
+          tx.objectStore('answers').getAll(),
+          tx.objectStore('meta').getAllKeys(reviewOffRange()),
+          tx.done,
+        ],
+      );
       return sorted({
         attempts,
         stats: Object.fromEntries(stats.map((s) => [s.key, s])),
@@ -238,7 +254,12 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         pieces,
         openPieceRuns: validHeaders(runs),
         answers,
+        reviewOff: reviewOff.map((key) => String(key).slice(REVIEW_OFF.length)),
       });
+    },
+    async setReviewOff(pieceId, off) {
+      if (off) await db.put('meta', { at: Date.now() }, reviewOffKey(pieceId));
+      else await db.delete('meta', reviewOffKey(pieceId));
     },
     async addAttempt(attempt) {
       const tx = db.transaction(['attempts', 'noteStats', 'meta', 'outbox'], 'readwrite');
@@ -532,6 +553,7 @@ export function createMemoryRepository(): PracticeRepository {
   const answers = new Map<string, Answer>();
   const takes = new Map<string, TakeChunk>();
   const deletions = new Map<string, PieceDeletion>();
+  const reviewOff = new Set<string>();
   let stats: Record<string, NoteStats> = {};
   const copy = <T>(value: T): T => structuredClone(value);
 
@@ -547,8 +569,14 @@ export function createMemoryRepository(): PracticeRepository {
           pieces: [...pieces.values()].map(copy),
           openPieceRuns: [...openRuns.values()].map(copy),
           answers: [...answers.values()].map(copy),
+          reviewOff: [...reviewOff],
         }),
       ),
+    setReviewOff(pieceId, off) {
+      if (off) reviewOff.add(pieceId);
+      else reviewOff.delete(pieceId);
+      return Promise.resolve();
+    },
     addAttempt(attempt) {
       const current = stats[attempt.note] ?? emptyStats(attempt.note);
       if (attempts.has(attempt.id)) return Promise.resolve(copy(current));

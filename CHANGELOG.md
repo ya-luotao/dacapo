@@ -15,6 +15,20 @@ sessions go in the same lists), the
 click's tempo and grid of scale runs played with it (from version 7), and the takes of piece runs
 (from version 8). Version 1 to 7 files still import.
 
+### Review schedule (P6, [docs/PIECES.md](docs/PIECES.md))
+
+- A piece you have played to the end comes back for **review** after 1, 2, 4, 7, 14, 30 and 60
+  days. A run to the end with at most one wrong or missed note in 50 (and in rhythm mode at least
+  80 % in time, in wait mode no bar much slower than the rest) moves it to the next interval; one
+  with more than one wrong note in 10 moves it back; other runs keep it.
+- **Due for review** comes first on the Pieces page, each piece with how long since you last
+  played it through, and on the home page ("Due for review: 3 pieces"). The library says when
+  each piece is due.
+- A piece can be **taken out of review** and put back (the Pieces page and the piece's Options).
+  For an imported piece this syncs between your devices; for a built-in piece it is kept on the
+  device.
+- The schedule is worked out from your runs, so it follows them through sync and import.
+
 ### Play back your run (P5, [docs/PIECES.md](docs/PIECES.md))
 
 - **Play back** a run on your instrument (or the built-in piano) as you played it: each key as
