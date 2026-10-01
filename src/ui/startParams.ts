@@ -1,3 +1,4 @@
+import type { PracticeLink } from '../core/lessonLinks.ts';
 import { isHandSelection, type PracticeMode } from '../core/pieceRecords.ts';
 import type { ClickSettings } from '../core/scaleClick.ts';
 import type { HandSelection } from '../core/score.ts';
@@ -115,4 +116,27 @@ export function parseLevelStart(search: string): LevelStart | null {
   const family = params.get('family');
   const level = params.get('level');
   return family && level ? { family, level } : null;
+}
+
+/** The route of a piece's page, opened as it was left. */
+export function piecePath(pieceId: string): string {
+  return `/pieces/${encodeURIComponent(pieceId)}`;
+}
+
+/**
+ * The route one of a lesson's links opens (docs/LEARN.md, "Practise it goes to the thing
+ * itself"): a page as it is, or a practice with its settings as a task's button opens it — a
+ * level of its family, a scale at free tempo, a piece as it was left.
+ */
+export function practiceLinkPath(link: PracticeLink): string {
+  switch (link.kind) {
+    case 'page':
+      return `/${link.page}`;
+    case 'level':
+      return levelStartPath(link.page, link);
+    case 'scale':
+      return scaleStartPath({ exercise: link.exercise, click: null });
+    case 'piece':
+      return piecePath(link.id);
+  }
 }

@@ -1,5 +1,6 @@
 import {
   Component,
+  lazy,
   Suspense,
   useCallback,
   useEffect,
@@ -12,9 +13,14 @@ import { Link } from 'wouter';
 import { useI18n } from '../../i18n/index.ts';
 import { isExtra, lessonBySlug, lessonLanguage, LESSONS, neighbours } from '../../learn/lessons.ts';
 import { NotFoundPage } from '../pages/NotFoundPage.tsx';
-import { NAV_ITEMS } from '../routes.ts';
 import { LessonProvider } from './kit.tsx';
 import { LESSON_TEXTS } from './lessons/index.ts';
+
+// Practise it: the lesson's links are resolved against the reader's records, which takes the
+// mastery rule of every practice, so they are loaded apart from the lesson (as today's plan is).
+const PracticeLinks = lazy(() =>
+  import('./PracticeLinks.tsx').then((m) => ({ default: m.PracticeLinks })),
+);
 
 /** A lesson whose code could not be downloaded (offline, or a new version replaced it). */
 class LoadBoundary extends Component<{ fallback: ReactNode; children: ReactNode }> {
@@ -85,7 +91,6 @@ export function LessonPage({ slug }: { slug: string }) {
   const Text = LESSON_TEXTS[slug][language];
   const number = LESSONS.indexOf(lesson) + 1;
   const { previous, next } = neighbours(slug);
-  const practice = NAV_ITEMS.find((item) => item.path === lesson.practice);
 
   const goTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({
@@ -151,11 +156,12 @@ export function LessonPage({ slug }: { slug: string }) {
           </div>
 
           <footer className="lesson-end" lang={locale}>
-            {practice && (
-              <Link href={practice.path} className="button button-primary">
-                {t('learn.practice')}: {t(practice.label)}
-              </Link>
-            )}
+            {/* Without them the lesson is whole: a failure to load them leaves only the pager. */}
+            <LoadBoundary fallback={null}>
+              <Suspense fallback={<div className="lesson-practice" />}>
+                <PracticeLinks practice={lesson.practice} />
+              </Suspense>
+            </LoadBoundary>
             <nav className="lesson-pager" aria-label={t('learn.all')}>
               {previous ? (
                 <Link href={`/learn/${previous.slug}`} className="lesson-pager-link">

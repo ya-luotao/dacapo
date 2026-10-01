@@ -118,6 +118,36 @@ export function isOpen(
   );
 }
 
+// --- A practice names its lesson -----------------------------------------------------------------
+
+/** Scale runs recorded, of any exercise, after which the Scales page no longer names its lesson. */
+export const KNOWN_SCALE_RUNS = 5;
+
+/** Whether one of a practice's levels is mastered: whoever has one knows the practice. */
+export function anyMastered(levels: Iterable<{ mastered: boolean } | undefined>): boolean {
+  for (const level of levels) if (level?.mastered) return true;
+  return false;
+}
+
+/**
+ * The lesson a practice's page names to someone new to it ("New to this? Lesson 4, Rhythm and
+ * the beat"): the one that opens the practice, until it is ticked or the practice is `known` —
+ * a level of it mastered; for Scales `KNOWN_SCALE_RUNS` runs recorded; for Pieces a piece played
+ * to its end. Someone who knows it is not told again, and neither is someone who said on the
+ * start page that they play already (`start`, docs/START.md): every practice is open to them,
+ * and none is new. Null for the practice open from the start, which no lesson opens.
+ */
+export function lessonToRead(
+  practice: Practice,
+  lessonsDone: ReadonlySet<string>,
+  known: boolean,
+  start: StartingPoint | null = null,
+): string | null {
+  const lesson = OPENS_WITH[practice];
+  if (lesson === null || known || opensEverything(start)) return null;
+  return lessonsDone.has(lesson) ? null : lesson;
+}
+
 // --- The scale ladder ----------------------------------------------------------------------------
 
 /** The lesson on minor keys: once it is ticked, the ladder has each key's relative minor too. */

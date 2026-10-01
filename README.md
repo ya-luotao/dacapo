@@ -50,7 +50,9 @@ practising the notes you are slowest at. Progress is visible day by day.
   major scale and key signatures, posture and fingering, dots, ties, triplets and syncopation,
   minor keys, dynamics and articulation, the pedals, ornaments, chords and harmony, how to
   practise, and styles and forms, each with figures to play with on your own keyboard and
-  exercises to finish ([docs/LEARN.md](docs/LEARN.md)).
+  exercises to finish. A lesson ends with a way straight into the practice it prepares (the right
+  level, scale or piece), each practice names its lesson to a newcomer, and a finished lesson is
+  ticked on every device you sign in on ([docs/LEARN.md](docs/LEARN.md)).
 - **Live keyboard.** An 88-key on-screen piano lights up as you play, with velocity, the sustain
   pedal and the notes you just played. Works with a MIDI keyboard, your computer keyboard or
   the mouse / touch.

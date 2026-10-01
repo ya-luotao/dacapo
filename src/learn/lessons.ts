@@ -1,3 +1,4 @@
+import type { LevelFamily } from '../core/assignmentRecords.ts';
 import type { Locale } from '../i18n/index.ts';
 
 // The basics: short lessons for someone who has never read music, each with figures to play with
@@ -5,6 +6,27 @@ import type { Locale } from '../i18n/index.ts';
 // read the English (docs/LEARN.md).
 
 export type LessonLanguage = 'en' | 'zh-CN';
+
+/**
+ * Which level of a family a lesson leads to: the one its page suggests when the lesson is read,
+ * or the first level with what the lesson is about — sharps and flats (Read's notes), dotted
+ * notes or ties (Read's rhythm; once that level is mastered, the level suggested), minor keys
+ * (the key signatures).
+ */
+export type LessonLevel = 'suggested' | 'sharps' | 'dotted' | 'minor';
+
+/**
+ * Where to practise what a lesson teaches (docs/LEARN.md, "Practise it goes to the thing
+ * itself"): a page as it is; a level of a family of Read, Ear or Harmony; a scale, by its
+ * exercise key or `next` for the next rung of the ladder; a piece of the library, by its id or
+ * `inHand` for the piece in hand (else the next piece). Plain data: it is resolved against how
+ * far the reader has got when the lesson is read (`core/lessonLinks.ts`).
+ */
+export type LessonPractice =
+  | { page: 'play' | 'metronome' | 'pieces' }
+  | { family: LevelFamily; level: LessonLevel }
+  | { scale: string }
+  | { piece: string };
 
 export interface LessonInfo {
   slug: string;
@@ -14,8 +36,8 @@ export interface LessonInfo {
   minutes: number;
   /** False while a lesson is planned but not written: listed, not opened. */
   ready: boolean;
-  /** Where to practise what it teaches. */
-  practice?: string;
+  /** Where to practise what it teaches: one link or two, the first the main one. */
+  practice: readonly LessonPractice[];
 }
 
 export const LESSONS: readonly LessonInfo[] = [
@@ -29,7 +51,7 @@ export const LESSONS: readonly LessonInfo[] = [
     },
     minutes: 10,
     ready: true,
-    practice: '/play',
+    practice: [{ page: 'play' }],
   },
   {
     slug: 'staff',
@@ -40,7 +62,7 @@ export const LESSONS: readonly LessonInfo[] = [
     },
     minutes: 15,
     ready: true,
-    practice: '/read',
+    practice: [{ family: 'notes', level: 'suggested' }],
   },
   {
     slug: 'landmarks',
@@ -51,7 +73,10 @@ export const LESSONS: readonly LessonInfo[] = [
     },
     minutes: 12,
     ready: true,
-    practice: '/read',
+    practice: [
+      { family: 'notes', level: 'suggested' },
+      { family: 'readInterval', level: 'suggested' },
+    ],
   },
   {
     slug: 'rhythm',
@@ -62,7 +87,7 @@ export const LESSONS: readonly LessonInfo[] = [
     },
     minutes: 15,
     ready: true,
-    practice: '/metronome',
+    practice: [{ family: 'rhythm', level: 'suggested' }, { page: 'metronome' }],
   },
   {
     slug: 'sharps-and-flats',
@@ -73,7 +98,7 @@ export const LESSONS: readonly LessonInfo[] = [
     },
     minutes: 12,
     ready: true,
-    practice: '/read',
+    practice: [{ family: 'notes', level: 'sharps' }],
   },
   {
     slug: 'major-scale',
@@ -84,7 +109,7 @@ export const LESSONS: readonly LessonInfo[] = [
     },
     minutes: 15,
     ready: true,
-    practice: '/scales',
+    practice: [{ scale: 'next' }, { family: 'keySignature', level: 'suggested' }],
   },
   {
     slug: 'posture',
@@ -95,7 +120,7 @@ export const LESSONS: readonly LessonInfo[] = [
     },
     minutes: 10,
     ready: true,
-    practice: '/play',
+    practice: [{ scale: 'majorFiveFinger:C:1:right' }, { page: 'play' }],
   },
   {
     slug: 'rhythm-2',
@@ -106,7 +131,7 @@ export const LESSONS: readonly LessonInfo[] = [
     },
     minutes: 20,
     ready: true,
-    practice: '/pieces',
+    practice: [{ family: 'rhythm', level: 'dotted' }],
   },
   {
     slug: 'minor-keys',
@@ -118,7 +143,7 @@ export const LESSONS: readonly LessonInfo[] = [
     },
     minutes: 18,
     ready: true,
-    practice: '/scales',
+    practice: [{ scale: 'harmonicMinor:A:1:right' }, { family: 'keySignature', level: 'minor' }],
   },
   {
     slug: 'dynamics',
@@ -129,7 +154,8 @@ export const LESSONS: readonly LessonInfo[] = [
     },
     minutes: 18,
     ready: true,
-    practice: '/scales',
+    // Its dynamics are judged.
+    practice: [{ piece: 'schumann-soldiers-march' }],
   },
   {
     slug: 'pedals',
@@ -140,7 +166,8 @@ export const LESSONS: readonly LessonInfo[] = [
     },
     minutes: 15,
     ready: true,
-    practice: '/play',
+    // Its pedal marks are judged.
+    practice: [{ piece: 'beethoven-fur-elise' }, { page: 'play' }],
   },
   {
     slug: 'ornaments',
@@ -151,7 +178,7 @@ export const LESSONS: readonly LessonInfo[] = [
     },
     minutes: 15,
     ready: true,
-    practice: '/pieces',
+    practice: [{ piece: 'petzold-minuet-in-g' }],
   },
   {
     slug: 'chords',
@@ -163,7 +190,10 @@ export const LESSONS: readonly LessonInfo[] = [
     },
     minutes: 20,
     ready: true,
-    practice: '/harmony',
+    practice: [
+      { family: 'chordSymbol', level: 'suggested' },
+      { family: 'chord', level: 'suggested' },
+    ],
   },
   {
     slug: 'practising',
@@ -175,7 +205,7 @@ export const LESSONS: readonly LessonInfo[] = [
     },
     minutes: 15,
     ready: true,
-    practice: '/pieces',
+    practice: [{ piece: 'inHand' }],
   },
   {
     slug: 'styles',
@@ -187,7 +217,7 @@ export const LESSONS: readonly LessonInfo[] = [
     },
     minutes: 18,
     ready: true,
-    practice: '/pieces',
+    practice: [{ page: 'pieces' }],
   },
 ];
 
@@ -206,7 +236,7 @@ export const EXTRAS: readonly LessonInfo[] = [
     },
     minutes: 8,
     ready: true,
-    practice: '/play',
+    practice: [{ page: 'play' }],
   },
 ];
 

@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { Link } from 'wouter';
+import { anyMastered } from '../../core/curriculum.ts';
 import {
   directionsOf,
   EAR_LEVELS,
   getEarLevel,
+  levelsOf,
   nextEarLevel,
   PROMPT_VELOCITY,
   type EarLevelId,
@@ -38,6 +40,7 @@ import { RhythmEarSession } from '../ear/RhythmEarSession.tsx';
 import { RhythmEarSummary } from '../ear/RhythmEarSummary.tsx';
 import { useInput } from '../input/context.ts';
 import { InputNotice } from '../input/InputNotice.tsx';
+import { LessonLine } from '../learn/LessonLine.tsx';
 import { useMetronome } from '../metronome/context.ts';
 import { useOutputSound } from '../output/context.ts';
 import { CalibrationSheet } from '../pieces/RhythmParts.tsx';
@@ -145,6 +148,12 @@ function Ear({ search }: { search: string }) {
   );
   const level = picked[earFamily] ?? suggested;
   const rhythmLevel = rhythmPicked ?? rhythmSuggested;
+  // A level of the family shown is mastered: its lesson is not named any more (LessonLine).
+  const known = anyMastered(
+    prefs.family === 'rhythmEar'
+      ? rhythmProgress.values()
+      : levelsOf(prefs.family).map((l) => progress.get(l.id)),
+  );
   const [calibration, setCalibration] = useState<'offer' | 'open' | null>(null);
 
   // Fetch the notation font while the user chooses, for the answer drawn after a wrong one.
@@ -304,6 +313,7 @@ function Ear({ search }: { search: string }) {
         <>
           <p className="muted read-intro">{t('ear.intro')}</p>
           <InputNotice />
+          <LessonLine practice={prefs.family} known={known} />
           {sound === 'none' && (
             <p className="ear-sound" role="status">
               <span>{t('ear.sound.needed')}</span>{' '}

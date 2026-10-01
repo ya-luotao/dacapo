@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { lessonLinks } from '../../core/lessonLinks.ts';
 import { EXTRAS, lessonLanguage, LESSONS, neighbours } from '../../learn/lessons.ts';
 import { NAV_ITEMS } from '../routes.ts';
+import { practiceLinkPath } from '../startParams.ts';
 import { LESSON_TEXTS } from './lessons/index.ts';
 
 describe('the lessons', () => {
@@ -58,12 +60,17 @@ describe('the lessons', () => {
     expect(neighbours('unknown')).toEqual({});
   });
 
-  it('each say where to practise, on a page the app has', () => {
-    for (const lesson of LESSONS.filter((l) => l.ready)) {
-      expect(
-        NAV_ITEMS.map((item) => item.path),
-        lesson.slug,
-      ).toContain(lesson.practice);
+  it('each say where to practise: one place or two, each on a page the app has', () => {
+    for (const lesson of [...LESSONS.filter((l) => l.ready), ...EXTRAS]) {
+      expect([1, 2], lesson.slug).toContain(lesson.practice.length);
+      // Before a link is resolved (and when what it names is not there) it leads to its page.
+      for (const link of lessonLinks(lesson.practice, null)) {
+        expect(link.kind, lesson.slug).toBe('page');
+        expect(
+          NAV_ITEMS.map((item) => item.path),
+          lesson.slug,
+        ).toContain(practiceLinkPath(link));
+      }
     }
   });
 });

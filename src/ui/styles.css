@@ -3492,6 +3492,15 @@ kbd {
   margin-bottom: 1.5rem;
 }
 
+/* The lesson that opens Chords, when it is named: between the intro and the setup. */
+.harmony-practice .read-intro:has(+ .lesson-line) {
+  margin-bottom: 0;
+}
+
+.harmony-practice .lesson-line {
+  margin-bottom: 1.5rem;
+}
+
 /*
  * A chord symbol set as a lead sheet sets it: the root in the serif, its sign smaller and a
  * little raised, the extension raised above the line, and the bass after the slash on the line.
@@ -11404,6 +11413,22 @@ a.today-step-name::after {
   margin-top: 2.5rem;
 }
 
+/* The way on: the first lesson not ticked, over the list. Its place is kept while the ticks are
+   read. */
+.learn-continue {
+  min-height: 2.75rem;
+  margin: 1.25rem 0 0;
+}
+
+.learn .learn-continue + .contents {
+  margin-top: 1.25rem;
+}
+
+/* The lesson that comes next, in the manner of "✓ Done": said in the row's own line, in ink. */
+.contents-meta.is-next {
+  color: var(--text);
+}
+
 .contents-row.is-planned {
   color: var(--text-muted);
 }
@@ -11874,6 +11899,21 @@ a.today-step-name::after {
   margin-top: 4rem;
   padding-top: 2rem;
   border-top: 1px solid var(--text);
+}
+
+/* Practise it: the lesson's one or two links, side by side; on a phone each takes the width. */
+.lesson-practice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+}
+
+@media (max-width: 40rem) {
+  .lesson-practice .button {
+    flex: 1 1 100%;
+    text-align: center;
+  }
 }
 
 .lesson-pager {

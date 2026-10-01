@@ -10,10 +10,18 @@ import {
   parseLevelStart,
   parsePieceStart,
   parseScaleStart,
+  piecePath,
   pieceStartPath,
+  practiceLinkPath,
   scaleStartPath,
   startLoop,
 } from './startParams.ts';
+import { lessonLinks, type LinkState } from '../core/lessonLinks.ts';
+import { levelsOfFamily } from '../core/assignments.ts';
+import { EXTRAS, LESSONS } from '../learn/lessons.ts';
+import { BUILT_IN } from '../pieces/library/index.ts';
+import { parseExerciseKey } from '../core/scales.ts';
+import { NAV_ITEMS } from './routes.ts';
 
 /** What a page reads of a start path: its route, and the settings after the `?`. */
 const opened = (path: string) => splitRoute(path);
@@ -131,6 +139,75 @@ describe('opening the Scales page with an exercise', () => {
     expect(startChoices(parseScaleStart('exercise=major:C:1:right&click=999x4'))!.click).toEqual(
       DEFAULT_CLICK,
     );
+  });
+});
+
+describe('where a lesson’s link leads', () => {
+  it('is a page as it is, or a practice opened with its settings', () => {
+    expect(practiceLinkPath({ kind: 'page', page: 'metronome' })).toBe('/metronome');
+    expect(practiceLinkPath({ kind: 'page', page: 'play' })).toBe('/play');
+    expect(practiceLinkPath({ kind: 'level', page: 'read', family: 'rhythm', level: 'R3' })).toBe(
+      '/read?family=rhythm&level=R3',
+    );
+    expect(
+      practiceLinkPath({ kind: 'level', page: 'harmony', family: 'chordSymbol', level: 'H1' }),
+    ).toBe('/harmony?family=chordSymbol&level=H1');
+    // A scale at free tempo, as today's warm-up opens it.
+    expect(practiceLinkPath({ kind: 'scale', exercise: 'harmonicMinor:A:1:right' })).toBe(
+      '/scales?exercise=harmonicMinor%3AA%3A1%3Aright&click=off',
+    );
+    // A piece as it was left: no settings.
+    expect(practiceLinkPath({ kind: 'piece', id: 'beethoven-fur-elise' })).toBe(
+      '/pieces/beethoven-fur-elise',
+    );
+    expect(piecePath('a b/c')).toBe('/pieces/a%20b%2Fc');
+  });
+
+  it('every link of every lesson opens what it names: the page takes the settings it is given', () => {
+    // A reader who is new, with the Ode in hand.
+    const state: LinkState = {
+      suggested: (family) => levelsOfFamily(family)[0]!,
+      mastered: () => false,
+      nextRung: 'major:C:1:right',
+      piece: 'beethoven-ode-to-joy',
+      hasPiece: (id) => BUILT_IN.some((piece) => piece.id === id),
+    };
+    const pages = NAV_ITEMS.map((item) => item.path);
+    for (const lesson of [...LESSONS, ...EXTRAS]) {
+      for (const link of lessonLinks(lesson.practice, state)) {
+        const { path, search } = opened(practiceLinkPath(link));
+        switch (link.kind) {
+          case 'page':
+            expect(pages, lesson.slug).toContain(path);
+            expect(search).toBe('');
+            break;
+          case 'level': {
+            expect(path).toBe(`/${link.page}`);
+            const start = parseLevelStart(search);
+            expect(start, lesson.slug).toEqual({ family: link.family, level: link.level });
+            // The page itself takes it: Read and Ear by their own check, Harmony its one family.
+            if (link.page === 'read') expect(readStart(start), lesson.slug).not.toBeNull();
+            if (link.page === 'ear') expect(earStart(start), lesson.slug).not.toBeNull();
+            if (link.page === 'harmony') expect(link.family).toBe('chordSymbol');
+            break;
+          }
+          case 'scale': {
+            expect(path).toBe('/scales');
+            const start = parseScaleStart(search);
+            expect(start, lesson.slug).toEqual({ exercise: link.exercise, click: 'off' });
+            expect(startChoices(start), lesson.slug).toMatchObject({
+              exercise: parseExerciseKey(link.exercise),
+              click: { on: false },
+            });
+            break;
+          }
+          case 'piece':
+            expect(path).toBe(`/pieces/${link.id}`);
+            expect(BUILT_IN.map((piece) => piece.id)).toContain(link.id);
+            break;
+        }
+      }
+    }
   });
 });
 

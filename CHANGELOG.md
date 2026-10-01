@@ -17,6 +17,15 @@ version 10). Version 1 to 9 files still import.
 
 ### Lessons and practice, joined (G3, [docs/LEARN.md](docs/LEARN.md))
 
+- **Practise it goes to the thing itself.** A lesson ends with one or two buttons that open
+  what it prepares, set as it should be: the level Read, Ear or Harmony suggests for you now
+  (or the first level with what the lesson is about: sharps and flats, dotted notes and ties,
+  minor keys), the next scale you have not played, the piece whose dynamics or pedal marks are
+  judged, the piece you have in hand. The button says what it opens.
+- **A practice names its lesson.** On Read, Ear, Harmony's Chords, Scales and the library, one
+  quiet line names the lesson that explains it (“New to this? Lesson 4, Rhythm and the beat”),
+  until you have read it or shown that you know the practice.
+- **The next lesson** is marked on the Learn page, which opens with a way to it.
 - **A finished lesson is a record now**, kept with your practice: it is in the export file, and
   with an account it syncs, so a lesson finished on one device is ticked on the others (on the
   Learn page, in today's plan, in an assignment's checklist and under Where you are). A tick is

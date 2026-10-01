@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useState, useSyncExternalStore } from 'react';
 import { isRhythmAnswer, isTheoryAnswer } from '../../core/answers.ts';
+import { anyMastered } from '../../core/curriculum.ts';
 import { LEVEL_IDS, nextLevel, type LevelId } from '../../core/levels.ts';
 import { levelProgress, suggestedLevel } from '../../core/mastery.ts';
 import { nextRhythmLevel, RHYTHM_LEVEL_IDS, type RhythmLevelId } from '../../core/rhythmCells.ts';
@@ -21,6 +22,7 @@ import {
   getTheoryLevel,
   nextTheoryLevel,
   THEORY_LEVELS,
+  theoryLevelsOf,
   type TheoryFamily,
   type TheoryLevelId,
 } from '../../core/theoryItems.ts';
@@ -33,6 +35,7 @@ import {
 import { useT } from '../../i18n/index.ts';
 import { useInput } from '../input/context.ts';
 import { InputNotice } from '../input/InputNotice.tsx';
+import { LessonLine } from '../learn/LessonLine.tsx';
 import { CalibrationSheet } from '../pieces/RhythmParts.tsx';
 import { readLatency, type Latency } from '../pieces/rhythmPrefs.ts';
 import { usePractice, usePracticeStore, useStorageStatus } from '../practice/context.ts';
@@ -175,6 +178,16 @@ function Read({ search }: { search: string }) {
   const theoryLevel = family
     ? (theoryPicked[family] ?? suggestedTheoryLevel(family, theoryProgress))
     : null;
+  // A level of what is chosen is mastered: its lesson is not named any more (LessonLine).
+  const known = anyMastered(
+    choice === 'rhythm'
+      ? rhythmProgress.values()
+      : choice === 'sight'
+        ? sightProgress.values()
+        : family
+          ? theoryLevelsOf(family).map((l) => theoryProgress.get(l.id))
+          : progress.values(),
+  );
 
   // Fetch the notation font while the user picks a level, so the first card is not delayed.
   useEffect(loadMusicFont, []);
@@ -385,6 +398,7 @@ function Read({ search }: { search: string }) {
             )}
           </p>
           <InputNotice />
+          <LessonLine practice={choice} known={known} />
           {choice === 'rhythm' ? (
             <>
               <RhythmSetup

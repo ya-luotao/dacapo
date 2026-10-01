@@ -14,6 +14,7 @@ import {
   nextHarmonyLevel,
   type HarmonyLevelId,
 } from '../../core/chordSymbols.ts';
+import { anyMastered } from '../../core/curriculum.ts';
 import {
   harmonyLevelProgress,
   suggestedHarmonyLevel,
@@ -27,6 +28,7 @@ import { isBuiltin } from '../../output/output.ts';
 import { browserClock } from '../../output/scheduler.ts';
 import { useInput } from '../input/context.ts';
 import { InputNotice } from '../input/InputNotice.tsx';
+import { LessonLine } from '../learn/LessonLine.tsx';
 import { useMetronome } from '../metronome/context.ts';
 import { useOutputSound, useOutputState } from '../output/context.ts';
 import { ACCOMPANIMENT_LEVELS, readAccompanimentLevel } from '../output/prefs.ts';
@@ -228,6 +230,7 @@ function Harmony({ search }: { search: string }) {
           />
           {prefs.practice === 'chords' ? (
             <PracticeSection practice="chords">
+              <LessonLine practice="chordSymbol" known={anyMastered(progress.values())} />
               <ChordsSetup
                 level={level}
                 length={length}

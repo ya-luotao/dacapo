@@ -8,18 +8,21 @@ import type { TaskProgress } from '../../core/assignmentRecords.ts';
 import { dayKey } from '../../core/streak.ts';
 import type { TodayPlan as Plan } from '../../core/todayRecords.ts';
 import { I18nContext, type I18nContextValue } from '../../i18n/context.ts';
-import { lessonBySlug } from '../../learn/lessons.ts';
+import type { Locale } from '../../i18n/index.ts';
 import type { InputSystem } from '../../input/index.ts';
+import { lessonBySlug } from '../../learn/lessons.ts';
 import { createMemoryRepository, type OpenResult } from '../../storage/repository.ts';
 import { useChecklist } from '../assignments/useChecklist.ts';
 import { HomePage } from '../home/HomePage.tsx';
 import { InputContext } from '../input/context.ts';
+import { LESSONS } from '../../learn/lessons.ts';
 import { PracticeProvider } from '../practice/PracticeProvider.tsx';
 import { createPracticeStore, type PracticeStore } from '../practice/store.ts';
 import { WeekRecap } from '../progress/WeekRecap.tsx';
 import { WhereYouAre } from '../progress/WhereYouAre.tsx';
 import { TodayPlan } from '../today/TodayPlan.tsx';
 import { LearnPage } from './LearnPage.tsx';
+import { LessonLine } from './LessonLine.tsx';
 import { LessonContext, useCompleteLesson } from './lesson.ts';
 import { readLegacyLessons, useLessonsDone } from './progress.ts';
 
@@ -71,9 +74,9 @@ const loaded = (store: PracticeStore) =>
   });
 
 /** Renders `children` inside what the pages need: the words (as keys), the store, a router. */
-function mount(store: PracticeStore, children: ReactNode) {
+function mount(store: PracticeStore, children: ReactNode, locale: Locale = 'en') {
   const i18n = {
-    locale: 'en',
+    locale,
     override: null,
     setOverride: () => undefined,
     t: (key: string, vars?: Record<string, string | number>) =>
@@ -184,20 +187,64 @@ describe('the pages read the ticks from the store', () => {
     expect(localStorage.getItem(LEGACY)).toBeNull();
   });
 
-  it('the Learn page ticks a lesson finished, once the records are read', async () => {
+  it('the Learn page ticks a lesson finished, marks the next and leads to it, once the records are read', async () => {
     let release: () => void = () => {};
     const store = startStore(new Promise<void>((resolve) => (release = resolve)));
     mount(store, createElement(LearnPage));
     const meta = () =>
       [...host.querySelectorAll('.contents-meta')].map((el) => el.textContent?.trim());
-    // Until then a lesson says neither "done" nor how long it takes.
+    /** The way on, over the list: where it leads and what it says; null when it is not there. */
+    const way = () => {
+      const line = host.querySelector('.learn-continue');
+      const link = line?.querySelector('a');
+      return line ? [link?.getAttribute('href') ?? null, link?.textContent ?? ''] : null;
+    };
+    const next = () =>
+      [...host.querySelectorAll('[aria-current="step"]')].map((el) => el.getAttribute('href'));
+    // Until then a lesson says neither "done" nor how long it takes, none is marked, and the
+    // way on keeps its place, empty.
     expect(meta().slice(0, 2)).toEqual(['', '']);
+    expect(way()).toEqual([null, '']);
+    expect(next()).toEqual([]);
     release();
     await loaded(store);
-    expect(meta()[1]).toBe('learn.minutes {"n":15}');
-    act(() => store.markLesson('staff'));
-    expect(meta()[0]).toBe('learn.minutes {"n":10}');
-    expect(meta()[1]).toBe('✓ learn.done');
+    // Nothing ticked: the first lesson is next, and the way to it says "begin".
+    expect(meta().slice(0, 2)).toEqual([
+      'learn.upNext · learn.minutes {"n":10}',
+      'learn.minutes {"n":15}',
+    ]);
+    expect(way()).toEqual([
+      '/learn/keyboard',
+      'learn.begin {"n":1,"title":"Finding your way around the keyboard"}',
+    ]);
+    expect(next()).toEqual(['/learn/keyboard']);
+
+    act(() => store.markLesson('keyboard'));
+    expect(meta().slice(0, 3)).toEqual([
+      '✓ learn.done',
+      'learn.upNext · learn.minutes {"n":15}',
+      'learn.minutes {"n":12}',
+    ]);
+    expect(way()).toEqual([
+      '/learn/staff',
+      'learn.continue {"n":2,"title":"The staff and the clefs"}',
+    ]);
+    // A later lesson finished out of order: the next is still the first not ticked.
+    act(() => store.markLesson('landmarks'));
+    expect(next()).toEqual(['/learn/staff']);
+    expect(meta()[2]).toBe('✓ learn.done');
+    // A page beside the lessons is ticked, and is never "next".
+    act(() => store.markLesson('inside'));
+    expect(meta().at(-1)).toBe('✓ learn.done');
+    expect(next()).toEqual(['/learn/staff']);
+
+    // Every lesson ticked: none is next, and the way on goes.
+    act(() => {
+      for (const lesson of LESSONS) store.markLesson(lesson.slug);
+    });
+    expect(meta().every((text) => text === '✓ learn.done')).toBe(true);
+    expect(way()).toBeNull();
+    expect(next()).toEqual([]);
   });
 
   it('the checklist’s lesson task ticks when the lesson is finished', async () => {
@@ -414,6 +461,85 @@ describe('the pages read the ticks from the store', () => {
     expect(host.textContent).toContain('where.lessons {"done":2,"of":15}');
     // The next lesson is the first not ticked.
     expect(host.querySelector('a[href="/learn/landmarks"]')).not.toBeNull();
+  });
+});
+
+describe('a practice names its lesson', () => {
+  const line = () => host.querySelector('.lesson-line');
+
+  it('to someone new to it: one line with the lesson that opens it, as a link', async () => {
+    const store = startStore();
+    await loaded(store);
+    mount(store, createElement(LessonLine, { practice: 'rhythm', known: false }));
+    expect(line()?.textContent).toBe(
+      'learn.new learn.new.lesson {"n":4,"title":"Rhythm and the beat"}',
+    );
+    expect(line()?.querySelector('a')?.getAttribute('href')).toBe('/learn/rhythm');
+    // The lesson is finished (here, or on another device): the line goes.
+    act(() => store.markLesson('rhythm'));
+    expect(line()).toBeNull();
+  });
+
+  it('not to someone who knows the practice, and not for the notes', async () => {
+    const store = startStore();
+    await loaded(store);
+    mount(store, createElement(LessonLine, { practice: 'scales', known: true }));
+    expect(line()).toBeNull();
+    act(() => root?.unmount());
+    mount(store, createElement(LessonLine, { practice: 'notes', known: false }));
+    expect(line()).toBeNull();
+  });
+
+  it('not to someone who said on the start page that they play already, on any practice', async () => {
+    localStorage.setItem('dacapo.start', JSON.stringify({ from: 'player', reads: 'treble' }));
+    const store = startStore();
+    await loaded(store);
+    for (const practice of [
+      'rhythm',
+      'readInterval',
+      'interval',
+      'chordSymbol',
+      'scales',
+      'pieces',
+    ] as const) {
+      mount(store, createElement(LessonLine, { practice, known: false }));
+      expect(line(), practice).toBeNull();
+      act(() => root?.unmount());
+    }
+    // A newcomer's answer leaves the line where it was.
+    localStorage.setItem('dacapo.start', JSON.stringify({ from: 'new' }));
+    mount(store, createElement(LessonLine, { practice: 'rhythm', known: false }));
+    expect(line()?.querySelector('a')?.getAttribute('href')).toBe('/learn/rhythm');
+  });
+
+  it('not before the records are read: a lesson ticked is not named for a moment', async () => {
+    localStorage.setItem(LEGACY, 'major-scale');
+    let release: () => void = () => {};
+    const store = startStore(new Promise<void>((resolve) => (release = resolve)));
+    mount(store, createElement(LessonLine, { practice: 'scales', known: false }));
+    expect(line()).toBeNull();
+    release();
+    await loaded(store);
+    expect(line()).toBeNull();
+    // Another practice, whose lesson is not ticked, is named once they are.
+    act(() => root?.unmount());
+    mount(store, createElement(LessonLine, { practice: 'pieces', known: false }));
+    expect(line()?.querySelector('a')?.getAttribute('href')).toBe('/learn/landmarks');
+  });
+
+  it('in the lesson’s language, and says so where the lessons are read in English', async () => {
+    const store = startStore();
+    await loaded(store);
+    mount(store, createElement(LessonLine, { practice: 'scales', known: false }), 'zh-CN');
+    expect(line()?.textContent).toBe('learn.newlearn.new.lesson {"n":6,"title":"大调音阶与调号"}');
+    for (const locale of ['ja', 'ko'] as const) {
+      act(() => root?.unmount());
+      mount(store, createElement(LessonLine, { practice: 'scales', known: false }), locale);
+      expect(line()?.textContent, locale).toContain(
+        'learn.new.lesson {"n":6,"title":"The major scale and key signatures"}',
+      );
+      expect(line()?.textContent?.endsWith('learn.new.english'), locale).toBe(true);
+    }
   });
 });
 

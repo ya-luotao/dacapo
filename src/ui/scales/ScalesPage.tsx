@@ -8,6 +8,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react';
+import { KNOWN_SCALE_RUNS } from '../../core/curriculum.ts';
 import { analyzeRun, type RunAnalysis } from '../../core/evenness.ts';
 import { parseMusicXml } from '../../core/musicxml.ts';
 import { summarizeRhythm } from '../../core/rhythmRun.ts';
@@ -35,6 +36,7 @@ import { useT } from '../../i18n/index.ts';
 import type { MidiStatus } from '../../input/index.ts';
 import { useHubState, useInput } from '../input/context.ts';
 import { InputNotice } from '../input/InputNotice.tsx';
+import { LessonLine } from '../learn/LessonLine.tsx';
 import { useMetronome, useMetronomeState } from '../metronome/context.ts';
 import { usePractice, usePracticeStore } from '../practice/context.ts';
 import { useNow } from '../progress/useNow.ts';
@@ -213,6 +215,12 @@ function Scales({ search }: { search: string }) {
         // Selects take the computer keyboard's letters; after a choice, the keys play notes again.
         onChosen={() => stage.current?.focus({ preventScroll: true })}
       />
+      {!focus.on && (
+        <LessonLine
+          practice="scales"
+          known={progress.reduce((runs, p) => runs + p.runs, 0) >= KNOWN_SCALE_RUNS}
+        />
+      )}
       <div className="scale-stage" ref={stage} tabIndex={-1}>
         {loop ? (
           <ScaleLoop

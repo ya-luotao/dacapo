@@ -146,11 +146,11 @@ Fine") are replaced by what works in Chinese.
 
 ## Lessons and practice, joined (G3)
 
-Status: the tick as a record is built; the rest is planned. A lesson ends with **Practise it**,
-which opens a page and leaves the reader to find the level; no practice says which lesson
-explains it; the Learn page does not say which lesson comes next; and the tick stayed on one
-device. G3 joins them, by the table in [TODAY.md](TODAY.md) (`core/curriculum.ts`: which lesson
-opens which practice).
+Status: built, but for the kept level and the lessons in Traditional Chinese (the last two
+points below). A lesson ended with **Practise it**, which opened a page and left the reader to
+find the level; no practice said which lesson explains it; the Learn page did not say which
+lesson comes next; and the tick stayed on one device. G3 joins them, by the table in
+[TODAY.md](TODAY.md) (`core/curriculum.ts`: which lesson opens which practice).
 
 - **Practise it goes to the thing itself.** A lesson names one or two practices (`practice` in
   `src/learn/lessons.ts` becomes a list), each opened with its settings as a task's button does
@@ -301,6 +301,61 @@ opens which practice).
 - **The week's recap** ([PERSONAL.md](PERSONAL.md), "Your week") reads the ticks from the store
   (`ui/today/lessonTicks.ts`): a lesson counts for the week of its `doneAt`, wherever it was
   finished, and a tick moved without a time (0) counts for none.
+- **The links are data.** A lesson's `practice` is a list of one or two plain descriptions (a
+  page; a family with `suggested` or the level that has what the lesson is about; a scale by
+  its exercise key, or `next`; a piece by its id, or `inHand`). `core/lessonLinks.ts` resolves
+  them against where the reader stands when the lesson is read: the state today's plan is made
+  from (`curriculumState`), as it is now. `practiceLinkPath` in `ui/startParams.ts` builds the
+  route. Resolving takes the mastery rule of every practice, so the links are loaded apart from
+  the lesson's text, as today's plan is loaded apart from the start; until the records are read
+  each leads to its page.
+- **The levels are found in the levels' own data**, and a test holds each to the level the table
+  names: Read's first level with a note that has a sharp or a flat (L7), the first rhythm level
+  that adds a cell with a dot or a tie (R3: it adds the dotted notes, R4 the ties), the first
+  key-signature level in minor (KS4).
+- **Which level, when.** "Key signatures" in lesson 6's row is Read's key signatures at the
+  level suggested. The level with sharps and flats (lesson 5) and the first with minor keys
+  (lesson 9) are named whatever is mastered: they are what the lesson is about. Only lesson 8's
+  moves on, as its row says: R3 until R3 is mastered, then Read's rhythm at the level suggested.
+  The level suggested of a family whose every level is mastered is its last, as on its page.
+  For Read's notes it is the Read page's own, with the floor of a player's starting point
+  ([START.md](START.md)): the first level not mastered from the floor on, and the last level
+  once those all are; a test holds the link to `suggestedLevel` with its floor.
+- **The scales.** The next rung is TODAY.md's (`nextRung`); once every rung was played the link
+  leads to the Scales page. The five-finger pattern is `majorFiveFinger:C:1:right`, A harmonic
+  minor `harmonicMinor:A:1:right`. A scale opens at free tempo, as today's warm-up opens it.
+- **The pieces.** A piece opens as it was left, with no settings in its route, like a piece
+  step of today's plan. "The piece in hand, or the next piece" are TODAY.md's: the next piece
+  is proposed once Pieces is open (lesson 3 ticked, or a piece played or imported), no more
+  than a grade above what was played to its end; with neither, the link leads to the library.
+- **What a link says.** "Practise it: Read · Rhythm · R1": the page, the family and the level
+  as the checklist names a level task; a scale by its name ("C major, 1 oct. · Right hand"), a
+  piece by its title, a page by its name. With two links both say "Practise it"; the first is
+  the filled button. On a phone each takes the width.
+- **A practice names its lesson** with `LessonLine` (`ui/learn/`), by `lessonToRead` in
+  `core/curriculum.ts`: under the introduction of Read (for what is chosen), of Ear (for the
+  family shown), of Harmony's Chords and of the library, and under the picker on Scales.
+  Read's notes are open from the start and Harmony's Progressions and Improvise are opened by
+  no lesson: they have no line. "A level mastered" is any level of the family (a tune learnt,
+  for the tunes); "five runs" are five scale runs recorded in all, of whatever exercise; "a
+  piece played to its end" is a piece in review, taken out of it or not. The line is not shown
+  until the records are read, and goes the moment its lesson is ticked.
+- **Someone who plays already** (the start page's answer, START.md) has every practice open, as
+  for today's plan and Where you are: the line is on none of them, for nobody who said so is
+  "new to this". A newcomer's answer, or none, changes nothing. Where the input notice
+  (START.md) is shown too, it comes first and the lesson's line after it.
+- **The line and the fold.** At 1280 × 800 two setups have their Start button on the first
+  screen: Read's notes, which have no line, and Ear's Echo, where it stays there with the line.
+  On the others the button was below the fold already. On Scales the keyboard and its hint
+  still fit.
+- **Where the lessons are read in English** (Japanese, Korean, and Traditional Chinese until
+  its texts are in), the line names the lesson by its English title and adds "(in English)" in
+  the page's language.
+- **The next lesson** is the first of the fifteen not ticked (`nextLesson`), whatever was
+  finished out of order; the pages beside the lessons are never next. Its row says "Next"
+  before its minutes, in the ink of the text, and is the list's current step for a screen
+  reader. Over the list: "Begin: lesson 1, …" while no lesson is ticked, "Continue: lesson 5,
+  …" after, nothing once all fifteen are. The line's place is kept while the ticks are read.
 
 ## Pictures
 

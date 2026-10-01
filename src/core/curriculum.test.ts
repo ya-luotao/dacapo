@@ -15,9 +15,12 @@ import {
 } from '../storage/fixtures.ts';
 import { LEVEL_FAMILIES } from './assignments.ts';
 import {
+  anyMastered,
   CURRICULUM_LESSONS,
   isOpen,
+  KNOWN_SCALE_RUNS,
   lessonNumber,
+  lessonToRead,
   MINOR_LESSON,
   nextLesson,
   nextPiece,
@@ -184,6 +187,66 @@ describe('a practice is open', () => {
     };
     expect(sessionPractice(free)).toBeNull();
     expect(practised({ ...NONE, sessions: [free] }).size).toBe(0);
+  });
+});
+
+describe('a practice names its lesson', () => {
+  it('names the lesson that opens it, to someone who has neither read it nor knows the practice', () => {
+    expect(lessonToRead('rhythm', ticked(), false)).toBe('rhythm');
+    expect(lessonToRead('rhythmEar', ticked(), false)).toBe('rhythm');
+    expect(lessonToRead('readInterval', ticked('keyboard', 'staff'), false)).toBe('landmarks');
+    expect(lessonToRead('scales', ticked(), false)).toBe('major-scale');
+    expect(lessonToRead('pieces', ticked(), false)).toBe('landmarks');
+    expect(lessonToRead('chordSymbol', ticked('rhythm'), false)).toBe('chords');
+    // Every practice a lesson opens names that lesson.
+    for (const [practice, slug] of Object.entries(OPENS_WITH)) {
+      expect(lessonToRead(practice as Practice, ticked(), false), practice).toBe(slug);
+    }
+  });
+
+  it('names none once the lesson is ticked', () => {
+    expect(lessonToRead('rhythm', ticked('rhythm'), false)).toBeNull();
+    expect(lessonToRead('sight', ticked('rhythm'), false)).toBeNull();
+    expect(lessonToRead('scales', ticked('major-scale'), false)).toBeNull();
+    // Another lesson's tick does not count.
+    expect(lessonToRead('scales', ticked('minor-keys'), false)).toBe('major-scale');
+  });
+
+  it('names none to someone who knows the practice', () => {
+    expect(lessonToRead('rhythm', ticked(), true)).toBeNull();
+    expect(lessonToRead('pieces', ticked(), true)).toBeNull();
+  });
+
+  it('names none to someone who said they play already: every practice is open to them', () => {
+    const player = { from: 'player', reads: 'unknown' } as const;
+    for (const practice of Object.keys(OPENS_WITH) as Practice[]) {
+      expect(lessonToRead(practice, ticked(), false, player), practice).toBeNull();
+      // The same notion of open as today's plan and Where you are have.
+      expect(isOpen(practice, ticked(), new Set(), player), practice).toBe(true);
+    }
+    // A newcomer's answer, or none, changes nothing.
+    expect(lessonToRead('rhythm', ticked(), false, { from: 'new' })).toBe('rhythm');
+    expect(lessonToRead('rhythm', ticked(), false, null)).toBe('rhythm');
+    expect(lessonToRead('rhythm', ticked('rhythm'), false, { from: 'new' })).toBeNull();
+  });
+
+  it('names none for the notes, which are open from the start', () => {
+    expect(lessonToRead('notes', ticked(), false)).toBeNull();
+    expect(lessonToRead('notes', ticked(), true)).toBeNull();
+  });
+
+  it('knows a practice by a level mastered: one is enough, of any of its levels', () => {
+    expect(anyMastered([])).toBe(false);
+    expect(anyMastered([{ mastered: false }, { mastered: false }])).toBe(false);
+    expect(anyMastered([{ mastered: false }, { mastered: true }])).toBe(true);
+    // A level never practised has no progress yet.
+    expect(anyMastered([undefined, undefined])).toBe(false);
+    expect(anyMastered([undefined, { mastered: true }])).toBe(true);
+    expect(anyMastered(new Map([['R1', { mastered: true }]]).values())).toBe(true);
+  });
+
+  it('knows the scales by five runs', () => {
+    expect(KNOWN_SCALE_RUNS).toBe(5);
   });
 });
 

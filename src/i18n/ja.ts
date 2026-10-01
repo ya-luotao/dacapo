@@ -147,7 +147,13 @@ export const ja: Dictionary = {
   'learn.all': 'レッスン一覧',
   'learn.next': '次のレッスン',
   'learn.previous': '前のレッスン',
-  'learn.practice': '練習する',
+  'learn.practice': '練習する：{what}',
+  'learn.upNext': '次はここ',
+  'learn.continue': '続きから：レッスン{n}「{title}」',
+  'learn.begin': 'はじめる：レッスン{n}「{title}」',
+  'learn.new': 'はじめてですか？',
+  'learn.new.lesson': 'レッスン{n}「{title}」',
+  'learn.new.english': '（英語）',
   'learn.loadFailed':
     'このレッスンを読み込めませんでした。接続を確認して、もう一度開いてください。',
 
