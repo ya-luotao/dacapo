@@ -17,12 +17,12 @@ import { downloadText } from '../../lib/download.ts';
 import { currentShell } from '../../lib/shell.ts';
 import { usePractice, usePracticeStore, useStorageStatus } from '../practice/context.ts';
 import { useSyncStatus } from '../sync/context.ts';
-import type { StorageStatus } from '../practice/store.ts';
 import { readGoal, writeGoal } from '../progress/goal.ts';
 import { useNow } from '../progress/useNow.ts';
 import { Segmented } from '../Segmented.tsx';
 import { ImportPreview } from './ImportPreview.tsx';
 import { OfflineBlock } from './OfflineBlock.tsx';
+import { inMemory, storageMessage } from './storageMessage.ts';
 
 interface StoredIds {
   pieceSteps: ReadonlySet<string>;
@@ -49,16 +49,9 @@ const ERRORS: Record<(ImportError | { kind: 'read' })['kind'], MessageKey> = {
   malformed: 'settings.import.error.malformed',
   'wrong-format': 'settings.import.error.wrongFormat',
   'future-version': 'settings.import.error.futureVersion',
+  'too-many-lessons': 'settings.import.error.tooManyLessons',
   read: 'settings.import.error.read',
 };
-
-function storageMessage(status: StorageStatus): MessageKey {
-  if (!status.loaded) return 'settings.storage.loading';
-  if (status.state === 'unavailable') return 'settings.storage.memory';
-  if (status.persisted === true) return 'settings.storage.persisted';
-  if (status.persisted === false) return 'settings.storage.notPersisted';
-  return 'settings.storage.unknown';
-}
 
 interface DataSectionProps {
   /** The preferences the page above keeps; the daily goal is this section's own. */
@@ -151,6 +144,7 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
         answers: parsed.answers,
         takes: parsed.takes,
         assignments: parsed.assignments,
+        lessons: parsed.lessons,
       });
       if (applyPreferences && parsed.preferences) {
         // The file's goal takes this device's place, with its days; a file without one says
@@ -171,7 +165,7 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
     <section className="field data" aria-labelledby={`${id}-title`}>
       <h2 id={`${id}-title`}>{t('settings.data')}</h2>
       <p className="help">{t(synced ? 'settings.data.help.synced' : 'settings.data.help')}</p>
-      <p className={status.state === 'unavailable' ? 'data-status is-warning' : 'data-status'}>
+      <p className={inMemory(status) ? 'data-status is-warning' : 'data-status'}>
         {t(storageMessage(status))}
       </p>
 
@@ -232,6 +226,7 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
         <p className="data-message is-error" role="alert">
           {t(ERRORS[state.error.kind], {
             version: state.error.kind === 'future-version' ? state.error.version : '',
+            limit: state.error.kind === 'too-many-lessons' ? state.error.limit : '',
           })}
         </p>
       )}
@@ -248,6 +243,7 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
             answerIds: new Set(data.answers.map((a) => a.id)),
             takeIds: state.stored.takes,
             assignmentIds: new Set(data.assignments.map((a) => a.id)),
+            lessons: data.lessons,
           })}
           working={state.working}
           today={dayKey(now)}
@@ -268,6 +264,7 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
             ear: state.added.answers,
             takes: state.added.takes,
             assignments: state.added.assignments,
+            lessons: state.added.lessons,
           })}
         </p>
       )}

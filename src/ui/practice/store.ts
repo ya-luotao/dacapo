@@ -7,6 +7,12 @@ import {
 } from '../../core/assignmentRecords.ts';
 import { closeFreePlay, type FreePlaySession, type OpenFreePlay } from '../../core/freePlay.ts';
 import {
+  isLessonSlug,
+  lessonsToWrite,
+  mergeLessons,
+  type LessonDone,
+} from '../../core/lessonRecords.ts';
+import {
   byStartDescending,
   byTime,
   recoverEarSessions,
@@ -63,6 +69,11 @@ export interface PracticeData {
    * (which only say so) among them. `storedAssignments` and `storedReports` pick the live ones.
    */
   assignments: readonly AssignmentRecord[];
+  /**
+   * The lessons finished (docs/LEARN.md, "The tick is a record"), by slug: those this build does
+   * not have among them. `doneSlugs` gives the slugs alone.
+   */
+  lessons: readonly LessonDone[];
 }
 
 /**
@@ -73,15 +84,35 @@ export interface PracticeData {
  * - `failed`: a write failed (e.g. storage full); what could not be written lives in memory only.
  * - `outdated`: another tab upgraded or deleted the database, or the browser closed it; saving
  *   stopped until the page is reloaded.
+ * - `newer`: the database was made by a later version of dacapo than this page (a tab left open
+ *   over a release, a page the offline worker kept); it is left untouched, progress lives in
+ *   memory only, and a reload brings the version that can read it.
  */
-export type StorageState = 'loading' | 'blocked' | 'saved' | 'unavailable' | 'failed' | 'outdated';
+export type StorageState =
+  'loading' | 'blocked' | 'saved' | 'unavailable' | 'failed' | 'outdated' | 'newer';
 
 export interface StorageStatus {
   state: StorageState;
   /** The stored data is in the snapshot. False only while loading. */
   loaded: boolean;
+  /**
+   * The stored records were read: false while loading, and when they could not be (no storage to
+   * use, a database of a later version, a read that failed). What is in the snapshot is then only
+   * what this tab holds, and says nothing of what was practised before.
+   */
+  read: boolean;
   /** Whether the browser keeps the data under storage pressure; null when unknown. */
   persisted: boolean | null;
+}
+
+/**
+ * Whether the snapshot holds all there is to know of what was practised: the stored records were
+ * read, or there is no storage to read (a private window: this tab holds all there is). False
+ * while loading, after a read that failed, and over a database of a later version: the records
+ * are there and this page cannot see them, so nothing is decided from their absence.
+ */
+export function recordsKnown(status: StorageStatus): boolean {
+  return status.read || (status.loaded && status.state === 'unavailable');
 }
 
 export interface PracticeStore {
@@ -115,6 +146,11 @@ export interface PracticeStore {
   saveAssignment: (record: AssignmentRecordDraft) => void;
   /** Deletes an assignment or a kept report: the deletion syncs like any other change. */
   deleteAssignment: (id: string) => void;
+  /**
+   * A lesson's last exercise was done: ticks it, with now as its time. One ticked already stays
+   * as it is (a tick is never taken back, nor moved later).
+   */
+  markLesson: (slug: string) => void;
   /** Stores a completed wait-mode step; `header` goes with the run's first step. */
   recordPieceStep: (step: PieceStep, header: PieceRunHeader | null) => void;
   /** A run ended: records its session (null when it had no step) and drops its header. */
@@ -193,6 +229,7 @@ export type SyncMessage =
   | { type: 'pieceDeleted'; id: string; steps: boolean }
   | { type: 'reviewOff'; id: string; off: boolean }
   | { type: 'assignment'; record: AssignmentRecord }
+  | { type: 'lessons'; records: readonly LessonDone[] }
   | { type: 'pieceStep'; step: PieceStep }
   | { type: 'scaleRun'; run: StoredScaleRun; session: ScaleSession }
   | { type: 'reload' };
@@ -210,6 +247,11 @@ export interface PracticeStoreOptions {
   storage?: PersistentStorage | null;
   /** Whether something is being practised in this tab, and when it stops (src/lib/shell.ts). */
   practice?: { isPractising: () => boolean; onPracticeEnd: (listener: () => void) => () => void };
+  /**
+   * The ticks an earlier version kept in the browser's preferences, as records without a time
+   * (`legacyLessons`): moved into the store at startup. They are only read, never changed.
+   */
+  legacyLessons?: () => readonly LessonDone[];
 }
 
 export const SYNC_CHANNEL = 'dacapo';
@@ -222,6 +264,7 @@ export const EMPTY_PRACTICE: PracticeData = {
   answers: [],
   reviewOff: [],
   assignments: [],
+  lessons: [],
 };
 
 const openInMemory = (): Promise<OpenResult> =>
@@ -295,9 +338,10 @@ export function createPracticeStore({
   channel: createChannel = () => null,
   storage = null,
   practice = { isPractising, onPracticeEnd },
+  legacyLessons = () => [],
 }: PracticeStoreOptions = {}): PracticeStore {
   let data = EMPTY_PRACTICE;
-  let status: StorageStatus = { state: 'loading', loaded: false, persisted: null };
+  let status: StorageStatus = { state: 'loading', loaded: false, read: false, persisted: null };
   const listeners = new Set<() => void>();
   const statusListeners = new Set<() => void>();
   const stepListeners = new Set<() => void>();
@@ -308,6 +352,8 @@ export function createPracticeStore({
   let repository: PracticeRepository | null = null;
   let channel: SyncChannel | null = null;
   let persistRequested = false;
+  /** The lessons ticked by an earlier version could not be written at startup (see `load`). */
+  let moveFailed = false;
   let resolveReady: () => void = () => {};
   const ready = new Promise<void>((resolve) => (resolveReady = resolve));
   let queue: Promise<void> = ready;
@@ -410,7 +456,8 @@ export function createPracticeStore({
     const reviewOff = [...new Set([...stored.reviewOff, ...early.reviewOff])];
     let assignments: AssignmentRecord[] = stored.assignments;
     for (const record of early.assignments) assignments = upsertAssignment(assignments, record);
-    return { attempts, stats, sessions, pieces, answers, reviewOff, assignments };
+    const lessons = mergeLessons(stored.lessons, early.lessons);
+    return { attempts, stats, sessions, pieces, answers, reviewOff, assignments, lessons };
   }
 
   /**
@@ -420,6 +467,13 @@ export function createPracticeStore({
    * other tab uses, so if that tab is in fact still running, its own later write wins. Only at
    * startup: a reload must not finish a run that this or another tab is still playing, nor
    * rebuild the session of answers another device has sent before their session.
+   *
+   * The lessons ticked in the browser's preferences by an earlier version are moved into the
+   * store here too (docs/LEARN.md, "The tick is a record"): each as a tick without a time, by the
+   * rule every tick is stored by (a lesson stored already stays ticked, and only one stored with
+   * a time changes: to none, the earlier), so nothing is ever un-ticked. The preference is only
+   * read, so the move needs no mark that it was made: a start that finds nothing to move writes
+   * nothing.
    */
   async function load(repo: PracticeRepository): Promise<StoredData> {
     const stored = await repo.load();
@@ -455,7 +509,20 @@ export function createPracticeStore({
       await repo.finishPieceRun(header.id, keep);
       if (keep) sessions = upsertSession(sessions, keep);
     }
-    return { ...stored, sessions, openFreePlay: [], openPieceRuns: [] };
+    let { lessons } = stored;
+    const bySlug = new Map(lessons.map((record) => [record.slug, record]));
+    const moved = lessonsToWrite(legacyLessons(), (slug) => bySlug.get(slug));
+    if (moved.length > 0) {
+      // In memory whatever happens to the write: a tick is shown even when it cannot be saved.
+      lessons = mergeLessons(lessons, moved);
+      try {
+        await repo.markLessons(moved);
+      } catch (error) {
+        console.error('dacapo: could not move the lessons finished into storage', error);
+        moveFailed = true;
+      }
+    }
+    return { ...stored, sessions, lessons, openFreePlay: [], openPieceRuns: [] };
   }
 
   function reload() {
@@ -469,6 +536,9 @@ export function createPracticeStore({
         answers: stored.answers,
         reviewOff: stored.reviewOff,
         assignments: stored.assignments,
+        // With the preference's ticks, as at startup: when their move could not be written they
+        // are not in what is stored, and stay on screen all the same.
+        lessons: mergeLessons(stored.lessons, legacyLessons()),
       });
       // Loaded again when next asked for.
       stepCache = new Map();
@@ -517,6 +587,9 @@ export function createPracticeStore({
         return;
       case 'assignment':
         set({ ...data, assignments: upsertAssignment(data.assignments, m.record) });
+        return;
+      case 'lessons':
+        set({ ...data, lessons: mergeLessons(data.lessons, m.records) });
         return;
       case 'pieceStep':
         cacheSteps([m.step]);
@@ -657,6 +730,17 @@ export function createPracticeStore({
         type: stored.type,
         deleted: true,
         updatedAt: nextRecordVersion(stored, Date.now()),
+      });
+    },
+    markLesson(slug) {
+      if (!isLessonSlug(slug) || data.lessons.some((record) => record.slug === slug)) return;
+      const record: LessonDone = { slug, doneAt: Date.now() };
+      set({ ...data, lessons: mergeLessons(data.lessons, [record]) });
+      void enqueue(async (repo) => {
+        // Stored by the rule every tick is: one another tab stored a moment ago stays as it is.
+        const written = await repo.markLessons([record]);
+        if (written.length > 0) broadcast({ type: 'lessons', records: written });
+        requestPersistence();
       });
     },
     recordPieceStep(step, header) {
@@ -811,7 +895,8 @@ export function createPracticeStore({
           if (channel) channel.onmessage = onMessage;
         }
         let stored: StoredData | null = null;
-        let state: StorageState = opened.failure ? 'unavailable' : 'saved';
+        let state: StorageState =
+          opened.failure === 'newer' ? 'newer' : opened.failure ? 'unavailable' : 'saved';
         try {
           stored = await load(repository);
         } catch (error) {
@@ -819,7 +904,14 @@ export function createPracticeStore({
           state = 'failed';
         }
         if (stored) set(mergeEarly(stored, data));
-        setStatus({ state: outdated() ? 'outdated' : state, loaded: true });
+        // The records could not be read: the ticks of the preference are shown all the same.
+        else set({ ...data, lessons: mergeLessons(data.lessons, legacyLessons()) });
+        if (moveFailed && state === 'saved') state = 'failed';
+        setStatus({
+          state: outdated() ? 'outdated' : state,
+          loaded: true,
+          read: stored !== null && opened.failure === null,
+        });
         resolveReady();
         const early = pending ?? [];
         pending = null;

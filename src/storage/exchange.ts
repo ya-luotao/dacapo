@@ -5,6 +5,7 @@ import {
   type LiveAssignmentRecord,
 } from '../core/assignmentRecords.ts';
 import { parseGoalHistory, type GoalHistory } from '../core/goal.ts';
+import { byLessonSlug, replacesLesson, type LessonDone } from '../core/lessonRecords.ts';
 import { byStartDescending, byTime, type SessionRecord } from '../core/log.ts';
 import { byStepTime, type PieceStep } from '../core/pieceRecords.ts';
 import { byRunTime, type StoredScaleRun } from '../core/scaleRecords.ts';
@@ -19,6 +20,7 @@ import {
   validateAnswer,
   validateAssignmentRecord,
   validateAttempt,
+  validateLesson,
   validatePiece,
   validatePieceStep,
   validateScaleRun,
@@ -37,13 +39,14 @@ export const EXPORT_FORMAT = 'dacapo';
  * and their timings; records without a mode are wait mode's, as in version 3), version 5 scale
  * sessions and scale runs, version 6 ear-training answers and sessions, version 7 scale runs played
  * with the click (their grid, and the tempo on their session's summary), version 8 the takes of
- * piece runs, version 9 assignments and kept reports. New kinds of record in a list the file has (Echo answers, the theory cards' answers
+ * piece runs, version 9 assignments and kept reports, version 10 the lessons finished. New kinds of
+ * record in a list the file has (Echo answers, the theory cards' answers
  * and `theory` sessions, Read's rhythm answers and `rhythm` sessions, the chord symbols' answers
  * and `harmony` sessions, rhythm dictation's answers and its `ear` sessions, memory mode's steps,
  * sessions and takes) need no new version:
  * an older build lists them among the records it could not read, and imports the rest.
  */
-export const EXPORT_VERSION = 9;
+export const EXPORT_VERSION = 10;
 
 export interface Preferences {
   /** null follows the browser language. */
@@ -82,6 +85,8 @@ export interface ExportFile {
   takes: TakeChunk[];
   /** Assignments and kept reports, by id; deleted ones are left out. */
   assignments: LiveAssignmentRecord[];
+  /** The lessons finished, by slug, each with when (0: before ticks had a time). */
+  lessons: LessonDone[];
 }
 
 export interface ExportInput {
@@ -95,6 +100,7 @@ export interface ExportInput {
   takes: readonly TakeChunk[];
   /** As stored: the records of deleted ones are left out of the file. */
   assignments: readonly AssignmentRecord[];
+  lessons: readonly LessonDone[];
 }
 
 export function buildExport(
@@ -123,6 +129,7 @@ export function buildExport(
     assignments: data.assignments
       .filter((r): r is LiveAssignmentRecord => !('deleted' in r))
       .sort(byRecordId),
+    lessons: [...data.lessons].sort(byLessonSlug),
   };
 }
 
@@ -145,7 +152,17 @@ export function exportFileName(now: number, timeZone?: string): string {
 }
 
 export type ImportError =
-  { kind: 'malformed' } | { kind: 'wrong-format' } | { kind: 'future-version'; version: number };
+  | { kind: 'malformed' }
+  | { kind: 'wrong-format' }
+  | { kind: 'future-version'; version: number }
+  /** More lessons finished than any export holds: the file is refused whole. */
+  | { kind: 'too-many-lessons'; limit: number };
+
+/**
+ * The most lessons finished a file may list. An export holds one per lesson ever ticked, a few
+ * dozen; a hand-made file past this is refused rather than written to every device.
+ */
+export const MAX_IMPORT_LESSONS = 1000;
 
 export type Collection =
   | 'sessions'
@@ -155,7 +172,8 @@ export type Collection =
   | 'scaleRuns'
   | 'answers'
   | 'takes'
-  | 'assignments';
+  | 'assignments'
+  | 'lessons';
 
 export interface InvalidRecord {
   collection: Collection | 'preferences';
@@ -184,6 +202,8 @@ export interface ParsedImport {
   takes: TakeChunk[];
   /** Empty before version 9. */
   assignments: LiveAssignmentRecord[];
+  /** Empty before version 10. */
+  lessons: LessonDone[];
   /** null when the file has none or they are invalid (then listed in `invalid`). */
   preferences: Preferences | null;
   invalid: InvalidRecord[];
@@ -223,6 +243,36 @@ function validateAll<T extends { id: string }>(
       invalid.push({ collection, index, field: 'id', problem: 'duplicate' });
     } else {
       seen.add(result.value.id);
+      valid.push(result.value);
+    }
+  });
+  return valid;
+}
+
+/**
+ * The valid lessons finished of a file, each slug once. Of several copies of a slug the one kept
+ * is the one every merge keeps (`replacesLesson`: the earliest; of equal times the first), and
+ * the others are listed as duplicates, wherever in the file they stand.
+ */
+function validateLessons(records: readonly unknown[], invalid: InvalidRecord[]): LessonDone[] {
+  const checked = records.map(validateLesson);
+  /** By slug, the position of the copy kept. */
+  const kept = new Map<string, number>();
+  checked.forEach((result, index) => {
+    if (!result.ok) return;
+    const at = kept.get(result.value.slug);
+    const standing = at === undefined ? undefined : checked[at];
+    if (!standing?.ok || replacesLesson(result.value, standing.value)) {
+      kept.set(result.value.slug, index);
+    }
+  });
+  const valid: LessonDone[] = [];
+  checked.forEach((result, index) => {
+    if (!result.ok) {
+      invalid.push({ collection: 'lessons', index, field: result.field, problem: 'invalid' });
+    } else if (kept.get(result.value.slug) !== index) {
+      invalid.push({ collection: 'lessons', index, field: 'slug', problem: 'duplicate' });
+    } else {
       valid.push(result.value);
     }
   });
@@ -283,6 +333,16 @@ export function parseImport(text: string): ParseResult {
   if (version >= 9 && !Array.isArray(json.assignments)) {
     return { ok: false, error: { kind: 'wrong-format' } };
   }
+  // The lessons finished with version 10, and from no file before it: an older build wrote none,
+  // so a `lessons` list in such a file is not that build's, and is left alone like any other
+  // field it does not know.
+  const listed = version >= 10 ? json.lessons : [];
+  if (!Array.isArray(listed)) {
+    return { ok: false, error: { kind: 'wrong-format' } };
+  }
+  if (listed.length > MAX_IMPORT_LESSONS) {
+    return { ok: false, error: { kind: 'too-many-lessons', limit: MAX_IMPORT_LESSONS } };
+  }
 
   const invalid: InvalidRecord[] = [];
   const sessions = validateAll('sessions', json.sessions, validateSession, invalid);
@@ -305,6 +365,7 @@ export function parseImport(text: string): ParseResult {
   const assignments = Array.isArray(json.assignments)
     ? validateAll('assignments', json.assignments, validateLiveAssignment, invalid)
     : [];
+  const lessons = validateLessons(listed, invalid);
   let preferences: Preferences | null = null;
   if (json.preferences !== undefined) {
     const result = validatePreferences(json.preferences);
@@ -329,6 +390,7 @@ export function parseImport(text: string): ParseResult {
       answers,
       takes,
       assignments,
+      lessons,
       preferences,
       invalid,
     },
@@ -336,7 +398,7 @@ export function parseImport(text: string): ParseResult {
 }
 
 export interface ImportCounts {
-  /** Not stored yet; will be added. */
+  /** Not stored yet; will be added. (A lesson stored with a later time counts: it takes the file's.) */
   new: number;
   /** Stored already (same id); kept as stored. */
   present: number;
@@ -357,6 +419,8 @@ export function planImport(
     takeIds: ReadonlySet<string>;
     /** Of every stored record, the deleted ones' too: those are not added again. */
     assignmentIds: ReadonlySet<string>;
+    /** The lessons finished here: one of the file counts as new when it would change them. */
+    lessons: readonly LessonDone[];
   },
 ): ImportPlan {
   const count = (
@@ -371,6 +435,11 @@ export function planImport(
       invalid: parsed.invalid.filter((i) => i.collection === collection).length,
     };
   };
+  // A tick is added when it is not stored, and an earlier time replaces a later one.
+  const storedLessons = new Map(existing.lessons.map((record) => [record.slug, record]));
+  const newLessons = parsed.lessons.filter((record) =>
+    replacesLesson(record, storedLessons.get(record.slug)),
+  ).length;
   return {
     sessions: count(parsed.sessions, existing.sessionIds, 'sessions'),
     attempts: count(parsed.attempts, existing.attemptIds, 'attempts'),
@@ -380,5 +449,10 @@ export function planImport(
     answers: count(parsed.answers, existing.answerIds, 'answers'),
     takes: count(parsed.takes, existing.takeIds, 'takes'),
     assignments: count(parsed.assignments, existing.assignmentIds, 'assignments'),
+    lessons: {
+      new: newLessons,
+      present: parsed.lessons.length - newLessons,
+      invalid: parsed.invalid.filter((i) => i.collection === 'lessons').length,
+    },
   };
 }

@@ -71,8 +71,8 @@ and practices (G3's links between them read it too).
 - **Made once a day, and kept.** The first time Home is opened on a day, the plan is made and kept
   in the browser (`dacapo.today`: the day, the length, the steps, and the lessons ticked at that
   moment); for the rest of the day Home shows the kept plan, so records arriving from another
-  device do not reshuffle it, and a lesson ticked today (a tick has no time) stays the step it
-  was. Changing the length makes the plan again, from the records before today and the lessons
+  device do not reshuffle it, and a lesson ticked today stays the step it was (the plan keeps
+  the lessons ticked when it was made). Changing the length makes the plan again, from the records before today and the lessons
   kept. It is per device and not synced: two devices may show two plans, each of them a good one.
 - **Steps are tasks where a task fits.** A scale, a level and the lesson are an assignment's
   `ScaleTask` (at any tempo, one run), `LevelTask` (one session) and `LessonTask`
@@ -171,7 +171,8 @@ it was before today). On a phone each row stacks: the practice, its figure, its 
 ## Records, sync, export
 
 Nothing new is stored but three preferences in the browser (the length, the day's plan,
-returning). Nothing is synced or exported for this, and `SYNC_SCHEMA` stays.
+returning). Nothing is synced or exported for this, and `SYNC_SCHEMA` stays. (The lessons' ticks
+the plan reads became records of their own with G3, synced and exported: LEARN.md.)
 
 ## Clarifications (decided during G1)
 
@@ -228,14 +229,22 @@ returning). Nothing is synced or exported for this, and `SYNC_SCHEMA` stays.
 - **The kept plan** is `dacapo.today` as JSON: `{ day, minutes, steps, lessonsDone }`. It is read
   back field by field (the day, a length of the four, each step's part, reason and task: an
   exercise key, a level its family has, a lesson of the fifteen); anything else is no plan, and
-  the plan is made again. It is made and kept even while an assignment hides its steps. A piece
+  the plan is made again. It is made and kept even while an assignment hides its steps. It is
+  not kept when it was made over records that are there and cannot be seen (a database of a
+  later version of dacapo, a read that failed: [LEARN.md](LEARN.md), "Clarifications (decided
+  during G3)"): the reload that has the records makes the day's plan. A piece
   step whose imported piece was deleted since stays, without a link.
-- **Returning.** `dacapo.returning` is `1` or absent. The lessons' ticks are read directly (they
-  are in the browser already); the flag stands in for the sessions until they are read. Once
-  they are, the records decide: the flag is set when there is a session or a tick, and removed
-  when there is neither (the data was deleted), and the first visit's page comes back. An answer
-  on the start page counts as a tick does ([START.md](START.md)). A first visit with an
-  assignment added still has it under the hero, as T1 built it.
+- **Returning.** `dacapo.returning` is `1` or absent. The flag stands in for the sessions and
+  the lessons' ticks until they are read (since G3 a tick is a record like a session:
+  [LEARN.md](LEARN.md), "The tick is a record"); it is set the moment a lesson is ticked, and
+  ticks an earlier version kept in the browser's preferences still say "returning" at once, as
+  they did when they were read directly. Once the records are read, they decide: the flag is
+  set when there is a session or a tick, and removed when there is neither (the data was
+  deleted), and the first visit's page comes back. Records that could not be read (no storage
+  to use, a database of a later version, a read that failed) decide nothing: the flag stays as
+  it was, and is only ever set there. An answer on the start page counts as a tick
+  does, and is read at once ([START.md](START.md)). A first visit with an assignment added still
+  has it under the hero, as T1 built it.
 - **The part names** are lesson 14's: Warm up, Hard spots, Something new, Play through (热身、
   难点、新内容、完整弹一遍); "Work" and "New" above are these. A part is named on the row
   where it begins; the rows after it are under the same name (a screen reader hears it on each).

@@ -2827,13 +2827,15 @@ export const ja: Dictionary = {
   'settings.storage.unknown': 'この端末に保存されています。',
   'settings.storage.memory':
     '保存されていません：このブラウザではdacapoがデータを保存できません。タブを閉じる前にエクスポートしてください。',
+  'settings.storage.newer':
+    '保存されていません：このページのdacapoは、ここに保存されているデータより古いバージョンです。再読み込みすると練習記録を読み込めます。',
   'settings.storage.loading': '練習記録を読み込んでいます…',
   'settings.goal': '1日の目標',
   'settings.goal.help':
     '1日にこの時間以上練習すると、連続日数に数えられます。変更は今日から反映され、それより前の日は当時の目標のままです。',
   'settings.export': 'データをエクスポート',
   'settings.export.help':
-    'セッション、解答、インポートした曲、曲とスケールの練習記録、テイク、課題、設定を含む{file}をダウンロードします。',
+    'セッション、解答、インポートした曲、曲とスケールの練習記録、テイク、課題、完了したレッスン、設定を含む{file}をダウンロードします。',
   'settings.export.failed':
     '曲やスケールの練習記録、またはテイクを読み取れなかったため、何もエクスポートしていません。',
   'settings.import': 'データをインポート…',
@@ -2845,6 +2847,8 @@ export const ja: Dictionary = {
   'settings.import.error.futureVersion':
     'このファイルは新しいバージョンのdacapoで作成されています（形式{version}）。dacapoを更新してから、もう一度インポートしてください。',
   'settings.import.error.read': 'ファイルを読み取れませんでした。',
+  'settings.import.error.tooManyLessons':
+    'このファイルには完了したレッスンが{limit}件を超えて記録されています。dacapoが書き出すファイルにそれほどの数はありません。何もインポートしていません。',
   'settings.import.preview': 'インポート内容の確認',
   'settings.import.file': 'ファイル：{name}',
   'settings.import.exportedAt': 'エクスポート日時：{date}',
@@ -2860,6 +2864,7 @@ export const ja: Dictionary = {
   'settings.import.answers': '聴音の解答',
   'settings.import.takes': '曲の練習のテイク（分割して保存）',
   'settings.import.assignments': '課題と保存したレポート',
+  'settings.import.lessons': '完了したレッスン',
   'settings.import.stats': '音ごとの統計は、インポート後にすべての解答から計算し直します。',
   'settings.import.nothingNew': 'このファイルの内容はすべて登録済みです。',
   'settings.import.invalidTitle': '次の記録は無効なため、インポートしません：',
@@ -2875,6 +2880,7 @@ export const ja: Dictionary = {
   'settings.import.record.answers': '聴音の解答',
   'settings.import.record.takes': 'テイクの一部',
   'settings.import.record.assignments': '課題・レポート',
+  'settings.import.record.lessons': '完了したレッスン',
   'settings.import.more': '…ほか{n}件',
   'settings.import.prefs': 'ファイル内の設定も適用する：{language}、{theme}',
   'settings.import.prefs.goal': '、1日の目標{n}分',
@@ -2882,7 +2888,7 @@ export const ja: Dictionary = {
   'settings.import.cancel': 'キャンセル',
   'settings.import.working': 'インポートしています…',
   'settings.import.done':
-    'インポートが完了しました：新しいセッション{sessions}件、解答{attempts}件、インポートした曲{pieces}曲、曲の練習記録{steps}件、スケールの練習記録{scaleRuns}件、聴音の解答{ear}件、テイクの一部{takes}件、課題・レポート{assignments}件。',
+    'インポートが完了しました：新しいセッション{sessions}件、解答{attempts}件、インポートした曲{pieces}曲、曲の練習記録{steps}件、スケールの練習記録{scaleRuns}件、聴音の解答{ear}件、テイクの一部{takes}件、課題・レポート{assignments}件、完了したレッスン{lessons}件。',
   'settings.import.failed': 'インポートを保存できませんでした。何も変更されていません。',
   'settings.offline': 'オフライン',
   'settings.offline.stored': 'dacapoはこの端末に保存されていて、ネットワークがなくても開けます。',
@@ -3036,8 +3042,10 @@ export const ja: Dictionary = {
     'この端末に保存されています。dacapoを削除するとデータも消えるため、エクスポートしたファイルをバックアップとして残しておいてください。',
   'settings.storage.memory.app':
     '保存されていません：いまはこの端末にdacapoのデータを保存できません。dacapoを閉じる前にエクスポートしてください。',
+  'settings.storage.newer.app':
+    '保存されていません：この端末のデータは、より新しいバージョンのdacapoで保存されたものです。dacapoを更新すると練習記録を読み込めます。',
   'settings.export.help.app':
-    'セッション、解答、インポートした曲、曲とスケールの練習記録、テイク、課題、設定を含む{file}を保存します。',
+    'セッション、解答、インポートした曲、曲とスケールの練習記録、テイク、課題、完了したレッスン、設定を含む{file}を保存します。',
   'metronome.noAudio.app':
     'この端末ではクリック音を鳴らせません。振り子はそのままテンポを刻みます。',
   'start.keys.app': '画面の鍵盤とキーボードも使えます。',

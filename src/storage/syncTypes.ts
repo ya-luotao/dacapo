@@ -12,7 +12,8 @@ export type SyncCollection =
   | 'scaleRuns'
   | 'answers'
   | 'takes'
-  | 'assignments';
+  | 'assignments'
+  | 'lessons';
 
 export const SYNC_COLLECTIONS: readonly SyncCollection[] = [
   'attempts',
@@ -23,6 +24,7 @@ export const SYNC_COLLECTIONS: readonly SyncCollection[] = [
   'answers',
   'takes',
   'assignments',
+  'lessons',
 ];
 
 /** A deleted piece, sent under the piece's id. A deletion is final. */

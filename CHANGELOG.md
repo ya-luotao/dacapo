@@ -6,14 +6,30 @@ which is noted when it changes.
 
 ## Unreleased
 
-Export format version 9: the file now includes imported pieces (from version 2), piece practice
+Export format version 10: the file now includes imported pieces (from version 2), piece practice
 sessions and their step records (from version 3), rhythm-mode steps with their timings (from
 version 4), scale sessions with every scale run as played (from version 5), ear-training answers
 and sessions (from version 6; the theory cards', Read's rhythm, rhythm dictation's, the tunes'
 and the chord symbols' answers and sessions go in the same lists), the
 click's tempo and grid of scale runs played with it (from version 7), the takes of piece runs
-(from version 8), and assignments and kept reports (from version 9). Version 1 to 8 files still
-import.
+(from version 8), assignments and kept reports (from version 9), and the lessons finished (from
+version 10). Version 1 to 9 files still import.
+
+### Lessons and practice, joined (G3, [docs/LEARN.md](docs/LEARN.md))
+
+- **A finished lesson is a record now**, kept with your practice: it is in the export file, and
+  with an account it syncs, so a lesson finished on one device is ticked on the others (on the
+  Learn page, in today's plan, in an assignment's checklist and under Where you are). A tick is
+  never taken back: two devices' ticks are added together, and of two times the earlier is
+  kept.
+- The ticks this browser already had are moved over the first time this version opens, as
+  lessons finished before ticks had a time. Nothing else in your data changes.
+- **Your week names the lessons you finished in it** (Progress → Last week and This week so
+  far, and Home's line): a tick has its time from this version on, on whichever device the
+  lesson was finished. The ticks moved over have none, and are no week's lesson.
+- A page of an older version of dacapo that meets data stored by a newer one (a tab left open
+  over an update) now says so and offers **Reload**, instead of guessing at a private window.
+  Until it is reloaded it keeps nothing and changes nothing that is stored.
 
 ### Your week (G6f, [docs/PERSONAL.md](docs/PERSONAL.md))
 

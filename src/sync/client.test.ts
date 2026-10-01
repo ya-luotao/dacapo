@@ -1040,6 +1040,156 @@ describe('assignments', () => {
   });
 });
 
+describe('lessons finished', () => {
+  /** Ticks a lesson on a device at a given moment. */
+  async function tick(d: Device, slug: string, at: number) {
+    const now = vi.spyOn(Date, 'now').mockReturnValue(at);
+    d.store.markLesson(slug);
+    now.mockRestore();
+    await d.store.settled();
+  }
+  const lessons = (d: Device) => d.store.getSnapshot().lessons;
+
+  it('syncs a tick to the other device: one record per lesson, under its slug', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    await tick(ipad, 'staff', T0 + 100);
+    await signIn(ipad);
+    await signIn(mac);
+    expect(service.body('lessons', 'staff')).toEqual({ slug: 'staff', doneAt: T0 + 100 });
+    expect(lessons(mac)).toEqual([{ slug: 'staff', doneAt: T0 + 100 }]);
+
+    // Ticked while signed in: sent with the next round, and the other device ticks it too.
+    await tick(mac, 'keyboard', T0 + 200);
+    await mac.client.syncNow();
+    await ipad.client.syncNow();
+    expect([...service.rows.keys()].sort()).toEqual(['lessons/keyboard', 'lessons/staff']);
+    expect(lessons(ipad)).toEqual([
+      { slug: 'keyboard', doneAt: T0 + 200 },
+      { slug: 'staff', doneAt: T0 + 100 },
+    ]);
+    expect(lessons(ipad)).toEqual(lessons(mac));
+    // Finished again: the tick is not moved, and nothing is sent.
+    await tick(ipad, 'staff', T0 + 900);
+    expect(await ipad.db.count('outbox')).toBe(0);
+    expect(await mac.db.count('outbox')).toBe(0);
+  });
+
+  it('keeps the earlier time when two devices finished the same lesson, whichever syncs first', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    await signIn(ipad);
+    await signIn(mac);
+
+    // The iPad finished it first and syncs first: the Mac's later tick gives way.
+    await tick(ipad, 'staff', T0 + 100);
+    await tick(mac, 'staff', T0 + 900);
+    await ipad.client.syncNow();
+    await mac.client.syncNow();
+    // The Mac finished it first, and syncs last: its earlier tick replaces the iPad's.
+    await tick(ipad, 'rhythm', T0 + 900);
+    await tick(mac, 'rhythm', T0 + 100);
+    await ipad.client.syncNow();
+    await mac.client.syncNow();
+    await ipad.client.syncNow();
+    // A tick from before ticks had a time (0) is before any other.
+    await tick(ipad, 'keyboard', T0 + 100);
+    await tick(mac, 'keyboard', 0);
+    await mac.client.syncNow();
+    await ipad.client.syncNow();
+    await mac.client.syncNow();
+
+    const merged = [
+      { slug: 'keyboard', doneAt: 0 },
+      { slug: 'rhythm', doneAt: T0 + 100 },
+      { slug: 'staff', doneAt: T0 + 100 },
+    ];
+    for (const d of [ipad, mac]) {
+      expect(lessons(d)).toEqual(merged);
+      expect(await d.db.count('outbox')).toBe(0);
+    }
+    for (const record of merged) expect(service.body('lessons', record.slug)).toEqual(record);
+    // Settled: another round each sends and brings nothing.
+    const sync = vi.spyOn(service.api, 'sync');
+    await ipad.client.syncNow();
+    await mac.client.syncNow();
+    expect(sync.mock.calls.map((call) => call[2])).toEqual([[], []]);
+    expect(lessons(ipad)).toEqual(merged);
+  });
+
+  it('pulls them again after a build that skipped the collection, keeps a lesson this build does not have, and skips what does not validate', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    await tick(ipad, 'staff', T0 + 100);
+    await signIn(ipad);
+    await signIn(mac);
+    expect(lessons(mac)).toHaveLength(1);
+
+    // As schema 20 left it: the collection skipped, the cursor past it.
+    const state = (await mac.db.get('meta', SYNC_STATE_KEY)) as SyncState;
+    await mac.db.clear('lessons');
+    await mac.db.put('meta', { ...state, schema: 20 }, SYNC_STATE_KEY);
+    await mac.store.reloadAll();
+    expect(lessons(mac)).toEqual([]);
+    // What another build wrote: a lesson this one does not have (kept), a time that is not one
+    // and a record under another lesson's slug (skipped, never stored).
+    const token = (await ipad.store.withSync((sync) => sync.state()))!.token;
+    await service.api.sync(token, 0, [
+      {
+        collection: 'lessons',
+        id: 'lesson-of-a-later-build',
+        body: { slug: 'lesson-of-a-later-build', doneAt: T0 + 5 },
+      },
+      { collection: 'lessons', id: 'rhythm', body: { slug: 'rhythm', doneAt: -1 } },
+      { collection: 'lessons', id: 'pedals', body: { slug: 'chords', doneAt: T0 } },
+    ]);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const sync = vi.spyOn(service.api, 'sync');
+    await mac.client.syncNow();
+    expect(SYNC_SCHEMA).toBeGreaterThanOrEqual(21);
+    expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
+    expect(lessons(mac)).toEqual([
+      { slug: 'lesson-of-a-later-build', doneAt: T0 + 5 },
+      { slug: 'staff', doneAt: T0 + 100 },
+    ]);
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(await mac.db.count('outbox')).toBe(0);
+    // It goes on being synced as it came: a device that signs in afresh sends it unchanged.
+    const phone = await device(service);
+    await signIn(phone);
+    expect(lessons(phone)).toEqual(lessons(mac));
+    expect(service.body('lessons', 'lesson-of-a-later-build')).toEqual({
+      slug: 'lesson-of-a-later-build',
+      doneAt: T0 + 5,
+    });
+  });
+
+  it('keeps the ticks here when the device signs out or the account is deleted', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    await tick(ipad, 'staff', T0 + 100);
+    await signIn(ipad);
+    await signIn(mac);
+    await mac.client.signOut();
+    expect(lessons(mac)).toEqual([{ slug: 'staff', doneAt: T0 + 100 }]);
+    // Signed out: a new tick is stored, and not put aside to be sent.
+    await tick(mac, 'rhythm', T0 + 200);
+    expect(lessons(mac)).toHaveLength(2);
+    expect(await mac.db.count('outbox')).toBe(0);
+
+    await ipad.client.deleteAccount();
+    expect(service.rows.size).toBe(0);
+    expect(lessons(ipad)).toEqual([{ slug: 'staff', doneAt: T0 + 100 }]);
+    // Signing in again sends every tick here to the new account.
+    await signIn(mac);
+    expect([...service.rows.keys()].sort()).toEqual(['lessons/rhythm', 'lessons/staff']);
+  });
+});
+
 describe('takes', () => {
   it('brings takes to the other device, and pulls again those a build before takes skipped', async () => {
     const service = fakeService();

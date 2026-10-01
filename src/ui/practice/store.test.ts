@@ -2,7 +2,8 @@ import 'fake-indexeddb/auto';
 import { openDB } from 'idb';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SessionRecord } from '../../core/log.ts';
-import { DB_NAME, DB_VERSION, openDacapoDB } from '../../storage/db.ts';
+import type { LessonDone } from '../../core/lessonRecords.ts';
+import { DB_NAME, DB_VERSION, openDacapoDB, upgrade, type DacapoDB } from '../../storage/db.ts';
 import {
   resetIndexedDB,
   sampleAnswer,
@@ -102,13 +103,19 @@ describe('loading', () => {
         answers: [],
         takes: [],
         assignments: [],
+        lessons: [],
       }),
     );
     const store = startStore();
-    expect(store.getStatus()).toEqual({ state: 'loading', loaded: false, persisted: null });
+    expect(store.getStatus()).toEqual({
+      state: 'loading',
+      loaded: false,
+      read: false,
+      persisted: null,
+    });
     expect(store.getSnapshot().attempts).toEqual([]);
     await loaded(store);
-    expect(store.getStatus().state).toBe('saved');
+    expect(store.getStatus()).toMatchObject({ state: 'saved', read: true });
     expect(store.getSnapshot().attempts).toEqual(attempts);
     expect(store.getSnapshot().sessions.map((s) => s.id)).toEqual(['f1', 's2', 's1']);
   });
@@ -387,6 +394,7 @@ describe('several tabs', () => {
       answers: [],
       takes: [],
       assignments: [],
+      lessons: [],
     });
     await vi.waitFor(() => expect(tabB.getSnapshot()).toEqual(tabA.getSnapshot()));
     expect(tabB.getSnapshot().pieces.map((p) => p.id)).toEqual(['p3']);
@@ -525,6 +533,453 @@ describe('several tabs', () => {
   });
 });
 
+describe('lessons finished', () => {
+  const tick = (slug: string, doneAt: number): LessonDone => ({ slug, doneAt });
+  /** The ticks an earlier version kept in the preferences: slugs without a time. */
+  const legacy =
+    (...slugs: string[]) =>
+    () =>
+      slugs.map((slug) => tick(slug, 0));
+
+  /** A repository whose calls to `markLessons` are counted, and can be held or made to fail. */
+  function watched(hold: Promise<void> = Promise.resolve(), fail = false) {
+    const calls: LessonDone[][] = [];
+    const open: PracticeStoreOptions['open'] = async (handlers) => {
+      const opened = await openRepository(handlers);
+      const { repository } = opened;
+      const markLessons: PracticeRepository['markLessons'] = async (records) => {
+        calls.push([...records]);
+        await hold;
+        if (fail) throw new DOMException('full', 'QuotaExceededError');
+        return repository.markLessons(records);
+      };
+      return { ...opened, repository: { ...repository, markLessons } };
+    };
+    return { calls, open };
+  }
+
+  it('ticks a lesson once, with now as its time, and keeps the other tab in step', async () => {
+    const tabA = startStore();
+    const tabB = startStore();
+    await loaded(tabA);
+    await loaded(tabB);
+    const now = vi.spyOn(Date, 'now').mockReturnValue(T0 + 1000);
+    tabA.markLesson('staff');
+    // Ticked at once; saved in the background.
+    expect(tabA.getSnapshot().lessons).toEqual([tick('staff', T0 + 1000)]);
+    await vi.waitFor(() => expect(tabB.getSnapshot().lessons).toEqual([tick('staff', T0 + 1000)]));
+    // Finished again, here or in the other tab: the tick is not moved.
+    now.mockReturnValue(T0 + 9000);
+    tabA.markLesson('staff');
+    tabB.markLesson('staff');
+    tabB.markLesson('keyboard');
+    // Not a lesson's slug (an exercise outside a lesson): nothing is ticked.
+    tabB.markLesson('');
+    tabB.markLesson('Not a slug');
+    await tabA.settled();
+    await tabB.settled();
+    const ticked = [tick('keyboard', T0 + 9000), tick('staff', T0 + 1000)];
+    await vi.waitFor(() => expect(tabA.getSnapshot().lessons).toEqual(ticked));
+    expect(tabB.getSnapshot().lessons).toEqual(ticked);
+    expect((await onDisk()).lessons).toEqual(ticked);
+    expect(tabA.getStatus().state).toBe('saved');
+    // And the next start finds them.
+    const later = startStore();
+    await loaded(later);
+    expect(later.getSnapshot().lessons).toEqual(ticked);
+  });
+
+  it('keeps the earlier time when two tabs finish the same lesson at once', async () => {
+    const tabA = startStore();
+    const tabB = startStore();
+    await loaded(tabA);
+    await loaded(tabB);
+    const now = vi.spyOn(Date, 'now').mockReturnValue(T0 + 2000);
+    tabA.markLesson('staff');
+    now.mockReturnValue(T0 + 1000);
+    tabB.markLesson('staff');
+    await tabA.settled();
+    await tabB.settled();
+    expect((await onDisk()).lessons).toEqual([tick('staff', T0 + 1000)]);
+    await vi.waitFor(() => expect(tabA.getSnapshot().lessons).toEqual([tick('staff', T0 + 1000)]));
+    expect(tabB.getSnapshot().lessons).toEqual([tick('staff', T0 + 1000)]);
+  });
+
+  it('moves the ticks an earlier version kept in the preferences into a version 8 database, with everything else as it was', async () => {
+    // What a version 8 build left: a database without the store, and its records.
+    const old = await openDB(DB_NAME, 8, {
+      upgrade: (database, oldVersion) => upgrade(database as DacapoDB, oldVersion, 8),
+    });
+    const { sessions, attempts } = sampleData();
+    const tx = old.transaction(['sessions', 'attempts'], 'readwrite');
+    for (const session of sessions) void tx.objectStore('sessions').put(session);
+    for (const attempt of attempts) void tx.objectStore('attempts').put(attempt);
+    await tx.done;
+    old.close();
+
+    const source = vi.fn(legacy('staff', 'keyboard', 'inside'));
+    const store = startStore({ legacyLessons: source });
+    await loaded(store);
+    // In the snapshot the moment the stored data is: nothing is made from records without them.
+    const moved = [tick('inside', 0), tick('keyboard', 0), tick('staff', 0)];
+    expect(store.getSnapshot().lessons).toEqual(moved);
+    expect(store.getSnapshot().attempts).toEqual(attempts);
+    expect(store.getSnapshot().sessions).toHaveLength(sessions.length);
+    expect(store.getStatus().state).toBe('saved');
+    await store.settled();
+    const disk = await onDisk();
+    expect(disk.lessons).toEqual(moved);
+    expect(disk.attempts).toEqual(attempts);
+    expect(disk.sessions).toHaveLength(sessions.length);
+    // The preference is read, once per start; the store has no way to change it.
+    expect(source).toHaveBeenCalledTimes(1);
+  });
+
+  it('moves them once: a later start writes nothing, and a tick added to the preference since is taken in', async () => {
+    const first = watched();
+    const one = startStore({ open: first.open, legacyLessons: legacy('staff', 'keyboard') });
+    await loaded(one);
+    expect(first.calls).toEqual([[tick('staff', 0), tick('keyboard', 0)]]);
+    const now = vi.spyOn(Date, 'now').mockReturnValue(T0 + 1000);
+    one.markLesson('rhythm');
+    now.mockRestore();
+    await one.settled();
+    const ticked = [tick('keyboard', 0), tick('rhythm', T0 + 1000), tick('staff', 0)];
+    expect((await onDisk()).lessons).toEqual(ticked);
+
+    // The preference is still there, as it was: nothing is moved again.
+    const second = watched();
+    const two = startStore({ open: second.open, legacyLessons: legacy('staff', 'keyboard') });
+    await loaded(two);
+    expect(second.calls).toEqual([]);
+    expect(two.getSnapshot().lessons).toEqual(ticked);
+
+    // A tab of the earlier version, still open, ticked two more in the preference: one not
+    // ticked here (taken in), one ticked here with its time (before anything else from now on).
+    const third = watched();
+    const three = startStore({
+      open: third.open,
+      legacyLessons: legacy('staff', 'keyboard', 'landmarks', 'rhythm'),
+    });
+    await loaded(three);
+    expect(third.calls).toEqual([[tick('landmarks', 0), tick('rhythm', 0)]]);
+    const all = [tick('keyboard', 0), tick('landmarks', 0), tick('rhythm', 0), tick('staff', 0)];
+    expect(three.getSnapshot().lessons).toEqual(all);
+    expect((await onDisk()).lessons).toEqual(all);
+  });
+
+  it('never un-ticks: what is stored stays, and a stored time gives way only to no time', async () => {
+    await seed((repo) =>
+      repo.markLessons([tick('staff', T0), tick('rhythm', T0 + 5), tick('later-build', T0)]),
+    );
+    const store = startStore({ legacyLessons: legacy('staff', 'keyboard') });
+    await loaded(store);
+    const after = [
+      tick('keyboard', 0),
+      tick('later-build', T0),
+      tick('rhythm', T0 + 5),
+      tick('staff', 0),
+    ];
+    expect(store.getSnapshot().lessons).toEqual(after);
+    expect((await onDisk()).lessons).toEqual(after);
+    // No preference at all (a new browser): the stored ticks are simply read.
+    const fresh = startStore();
+    await loaded(fresh);
+    expect(fresh.getSnapshot().lessons).toEqual(after);
+  });
+
+  it('loses no tick earned while the move runs, in this tab or another', async () => {
+    let release: () => void = () => {};
+    const hold = new Promise<void>((resolve) => (release = resolve));
+    const moving = watched(hold);
+    const store = startStore({ open: moving.open, legacyLessons: legacy('staff', 'keyboard') });
+    // The move has begun and waits: storage is open, the stored data is not in yet.
+    await vi.waitFor(() => expect(moving.calls).toHaveLength(1));
+    expect(store.getStatus().loaded).toBe(false);
+    const now = vi.spyOn(Date, 'now').mockReturnValue(T0 + 1000);
+    // In this tab: a lesson finished before the stored data is in.
+    store.markLesson('rhythm');
+    // In another tab, whose own move went through already: a lesson that is not in the
+    // preference, and one of those being moved here, finished again there with a time.
+    const other = startStore();
+    await loaded(other);
+    other.markLesson('landmarks');
+    other.markLesson('staff');
+    await other.settled();
+    expect((await onDisk()).lessons).toEqual([
+      tick('landmarks', T0 + 1000),
+      tick('staff', T0 + 1000),
+    ]);
+    now.mockRestore();
+    release();
+    await loaded(store);
+    await store.settled();
+
+    const all = [
+      tick('keyboard', 0),
+      tick('landmarks', T0 + 1000),
+      tick('rhythm', T0 + 1000),
+      tick('staff', 0),
+    ];
+    expect((await onDisk()).lessons).toEqual(all);
+    await vi.waitFor(() => expect(store.getSnapshot().lessons).toEqual(all));
+    expect(store.getStatus().state).toBe('saved');
+  });
+
+  it('shows the ticks even when the move cannot be written, and says that saving failed', async () => {
+    await seed((repo) => repo.markLessons([tick('rhythm', T0)]));
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const failing = watched(Promise.resolve(), true);
+    const store = startStore({ open: failing.open, legacyLessons: legacy('staff') });
+    await loaded(store);
+    expect(store.getSnapshot().lessons).toEqual([tick('rhythm', T0), tick('staff', 0)]);
+    expect(store.getStatus().state).toBe('failed');
+    // Nothing stored was touched; the next start tries again.
+    expect((await onDisk()).lessons).toEqual([tick('rhythm', T0)]);
+    const next = startStore({ legacyLessons: legacy('staff') });
+    await loaded(next);
+    expect(next.getStatus().state).toBe('saved');
+    expect((await onDisk()).lessons).toEqual([tick('rhythm', T0), tick('staff', 0)]);
+  });
+
+  it('keeps the ticks on screen through a reload when the move could not be written', async () => {
+    await seed((repo) => repo.markLessons([tick('rhythm', T0)]));
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const failing = watched(Promise.resolve(), true);
+    const source = vi.fn(legacy('staff', 'rhythm'));
+    const store = startStore({ open: failing.open, legacyLessons: source });
+    await loaded(store);
+    // Shown, not stored: `rhythm` without a time is before the stored copy, as at every merge.
+    const shown = [tick('rhythm', 0), tick('staff', 0)];
+    expect(store.getSnapshot().lessons).toEqual(shown);
+    expect((await onDisk()).lessons).toEqual([tick('rhythm', T0)]);
+
+    // A sync pull reads everything again.
+    await store.reloadAll();
+    expect(store.getSnapshot().lessons).toEqual(shown);
+    // An import in this tab: what it adds arrives, and the ticks shown stay.
+    const empty = {
+      sessions: [],
+      attempts: [],
+      pieces: [],
+      pieceSteps: [],
+      scaleRuns: [],
+      answers: [],
+      takes: [],
+      assignments: [],
+    };
+    await store.importData({ ...empty, lessons: [tick('keyboard', T0 + 5)] });
+    const withImport = [tick('keyboard', T0 + 5), ...shown];
+    expect(store.getSnapshot().lessons).toEqual(withImport);
+    // An import in another tab, which tells this one to read again.
+    const other = startStore();
+    await loaded(other);
+    await other.importData({ ...empty, lessons: [tick('landmarks', T0 + 6)] });
+    const all = [tick('keyboard', T0 + 5), tick('landmarks', T0 + 6), ...shown];
+    await vi.waitFor(() => expect(store.getSnapshot().lessons).toEqual(all));
+    await store.settled();
+    expect(store.getSnapshot().lessons).toEqual(all);
+    // Reading again wrote nothing: what is stored is what the imports and nothing else left.
+    expect(failing.calls).toHaveLength(1);
+    expect((await onDisk()).lessons).toEqual([
+      tick('keyboard', T0 + 5),
+      tick('landmarks', T0 + 6),
+      tick('rhythm', T0),
+    ]);
+    // The preference was only ever read.
+    expect(source.mock.calls.every((args) => args.length === 0)).toBe(true);
+  });
+
+  it('reads again as it reads at startup when the move went through: nothing is added twice', async () => {
+    const moving = watched();
+    const store = startStore({ open: moving.open, legacyLessons: legacy('staff') });
+    await loaded(store);
+    const now = vi.spyOn(Date, 'now').mockReturnValue(T0 + 1000);
+    store.markLesson('keyboard');
+    now.mockRestore();
+    await store.reloadAll();
+    await store.reloadAll();
+    const ticked = [tick('keyboard', T0 + 1000), tick('staff', 0)];
+    expect(store.getSnapshot().lessons).toEqual(ticked);
+    expect((await onDisk()).lessons).toEqual(ticked);
+    expect(moving.calls).toEqual([[tick('staff', 0)], [tick('keyboard', T0 + 1000)]]);
+  });
+
+  it('shows the ticks of the preference when the stored data cannot be loaded', async () => {
+    await seed((repo) => repo.markLessons([tick('rhythm', T0)]));
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    const marked: LessonDone[][] = [];
+    const open: PracticeStoreOptions['open'] = async (handlers) => {
+      await gate;
+      const opened = await openRepository(handlers);
+      const { repository } = opened;
+      return {
+        ...opened,
+        repository: {
+          ...repository,
+          load: () => Promise.reject(new DOMException('broken', 'UnknownError')),
+          markLessons: (records) => {
+            marked.push([...records]);
+            return repository.markLessons(records);
+          },
+        },
+      };
+    };
+    const store = startStore({ open, legacyLessons: legacy('staff', 'keyboard') });
+    // A lesson finished before storage opened.
+    const now = vi.spyOn(Date, 'now').mockReturnValue(T0 + 1000);
+    store.markLesson('landmarks');
+    now.mockRestore();
+    release();
+    await loaded(store);
+    await store.settled();
+    // Nothing stored could be read: the preference's ticks and the one earned here are shown,
+    // the status says the records were not read, and nothing of the preference was written.
+    expect(store.getSnapshot().lessons).toEqual([
+      tick('keyboard', 0),
+      tick('landmarks', T0 + 1000),
+      tick('staff', 0),
+    ]);
+    expect(store.getStatus()).toMatchObject({ state: 'failed', loaded: true, read: false });
+    expect(marked).toEqual([[tick('landmarks', T0 + 1000)]]);
+    expect((await onDisk()).lessons).toEqual([tick('landmarks', T0 + 1000), tick('rhythm', T0)]);
+  });
+
+  it('keeps them in memory when IndexedDB cannot be used', async () => {
+    vi.spyOn(indexedDB, 'open').mockImplementation(() => {
+      throw new DOMException('denied', 'SecurityError');
+    });
+    const store = startStore({ legacyLessons: legacy('staff') });
+    await loaded(store);
+    // Nothing stored was read: what is here is this tab's alone.
+    expect(store.getStatus()).toMatchObject({ state: 'unavailable', loaded: true, read: false });
+    store.markLesson('keyboard');
+    expect(store.getSnapshot().lessons.map((l) => l.slug)).toEqual(['keyboard', 'staff']);
+  });
+
+  it('runs in memory over a database of a later version, says so, and leaves it untouched', async () => {
+    // What a later build left: records, an account signed in to sync (a write would be queued),
+    // a version this build does not know and a store it does not know.
+    await seed(async (repo) => {
+      const { sessions, attempts } = sampleData();
+      for (const attempt of attempts) await repo.addAttempt(attempt);
+      for (const session of sessions) await repo.putSession(session);
+      await repo.putPiece(samplePiece(1));
+      await repo.markLessons([tick('rhythm', T0)]);
+      await repo.sync!.signIn({ id: 'acc', email: 'pianist@example.com' }, 'token-1');
+    });
+    const later = await openDB(DB_NAME, DB_VERSION + 1, {
+      upgrade: (db) => void db.createObjectStore('later'),
+    });
+    await later.put('later', { made: 'by a later build' }, 'record');
+    /** The version, and every store's keys and records, as text. */
+    const dump = async () => {
+      const names = [...later.objectStoreNames];
+      const read = later.transaction(names);
+      const out: Record<string, string> = { version: String(later.version) };
+      for (const name of names) {
+        const store = read.objectStore(name);
+        out[`store ${name}`] = JSON.stringify([await store.getAllKeys(), await store.getAll()]);
+      }
+      await read.done;
+      return out;
+    };
+    const before = await dump();
+    expect(before['store outbox']).not.toBe('[[],[]]');
+    expect(before['store lessons']).toContain('rhythm');
+
+    const channel = vi.fn(() => broadcastChannel(channelName));
+    const persistent: PersistentStorage = { persisted: vi.fn(), persist: vi.fn() };
+    const store = startStore({ channel, storage: persistent, legacyLessons: legacy('staff') });
+    await loaded(store);
+    // The notice with Reload (the state the page reads); nothing of what is stored was read.
+    expect(store.getStatus()).toEqual({
+      state: 'newer',
+      loaded: true,
+      read: false,
+      persisted: null,
+    });
+    expect(store.getSnapshot().attempts).toEqual([]);
+    expect(store.getSnapshot().lessons).toEqual([tick('staff', 0)]);
+
+    // The app runs: everything a page can ask of the store, held in this tab alone.
+    const now = vi.spyOn(Date, 'now').mockReturnValue(T0 + 1000);
+    store.markLesson('keyboard');
+    store.recordAttempt(sampleAttempt(40));
+    store.recordSession(freeSession('here', T0));
+    store.savePiece(samplePiece(2));
+    store.deletePiece('p1', { steps: true });
+    store.saveAssignment(sampleStoredAssignment(1));
+    store.deleteAssignment(sampleStoredAssignment(1).id);
+    const added = await store.importData({
+      sessions: [],
+      attempts: [sampleAttempt(41)],
+      pieces: [],
+      pieceSteps: [],
+      scaleRuns: [],
+      answers: [],
+      takes: [],
+      assignments: [],
+      lessons: [tick('landmarks', T0)],
+    });
+    now.mockRestore();
+    await store.reloadAll();
+    await store.settled();
+    expect(added).toMatchObject({ attempts: 1, lessons: 1 });
+    expect(store.getSnapshot().lessons).toEqual([
+      tick('keyboard', T0 + 1000),
+      tick('landmarks', T0),
+      tick('staff', 0),
+    ]);
+    expect(store.getSnapshot().attempts.map((a) => a.id)).toEqual(['a40', 'a41']);
+    expect(store.getStatus().state).toBe('newer');
+
+    // Sync is off: there is no sync storage to run a task on, so nothing is sent or queued.
+    const task = vi.fn(() => Promise.resolve('ran'));
+    expect(await store.withSync(task)).toBeNull();
+    expect(task).not.toHaveBeenCalled();
+    // No other tab is told anything, and the browser is not asked to keep what it cannot hold.
+    expect(channel).not.toHaveBeenCalled();
+    expect(persistent.persisted).not.toHaveBeenCalled();
+    expect(persistent.persist).not.toHaveBeenCalled();
+
+    // The database is as the later build left it: byte for byte, at its version.
+    expect(await dump()).toEqual(before);
+    later.close();
+    const again = await openDB(DB_NAME);
+    expect(again.version).toBe(DB_VERSION + 1);
+    again.close();
+  });
+
+  it('takes in the ticks of an imported file, the earlier time kept, in every tab', async () => {
+    const tabA = startStore();
+    const tabB = startStore();
+    await loaded(tabA);
+    await loaded(tabB);
+    const now = vi.spyOn(Date, 'now').mockReturnValue(T0 + 5000);
+    tabA.markLesson('staff');
+    tabA.markLesson('keyboard');
+    now.mockRestore();
+    const added = await tabA.importData({
+      sessions: [],
+      attempts: [],
+      pieces: [],
+      pieceSteps: [],
+      scaleRuns: [],
+      answers: [],
+      takes: [],
+      assignments: [],
+      lessons: [tick('staff', T0), tick('keyboard', T0 + 9000), tick('rhythm', 0)],
+    });
+    expect(added.lessons).toBe(2);
+    const merged = [tick('keyboard', T0 + 5000), tick('rhythm', 0), tick('staff', T0)];
+    expect(tabA.getSnapshot().lessons).toEqual(merged);
+    await vi.waitFor(() => expect(tabB.getSnapshot().lessons).toEqual(merged));
+  });
+});
+
 describe('piece runs', () => {
   it('records the steps as they happen and the session at the end', async () => {
     const store = startStore();
@@ -660,6 +1115,7 @@ describe('piece runs', () => {
       answers: [],
       takes: [],
       assignments: [],
+      lessons: [],
     });
     await vi.waitFor(() => expect(tabB.getPieceSteps('p1')).toBeNull());
     tabB.loadPieceSteps('p2');
@@ -693,6 +1149,7 @@ describe('reloads', () => {
       answers: [],
       takes: [],
       assignments: [],
+      lessons: [],
     });
     await new Promise((resolve) => setTimeout(resolve, 50));
     expect(tabB.getSnapshot().sessions).toEqual([]);
@@ -818,6 +1275,7 @@ describe('scale runs', () => {
       answers: [],
       takes: [],
       assignments: [],
+      lessons: [],
     });
     await vi.waitFor(() => expect(tabB.getScaleRuns('major:C:1:right')).toBeNull());
     expect(tabB.getSnapshot().sessions).toEqual([more.session, two.session]);

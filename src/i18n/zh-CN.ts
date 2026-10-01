@@ -2686,13 +2686,15 @@ export const zhCN: Dictionary = {
     '已保存在本设备上。存储空间不足时浏览器可能会清除它，请保留一份导出文件作为备份。',
   'settings.storage.unknown': '已保存在本设备上。',
   'settings.storage.memory': '未保存：浏览器不允许 dacapo 存储数据。关闭标签页之前请先导出。',
+  'settings.storage.newer':
+    '未保存：这个页面的 dacapo 版本比这里存储的数据旧。请刷新页面，以读取你的练习记录。',
   'settings.storage.loading': '正在读取练习记录…',
   'settings.goal': '每日目标',
   'settings.goal.help':
     '一天练满这么久，就算连续打卡。更改从今天起算，之前的日子仍按当时的目标计算。',
   'settings.export': '导出数据',
   'settings.export.help':
-    '下载 {file}，包含你的练习记录、答题记录、导入的曲目、曲目和音阶的练习明细、演奏实录、作业以及偏好设置。',
+    '下载 {file}，包含你的练习记录、答题记录、导入的曲目、曲目和音阶的练习明细、演奏实录、作业、学完的课程以及偏好设置。',
   'settings.export.failed': '读取曲目或音阶的练习明细或演奏实录失败，没有导出任何内容。',
   'settings.import': '导入数据…',
   'settings.import.help':
@@ -2702,6 +2704,8 @@ export const zhCN: Dictionary = {
   'settings.import.error.futureVersion':
     '这个文件来自更新版本的 dacapo（格式版本 {version}）。请先更新 dacapo，再重新导入。',
   'settings.import.error.read': '无法读取这个文件。',
+  'settings.import.error.tooManyLessons':
+    '这个文件列出的学完的课程超过 {limit} 条，dacapo 导出的文件不会有这么多。没有导入任何内容。',
   'settings.import.preview': '导入预览',
   'settings.import.file': '文件：{name}',
   'settings.import.exportedAt': '导出时间：{date}',
@@ -2717,6 +2721,7 @@ export const zhCN: Dictionary = {
   'settings.import.answers': '练耳作答记录',
   'settings.import.takes': '演奏实录（分段保存）',
   'settings.import.assignments': '作业和保留的报告',
+  'settings.import.lessons': '学完的课程',
   'settings.import.stats': '导入后，各音符的统计会根据全部答题记录重新计算。',
   'settings.import.nothingNew': '这个文件里的内容都已经在了。',
   'settings.import.invalidTitle': '以下记录无效，不会被导入：',
@@ -2731,6 +2736,7 @@ export const zhCN: Dictionary = {
   'settings.import.record.answers': '练耳作答记录',
   'settings.import.record.takes': '演奏实录片段',
   'settings.import.record.assignments': '作业或报告',
+  'settings.import.record.lessons': '学完的课程',
   'settings.import.more': '……还有 {n} 条',
   'settings.import.prefs': '同时应用文件中的偏好设置：{language}，{theme}',
   'settings.import.prefs.goal': '，每日目标 {n} 分钟',
@@ -2738,7 +2744,7 @@ export const zhCN: Dictionary = {
   'settings.import.cancel': '取消',
   'settings.import.working': '正在导入…',
   'settings.import.done':
-    '导入完成：新增 {sessions} 条练习记录、{attempts} 条答题记录、{pieces} 首曲目、{steps} 条曲目练习明细、{scaleRuns} 条音阶练习明细、{ear} 条练耳作答记录、{takes} 段演奏实录和 {assignments} 份作业或报告。',
+    '导入完成：新增 {sessions} 条练习记录、{attempts} 条答题记录、{pieces} 首曲目、{steps} 条曲目练习明细、{scaleRuns} 条音阶练习明细、{ear} 条练耳作答记录、{takes} 段演奏实录、{assignments} 份作业或报告和 {lessons} 节学完的课程。',
   'settings.import.failed': '导入没能保存，数据没有任何改动。',
   'settings.offline': '离线使用',
   'settings.offline.stored': 'dacapo 已保存在本设备上，没有网络也能打开。',
@@ -2878,8 +2884,10 @@ export const zhCN: Dictionary = {
     '已保存在本设备上。删除 dacapo 会一并删除这些数据，请保留一份导出文件作为备份。',
   'settings.storage.memory.app':
     '未保存：dacapo 暂时无法在这台设备上存储数据。关闭 dacapo 之前请先导出。',
+  'settings.storage.newer.app':
+    '未保存：这台设备上存储的数据来自更新版本的 dacapo。请更新 dacapo，以读取你的练习记录。',
   'settings.export.help.app':
-    '保存 {file}，包含你的练习记录、答题记录、导入的曲目、曲目和音阶的练习明细、演奏实录、作业以及偏好设置。',
+    '保存 {file}，包含你的练习记录、答题记录、导入的曲目、曲目和音阶的练习明细、演奏实录、作业、学完的课程以及偏好设置。',
   'metronome.noAudio.app': '这台设备无法播放节拍声，摆锤照样打拍子。',
   'start.keys.app': '屏幕上的琴键和电脑键盘在这里都能弹。',
   'input.notice.app': '{status}：屏幕上的琴键可以弹，电脑键盘的 A 到 K 也可以。',

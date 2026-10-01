@@ -16,7 +16,7 @@ import { dayKey } from '../../core/streak.ts';
 import { useT, type MessageKey } from '../../i18n/index.ts';
 import { currentShell } from '../../lib/shell.ts';
 import { BUILT_IN_IDS } from '../../pieces/library/index.ts';
-import { readDone } from '../learn/progress.ts';
+import { readLegacyLessons } from '../learn/progress.ts';
 import { usePractice, useStorageStatus } from '../practice/context.ts';
 import { readGoal } from '../progress/goal.ts';
 import { useNow } from '../progress/useNow.ts';
@@ -139,20 +139,26 @@ function Arrow() {
 
 /**
  * Whether the visitor has practised here before: a session stored, or a lesson ticked; or has
- * said on the start page where they start from (docs/START.md). The ticks and the answer are
- * read at once; the sessions take a moment, so until they are in, what was known last time (kept
- * in the browser) decides, and the page is laid out right before the records are read.
+ * said on the start page where they start from (docs/START.md). The answer is read at once. The
+ * sessions and the ticks are records and take a moment to read, so until they are in, what was
+ * known last time (kept in the browser) decides, and the page is laid out right before the
+ * records are read. Ticks an earlier version kept in the preferences say so at once as well:
+ * they are moved into the records as those are read, and whoever has only them never sees the
+ * first visit's page. When the records cannot be read (no storage to use, a database of a later
+ * version, a read that failed) what was known last time goes on deciding, with what this tab
+ * holds, and is never cleared: only records read and found empty say "a first visit".
  */
 function useReturning(): boolean {
-  const { loaded } = useStorageStatus();
-  const { sessions } = usePractice();
-  const [ticked] = useState(() => readDone().size > 0);
+  const { loaded, read } = useStorageStatus();
+  const { sessions, lessons } = usePractice();
   const [answered] = useState(() => readStartPref() !== null);
-  const [known] = useState(readReturning);
-  const returning = ticked || answered || (loaded ? sessions.length > 0 : known);
+  const [known] = useState(() => readReturning() || readLegacyLessons().length > 0);
+  const practised = sessions.length > 0 || lessons.length > 0;
+  const returning = answered || practised || (!read && known);
   useEffect(() => {
-    if (loaded) writeReturning(returning);
-  }, [loaded, returning]);
+    // Kept once the store has loaded; cleared only by records that were read.
+    if (read || (loaded && returning)) writeReturning(returning);
+  }, [loaded, read, returning]);
   return returning;
 }
 

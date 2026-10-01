@@ -2688,13 +2688,15 @@ export const zhTW: Dictionary = {
     '已儲存在這台裝置上。空間不足時瀏覽器可能會清除它，請保留一份匯出檔作為備份。',
   'settings.storage.unknown': '已儲存在這台裝置上。',
   'settings.storage.memory': '未儲存：這個瀏覽器不讓 dacapo 儲存資料。關閉分頁前請先匯出。',
+  'settings.storage.newer':
+    '未儲存：這個頁面的 dacapo 版本比這裡儲存的資料舊。請重新整理頁面，以讀取你的練習紀錄。',
   'settings.storage.loading': '正在讀取練習紀錄⋯',
   'settings.goal': '每日目標',
   'settings.goal.help':
     '一天至少練習這麼久，就算連續練習的一天。變更從今天起算，之前的日子仍依當時的目標計算。',
   'settings.export': '匯出資料',
   'settings.export.help':
-    '下載 {file}，內含你的練習紀錄、作答紀錄、匯入的樂曲、樂曲和音階的練習明細、演奏實錄、作業以及偏好設定。',
+    '下載 {file}，內含你的練習紀錄、作答紀錄、匯入的樂曲、樂曲和音階的練習明細、演奏實錄、作業、學完的課程以及偏好設定。',
   'settings.export.failed': '無法讀取樂曲或音階的練習明細或演奏實錄，所以沒有匯出任何內容。',
   'settings.import': '匯入資料⋯',
   'settings.import.help':
@@ -2704,6 +2706,8 @@ export const zhTW: Dictionary = {
   'settings.import.error.futureVersion':
     '這個檔案來自較新版本的 dacapo（格式版本 {version}）。請先更新 dacapo，再重新匯入。',
   'settings.import.error.read': '無法讀取這個檔案。',
+  'settings.import.error.tooManyLessons':
+    '這個檔案列出的學完的課程超過 {limit} 筆，dacapo 匯出的檔案不會有這麼多。沒有匯入任何內容。',
   'settings.import.preview': '匯入預覽',
   'settings.import.file': '檔案：{name}',
   'settings.import.exportedAt': '匯出時間：{date}',
@@ -2719,6 +2723,7 @@ export const zhTW: Dictionary = {
   'settings.import.answers': '練耳作答紀錄',
   'settings.import.takes': '演奏實錄（分段儲存）',
   'settings.import.assignments': '作業和保留的報告',
+  'settings.import.lessons': '學完的課程',
   'settings.import.stats': '匯入後，各音符的統計會根據全部作答紀錄重新計算。',
   'settings.import.nothingNew': '這個檔案裡的內容都已經有了。',
   'settings.import.invalidTitle': '以下紀錄無效，不會匯入：',
@@ -2733,6 +2738,7 @@ export const zhTW: Dictionary = {
   'settings.import.record.answers': '練耳作答紀錄',
   'settings.import.record.takes': '演奏實錄片段',
   'settings.import.record.assignments': '作業或報告',
+  'settings.import.record.lessons': '學完的課程',
   'settings.import.more': '⋯⋯還有 {n} 筆',
   'settings.import.prefs': '同時套用檔案中的偏好設定：{language}、{theme}',
   'settings.import.prefs.goal': '、每日目標 {n} 分鐘',
@@ -2740,7 +2746,7 @@ export const zhTW: Dictionary = {
   'settings.import.cancel': '取消',
   'settings.import.working': '正在匯入⋯',
   'settings.import.done':
-    '匯入完成：新增 {sessions} 筆練習紀錄、{attempts} 筆作答紀錄、{pieces} 首樂曲、{steps} 筆樂曲練習明細、{scaleRuns} 筆音階練習明細、{ear} 筆練耳作答紀錄、{takes} 段演奏實錄和 {assignments} 份作業或報告。',
+    '匯入完成：新增 {sessions} 筆練習紀錄、{attempts} 筆作答紀錄、{pieces} 首樂曲、{steps} 筆樂曲練習明細、{scaleRuns} 筆音階練習明細、{ear} 筆練耳作答紀錄、{takes} 段演奏實錄、{assignments} 份作業或報告和 {lessons} 堂學完的課程。',
   'settings.import.failed': '匯入沒能儲存，資料沒有任何變動。',
   'settings.offline': '離線使用',
   'settings.offline.stored': 'dacapo 已儲存在這台裝置上，沒有網路也能開啟。',
@@ -2880,8 +2886,10 @@ export const zhTW: Dictionary = {
     '已儲存在這台裝置上。刪除 dacapo 會一併刪除這些資料，請保留一份匯出檔作為備份。',
   'settings.storage.memory.app':
     '未儲存：dacapo 目前無法在這台裝置上儲存資料。關閉 dacapo 前請先匯出。',
+  'settings.storage.newer.app':
+    '未儲存：這台裝置上儲存的資料來自較新版本的 dacapo。請更新 dacapo，以讀取你的練習紀錄。',
   'settings.export.help.app':
-    '儲存 {file}，內含你的練習紀錄、作答紀錄、匯入的樂曲、樂曲和音階的練習明細、演奏實錄、作業以及偏好設定。',
+    '儲存 {file}，內含你的練習紀錄、作答紀錄、匯入的樂曲、樂曲和音階的練習明細、演奏實錄、作業、學完的課程以及偏好設定。',
   'metronome.noAudio.app': '這台裝置無法播放節拍聲，擺錘照樣打拍子。',
   'start.keys.app': '螢幕上的琴鍵和電腦鍵盤在這裡都能彈。',
   'input.notice.app': '{status}：螢幕上的琴鍵可以彈，電腦鍵盤的 A 到 K 也可以。',

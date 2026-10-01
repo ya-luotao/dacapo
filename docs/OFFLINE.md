@@ -50,6 +50,13 @@ list, each file with the group it is in, and a version that is the hash of the l
   before).
 - On taking over it deletes every store but its own and the one before it: a tab still open on the
   release before keeps working, and nothing older is kept.
+- **A release that raises the database version** (`DB_VERSION` in `src/storage/db.ts`) can meet
+  an older stored page until the new worker has installed: the database is upgraded by a tab on
+  the new files, and a page drawn from the store of the release before then finds a version
+  later than its own. That page runs in memory, leaves the database untouched and says to
+  reload ([LEARN.md](LEARN.md), "Clarifications (decided during G3)"); the reload brings the
+  new files. Such a release cannot be rolled back to a lower version ([SYNC.md](SYNC.md),
+  "Builds").
 - `sw.js` is served with `Cache-Control: no-cache` (`public/_headers`), so a fix to the worker
   reaches browsers at their next visit. Should the worker ever have to go, a release ships a
   `sw.js` that unregisters itself and deletes the stores; that file is kept ready in the repository

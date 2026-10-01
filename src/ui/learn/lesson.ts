@@ -14,7 +14,8 @@ import type { HubEvent, PedalEvent } from '../../input/index.ts';
 import type { LessonLanguage } from '../../learn/lessons.ts';
 import { formatMessage } from '../../i18n/locale.ts';
 import { useInput } from '../input/context.ts';
-import { markDone } from './progress.ts';
+import { usePracticeStore } from '../practice/context.ts';
+import { writeReturning } from '../today/prefs.ts';
 
 // What every lesson's figures share: the lesson's language and the words they use, a way to hear
 // a key played, and one exercise listening at a time (kit.tsx has the parts of the page).
@@ -180,10 +181,18 @@ export function useCopy(): (key: LessonCopyKey, vars?: Record<string, string | n
   return useCallback((key, vars) => formatMessage(COPY[language][key], vars), [language]);
 }
 
-/** Marks the lesson finished: for its last exercise. */
+/**
+ * Marks the lesson finished: for its last exercise. The tick is a record of the practice store
+ * (the first time counts: finishing it again changes nothing), and whoever has one is a returning
+ * player for the home page from then on.
+ */
 export function useCompleteLesson(): () => void {
   const { slug } = useContext(LessonContext);
-  return useCallback(() => markDone(slug), [slug]);
+  const store = usePracticeStore();
+  return useCallback(() => {
+    store.markLesson(slug);
+    writeReturning(true);
+  }, [store, slug]);
 }
 
 /** A key's name as printed: C4, F♯3. */

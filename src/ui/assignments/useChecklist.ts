@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useState } from 'react';
+import { useEffect, useMemo, useReducer } from 'react';
 import {
   currentAssignments,
   type Assignment,
@@ -18,7 +18,7 @@ import { pieceFacts, type PieceStep } from '../../core/pieceRecords.ts';
 import type { DayKey } from '../../core/streak.ts';
 import { BUILT_IN } from '../../pieces/library/index.ts';
 import { readScore } from '../../pieces/load.ts';
-import { readDone } from '../learn/progress.ts';
+import { useLessonsDone } from '../learn/progress.ts';
 import { usePractice, usePracticeStore, useStorageStatus } from '../practice/context.ts';
 import { levelStartPath, pieceStartPath, scaleStartPath } from '../startParams.ts';
 
@@ -53,8 +53,7 @@ export function useChecklist(
   const { loaded } = useStorageStatus();
   const { sessions, attempts, answers } = usePractice();
   const pieces = useKnownPieces();
-  // The lessons ticked on this device, as they are when the page opens.
-  const [lessonsDone] = useState(readDone);
+  const lessonsDone = useLessonsDone();
   // The step cache tells when a piece's records are in.
   const [stepsVersion, bump] = useReducer((n: number) => n + 1, 0);
   useEffect(() => store.subscribePieceSteps(bump), [store]);

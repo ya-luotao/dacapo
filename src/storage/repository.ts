@@ -5,6 +5,7 @@ import {
   type LiveAssignmentRecord,
 } from '../core/assignmentRecords.ts';
 import type { FreePlaySession, OpenFreePlay } from '../core/freePlay.ts';
+import { byLessonSlug, lessonsToWrite, type LessonDone } from '../core/lessonRecords.ts';
 import { byStartDescending, byTime, sessionRuns, type SessionRecord } from '../core/log.ts';
 import {
   byStepTime,
@@ -54,6 +55,8 @@ export interface StoredData {
    * (which only say so) among them.
    */
   assignments: AssignmentRecord[];
+  /** The lessons finished (docs/LEARN.md), by slug: those this build does not know among them. */
+  lessons: LessonDone[];
 }
 
 export interface MergeResult {
@@ -66,6 +69,8 @@ export interface MergeResult {
   answers: number;
   takes: number;
   assignments: number;
+  /** Added, and those whose time gave way to an earlier one. */
+  lessons: number;
 }
 
 /** What an import adds; records whose id is stored already are kept as they are. */
@@ -79,6 +84,8 @@ export interface MergeInput {
   takes: readonly TakeChunk[];
   /** Assignments and kept reports; one deleted here is not added again. */
   assignments: readonly LiveAssignmentRecord[];
+  /** Lessons finished: added when not stored; a stored one gives way to an earlier time. */
+  lessons: readonly LessonDone[];
 }
 
 /** Which step records to read: those of a piece or of one session. */
@@ -152,9 +159,15 @@ export interface PracticeRepository {
    */
   putAssignment: (record: AssignmentRecord) => Promise<void>;
   /**
+   * Stores lessons finished, in one transaction: one that is not stored is added, and a stored
+   * one gives way only to an earlier time (a tick is never taken back, and of two copies the
+   * earlier is kept: docs/LEARN.md). Returns the records written; the rest changed nothing.
+   */
+  markLessons: (records: readonly LessonDone[]) => Promise<LessonDone[]>;
+  /**
    * Adds the records whose id is not stored yet (stored ones are kept as they are, except a scale
-   * session, which gives way to a copy with more runs), then rebuilds every note's stats from all
-   * attempts, in one transaction. Returns how many were added (or replaced). A deleted piece is
+   * session, which gives way to a copy with more runs, and a lesson finished, which gives way to
+   * an earlier time), then rebuilds every note's stats from all attempts, in one transaction. Returns how many were added (or replaced). A deleted piece is
    * not added again, nor, when it was deleted with them, its step records and takes.
    */
   merge: (input: MergeInput) => Promise<MergeResult>;
@@ -256,6 +269,7 @@ function sorted(data: StoredData): StoredData {
     pieces: data.pieces.sort(byImportedDescending),
     answers: data.answers.sort(byAnswerTime),
     assignments: data.assignments.sort(byRecordId),
+    lessons: data.lessons.sort(byLessonSlug),
   };
 }
 
@@ -271,20 +285,32 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         'pieces',
         'answers',
         'assignments',
+        'lessons',
       ]);
-      const [attempts, stats, sessions, meta, runs, pieces, answers, reviewOff, assignments] =
-        await Promise.all([
-          tx.objectStore('attempts').getAll(),
-          tx.objectStore('noteStats').getAll(),
-          tx.objectStore('sessions').getAll(),
-          tx.objectStore('meta').getAll(openFreePlayRange()),
-          tx.objectStore('meta').getAll(openPieceRunRange()),
-          tx.objectStore('pieces').getAll(),
-          tx.objectStore('answers').getAll(),
-          tx.objectStore('meta').getAllKeys(reviewOffRange()),
-          tx.objectStore('assignments').getAll(),
-          tx.done,
-        ]);
+      const [
+        attempts,
+        stats,
+        sessions,
+        meta,
+        runs,
+        pieces,
+        answers,
+        reviewOff,
+        assignments,
+        lessons,
+      ] = await Promise.all([
+        tx.objectStore('attempts').getAll(),
+        tx.objectStore('noteStats').getAll(),
+        tx.objectStore('sessions').getAll(),
+        tx.objectStore('meta').getAll(openFreePlayRange()),
+        tx.objectStore('meta').getAll(openPieceRunRange()),
+        tx.objectStore('pieces').getAll(),
+        tx.objectStore('answers').getAll(),
+        tx.objectStore('meta').getAllKeys(reviewOffRange()),
+        tx.objectStore('assignments').getAll(),
+        tx.objectStore('lessons').getAll(),
+        tx.done,
+      ]);
       return sorted({
         attempts,
         stats: Object.fromEntries(stats.map((s) => [s.key, s])),
@@ -294,6 +320,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         answers,
         reviewOff: reviewOff.map((key) => String(key).slice(REVIEW_OFF.length)),
         assignments,
+        lessons,
       });
     },
     async setReviewOff(pieceId, off) {
@@ -488,6 +515,26 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         ...track(tx.objectStore('outbox'), syncing, [['assignments', record.id]]),
       ]);
     },
+    async markLessons(records) {
+      const tx = db.transaction(['lessons', 'meta', 'outbox'], 'readwrite');
+      const lessons = tx.objectStore('lessons');
+      // Read in the transaction that writes: a tick another tab stored a moment ago is seen.
+      const [stored, syncing] = await Promise.all([
+        Promise.all(records.map((record) => lessons.get(record.slug))),
+        isSyncing(tx.objectStore('meta')),
+      ]);
+      const bySlug = new Map(stored.flatMap((record) => (record ? [[record.slug, record]] : [])));
+      const written = lessonsToWrite(records, (slug) => bySlug.get(slug));
+      await writeAll(tx, [
+        ...written.map((record) => () => lessons.put(record)),
+        ...track(
+          tx.objectStore('outbox'),
+          syncing,
+          written.map((record) => ['lessons', record.slug] as const),
+        ),
+      ]);
+      return written;
+    },
     async merge(input) {
       const tx = db.transaction(
         [
@@ -500,6 +547,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
           'answers',
           'takes',
           'assignments',
+          'lessons',
           'meta',
           'outbox',
         ],
@@ -514,6 +562,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
       const answers = tx.objectStore('answers');
       const takes = tx.objectStore('takes');
       const assignments = tx.objectStore('assignments');
+      const lessons = tx.objectStore('lessons');
       const meta = tx.objectStore('meta');
       const [
         storedSessions,
@@ -524,6 +573,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         answerIds,
         takeIds,
         assignmentIds,
+        storedLessons,
         deletions,
         syncing,
       ] = await Promise.all([
@@ -535,6 +585,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         answers.getAllKeys(),
         takes.getAllKeys(),
         assignments.getAllKeys(),
+        lessons.getAll(),
         deletedPieces(meta),
         isSyncing(meta),
       ]);
@@ -556,6 +607,9 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
       );
       // A deleted assignment is still stored, as the record that says so: it is not added again.
       const addedAssignments = notStored(input.assignments, assignmentIds);
+      // A tick is never taken back: the union, and of two copies of a lesson the earlier.
+      const lessonBySlug = new Map(storedLessons.map((record) => [record.slug, record]));
+      const addedLessons = lessonsToWrite(input.lessons, (slug) => lessonBySlug.get(slug));
       const stats = statsFromAttempts([...storedAttempts, ...addedAttempts]);
       const tracked: Tracked[] = [
         ...[...addedSessions, ...longer].map((r) => ['sessions', r.id] as const),
@@ -566,6 +620,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         ...addedAnswers.map((r) => ['answers', r.id] as const),
         ...addedTakes.map((r) => ['takes', r.id] as const),
         ...addedAssignments.map((r) => ['assignments', r.id] as const),
+        ...addedLessons.map((r) => ['lessons', r.slug] as const),
       ];
       await writeAll(tx, [
         ...addedSessions.map((session) => () => sessions.add(session)),
@@ -577,6 +632,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         ...addedAnswers.map((answer) => () => answers.add(answer)),
         ...addedTakes.map((chunk) => () => takes.add(chunk)),
         ...addedAssignments.map((record) => () => assignments.add(record)),
+        ...addedLessons.map((record) => () => lessons.put(record)),
         () => noteStats.clear(),
         ...Object.values(stats).map((s) => () => noteStats.put(s)),
         ...track(tx.objectStore('outbox'), syncing, tracked),
@@ -590,6 +646,7 @@ export function createIndexedDbRepository(db: DacapoDB): PracticeRepository {
         answers: addedAnswers.length,
         takes: addedTakes.length,
         assignments: addedAssignments.length,
+        lessons: addedLessons.length,
       };
     },
     sync: createSyncStorage(db),
@@ -611,8 +668,15 @@ export function createMemoryRepository(): PracticeRepository {
   const deletions = new Map<string, PieceDeletion>();
   const reviewOff = new Set<string>();
   const assignments = new Map<string, AssignmentRecord>();
+  const lessons = new Map<string, LessonDone>();
   let stats: Record<string, NoteStats> = {};
   const copy = <T>(value: T): T => structuredClone(value);
+  /** Stores the lessons that change what is kept, and returns them. */
+  const writeLessons = (records: readonly LessonDone[]): LessonDone[] => {
+    const written = lessonsToWrite(records, (slug) => lessons.get(slug));
+    for (const record of written) lessons.set(record.slug, copy(record));
+    return written;
+  };
 
   return {
     kind: 'memory',
@@ -628,6 +692,7 @@ export function createMemoryRepository(): PracticeRepository {
           answers: [...answers.values()].map(copy),
           reviewOff: [...reviewOff],
           assignments: [...assignments.values()].map(copy),
+          lessons: [...lessons.values()].map(copy),
         }),
       ),
     setReviewOff(pieceId, off) {
@@ -720,6 +785,7 @@ export function createMemoryRepository(): PracticeRepository {
       assignments.set(record.id, copy(record));
       return Promise.resolve();
     },
+    markLessons: (records) => Promise.resolve(writeLessons(records).map(copy)),
     merge(input) {
       const addedSessions = notStored(input.sessions, sessions.keys());
       const longer = longerSessions(input.sessions, (id) => sessions.get(id));
@@ -746,6 +812,7 @@ export function createMemoryRepository(): PracticeRepository {
       for (const chunk of addedTakes) takes.set(chunk.id, copy(chunk));
       const addedAssignments = notStored(input.assignments, assignments.keys());
       for (const record of addedAssignments) assignments.set(record.id, copy(record));
+      const addedLessons = writeLessons(input.lessons);
       stats = statsFromAttempts([...attempts.values()]);
       return Promise.resolve({
         sessions: addedSessions.length + longer.length,
@@ -756,6 +823,7 @@ export function createMemoryRepository(): PracticeRepository {
         answers: addedAnswers.length,
         takes: addedTakes.length,
         assignments: addedAssignments.length,
+        lessons: addedLessons.length,
       });
     },
     sync: null,
@@ -763,7 +831,12 @@ export function createMemoryRepository(): PracticeRepository {
   };
 }
 
-export type StorageFailure = 'unsupported' | 'error';
+/**
+ * Why IndexedDB is not used. `newer`: the database was made by a later version of dacapo (this
+ * page is an older build: a tab left open, or a page the offline worker kept), which is not a
+ * browser that refuses to store: it is said apart, and mended by a reload.
+ */
+export type StorageFailure = 'unsupported' | 'error' | 'newer';
 
 export type OpenResult =
   | { repository: PracticeRepository; failure: null }
@@ -771,7 +844,9 @@ export type OpenResult =
 
 /**
  * Opens the IndexedDB repository, or falls back to one in memory when IndexedDB is missing or
- * cannot be opened (private mode, blocked site data, quota, a broken profile). Never rejects.
+ * cannot be opened (private mode, blocked site data, quota, a broken profile), or holds a
+ * database of a later version, which this build must not touch: nothing of it is read, written
+ * or deleted, and with no repository on it nothing is queued or synced. Never rejects.
  */
 export async function openRepository(handlers: OpenHandlers = {}): Promise<OpenResult> {
   if (typeof indexedDB === 'undefined') {
@@ -781,6 +856,13 @@ export async function openRepository(handlers: OpenHandlers = {}): Promise<OpenR
     const db = await openDacapoDB(handlers);
     return { repository: createIndexedDbRepository(db), failure: null };
   } catch (error) {
-    return { repository: createMemoryRepository(), failure: 'error', error };
+    // Opening a lower version than the one stored fails with a VersionError (a DOMException:
+    // told by its name, whatever kind of object the browser makes it).
+    const newer =
+      typeof error === 'object' &&
+      error !== null &&
+      'name' in error &&
+      error.name === 'VersionError';
+    return { repository: createMemoryRepository(), failure: newer ? 'newer' : 'error', error };
   }
 }

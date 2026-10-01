@@ -83,7 +83,10 @@ their fuller help.
   Progress has the day's figures and Where you are for a visitor who answered and has no record
   yet, as it has with ticks alone.
 - **Begin**, for a newcomer, opens the first lesson not ticked: the first lesson on a first
-  visit. Enter in either question begins too (the page is one form).
+  visit. Where it goes is worked out when it is pressed; pressed before the ticks are known
+  (the records not read yet, or not readable) it opens the Learn page, which marks the next
+  lesson ([LEARN.md](LEARN.md), "Clarifications (decided during G3)"). Enter in either question
+  begins too (the page is one form).
 - **Never in the way.** Only the first visit's button leads to the page ("Start", in place of
   "Start reading"). Settings' block has the question itself, not a link to the page. Nothing
   bars the address: someone who types `#/start` finds the page, with their answer if they gave

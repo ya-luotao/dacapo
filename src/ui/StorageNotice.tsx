@@ -8,6 +8,8 @@ const MESSAGES: Partial<Record<StorageState, MessageKey>> = {
   unavailable: 'storage.unavailable',
   failed: 'storage.failed',
   outdated: 'storage.outdated',
+  // A database made by a later version than this page: the same notice, and the same way out.
+  newer: 'storage.outdated',
 };
 
 /** A non-blocking notice when progress is not being saved. */
@@ -25,7 +27,7 @@ export function StorageNotice() {
         <path d="M8 6.25v3.5M8 11.75v.01" />
       </svg>
       <p>{t(message)}</p>
-      {state === 'outdated' ? (
+      {state === 'outdated' || state === 'newer' ? (
         <button type="button" className="button" onClick={() => window.location.reload()}>
           {t('storage.reload')}
         </button>

@@ -46,6 +46,7 @@ const nothing: PulledRecords = {
   answers: [],
   takes: [],
   assignments: [],
+  lessons: [],
 };
 
 describe('signing in and out', () => {
@@ -67,6 +68,7 @@ describe('signing in and out', () => {
       answers: [],
       takes: [],
       assignments: [],
+      lessons: [],
     });
     await repo.putPiece(samplePiece(1));
     await repo.putPiece(samplePiece(2));
@@ -83,6 +85,10 @@ describe('signing in and out', () => {
     await repo.putAssignment(sampleStoredAssignment(1));
     const gone = { id: 'assignment-2', type: 'assignment' as const, deleted: true as const };
     await repo.putAssignment({ ...gone, updatedAt: T0 });
+    await repo.markLessons([
+      { slug: 'staff', doneAt: T0 },
+      { slug: 'lesson-of-a-later-build', doneAt: 0 },
+    ]);
 
     await sync.signIn(account, 'token-1');
     expect(await sync.state()).toEqual({ account, token: 'token-1', cursor: 0, lastSyncAt: null });
@@ -98,10 +104,21 @@ describe('signing in and out', () => {
         `takes/${take.id}`,
         'assignments/assignment-1',
         'assignments/assignment-2',
+        'lessons/staff',
+        'lessons/lesson-of-a-later-build',
       ].sort(),
     );
     // A deleted assignment is sent as the record that says so.
     const pending = await sync.pending(1000);
+    // A lesson finished is sent under its slug, one this build does not have as it came.
+    expect(pending.find((p) => p.entry.key === 'lessons/staff')).toMatchObject({
+      entry: { collection: 'lessons', id: 'staff' },
+      record: { slug: 'staff', doneAt: T0 },
+    });
+    expect(pending.find((p) => p.entry.key === 'lessons/lesson-of-a-later-build')!.record).toEqual({
+      slug: 'lesson-of-a-later-build',
+      doneAt: 0,
+    });
     expect(pending.find((p) => p.entry.key === 'assignments/assignment-2')!.record).toEqual({
       ...gone,
       updatedAt: T0,
@@ -115,12 +132,15 @@ describe('signing in and out', () => {
 
   it('forgets the account and the outbox when signing out; the records stay', async () => {
     await repo.addAttempt(sampleAttempt(0));
+    await repo.markLessons([{ slug: 'staff', doneAt: T0 }]);
     await sync.signIn(account, 't');
     await sync.signOut();
     expect(await sync.state()).toBeNull();
     expect(await outboxKeys()).toEqual([]);
     expect((await repo.load()).attempts).toHaveLength(1);
+    expect((await repo.load()).lessons).toEqual([{ slug: 'staff', doneAt: T0 }]);
     await repo.addAttempt(sampleAttempt(1));
+    await repo.markLessons([{ slug: 'rhythm', doneAt: T0 }]);
     expect(await outboxKeys()).toEqual([]);
   });
 
@@ -173,9 +193,12 @@ describe('the outbox while signed in', () => {
     await repo.addTake(take); // stored already
     await repo.putAssignment(sampleStoredAssignment(1));
     await repo.putAssignment(sampleStoredAssignment(1, { following: true })); // changed
+    await repo.markLessons([{ slug: 'staff', doneAt: T0 }]);
+    await repo.markLessons([{ slug: 'staff', doneAt: T0 + 5 }]); // ticked already
     expect(await outboxKeys()).toEqual(
       [
         'assignments/assignment-1',
+        'lessons/staff',
         `attempts/${sampleAttempt(0).id}`,
         `answers/${ear.answers[0]!.id}`,
         `takes/${take.id}`,
@@ -272,6 +295,11 @@ describe('the outbox while signed in', () => {
 
   it('adds what an import adds', async () => {
     const { sessions, attempts } = sampleData();
+    await repo.markLessons([
+      { slug: 'keyboard', doneAt: T0 },
+      { slug: 'staff', doneAt: T0 + 9 },
+    ]);
+    await db.clear('outbox');
     await repo.merge({
       sessions,
       attempts: attempts.slice(0, 2),
@@ -281,13 +309,30 @@ describe('the outbox while signed in', () => {
       answers: [],
       takes: [],
       assignments: [],
+      // One ticked here already (left), one with an earlier time (taken), one new.
+      lessons: [
+        { slug: 'keyboard', doneAt: T0 + 1 },
+        { slug: 'staff', doneAt: T0 },
+        { slug: 'rhythm', doneAt: T0 },
+      ],
     });
     expect(await outboxKeys()).toEqual(
       [
         ...attempts.slice(0, 2).map((a) => `attempts/${a.id}`),
         ...sessions.map((s) => `sessions/${s.id}`),
+        'lessons/rhythm',
+        'lessons/staff',
       ].sort(),
     );
+  });
+
+  it('does not send a tick again that was sent, until it changes', async () => {
+    await repo.markLessons([{ slug: 'staff', doneAt: T0 + 9 }]);
+    await sync.acknowledge((await sync.pending(10)).map((p) => p.entry));
+    await repo.markLessons([{ slug: 'staff', doneAt: T0 + 20 }]);
+    expect(await outboxKeys()).toEqual([]);
+    await repo.markLessons([{ slug: 'staff', doneAt: T0 }]);
+    expect(await outboxKeys()).toEqual(['lessons/staff']);
   });
 });
 
@@ -403,6 +448,50 @@ describe('applying pulled records', () => {
     expect((await repo.load()).assignments.find((r) => r.id === report.id)).toEqual(again);
   });
 
+  it('keeps the earlier copy of a lesson finished, and never takes a tick back', async () => {
+    await repo.markLessons([
+      { slug: 'keyboard', doneAt: 0 },
+      { slug: 'staff', doneAt: T0 + 500 },
+      { slug: 'landmarks', doneAt: T0 },
+      { slug: 'rhythm', doneAt: T0 },
+    ]);
+    await sync.signIn(account, 't');
+    await db.clear('outbox');
+    const pulled = [
+      // Ticked here before ticks had a time: 0 is before anything, and goes back.
+      { slug: 'keyboard', doneAt: T0 + 100 },
+      // Finished earlier elsewhere: taken.
+      { slug: 'staff', doneAt: T0 + 100 },
+      // Finished later elsewhere: the one here stays, and goes back to the service.
+      { slug: 'landmarks', doneAt: T0 + 100 },
+      // The same: nothing.
+      { slug: 'rhythm', doneAt: T0 },
+      // New here; and a lesson this build does not have, kept as it came.
+      { slug: 'posture', doneAt: 0 },
+      { slug: 'lesson-of-a-later-build', doneAt: T0 + 7 },
+      // A second copy in the same page counts for nothing.
+      { slug: 'posture', doneAt: T0 },
+    ];
+    const counts = await sync.apply({ ...nothing, lessons: pulled });
+    expect(counts).toMatchObject({ lessons: 3, sessions: 0, assignments: 0 });
+    const after = [
+      { slug: 'keyboard', doneAt: 0 },
+      { slug: 'landmarks', doneAt: T0 },
+      { slug: 'lesson-of-a-later-build', doneAt: T0 + 7 },
+      { slug: 'posture', doneAt: 0 },
+      { slug: 'rhythm', doneAt: T0 },
+      { slug: 'staff', doneAt: T0 + 100 },
+    ];
+    expect((await repo.load()).lessons).toEqual(after);
+    expect(await outboxKeys()).toEqual(['lessons/keyboard', 'lessons/landmarks']);
+    // The same page again changes nothing; nothing pulled removes nothing.
+    await db.clear('outbox');
+    expect((await sync.apply({ ...nothing, lessons: pulled.slice(1) })).lessons).toBe(0);
+    expect((await sync.apply(nothing)).lessons).toBe(0);
+    expect((await repo.load()).lessons).toEqual(after);
+    expect(await outboxKeys()).toEqual(['lessons/landmarks']);
+  });
+
   it('picks the same copy of two assignments changed at the same moment, on every device', async () => {
     const a = sampleStoredAssignment(1, { following: false });
     const b = sampleStoredAssignment(1, { following: true });
@@ -471,6 +560,7 @@ describe('applying pulled records', () => {
       answers: 0,
       takes: 0,
       assignments: 0,
+      lessons: 0,
     });
     expect(await db.get('meta', 'deleted:piece:p1')).toMatchObject({ withSteps: true });
   });
@@ -529,6 +619,7 @@ describe('applying pulled records', () => {
       answers: [],
       takes: [],
       assignments: [],
+      lessons: [],
     });
     await repo.putPiece(samplePiece(1));
     await repo.putPiece(samplePiece(2));
@@ -543,6 +634,11 @@ describe('applying pulled records', () => {
     await repo.putSession(ear.session);
     const take = sampleTake('r1', 0, { pieceId: 'p1' });
     await repo.addTake(take);
+    const lessons = [
+      { slug: 'keyboard', doneAt: 0 },
+      { slug: 'staff', doneAt: T0 },
+    ];
+    await repo.markLessons(lessons);
     await sync.signIn(account, 't');
     await db.clear('outbox');
     const before = await repo.load();
@@ -558,6 +654,7 @@ describe('applying pulled records', () => {
       answers: ear.answers,
       takes: [take],
       assignments: [],
+      lessons,
     });
     expect(Object.values(counts).every((n) => n === 0)).toBe(true);
     expect(await repo.load()).toEqual(before);

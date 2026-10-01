@@ -133,9 +133,11 @@ report contains only the figures listed above. The teacher's name is whatever th
   tune's session is played to its end once the whole tune was asked, in whatever key; the tune is
   learnt when every phrase and the whole of it were last played right without Hear again, and
   the checklist says how many of them are ("3 of 5 right without a replay").
-- **A lesson task** is met by the lesson's tick on the device. The tick has no date and is not
-  synced (LEARN.md), so it counts whenever it was earned, and on another device the lesson reads
-  as not read until it is finished there.
+- **A lesson task** is met by the lesson's tick. It counts whenever it was earned: a lesson
+  read before the week began is read. Since G3 the tick is a record with its time, exported and
+  synced ([LEARN.md](LEARN.md), "The tick is a record"), so a lesson finished on one of the
+  student's devices is met on the others; the task still asks only whether it is ticked, not
+  when.
 - **Minutes** are the practice log's: every kind of session, by the day it began, in whole
   minutes.
 - **The window** is from the first minute of the start day to the last of the due day, on the

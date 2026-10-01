@@ -3,7 +3,6 @@ import { Link } from 'wouter';
 import { dailyTotals, practiceLog } from '../../core/streak.ts';
 import { useT } from '../../i18n/index.ts';
 import { EmptyState } from '../EmptyState.tsx';
-import { readDone } from '../learn/progress.ts';
 import { usePractice, useStorageStatus } from '../practice/context.ts';
 import { DayHistory } from '../progress/DayHistory.tsx';
 import { FamilyProgress } from '../progress/families/FamilyProgress.tsx';
@@ -20,10 +19,11 @@ import { readStartPref } from '../start/prefs.ts';
 export function ProgressPage() {
   const t = useT();
   const { loaded } = useStorageStatus();
-  const { sessions, stats, answers, attempts } = usePractice();
+  const { sessions, stats, answers, attempts, lessons } = usePractice();
   // A lesson ticked is practice too: with ticks alone the page has where the player is. So it
   // has for whoever said on the start page where they start from (docs/START.md).
-  const [begun] = useState(() => readDone().size > 0 || readStartPref() !== null);
+  const [answered] = useState(() => readStartPref() !== null);
+  const begun = lessons.length > 0 || answered;
   const now = useNow();
   // Each day by the goal it had (docs/PERSONAL.md): the streak, the chart's line and the grid.
   const goal = useGoal();

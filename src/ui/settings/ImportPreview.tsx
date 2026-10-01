@@ -16,12 +16,14 @@ const COLLECTIONS = [
   'answers',
   'takes',
   'assignments',
+  'lessons',
 ] as const;
 /**
  * How many of the collections a file of version 1, 2, … can hold: pieces from 2, steps from 3,
- * scale runs from 5, ear-training answers from 6, takes from 8, assignments from 9.
+ * scale runs from 5, ear-training answers from 6, takes from 8, assignments from 9, the lessons
+ * finished from 10.
  */
-const COLLECTIONS_BY_VERSION = [2, 3, 4, 4, 5, 6, 6, 7, 8];
+const COLLECTIONS_BY_VERSION = [2, 3, 4, 4, 5, 6, 6, 7, 8, 9];
 
 interface ImportPreviewProps {
   fileName: string;

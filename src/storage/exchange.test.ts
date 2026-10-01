@@ -9,6 +9,7 @@ import { openDacapoDB, type DacapoDB } from './db.ts';
 import {
   buildExport,
   EXPORT_VERSION,
+  MAX_IMPORT_LESSONS,
   exportFileName,
   exportText,
   parseImport,
@@ -50,6 +51,7 @@ import {
   T0,
 } from './fixtures.ts';
 import { createIndexedDbRepository, type PracticeRepository } from './repository.ts';
+import { validateLesson } from './validate.ts';
 
 const PREFS: Preferences = { locale: 'zh-CN', theme: 'dark' };
 const NOW = Date.UTC(2026, 8, 25, 8, 30);
@@ -118,6 +120,7 @@ describe('export', () => {
       answers: [],
       takes: [],
       assignments: [],
+      lessons: [],
     });
     const file = await exportOf(repo);
     expect(file).toMatchObject({
@@ -206,6 +209,7 @@ describe('export → import', () => {
       answers: 0,
       takes: 3,
       assignments: 0,
+      lessons: 0,
     });
     expect(await exportOf(target)).toEqual(exported);
     expect(await target.load()).toEqual(await source.load());
@@ -229,6 +233,7 @@ describe('export → import', () => {
       answers: 0,
       takes: 0,
       assignments: 0,
+      lessons: 0,
     });
     expect(await repo.load()).toEqual(once);
   });
@@ -430,6 +435,7 @@ describe('planImport', () => {
       answerIds: new Set(),
       takeIds: new Set<string>(),
       assignmentIds: new Set<string>(),
+      lessons: [],
     });
     expect(plan).toEqual({
       sessions: { new: sessions.length - 1, present: 1, invalid: 0 },
@@ -440,6 +446,7 @@ describe('planImport', () => {
       answers: { new: 0, present: 0, invalid: 0 },
       takes: { new: 0, present: 0, invalid: 0 },
       assignments: { new: 0, present: 0, invalid: 0 },
+      lessons: { new: 0, present: 0, invalid: 0 },
     });
   });
 
@@ -472,6 +479,7 @@ describe('planImport', () => {
       answerIds: new Set(),
       takeIds: new Set([takes[1]!.id]),
       assignmentIds: new Set<string>(),
+      lessons: [],
     });
     expect(plan.takes).toEqual({ new: 2, present: 1, invalid: 2 });
   });
@@ -488,6 +496,7 @@ describe('planImport', () => {
       answerIds: new Set(),
       takeIds: new Set<string>(),
       assignmentIds: new Set<string>(),
+      lessons: [],
     });
     expect(plan.pieceSteps).toEqual({ new: 3, present: 1, invalid: 0 });
   });
@@ -513,6 +522,7 @@ describe('planImport', () => {
       answerIds: new Set(),
       takeIds: new Set<string>(),
       assignmentIds: new Set<string>(),
+      lessons: [],
     });
     expect(plan.sessions).toEqual({ new: 1, present: 0, invalid: 0 });
     expect(plan.scaleRuns).toEqual({ new: 2, present: 1, invalid: 1 });
@@ -531,6 +541,7 @@ describe('planImport', () => {
       answerIds: new Set(),
       takeIds: new Set<string>(),
       assignmentIds: new Set<string>(),
+      lessons: [],
     });
     expect(plan.pieces).toEqual({ new: 1, present: 1, invalid: 1 });
   });
@@ -899,7 +910,7 @@ describe('versions', () => {
     ]);
   });
 
-  it('writes version 9 with pieces, piece sessions, step records, scale runs, answers, takes and assignments', async () => {
+  it('writes version 10 with pieces, piece sessions, step records, scale runs, answers, takes, assignments and the lessons finished', async () => {
     const repo = await freshRepository();
     await repo.putPiece(samplePiece(1));
     const { steps, session } = sampleRun('r1', 2);
@@ -923,9 +934,17 @@ describe('versions', () => {
       deleted: true,
       updatedAt: T0,
     });
+    // One finished before ticks had a time, one with its time, one of a later build's lessons.
+    const lessons = [
+      { slug: 'keyboard', doneAt: 0 },
+      { slug: 'lesson-of-a-later-build', doneAt: T0 + 1 },
+      { slug: 'staff', doneAt: T0 },
+    ];
+    await repo.markLessons([...lessons].reverse());
     const file = await exportOf(repo);
-    expect(EXPORT_VERSION).toBe(9);
-    expect(file.version).toBe(9);
+    expect(EXPORT_VERSION).toBe(10);
+    expect(file.version).toBe(10);
+    expect(file.lessons).toEqual(lessons);
     expect(file.takes).toEqual([take]);
     expect(file.pieces).toEqual([samplePiece(1)]);
     expect(file.pieceSteps).toEqual(steps);
@@ -940,11 +959,251 @@ describe('versions', () => {
     expect(back.answers).toEqual(ear.answers);
     expect(back.takes).toEqual([take]);
     expect(back.assignments).toEqual([assignment, report]);
+    expect(back.lessons).toEqual(lessons);
     expect(back.sessions).toEqual([scales.session, session, ear.session]);
-    // Into another browser: both arrive, as they were.
+    // Into another browser: all arrive, as they were.
     const target = await freshRepository();
-    expect((await target.merge(back)).assignments).toBe(2);
+    expect(await target.merge(back)).toMatchObject({ assignments: 2, lessons: 3 });
     expect((await target.load()).assignments).toEqual([assignment, report]);
+    expect((await target.load()).lessons).toEqual(lessons);
+    expect(await exportOf(target)).toEqual(file);
+  });
+
+  it('imports a version 9 file as before: every record of it, and no lessons', async () => {
+    const source = await freshRepository();
+    await source.putPiece(samplePiece(1));
+    const { steps, session } = sampleRun('r1', 2);
+    for (const step of steps) await source.addPieceStep(step, null);
+    await source.putSession(session);
+    const scales = sampleScaleSession('k1', 2);
+    for (const run of scales.runs) await source.addScaleRun(run, scales.session);
+    const ear = sampleEarSession('e1', 5);
+    for (const answer of ear.answers) await source.addAnswer(answer);
+    await source.putSession(ear.session);
+    await source.addTake(sampleTake('r1', 0));
+    await source.putAssignment(sampleStoredAssignment(1));
+    // The file a version 9 build wrote: the same lists, without the lessons.
+    const lists: Partial<ExportFile> = await exportOf(source);
+    delete lists.lessons;
+    const old = { ...lists, version: 9 };
+    const back = parsed(JSON.stringify(old));
+    expect(back).toMatchObject({ version: 9, lessons: [], invalid: [] });
+
+    const target = await freshRepository();
+    await target.markLessons([{ slug: 'staff', doneAt: T0 }]);
+    expect(await target.merge(back)).toEqual({
+      sessions: 3,
+      attempts: 0,
+      pieces: 1,
+      pieceSteps: 2,
+      scaleRuns: 2,
+      answers: 5,
+      takes: 1,
+      assignments: 1,
+      lessons: 0,
+    });
+    // What it holds arrives as a version 9 build would export it; the tick here stays.
+    const after: Partial<ExportFile> = await exportOf(target);
+    expect(after.lessons).toEqual([{ slug: 'staff', doneAt: T0 }]);
+    delete after.lessons;
+    expect({ ...after, version: 9 }).toEqual(old);
+    // A version 10 file must have the list.
+    expect(parseImport(JSON.stringify({ ...lists, version: 10 }))).toEqual({
+      ok: false,
+      error: { kind: 'wrong-format' },
+    });
+  });
+
+  it('checks a lesson finished: one this build does not know is kept, a bad time is refused', async () => {
+    const lists = {
+      pieces: [],
+      pieceSteps: [],
+      scaleRuns: [],
+      answers: [],
+      takes: [],
+      assignments: [],
+    };
+    const file = parsed(
+      fileWith({
+        version: 10,
+        ...lists,
+        lessons: [
+          { slug: 'staff', doneAt: T0, extra: 1 },
+          { slug: 'keyboard', doneAt: 0 },
+          { slug: 'lesson-of-a-later-build', doneAt: T0 + 5 },
+          { slug: 'rhythm', doneAt: -1 },
+          { slug: 'rhythm', doneAt: '2026-09-20' },
+          { slug: 'rhythm', doneAt: null },
+          { slug: 'rhythm' },
+          { slug: 'Rhythm', doneAt: T0 },
+          { slug: '', doneAt: T0 },
+          { slug: 'a,b', doneAt: T0 },
+          { slug: 'x'.repeat(65), doneAt: T0 },
+          { doneAt: T0 },
+          { slug: 'staff', doneAt: T0 + 9 },
+          'staff',
+          { slug: 'landmarks', doneAt: T0 + 2.5 },
+          // A second copy that is earlier is the one kept, as in every merge; of equal times,
+          // the first.
+          { slug: 'landmarks', doneAt: T0 + 1 },
+          { slug: 'keyboard', doneAt: 0 },
+          { slug: 'landmarks', doneAt: T0 + 1 },
+        ],
+      }),
+    );
+    expect(file.lessons).toEqual([
+      { slug: 'staff', doneAt: T0 },
+      { slug: 'keyboard', doneAt: 0 },
+      { slug: 'lesson-of-a-later-build', doneAt: T0 + 5 },
+      { slug: 'landmarks', doneAt: T0 + 1 },
+    ]);
+    expect(file.invalid).toEqual([
+      { collection: 'lessons', index: 3, field: 'doneAt', problem: 'invalid' },
+      { collection: 'lessons', index: 4, field: 'doneAt', problem: 'invalid' },
+      { collection: 'lessons', index: 5, field: 'doneAt', problem: 'invalid' },
+      { collection: 'lessons', index: 6, field: 'doneAt', problem: 'invalid' },
+      { collection: 'lessons', index: 7, field: 'slug', problem: 'invalid' },
+      { collection: 'lessons', index: 8, field: 'slug', problem: 'invalid' },
+      { collection: 'lessons', index: 9, field: 'slug', problem: 'invalid' },
+      { collection: 'lessons', index: 10, field: 'slug', problem: 'invalid' },
+      { collection: 'lessons', index: 11, field: 'slug', problem: 'invalid' },
+      { collection: 'lessons', index: 12, field: 'slug', problem: 'duplicate' },
+      { collection: 'lessons', index: 13, field: 'record', problem: 'invalid' },
+      { collection: 'lessons', index: 14, field: 'slug', problem: 'duplicate' },
+      { collection: 'lessons', index: 16, field: 'slug', problem: 'duplicate' },
+      { collection: 'lessons', index: 17, field: 'slug', problem: 'duplicate' },
+    ]);
+    for (const bad of [NaN, Infinity, -Infinity]) {
+      expect(validateLesson({ slug: 'staff', doneAt: bad })).toEqual({
+        ok: false,
+        field: 'doneAt',
+      });
+    }
+
+    // The preview counts what the import will change: a lesson not ticked here, and one ticked
+    // here later than in the file; one ticked here earlier, or without a time, is there already.
+    const stored = [
+      { slug: 'staff', doneAt: T0 + 60_000 },
+      { slug: 'keyboard', doneAt: 0 },
+      { slug: 'landmarks', doneAt: T0 },
+    ];
+    const plan = planImport(file, {
+      sessionIds: new Set(),
+      attemptIds: new Set(),
+      pieceIds: new Set(),
+      pieceStepIds: new Set(),
+      scaleRunIds: new Set(),
+      answerIds: new Set(),
+      takeIds: new Set(),
+      assignmentIds: new Set(),
+      lessons: stored,
+    });
+    expect(plan.lessons).toEqual({ new: 2, present: 2, invalid: 14 });
+    const repo = await freshRepository();
+    await repo.markLessons(stored);
+    expect((await repo.merge({ ...file, sessions: [], attempts: [] })).lessons).toBe(2);
+    expect((await repo.load()).lessons).toEqual([
+      { slug: 'keyboard', doneAt: 0 },
+      { slug: 'landmarks', doneAt: T0 },
+      { slug: 'lesson-of-a-later-build', doneAt: T0 + 5 },
+      { slug: 'staff', doneAt: T0 },
+    ]);
+  });
+
+  it('keeps, of the copies of a lesson in a file, the one a merge would keep, whatever their order', async () => {
+    const lists = {
+      pieces: [],
+      pieceSteps: [],
+      scaleRuns: [],
+      answers: [],
+      takes: [],
+      assignments: [],
+    };
+    const copies = [
+      { slug: 'staff', doneAt: T0 + 9 },
+      { slug: 'staff', doneAt: T0 },
+      { slug: 'staff', doneAt: T0 + 3 },
+      { slug: 'staff', doneAt: 0 },
+      { slug: 'staff', doneAt: T0 },
+    ];
+    const orders = [copies, [...copies].reverse(), [copies[3]!, ...copies]];
+    for (const lessons of orders) {
+      const file = parsed(fileWith({ version: 10, ...lists, lessons }));
+      // The copy without a time is before every other: the same record, in whatever order.
+      expect(file.lessons).toEqual([{ slug: 'staff', doneAt: 0 }]);
+      expect(file.invalid).toHaveLength(lessons.length - 1);
+      expect(file.invalid.every((i) => i.field === 'slug' && i.problem === 'duplicate')).toBe(true);
+      // And what the file imports is what importing its copies one after another leaves.
+      const whole = await freshRepository();
+      await whole.merge({ ...file, sessions: [], attempts: [] });
+      const piecewise = await freshRepository();
+      for (const copy of lessons) await piecewise.markLessons([copy]);
+      expect((await whole.load()).lessons).toEqual((await piecewise.load()).lessons);
+    }
+  });
+
+  it('takes the lessons finished only from a file of version 10 or later', () => {
+    const lists = { pieces: [], pieceSteps: [], scaleRuns: [], answers: [], takes: [] };
+    const lessons = [
+      { slug: 'staff', doneAt: T0 },
+      { slug: 'staff', doneAt: T0 + 1 },
+      { slug: 'Not a slug', doneAt: T0 },
+    ];
+    const ids = {
+      sessionIds: new Set<string>(),
+      attemptIds: new Set<string>(),
+      pieceIds: new Set<string>(),
+      pieceStepIds: new Set<string>(),
+      scaleRunIds: new Set<string>(),
+      answerIds: new Set<string>(),
+      takeIds: new Set<string>(),
+      assignmentIds: new Set<string>(),
+      lessons: [],
+    };
+    // A file older than the lessons has no row for them in the preview: nothing of such a list
+    // is imported, counted or listed, whatever it holds (not even a list, far too many).
+    for (const version of [1, 5, 8, 9]) {
+      for (const listed of [lessons, 'staff', Array.from({ length: 5000 }, () => lessons[0])]) {
+        const file = parsed(fileWith({ version, ...lists, assignments: [], lessons: listed }));
+        expect(file.lessons).toEqual([]);
+        expect(file.invalid).toEqual([]);
+        expect(planImport(file, ids).lessons).toEqual({ new: 0, present: 0, invalid: 0 });
+      }
+    }
+    // The same list in a version 10 file is read.
+    const file = parsed(fileWith({ version: 10, ...lists, assignments: [], lessons }));
+    expect(file.lessons).toEqual([{ slug: 'staff', doneAt: T0 }]);
+    expect(planImport(file, ids).lessons).toEqual({ new: 1, present: 0, invalid: 2 });
+  });
+
+  it('refuses a file that lists more lessons finished than an export ever holds', () => {
+    const lists = {
+      pieces: [],
+      pieceSteps: [],
+      scaleRuns: [],
+      answers: [],
+      takes: [],
+      assignments: [],
+    };
+    const listed = (count: number) =>
+      Array.from({ length: count }, (_, i) => ({ slug: `lesson-${i}`, doneAt: T0 + i }));
+    expect(MAX_IMPORT_LESSONS).toBe(1000);
+    // At the limit it is read, every record of it.
+    const most = parsed(fileWith({ version: 10, ...lists, lessons: listed(1000) }));
+    expect(most.lessons).toHaveLength(1000);
+    expect(most.invalid).toEqual([]);
+    // One more and the whole file is refused, whatever the records are: valid ones, copies of
+    // one lesson, or nothing a record could be.
+    for (const lessons of [
+      listed(1001),
+      Array.from({ length: 1001 }, () => ({ slug: 'staff', doneAt: T0 })),
+      Array.from({ length: 5000 }, () => null),
+    ]) {
+      expect(parseImport(fileWith({ version: 10, ...lists, lessons }))).toEqual({
+        ok: false,
+        error: { kind: 'too-many-lessons', limit: 1000 },
+      });
+    }
   });
 
   it('imports a version 8 file, which has no assignments, and refuses a version 9 file without them', () => {
@@ -1012,6 +1271,7 @@ describe('versions', () => {
       answerIds: new Set(),
       takeIds: new Set(),
       assignmentIds: new Set([report.id]),
+      lessons: [],
     });
     expect(plan.assignments).toEqual({ new: 2, present: 1, invalid: 8 });
   });
@@ -1338,6 +1598,7 @@ describe('versions', () => {
         scaleRuns: [],
         takes: [],
         assignments: [],
+        lessons: [],
         sessions: [
           { ...session, extra: 1, missed: session.missed.map((m) => ({ ...m, extra: 1 })) },
           { ...session, id: 'x1', level: 'RC1' },
@@ -1404,6 +1665,7 @@ describe('versions', () => {
         scaleRuns: [],
         takes: [],
         assignments: [],
+        lessons: [],
         sessions: [
           session,
           { ...session, id: 'x1', level: 'EC1' },
@@ -1455,6 +1717,7 @@ describe('versions', () => {
         scaleRuns: [],
         takes: [],
         assignments: [],
+        lessons: [],
         sessions: [
           { ...session, extra: 1 },
           { ...session, id: 'x1', level: 'R9' },
@@ -1512,6 +1775,7 @@ describe('versions', () => {
         scaleRuns: [],
         takes: [],
         assignments: [],
+        lessons: [],
         answers: [],
         sessions: [
           { ...session, extra: 1 },
@@ -1573,6 +1837,7 @@ describe('versions', () => {
         scaleRuns: [],
         takes: [],
         assignments: [],
+        lessons: [],
         sessions: [
           { ...tapped.session, extra: 1 },
           chosen.session,
@@ -1654,6 +1919,7 @@ describe('versions', () => {
         scaleRuns: [],
         takes: [],
         assignments: [],
+        lessons: [],
         sessions: [
           { ...session, extra: 1 },
           own.session,
@@ -1814,6 +2080,7 @@ describe('versions', () => {
       answers: [],
       takes,
       assignments: [],
+      lessons: [],
     });
     expect(await repo.takes({ sessionId: 'im1' })).toEqual(takes);
     const back = parsed(JSON.stringify(await exportOf(repo)));

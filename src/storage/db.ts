@@ -1,6 +1,7 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Answer } from '../core/answers.ts';
 import type { AssignmentRecord } from '../core/assignmentRecords.ts';
+import type { LessonDone } from '../core/lessonRecords.ts';
 import type { SessionRecord } from '../core/log.ts';
 import type { PieceStep } from '../core/pieceRecords.ts';
 import type { StoredScaleRun } from '../core/scaleRecords.ts';
@@ -11,8 +12,15 @@ import type { NoteStats } from '../core/weakness.ts';
 import type { OutboxEntry } from './syncTypes.ts';
 
 export const DB_NAME = 'dacapo';
-/** Bump when the schema changes and add a `case` to `upgrade`. */
-export const DB_VERSION = 8;
+/**
+ * Bump when the schema changes and add a `case` to `upgrade`.
+ *
+ * A one-way door (docs/SYNC.md, "Builds"): once a build with a higher version has shipped, only
+ * roll forward. A browser that opened it cannot open its database at a lower version, so a
+ * revert or a rollback must keep this number and its `case`, or every such browser is left
+ * running in memory, saving nothing.
+ */
+export const DB_VERSION = 9;
 
 export interface DacapoSchema extends DBSchema {
   noteStats: { key: string; value: NoteStats };
@@ -57,6 +65,11 @@ export interface DacapoSchema extends DBSchema {
    * record that says so (docs/ASSIGNMENTS.md).
    */
   assignments: { key: string; value: AssignmentRecord };
+  /**
+   * The lessons finished (version 9), one record per lesson under its slug (docs/LEARN.md, "The
+   * tick is a record").
+   */
+  lessons: { key: string; value: LessonDone };
 }
 
 export type DacapoDB = IDBPDatabase<DacapoSchema>;
@@ -115,6 +128,10 @@ export function upgrade(db: DacapoDB, oldVersion: number, newVersion = DB_VERSIO
       }
       case 7: {
         db.createObjectStore('assignments', { keyPath: 'id' });
+        break;
+      }
+      case 8: {
+        db.createObjectStore('lessons', { keyPath: 'slug' });
         break;
       }
     }

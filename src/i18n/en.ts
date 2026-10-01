@@ -2840,13 +2840,15 @@ export const en = {
   'settings.storage.unknown': 'Stored on this device.',
   'settings.storage.memory':
     'Not saved: this browser does not let dacapo store data. Export before you close the tab.',
+  'settings.storage.newer':
+    'Not saved: this page is an older version of dacapo than the data stored here. Reload it to load your progress.',
   'settings.storage.loading': 'Loading your progress…',
   'settings.goal': 'Daily goal',
   'settings.goal.help':
     'A day counts towards the streak with this much practice. A change counts from today: the days before it keep the goal they had.',
   'settings.export': 'Export data',
   'settings.export.help':
-    'Downloads {file} with your sessions, answers, imported pieces, piece practice records and takes, scale runs, assignments and preferences.',
+    'Downloads {file} with your sessions, answers, imported pieces, piece practice records and takes, scale runs, assignments, the lessons you have finished and preferences.',
   'settings.export.failed':
     'The piece practice records, the takes or the scale runs could not be read, so nothing was exported.',
   'settings.import': 'Import data…',
@@ -2858,6 +2860,8 @@ export const en = {
   'settings.import.error.futureVersion':
     'This file comes from a newer version of dacapo (format {version}). Update dacapo, then import it again.',
   'settings.import.error.read': 'The file could not be read.',
+  'settings.import.error.tooManyLessons':
+    'This file lists more than {limit} lessons finished, more than a dacapo export ever holds. Nothing was imported.',
   'settings.import.preview': 'Import preview',
   'settings.import.file': 'File: {name}',
   'settings.import.exportedAt': 'Exported on {date}',
@@ -2873,6 +2877,7 @@ export const en = {
   'settings.import.answers': 'Ear training answers',
   'settings.import.takes': 'Takes of piece runs (in parts)',
   'settings.import.assignments': 'Assignments and kept reports',
+  'settings.import.lessons': 'Lessons finished',
   'settings.import.stats': 'Note statistics are recalculated from all answers after the import.',
   'settings.import.nothingNew': 'Everything in this file is already here.',
   'settings.import.invalidTitle': 'These records are invalid and will not be imported:',
@@ -2887,6 +2892,7 @@ export const en = {
   'settings.import.record.answers': 'Ear training answer',
   'settings.import.record.takes': 'Take part',
   'settings.import.record.assignments': 'Assignment or report',
+  'settings.import.record.lessons': 'Lesson finished',
   'settings.import.more': '…and {n} more',
   'settings.import.prefs': 'Also apply the preferences from the file: {language}, {theme}',
   'settings.import.prefs.goal': ', daily goal {n} min',
@@ -2894,7 +2900,7 @@ export const en = {
   'settings.import.cancel': 'Cancel',
   'settings.import.working': 'Importing…',
   'settings.import.done':
-    'Import complete: {sessions} new sessions, {attempts} new answers, {pieces} new pieces, {steps} new piece practice records, {scaleRuns} new scale runs, {ear} new ear training answers, {takes} new take parts and {assignments} new assignments or reports.',
+    'Import complete: {sessions} new sessions, {attempts} new answers, {pieces} new pieces, {steps} new piece practice records, {scaleRuns} new scale runs, {ear} new ear training answers, {takes} new take parts, {assignments} new assignments or reports and {lessons} lessons finished.',
   'settings.import.failed': 'The import could not be saved. Nothing was changed.',
   'settings.offline': 'Offline',
   'settings.offline.stored': 'The app is stored on this device and opens without a network.',
@@ -3044,8 +3050,10 @@ export const en = {
     'Stored on this device. Deleting dacapo deletes it too, so keep an export as a backup.',
   'settings.storage.memory.app':
     'Not saved: dacapo cannot store data on this device right now. Export before you close dacapo.',
+  'settings.storage.newer.app':
+    'Not saved: the data stored on this device was made by a newer version of dacapo. Update dacapo to load your progress.',
   'settings.export.help.app':
-    'Saves {file} with your sessions, answers, imported pieces, piece practice records and takes, scale runs, assignments and preferences.',
+    'Saves {file} with your sessions, answers, imported pieces, piece practice records and takes, scale runs, assignments, the lessons you have finished and preferences.',
   'metronome.noAudio.app': 'The click cannot play on this device. The pendulum still keeps time.',
   'start.keys.app': 'The keys on the screen and a computer keyboard work here.',
   'input.notice.app': '{status}: the keys on the screen play, and a computer keyboard’s A to K.',

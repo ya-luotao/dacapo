@@ -49,14 +49,15 @@ afterEach(() => {
 });
 
 describe('schema', () => {
-  it('creates the eleven stores with their keys and indexes', async () => {
+  it('creates the twelve stores with their keys and indexes', async () => {
     const db = await openDb();
     expect(db.version).toBe(DB_VERSION);
-    expect(DB_VERSION).toBe(8);
+    expect(DB_VERSION).toBe(9);
     expect([...db.objectStoreNames].sort()).toEqual([
       'answers',
       'assignments',
       'attempts',
+      'lessons',
       'meta',
       'noteStats',
       'outbox',
@@ -113,6 +114,10 @@ describe('schema', () => {
     expect([...takes.indexNames].sort()).toEqual(['by-piece', 'by-session']);
     expect(takes.index('by-piece').keyPath).toBe('pieceId');
     expect(takes.index('by-session').keyPath).toBe('sessionId');
+    const lessons = db.transaction('lessons').objectStore('lessons');
+    expect(lessons.keyPath).toBe('slug');
+    expect(lessons.autoIncrement).toBe(false);
+    expect([...lessons.indexNames]).toEqual([]);
   });
 
   /** Version 1 exactly as release 0.1.0 created it. */
@@ -353,7 +358,7 @@ describe('schema', () => {
     old.close();
 
     const db = await openDb();
-    expect(db.version).toBe(8);
+    expect(db.version).toBe(DB_VERSION);
     expect(db.transaction('assignments').objectStore('assignments').keyPath).toBe('id');
     const repo = createIndexedDbRepository(db);
     const data = await repo.load();
@@ -364,6 +369,79 @@ describe('schema', () => {
     expect(await db.count('outbox')).toBe(1);
     await repo.putAssignment(sampleStoredAssignment(1));
     expect((await repo.load()).assignments).toEqual([sampleStoredAssignment(1)]);
+  });
+
+  it('migrates a populated version 8 database to version 9: every record of every store stays as it is, lessons are stored', async () => {
+    const old = await openDB(DB_NAME, 8, {
+      upgrade: (database, oldVersion) => upgrade(database as DacapoDB, oldVersion, 8),
+    });
+    const stores = [...old.objectStoreNames];
+    expect(stores).toHaveLength(11);
+    expect(stores).not.toContain('lessons');
+    // Something in every store, as a version 8 build wrote it.
+    const { sessions, attempts } = sampleData();
+    const { steps, session } = sampleRun('r1', 3);
+    const scales = sampleScaleSession('k1', 2);
+    const ear = sampleEarSession('e1', 3);
+    const tx = old.transaction(stores, 'readwrite');
+    for (const record of [...sessions, session, scales.session, ear.session])
+      void tx.objectStore('sessions').put(record);
+    for (const attempt of attempts) void tx.objectStore('attempts').put(attempt);
+    for (const stats of Object.values(statsFromAttempts(attempts)))
+      void tx.objectStore('noteStats').put(stats);
+    void tx.objectStore('pieces').put(samplePiece(1));
+    for (const step of steps) void tx.objectStore('pieceSteps').put(step);
+    for (const run of scales.runs) void tx.objectStore('scaleRuns').put(run);
+    for (const answer of ear.answers) void tx.objectStore('answers').put(answer);
+    void tx.objectStore('takes').put(sampleTake('r1', 0));
+    void tx.objectStore('assignments').put(sampleStoredAssignment(1));
+    void tx.objectStore('assignments').put(sampleStoredReport(1));
+    void tx.objectStore('assignments').put({
+      id: 'assignment-2',
+      type: 'assignment',
+      deleted: true,
+      updatedAt: T0,
+    });
+    void tx
+      .objectStore('outbox')
+      .put({ key: 'sessions/r1', collection: 'sessions', id: 'r1', rev: 'r' });
+    const meta = tx.objectStore('meta');
+    void meta.put(
+      { account: { id: 'acc', email: 'p@example.com' }, token: 't', cursor: 7, lastSyncAt: T0 },
+      'sync:state',
+    );
+    void meta.put({ deleted: true, at: T0, withSteps: true }, 'deleted:piece:p9');
+    void meta.put({ at: T0 }, 'review:off:beethoven-ode-to-joy');
+    void meta.put(sampleHeader('r2'), 'pieceRun:r2');
+    await tx.done;
+
+    /** Every store's keys and records, as text. */
+    const dump = async (db: IDBPDatabase) => {
+      const read = db.transaction(stores);
+      const out: Record<string, string> = {};
+      for (const name of stores) {
+        const store = read.objectStore(name);
+        out[name] = JSON.stringify([await store.getAllKeys(), await store.getAll()]);
+      }
+      await read.done;
+      return out;
+    };
+    const before = await dump(old);
+    for (const name of stores) expect(before[name], name).not.toBe('[[],[]]');
+    old.close();
+
+    const db = await openDb();
+    expect(db.version).toBe(9);
+    expect([...db.objectStoreNames]).toHaveLength(12);
+    expect(await dump(db as unknown as IDBPDatabase)).toEqual(before);
+    // The new store is empty, and takes a lesson finished.
+    expect(await db.count('lessons')).toBe(0);
+    const repo = createIndexedDbRepository(db);
+    expect((await repo.load()).lessons).toEqual([]);
+    await repo.markLessons([{ slug: 'staff', doneAt: T0 }]);
+    expect((await repo.load()).lessons).toEqual([{ slug: 'staff', doneAt: T0 }]);
+    // Signed in before the upgrade: the tick goes to the outbox like any record.
+    expect((await db.getAllKeys('outbox')).sort()).toEqual(['lessons/staff', 'sessions/r1']);
   });
 
   it('never reads takes at startup', async () => {
@@ -506,6 +584,7 @@ describe.each([
       answers: [{ ...answers[0]!, ms: 1 }, ...answers.slice(1)],
       takes: [],
       assignments: [],
+      lessons: [],
     };
     expect(await repo.merge(input)).toMatchObject({ sessions: 1, answers: 3 });
     expect((await repo.load()).answers).toEqual(answers);
@@ -538,6 +617,7 @@ describe.each([
       answers: [],
       takes: [],
       assignments: [],
+      lessons: [],
     });
     expect(added).toEqual({
       sessions: 2,
@@ -548,6 +628,7 @@ describe.each([
       answers: 0,
       takes: 0,
       assignments: 0,
+      lessons: 0,
     });
     const data = await repo.load();
     expect(data.attempts).toEqual(attempts);
@@ -567,6 +648,7 @@ describe.each([
       answers: [],
       takes: [],
       assignments: [],
+      lessons: [],
     });
     const before = await repo.load();
     expect(
@@ -579,6 +661,7 @@ describe.each([
         answers: [],
         takes: [],
         assignments: [],
+        lessons: [],
       }),
     ).toEqual({
       sessions: 0,
@@ -589,6 +672,7 @@ describe.each([
       answers: 0,
       takes: 0,
       assignments: 0,
+      lessons: 0,
     });
     expect(await repo.load()).toEqual(before);
   });
@@ -622,6 +706,7 @@ describe.each([
       answers: [],
       takes: [],
       assignments: [],
+      lessons: [],
     });
     expect(added).toEqual({
       sessions: 0,
@@ -632,6 +717,7 @@ describe.each([
       answers: 0,
       takes: 0,
       assignments: 0,
+      lessons: 0,
     });
     const { pieces } = await repo.load();
     expect(pieces.map((p) => [p.id, p.title])).toEqual([
@@ -692,6 +778,7 @@ describe.each([
         sampleStoredAssignment(3),
         sampleStoredReport(1),
       ],
+      lessons: [],
     });
     expect(added.assignments).toBe(2);
     const { assignments } = await repo.load();
@@ -702,6 +789,80 @@ describe.each([
       ['report-0001', false],
     ]);
     expect(assignments[0]).toEqual(mine);
+  });
+
+  it('ticks a lesson once: a tick is never taken back, and of two times the earlier is kept', async () => {
+    const repo = await create();
+    const staff = { slug: 'staff', doneAt: T0 + 5000 };
+    expect(await repo.markLessons([staff, { slug: 'keyboard', doneAt: T0 }])).toEqual([
+      staff,
+      { slug: 'keyboard', doneAt: T0 },
+    ]);
+    // Finished again later, or at the same moment: nothing changes.
+    expect(await repo.markLessons([{ slug: 'staff', doneAt: T0 + 9000 }])).toEqual([]);
+    expect(await repo.markLessons([staff])).toEqual([]);
+    expect((await repo.load()).lessons).toEqual([{ slug: 'keyboard', doneAt: T0 }, staff]);
+    // An earlier time replaces a later one; 0 (a tick from before ticks had a time) any other.
+    const earlier = { slug: 'staff', doneAt: T0 + 1000 };
+    expect(await repo.markLessons([earlier])).toEqual([earlier]);
+    expect(await repo.markLessons([{ slug: 'staff', doneAt: 0 }])).toEqual([
+      { slug: 'staff', doneAt: 0 },
+    ]);
+    expect(await repo.markLessons([earlier])).toEqual([]);
+    // Of several copies in one call, the earliest; a lesson this build does not have is kept.
+    expect(
+      await repo.markLessons([
+        { slug: 'rhythm', doneAt: T0 + 3 },
+        { slug: 'rhythm', doneAt: T0 + 1 },
+        { slug: 'rhythm', doneAt: T0 + 2 },
+        { slug: 'lesson-of-a-later-build', doneAt: T0 },
+      ]),
+    ).toEqual([
+      { slug: 'rhythm', doneAt: T0 + 1 },
+      { slug: 'lesson-of-a-later-build', doneAt: T0 },
+    ]);
+    expect((await repo.load()).lessons).toEqual([
+      { slug: 'keyboard', doneAt: T0 },
+      { slug: 'lesson-of-a-later-build', doneAt: T0 },
+      { slug: 'rhythm', doneAt: T0 + 1 },
+      { slug: 'staff', doneAt: 0 },
+    ]);
+  });
+
+  it('merges lessons finished as the union, the earlier time kept, and counts what changed', async () => {
+    const repo = await create();
+    await repo.markLessons([
+      { slug: 'keyboard', doneAt: 0 },
+      { slug: 'staff', doneAt: T0 + 5000 },
+      { slug: 'landmarks', doneAt: T0 },
+    ]);
+    const input = {
+      sessions: [],
+      attempts: [],
+      pieces: [],
+      pieceSteps: [],
+      scaleRuns: [],
+      answers: [],
+      takes: [],
+      assignments: [],
+      lessons: [
+        { slug: 'keyboard', doneAt: T0 }, // stored without a time: stays
+        { slug: 'staff', doneAt: T0 + 1000 }, // earlier: taken
+        { slug: 'landmarks', doneAt: T0 + 7000 }, // later: left
+        { slug: 'rhythm', doneAt: T0 + 2000 }, // new
+      ],
+    };
+    expect((await repo.merge(input)).lessons).toBe(2);
+    const merged = [
+      { slug: 'keyboard', doneAt: 0 },
+      { slug: 'landmarks', doneAt: T0 },
+      { slug: 'rhythm', doneAt: T0 + 2000 },
+      { slug: 'staff', doneAt: T0 + 1000 },
+    ];
+    expect((await repo.load()).lessons).toEqual(merged);
+    // The same file again changes nothing.
+    expect((await repo.merge(input)).lessons).toBe(0);
+    expect((await repo.load()).lessons).toEqual(merged);
   });
 
   it('stores step records once, with the run header until the run is finished', async () => {
@@ -767,6 +928,7 @@ describe.each([
       answers: [],
       takes: [],
       assignments: [],
+      lessons: [],
     });
     expect(added).toEqual({
       sessions: 0,
@@ -777,6 +939,7 @@ describe.each([
       answers: 0,
       takes: 0,
       assignments: 0,
+      lessons: 0,
     });
     expect((await repo.load()).pieces.map((p) => p.id)).toEqual(['p3']);
     expect(await repo.pieceSteps({ pieceId: 'p1' })).toEqual([]);
@@ -796,6 +959,7 @@ describe.each([
       answers: [],
       takes: [],
       assignments: [],
+      lessons: [],
     });
     expect(added).toEqual({
       sessions: 1,
@@ -806,6 +970,7 @@ describe.each([
       answers: 0,
       takes: 0,
       assignments: 0,
+      lessons: 0,
     });
     expect((await repo.pieceSteps({ sessionId: 'r1' }))[0]!.ms).toBe(5);
   });
@@ -846,6 +1011,7 @@ describe.each([
       answers: [],
       takes: [one, later, two, sampleTake('r3', 0, { pieceId: 'p3' })],
       assignments: [],
+      lessons: [],
     });
     expect(added.takes).toBe(1);
     expect((await repo.allTakes()).map((c) => c.pieceId)).toEqual(['p2', 'p3']);
@@ -898,6 +1064,7 @@ describe.each([
       answers: [],
       takes: [],
       assignments: [],
+      lessons: [],
     });
     // The imported session has more runs, so it replaces the stored one.
     expect(added).toEqual({
@@ -909,6 +1076,7 @@ describe.each([
       answers: 0,
       takes: 0,
       assignments: 0,
+      lessons: 0,
     });
     const stored = await repo.scaleRuns({ sessionId: 'k1' });
     expect(stored.map((r) => r.id)).toEqual(runs.map((r) => r.id));
@@ -928,6 +1096,7 @@ describe.each([
       answers: [],
       takes: [],
       assignments: [],
+      lessons: [],
     });
     // Counted with the sessions taken from the file.
     expect(added).toEqual({
@@ -939,6 +1108,7 @@ describe.each([
       answers: 0,
       takes: 0,
       assignments: 0,
+      lessons: 0,
     });
     expect((await repo.load()).sessions).toEqual([long.session]);
     expect(await repo.scaleRuns({ sessionId: 'k1' })).toEqual(long.runs);
@@ -952,6 +1122,7 @@ describe.each([
           answers: [],
           takes: [],
           assignments: [],
+          lessons: [],
         }),
       ).toEqual({
         sessions: 0,
@@ -962,6 +1133,7 @@ describe.each([
         answers: 0,
         takes: 0,
         assignments: 0,
+        lessons: 0,
       });
     }
     expect((await repo.load()).sessions).toEqual([long.session]);
@@ -978,6 +1150,7 @@ describe.each([
       answers: [],
       takes: [],
       assignments: [],
+      lessons: [],
     };
     const long = sampleSightSession('s1', 3);
     expect((await repo.merge({ ...empty, sessions: [long] })).sessions).toBe(1);
@@ -1002,6 +1175,7 @@ describe.each([
       answers: [],
       takes: [],
       assignments: [],
+      lessons: [],
     });
     expect(added.sessions).toBe(0);
     expect((await repo.load()).sessions).toEqual([free]);
@@ -1021,6 +1195,7 @@ describe.each([
       answers: [],
       takes: [],
       assignments: [],
+      lessons: [],
     });
     expect((await rebuilt.load()).stats).toEqual((await incremental.load()).stats);
   });
@@ -1055,6 +1230,7 @@ describe('transactions', () => {
         answers: [],
         takes: [],
         assignments: [],
+        lessons: [],
       }),
     ).rejects.toThrow();
     const data = await repo.load();
@@ -1114,14 +1290,87 @@ describe('openRepository', () => {
     expect((await result.repository.load()).attempts).toHaveLength(1);
   });
 
-  it('falls back to memory when the open request fails', async () => {
-    // A newer version on disk makes opening version 1 fail with a VersionError event.
-    const newer = await openDB(DB_NAME, DB_VERSION + 1);
-    newer.close();
+  it('falls back to memory when the open request fails: a database of a later version is said apart, and left as it is', async () => {
+    // What a later build left: this build's stores with records in them, signed in to sync (so
+    // that a write here would also be queued), at a version this build does not know, with a
+    // store it does not know either.
+    const mine = await openDb();
+    const repo = createIndexedDbRepository(mine);
+    const { sessions, attempts } = sampleData();
+    for (const attempt of attempts) await repo.addAttempt(attempt);
+    for (const session of sessions) await repo.putSession(session);
+    await repo.putPiece(samplePiece(1));
+    await repo.markLessons([{ slug: 'staff', doneAt: T0 }]);
+    await repo.sync!.signIn({ id: 'acc', email: 'pianist@example.com' }, 'token-1');
+    mine.close();
+    const later = await openDB(DB_NAME, DB_VERSION + 1, {
+      upgrade: (db) => void db.createObjectStore('later'),
+    });
+    await later.put('later', { made: 'by a later build' }, 'record');
+    /** The version, and every store's keys and records, as text. */
+    const dump = async (db: IDBPDatabase) => {
+      const names = [...db.objectStoreNames];
+      const read = db.transaction(names);
+      const out: Record<string, string> = { version: String(db.version) };
+      for (const name of names) {
+        const store = read.objectStore(name);
+        out[`store ${name}`] = JSON.stringify([await store.getAllKeys(), await store.getAll()]);
+      }
+      await read.done;
+      return out;
+    };
+    const before = await dump(later);
+    expect(Object.keys(before)).toHaveLength(14);
+    expect(before['store outbox']).not.toBe('[[],[]]');
+    later.close();
+
+    // A connection of the later build, as its own tab holds one: it is never asked to close.
+    const versionChange = vi.fn();
+    const held = await openDB(DB_NAME, DB_VERSION + 1, { blocking: versionChange });
+    const requests = vi.spyOn(indexedDB, 'open');
+    const deletes = vi.spyOn(indexedDB, 'deleteDatabase');
+
     const result = await openRepository();
-    expect(result).toMatchObject({ failure: 'error' });
+    expect(result).toMatchObject({ failure: 'newer' });
     expect((result as { error: DOMException }).error.name).toBe('VersionError');
-    expect(result.repository.kind).toBe('memory');
+    // In memory, with nothing of what is stored, and no sync storage: nothing can be queued.
+    const { repository } = result;
+    expect(repository.kind).toBe('memory');
+    expect(repository.sync).toBeNull();
+    expect((await repository.load()).attempts).toEqual([]);
+    // It works as the memory repository does, and none of it reaches the database.
+    await repository.addAttempt(sampleAttempt(40));
+    await repository.putSession({ ...sessions[0]!, id: 'in-memory' });
+    await repository.markLessons([{ slug: 'keyboard', doneAt: T0 + 1 }]);
+    await repository.deletePiece('p1', { steps: true, at: T0 });
+    await repository.merge({
+      sessions: [],
+      attempts: [sampleAttempt(41)],
+      pieces: [samplePiece(2)],
+      pieceSteps: [],
+      scaleRuns: [],
+      answers: [],
+      takes: [],
+      assignments: [],
+      lessons: [{ slug: 'staff', doneAt: 0 }],
+    });
+    repository.close();
+    expect((await repository.load()).lessons).toEqual([
+      { slug: 'keyboard', doneAt: T0 + 1 },
+      { slug: 'staff', doneAt: 0 },
+    ]);
+
+    // One request to open, at this build's version; none to delete, none at any other version.
+    expect(requests.mock.calls).toEqual([[DB_NAME, DB_VERSION]]);
+    expect(deletes).not.toHaveBeenCalled();
+    expect(versionChange).not.toHaveBeenCalled();
+    expect(await dump(held)).toEqual(before);
+    held.close();
+    // And as the later build finds it again: the same version, the same records.
+    const again = await openDB(DB_NAME);
+    expect(again.version).toBe(DB_VERSION + 1);
+    expect(await dump(again)).toEqual(before);
+    again.close();
   });
 
   it('closes itself and reports it when another tab upgrades the database', async () => {

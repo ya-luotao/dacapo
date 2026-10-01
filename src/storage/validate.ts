@@ -39,6 +39,7 @@ import type { ChordSymbolAnswer, HarmonyMissed } from '../core/harmonySession.ts
 import { isStaffHands } from '../core/hands.ts';
 import { BACKINGS, isBackingId, isFeel, isImprovTempo } from '../core/improv.ts';
 import type { ImprovFigures } from '../core/improvFigures.ts';
+import { isDoneAt, isLessonSlug, type LessonDone } from '../core/lessonRecords.ts';
 import { isLevelId, parseNoteKey } from '../core/levels.ts';
 import type {
   EarSessionRecord,
@@ -1660,6 +1661,18 @@ export function validateSharedPiece(value: unknown): SharedPiece | null {
   if (!checked.ok) return null;
   const { id, title, composer, fileName, xml, hands, warnings } = checked.value;
   return { id, title, composer, fileName, xml, hands, warnings };
+}
+
+/**
+ * A lesson finished: its slug and when. The slug is checked for its shape, not against the
+ * lessons this build has: a later build may have added one, and its tick is kept as it came.
+ */
+export function validateLesson(value: unknown): Validation<LessonDone> {
+  if (!isObject(value)) return fail('record');
+  const { slug, doneAt } = value;
+  if (!isLessonSlug(slug)) return fail('slug');
+  if (!isDoneAt(doneAt)) return fail('doneAt');
+  return { ok: true, value: { slug, doneAt } };
 }
 
 // --- Rhythm dictation on Ear -----------------------------------------------------------------

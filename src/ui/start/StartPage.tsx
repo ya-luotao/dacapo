@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useLocation } from 'wouter';
-import { CURRICULUM_LESSONS, nextLesson } from '../../core/curriculum.ts';
 import { midiName, PIANO_HIGHEST, PIANO_LOWEST } from '../../core/note.ts';
 import { DEFAULT_START } from '../../core/startingPoint.ts';
 import { SENTENCE_GAP, useI18n, useT } from '../../i18n/index.ts';
@@ -9,12 +8,12 @@ import { isBuiltin } from '../../output/output.ts';
 import { useHubState, useInput } from '../input/context.ts';
 import { useTouchOnly } from '../input/touchOnly.ts';
 import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
-import { readDone } from '../learn/progress.ts';
 import { useOutputState, useSampleStatus } from '../output/context.ts';
 import { Piano } from '../piano/Piano.tsx';
 import { DeviceHelp, DeviceStatus } from '../play/DeviceStatus.tsx';
 import { Keycaps } from '../play/KeyboardHint.tsx';
 import { writeReturning } from '../today/prefs.ts';
+import { useBeginPath } from './begin.ts';
 import { readStartPref, writeStartPref } from './prefs.ts';
 import { StartingPointFields } from './StartingPointFields.tsx';
 
@@ -36,15 +35,16 @@ export function StartPage() {
   const [, navigate] = useLocation();
   // The answer kept on this device, for someone who comes again; a newcomer's until one is given.
   const [start, setStart] = useState(() => readStartPref() ?? DEFAULT_START);
+  // A newcomer who comes again begins at the next lesson: worked out when Begin is pressed, from
+  // the lessons ticked in the practice store, and the Learn page while those are not read.
+  const beginPath = useBeginPath();
 
   function begin(event: FormEvent) {
     event.preventDefault();
     writeStartPref(start);
     // Whoever answered is no first visitor: the home page opens on Today from here on.
     writeReturning(true);
-    navigate(
-      start.from === 'new' ? `/learn/${nextLesson(readDone()) ?? CURRICULUM_LESSONS[0]!}` : '/',
-    );
+    navigate(beginPath(start));
   }
 
   return (

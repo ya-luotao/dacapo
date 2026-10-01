@@ -26,11 +26,12 @@ import type { SyncCollection } from '../storage/syncTypes.ts';
  * session, its steps and its take), both of which older builds strip; 19, the collection
  * `assignments`: assignments and kept reports (docs/ASSIGNMENTS.md), which older builds skip; 20,
  * tunes played by ear: answers of the family `tune` and `ear` sessions of that family (older
- * builds skip them).
+ * builds skip them); 21, the collection `lessons`: the lessons finished (docs/LEARN.md), which
+ * older builds skip.
  * Bump it whenever a build learns a collection, a session kind, or records that older builds
  * skipped or stripped.
  */
-export const SYNC_SCHEMA = 20;
+export const SYNC_SCHEMA = 21;
 
 // Records as the sync service carries them (docs/SYNC.md, "What syncs"): the stored record as it
 // is, except a piece, which goes without its MusicXML (sent as a file named by its hash) and

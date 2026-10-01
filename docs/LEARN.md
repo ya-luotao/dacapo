@@ -140,15 +140,17 @@ Fine") are replaced by what works in Chinese.
   stopping never silences another.
 - Only one exercise listens at a time: starting one (or clicking a key on it) stops the others, so
   a key played for one never answers another. The last exercise marks the lesson done
-  (`useCompleteLesson`), shown as a tick on the list; that is kept per browser, not synced.
+  (`useCompleteLesson`), shown as a tick on the list; the tick is a record of the practice store,
+  exported and synced like the rest ("The tick is a record", below).
 - Nothing a lesson says may be browser-only in the Apple app, which shows the same lessons.
 
 ## Lessons and practice, joined (G3)
 
-Status: planned. A lesson ends with **Practise it**, which opens a page and leaves the reader to
-find the level; no practice says which lesson explains it; the Learn page does not say which
-lesson comes next; and the tick stays on one device. G3 joins them, by the table in
-[TODAY.md](TODAY.md) (`core/curriculum.ts`: which lesson opens which practice).
+Status: the tick as a record is built; the rest is planned. A lesson ends with **Practise it**,
+which opens a page and leaves the reader to find the level; no practice says which lesson
+explains it; the Learn page does not say which lesson comes next; and the tick stayed on one
+device. G3 joins them, by the table in [TODAY.md](TODAY.md) (`core/curriculum.ts`: which lesson
+opens which practice).
 
 - **Practise it goes to the thing itself.** A lesson names one or two practices (`practice` in
   `src/learn/lessons.ts` becomes a list), each opened with its settings as a task's button does
@@ -200,6 +202,105 @@ lesson comes next; and the tick stays on one device. G3 joins them, by the table
   glossary; 小節 not 小节, 升記號, 音程 …), with the same figures and exercises in the same order,
   awaiting native review like the zh-TW strings. Japanese and Korean go on reading the English,
   with the line that says so.
+
+## Clarifications (decided during G3)
+
+- **The record** is `LessonDone { slug, doneAt }` (`core/lessonRecords.ts`), in the store
+  `lessons`, keyed by the slug. Database version 9 creates the store and touches nothing else.
+  `doneAt` is the first time the lesson's last exercise was done: finishing a lesson again
+  changes nothing. The pages beside the lessons (`inside`) are ticked the same way.
+- **One rule everywhere.** Storing a tick, the move, an import and a pull all go by it: a lesson
+  that is not stored is added, and a stored one gives way only to an earlier time (0 is before
+  any other). So two copies merge as their union, the same whichever is merged into the other,
+  and nothing takes a tick back or moves it later.
+- **The move.** When the practice store starts (`load` in `ui/practice/store.ts`, beside the
+  other repairs made only at startup), each slug in `dacapo.learn.done` is stored as a tick with
+  `doneAt` 0, by that rule, before the stored data is shown: today's plan is never made without
+  them. The preference is only ever read, never written and never removed. "Once" is by the
+  rule, not by a mark that the move was made: a start that finds every slug stored writes
+  nothing, and a slug the preference gains later (a tab of the earlier version, still open) is
+  taken in at the next start. A lesson stored with a time that is also in the preference gets
+  0: it was finished before ticks had a time. Should the write fail, the ticks are shown all the
+  same, the storage notice says that saving failed, and the next start tries again. They stay on
+  screen through every later read of the stored data too (a sync pull, an import, here or in
+  another tab): reading again merges the preference in as the start does, and writes nothing.
+  When the stored data cannot be read at all, the preference's ticks are shown with whatever
+  this tab has earned.
+- **An earlier version on the new database** cannot open it (9 is later than its 8): it works in
+  memory and shows the storage notice, and a tab of it open while the upgrade runs is asked to
+  reload. Its ticks are still in the preference, which this version leaves as it was. The
+  notice that build shows is the one for a browser that does not let dacapo save ("a private
+  window, or site data blocked?"), which is wrong and cannot be mended in a build already out.
+- **A later version's database, from this version on.** A build that finds a database of a
+  higher version than its own (the open fails with a `VersionError`) knows it for what it is:
+  the notice is the one an outdated tab gets, with **Reload**, and not the private window's. The
+  app runs in memory as before. Nothing of the stored database is read, written or deleted,
+  nothing is queued and nothing syncs (the memory repository has no sync storage), no other tab
+  is told anything, and Settings says the page is older than the data stored here (not that the
+  browser refuses to store). The start page's Begin, the home page and today's plan treat the
+  records as unknown rather than empty (below).
+- **The offline worker's window is accepted for this release.** The worker keeps the app's
+  files on the device ([OFFLINE.md](OFFLINE.md)), so a release that raises the database
+  version can meet a stored page of the release before: another tab, or the app opened before
+  the new worker has installed, upgrades the database, and the stored page then finds a later
+  version. From this version on that page says to reload, and the reload brings the new files.
+  For this release the stored page is the one before it, which shows the wrong notice (above);
+  it runs in memory, loses nothing that is stored, and is replaced at the next visit.
+- **The database version is a one-way door**: once a build with a higher version has shipped,
+  only roll forward ([SYNC.md](SYNC.md), "Builds").
+- **Not durable while the database is unavailable.** In memory mode (no storage to use, a
+  database of a later version) and in an outdated tab a tick is on screen and gone with the
+  tab, like every other record made there.
+- **A field added to the record later needs its own schema step.** `compareLessons` has no
+  tie-break beyond the time (two copies with the same `doneAt` are the same record to it), and
+  `validateLesson` keeps only `slug` and `doneAt`. A build that learns another field would
+  therefore neither keep it from a pull nor prefer the copy that has it: it needs a
+  `SYNC_SCHEMA` step and a rule for which copy wins, as the other collections have.
+- **A returning player without a jump.** The home page decides before the records are read from
+  what the browser keeps: `dacapo.returning` (TODAY.md), which is now set the moment a lesson is
+  ticked, the earlier version's preference, read as before, and an answer given on the start
+  page ([START.md](START.md)). Whoever has only a tick never sees the first visit's page. No
+  copy of the ticks is kept beside the records. The flag is removed only by records that were
+  read and found empty: when they cannot be read (no storage to use, a database of a later
+  version, a read that failed) what was known goes on deciding, and the flag stays as it was.
+- **Begin on the start page** works out where to go when it is pressed, from the store as it
+  is then: the next lesson for a newcomer. Pressed while the ticks are not known (the records
+  are not read yet, the read failed, or the database is a later version's) it opens the Learn
+  page, which marks the next lesson once it knows; never lesson 1 for someone with ticks. Where
+  there is no storage to read (a private window) this tab holds all there is, and it opens the
+  next lesson as usual.
+- **Today's plan over records that cannot be seen** (a database of a later version, a read
+  that failed) is made and shown, and not kept: kept, it would stand for the rest of the day
+  once a reload has the records ([TODAY.md](TODAY.md)). Where there is no storage to read it is
+  kept as ever. One function says which is which for the plan and for Begin (`recordsKnown` in
+  `ui/practice/store.ts`).
+- **Before the records are read** the Learn page shows its list at once, and each lesson's
+  line (its minutes, or ✓ Done) holds its place empty until the ticks are in. The checklist,
+  today's plan and Where you are wait for the ticks as they wait for the sessions, and then
+  follow the store: a lesson finished in another tab, on another device or in an imported file
+  ticks them without a reload. (Today's plan stays the plan it was: TODAY.md.)
+- **A slug this build does not know** (a lesson a later build added) is kept when it has a
+  slug's shape (lower-case letters, digits and hyphens, at most 64): stored, exported and synced
+  as it came, counted and shown nowhere. Anything else is refused like any invalid record, as is
+  a `doneAt` that is not a time (a number, 0 or more).
+- **Export and import.** Format 10 has the list `lessons`, every tick by slug. A file of format
+  1 to 9 has none and imports as before; an earlier version refuses a format 10 file as made by
+  a later one, as it does any later format. The preview counts as new the ticks the import will
+  write (a lesson not ticked here, or ticked here later than in the file), the rest as there
+  already; importing never removes or delays a tick. A hand-made file is held to the same
+  shape: a `lessons` list in a file of format 1 to 9 is not read (no count, no row, nothing
+  imported); of several copies of a slug the one kept is the one the rule keeps (the earliest;
+  of equal times the first), the others listed as duplicates; and a list of more than 1,000 is
+  refused with the whole file, the import saying why (an export holds one per lesson).
+- **Sync.** The collection `lessons`, one record per lesson under its slug, the body as stored;
+  `SYNC_SCHEMA` 21, so a signed-in device pulls everything once more ([SYNC.md](SYNC.md)). The
+  service needed no change: it keeps bodies as text under any collection name of 1 to 32
+  letters and any id of up to 128 characters. Signing in sends every tick stored; signing out
+  or deleting the account leaves them on the device, like every record.
+- **Other tabs** are told of a tick as of any write, and merge it by the same rule.
+- **The week's recap** ([PERSONAL.md](PERSONAL.md), "Your week") reads the ticks from the store
+  (`ui/today/lessonTicks.ts`): a lesson counts for the week of its `doneAt`, wherever it was
+  finished, and a tick moved without a time (0) counts for none.
 
 ## Pictures
 

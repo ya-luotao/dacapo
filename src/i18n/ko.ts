@@ -2796,13 +2796,15 @@ export const ko: Dictionary = {
   'settings.storage.unknown': '이 기기에 저장됨.',
   'settings.storage.memory':
     '저장 안 됨: 이 브라우저가 dacapo의 데이터 저장을 허용하지 않아요. 탭을 닫기 전에 내보내세요.',
+  'settings.storage.newer':
+    '저장 안 됨: 이 페이지의 dacapo가 여기에 저장된 데이터보다 이전 버전이에요. 새로 고치면 연습 기록을 불러와요.',
   'settings.storage.loading': '연습 기록을 불러오는 중…',
   'settings.goal': '하루 목표',
   'settings.goal.help':
     '하루에 이만큼 연습하면 연속 기록에 들어가요. 바꾼 목표는 오늘부터 적용되고, 그 전의 날은 그때의 목표 그대로예요.',
   'settings.export': '데이터 내보내기',
   'settings.export.help':
-    '연습 내역, 응답, 가져온 곡, 곡과 스케일의 연습 상세 기록, 연주 테이크, 과제, 환경설정을 담은 {file} 파일을 내려받아요.',
+    '연습 내역, 응답, 가져온 곡, 곡과 스케일의 연습 상세 기록, 연주 테이크, 과제, 완료한 레슨, 환경설정을 담은 {file} 파일을 내려받아요.',
   'settings.export.failed':
     '곡이나 스케일의 연습 상세 기록 또는 연주 테이크를 읽지 못해서 아무것도 내보내지 않았어요.',
   'settings.import': '데이터 가져오기…',
@@ -2814,6 +2816,8 @@ export const ko: Dictionary = {
   'settings.import.error.futureVersion':
     '더 새로운 버전의 dacapo에서 만든 파일이에요(형식 {version}). dacapo를 업데이트한 뒤 다시 가져오세요.',
   'settings.import.error.read': '파일을 읽지 못했어요.',
+  'settings.import.error.tooManyLessons':
+    '이 파일에는 완료한 레슨이 {limit}개 넘게 들어 있어요. dacapo가 내보낸 파일에는 그렇게 많을 수 없어요. 아무것도 가져오지 않았어요.',
   'settings.import.preview': '가져오기 미리보기',
   'settings.import.file': '파일: {name}',
   'settings.import.exportedAt': '내보낸 날짜: {date}',
@@ -2829,6 +2833,7 @@ export const ko: Dictionary = {
   'settings.import.answers': '청음 응답',
   'settings.import.takes': '곡 연습 테이크(나눠서 저장)',
   'settings.import.assignments': '과제와 보관한 보고서',
+  'settings.import.lessons': '완료한 레슨',
   'settings.import.stats': '음별 통계는 가져온 뒤 모든 응답을 바탕으로 다시 계산해요.',
   'settings.import.nothingNew': '이 파일의 내용은 모두 이미 있어요.',
   'settings.import.invalidTitle': '다음 항목은 잘못돼서 가져오지 않아요:',
@@ -2843,6 +2848,7 @@ export const ko: Dictionary = {
   'settings.import.record.answers': '청음 응답',
   'settings.import.record.takes': '테이크 조각',
   'settings.import.record.assignments': '과제 또는 보고서',
+  'settings.import.record.lessons': '완료한 레슨',
   'settings.import.more': '…외 {n}개',
   'settings.import.prefs': '파일의 환경설정도 적용: {language}, {theme}',
   'settings.import.prefs.goal': ', 하루 목표 {n}분',
@@ -2850,7 +2856,7 @@ export const ko: Dictionary = {
   'settings.import.cancel': '취소',
   'settings.import.working': '가져오는 중…',
   'settings.import.done':
-    '가져오기 완료: 새 연습 내역 {sessions}개, 새 응답 {attempts}개, 새 곡 {pieces}개, 새 곡 연습 상세 기록 {steps}개, 새 스케일 연습 상세 기록 {scaleRuns}개, 새 청음 응답 {ear}개, 새 테이크 조각 {takes}개, 새 과제·보고서 {assignments}개.',
+    '가져오기 완료: 새 연습 내역 {sessions}개, 새 응답 {attempts}개, 새 곡 {pieces}개, 새 곡 연습 상세 기록 {steps}개, 새 스케일 연습 상세 기록 {scaleRuns}개, 새 청음 응답 {ear}개, 새 테이크 조각 {takes}개, 새 과제·보고서 {assignments}개, 완료한 레슨 {lessons}개.',
   'settings.import.failed': '가져온 내용을 저장하지 못했어요. 아무것도 바뀌지 않았어요.',
   'settings.offline': '오프라인',
   'settings.offline.stored': 'dacapo가 이 기기에 저장되어 있어서 네트워크 없이도 열려요.',
@@ -2998,8 +3004,10 @@ export const ko: Dictionary = {
     '이 기기에 저장됨. dacapo를 삭제하면 데이터도 함께 지워지니 내보낸 파일을 백업으로 보관하세요.',
   'settings.storage.memory.app':
     '저장 안 됨: 지금은 dacapo가 이 기기에 데이터를 저장할 수 없어요. dacapo를 닫기 전에 내보내세요.',
+  'settings.storage.newer.app':
+    '저장 안 됨: 이 기기에 저장된 데이터는 더 새로운 버전의 dacapo가 만든 것이에요. dacapo를 업데이트하면 연습 기록을 불러와요.',
   'settings.export.help.app':
-    '연습 내역, 응답, 가져온 곡, 곡과 스케일의 연습 상세 기록, 연주 테이크, 과제, 환경설정을 담은 {file} 파일을 저장해요.',
+    '연습 내역, 응답, 가져온 곡, 곡과 스케일의 연습 상세 기록, 연주 테이크, 과제, 완료한 레슨, 환경설정을 담은 {file} 파일을 저장해요.',
   'metronome.noAudio.app': '이 기기에서는 클릭을 재생할 수 없어요. 진자는 그대로 박자를 짚어요.',
   'start.keys.app': '여기서는 화면의 건반과 키보드로 칠 수 있어요.',
   'input.notice.app': '{status}. 화면의 건반이나 키보드의 A–\u2060K로 칠 수 있어요.',

@@ -1,19 +1,16 @@
-import { useState } from 'react';
 import type { LessonTick } from '../../core/recap.ts';
-import { readDone } from '../learn/progress.ts';
+import { usePractice } from '../practice/context.ts';
 
-// Where the recap of a week gets the lessons' ticks (docs/PERSONAL.md, "Your week"). This is the
-// one place to change when a tick becomes a record with its time (docs/LEARN.md, G3: the store
-// `lessons`, each record a slug and `doneAt`): return those records here, and a lesson is counted
-// for the week it was finished in.
+// Where the recap of a week gets the lessons' ticks (docs/PERSONAL.md, "Your week"): the records
+// of the practice store (docs/LEARN.md, "The tick is a record"), each a slug and `doneAt`.
 
 /**
- * The lessons ticked on this device, each with the time it was ticked. A tick kept in the browser
- * has no time: 0, as its record will have once it is moved into the store. Such a lesson is
- * ticked from before anything else (it opens its practices) and is never a week's "lesson
- * finished".
+ * The lessons ticked, each with the time it was ticked, as stored: a lesson is counted for the
+ * week it was finished in, on whichever device that was. A tick moved from the preference an
+ * earlier version kept has no time (0): such a lesson is ticked from before anything else (it
+ * opens its practices) and is never a week's "lesson finished" (the recap's rule). Empty until
+ * the stored data is in; the recap waits for the records before it is worked out.
  */
 export function useLessonTicks(): readonly LessonTick[] {
-  const [ticks] = useState(() => [...readDone()].map((slug) => ({ slug, doneAt: 0 })));
-  return ticks;
+  return usePractice().lessons;
 }

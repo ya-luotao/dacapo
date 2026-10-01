@@ -116,6 +116,7 @@ winner.
 | `sessions`                                                | the record as stored                                    | the later copy wins (below)                                                  |
 | `pieces`                                                  | `StoredPiece` without `xml` and `facts`, plus `xmlHash` | the later copy wins (below); a deletion is final                             |
 | `assignments`                                             | the record as stored                                    | the later copy wins by `updatedAt` (below); a deletion is a copy too         |
+| `lessons`                                                 | the record as stored, under the lesson's slug           | added when its slug is not stored; the earlier `doneAt` wins (below)         |
 
 - **Sessions.** A session grows while it is played, so of two copies the one with more runs (a
   scale or sight-reading session, both stored again after every run), or else the one that ended later, wins. That matters because a device can hold
@@ -143,6 +144,14 @@ winner.
   is a later copy like any other, so the same assignment can be added again afterwards (later
   still). Sharing an assignment with someone else never goes through the service: that is a link
   or a file.
+- **Lessons finished** ([LEARN.md](LEARN.md), "The tick is a record") sync as `lessons`, one
+  record per lesson under its slug: `{ slug, doneAt }`. A tick is never taken back, so there is
+  no deletion, and two devices' ticks merge as their union. Of two copies of one lesson the
+  earlier `doneAt` wins (0, a tick from before ticks had a time, is before anything else): a
+  pulled copy that is earlier replaces the one here, and one that is later is left and the copy
+  here goes in the outbox again. A record has nothing but its slug and its time, so two copies
+  with the same time are the same record. A slug this build does not have (a lesson a later
+  build added) is stored and sent as it came, and not shown.
 - **Answers** (ear training and theory cards, [EAR.md](EAR.md)) sync as `answers`, like
   `attempts`: added when the id is not stored, never changed afterwards.
 - **Takes** (what was played in a piece run, [EXPRESSION.md](EXPRESSION.md)) sync as `takes`, one
@@ -171,7 +180,8 @@ winner.
   and the semitones a run was transposed by, `transpose` on the session, its steps and its take,
   both of which older builds strip; 19: the collection `assignments`, which older builds skip;
   20: tunes played by ear, answers of the family `tune` and `ear` sessions of that family, which
-  older builds skip), and the sync state keeps the
+  older builds skip; 21: the collection `lessons`, which older builds skip), and the sync state
+  keeps the
   schema its cursor was reached with. When the build's is higher, the next round starts again from
   cursor 0. Pulling a record already stored changes nothing, except where the stored copy differs:
   an older build that did not know a field kept the record without it. A record that never changes
@@ -181,7 +191,8 @@ winner.
   without it.
 - **Not synced:** `noteStats` (rebuilt from attempts), the free-play sessions and piece runs still
   in progress in `meta` (they become sessions when they end), the preferences (language and theme
-  stay per device), the settings in `localStorage`, the token.
+  stay per device), the settings in `localStorage`, the token. (The lessons' ticks were among
+  those settings until G3: they are records now, and sync.)
 
 ## The client (`src/sync/`)
 
@@ -233,6 +244,15 @@ winner.
   `npx wrangler deploy`). The old address, `ya-luotao.github.io/dacapo`, redirects every link
   there (`scripts/moved/`, `.github/workflows/pages.yml`); what a browser stored at the old
   address stays there, as storage belongs to the address.
+- **The database version is a one-way door.** Once a build with a higher `DB_VERSION`
+  (`src/storage/db.ts`) has shipped, only roll forward. A browser that opened it has a database
+  of that version, and IndexedDB opens no database at a lower one: a build with a lower
+  `DB_VERSION` runs in memory there, saves nothing and syncs nothing, for as long as it is the
+  build served. So a revert of the commit, or a rollback in the dashboard, must keep
+  `DB_VERSION` and its `case` in `upgrade`; what is taken back is the code that uses the new
+  store, never the version. (A build from G3 on says so in that state, and asks for a reload:
+  [LEARN.md](LEARN.md), "Clarifications (decided during G3)". The builds before it show the
+  notice for a private window.)
 - A build also writes `sw.js` at its root: the worker that keeps the web app on the device
   ([OFFLINE.md](OFFLINE.md)), served without caching (`public/_headers`). It is the same file for
   the same build, so a push that changes nothing of the app deploys no new worker. The Apple

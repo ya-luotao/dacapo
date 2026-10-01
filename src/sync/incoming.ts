@@ -1,5 +1,6 @@
 import type { Answer } from '../core/answers.ts';
 import type { AssignmentRecord } from '../core/assignmentRecords.ts';
+import type { LessonDone } from '../core/lessonRecords.ts';
 import type { SessionRecord } from '../core/log.ts';
 import type { PieceStep } from '../core/pieceRecords.ts';
 import type { StoredScaleRun } from '../core/scaleRecords.ts';
@@ -11,6 +12,7 @@ import {
   validateAnswer,
   validateAssignmentRecord,
   validateAttempt,
+  validateLesson,
   validatePiece,
   validatePieceStep,
   validateScaleRun,
@@ -33,6 +35,7 @@ export type Incoming =
   | { collection: 'answers'; record: Answer }
   | { collection: 'takes'; record: TakeChunk }
   | { collection: 'assignments'; record: AssignmentRecord }
+  | { collection: 'lessons'; record: LessonDone }
   | { collection: 'pieces'; id: string; deletion: PieceDeletion }
   | { collection: 'pieces'; id: string; piece: PieceBody };
 
@@ -116,6 +119,13 @@ export function incoming(value: unknown): Incoming | null {
       const checked = validateAssignmentRecord(body);
       return checked.ok && matches(checked.value)
         ? { collection: 'assignments', record: checked.value }
+        : null;
+    }
+    case 'lessons': {
+      // A lesson is kept under its slug; one this build does not have is kept all the same.
+      const checked = validateLesson(body);
+      return checked.ok && checked.value.slug === id
+        ? { collection: 'lessons', record: checked.value }
         : null;
     }
     case 'pieces': {

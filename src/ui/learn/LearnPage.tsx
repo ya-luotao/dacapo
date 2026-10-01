@@ -1,8 +1,8 @@
-import { useState } from 'react';
 import { Link } from 'wouter';
 import { useI18n } from '../../i18n/index.ts';
 import { EXTRAS, lessonLanguage, LESSONS } from '../../learn/lessons.ts';
-import { readDone } from './progress.ts';
+import { useStorageStatus } from '../practice/context.ts';
+import { useLessonsDone } from './progress.ts';
 
 function Arrow() {
   return (
@@ -16,7 +16,15 @@ function Arrow() {
 export function LearnPage() {
   const { t, locale } = useI18n();
   const language = lessonLanguage(locale);
-  const [done] = useState(readDone);
+  const { loaded } = useStorageStatus();
+  const done = useLessonsDone();
+  // Until the records are read a lesson's line holds its place, saying neither.
+  const meta = (slug: string, minutes: number) =>
+    !loaded
+      ? '\u00a0'
+      : done.has(slug)
+        ? `✓ ${t('learn.done')}`
+        : t('learn.minutes', { n: minutes });
 
   return (
     <section className="learn">
@@ -36,11 +44,7 @@ export function LearnPage() {
                 <span className="contents-text">{lesson.summary[language]}</span>
               </span>
               <span className="contents-meta">
-                {!lesson.ready
-                  ? t('learn.planned')
-                  : done.has(lesson.slug)
-                    ? `✓ ${t('learn.done')}`
-                    : t('learn.minutes', { n: lesson.minutes })}
+                {lesson.ready ? meta(lesson.slug, lesson.minutes) : t('learn.planned')}
               </span>
             </>
           );
@@ -74,11 +78,7 @@ export function LearnPage() {
                 <span className="contents-title">{extra.title[language]}</span>
                 <span className="contents-text">{extra.summary[language]}</span>
               </span>
-              <span className="contents-meta">
-                {done.has(extra.slug)
-                  ? `✓ ${t('learn.done')}`
-                  : t('learn.minutes', { n: extra.minutes })}
-              </span>
+              <span className="contents-meta">{meta(extra.slug, extra.minutes)}</span>
               <Arrow />
             </Link>
           </li>

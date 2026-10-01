@@ -134,7 +134,9 @@ minutes]` pairs, oldest first), `goalOn(history, day)`, `withGoal` for a change,
   `core/streak.ts`, with `dayOfWeek`: the recap would otherwise bring the trends, and with them
   the exercises' rules, to the home page. `recordsBefore` is exported from `core/today.ts`. The
   section is `ui/progress/WeekRecap.tsx`, its words `ui/progress/recapFormat.ts`, the home
-  page's line `ui/today/WeekLine.tsx`, and the lessons' ticks come from `ui/today/lessonTicks.ts`.
+  page's line `ui/today/WeekLine.tsx`, and the lessons' ticks come from `ui/today/lessonTicks.ts`
+  (the practice store's records, each with its time: [LEARN.md](LEARN.md), "The tick is a
+  record").
 - **The state at a moment** is the state when a day began, from the records before it, as
   today's plan has it (TODAY.md, "Before today": a session by the day it began, a scale run by
   its own first key, an answer by its time), with the lessons ticked by then. The week that ended
@@ -157,8 +159,8 @@ minutes]` pairs, oldest first), `goalOn(history, day)`, `withGoal` for a change,
   first six that apply are shown, so the two about where the time went are the first to give way.
   A line says how many ("2 levels mastered") and names them, one to a row.
 - **Lessons finished** are the fifteen, by the time of their tick. A tick without a time (one
-  made before G3 keeps times) is ticked from before anything else: it opens its practices and is
-  never a week's lesson.
+  made before G3 keeps times, moved into the store with `doneAt` 0) is ticked from before
+  anything else: it opens its practices and is never a week's lesson.
 - **Levels mastered** are those mastered at the week's end and not at its start, each by the rule
   of its own page (`levelsMastered`). A level no longer mastered is not said. A tune learnt is a
   level in the code and is said as the app says it ("1 tune learnt"), on a line of its own.

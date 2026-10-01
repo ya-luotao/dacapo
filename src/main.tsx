@@ -6,6 +6,7 @@ import { openRepository } from './storage/repository.ts';
 import { createAppSync } from './sync/app.ts';
 import { App } from './ui/App.tsx';
 import { InputProvider } from './ui/input/InputProvider.tsx';
+import { readLegacyLessons } from './ui/learn/progress.ts';
 import { MetronomeProvider } from './ui/metronome/MetronomeProvider.tsx';
 import { createAppMetronome } from './ui/metronome/prefs.ts';
 import { PracticeProvider } from './ui/practice/PracticeProvider.tsx';
@@ -22,6 +23,7 @@ const practice = createPracticeStore({
   open: openRepository,
   channel: broadcastChannel,
   storage: typeof navigator.storage?.persist === 'function' ? navigator.storage : null,
+  legacyLessons: readLegacyLessons,
 });
 practice.start();
 

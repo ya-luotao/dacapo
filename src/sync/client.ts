@@ -31,6 +31,7 @@ const NOTHING_PULLED: PulledRecords = {
   answers: [],
   takes: [],
   assignments: [],
+  lessons: [],
 };
 
 /** Outbox entries per request (the service takes 500). */
@@ -295,6 +296,7 @@ export function createSyncClient({
       answers: parsed.flatMap((c) => (c.collection === 'answers' ? [c.record] : [])),
       takes: parsed.flatMap((c) => (c.collection === 'takes' ? [c.record] : [])),
       assignments: parsed.flatMap((c) => (c.collection === 'assignments' ? [c.record] : [])),
+      lessons: parsed.flatMap((c) => (c.collection === 'lessons' ? [c.record] : [])),
     };
     return storage((sync) => sync.apply(pulled));
   }
