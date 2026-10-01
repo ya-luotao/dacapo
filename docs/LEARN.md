@@ -143,6 +143,64 @@ Fine") are replaced by what works in Chinese.
   (`useCompleteLesson`), shown as a tick on the list; that is kept per browser, not synced.
 - Nothing a lesson says may be browser-only in the Apple app, which shows the same lessons.
 
+## Lessons and practice, joined (G3)
+
+Status: planned. A lesson ends with **Practise it**, which opens a page and leaves the reader to
+find the level; no practice says which lesson explains it; the Learn page does not say which
+lesson comes next; and the tick stays on one device. G3 joins them, by the table in
+[TODAY.md](TODAY.md) (`core/curriculum.ts`: which lesson opens which practice).
+
+- **Practise it goes to the thing itself.** A lesson names one or two practices (`practice` in
+  `src/learn/lessons.ts` becomes a list), each opened with its settings as a task's button does
+  (`ui/startParams.ts`), and labelled with what it opens ("Practise it: Read, rhythm, level 1"):
+
+  | Lesson             | Practise it                                                                                         |
+  | ------------------ | --------------------------------------------------------------------------------------------------- |
+  | `keyboard`         | Play                                                                                                |
+  | `staff`            | Read: notes, the level suggested                                                                    |
+  | `landmarks`        | Read: notes, the level suggested · Read: intervals on the staff, the level suggested                |
+  | `rhythm`           | Read: rhythm, the level suggested · the Metronome                                                   |
+  | `sharps-and-flats` | Read: notes, the level with sharps and flats                                                        |
+  | `major-scale`      | Scales: the next rung of the ladder (C major, one octave, right hand, at first) · key signatures    |
+  | `posture`          | Scales: the five-finger pattern in C, right hand · Play                                             |
+  | `rhythm-2`         | Read: rhythm, the first level with dotted notes or ties (the level suggested once that is mastered) |
+  | `minor-keys`       | Scales: A harmonic minor, one octave, right hand · key signatures, the first level with minor keys  |
+  | `dynamics`         | Pieces: Soldiers' March (its dynamics are judged)                                                   |
+  | `pedals`           | Pieces: Für Elise (its pedal marks are judged) · Play                                               |
+  | `ornaments`        | Pieces: the Minuet in G                                                                             |
+  | `chords`           | Harmony: chord symbols, the level suggested · Ear: chords, the level suggested                      |
+  | `practising`       | Pieces: the piece in hand, or the next piece (TODAY.md)                                             |
+  | `styles`           | Pieces                                                                                              |
+  | `inside`           | Play                                                                                                |
+
+  "The level suggested" is the family's own rule at the moment the lesson is read; a link that
+  names a level or a piece the build does not have falls back to the page.
+
+- **A practice names its lesson.** The setup of each family of Read, Ear and Harmony, the Scales
+  page and the library show one quiet line with the lesson that opens it ("New to this? Lesson 4,
+  Rhythm and the beat"), until the lesson is ticked or the practice has a level mastered (Scales:
+  five runs; Pieces: a piece played to its end): someone who knows it is not told again. In a
+  language without the lessons' text the line says so as the Learn page does.
+- **The next lesson.** On the Learn page the first lesson not ticked is marked **Next** and the
+  page opens with a way to it ("Continue: lesson 5, Sharps and flats"); a lesson's own page offers
+  **Next lesson** as before.
+- **The tick is a record.** A new store `lessons` (database version 9) holds one record per lesson
+  finished: its slug and when (`doneAt`, epoch ms). The ticks kept in the browser
+  (`dacapo.learn.done`) are moved into it once, with no time (`doneAt` 0: before anything else),
+  and the preference is then left alone. It is exported (format 10, the list `lessons`) and synced
+  (the collection `lessons`, a record per slug, `SYNC_SCHEMA` 21): a tick is never taken back, so
+  two copies merge as the union, the earlier time kept. An older build ignores what it does not
+  know, as for every collection added since. The checklist's lesson task and Today read the store.
+- **The level last chosen is kept.** Each family remembers the level picked (in the browser, with
+  its other choices) and opens on it, until that level is mastered: then it opens on the level
+  suggested again. A page opened with settings (a task, a lesson's button, Today) still takes
+  those, and stores nothing until a choice is changed.
+- **Lessons in Traditional Chinese.** `LessonLanguage` gains `zh-TW`: each lesson's text written
+  from the Simplified Chinese one in Taiwan's terms and usage ([TRANSLATING.md](TRANSLATING.md)'s
+  glossary; 小節 not 小节, 升記號, 音程 …), with the same figures and exercises in the same order,
+  awaiting native review like the zh-TW strings. Japanese and Korean go on reading the English,
+  with the line that says so.
+
 ## Pictures
 
 The etchings in `public/learn/` were painted by GPT Image 2.5 (`gpt-image-2.5-sunburst`, high
