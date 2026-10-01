@@ -36,7 +36,7 @@ export const en = {
     'One note at a time on the grand staff, from middle C position to ledger lines and accidentals, then intervals, key signatures and chords, and lines of rhythm to tap in time. Every answer is timed, and the next card favours what you are slow on.',
   'home.read.meta': '{n} levels',
   'home.ear.text':
-    'Intervals, chords and short melodies by ear, from the octave to seventh chords and chromatic notes. Play back what you hear on the keys, or name it; the next question favours the ones you miss.',
+    'Intervals, chords, short melodies and cadences by ear, from the octave to seventh chords and chromatic notes. Play back what you hear on the keys, or name it; the next question favours the ones you miss.',
   'home.ear.meta': '{n} levels',
   'home.harmony.text':
     'Chord symbols as songbooks and lead sheets print them over a tune, from the triads of three major keys to seventh, slash and suspended chords. Play each one in any voicing; the next card favours the ones you are slow on. Then progressions in any key, the left hand in a pattern, practised as a piece.',
@@ -411,7 +411,7 @@ export const en = {
 
   'ear.title': 'Ear',
   'ear.intro':
-    'Hear two notes, a chord or a short melody, then play it back on your keyboard or name it.',
+    'Hear two notes, a chord, a short melody or the cadence that ends a phrase, then play it back on your keyboard or name it.',
   'ear.sound.needed':
     'Ear training needs sound: choose your instrument or the built-in piano as the output.',
   'ear.sound.link': 'Choose the sound in Settings',
@@ -540,6 +540,27 @@ export const en = {
   'ear.echo.key.major': '{tonic} major',
   'ear.echo.key.naturalMinor': '{tonic} minor (natural)',
   'ear.echo.key.harmonicMinor': '{tonic} minor (harmonic)',
+  'ear.family.cadence': 'Cadences',
+  'ear.level.CA1': 'Half and authentic',
+  'ear.level.CA2': 'Adding plagal',
+  'ear.level.CA3': 'Adding deceptive',
+  'ear.level.CA4': 'In minor keys too',
+  'ear.level.cadences': '{n} cadences',
+  'ear.level.rule.cadence':
+    'A level is mastered at 90% correct over its last 20 cadences named without “Hear again”. Move on whenever you like.',
+  'ear.cadence.help':
+    'Four chords, the first setting the key. Name the cadence the last two make, by the buttons or the number keys.',
+  'ear.task.cadence': 'Which cadence ends it?',
+  'ear.cadence.authentic': 'authentic cadence',
+  'ear.cadence.authentic.short': 'Authentic',
+  'ear.cadence.plagal': 'plagal cadence',
+  'ear.cadence.plagal.short': 'Plagal',
+  'ear.cadence.half': 'half cadence',
+  'ear.cadence.half.short': 'Half',
+  'ear.cadence.deceptive': 'deceptive cadence',
+  'ear.cadence.deceptive.short': 'Deceptive',
+  'ear.cadence.line': '{numerals} in {key}: {chords}',
+  'ear.cadence.chords': '{key}: {chords}',
   'ear.summary.melodies': 'Melodies',
   'ear.echo.missed': 'Note {n}: {asked}, played as {answered}',
   'ear.echo.missed.first': 'Note 1: {expected}, played as {played}',
@@ -788,6 +809,7 @@ export const en = {
   'families.family.keySignature': 'Key signatures',
   'families.family.readChord': 'Chords on the staff',
   'families.family.chordSymbol': 'Chord symbols',
+  'families.family.cadence': 'Cadences by ear',
   'families.summary': '{answers} · {mastered} of {levels} levels mastered',
   'families.answers.one': '1 answer',
   'families.answers.other': '{n} answers',

@@ -5,7 +5,9 @@ import {
   type FamilyLevelId,
   type ItemFigures,
 } from '../../../core/answerProgress.ts';
+import { CADENCE_NUMERALS, isCadence } from '../../../core/cadences.ts';
 import {
+  EAR_FAMILIES,
   intervalOfSemitones,
   isEarLevelId,
   parseItem,
@@ -74,6 +76,8 @@ export function useFamilyFormat() {
           return ear.interval(label);
         case 'echo':
           return step(label);
+        case 'cadence':
+          return isCadence(label) ? t(`ear.cadence.${label}`) : label;
         case 'readInterval':
           return theory.interval(label);
         case 'keySignature': {
@@ -98,6 +102,8 @@ export function useFamilyFormat() {
         case 'interval':
         case 'readInterval':
           return label;
+        case 'cadence':
+          return isCadence(label) ? CADENCE_NUMERALS[label] : label;
         case 'echo': {
           const semitones = Number(label);
           const name = intervalOfSemitones(Math.abs(semitones));
@@ -128,7 +134,9 @@ export function useFamilyFormat() {
         const parsed = parseItem(itemKey);
         return parsed?.family === 'echo' ? ear.level(parsed.level) : itemKey;
       }
-      if (family === 'interval' || family === 'chord') return ear.item(itemKey);
+      if (family === 'interval' || family === 'chord' || family === 'cadence') {
+        return ear.item(itemKey);
+      }
       if (family === 'chordSymbol') {
         const symbol = parseSymbolItem(itemKey);
         return symbol ? `${formatSymbol(symbol)} · ${harmony.words(symbol)}` : itemKey;
@@ -159,7 +167,7 @@ export function useFamilyFormat() {
 
     /** Replays of an Ear item, or hinted cards of a theory item. */
     const aids = (family: AnswerFamily, n: number) => {
-      const kind = family === 'interval' || family === 'chord' || family === 'echo';
+      const kind = (EAR_FAMILIES as readonly string[]).includes(family);
       return n === 1
         ? t(kind ? 'families.item.replays.one' : 'families.item.hints.one')
         : t(kind ? 'families.item.replays.other' : 'families.item.hints.other', { n });

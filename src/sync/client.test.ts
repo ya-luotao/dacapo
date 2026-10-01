@@ -14,6 +14,7 @@ import {
   sampleScaleSession,
   sampleTake,
   sampleChordSymbolAnswers,
+  sampleCadenceSession,
   sampleHarmonySession,
   sampleTheoryAnswers,
   sampleTheorySession,
@@ -619,6 +620,34 @@ describe('ear training', () => {
     expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
     expect(mac.store.getSnapshot().answers).toEqual(cards);
     expect(mac.store.getSnapshot().sessions).toEqual([harmony.session]);
+  });
+
+  it('syncs cadences by ear, and pulls them again after a build that skipped them', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    const cadences = sampleCadenceSession('c1', 4);
+    for (const answer of cadences.answers) ipad.store.recordAnswer(answer);
+    ipad.store.recordSession(cadences.session);
+    await ipad.store.settled();
+    await signIn(ipad);
+    expect(service.body('answers', cadences.answers[1]!.id)).toEqual(cadences.answers[1]);
+    await signIn(mac);
+    expect(mac.store.getSnapshot().answers).toEqual(cadences.answers);
+    expect(mac.store.getSnapshot().sessions).toEqual([cadences.session]);
+
+    // As schema 10 left it: the cadence answers and session skipped, the cursor past them.
+    const state = (await mac.db.get('meta', SYNC_STATE_KEY)) as SyncState;
+    await mac.db.clear('answers');
+    await mac.db.delete('sessions', cadences.session.id);
+    await mac.db.put('meta', { ...state, schema: 10 }, SYNC_STATE_KEY);
+    await mac.store.reloadAll();
+    const sync = vi.spyOn(service.api, 'sync');
+    await mac.client.syncNow();
+    expect(SYNC_SCHEMA).toBeGreaterThanOrEqual(11);
+    expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
+    expect(mac.store.getSnapshot().answers).toEqual(cadences.answers);
+    expect(mac.store.getSnapshot().sessions).toEqual([cadences.session]);
   });
 });
 

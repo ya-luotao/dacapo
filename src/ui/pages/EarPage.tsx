@@ -123,8 +123,8 @@ export function EarPage() {
     setPicked((p) => ({ ...p, [family]: id }));
     controller.start({
       level: id,
-      // A melody is only ever played back.
-      by: family === 'echo' ? 'play' : prefs.by,
+      // A melody is only ever played back, a cadence only named.
+      by: family === 'echo' ? 'play' : family === 'cadence' ? 'name' : prefs.by,
       directions: family === 'interval' ? directionsOf(prefs.direction) : [],
       chordStyle: prefs.chordStyle,
       length: family === 'echo' ? prefs.echoLength : prefs.length,

@@ -74,7 +74,9 @@ and no Simplified-only characters in zh-TW.
   and diminished 7th chords), and `harmony.chord.over` adds a slash chord's bass. Roman
   numerals (`I–IV–V–I`, `ii7–V7–Imaj7`, `i–iv–V–i`) stay as written too, upper case major and
   lower case minor, in every language; the progressions' names (`harmony.progression.*`) and the
-  left hand's patterns (`harmony.pattern.*`) are translated, as your teaching names them.
+  left hand's patterns (`harmony.pattern.*`) are translated, as your teaching names them. The
+  cadences on the Ear page (`ear.cadence.*`) take your teaching's names; the two chords under
+  each name (`V–I`, `IV–I`, `…–V`, `V–vi`) are not strings and stay as they are.
 - **Numbers, dates and lists of devices** are formatted by `Intl` in the active locale; do not
   write them into strings.
 
@@ -163,6 +165,8 @@ Chinese and Latin letters, digits and placeholders (`第 {n} 张`, `MIDI 键盘`
 | Block chords / Root and fifth / Waltz                          | 柱式和弦 / 根音加五音 / 圆舞曲           |
 | Alberti bass / Arpeggio up / Stride                            | 阿尔贝蒂低音 / 上行琶音 / 跨步低音       |
 | 12-bar blues / the fifties progression                         | 十二小节布鲁斯 / 五十年代进行            |
+| Cadences / authentic, plagal                                   | 终止式 / 正格终止、变格终止              |
+| half, deceptive (cadence)                                      | 半终止、阻碍终止                         |
 | ---------------------------------------------                  | ---------------------------------------- |
 | ---------------------------------------------                  | ---------------------------------------- |
 | technique / five-finger pattern / Hanon No. 3                  | 技巧练习 / 五指练习 / 哈农第 3 首        |
@@ -257,6 +261,8 @@ terms throughout. Address the learner as 你, as zh-CN does.
 | Block chords / Root and fifth / Waltz                          | 柱式和弦 / 根音加五音 / 圓舞曲           | 圆舞曲                          |
 | Alberti bass / Arpeggio up / Stride                            | 阿爾貝蒂低音 / 上行琶音 / 跨步低音       | 阿尔贝蒂低音                    |
 | 12-bar blues                                                   | 十二小節藍調                             | 十二小节布鲁斯                  |
+| Cadences / authentic, plagal                                   | 終止式 / 正格終止、變格終止              | 终止式                          |
+| half, deceptive (cadence)                                      | 半終止、阻礙終止                         | 阻碍终止                        |
 | ---------------------------------------------                  | ------------------------------------     | --------------------------      |
 | ---------------------------------------------                  | ------------------------------------     | --------------------------      |
 | technique / five-finger pattern / Hanon No. 3                  | 技巧練習 / 五指練習 / 哈農第 3 首        | 技巧练习 / 五指练习             |
@@ -350,6 +356,8 @@ verb phrases for labels and buttons (設定, 開始, もう一度, 補正する)
 | Block chords / Root and fifth / Waltz                          | ブロックコード / 根音と5度 / ワルツ                          |
 | Alberti bass / Arpeggio up / Stride                            | アルベルティ・バス / 上行アルペジオ / ストライド             |
 | 12-bar blues                                                   | 12小節のブルース                                             |
+| Cadences / authentic, plagal                                   | 終止形 / 完全終止、変格終止                                  |
+| half, deceptive (cadence)                                      | 半終止、偽終止                                               |
 | ---------------------------------------------                  | ------------------------------------------------             |
 | ---------------------------------------------                  | ------------------------------------------------             |
 | technique / five-finger pattern / Hanon No. 3                  | テクニック / 5指の練習 / ハノン第3番                         |
@@ -444,6 +452,8 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 | Block chords / Root and fifth / Waltz                          | 블록 코드 / 근음과 5음 / 왈츠                                        |
 | Alberti bass / Arpeggio up / Stride                            | 알베르티 베이스 / 상행 아르페지오 / 스트라이드                       |
 | 12-bar blues                                                   | 12마디 블루스                                                        |
+| Cadences / authentic, plagal                                   | 종지 / 정격 종지, 변격 종지                                          |
+| half, deceptive (cadence)                                      | 반종지, 거짓 종지                                                    |
 | ---------------------------------------------                  | -------------------------------------------------------------------- |
 | ---------------------------------------------                  | -------------------------------------------------------------------- |
 | technique / five-finger pattern / Hanon No. 3                  | 테크닉 / 5손가락 연습 / 하농 3번                                     |

@@ -1,8 +1,8 @@
 # dacapo — Harmony, accompaniment and making music specification
 
 Status: H1 is built (the Harmony page with Chords: chord symbols to play, five levels, their
-answers and progress), and H2's Progressions (generated scores practised as pieces); cadences by
-ear and H3 to H6 are planned (after [EXPRESSION.md](EXPRESSION.md)). This extends
+answers and progress) and H2 (Progressions, generated scores practised as pieces, and cadences
+by ear on the Ear page); H3 to H6 are planned (after [EXPRESSION.md](EXPRESSION.md)). This extends
 [MVP.md](MVP.md),
 [PIECES.md](PIECES.md) and [EAR.md](EAR.md); their principles and fixed decisions still apply
 (staff first, measure don't guess, local data, English of record, every UI language, 3-day
@@ -186,6 +186,35 @@ ear is a family of the Ear page; transposing is an option of every piece.
   counts it as a piece without a title, as it does a built-in one.
 - **Your progressions** lists the progressions practised, the latest first (at most eight), each
   with its pattern, its tempo and the piece's progress line (last practised, runs, steady bars).
+- **Cadences by ear** are a fourth family of the Ear page, **Cadences**, after Echo, with EAR.md's
+  rules (`core/cadences.ts`). A prompt is four block chords a second apart, the last held longer:
+  the tonic chord (which sets the key), then one of the same few chords whatever the cadence (IV,
+  ii or vi; iv or VI in minor), then the two chords that are the cadence. Authentic `…–V–I`,
+  plagal `…–IV–I`, half `…–V` (from vi–IV, IV–I or vi–ii; VI–iv or iv–i in minor), deceptive
+  `…–V–vi` (`V–VI` in minor), each from a list of whole progressions (`I–IV–V–I`, `I–vi–IV–I`,
+  `I–vi–IV–V`, `I–ii–V–vi` …), so nothing before the last two chords gives the answer away.
+  Four voices: the root in the bass from F2, a close triad above it in A3–A5, the first voicing
+  drawn among the three near G4 and the others led as the progressions' right hand is (no
+  parallel fifths or octaves between the bass and the top, tested). The key is drawn from the
+  twelve major keys (and in CA4 the twelve minor ones, V with its leading note).
+- **Levels.** CA1 half and authentic (the question and the answer) · CA2 + plagal · CA3 +
+  deceptive · CA4 all four in major and minor keys. Items `cad:authentic`, `cad:plagal`,
+  `cad:half`, `cad:deceptive`. Named only, by buttons in that order (digits 1–4), each with its
+  two chords under its name (`V–I`, `IV–I`, `…–V`, `V–vi`, the same in every language); a key on
+  the keyboard answers nothing. The answer window opens at the last chord's note-on; "Hear again"
+  plays the four chords again. Sessions of 10, 20 or 50; mastery over the last 20 answered
+  without "Hear again", ≥ 90 % right, as Echo's melodies (a prompt is a phrase, not a note).
+- **After the answer** the card names the cadence and writes the progression in its key, the last
+  two numerals set apart, its chords under them (`i VI iv i`, `G♯ minor: G♯m E C♯m G♯m`); nothing
+  is marked on the keyboard (sixteen keys would say nothing). The summary lists each miss with
+  its progression (`I–IV–V–vi in D major: D G A Bm`).
+- **Records.** Ear answers of family `cadence`: `by` is always `name`, the prompt the sixteen keys
+  (four chords, bass first), the answer the cadence named, and `key` the key it was in (its
+  tonic and `major` or `harmonicMinor`, one of the level's), so a stored answer is judged again
+  on import and sync: its keys must read as one of the cadence's progressions in that key, in
+  this app's voicing. Sessions are kind `ear`. `SYNC_SCHEMA` 11; the export file needs no new
+  version. Progress gains **Cadences by ear** (the E4 figures; the confusion table headed by the
+  two chords, `V–I` against `V–vi`).
 
 ## Lead sheets (H3)
 
@@ -233,8 +262,8 @@ ear is a family of the Ear page; transposing is an option of every piece.
 ## Milestones
 
 1. ✓ **H1 Chords** — the Harmony page, symbols, levels, answers.
-2. **H2 Progressions** — generated progressions and patterns on the Pieces machinery; cadences
-   on Ear.
+2. ✓ **H2 Progressions** — generated progressions and patterns on the Pieces machinery;
+   cadences on Ear.
 3. **H3 Lead sheets** — symbols in the parser, the library's lead sheets, the left hand from the
    symbols.
 4. **H4 Transposing** — the Key control on every piece.

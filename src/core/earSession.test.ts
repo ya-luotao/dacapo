@@ -463,3 +463,51 @@ describe('an echo session', () => {
     expect(ECHO_SESSION_LENGTHS).toEqual([5, 10, 20]);
   });
 });
+
+describe('a cadence session', () => {
+  it('names only, the level’s cadences, a key drawn from the level', () => {
+    const state = start('CA2', 'play');
+    expect(state).toMatchObject({ family: 'cadence', by: 'name' });
+    expect(state.items).toEqual(['cad:authentic', 'cad:plagal', 'cad:half']);
+    const { prompt } = state.card;
+    expect(prompt.notes).toHaveLength(16);
+    expect(prompt.cadence?.numerals).toHaveLength(4);
+    // CA2 is in major keys only.
+    expect(prompt.cadence?.key.endsWith('m')).toBe(false);
+    // Keys answer nothing.
+    expect(pressKey(withPrompt(state, prompt), 60, 2000, AT, newId).answers).toEqual([]);
+  });
+
+  it('judges the name chosen and keeps the key with the answer and the miss', () => {
+    let state = start('CA4', 'name', 10, 5);
+    state = withPrompt(state, {
+      item: 'cad:deceptive',
+      notes: [50, 57, 62, 66, 43, 59, 62, 67, 45, 57, 61, 64, 47, 59, 62, 66],
+      cadence: { key: 'D', numerals: ['I', 'IV', 'V', 'vi'] },
+    });
+    state = chooseName(state, 'authentic', 1500, AT + 500, newId);
+    expect(state.answers[0]).toMatchObject({
+      family: 'cadence',
+      level: 'CA4',
+      item: 'cad:deceptive',
+      by: 'name',
+      answer: 'authentic',
+      correct: false,
+      ms: 500,
+      key: { tonic: 'D', scale: 'major' },
+    });
+    expect(summarizeEar(state).missed).toEqual([
+      {
+        item: 'cad:deceptive',
+        answer: 'authentic',
+        prompt: state.answers[0]!.prompt,
+        key: { tonic: 'D', scale: 'major' },
+      },
+    ]);
+  });
+
+  it('masters a level over its last 20 cadences', () => {
+    expect(masteryWindow('CA1')).toBe(ECHO_MASTERY_WINDOW);
+    expect(masteryWindow('C1')).toBe(EAR_MASTERY_WINDOW);
+  });
+});

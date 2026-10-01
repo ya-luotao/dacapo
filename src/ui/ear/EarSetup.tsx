@@ -45,6 +45,7 @@ export function EarSetup({
   const format = useEarFormat();
   const id = useId();
   const echo = prefs.family === 'echo';
+  const cadence = prefs.family === 'cadence';
 
   return (
     <form
@@ -83,7 +84,9 @@ export function EarSetup({
             ))}
           </div>
           <p id={`${id}-rule`} className="help">
-            {t(echo ? 'ear.level.rule.echo' : 'ear.level.rule')}
+            {t(
+              echo ? 'ear.level.rule.echo' : cadence ? 'ear.level.rule.cadence' : 'ear.level.rule',
+            )}
           </p>
         </fieldset>
       </div>
@@ -94,9 +97,9 @@ export function EarSetup({
           <span className="level-id">{level}</span>
           <span>{format.levelName(level)}</span>
         </p>
-        {/* A melody is only ever played back: no choice of how to answer. */}
-        {echo ? (
-          <p className="help ear-echo-help">{t('ear.echo.help')}</p>
+        {/* A melody is only ever played back, a cadence only named: no choice of how to answer. */}
+        {echo || cadence ? (
+          <p className="help ear-echo-help">{t(echo ? 'ear.echo.help' : 'ear.cadence.help')}</p>
         ) : (
           <Segmented
             legend={t('ear.by')}

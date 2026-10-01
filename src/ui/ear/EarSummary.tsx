@@ -63,6 +63,11 @@ export function EarSummary({
                       item: format.capitalize(format.item(missed.item, summary.level)),
                       answer: format.answer(missed, summary.level),
                     })}
+                {summary.family === 'cadence' && (
+                  <span className="ear-missed-cadence">
+                    {format.missedCadence(missed, summary.level)}
+                  </span>
+                )}
               </li>
             ))}
           </ul>

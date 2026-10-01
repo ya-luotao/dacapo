@@ -152,7 +152,8 @@ winner.
   `rhythm`, which older builds skip; 8: the chord symbols of the Harmony page, answers of the family
   `chordSymbol` and sessions of kind `harmony`, which older builds skip; 9: the technique
   exercises' runs and sessions, whose exercise keys older builds do not validate; 10: the same for
-  S7's — the sevenths, repeated notes, trills, thirds and octaves), and the sync state keeps the
+  S7's — the sevenths, repeated notes, trills, thirds and octaves; 11: cadences by ear, answers
+  and ear sessions of the family `cadence`, which older builds skip), and the sync state keeps the
   schema its cursor was reached with. When the build's is higher, the next round starts again from
   cursor 0. Pulling a record already stored changes nothing, except where the stored copy differs:
   an older build that did not know a field kept the record without it. A record that never changes

@@ -2,7 +2,8 @@
 
 Status: E1 to E4 are built (the Ear page: intervals, chords and melodies by ear; Read's
 intervals, key signatures and chords on the staff; their progress per family on the Progress
-page); the instrument checks of E0 are still to do on the MP11SE. This extends [MVP.md](MVP.md) and [PIECES.md](PIECES.md); their
+page), and cadences by ear joined the Ear page with H2 ([HARMONY.md](HARMONY.md)); the instrument
+checks of E0 are still to do on the MP11SE. This extends [MVP.md](MVP.md) and [PIECES.md](PIECES.md); their
 principles and fixed decisions still apply (staff first, measure don't guess, local data, English of
 record, every UI language, 3-day dependency cooldown, no backend).
 
@@ -330,6 +331,9 @@ flats.
   - Intervals on the staff: by quality and number as written (`A2`, `d5`); RI1, which asks for the
     number alone, by its number (`3`), asked and answered, so its rows stand beside the others'
     in "All levels" (the level filter separates them).
+  - Cadences (H2, [HARMONY.md](HARMONY.md)): the cadence named, in the order of the levels
+    (authentic, plagal, half, deceptive), headed by its two chords (`V–I`, `IV–I`, `…–V`,
+    `V–vi`).
   - Key signatures: the key played is the key whose tonic it is, major or minor as asked, with the
     fewest sharps or flats (C♯ played is D♭ major, not C♯ major); of the two with six (F♯ and G♭
     major, D♯ and E♭ minor), the one on the side of the key asked (sharps from C major and A

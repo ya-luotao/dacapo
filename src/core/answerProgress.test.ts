@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { FamilyAnswer as Answer } from './answerProgress.ts';
 import {
+  sampleCadenceAnswer,
   sampleChordSymbolAnswers,
   sampleEchoAnswer,
   sampleRhythmAnswers,
@@ -570,5 +571,26 @@ describe('chord symbols', () => {
     expect(items.map((i) => i.item)).toEqual(['sym:C7', 'sym:Dm7']);
     expect(items[0]).toMatchObject({ aids: 1, medianMs: null });
     expect(items[1]).toMatchObject({ aids: 0, medianMs: 2200 });
+  });
+});
+
+describe('cadences', () => {
+  const cadences = Array.from({ length: 6 }, (_, i) => sampleCadenceAnswer(i));
+
+  it('has the Cadences levels, mastered over 20', () => {
+    expect(familyLevelIds('cadence')).toEqual(['CA1', 'CA2', 'CA3', 'CA4']);
+    const ca3 = familyLevels('cadence', cadences).find((l) => l.level === 'CA3');
+    // Two of the six were replayed.
+    expect(ca3).toMatchObject({ total: 6, counted: 4, window: 20, mastered: false });
+  });
+
+  it('reads the cadence named against the one asked, in the order of the levels', () => {
+    expect(confusionsOf(cadences[0]!)).toEqual([{ asked: 'deceptive', answered: 'deceptive' }]);
+    expect(confusionsOf(cadences[1]!)).toEqual([{ asked: 'deceptive', answered: 'authentic' }]);
+    const matrix = confusionMatrix('cadence', cadences);
+    expect(matrix.rows).toEqual(['deceptive']);
+    expect(matrix.columns).toEqual(['authentic', 'deceptive']);
+    expect(cellCount(matrix, 'deceptive', 'authentic')).toBe(3);
+    expect(compareLabels('cadence', 'half', 'plagal')).toBeGreaterThan(0);
   });
 });

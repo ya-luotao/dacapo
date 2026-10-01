@@ -137,8 +137,15 @@ describe('ear items', () => {
       'EC5',
       'EC6',
       'EC7',
+      'CA1',
+      'CA2',
+      'CA3',
+      'CA4',
     ]);
     expect(isEarLevelId('C3')).toBe(true);
+    expect(isEarLevelId('CA4')).toBe(true);
+    expect(nextEarLevel('CA3')).toBe('CA4');
+    expect(nextEarLevel('CA4')).toBeNull();
     expect(isEarLevelId('EC7')).toBe(true);
     expect(isEarLevelId('L3')).toBe(false);
     expect(nextEarLevel('I6')).toBe('I7');
@@ -365,8 +372,8 @@ describe('spelling a prompt for the staff', () => {
 
   it('never needs a double accidental, and always sounds as played', () => {
     const rng = seededRng(11);
-    // A melody is written when it is drawn (earMelody.test.ts).
-    for (const level of EAR_LEVELS.filter((l) => l.family !== 'echo')) {
+    // A melody is written when it is drawn (earMelody.test.ts); a cadence is named.
+    for (const level of EAR_LEVELS.filter((l) => l.family !== 'echo' && l.family !== 'cadence')) {
       for (const item of levelItems(level, ['up', 'down', 'harm'])) {
         for (let i = 0; i < 40; i++) {
           const prompt = makePrompt(item, rng);

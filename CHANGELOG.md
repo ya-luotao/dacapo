@@ -27,6 +27,11 @@ click's tempo and grid of scale runs played with it (from version 7), and the ta
   Your runs, with its runs and steps recorded, exported and synced as a piece's are. **Your
   progressions** lists the ones practised lately with how far you got, and the session list names
   them in your language.
+- **Cadences by ear** join the Ear page as a fourth family: four chords, the first setting the
+  key, and you name the cadence the last two make (authentic, plagal, half or deceptive) by the
+  buttons. Four levels, from half and authentic to all four in minor keys too; after each answer
+  the progression is written out in its key. Answers and sessions are kept, exported and synced
+  like the other ear answers, and Progress has a section for them with what you hear instead.
 
 ### Ornaments (X4, [docs/EXPRESSION.md](docs/EXPRESSION.md))
 

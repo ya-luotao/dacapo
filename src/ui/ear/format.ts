@@ -9,6 +9,15 @@ import {
   type Inversion,
 } from '../../core/earItems.ts';
 import { echoMistake, spellInKey, type EchoScale, type MelodyKey } from '../../core/earMelody.ts';
+import {
+  cadenceKeyChords,
+  cadenceKeyOf,
+  isCadence,
+  isCadenceLevelId,
+  readCadence,
+} from '../../core/cadences.ts';
+import type { ProgressionKey } from '../../core/progressions.ts';
+import { keyName } from '../harmony/progressionFormat.ts';
 import type { EarLevelProgress, MissedItem } from '../../core/earSession.ts';
 import { midiName } from '../../core/note.ts';
 import type { Tonic } from '../../core/scaleTypes.ts';
@@ -45,6 +54,7 @@ export function useEarFormat() {
       const parsed = parseItem(key);
       if (!parsed) return key;
       if (parsed.family === 'echo') return t(`ear.level.${parsed.level}`);
+      if (parsed.family === 'cadence') return t(`ear.cadence.${parsed.cadence}`);
       if (parsed.family === 'interval') {
         return t(`ear.item.${parsed.direction}`, { name: interval(parsed.name) });
       }
@@ -53,6 +63,7 @@ export function useEarFormat() {
 
     /** A name as an answer button says it: `Major 3rd`, `Major, 1st inversion`. */
     const button = (name: string, level: EarLevelId) => {
+      if (isCadence(name)) return t(`ear.cadence.${name}.short`);
       const [quality, inversion] = name.split(':') as [ChordQuality, Inversion | undefined];
       if (!inversion) return capitalize(interval(name));
       const short = t(`ear.chord.${quality}.short`);
@@ -66,6 +77,7 @@ export function useEarFormat() {
 
     /** A name chosen, in running text: `perfect 5th`, `minor triad`. */
     const name = (value: string, level: EarLevelId) => {
+      if (isCadence(value)) return t(`ear.cadence.${value}`);
       const [quality, inversion] = value.split(':') as [ChordQuality, Inversion | undefined];
       if (!inversion) return interval(value);
       return chord(quality, inversion, withPosition(level, inversion));
@@ -126,8 +138,38 @@ export function useEarFormat() {
       });
     };
 
+    /**
+     * A cadence's progression in its key: `I–IV–V–vi in D major: D G A Bm`. From the prompt as
+     * drawn, or from a stored answer's keys and key; null when they cannot be read.
+     */
+    const cadenceLine = (key: ProgressionKey, numerals: readonly string[]) =>
+      t('ear.cadence.line', {
+        numerals: numerals.join('–'),
+        key: keyName(t, key),
+        chords: cadenceKeyChords(key, numerals)
+          .map((c) => c.text)
+          .join(' '),
+      });
+    /** `D major: D G A Bm`. */
+    const cadenceChords = (key: ProgressionKey, numerals: readonly string[]) =>
+      t('ear.cadence.chords', {
+        key: keyName(t, key),
+        chords: cadenceKeyChords(key, numerals)
+          .map((c) => c.text)
+          .join(' '),
+      });
+    const missedCadence = (missed: MissedItem, level: EarLevelId): string | null => {
+      if (!isCadenceLevelId(level)) return null;
+      const key = cadenceKeyOf(level, missed.key);
+      const numerals = key ? readCadence(key, missed.prompt) : null;
+      return key && numerals ? cadenceLine(key, numerals) : null;
+    };
+
     return {
       capitalize,
+      cadenceLine,
+      cadenceChords,
+      missedCadence,
       interval,
       item,
       button,
@@ -144,6 +186,9 @@ export function useEarFormat() {
           return min === max
             ? t('ear.level.notes', { n: min })
             : t('ear.level.notesRange', { min, max });
+        }
+        if (level.family === 'cadence') {
+          return t('ear.level.cadences', { n: level.rules.cadences.length });
         }
         return level.family === 'interval'
           ? t('ear.level.intervals', { n: level.names.length })

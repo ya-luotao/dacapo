@@ -386,6 +386,11 @@ export default function Lesson() {
           <ChoiceQuiz prompt="Cadences." questions={HEARD} onComplete={complete} />
         </Plate>
         <p>
+          For more cadences, in every key and in minor keys too, choose Cadences on the{' '}
+          <Link href="/ear">Ear</Link> page: four chords, and you name the cadence the last two
+          make.
+        </p>
+        <p>
           On the <Link href="/ear">Ear</Link> page, chords are played for you to name or play back,
           from major and minor triads to inversions and the four seventh chords of this lesson.
         </p>

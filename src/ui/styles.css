@@ -2157,6 +2157,58 @@ kbd {
 }
 
 /*
+ * Cadences: after the answer, the progression heard as an analysis writes it, the last two
+ * numerals (the cadence) in the ink, the others muted; its chords in its key under it.
+ */
+.ear-cadence {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0;
+}
+
+.ear-cadence-numerals {
+  display: flex;
+  gap: 0.625rem;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 1.625rem;
+  font-variant-numeric: lining-nums;
+  line-height: 1.2;
+}
+
+.ear-cadence-numerals .is-cadence {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.ear-cadence-chords {
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+
+/* Under a cadence's name on its button, its two chords. */
+.ear-name > .ear-name-numerals {
+  flex: none;
+  margin-inline-end: 0.5rem;
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-size: 0.9375rem;
+  font-weight: 400;
+}
+
+.ear-name.is-right .ear-name-numerals {
+  color: inherit;
+}
+
+.ear-missed-cadence {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+
+/*
  * Echo: a melody gone wrong, in its key on the staff that suits it. Its box follows the drawing
  * (`--melody-units` across, `--staff-aspect`), at the size of the cards' notes; the notes played
  * right in the right colour, the wrong key's head in the wrong one.

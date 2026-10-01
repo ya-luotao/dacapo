@@ -18,13 +18,30 @@ import {
   type Melody,
 } from './earMelody.ts';
 import type { Rng } from './random.ts';
+import {
+  CADENCE_LEVEL_IDS,
+  CADENCE_RULES,
+  cadenceFits,
+  cadenceItem,
+  cadenceKeyOf,
+  cadenceMelodyKey,
+  cadenceTiming,
+  isCadence,
+  isCadenceLevelId,
+  makeCadence,
+  type Cadence,
+  type CadenceLevelId,
+  type CadencePrompt,
+  type CadenceRules,
+} from './cadences.ts';
 
 // Ear training (docs/EAR.md, "Clarifications (decided during E1)" and "(decided during E2)"):
 // what the items are, how a prompt is drawn and played, and how an answer is judged. Pure, so
-// every rule is unit-tested. The melodies of Echo are drawn in `earMelody.ts`.
+// every rule is unit-tested. The melodies of Echo are drawn in `earMelody.ts`, the cadences
+// (docs/HARMONY.md, H2) in `cadences.ts`.
 
-export type EarFamily = 'interval' | 'chord' | 'echo';
-export const EAR_FAMILIES: readonly EarFamily[] = ['interval', 'chord', 'echo'];
+export type EarFamily = 'interval' | 'chord' | 'echo' | 'cadence';
+export const EAR_FAMILIES: readonly EarFamily[] = ['interval', 'chord', 'echo', 'cadence'];
 
 // --- Intervals -------------------------------------------------------------------------------
 
@@ -166,7 +183,9 @@ export type EarItem =
   | { family: 'interval'; name: IntervalName; direction: Direction }
   | { family: 'chord'; quality: ChordQuality; inversion: Inversion }
   /** A melody of an Echo level: every melody of a level is the one item `echo:EC3`. */
-  | { family: 'echo'; level: EchoLevelId };
+  | { family: 'echo'; level: EchoLevelId }
+  /** A cadence, heard at the end of a progression: `cad:half`. */
+  | { family: 'cadence'; cadence: Cadence };
 
 export const intervalItem = (name: IntervalName, direction: Direction) =>
   `int:${name}:${direction}`;
@@ -174,11 +193,14 @@ export const chordItem = (quality: ChordQuality, inversion: Inversion) =>
   `chord:${quality}:${inversion}`;
 export const echoItem = (level: EchoLevelId) => `echo:${level}`;
 
-/** `int:M3:up`, `chord:min:1st` or `echo:EC3`; null for anything else. */
+export { cadenceItem, cadenceMelodyKey };
+
+/** `int:M3:up`, `chord:min:1st`, `echo:EC3` or `cad:half`; null for anything else. */
 export function parseItem(key: string): EarItem | null {
   const [kind, a, b, ...rest] = key.split(':');
   if (rest.length > 0) return null;
   if (kind === 'echo' && isEchoLevelId(a) && b === undefined) return { family: 'echo', level: a };
+  if (kind === 'cad' && isCadence(a) && b === undefined) return { family: 'cadence', cadence: a };
   if (kind === 'int' && isIntervalName(a) && (DIRECTIONS as readonly string[]).includes(b!)) {
     return { family: 'interval', name: a, direction: b as Direction };
   }
@@ -193,11 +215,13 @@ export function parseItem(key: string): EarItem | null {
 }
 
 /**
- * What an item is named by when answering by name: the interval (`M3`, whatever the direction)
- * or the chord's quality and position (`min:1st`). A melody is only ever played back: its key.
+ * What an item is named by when answering by name: the interval (`M3`, whatever the direction),
+ * the chord's quality and position (`min:1st`) or the cadence (`half`). A melody is only ever
+ * played back: its key.
  */
 export function answerNameOf(item: EarItem): string {
   if (item.family === 'echo') return echoItem(item.level);
+  if (item.family === 'cadence') return item.cadence;
   return item.family === 'interval' ? item.name : `${item.quality}:${item.inversion}`;
 }
 
@@ -207,8 +231,8 @@ export const INTERVAL_LEVEL_IDS = ['I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7'] as 
 export const CHORD_LEVEL_IDS = ['C1', 'C2', 'C3', 'C4', 'C5'] as const;
 export type IntervalLevelId = (typeof INTERVAL_LEVEL_IDS)[number];
 export type ChordLevelId = (typeof CHORD_LEVEL_IDS)[number];
-export type EarLevelId = IntervalLevelId | ChordLevelId | EchoLevelId;
-export { ECHO_LEVEL_IDS, type EchoLevelId };
+export type EarLevelId = IntervalLevelId | ChordLevelId | EchoLevelId | CadenceLevelId;
+export { CADENCE_LEVEL_IDS, ECHO_LEVEL_IDS, type CadenceLevelId, type EchoLevelId };
 
 export interface IntervalLevel {
   id: IntervalLevelId;
@@ -233,7 +257,13 @@ export interface EchoLevel {
   rules: EchoRules;
 }
 
-export type EarLevel = IntervalLevel | ChordLevel | EchoLevel;
+export interface CadenceLevel {
+  id: CadenceLevelId;
+  family: 'cadence';
+  rules: CadenceRules;
+}
+
+export type EarLevel = IntervalLevel | ChordLevel | EchoLevel | CadenceLevel;
 
 const upTo = (end: IntervalName) => INTERVAL_NAMES.slice(0, INTERVAL_NAMES.indexOf(end) + 1);
 
@@ -289,10 +319,17 @@ export const ECHO_LEVELS: readonly EchoLevel[] = ECHO_LEVEL_IDS.map((id) => ({
   rules: ECHO_RULES[id],
 }));
 
+export const CADENCE_LEVELS: readonly CadenceLevel[] = CADENCE_LEVEL_IDS.map((id) => ({
+  id,
+  family: 'cadence',
+  rules: CADENCE_RULES[id],
+}));
+
 export const EAR_LEVELS: readonly EarLevel[] = [
   ...INTERVAL_LEVELS,
   ...CHORD_LEVELS,
   ...ECHO_LEVELS,
+  ...CADENCE_LEVELS,
 ];
 
 export const isEarLevelId = (v: unknown): v is EarLevelId =>
@@ -304,6 +341,7 @@ export function getEarLevel(id: EarLevelId): EarLevel {
 
 export function levelsOf(family: EarFamily): readonly EarLevel[] {
   if (family === 'echo') return ECHO_LEVELS;
+  if (family === 'cadence') return CADENCE_LEVELS;
   return family === 'interval' ? INTERVAL_LEVELS : CHORD_LEVELS;
 }
 
@@ -320,13 +358,18 @@ export function nextEarLevel(id: EarLevelId): EarLevelId | null {
  */
 export function levelItems(level: EarLevel, directions: readonly Direction[]): string[] {
   if (level.family === 'echo') return [echoItem(level.id)];
+  if (level.family === 'cadence') return level.rules.cadences.map(cadenceItem);
   if (level.family === 'chord') return level.chords.map((c) => chordItem(c.quality, c.inversion));
   return level.names.flatMap((name) => directions.map((d) => intervalItem(name, d)));
 }
 
-/** The names of the answer buttons, in order: the level's intervals, or its chords; none for Echo. */
+/**
+ * The names of the answer buttons, in order: the level's intervals, its chords or its cadences;
+ * none for Echo.
+ */
 export function answerNames(level: EarLevel): string[] {
   if (level.family === 'echo') return [];
+  if (level.family === 'cadence') return [...level.rules.cadences];
   if (level.family === 'chord') return level.chords.map((c) => `${c.quality}:${c.inversion}`);
   return [...level.names];
 }
@@ -335,6 +378,7 @@ export function answerNames(level: EarLevel): string[] {
 export function itemInLevel(item: EarItem, level: EarLevel): boolean {
   if (item.family !== level.family) return false;
   if (item.family === 'echo') return item.level === level.id;
+  if (item.family === 'cadence') return answerNames(level).includes(item.cadence);
   return answerNames(level).includes(answerNameOf(item));
 }
 
@@ -360,6 +404,8 @@ export interface Prompt {
    * answer keeps the keys alone.
    */
   melody?: Omit<Melody, 'notes' | 'line'>;
+  /** A cadence's key and its chords by numeral, while it is live. */
+  cadence?: Omit<CadencePrompt, 'chords'>;
 }
 
 const randomInt = (low: number, high: number, rng: Rng) =>
@@ -368,11 +414,17 @@ const randomInt = (low: number, high: number, rng: Rng) =>
 /**
  * Draws the keys of `item`. An interval's lower note is uniform in C3–C5 with the upper note at
  * most C6; a chord's root is uniform with the voicing's lowest note at or above C3 and its
- * highest at most C5 (a triad) or C6 (a seventh chord).
+ * highest at most C5 (a triad) or C6 (a seventh chord); a cadence's progression is drawn in a
+ * key of its `level` (`cadences.ts`).
  */
-export function makePrompt(key: string, rng: Rng): Prompt {
+export function makePrompt(key: string, rng: Rng, level?: EarLevelId): Prompt {
   const item = parseItem(key);
   if (!item) throw new RangeError(`Not an ear-training item: ${key}`);
+  if (item.family === 'cadence') {
+    const cadenceLevel = level && isCadenceLevelId(level) ? level : 'CA4';
+    const { key: inKey, numerals, chords } = makeCadence(item.cadence, cadenceLevel, rng);
+    return { item: key, notes: chords.flat(), cadence: { key: inKey, numerals } };
+  }
   if (item.family === 'echo') {
     const { notes, tonic, scale, fifths, written, chord } = makeMelody(item.level, rng);
     return { item: key, notes, melody: { tonic, scale, fifths, written, chord } };
@@ -399,6 +451,7 @@ export function makePrompt(key: string, rng: Rng): Prompt {
  */
 export function givenKey(prompt: Prompt): number {
   const item = parseItem(prompt.item);
+  // A cadence is named, not played: its tonic chord's bass stands for it.
   if (item?.family !== 'chord') return prompt.notes[0]!;
   return prompt.notes[voicing(item.quality, item.inversion).findIndex((o) => o % 12 === 0)]!;
 }
@@ -410,8 +463,17 @@ export const targetKey = (prompt: Prompt): number => prompt.notes[1]!;
  * Whether `notes` can be a prompt for `item`: an interval's two keys the right distance apart in
  * its direction, a chord's keys in its close-position voicing. Used to validate stored answers.
  */
-export function promptMatches(item: EarItem, notes: readonly number[]): boolean {
+export function promptMatches(
+  item: EarItem,
+  notes: readonly number[],
+  key?: unknown,
+  level?: EarLevelId,
+): boolean {
   if (item.family === 'echo') return melodyFits(item.level, notes);
+  if (item.family === 'cadence') {
+    const inKey = level && isCadenceLevelId(level) ? cadenceKeyOf(level, key) : null;
+    return inKey !== null && cadenceFits(item.cadence, inKey, notes);
+  }
   if (item.family === 'interval') {
     if (notes.length !== 2) return false;
     const [first, second] = notes as [number, number];
@@ -478,6 +540,7 @@ export function promptPlan(prompt: Prompt, style: ChordStyle, correction = false
   if (item?.family === 'echo') {
     return plan(melodyTiming(prompt.notes, correction ? null : (prompt.melody?.chord ?? null)));
   }
+  if (item?.family === 'cadence') return plan(cadenceTiming(prompt.notes));
   if (item?.family === 'interval') {
     if (item.direction === 'harm') {
       return plan(prompt.notes.map((midi) => ({ midi, on: 0, off: HARMONIC_MS })));
@@ -581,8 +644,8 @@ function bestSpelling(base: number, build: (base: Pitch) => Pitch[] | null): Pit
  */
 export function spellPrompt(prompt: Prompt): Pitch[] | null {
   const item = parseItem(prompt.item);
-  // A melody is written in its key when it is drawn (`Prompt.melody`).
-  if (!item || item.family === 'echo') return null;
+  // A melody is written in its key when it is drawn (`Prompt.melody`); a cadence is named.
+  if (!item || item.family === 'echo' || item.family === 'cadence') return null;
   if (item.family === 'interval') {
     const [lower, upper] = [...prompt.notes].sort((a, b) => a - b) as [number, number];
     return bestSpelling(lower, (base) => {

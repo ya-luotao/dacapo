@@ -79,7 +79,8 @@ practising the notes you are slowest at. Progress is visible day by day.
   with the notes shown on request. **Progressions** (`I–IV–V–I`, `ii7–V7–Imaj7`, the 12-bar
   blues and more) are written out in any key with the left hand in a pattern (block chords,
   Alberti bass, waltz, stride …) and the right hand's chords voiced to move as little as they can,
-  then practised as a piece ([docs/HARMONY.md](docs/HARMONY.md)).
+  then practised as a piece; and on the Ear page, cadences by ear: authentic, plagal, half or
+  deceptive, named after four chords ([docs/HARMONY.md](docs/HARMONY.md)).
 - **Practice log.** Flashcard sessions and free play are saved: minutes today, a daily streak
   (5 minutes a day), a 30-day chart and the list of sessions.
 - **Weakness heatmap.** Every note you have practised, on the grand staff or on the keyboard,

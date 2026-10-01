@@ -31,10 +31,11 @@ import {
  * and sessions of kind `harmony` (older builds skip them); 9, the technique exercises' runs and
  * sessions (five-finger patterns, Hanon's Part I, block and broken chords: exercise keys older
  * builds do not validate); 10, Hanon's sevenths, repeated notes, trills, thirds and octaves, and
- * the trill on a pair (S7, the same). Bump it whenever a build learns a collection, a session kind,
+ * the trill on a pair (S7, the same); 11, cadences by ear: answers and ear sessions of the family
+ * `cadence` (older builds skip them). Bump it whenever a build learns a collection, a session kind,
  * or records that older builds skipped.
  */
-export const SYNC_SCHEMA = 10;
+export const SYNC_SCHEMA = 11;
 
 // Records as the sync service carries them (docs/SYNC.md, "What syncs"): the stored record as it
 // is, except a piece, which goes without its MusicXML (sent as a file named by its hash) and

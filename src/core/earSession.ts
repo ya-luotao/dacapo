@@ -1,6 +1,7 @@
 import { activeTime } from './activity.ts';
 import {
   answerNameOf,
+  cadenceMelodyKey,
   getEarLevel,
   judgeChordKeys,
   judgeIntervalKey,
@@ -36,16 +37,16 @@ export interface EarAnswer {
   sessionId: string;
   family: EarFamily;
   level: EarLevelId;
-  /** `int:M3:up`, `chord:min:1st`, `echo:EC3`. */
+  /** `int:M3:up`, `chord:min:1st`, `echo:EC3`, `cad:half`. */
   item: string;
-  /** Always `play` for a melody. */
+  /** Always `play` for a melody, always `name` for a cadence. */
   by: AnswerMode;
   /** The prompt's keys, in the order played (a chord's from low to high). */
   prompt: number[];
   /**
    * Played: the keys (for an interval the one key, for a chord the keys held, low to high, for a
    * melody the keys in order up to and including the first wrong one).
-   * Named: the name chosen (`P5`, `maj:1st`).
+   * Named: the name chosen (`P5`, `maj:1st`, `deceptive`).
    */
   answer: number[] | string;
   correct: boolean;
@@ -55,7 +56,10 @@ export interface EarAnswer {
   replays: number;
   /** Epoch ms of the answer. */
   at: number;
-  /** A melody's key, so its notes are spelled as the session wrote them; only for Echo. */
+  /**
+   * A melody's key, so its notes are spelled as the session wrote them (Echo); a cadence's key, so
+   * its chords can be named (`harmonicMinor` for a minor one, whose V has the leading note).
+   */
   key?: MelodyKey;
 }
 
@@ -111,6 +115,7 @@ export interface EarStartOptions {
 
 function newCard(
   index: number,
+  level: EarLevelId,
   items: readonly string[],
   stats: StatsByKey,
   previous: string | null,
@@ -121,7 +126,7 @@ function newCard(
     items.length === 1 ? items[0]! : pickItem(items, stats, previous, rng, EAR_TARGET_MS);
   return {
     index,
-    prompt: makePrompt(item, rng),
+    prompt: makePrompt(item, rng, level),
     opensAt: null,
     replays: 0,
     status: 'waiting',
@@ -137,15 +142,15 @@ export function startEarSession(options: EarStartOptions): EarSessionState {
     id: options.id,
     family: level.family,
     level: level.id,
-    // A melody can only be played back.
-    by: level.family === 'echo' ? 'play' : options.by,
+    // A melody can only be played back, a cadence only named.
+    by: level.family === 'echo' ? 'play' : level.family === 'cadence' ? 'name' : options.by,
     directions: level.family === 'interval' ? options.directions : [],
     length: options.length,
     items,
     startedAt: options.at,
     endedAt: null,
     phase: 'running',
-    card: newCard(0, items, stats, null, rng),
+    card: newCard(0, level.id, items, stats, null, rng),
     answers: [],
   };
 }
@@ -207,6 +212,7 @@ function scored(
     ...(card.prompt.melody && {
       key: { tonic: card.prompt.melody.tonic, scale: card.prompt.melody.scale },
     }),
+    ...(card.prompt.cadence && { key: cadenceMelodyKey(card.prompt.cadence.key) }),
   };
   return {
     ...state,
@@ -285,7 +291,14 @@ export function advanceEar(
   if (state.answers.length >= state.length) return endEarSession(state, at);
   return {
     ...state,
-    card: newCard(state.card.index + 1, state.items, stats, state.card.prompt.item, rng),
+    card: newCard(
+      state.card.index + 1,
+      state.level,
+      state.items,
+      stats,
+      state.card.prompt.item,
+      rng,
+    ),
   };
 }
 
@@ -423,13 +436,14 @@ export const DEFAULT_ECHO_SESSION_LENGTH: EchoSessionLength = 10;
 // --- Mastery ---------------------------------------------------------------------------------
 
 export const EAR_MASTERY_WINDOW = 40;
-/** An Echo level is mastered over fewer answers: each is a whole melody. */
+/** An Echo or a Cadences level is mastered over fewer answers: each is a whole phrase. */
 export const ECHO_MASTERY_WINDOW = 20;
 export const EAR_MASTERY_ACCURACY = 0.9;
 
-/** The answers a level's mastery is over: 20 melodies for Echo, 40 answers otherwise. */
+/** The answers a level's mastery is over: 20 melodies or cadences, 40 answers otherwise. */
 export function masteryWindow(level: EarLevelId): number {
-  return getEarLevel(level).family === 'echo' ? ECHO_MASTERY_WINDOW : EAR_MASTERY_WINDOW;
+  const { family } = getEarLevel(level);
+  return family === 'echo' || family === 'cadence' ? ECHO_MASTERY_WINDOW : EAR_MASTERY_WINDOW;
 }
 
 export interface EarLevelProgress {

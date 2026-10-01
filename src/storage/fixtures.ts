@@ -1,5 +1,6 @@
 // Sample records for storage tests. Not imported by the app.
 import { IDBFactory } from 'fake-indexeddb';
+import { voiceCadence } from '../core/cadences.ts';
 import { recoverEarSummary, type EarAnswer } from '../core/earSession.ts';
 import type { RunHeadline } from '../core/evenness.ts';
 import { recoverHarmonySummary, type ChordSymbolAnswer } from '../core/harmonySession.ts';
@@ -382,6 +383,43 @@ export function sampleEchoAnswer(
     key: { tonic: 'C', scale: 'major' },
     ...patch,
   };
+}
+
+/**
+ * A cadence named (CA3, a deceptive cadence in D major, I–IV–V–vi): right on even `i`, named
+ * authentic on odd `i`.
+ */
+export function sampleCadenceAnswer(
+  i: number,
+  sessionId = 'c1',
+  patch: Partial<EarAnswer> = {},
+): EarAnswer {
+  const correct = i % 2 === 0;
+  return {
+    id: `${sessionId}:${i}`,
+    sessionId,
+    family: 'cadence',
+    level: 'CA3',
+    item: 'cad:deceptive',
+    by: 'name',
+    prompt: voiceCadence('D', ['I', 'IV', 'V', 'vi'], 0).flat(),
+    answer: correct ? 'deceptive' : 'authentic',
+    correct,
+    ms: 1900 + i * 100,
+    replays: i % 3 === 2 ? 1 : 0,
+    at: T0 + 14_000_000 + i * 7000,
+    key: { tonic: 'D', scale: 'major' },
+    ...patch,
+  };
+}
+
+/** A session of `count` cadences (`sampleCadenceAnswer`) with its record. */
+export function sampleCadenceSession(
+  sessionId: string,
+  count: number,
+): { answers: EarAnswer[]; session: EarSessionRecord } {
+  const answers = Array.from({ length: count }, (_, i) => sampleCadenceAnswer(i, sessionId));
+  return { answers, session: { kind: 'ear', ...recoverEarSummary(answers)! } };
 }
 
 /** An ear session of `count` answers (`sampleAnswer`) with its record. */

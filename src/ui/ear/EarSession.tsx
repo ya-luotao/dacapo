@@ -9,6 +9,7 @@ import {
   type Prompt,
 } from '../../core/earItems.ts';
 import { accidentalMarks, spellInKey } from '../../core/earMelody.ts';
+import { CADENCE_NUMERALS, isCadence } from '../../core/cadences.ts';
 import type { EarCard } from '../../core/earSession.ts';
 import { formatPitch, pitchToMidi, type Pitch } from '../../core/note.ts';
 import { useT } from '../../i18n/index.ts';
@@ -80,6 +81,7 @@ export function EarSession({ view, controller }: EarSessionProps) {
   const scored = answer && status !== 'waiting' ? answer : null;
   const turn = status === 'waiting' && !listening;
   const echo = item.family === 'echo';
+  const cadence = item.family === 'cadence';
   // A melody gone wrong: its note, the key asked for and the key played, each named as the key
   // of the melody writes it (B♭4 in F major, not A♯4).
   const miss = useMemo(() => {
@@ -140,9 +142,11 @@ export function EarSession({ view, controller }: EarSessionProps) {
       if (status === 'waiting') return new Set([givenKey(prompt)]);
       return miss ? new Set([miss.expected]) : NONE;
     }
+    // A cadence is named: its sixteen keys would say nothing on the keyboard.
+    if (cadence) return NONE;
     if (status !== 'waiting') return new Set(prompt.notes);
     return session.by === 'play' ? new Set([givenKey(prompt)]) : NONE;
-  }, [echo, status, prompt, session.by, miss]);
+  }, [echo, cadence, status, prompt, session.by, miss]);
   const wrongKeys = useMemo(() => {
     if (miss) return new Set([miss.played]);
     return status === 'wrong' && Array.isArray(card.answer)
@@ -155,15 +159,17 @@ export function EarSession({ view, controller }: EarSessionProps) {
   const task =
     item.family === 'echo'
       ? t('ear.task.echo')
-      : session.by === 'name'
-        ? t('ear.task.name')
-        : item.family === 'chord'
-          ? t(
-              level.family === 'chord' && level.bassMatters
-                ? 'ear.task.chordBass'
-                : 'ear.task.chord',
-            )
-          : t(item.direction === 'down' ? 'ear.task.down' : 'ear.task.up');
+      : item.family === 'cadence'
+        ? t('ear.task.cadence')
+        : session.by === 'name'
+          ? t('ear.task.name')
+          : item.family === 'chord'
+            ? t(
+                level.family === 'chord' && level.bassMatters
+                  ? 'ear.task.chordBass'
+                  : 'ear.task.chord',
+              )
+            : t(item.direction === 'down' ? 'ear.task.down' : 'ear.task.up');
   const answerName = prompt.melody
     ? format.key(prompt.melody.tonic, prompt.melody.scale)
     : format.capitalize(format.item(prompt.item, session.level));
@@ -233,7 +239,14 @@ export function EarSession({ view, controller }: EarSessionProps) {
             })}
           />
         )}
-        {status === 'wrong' && !echo && (
+        {cadence && status !== 'waiting' && prompt.cadence && (
+          <CadenceLine
+            text={format.cadenceLine(prompt.cadence.key, prompt.cadence.numerals)}
+            chords={format.cadenceChords(prompt.cadence.key, prompt.cadence.numerals)}
+            numerals={prompt.cadence.numerals}
+          />
+        )}
+        {status === 'wrong' && !echo && !cadence && (
           <NotesStaff
             className="ear-staff"
             columns={columns}
@@ -322,6 +335,11 @@ export function EarSession({ view, controller }: EarSessionProps) {
                 {right && <ResultIcon ok />}
                 {chosen && <ResultIcon ok={false} />}
                 <span>{format.button(name, session.level)}</span>
+                {isCadence(name) && (
+                  <span className="ear-name-numerals" aria-hidden="true">
+                    {CADENCE_NUMERALS[name]}
+                  </span>
+                )}
                 {key && <kbd aria-hidden="true">{key}</kbd>}
               </button>
             );
@@ -338,6 +356,36 @@ export function EarSession({ view, controller }: EarSessionProps) {
       />
       <KeyboardLine />
     </section>
+  );
+}
+
+/**
+ * The progression heard, after the answer: its numerals and chords in its key, the last two (the
+ * cadence) set apart. Screen readers get the whole line.
+ */
+function CadenceLine({
+  text,
+  chords,
+  numerals,
+}: {
+  text: string;
+  chords: string;
+  numerals: readonly string[];
+}) {
+  return (
+    <p className="ear-cadence">
+      <span className="visually-hidden">{text}</span>
+      <span className="ear-cadence-numerals" aria-hidden="true">
+        {numerals.map((n, i) => (
+          <span key={i} className={i >= numerals.length - 2 ? 'is-cadence' : undefined}>
+            {n}
+          </span>
+        ))}
+      </span>
+      <span className="ear-cadence-chords" aria-hidden="true">
+        {chords}
+      </span>
+    </p>
   );
 }
 

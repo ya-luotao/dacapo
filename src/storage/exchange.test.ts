@@ -27,6 +27,7 @@ import {
   sampleRun,
   sampleScaleSession,
   sampleTake,
+  sampleCadenceSession,
   sampleChordSymbolAnswers,
   sampleHarmonySession,
   sampleTheoryAnswers,
@@ -1117,6 +1118,56 @@ describe('versions', () => {
       { collection: 'answers', index: 17, field: 'hinted', problem: 'invalid' },
       // Taken for an ear answer, whose levels these are not.
       { collection: 'answers', index: 18, field: 'level', problem: 'invalid' },
+    ]);
+  });
+
+  it('imports cadences named, judging each again', () => {
+    const { answers, session } = sampleCadenceSession('cs', 3);
+    const [right, wrong] = answers as [EarAnswer, EarAnswer, EarAnswer];
+    const file = parsed(
+      fileWith({
+        version: 8,
+        pieces: [],
+        pieceSteps: [],
+        scaleRuns: [],
+        takes: [],
+        sessions: [
+          session,
+          { ...session, id: 'x1', level: 'EC1' },
+          { ...session, id: 'x2', missed: [{ ...session.missed[0]!, prompt: Array(17).fill(60) }] },
+          { ...session, id: 'x3', missed: [{ ...session.missed[0]!, key: undefined }] },
+        ],
+        answers: [
+          ...answers,
+          // Played, not named; judged wrongly; a name outside the level; another level's.
+          { ...right, id: 'y1', by: 'play', answer: [62, 66, 69] },
+          { ...right, id: 'y2', correct: false },
+          { ...wrong, id: 'y3', level: 'CA1', answer: 'half' },
+          { ...right, id: 'y4', level: 'CA2' },
+          // Another cadence's chords, a chord moved, another key, a minor key below CA4.
+          { ...right, id: 'y5', item: 'cad:authentic', answer: 'authentic' },
+          { ...right, id: 'y6', prompt: right.prompt.map((m, i) => (i === 13 ? m + 1 : m)) },
+          { ...right, id: 'y7', key: { tonic: 'G', scale: 'major' } },
+          { ...right, id: 'y8', key: { tonic: 'D', scale: 'harmonicMinor' } },
+          { ...right, id: 'y9', key: undefined },
+        ],
+      }),
+    );
+    expect(file.sessions).toEqual([session]);
+    expect(file.answers).toEqual(answers);
+    expect(file.invalid).toEqual([
+      { collection: 'sessions', index: 1, field: 'level', problem: 'invalid' },
+      { collection: 'sessions', index: 2, field: 'missed', problem: 'invalid' },
+      { collection: 'sessions', index: 3, field: 'missed', problem: 'invalid' },
+      { collection: 'answers', index: 3, field: 'answer', problem: 'invalid' },
+      { collection: 'answers', index: 4, field: 'correct', problem: 'invalid' },
+      { collection: 'answers', index: 5, field: 'item', problem: 'invalid' },
+      { collection: 'answers', index: 6, field: 'item', problem: 'invalid' },
+      { collection: 'answers', index: 7, field: 'prompt', problem: 'invalid' },
+      { collection: 'answers', index: 8, field: 'prompt', problem: 'invalid' },
+      { collection: 'answers', index: 9, field: 'prompt', problem: 'invalid' },
+      { collection: 'answers', index: 10, field: 'prompt', problem: 'invalid' },
+      { collection: 'answers', index: 11, field: 'key', problem: 'invalid' },
     ]);
   });
 

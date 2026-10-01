@@ -45,6 +45,7 @@ import {
   type Inversion,
 } from './earItems.ts';
 import { judgeEchoAnswer } from './earMelody.ts';
+import { CADENCES, isCadence } from './cadences.ts';
 import {
   EAR_TARGET_MS,
   earLevelProgress,
@@ -111,7 +112,7 @@ export const isFamilyAnswer = (answer: StoredAnswer): answer is FamilyAnswer =>
   !isRhythmAnswer(answer);
 
 export type AnswerFamily = EarFamily | TheoryFamily | HarmonyFamily;
-/** Ear's three families, then Read's three, then Harmony's: the order of the Progress page. */
+/** Ear's four families, then Read's three, then Harmony's: the order of the Progress page. */
 export const ANSWER_FAMILIES: readonly AnswerFamily[] = [
   ...EAR_FAMILIES,
   ...THEORY_FAMILIES,
@@ -326,6 +327,7 @@ export const OTHER = 'other';
  * - `interval`: the interval's name, whatever the direction (`m6`);
  * - `chord`, `readChord`: the chord and its position (`min:1st`);
  * - `echo`: the melodic interval into a note, in signed semitones (`+5`, `-3`);
+ * - `cadence`: the cadence (`half`), named;
  * - `readInterval`: the name as the level asks it (`A2`; RI1 the number alone, `3`);
  * - `keySignature`: the key (`3f:major`);
  * - `chordSymbol`: the symbol as written (`Dm7`), the keys held read as a symbol on its root.
@@ -461,6 +463,12 @@ function earConfusions(answer: EarAnswer): Pair[] {
     if (played === undefined || given === undefined) return [wrong(asked, OTHER)];
     const distance = item.direction === 'down' ? given - played : played - given;
     return [wrong(asked, (distance > 0 && intervalOfSemitones(distance)) || OTHER)];
+  }
+
+  if (item.family === 'cadence') {
+    const asked = item.cadence;
+    if (answer.correct) return [right(asked)];
+    return [wrong(asked, isCadence(answer.answer) ? answer.answer : OTHER)];
   }
 
   const asked = chordLabel(item.quality, item.inversion);
@@ -616,6 +624,8 @@ function labelRank(family: AnswerFamily, label: string): number {
       return isIntervalName(label) ? INTERVAL_SEMITONES[label] : Number.MAX_VALUE;
     case 'echo':
       return Number(label);
+    case 'cadence':
+      return isCadence(label) ? CADENCES.indexOf(label) : Number.MAX_VALUE;
     case 'readInterval': {
       const number = Number(label.slice(-1));
       return number * 10 + QUALITY_RANK.indexOf(label.slice(0, -1));

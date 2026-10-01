@@ -19,6 +19,7 @@ import {
   type ItemFigures,
 } from '../../../core/answerProgress.ts';
 import { ANSWER_MODES, type AnswerMode } from '../../../core/earSession.ts';
+import { EAR_FAMILIES } from '../../../core/earItems.ts';
 import { useT } from '../../../i18n/index.ts';
 import { EmptyState } from '../../EmptyState.tsx';
 import { useReadFormat } from '../../read/format.ts';
@@ -28,8 +29,7 @@ import { ConfusionGrid } from './ConfusionGrid.tsx';
 import { useFamilyFormat } from './format.tsx';
 import { chooseSection, isSectionOpen, readSectionChoices, writeSectionChoices } from './prefs.ts';
 
-const isEar = (family: AnswerFamily) =>
-  family === 'interval' || family === 'chord' || family === 'echo';
+const isEar = (family: AnswerFamily) => (EAR_FAMILIES as readonly string[]).includes(family);
 
 /**
  * E4: a section for each family of the answers store (Ear's intervals, chords and melodies,

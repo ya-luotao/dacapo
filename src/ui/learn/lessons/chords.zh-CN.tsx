@@ -366,6 +366,11 @@ export default function Lesson() {
           <ChoiceQuiz prompt="终止式。" questions={HEARD} onComplete={complete} />
         </Plate>
         <p>
+          想多练终止式，可以在
+          <Link href="/ear">「练耳」</Link>
+          里选「终止式」：每个调都有，也有小调；听四个和弦，说出最后两个和弦构成的终止式。
+        </p>
+        <p>
           <Link href="/ear">「练耳」</Link>
           会弹出和弦让你说出名称或弹出来，从大三和弦、小三和弦，一直到转位和这一课的四种七和弦。
         </p>

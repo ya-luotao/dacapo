@@ -1,6 +1,7 @@
 import {
   answerNameOf,
   answerNames,
+  EAR_FAMILIES,
   getEarLevel,
   isEarLevelId,
   itemInLevel,
@@ -21,6 +22,7 @@ import {
   parseSymbolItem,
 } from '../core/chordSymbols.ts';
 import { isMelodyKeyOf, judgeEchoAnswer } from '../core/earMelody.ts';
+import { cadenceKeyOf } from '../core/cadences.ts';
 import type { EarAnswer, MissedItem } from '../core/earSession.ts';
 import type { PlayedNote, RunHeadline } from '../core/evenness.ts';
 import type { OpenFreePlay } from '../core/freePlay.ts';
@@ -462,18 +464,26 @@ function validateScaleSession(value: Fields): Validation<ScaleSessionRecord> {
 
 // --- Ear training ----------------------------------------------------------------------------
 
-const isFamily = (v: unknown) => v === 'interval' || v === 'chord' || v === 'echo';
+const isFamily = (v: unknown) => (EAR_FAMILIES as readonly unknown[]).includes(v);
 const isAnswerMode = (v: unknown) => v === 'play' || v === 'name';
 const isItemKey = (v: unknown): v is string => typeof v === 'string' && parseItem(v) !== null;
 /** A prompt or a played answer: a few keys (an interval's two, a chord's up to four). */
 const isKeys = (v: unknown, max: number): v is number[] =>
   Array.isArray(v) && v.length > 0 && v.length <= max && v.every(isMidi);
-/** The most keys of a prompt: a melody's eight. Each item's own count is `promptMatches`'. */
-const MAX_PROMPT_KEYS = 8;
+/**
+ * The most keys of an item's prompt: a cadence's four chords of four, a melody's eight otherwise.
+ * Each item's own count is `promptMatches`'.
+ */
+const maxPromptKeys = (itemKey: unknown) =>
+  typeof itemKey === 'string' && parseItem(itemKey)?.family === 'cadence' ? 16 : 8;
 
-/** A melody's key, which every Echo answer and miss keeps (one of its level's); none otherwise. */
+/**
+ * A melody's key, which every Echo answer and miss keeps (one of its level's), or a cadence's (one
+ * of the twelve majors or minors; `promptMatches` checks it against the level); none otherwise.
+ */
 function isKeyOfItem(itemKey: unknown, key: unknown): boolean {
   const item = typeof itemKey === 'string' ? parseItem(itemKey) : null;
+  if (item?.family === 'cadence') return cadenceKeyOf('CA4', key) !== null;
   if (item?.family !== 'echo') return key === undefined;
   return isMelodyKeyOf(item.level, key);
 }
@@ -496,6 +506,8 @@ function judgedAnswer(
   if (item.family === 'echo') {
     return by === 'play' && typeof answer !== 'string' ? judgeEchoAnswer(prompt, answer) : null;
   }
+  // A cadence is only ever named.
+  if (item.family === 'cadence' && by !== 'name') return null;
   if (by === 'name') {
     if (typeof answer !== 'string' || !answerNames(earLevel).includes(answer)) return null;
     return answer === answerNameOf(item);
@@ -531,7 +543,7 @@ function validateEarAnswer(value: Fields): Validation<EarAnswer> {
     level: isEarLevelId,
     item: isItemKey,
     by: isAnswerMode,
-    prompt: (v) => isKeys(v, MAX_PROMPT_KEYS),
+    prompt: (v) => isKeys(v, maxPromptKeys(value.item)),
     answer: isAnswerValue,
     correct: isBool,
     ms: isTime,
@@ -545,7 +557,7 @@ function validateEarAnswer(value: Fields): Validation<EarAnswer> {
   const level = getEarLevel(a.level);
   if (level.family !== a.family) return fail('level');
   if (!itemInLevel(item, level)) return fail('item');
-  if (!promptMatches(item, a.prompt)) return fail('prompt');
+  if (!promptMatches(item, a.prompt, a.key, a.level)) return fail('prompt');
   const judged = judgedAnswer(a.level, a.item, a.by, a.prompt, a.answer);
   if (judged === null) return fail('answer');
   if (judged !== a.correct) return fail('correct');
@@ -578,7 +590,7 @@ function isMissed(v: unknown): v is MissedItem[] {
         isObject(m) &&
         isItemKey(m.item) &&
         isAnswerValue(m.answer) &&
-        isKeys(m.prompt, MAX_PROMPT_KEYS) &&
+        isKeys(m.prompt, maxPromptKeys(m.item)) &&
         isKeyOfItem(m.item, m.key),
     )
   );
