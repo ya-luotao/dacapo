@@ -538,6 +538,66 @@ or sent to a teacher as sound.
   unchanged. No native code changed; this was read from the code, not tried on a device.
 - Nothing stored, synced or exported changes.
 
+## A way through the pieces (G5)
+
+Status: G5a is built (ten first pieces at Initial and grade 1, each with its edition's fingering;
+see "Content and copyright"). G5b and G5c are planned.
+
+Goal: the library is a list, and a piece's page a set of tools (hands, a loop, modes, a tempo, weak
+bars). A learner is not told which piece to take next, nor how to go about a new one: a teacher
+says "this one next", and then "bars 1 to 4, right hand; now the left; now together; now the next
+four bars". G5b says the first, G5c the second, both from the records and nothing else.
+
+### Next for you (G5b)
+
+- **The next piece** (`nextPiece` in `core/curriculum.ts`, TODAY.md) goes by where the player is:
+  of the built-in pieces written for two hands with no session at all, the first, in the library's
+  order, at the highest grade of a built-in piece played to its end; when that grade has none
+  left, the first of the grade above. With nothing played to its end yet: the first of Initial. It
+  never goes back below the grade reached (the ten first pieces are not proposed to someone
+  playing grade 3), and never more than one grade up.
+- **On the Pieces page**, above the library (below **Due for review**): one row, **Next for you**.
+  It is the piece in hand (TODAY.md: practised in the last fourteen days, never played to its end)
+  with "Continue", when it was last played and its bars steady, and its plan's next step (G5c) as
+  the button; else the next piece, with its grade and length, and **Begin**. Nothing when there is
+  neither.
+- **Each grade's heading** says how many of its pieces were played to the end ("Grade 1 · 2 of
+  6").
+- Lead sheets and imported pieces are not proposed; an imported piece can be in hand.
+
+### A piece's plan (G5c)
+
+- **Phrases.** A piece is taken in the phrases memory mode already knows (`phraseStarts` in
+  `core/memory.ts`: four bars, or fewer up to a double bar line or the end), named by their bars.
+- **Stages**, per phrase, in the order they are worked: **Right hand**, **Left hand**,
+  **Together** (wait mode), then **In time** (rhythm mode, both hands, at the tempo ladder's rung:
+  ADVICE.md). A piece or a phrase with notes for one hand only has that hand and **In time**.
+  After the phrases: **The whole piece**, a run to its end, which is also what brings it into
+  review.
+- **A stage is done** by the records of the piece's runs, by lines the app already draws:
+  - _a hand, or together_: every bar of the phrase is steady with those hands (the bar heatmap's
+    own "steady": the bar's latest runs with those hands without a wrong note and without
+    hesitating, as the card's "12 of 32 bars steady" counts them);
+  - _in time_: a rhythm run through the phrase's bars with both hands that the review would grade
+    clean and in time (at most 1 note in 50 missed or wrong, 80 % within ±50 ms), at any tempo;
+  - _the whole piece_: a run to the end (`isRunToTheEnd`).
+    A stage done stays done while its records say so: a bar that stops being steady opens it
+    again, which is the point.
+- **The next step** is the first stage not done, phrase by phrase (right, left, together for
+  phrase 1; then phrase 2 …), then **In time** phrase by phrase, then the whole piece. Running
+  ahead is the player's choice: any stage can be started from the plan.
+- **On the piece's page**: **Plan** beside **Weak bars**, off unless turned on, kept per device.
+  It shows one line ("Next: bars 5–8, left hand" with **Start**) and under it the phrases as
+  rows and the stages as columns, each cell a button that sets the loop, the hands, the mode and
+  the tempo and starts the run, with a tick when done. On a phone each phrase is a row of its
+  four stages under its bars.
+- **From elsewhere.** Today's step for the piece in hand opens the plan's next step (its line
+  says "Bars 5–8, left hand · last played 2 days ago"), and so does **Next for you**; an
+  advice's own button (ADVICE.md) stays what the run just played calls for.
+- `core/piecePlan.ts`, pure: the phrases, each stage's state from the step records and sessions,
+  and the next step. Nothing is stored: the plan is its records read another way, so it is the
+  same on every device the records are on.
+
 ## Milestones
 
 1. ✓ **P0 Spike** — choose the renderer (OpenSheetMusicDisplay vs Verovio vs other), prove
