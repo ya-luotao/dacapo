@@ -1,6 +1,8 @@
 import { useState, type ReactNode } from 'react';
-import { useT, type MessageKey } from '../../i18n/index.ts';
+import { useI18n, useT, type MessageKey } from '../../i18n/index.ts';
 import { REPO_URL } from '../../lib/links.ts';
+import { currentShell } from '../../lib/shell.ts';
+import { lessonsPath, piecesPath } from '../../site/addresses.ts';
 
 /** Where the licence texts are served: public/licenses/, below the app's base path. */
 const LICENCES = `${import.meta.env.BASE_URL}licenses/`;
@@ -144,7 +146,9 @@ function CreditItem({ credit }: { credit: Credit }) {
  * the music, with the licence texts from public/licenses/. The same page in the browser and in the Apple app.
  */
 export function AboutPage() {
-  const t = useT();
+  const { t, locale } = useI18n();
+  // The pages of the site (docs/SITE.md) are the web build's: the Apple app carries none.
+  const web = currentShell() === 'web';
 
   return (
     <section className="page about-page">
@@ -156,6 +160,19 @@ export function AboutPage() {
           <a href={REPO_URL}>{t('settings.about.source')}</a>
         </li>
       </ul>
+      {web && (
+        <>
+          <p className="help">{t('site.about')}</p>
+          <ul className="about-links">
+            <li>
+              <a href={`${import.meta.env.BASE_URL}${lessonsPath(locale)}`}>{t('site.lessons')}</a>
+            </li>
+            <li>
+              <a href={`${import.meta.env.BASE_URL}${piecesPath(locale)}`}>{t('pieces.title')}</a>
+            </li>
+          </ul>
+        </>
+      )}
       <LicenceText file={{ name: 'MIT License', path: `${LICENCES}dacapo/LICENSE.txt` }} />
 
       <section className="field data" aria-labelledby="about-software">

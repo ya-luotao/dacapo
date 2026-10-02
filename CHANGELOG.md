@@ -15,6 +15,28 @@ click's tempo and grid of scale runs played with it (from version 7), the takes 
 (from version 8), assignments and kept reports (from version 9), and the lessons finished (from
 version 10). Version 1 to 9 files still import.
 
+### Pages a search engine can read (W1 and W2, [docs/SITE.md](docs/SITE.md))
+
+- **The lessons have pages of their own**: `playdacapo.com/learn/` and a page for each of the
+  fifteen lessons and Inside the piano, in English, Simplified Chinese (`/zh-cn/learn/…`) and
+  Traditional Chinese (`/zh-tw/learn/…`). A page is the lesson's whole text with its figures as
+  they first appear, written into the build as plain HTML: it reads without scripts, and begins
+  and ends with **Open this lesson in dacapo**. A figure's buttons are left out, and a line stands
+  in place of each exercise.
+- **So do the built-in pieces**: `playdacapo.com/pieces/` and a page for each of the thirty-one,
+  in the five languages, with the library's note, the piece's period and form, its bars, key and
+  time, whether it carries its edition's fingering, where it comes from, and **its score**,
+  engraved when the site is built. **Practise it in dacapo** opens the piece in the app.
+- **A home page in each language** (`/zh-cn/`, `/zh-tw/`, `/ja/`, `/ko/`): what a first visit
+  shows, with Start going to the app in that language.
+- The app takes **`?lang=`** as the visitor's language when they have not chosen one (it becomes
+  their choice, as picking it in Settings would), and drops it from the address. The footer has
+  plain links to the lessons and the pieces, and About names the pages.
+- `sitemap.xml` is written by the build and lists every page with its alternates. The offline
+  worker leaves the pages alone, and the Apple app's bundle leaves them out.
+- `learn`, `pieces`, `zh-cn`, `zh-tw`, `en`, `start` and `sitemap` can no longer be taken as
+  usernames (in the app now; in the account service with its next deploy).
+
 ### What to work on next: cards (G2c, [docs/ADVICE.md](docs/ADVICE.md))
 
 - **Practise these.** After a session of cards with something missed, or something slower than

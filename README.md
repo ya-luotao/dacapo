@@ -53,7 +53,10 @@ practising the notes you are slowest at. Progress is visible day by day.
   practise, and styles and forms, each with figures to play with on your own keyboard and
   exercises to finish. A lesson ends with a way straight into the practice it prepares (the right
   level, scale or piece), each practice names its lesson to a newcomer, and a finished lesson is
-  ticked on every device you sign in on ([docs/LEARN.md](docs/LEARN.md)).
+  ticked on every device you sign in on ([docs/LEARN.md](docs/LEARN.md)). The lessons and the
+  built-in pieces can also be read at addresses of their own, without the app:
+  [playdacapo.com/learn/](https://playdacapo.com/learn/) and
+  [playdacapo.com/pieces/](https://playdacapo.com/pieces/) ([docs/SITE.md](docs/SITE.md)).
 - **Live keyboard.** An 88-key on-screen piano lights up as you play, with velocity, the sustain
   pedal and the notes you just played. Works with a MIDI keyboard, your computer keyboard or
   the mouse / touch.
