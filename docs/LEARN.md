@@ -39,16 +39,28 @@ A planned lesson is listed as "In preparation" and cannot be opened.
 
 ## Languages
 
-Lessons are written in English and Simplified Chinese: `src/ui/learn/lessons/<slug>.en.tsx` and
-`<slug>.zh-CN.tsx`, loaded when opened (`lessons/index.ts`). zh-CN reads the Chinese; every other
-language reads the English, with a line saying so in its own language. The page around a lesson
-(titles of the page, contents, next and previous) is in the app's dictionaries like any other text;
-the words inside figures (Start, "3 of 8", "That was E4") follow the lesson's language
-(`src/ui/learn/lesson.ts`).
+Lessons are written in English, Simplified Chinese and Traditional Chinese as written in Taiwan:
+`src/ui/learn/lessons/<slug>.en.tsx`, `<slug>.zh-CN.tsx` and `<slug>.zh-TW.tsx`, loaded when
+opened (`lessons/index.ts`). zh-CN and zh-TW each read their own Chinese; Japanese and Korean
+read the English, with a line saying so in their own language. A lesson's title and summary
+(`src/learn/lessons.ts`) are in the same three languages, wherever they are shown: the Learn
+page, a lesson's page and its pager, today's plan, Where you are, the line on a practice's page,
+an assignment's lesson task and the week's recap. The page around a lesson (titles of the page,
+contents, next and previous) is in the app's dictionaries like any other text; the words inside
+figures (Start, "3 of 8", "That was E4") follow the lesson's language (`LESSON_WORDS` in
+`src/ui/learn/lesson.ts`; Taiwan's are in `lessonWords.zh-TW.ts`).
 
-The two versions say the same things with the same figures and exercises, in the same order. The
-Chinese is written, not translated: mnemonics that only work in English ("Every Good Boy Does
-Fine") are replaced by what works in Chinese.
+The three versions say the same things with the same figures and exercises, in the same order.
+The Chinese is written, not translated: mnemonics that only work in English ("Every Good Boy Does
+Fine") are replaced by what works in Chinese. The Traditional Chinese is written from the
+Simplified one, in Taiwan's terms and usage, not converted from it character by character: the
+terms are those of the zh-TW dictionary and of [TRANSLATING.md](TRANSLATING.md)'s glossary (小節,
+升記號, 連結線, 漣音, 斷奏 and 持音, 平台鋼琴, 樂曲 for the Pieces page, 古典樂派, 二段式), the
+pieces are named as the library names them, in 〈〉, the beat is counted "1 and 2 and", and
+sentences that read as mainland Chinese are said as Taiwan says them. The code around the text is
+the same in both Chinese versions (the same components, props, ids and order). It awaits native
+review, like the zh-TW strings; the names of the parts of the action (Inside the piano) most of
+all.
 
 ## Writing a lesson
 
@@ -146,8 +158,7 @@ Fine") are replaced by what works in Chinese.
 
 ## Lessons and practice, joined (G3)
 
-Status: built, but for the lessons in Traditional Chinese (the last point below), whose texts
-are being written. A lesson ended with **Practise it**, which opened a page and left the reader to
+Status: built. A lesson ended with **Practise it**, which opened a page and left the reader to
 find the level; no practice said which lesson explains it; the Learn page did not say which
 lesson comes next; and the tick stayed on one device. G3 joins them, by the table in
 [TODAY.md](TODAY.md) (`core/curriculum.ts`: which lesson opens which practice).
@@ -200,8 +211,10 @@ lesson comes next; and the tick stayed on one device. G3 joins them, by the tabl
 - **Lessons in Traditional Chinese.** `LessonLanguage` gains `zh-TW`: each lesson's text written
   from the Simplified Chinese one in Taiwan's terms and usage ([TRANSLATING.md](TRANSLATING.md)'s
   glossary; 小節 not 小节, 升記號, 音程 …), with the same figures and exercises in the same order,
-  awaiting native review like the zh-TW strings. Japanese and Korean go on reading the English,
-  with the line that says so.
+  awaiting native review like the zh-TW strings. Its title and summary and the words inside its
+  figures are in Traditional Chinese too, so a zh-TW reader is no longer told the lessons are in
+  English ("Languages", above). Japanese and Korean go on reading the English, with the line
+  that says so; the line now names the three languages the lessons are written in.
 
 ## Clarifications (decided during G3)
 

@@ -15,6 +15,21 @@ click's tempo and grid of scale runs played with it (from version 7), the takes 
 (from version 8), assignments and kept reports (from version 9), and the lessons finished (from
 version 10). Version 1 to 9 files still import.
 
+### The lessons in Traditional Chinese (G3, [docs/LEARN.md](docs/LEARN.md))
+
+- **The lessons are in Traditional Chinese** for readers in 繁體中文: the fifteen lessons and
+  Inside the piano, written from the Simplified Chinese ones in Taiwan's terms and usage (小節,
+  升記號 and 降記號, 連結線, 漣音, 斷奏 and 持音, 平台鋼琴 and 直立式鋼琴, 古典樂派, 二段式), with
+  the same figures and exercises and the words inside the figures in Chinese. They await review
+  by a native speaker, like the rest of the Traditional Chinese
+  ([docs/TRANSLATING.md](docs/TRANSLATING.md)).
+- A lesson's title is in Traditional Chinese wherever it is shown: the Learn page, a lesson's
+  page, today's plan, Where you are, the line on a practice's page, an assignment's checklist
+  and the week's recap.
+- Japanese and Korean go on reading the lessons in English; the line that says so names the
+  three languages they are written in.
+- 繁體中文: the home page's contents call a tie 連結線, as Read's rhythm levels do.
+
 ### Note names: do re mi for those who ask (G6e, [docs/PERSONAL.md](docs/PERSONAL.md))
 
 - **Settings → Note names**: C D E, as before, or **Do Re Mi**. With fixed do, C is Do whatever

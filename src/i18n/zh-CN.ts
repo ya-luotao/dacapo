@@ -131,7 +131,7 @@ export const zhCN: Dictionary = {
   'learn.title': '入门基础',
   'learn.intro':
     '为刚开始学琴的你准备的几节短课：键盘、五线谱、节奏等等。每课都有可以动手弹的图示，最后还有一个小练习。',
-  'learn.language': '课程目前用英文和简体中文编写。',
+  'learn.language': '课程目前用英文、简体中文和繁体中文编写。',
   'learn.lesson': '第 {n} 课',
   'learn.minutes': '{n} 分钟',
   'learn.planned': '准备中',

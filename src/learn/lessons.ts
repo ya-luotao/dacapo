@@ -2,10 +2,11 @@ import type { LevelFamily } from '../core/assignmentRecords.ts';
 import type { Locale } from '../i18n/index.ts';
 
 // The basics: short lessons for someone who has never read music, each with figures to play with
-// and a little exercise. They are written in English and Simplified Chinese; the other languages
-// read the English (docs/LEARN.md).
+// and a little exercise. They are written in English, Simplified Chinese and Traditional Chinese
+// (Taiwan's, from the Simplified); the other languages read the English (docs/LEARN.md).
 
-export type LessonLanguage = 'en' | 'zh-CN';
+export const LESSON_LANGUAGES = ['en', 'zh-CN', 'zh-TW'] as const;
+export type LessonLanguage = (typeof LESSON_LANGUAGES)[number];
 
 /**
  * Which level of a family a lesson leads to: the one its page suggests when the lesson is read,
@@ -43,11 +44,13 @@ export interface LessonInfo {
 export const LESSONS: readonly LessonInfo[] = [
   {
     slug: 'keyboard',
-    title: { en: 'Finding your way around the keyboard', 'zh-CN': '认识键盘' },
+    title: { en: 'Finding your way around the keyboard', 'zh-CN': '认识键盘', 'zh-TW': '認識鍵盤' },
     summary: {
       en: 'Eighty-eight keys, one pattern: the black keys in twos and threes, the seven letters, middle C and the octaves.',
       'zh-CN':
         '88 个键，其实是同一个图案反复出现：黑键两个一组、三个一组，七个字母，中央 C 和八度。',
+      'zh-TW':
+        '88 個鍵，其實是同一個圖案反覆出現：黑鍵兩個一組、三個一組，七個字母，中央 C 和八度。',
     },
     minutes: 10,
     ready: true,
@@ -55,10 +58,11 @@ export const LESSONS: readonly LessonInfo[] = [
   },
   {
     slug: 'staff',
-    title: { en: 'The staff and the clefs', 'zh-CN': '五线谱与谱号' },
+    title: { en: 'The staff and the clefs', 'zh-CN': '五线谱与谱号', 'zh-TW': '五線譜與譜號' },
     summary: {
       en: 'Five lines and four spaces, the treble and the bass clef, and the grand staff that joins them at middle C.',
       'zh-CN': '五条线、四个间，高音谱号和低音谱号，以及在中央 C 处连成一体的大谱表。',
+      'zh-TW': '五條線、四個間，高音譜號和低音譜號，以及在中央 C 相接的大譜表。',
     },
     minutes: 15,
     ready: true,
@@ -66,10 +70,15 @@ export const LESSONS: readonly LessonInfo[] = [
   },
   {
     slug: 'landmarks',
-    title: { en: 'Landmark notes and intervals', 'zh-CN': '地标音与音程读谱' },
+    title: {
+      en: 'Landmark notes and intervals',
+      'zh-CN': '地标音与音程读谱',
+      'zh-TW': '地標音與音程讀譜',
+    },
     summary: {
       en: 'Read by landmarks and steps instead of counting lines from the bottom.',
       'zh-CN': '用地标音和音程来读谱，不再从最底下一条线数起。',
+      'zh-TW': '用地標音和音程來讀譜，不再從最下面一條線數起。',
     },
     minutes: 12,
     ready: true,
@@ -80,10 +89,11 @@ export const LESSONS: readonly LessonInfo[] = [
   },
   {
     slug: 'rhythm',
-    title: { en: 'Rhythm and the beat', 'zh-CN': '节奏与拍子' },
+    title: { en: 'Rhythm and the beat', 'zh-CN': '节奏与拍子', 'zh-TW': '節奏與拍子' },
     summary: {
       en: 'Note values, rests, time signatures, and how to count them.',
       'zh-CN': '音符时值、休止符、拍号，以及怎么数拍子。',
+      'zh-TW': '音符時值、休止符、拍號，以及怎麼數拍子。',
     },
     minutes: 15,
     ready: true,
@@ -91,10 +101,15 @@ export const LESSONS: readonly LessonInfo[] = [
   },
   {
     slug: 'sharps-and-flats',
-    title: { en: 'Sharps, flats, whole and half steps', 'zh-CN': '升降号、全音与半音' },
+    title: {
+      en: 'Sharps, flats, whole and half steps',
+      'zh-CN': '升降号、全音与半音',
+      'zh-TW': '升降記號、全音與半音',
+    },
     summary: {
       en: 'What the black keys are called, and the smallest steps in music.',
       'zh-CN': '黑键叫什么名字，以及音乐里最小的一步。',
+      'zh-TW': '黑鍵叫什麼名字，以及音樂裡最小的一步。',
     },
     minutes: 12,
     ready: true,
@@ -102,10 +117,15 @@ export const LESSONS: readonly LessonInfo[] = [
   },
   {
     slug: 'major-scale',
-    title: { en: 'The major scale and key signatures', 'zh-CN': '大调音阶与调号' },
+    title: {
+      en: 'The major scale and key signatures',
+      'zh-CN': '大调音阶与调号',
+      'zh-TW': '大調音階與調號',
+    },
     summary: {
       en: 'The pattern behind every major scale, and why a piece names its sharps once, at the start.',
       'zh-CN': '所有大调音阶背后的同一个规律，以及乐曲为什么在开头一次写明升降号。',
+      'zh-TW': '所有大調音階背後的同一個規律，以及樂曲為什麼在開頭一次寫明升降記號。',
     },
     minutes: 15,
     ready: true,
@@ -113,10 +133,15 @@ export const LESSONS: readonly LessonInfo[] = [
   },
   {
     slug: 'posture',
-    title: { en: 'Posture, hand shape and fingering', 'zh-CN': '坐姿、手型与指法' },
+    title: {
+      en: 'Posture, hand shape and fingering',
+      'zh-CN': '坐姿、手型与指法',
+      'zh-TW': '坐姿、手型與指法',
+    },
     summary: {
       en: 'How to sit, how to hold your hands, and what the finger numbers mean.',
       'zh-CN': '怎么坐，手怎么放，以及指法数字是什么意思。',
+      'zh-TW': '怎麼坐，手怎麼放，以及指法數字是什麼意思。',
     },
     minutes: 10,
     ready: true,
@@ -124,10 +149,15 @@ export const LESSONS: readonly LessonInfo[] = [
   },
   {
     slug: 'rhythm-2',
-    title: { en: 'Dots, ties, triplets and syncopation', 'zh-CN': '附点、延音线、三连音与切分音' },
+    title: {
+      en: 'Dots, ties, triplets and syncopation',
+      'zh-CN': '附点、延音线、三连音与切分音',
+      'zh-TW': '附點、連結線、三連音與切分音',
+    },
     summary: {
       en: 'Dotted notes and ties, sixteenths, triplets, rhythms off the beat, and 6/8 time.',
       'zh-CN': '附点和延音线，十六分音符，三连音，落在两拍之间的节奏，以及 6/8 拍。',
+      'zh-TW': '附點和連結線，十六分音符，三連音，落在兩拍之間的節奏，以及 6/8 拍。',
     },
     minutes: 20,
     ready: true,
@@ -135,11 +165,17 @@ export const LESSONS: readonly LessonInfo[] = [
   },
   {
     slug: 'minor-keys',
-    title: { en: 'Minor scales and minor keys', 'zh-CN': '小调音阶与小调' },
+    title: {
+      en: 'Minor scales and minor keys',
+      'zh-CN': '小调音阶与小调',
+      'zh-TW': '小調音階與小調',
+    },
     summary: {
       en: 'The relative minor, the natural, harmonic and melodic minor scales, and how to tell a minor key from its major.',
       'zh-CN':
         '关系小调，自然、和声、旋律三种小调音阶，以及怎么分辨一首曲子是大调还是它的关系小调。',
+      'zh-TW':
+        '關係小調，自然、和聲、旋律三種小調音階，以及怎麼分辨一首曲子是大調還是它的關係小調。',
     },
     minutes: 18,
     ready: true,
@@ -147,10 +183,15 @@ export const LESSONS: readonly LessonInfo[] = [
   },
   {
     slug: 'dynamics',
-    title: { en: 'Loud and soft, joined and detached', 'zh-CN': '强弱与奏法' },
+    title: {
+      en: 'Loud and soft, joined and detached',
+      'zh-CN': '强弱与奏法',
+      'zh-TW': '強弱與奏法',
+    },
     summary: {
       en: 'Dynamics from pp to ff, crescendo and accents, the tune over its chords, and legato, staccato and tenuto.',
       'zh-CN': '从 pp 到 ff 的力度记号，渐强、渐弱和重音，让旋律盖过和弦，以及连奏、跳音和保持音。',
+      'zh-TW': '從 pp 到 ff 的力度記號，漸強、漸弱和重音，讓旋律蓋過和弦，以及連奏、斷奏和持音。',
     },
     minutes: 18,
     ready: true,
@@ -159,10 +200,11 @@ export const LESSONS: readonly LessonInfo[] = [
   },
   {
     slug: 'pedals',
-    title: { en: 'The pedals', 'zh-CN': '踏板' },
+    title: { en: 'The pedals', 'zh-CN': '踏板', 'zh-TW': '踏板' },
     summary: {
       en: 'The sustain, soft and sostenuto pedals, how to press them, the pedal marks, and changing the pedal cleanly after each chord.',
       'zh-CN': '延音、弱音和持音三个踏板，怎么踩，踏板记号，以及怎样在每个和弦之后干净地换踏板。',
+      'zh-TW': '延音、弱音和持音三個踏板，怎麼踩，踏板記號，以及怎麼在每個和弦之後乾淨地換踏板。',
     },
     minutes: 15,
     ready: true,
@@ -171,10 +213,11 @@ export const LESSONS: readonly LessonInfo[] = [
   },
   {
     slug: 'ornaments',
-    title: { en: 'Ornaments', 'zh-CN': '装饰音' },
+    title: { en: 'Ornaments', 'zh-CN': '装饰音', 'zh-TW': '裝飾音' },
     summary: {
       en: 'Grace notes, mordents, the turn and the trill, each written out as it is played, and spread chords and the pause.',
       'zh-CN': '倚音、波音、回音和颤音，每一种都写出实际弹的音，还有琶音和延长记号。',
+      'zh-TW': '倚音、漣音、迴音和顫音，每一種都寫出實際彈的音，還有琶音和延長記號。',
     },
     minutes: 15,
     ready: true,
@@ -182,11 +225,13 @@ export const LESSONS: readonly LessonInfo[] = [
   },
   {
     slug: 'chords',
-    title: { en: 'Chords and harmony', 'zh-CN': '和弦与和声' },
+    title: { en: 'Chords and harmony', 'zh-CN': '和弦与和声', 'zh-TW': '和弦與和聲' },
     summary: {
       en: 'Triads and their inversions, the chords of a key and their numerals, seventh chords, cadences, chord symbols, and the harmony in a piece.',
       'zh-CN':
         '三和弦和它的转位，一个调里的和弦和级数，七和弦，终止式，和弦记号，以及怎样找出曲子里的和声。',
+      'zh-TW':
+        '三和弦和它的轉位，一個調裡的和弦和級數，七和弦，終止式，和弦記號，以及怎麼找出曲子裡的和聲。',
     },
     minutes: 20,
     ready: true,
@@ -197,11 +242,13 @@ export const LESSONS: readonly LessonInfo[] = [
   },
   {
     slug: 'practising',
-    title: { en: 'Practising well', 'zh-CN': '怎样练琴' },
+    title: { en: 'Practising well', 'zh-CN': '怎样练琴', 'zh-TW': '怎麼練琴' },
     summary: {
       en: 'Slow practice, small chunks and loops, hands separately, stopping or playing through, short daily sessions, learning by heart, playing for others and playing without strain.',
       'zh-CN':
         '慢练，分段循环，先分手再合手，停下来改还是弹下去，每天短时间地练，背谱，弹给别人听，以及弹琴不要勉强。',
+      'zh-TW':
+        '慢練，分段循環，先分手再合手，停下來改還是彈下去，每天短時間地練，背譜，彈給別人聽，以及彈琴不要勉強。',
     },
     minutes: 15,
     ready: true,
@@ -209,11 +256,13 @@ export const LESSONS: readonly LessonInfo[] = [
   },
   {
     slug: 'styles',
-    title: { en: 'Styles and forms', 'zh-CN': '风格与曲式' },
+    title: { en: 'Styles and forms', 'zh-CN': '风格与曲式', 'zh-TW': '風格與曲式' },
     summary: {
       en: 'The Baroque, Classical, Romantic and Impressionist periods and how to play each, and the forms music is built in: phrases, binary, ternary, rondo and variations.',
       'zh-CN':
         '巴洛克、古典主义、浪漫主义和印象主义几个时期，每个时期怎么弹，以及音乐的几种曲式：乐句、二部曲式、三部曲式、回旋曲式和变奏曲。',
+      'zh-TW':
+        '巴洛克、古典樂派、浪漫樂派和印象樂派幾個時期，每個時期怎麼彈，以及音樂的幾種曲式：樂句、二段式、三段式、輪旋曲式和變奏曲。',
     },
     minutes: 18,
     ready: true,
@@ -228,11 +277,13 @@ export const LESSONS: readonly LessonInfo[] = [
 export const EXTRAS: readonly LessonInfo[] = [
   {
     slug: 'inside',
-    title: { en: 'Inside the piano', 'zh-CN': '钢琴里面是什么样的' },
+    title: { en: 'Inside the piano', 'zh-CN': '钢琴里面是什么样的', 'zh-TW': '鋼琴裡面是什麼樣子' },
     summary: {
       en: 'What happens between your finger and the string: the hammer, the jack that lets it fly, the damper, and why only the speed of your press counts.',
       'zh-CN':
         '从手指到琴弦之间发生了什么：琴槌、让它飞出去的顶杆、制音器，以及为什么只有按键的速度才算数。',
+      'zh-TW':
+        '從手指到琴弦之間發生了什麼：琴槌、讓它飛出去的頂桿、制音器，以及為什麼只有按鍵的速度才算數。',
     },
     minutes: 8,
     ready: true,
@@ -240,9 +291,12 @@ export const EXTRAS: readonly LessonInfo[] = [
   },
 ];
 
-/** The language a lesson is read in: Simplified Chinese for zh-CN, English otherwise. */
+/**
+ * The language a lesson is read in: Simplified Chinese for zh-CN, Traditional Chinese for zh-TW,
+ * English otherwise.
+ */
 export function lessonLanguage(locale: Locale): LessonLanguage {
-  return locale === 'zh-CN' ? 'zh-CN' : 'en';
+  return locale === 'zh-CN' || locale === 'zh-TW' ? locale : 'en';
 }
 
 export function lessonBySlug(slug: string): LessonInfo | undefined {

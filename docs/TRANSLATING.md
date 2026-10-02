@@ -16,10 +16,15 @@ translation, rewrite it.
 - Only English is part of the main bundle. The other dictionaries are loaded on demand, one chunk
   each (see `LOADERS` in `src/i18n/locale.ts`).
 - Components read strings with `useT()`; nothing user-facing is hard-coded.
+- The lessons are the one text that is not in the dictionaries: each is written whole, in English,
+  Simplified Chinese and Traditional Chinese ([LEARN.md](LEARN.md), "Languages"). The other
+  languages read the English.
 
 `pnpm test` checks every dictionary: same keys in the same order, the same placeholders for every
 key, no empty strings, every built-in piece named in every language, 「」 quotes in ja and zh-TW,
-and no Simplified-only characters in zh-TW.
+and no Simplified-only characters in zh-TW. It checks the lessons too: every lesson has its text,
+title and summary in the three languages, the figures' words have the same keys and placeholders
+in each, and the zh-TW texts have 「」 quotes and no Simplified-only characters.
 
 ## Rules for every language
 
@@ -244,6 +249,15 @@ Chinese and Latin letters, digits and placeholders (`第 {n} 张`, `MIDI 键盘`
 
 Written from the English, not converted from zh-CN: Taiwan vocabulary and Taiwan piano-teaching
 terms throughout. Address the learner as 你, as zh-CN does.
+
+The lessons (`src/ui/learn/lessons/<slug>.zh-TW.tsx`, their titles and summaries in
+`src/learn/lessons.ts` and the figures' words in `src/ui/learn/lessonWords.zh-TW.ts`; see
+[LEARN.md](LEARN.md), "Languages") are the exception: they are written from the Simplified Chinese
+lessons, which are themselves written and not translated, in the terms of the dictionary and of
+the table below, and by the same rules as the strings. They call a page, a level or a button what
+the dictionary calls it; the last rows of the table are the terms only the lessons use. Fixing a
+lesson's wording is welcome like any string's: change only the text, and keep the figures, their
+props and the order as they are in the zh-CN file.
 
 - Punctuation: full-width ，。：；（）！？; quotes 「」 (nested 『』), never “ ”; `、` for lists;
   《》 for a book or collection and 〈〉 for a piece inside one; `‧` between parts of a foreign name

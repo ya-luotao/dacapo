@@ -1,7 +1,7 @@
 import type { LessonCopyKey } from './lesson.ts';
 
 // The words the figures use (lesson.ts) in Traditional Chinese as written in Taiwan, in the terms
-// of the zh-TW dictionary. Not read yet: lesson.ts takes them when LessonLanguage gains zh-TW.
+// of the zh-TW dictionary: the same keys as lesson.ts's own, which takes them into LESSON_WORDS.
 
 export const LESSON_WORDS_ZH_TW: Record<LessonCopyKey, string> = {
   plate: '圖',

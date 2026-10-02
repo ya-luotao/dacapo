@@ -532,6 +532,9 @@ describe('a practice names its lesson', () => {
     await loaded(store);
     mount(store, createElement(LessonLine, { practice: 'scales', known: false }), 'zh-CN');
     expect(line()?.textContent).toBe('learn.newlearn.new.lesson {"n":6,"title":"大调音阶与调号"}');
+    act(() => root?.unmount());
+    mount(store, createElement(LessonLine, { practice: 'scales', known: false }), 'zh-TW');
+    expect(line()?.textContent).toBe('learn.newlearn.new.lesson {"n":6,"title":"大調音階與調號"}');
     for (const locale of ['ja', 'ko'] as const) {
       act(() => root?.unmount());
       mount(store, createElement(LessonLine, { practice: 'scales', known: false }), locale);

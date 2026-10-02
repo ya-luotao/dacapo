@@ -146,8 +146,8 @@ and practices (G3's links between them read it too).
   when the rules are in, in a space kept for them. The test that holds the start
   (`ui/assignments/startup.test.ts`) holds `core/today.ts` and `core/curriculum.ts` out of it too.
 - The part names follow lesson 14's figure of a session (Warm up, Hard spots, Something new, Play
-  through; the lesson's text is in two languages, so the names are new strings in all five, with
-  the lesson's own words in English and Simplified Chinese).
+  through; the lesson's text is not in every language, so the names are new strings in all five,
+  with the lesson's own words in English, Simplified Chinese and Traditional Chinese).
 - A name of a scale is put together from its exercise key alone, as the assignment's block does it
   (no `core/scales.ts` at the start).
 

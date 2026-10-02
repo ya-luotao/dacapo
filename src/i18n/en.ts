@@ -135,7 +135,7 @@ export const en = {
   'learn.intro':
     'Short lessons for your first weeks at the piano: the keyboard, the staff, rhythm and more. Each has figures to play with, and an exercise to finish.',
   'learn.language':
-    'The lessons are written in English and Simplified Chinese; they are shown here in English.',
+    'The lessons are written in English, Simplified Chinese and Traditional Chinese; they are shown here in English.',
   'learn.lesson': 'Lesson {n}',
   'learn.minutes': '{n} min',
   'learn.planned': 'In preparation',

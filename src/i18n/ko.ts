@@ -134,7 +134,8 @@ export const ko: Dictionary = {
   'learn.title': '피아노 기초',
   'learn.intro':
     '피아노를 막 시작한 분을 위한 짧은 레슨이에요. 건반, 오선보, 리듬 등을 다루고, 레슨마다 직접 쳐 볼 수 있는 그림과 마지막 연습이 있어요.',
-  'learn.language': '레슨은 현재 영어와 중국어 간체로 쓰여 있어요. 여기서는 영어판을 보여 드려요.',
+  'learn.language':
+    '레슨은 현재 영어, 중국어 간체, 중국어 번체로 쓰여 있어요. 여기서는 영어판을 보여 드려요.',
   'learn.lesson': '레슨 {n}',
   'learn.minutes': '{n}분',
   'learn.planned': '준비 중',

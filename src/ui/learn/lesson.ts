@@ -16,11 +16,12 @@ import { formatMessage } from '../../i18n/locale.ts';
 import { useInput } from '../input/context.ts';
 import { usePracticeStore } from '../practice/context.ts';
 import { writeReturning } from '../today/prefs.ts';
+import { LESSON_WORDS_ZH_TW } from './lessonWords.zh-TW.ts';
 
 // What every lesson's figures share: the lesson's language and the words they use, a way to hear
 // a key played, and one exercise listening at a time (kit.tsx has the parts of the page).
 
-const COPY = {
+const WRITTEN_HERE = {
   en: {
     plate: 'Plate',
     start: 'Start',
@@ -152,9 +153,17 @@ const COPY = {
     chordRight: '对了：{answer}。',
     chordBass: '音都对，但最低的音不对。重新来：{answer}。',
   },
-} as const satisfies Record<LessonLanguage, Record<string, string>>;
+} as const satisfies Record<'en' | 'zh-CN', Record<string, string>>;
 
-export type LessonCopyKey = keyof (typeof COPY)['en'];
+export type LessonCopyKey = keyof (typeof WRITTEN_HERE)['en'];
+
+/**
+ * The figures' words in every language the lessons are written in, the same keys in each.
+ * Taiwan's are in a file of their own (lessonWords.zh-TW.ts), which takes the keys from here.
+ */
+export const LESSON_WORDS: Readonly<
+  Record<LessonLanguage, Readonly<Record<LessonCopyKey, string>>>
+> = { ...WRITTEN_HERE, 'zh-TW': LESSON_WORDS_ZH_TW };
 
 export interface LessonContextValue {
   slug: string;
@@ -178,7 +187,7 @@ export function useLessonLanguage(): LessonLanguage {
 /** The words the figures use, in the lesson's language. */
 export function useCopy(): (key: LessonCopyKey, vars?: Record<string, string | number>) => string {
   const { language } = useContext(LessonContext);
-  return useCallback((key, vars) => formatMessage(COPY[language][key], vars), [language]);
+  return useCallback((key, vars) => formatMessage(LESSON_WORDS[language][key], vars), [language]);
 }
 
 /**

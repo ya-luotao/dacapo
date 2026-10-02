@@ -45,7 +45,8 @@ practising the notes you are slowest at. Progress is visible day by day.
 
 ## Features
 
-- **The basics.** Fifteen short lessons for complete beginners, in English and Simplified Chinese:
+- **The basics.** Fifteen short lessons for complete beginners, in English, Simplified Chinese and
+  Traditional Chinese:
   the keyboard, the staff and clefs, landmark notes and intervals, rhythm, sharps and flats, the
   major scale and key signatures, posture and fingering, dots, ties, triplets and syncopation,
   minor keys, dynamics and articulation, the pedals, ornaments, chords and harmony, how to
