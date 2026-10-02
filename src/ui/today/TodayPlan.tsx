@@ -19,6 +19,7 @@ import { useCurrentAssignment } from '../assignments/useChecklist.ts';
 import { useLessonsDone } from '../learn/progress.ts';
 import { useStorageStatus } from '../practice/context.ts';
 import { recordsKnown } from '../practice/store.ts';
+import { useInstrumentKeys } from '../instrument.ts';
 import { readStartPref } from '../start/prefs.ts';
 import { useTodayFormat } from './format.ts';
 import { readKeptPlan, writeKeptPlan } from './prefs.ts';
@@ -64,9 +65,11 @@ function usePlan(
     [base, stands, today],
   );
   const records = useRecordsWithPlan(base, inHand);
+  // The player's keyboard: a scale that runs beyond it is not proposed.
+  const keys = useInstrumentKeys();
   const plan = useMemo(
-    () => (records ? planFor(kept, records, { today, minutes, lessonsDone, start }) : null),
-    [kept, records, today, minutes, lessonsDone, start],
+    () => (records ? planFor(kept, records, { today, minutes, lessonsDone, start, keys }) : null),
+    [kept, records, today, minutes, lessonsDone, start, keys],
   );
   // A plan just made is the kept one from here on: the next render finds it standing.
   if (plan !== null && plan !== kept) setKept(plan);

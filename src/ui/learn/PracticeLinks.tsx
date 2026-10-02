@@ -6,6 +6,7 @@ import { useI18n } from '../../i18n/index.ts';
 import type { LessonPractice } from '../../learn/lessons.ts';
 import { useScaleKeyWords, useTaskFormat } from '../assignments/taskFormat.ts';
 import { useNow } from '../progress/useNow.ts';
+import { useInstrumentKeys } from '../instrument.ts';
 import { readStartPref } from '../start/prefs.ts';
 import { practiceLinkPath } from '../startParams.ts';
 import { useTodayFormat } from '../today/format.ts';
@@ -29,9 +30,15 @@ export function PracticeLinks({ practice }: { practice: readonly LessonPractice[
   // Where the visitor said they start from (docs/START.md): Read's notes begin at a player's
   // floor here as on the Read page, and a player has a piece to begin.
   const [start] = useState(readStartPref);
+  // The player's keyboard: a scale that runs beyond it is not the next one.
+  const keys = useInstrumentKeys();
   const links = useMemo(
-    () => lessonLinks(practice, records && linkState(records, { today: day, lessonsDone, start })),
-    [practice, records, day, lessonsDone, start],
+    () =>
+      lessonLinks(
+        practice,
+        records && linkState(records, { today: day, lessonsDone, start, keys }),
+      ),
+    [practice, records, day, lessonsDone, start, keys],
   );
 
   /** What a link opens, by the names the pages, the plan and the checklist give it. */

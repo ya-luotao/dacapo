@@ -995,6 +995,18 @@ kbd {
   line-height: inherit;
 }
 
+/* Play: a keyboard with fewer keys is drawn no wider than its keys want, in the middle. */
+.play-keys.is-fewer {
+  max-width: calc(var(--play-whites, 52) * 2.5rem);
+  margin-inline: auto;
+}
+
+.play-all-keys {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.75rem;
+}
+
 .play-now {
   display: flex;
   flex-wrap: wrap;
@@ -1528,6 +1540,12 @@ kbd {
 
 .level-range {
   color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+
+/* A level with few of its notes on the player's keyboard says so, on a line of its own. */
+.level-keys {
+  display: block;
   font-size: 0.9375rem;
 }
 
@@ -8598,6 +8616,12 @@ select.is-compact {
   margin: 0;
 }
 
+/* An octave or a hand that runs beyond the player's keyboard has a mark, explained under the row. */
+.scale-beyond-note {
+  flex: 1 0 100%;
+  margin: 0;
+}
+
 .scale-picker select {
   min-width: 9rem;
 }
@@ -9049,8 +9073,36 @@ select.is-compact {
 
 .sound-click,
 .sound-piano,
-.sound-keys {
+.sound-keys,
+.sound-keyboard {
   margin-top: 1.5rem;
+}
+
+/* A run's summary: the notes the app played for the player, under the figures. */
+.run-given {
+  margin: 0.75rem 0 0.25rem;
+}
+
+/* Your keyboard: what is waited for while its lowest and highest key are pressed. */
+.sound-capture {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-top: 0.75rem;
+}
+
+.sound-capture p {
+  margin: 0;
+}
+
+.sound-capture p[role='status'] {
+  font-weight: 600;
+}
+
+.sound-capture .help {
+  flex: 1 0 100%;
+  order: 1;
 }
 
 .sound-click .sound-row input[type='range'],

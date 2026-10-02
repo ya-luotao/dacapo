@@ -1,8 +1,10 @@
 import { useId } from 'react';
+import { canDraw, FEW_NOTES, notesOnKeys } from '../../core/instrument.ts';
 import { LEVELS, type Level, type LevelId } from '../../core/levels.ts';
 import { MASTERY_WINDOW, type LevelProgress } from '../../core/mastery.ts';
 import { SESSION_LENGTHS, type SessionLength } from '../../core/session.ts';
 import { useT } from '../../i18n/index.ts';
+import { useInstrumentKeys } from '../instrument.ts';
 import { useHintWords, useNoteNames } from '../noteNames.ts';
 import { useReadFormat } from './format.ts';
 
@@ -22,6 +24,10 @@ export function ReadSetup(props: ReadSetupProps) {
   const t = useT();
   const hint = useHintWords();
   const id = useId();
+  // The cards the player's keyboard has (docs/PERSONAL.md, "The instrument's keys"): with none
+  // of the level's notes on it there is no card to draw.
+  const keys = useInstrumentKeys();
+  const playable = canDraw(notesOnKeys(LEVELS.find((l) => l.id === props.level)!.notes, keys));
 
   return (
     <form
@@ -39,6 +45,7 @@ export function ReadSetup(props: ReadSetupProps) {
               key={level.id}
               name={`${id}-level`}
               level={level}
+              onKeys={notesOnKeys(level.notes, keys).length}
               checked={props.level === level.id}
               suggested={props.suggested === level.id}
               progress={props.progress.get(level.id)}
@@ -90,7 +97,7 @@ export function ReadSetup(props: ReadSetupProps) {
           </p>
         </div>
 
-        <button type="submit" className="button button-primary read-start">
+        <button type="submit" className="button button-primary read-start" disabled={!playable}>
           {t('read.start')}
         </button>
       </div>
@@ -101,13 +108,23 @@ export function ReadSetup(props: ReadSetupProps) {
 interface LevelOptionProps {
   name: string;
   level: Level;
+  /** How many of its notes the player's keyboard has. */
+  onKeys: number;
   checked: boolean;
   suggested: boolean;
   progress: LevelProgress | undefined;
   onChange: () => void;
 }
 
-function LevelOption({ name, level, checked, suggested, progress, onChange }: LevelOptionProps) {
+function LevelOption({
+  name,
+  level,
+  onKeys,
+  checked,
+  suggested,
+  progress,
+  onChange,
+}: LevelOptionProps) {
   const t = useT();
   const format = useReadFormat();
   const { formatPitch } = useNoteNames();
@@ -124,6 +141,16 @@ function LevelOption({ name, level, checked, suggested, progress, onChange }: Le
           {t('read.level.range', { low: formatPitch(level.low), high: formatPitch(level.high) })} ·{' '}
           {staves}
         </span>
+        {/* A level left with fewer than five notes on the player's keyboard says so. */}
+        {onKeys < level.notes.length && onKeys < FEW_NOTES && (
+          <span className="level-keys">
+            {onKeys === 0
+              ? t('read.level.keys.none')
+              : onKeys === 1
+                ? t('read.level.keys.one')
+                : t('read.level.keys.other', { n: onKeys })}
+          </span>
+        )}
       </span>
       <span className="level-status">
         {progress?.mastered ? (

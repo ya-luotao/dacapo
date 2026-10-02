@@ -160,13 +160,16 @@ export function playedLately(
  * What to play next: the weakest (`byWeakness`) of the exercises played on one of the last
  * `SUGGEST_DAYS` calendar days that have a recent figure. Null when there is none: an exercise
  * without figures cannot be called weak, and one left for weeks is the player's choice, not ours.
+ * Nor is one that runs beyond the player's keyboard proposed (`fits`, docs/PERSONAL.md, "The
+ * instrument's keys").
  */
 export function suggestedExercise(
   progress: readonly ExerciseProgress[],
   now: number,
   timeZone?: string,
+  fits?: (exercise: string) => boolean,
 ): string | null {
-  return weakestLately(progress, dayKey(now, timeZone), timeZone);
+  return weakestLately(progress, dayKey(now, timeZone), timeZone, fits);
 }
 
 /** `suggestedExercise` for a calendar day: the plan of a day is made for the day, not an hour. */
@@ -174,7 +177,10 @@ export function weakestLately(
   progress: readonly ExerciseProgress[],
   today: DayKey,
   timeZone?: string,
+  fits: (exercise: string) => boolean = () => true,
 ): string | null {
-  const recent = playedLately(progress, today, timeZone).filter((p) => p.recentShare !== null);
+  const recent = playedLately(progress, today, timeZone).filter(
+    (p) => p.recentShare !== null && fits(p.exercise),
+  );
   return [...recent].sort(byWeakness)[0]?.exercise ?? null;
 }

@@ -1,4 +1,5 @@
-import { getLevel, type LevelId, type StaffNote } from '../../core/levels.ts';
+import { canDraw, levelOnKeys, notesOnKeys } from '../../core/instrument.ts';
+import { getLevel, type Level, type LevelId, type StaffNote } from '../../core/levels.ts';
 import type { Rng } from '../../core/random.ts';
 import {
   advance,
@@ -10,6 +11,7 @@ import {
   summarize,
   type SessionState,
 } from '../../core/session.ts';
+import { readInstrumentKeys } from '../instrument.ts';
 import type { PracticeStore } from '../practice/store.ts';
 
 /** How long a correct answer stays on screen before the next card. */
@@ -88,12 +90,18 @@ export function createReadController({
     timer = null;
     if (!state) return;
     const { stats } = practice.getSnapshot();
-    update(advance(state, { level: getLevel(state.level), at: now(), stats, rng }));
+    update(advance(state, { level: onKeys(state.level), at: now(), stats, rng }));
   }
 
   function stop() {
     if (state) update(endSession(state, now()));
   }
+
+  /**
+   * The level with the cards the player's keyboard has (docs/PERSONAL.md, "The instrument's
+   * keys"): a card for a note beyond it is not drawn.
+   */
+  const onKeys = (level: LevelId): Level => levelOnKeys(getLevel(level), readInstrumentKeys());
 
   return {
     getState: () => state,
@@ -105,16 +113,24 @@ export function createReadController({
       cancelTimer();
       stop();
       const { stats } = practice.getSnapshot();
+      const drawn = onKeys(level);
+      const some = notes && notesOnKeys(notes, readInstrumentKeys());
+      // None of the notes on the keyboard: there is no card to draw. Back to the setup, where
+      // the level says so.
+      if (!canDraw(some ?? drawn.notes)) {
+        update(null);
+        return;
+      }
       update(
         startSession({
           id: newId(),
-          level: getLevel(level),
+          level: drawn,
           length,
           hint,
           at: now(),
           stats,
           rng,
-          ...(notes && { notes }),
+          ...(some && { notes: some }),
         }),
       );
     },

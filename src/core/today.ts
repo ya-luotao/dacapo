@@ -42,6 +42,7 @@ import {
   type StandingRecords,
 } from './piecesStanding.ts';
 import { daysBetween } from './review.ts';
+import { isFullKeys, scaleFits, type KeyRange } from './instrument.ts';
 import { playedLately, RECENT_RUNS, scaleProgress, weakestLately } from './scaleRanking.ts';
 import { exerciseKeyParts } from './scaleTypes.ts';
 import type { Attempt } from './session.ts';
@@ -157,6 +158,11 @@ export interface StateOptions {
    * suggested from where their reading begins.
    */
   start?: StartingPoint | null;
+  /**
+   * The keys the player's keyboard has (docs/PERSONAL.md, "The instrument's keys"); every key
+   * when omitted. A scale that runs beyond them is not proposed.
+   */
+  keys?: KeyRange;
 }
 
 const utcNoon = (day: DayKey): number => {
@@ -241,6 +247,8 @@ export function curriculumState(records: TodayRecords, options: StateOptions): C
   // The trend's days are not read here, so any hour of the day will do for the ranking's clock.
   const progress = scaleProgress(sessions, utcNoon(today), timeZone);
   const lately = playedLately(progress, today, timeZone);
+  const { keys } = options;
+  const fits = keys && !isFullKeys(keys) ? (scale: string) => scaleFits(scale, keys) : undefined;
 
   return {
     lessons: {
@@ -252,9 +260,9 @@ export function curriculumState(records: TodayRecords, options: StateOptions): C
     scales: {
       open: isOpen('scales', lessonsDone, had, start),
       played: progress.length,
-      weakest: weakestLately(progress, today, timeZone),
+      weakest: weakestLately(progress, today, timeZone, fits),
       settled: lately.every((p) => p.runs >= RECENT_RUNS),
-      next: nextRung(new Set(progress.map((p) => p.exercise)), lessonsDone),
+      next: nextRung(new Set(progress.map((p) => p.exercise)), lessonsDone, fits),
     },
     pieces: piecesState(records, options, had),
   };

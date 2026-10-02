@@ -1313,3 +1313,40 @@ describe('an assignment comes first', () => {
     expect(assignmentComesFirst([], [])).toBe(false);
   });
 });
+
+describe('the instrument’s keys (G6c)', () => {
+  const C2_TO_C6 = { low: 36, high: 84 };
+  const open = { lessonsDone: ticked('major-scale') };
+  const rungs = ['major:C:1:right', 'major:C:1:left', 'major:C:2:both', 'major:G:1:right'];
+  const sessions = [
+    ...rungs.map((rung, i) => scales(`s${i}`, rung, -1, { runs: 5, share: 1, hour: 9 + i })),
+    scales('s9', 'major:G:1:left', -1, { runs: 5, share: 3, hour: 15 }),
+  ];
+
+  it('does not propose as the next scale a rung that runs beyond the keyboard', () => {
+    const state = (keys?: PlanOptions['keys']) =>
+      curriculumState(withSessions(...sessions), options({ ...open, keys })).scales;
+    // Two octaves of G major hands together go up to G6: over a keyboard that ends on C6.
+    expect(state().next).toBe('major:G:2:both');
+    expect(state(C2_TO_C6).next).toBe('major:F:1:right');
+    expect(state({ low: 36, high: 96 }).next).toBe('major:G:2:both');
+    expect(state({ low: 21, high: 108 }).next).toBe('major:G:2:both');
+    // What was played stays what it was.
+    expect(state(C2_TO_C6).played).toBe(5);
+    expect(state(C2_TO_C6).weakest).toBe('major:G:1:left');
+  });
+
+  it('nor as the scale to play again one played lately that runs beyond it', () => {
+    const beyond = [...sessions, scales('s10', 'major:G:2:both', -1, { runs: 5, share: 9 })];
+    const state = (keys?: PlanOptions['keys']) =>
+      curriculumState(withSessions(...beyond), options({ ...open, keys })).scales;
+    expect(state().weakest).toBe('major:G:2:both');
+    expect(state(C2_TO_C6).weakest).toBe('major:G:1:left');
+    // Today's warm-up follows.
+    const warmup = (keys?: PlanOptions['keys']) =>
+      names(todayPlan(withSessions(...beyond), options({ ...open, keys })), 'warmup');
+    expect(warmup()).toContain('major:F:1:right');
+    expect(warmup(C2_TO_C6)).not.toContain('major:G:2:both');
+    expect(warmup(C2_TO_C6)).toContain('major:F:1:right');
+  });
+});

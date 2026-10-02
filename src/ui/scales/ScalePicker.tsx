@@ -19,6 +19,7 @@ import {
 } from '../../core/technique.ts';
 import { useT } from '../../i18n/index.ts';
 import { tonicName, useVariantName } from './format.ts';
+import { useBeyondKeyboard } from './keys.ts';
 import { clampTempo, type ClickPrefs } from './prefs.ts';
 
 /**
@@ -56,6 +57,27 @@ export function ScalePicker({
   const octaves = octavesOf(exercise.type);
   const tonics = tonicsFor(exercise.type, exercise.variant);
   const trill = exercise.type === 'trill' ? trillForm(exercise.variant) : null;
+  // The octaves and hands that run beyond the player's keyboard are marked, and can be chosen
+  // all the same (docs/PERSONAL.md, "The instrument's keys").
+  const beyond = useBeyondKeyboard();
+  const withOctaves = (length: ScaleExercise['octaves']): ScaleExercise => ({
+    ...exercise,
+    octaves: length,
+  });
+  const withHands = (hands: ScaleExercise['hands']): ScaleExercise => ({
+    ...exercise,
+    hands,
+    octaves: handsAllowed(exercise, hands) ? exercise.octaves : 3,
+  });
+  const octaveBeyond = (length: ScaleExercise['octaves']) =>
+    octaves.includes(length) &&
+    handsAllowed(withOctaves(length), exercise.hands) &&
+    beyond(withOctaves(length));
+  const handBeyond = (hands: ScaleExercise['hands']) =>
+    handsAllowed(withHands(hands), hands) && beyond(withHands(hands));
+  const anyBeyond = SCALE_OCTAVES.some(octaveBeyond) || SCALE_HANDS.some(handBeyond);
+  /** A marked option's name for a screen reader: "4, beyond your keyboard". */
+  const marked = (name: string | number) => `${name}${t('app.listSeparator')}${t('scales.beyond')}`;
 
   /** A form of the exercise, and a key it is offered in (Hanon's trill is in C). */
   function setVariant(variant: string) {
@@ -222,7 +244,7 @@ export function ScalePicker({
         <legend>{t('scales.pick.octaves')}</legend>
         <div className="segmented">
           {SCALE_OCTAVES.map((length) => (
-            <label key={length}>
+            <label key={length} title={octaveBeyond(length) ? t('scales.beyond') : undefined}>
               <input
                 type="radio"
                 name={`${id}-octaves`}
@@ -232,9 +254,13 @@ export function ScalePicker({
                   !octaves.includes(length) ||
                   !handsAllowed({ ...exercise, octaves: length }, exercise.hands)
                 }
+                aria-label={octaveBeyond(length) ? marked(length) : undefined}
                 onChange={() => onChange({ ...exercise, octaves: length })}
               />
-              <span>{length}</span>
+              <span>
+                {length}
+                {octaveBeyond(length) && '*'}
+              </span>
             </label>
           ))}
         </div>
@@ -243,7 +269,7 @@ export function ScalePicker({
         <legend>{t('scales.pick.hand')}</legend>
         <div className="segmented">
           {SCALE_HANDS.map((hand) => (
-            <label key={hand}>
+            <label key={hand} title={handBeyond(hand) ? t('scales.beyond') : undefined}>
               <input
                 type="radio"
                 name={`${id}-hand`}
@@ -255,9 +281,13 @@ export function ScalePicker({
                     hand,
                   )
                 }
+                aria-label={handBeyond(hand) ? marked(t(`scales.hand.${hand}`)) : undefined}
                 onChange={() => setHands(hand)}
               />
-              <span>{t(`scales.hand.${hand}`)}</span>
+              <span>
+                {t(`scales.hand.${hand}`)}
+                {handBeyond(hand) && '*'}
+              </span>
             </label>
           ))}
         </div>
@@ -328,6 +358,11 @@ export function ScalePicker({
             </fieldset>
           )}
         </>
+      )}
+      {anyBeyond && (
+        <p className="help scale-beyond-note" aria-hidden="true">
+          {t('scales.beyond.note')}
+        </p>
       )}
     </div>
   );

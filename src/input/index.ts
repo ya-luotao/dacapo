@@ -7,6 +7,7 @@ import { createSampleBank, type SampleBank } from '../output/pianoSamples.ts';
 import { createInputHub, type InputHub } from './hub.ts';
 import { createKeyboardInput, type KeyboardInput } from './keyboard.ts';
 import { createPointerInput, type PointerInput } from './pointer.ts';
+import type { NoteInput } from './types.ts';
 import {
   browserMidiAccess,
   createWebMidiInput,
@@ -32,6 +33,13 @@ export interface InputSystem {
   samples: SampleBank;
   /** The player's keys on the built-in piano. */
   monitor: KeyMonitor;
+  /**
+   * The MIDI keyboard's key-downs alone, as they come (a MIDI number, not yet merged with the
+   * other sources): for what asks about the instrument itself, as Settings does for its lowest
+   * and highest key. The computer keys and the on-screen piano reach every note and never come
+   * here. Returns a function that stops listening.
+   */
+  onMidiKey: (listener: (midi: number) => void) => () => void;
   /** Starts every source. Returns a function that stops them all; start again afterwards is fine. */
   start: () => () => void;
 }
@@ -57,9 +65,18 @@ export function createInputSystem(): InputSystem {
   const monitor = createKeyMonitor({ piano: piano.keys, prepare: samples.load });
   const keyboard = createKeyboardInput();
   const pointer = createPointerInput();
+  const midiKeys = new Set<(midi: number) => void>();
+  const midiHeard: NoteInput = {
+    id: midi.id,
+    start: (emit) =>
+      midi.start((event, port) => {
+        emit(event, port);
+        if (event.type === 'on') for (const listener of [...midiKeys]) listener(event.midi);
+      }),
+  };
   // Tapped once: each start adds the same sources again.
   const sources = [
-    monitor.tap(midi, 'midi'),
+    monitor.tap(midiHeard, 'midi'),
     monitor.tap(keyboard, 'keys'),
     monitor.tap(pointer, 'keys'),
   ];
@@ -72,6 +89,10 @@ export function createInputSystem(): InputSystem {
     piano,
     samples,
     monitor,
+    onMidiKey(listener) {
+      midiKeys.add(listener);
+      return () => void midiKeys.delete(listener);
+    },
     start() {
       const stops = sources.map((source) => hub.add(source));
       const stopOutput = output.start();

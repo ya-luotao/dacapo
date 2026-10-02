@@ -6,6 +6,7 @@ import { curriculumState, type FamilyState } from '../../core/today.ts';
 import { useI18n } from '../../i18n/index.ts';
 import { lessonBySlug, lessonLanguage } from '../../learn/lessons.ts';
 import { useLessonsDone } from '../learn/progress.ts';
+import { useInstrumentKeys } from '../instrument.ts';
 import { readStartPref } from '../start/prefs.ts';
 import { useTodayFormat } from '../today/format.ts';
 import { useTodayRecords } from '../today/useTodayRecords.ts';
@@ -23,9 +24,11 @@ export function WhereYouAre({ today }: { today: DayKey }) {
   const lessonsDone = useLessonsDone();
   // Where the visitor said they start from (docs/START.md): a player has every practice open.
   const [start] = useState(readStartPref);
+  // The player's keyboard: a scale that runs beyond it is not the next one.
+  const keys = useInstrumentKeys();
   const state = useMemo(
-    () => (records ? curriculumState(records, { today, lessonsDone, start }) : null),
-    [records, today, lessonsDone, start],
+    () => (records ? curriculumState(records, { today, lessonsDone, start, keys }) : null),
+    [records, today, lessonsDone, start, keys],
   );
 
   const lessonTitle = (slug: string) => lessonBySlug(slug)?.title[lessonLanguage(locale)] ?? slug;

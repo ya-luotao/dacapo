@@ -15,6 +15,7 @@ import { useNoteNames } from '../noteNames.ts';
 import { useScaleRuns } from '../practice/context.ts';
 import { useLogFormat } from '../progress/format.ts';
 import { fewKeys, stepNames, useExerciseLabel } from './format.ts';
+import { useBeyondKeyboard } from './keys.ts';
 import type { LoopPlace } from './loop.ts';
 import { TrendChart } from './TrendChart.tsx';
 
@@ -186,7 +187,12 @@ export function YourScales({
   const exerciseLabel = useExerciseLabel();
   const id = useId();
   const percent = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
-  const suggestion = suggestedExercise(list, now);
+  // A scale that runs beyond the player's keyboard is not the one to play next.
+  const beyond = useBeyondKeyboard();
+  const suggestion = suggestedExercise(list, now, undefined, (key) => {
+    const exercise = parseExerciseKey(key);
+    return exercise === null || !beyond(exercise);
+  });
   const suggested = suggestion ? parseExerciseKey(suggestion) : null;
   if (list.length === 0) return null;
   const currentKey = exerciseKey(current);

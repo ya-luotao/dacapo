@@ -15,6 +15,7 @@ import {
 import { Calibration } from '../pieces/Calibration.tsx';
 import { readClickVolume, writeClickVolume } from '../pieces/rhythmPrefs.ts';
 import { sharedClickTrack } from '../pieces/useRhythmPlayer.ts';
+import { KeyboardBlock } from './KeyboardBlock.tsx';
 
 const AUTO = 'auto';
 const BUILTIN = 'builtin';
@@ -29,7 +30,8 @@ function choiceValue(choice: OutputChoice): string {
 
 /**
  * Where demos and the other hand are played (a MIDI output or the built-in piano, tested with one
- * note), the built-in piano's volume and the keys it sounds, and rhythm mode's click.
+ * note), the keys the player's keyboard has, the built-in piano's volume and the keys it sounds,
+ * and rhythm mode's click.
  */
 export function SoundSection() {
   const t = useT();
@@ -160,6 +162,8 @@ export function SoundSection() {
         )}
         {blocked && <DeviceHelp />}
       </div>
+
+      <KeyboardBlock />
 
       <fieldset className="field" aria-describedby={`${id}-level-help`}>
         <legend>{t('settings.accompaniment')}</legend>

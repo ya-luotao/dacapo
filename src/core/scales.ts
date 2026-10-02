@@ -365,6 +365,21 @@ function handRun(
 }
 
 /**
+ * The lowest and the highest key an exercise plays, its hands together: what tells whether it
+ * stays on the player's keyboard (docs/PERSONAL.md, "The instrument's keys").
+ */
+export function exerciseSpan(e: ScaleExercise): [lowest: number, highest: number] {
+  const { right, left } = scaleNotes(e);
+  let lowest = Infinity;
+  let highest = -Infinity;
+  for (const note of [...right, ...left]) {
+    lowest = Math.min(lowest, note.midi);
+    highest = Math.max(highest, note.midi);
+  }
+  return [lowest, highest];
+}
+
+/**
  * Each hand's run, up and back down (the left hand down and back up in contrary motion), the
  * turning note once; empty for a hand not played.
  */

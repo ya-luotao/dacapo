@@ -9,12 +9,15 @@ import {
   markTheoryPainted,
   pressTheoryKey,
   releaseTheoryKey,
+  rightKeys,
   setTheoryHint,
   startTheorySession,
   summarizeTheory,
   theoryStats,
   type TheorySessionState,
 } from '../../core/theorySession.ts';
+import { keyAnswered } from '../../core/instrument.ts';
+import { readInstrumentKeys } from '../instrument.ts';
 import type { PracticeStore } from '../practice/store.ts';
 import { ADVANCE_DELAY_MS } from './controller.ts';
 
@@ -74,6 +77,8 @@ export function createTheoryController({
   clearTimer = (id) => window.clearTimeout(id),
 }: TheoryControllerOptions): TheoryController {
   let state: TheorySessionState | null = null;
+  /** A key held that stands for a written key the keyboard lacks (the same note, another octave). */
+  const standsFor = new Map<number, number>();
   let timer: number | null = null;
   const listeners = new Set<() => void>();
 
@@ -142,10 +147,18 @@ export function createTheoryController({
       if (state) update(markTheoryPainted(state, cardIndex, time));
     },
     press(midi, time) {
-      if (state) update(pressTheoryKey(state, midi, time, now(), newId));
+      if (!state) return;
+      // A written key the keyboard lacks is answered by the same note in another octave: the
+      // key played stands for it until it is let go.
+      const key = keyAnswered(midi, rightKeys(state.card.prompt), readInstrumentKeys());
+      if (key === midi) standsFor.delete(midi);
+      else standsFor.set(midi, key);
+      update(pressTheoryKey(state, key, time, now(), newId));
     },
     release(midi, time) {
-      if (state) update(releaseTheoryKey(state, midi, time));
+      const key = standsFor.get(midi) ?? midi;
+      standsFor.delete(midi);
+      if (state) update(releaseTheoryKey(state, key, time));
     },
     choose(name, time) {
       if (state) update(chooseTheoryName(state, name, time, now(), newId));

@@ -226,6 +226,9 @@ export const ja: Dictionary = {
   'read.level.L6': '加線',
   'read.level.L7': 'シャープとフラット',
   'read.level.range': '{low}〜{high}',
+  'read.level.keys.none': 'このレベルの音は、キーボードに1つもありません',
+  'read.level.keys.one': 'このレベルの音のうち、キーボードにあるのは1つだけです',
+  'read.level.keys.other': 'このレベルの音のうち、キーボードにあるのは{n}つだけです',
   'read.level.treble': 'ト音記号',
   'read.level.bass': 'ヘ音記号',
   'read.level.both': '両方の譜表',
@@ -1757,6 +1760,13 @@ export const ja: Dictionary = {
   'pieces.nothing':
     '選んだ手では、この範囲に弾く音がありません。別の手か、別の小節を選んでください。',
   'pieces.unplaced': 'この曲には、楽譜上に表示できない音が{n}個あります。',
+  'pieces.beyond.below': 'キーボードより低い音があります（{note}まで）',
+  'pieces.beyond.above': 'キーボードより高い音があります（{note}まで）',
+  'pieces.beyond.both': 'キーボードより低い音（{low}まで）と高い音（{high}まで）があります',
+  'pieces.beyond.page': '{reach}。範囲を超える音は代わりに弾かれます。',
+  'pieces.beyond.all': 'この範囲の音は、すべてキーボードの範囲を超えています。',
+  'pieces.given.one': 'キーボードの範囲を超える1音が、代わりに弾かれました。',
+  'pieces.given.other': 'キーボードの範囲を超える{n}音が、代わりに弾かれました。',
   'pieces.score': '楽譜：{title}',
 
   'pieces.done': '最後まで弾けました',
@@ -2448,8 +2458,24 @@ export const ja: Dictionary = {
   'settings.output.builtin': '内蔵ピアノ',
   'settings.output.help':
     '「自動」では、キーボードにMIDI出力があればキーボードで、なければ内蔵ピアノで鳴らします。',
+  'settings.keyboard': 'お使いのキーボード',
+  'settings.keyboard.size': '{n}鍵（{low}〜{high}）',
+  'settings.keyboard.other': 'その他',
+  'settings.keyboard.other.keys': 'その他：{n}鍵（{low}〜{high}）',
+  'settings.keyboard.again': '設定し直す',
+  'settings.keyboard.lowest': 'キーボードのいちばん低い鍵を押してください。',
+  'settings.keyboard.highest': 'いちばん低い鍵：{low}。次に、いちばん高い鍵を押してください。',
+  'settings.keyboard.short':
+    'キーボードには、{low}から少なくとも1オクターブ上までの鍵があります。いちばん高い鍵を押してください。',
+  'settings.keyboard.midi':
+    'ここで数えるのはMIDIキーボードの鍵だけです。キーボードをつないで押してください。パソコンのキーボードと画面上の鍵盤は、どの音にも届きます。',
+  'settings.keyboard.cancel': 'キャンセル',
+  'settings.keyboard.all': '88鍵すべてを表示',
+  'settings.keyboard.help':
+    'お使いのキーボードにある鍵です。曲の中でこの範囲を超える音は代わりに弾かれ、範囲を超える音階はおすすめに出ません。パソコンのキーボードと画面上の鍵盤は、どの音にも届きます。',
   'settings.accompaniment': 'もう片方の手の音量',
-  'settings.accompaniment.help': '楽器がもう片方の手を弾くときの強さです。',
+  'settings.accompaniment.help':
+    '楽器がもう片方の手と、キーボードの範囲を超える音を弾くときの強さです。',
   'settings.accompaniment.quiet': 'ごく弱め',
   'settings.accompaniment.soft': '弱め',
   'settings.accompaniment.medium': 'ふつう',
@@ -2500,6 +2526,8 @@ export const ja: Dictionary = {
   'scales.pick.tonic': '主音',
   'scales.pick.octaves': 'オクターブ',
   'scales.pick.hand': '手',
+  'scales.beyond': 'キーボードの範囲を超えます',
+  'scales.beyond.note': '* キーボードの範囲を超えます',
   'scales.type.major': '長音階',
   'scales.type.naturalMinor': '自然的短音階',
   'scales.type.harmonicMinor': '和声的短音階',

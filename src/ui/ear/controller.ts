@@ -9,6 +9,7 @@ import {
 } from '../../core/earItems.ts';
 import {
   advanceEar,
+  askedKeys,
   chooseName,
   earStats,
   endEarSession,
@@ -22,8 +23,10 @@ import {
   type PromptDraw,
 } from '../../core/earSession.ts';
 import { isEarAnswer } from '../../core/answers.ts';
+import { keyAnswered } from '../../core/instrument.ts';
 import type { Rng } from '../../core/random.ts';
 import { drawTransposition, getTune, tuneKey, tunePrompt } from '../../core/tunes.ts';
+import { readInstrumentKeys } from '../instrument.ts';
 import type { PracticeStore } from '../practice/store.ts';
 
 /** How long a right answer stays on screen before the next item. */
@@ -268,7 +271,9 @@ export function createEarController({
         if (card.opensAt !== null && time >= card.opensAt) advance();
         return;
       }
-      update(view, pressKey(view.session, midi, time, now(), newId));
+      // A key the keyboard lacks is answered by the same note in another octave.
+      const key = keyAnswered(midi, askedKeys(view.session), readInstrumentKeys());
+      update(view, pressKey(view.session, key, time, now(), newId));
     },
     release(midi) {
       if (view) update(view, releaseKey(view.session, midi));

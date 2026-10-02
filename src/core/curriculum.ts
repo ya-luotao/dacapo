@@ -191,13 +191,19 @@ export function scaleLadder(minor: boolean): string[] {
 
 /**
  * The next scale never played: the ladder's first rung without a recorded run (`played`: the
- * exercise keys that have one). Null once every rung has been played.
+ * exercise keys that have one). Null once every rung has been played. A rung that runs beyond
+ * the player's keyboard is not proposed (`fits`, docs/PERSONAL.md, "The instrument's keys"): the
+ * ladder goes on to the next that stays on it.
  */
 export function nextRung(
   played: ReadonlySet<string>,
   lessonsDone: ReadonlySet<string>,
+  fits: (rung: string) => boolean = () => true,
 ): string | null {
-  return scaleLadder(lessonsDone.has(MINOR_LESSON)).find((rung) => !played.has(rung)) ?? null;
+  return (
+    scaleLadder(lessonsDone.has(MINOR_LESSON)).find((rung) => !played.has(rung) && fits(rung)) ??
+    null
+  );
 }
 
 // --- The next piece ------------------------------------------------------------------------------

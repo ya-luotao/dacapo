@@ -8,6 +8,7 @@ import {
   levelsOf,
   makePrompt,
   parseItem,
+  targetKey,
   type Direction,
   type EarFamily,
   type EarLevel,
@@ -279,6 +280,20 @@ export function pressKey(
   const result = judgeChordKeys(card.prompt, held, bassMatters);
   if (result === 'pending') return { ...state, card: { ...card, held } };
   return scored(state, held, result === 'right', time, at, newId);
+}
+
+/**
+ * The keys the card asks for at their own octave at this moment: a melody's or a tune's next
+ * key, an interval's note to find. None for a chord, which is right in any octave. On a keyboard
+ * that lacks one of them the same note in another octave answers it (docs/PERSONAL.md, "The
+ * instrument's keys": `keyAnswered`).
+ */
+export function askedKeys(state: EarSessionState): number[] {
+  if (state.by !== 'play') return [];
+  const { card } = state;
+  if (state.family === 'echo' || state.family === 'tune')
+    return card.prompt.notes.slice(card.played.length, card.played.length + 1);
+  return state.family === 'interval' ? [targetKey(card.prompt)] : [];
 }
 
 /** A note-off: the key no longer counts towards the chord being played. */

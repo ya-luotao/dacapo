@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { Link } from 'wouter';
+import { keyAnswered } from '../../core/instrument.ts';
 import { parseMusicXml } from '../../core/musicxml.ts';
 import { DEMO_VELOCITY, demoPlan } from '../../core/playback.ts';
 import { performanceOrder } from '../../core/repeats.ts';
@@ -24,6 +25,7 @@ import { readPref, writePref } from '../../lib/localPrefs.ts';
 import { createDemoPlayer } from '../../output/demo.ts';
 import { browserClock } from '../../output/scheduler.ts';
 import { useInput } from '../input/context.ts';
+import { readInstrumentKeys } from '../instrument.ts';
 import { useMetronome } from '../metronome/context.ts';
 import {
   ScoreView,
@@ -299,15 +301,23 @@ function FragmentRun({
     () =>
       hub.onEvent((event) => {
         if (event.type !== 'on') return;
+        // A key the keyboard lacks is answered by the same note in another octave
+        // (docs/PERSONAL.md, "The instrument's keys"): of the step the run is on, or in time
+        // of that step and the ones either side.
+        const keys = readInstrumentKeys();
         if (timeRun.current) {
-          const res = player.press(event.midi, event.time);
+          const at = player.getSnapshot().step;
+          const near =
+            at === null ? [] : [at - 1, at, at + 1].flatMap((i) => steps[i]?.midis ?? []);
+          const res = player.press(keyAnswered(event.midi, near, keys), event.time);
           if (res.kind === 'hit') setLast({ kind: 'hit', deviation: res.deviation });
           else if (res.kind === 'extra') setLast({ kind: 'extra' });
           return;
         }
         const current = waitRef.current;
         if (!current || current.state.finished) return;
-        const res = press(steps, current.state, event.midi, event.time);
+        const asked = steps[current.state.current]?.midis ?? [];
+        const res = press(steps, current.state, keyAnswered(event.midi, asked, keys), event.time);
         if (res.kind === 'ignored') return;
         const epoch = Math.round(Date.now() - performance.now() + event.time);
         const next: WaitRun = {
