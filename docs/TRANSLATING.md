@@ -13,8 +13,20 @@ translation, rewrite it.
 - `src/i18n/en.ts` is the source of truth. Its keys define `MessageKey` and the `Dictionary` type.
 - `src/i18n/zh-CN.ts`, `zh-TW.ts`, `ja.ts` and `ko.ts` are typed as `Dictionary`: a missing or an
   extra key is a compile error. Keep the keys in the same order as `en.ts`; a test checks it.
-- Only English is part of the main bundle. The other dictionaries are loaded on demand, one chunk
-  each (see `LOADERS` in `src/i18n/locale.ts`).
+- No dictionary is part of the main bundle. Each is loaded on demand, one chunk each (see
+  `LOADERS` in `src/i18n/locale.ts`), English like the others: a reader of another language
+  downloads their own and no second one. The first page waits for the dictionary in effect, so
+  no language is ever shown in another first. English is still what a language falls back to
+  when its dictionary cannot be loaded, which is why the offline worker stores it with the app
+  ([OFFLINE.md](OFFLINE.md), "What is stored").
+- The built page asks for the reader's dictionary beside the app's script, not after it: a few
+  lines in its head (`src/i18n/dictionaryPreload.ts`, written in by `vite.config.ts`) decide the
+  language as the app will (the choice kept, else `?lang=`, else the browser's language) and
+  name that dictionary as a `modulepreload`.
+- Elsewhere `en.ts` is imported for its types only (`import type`), which loads nothing; a test
+  (`src/ui/assignments/startup.test.ts`) fails when a module of the app imports the dictionary
+  itself. The pages a search engine reads ([SITE.md](SITE.md)) are drawn at build time with every
+  dictionary at hand, and are not part of this.
 - Components read strings with `useT()`; nothing user-facing is hard-coded.
 - The lessons are the one text that is not in the dictionaries: each is written whole, in English,
   Simplified Chinese and Traditional Chinese ([LEARN.md](LEARN.md), "Languages"). The other
@@ -126,7 +138,9 @@ in each, and the zh-TW texts have 「」 quotes and no Simplified-only character
    translate every value.
 2. In `src/i18n/locale.ts`: add the locale to `LOCALES`, its endonym (the name in its own
    language) to `LOCALE_NAMES`, its entry in `SENTENCE_GAP`, its loader in `LOADERS`, and the tags
-   that should pick it in `detectLocale`.
+   that should pick it in `detectLocale`. Give the same tags to the built page's script in
+   `src/i18n/dictionaryPreload.ts`, which decides the language as `detectLocale` does to ask for
+   its dictionary early; `dictionaryPreload.test.ts` fails while the two disagree.
 3. In `src/i18n/i18n.test.ts`: add the dictionary to `DICTIONARIES`, the loader to `failing()`,
    the endonym to the names test, and the detection cases.
 4. In `src/ui/styles.css`: if the language needs its own fonts, add a `:root:lang(xx)` block with

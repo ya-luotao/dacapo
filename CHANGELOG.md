@@ -6,7 +6,28 @@ which is noted when it changes.
 
 ## Unreleased
 
-Nothing yet.
+### A lighter start
+
+What a browser downloads before the first page shows, on the built site. Sizes are the scripts
+and the stylesheet, with their size gzipped in brackets; the first paint is Chrome's
+first-contentful-paint on a slow connection (1.6 Mbps, 150 ms latency, the processor slowed
+four times, nothing cached), the median of five loads.
+
+- **A reader of Chinese, Japanese or Korean no longer downloads English too.** English was part
+  of the app's script, "as the fallback", so every other language loaded it and then its own.
+  It is now a file of its own, loaded like the others, when it is the language in use or when
+  another language's dictionary cannot be loaded. In Simplified Chinese: 1139 kB (344 kB) in 23
+  files before, 964 kB (296 kB) in 23 now; the first paint at 2.25 s, from 2.70 s. No language
+  is shown in another first, as before.
+- **English starts as it did**: 962 kB (290 kB), in 23 files where it was 22; the first paint
+  at 2.22 s, where it was 2.21 s. The page asks for the reader's dictionary together with the
+  app's script, from a few lines in its head that decide the language as the app will (the
+  choice kept, else `?lang=`, else the browser's language). Loaded only once the app's script
+  ran, as the other languages were until now, English's first paint was 0.2 s later than in
+  0.2.0 (2.42 s); loaded with it, every language's is 0.2 s earlier than that.
+- **Without a network** the app opens as before. The English dictionary is stored with the app
+  when the offline worker is installed, the reader's own at the first visit, and a language
+  whose dictionary is missing opens in English ([docs/OFFLINE.md](docs/OFFLINE.md)).
 
 ## 0.2.0 — 2026-10-02
 

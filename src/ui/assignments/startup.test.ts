@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 // fingering and plates, over 100 kB) and of the validators (storage/validate.ts): those come with
 // the pages that need them. The home page's assignment block is loaded at the start whenever an
 // assignment is current, and today's plan for every returning player, so they are held to the
-// same.
+// same. The dictionaries are kept out of the start in the same way (at the end).
 
 const SOURCES = import.meta.glob<string>('/src/**/*.{ts,tsx}', {
   query: '?raw',
@@ -229,5 +229,31 @@ describe('what the start loads', () => {
     expect(chain('/src/ui/pages/EarPage.tsx', '/src/core/tuneData.ts')).not.toBeNull();
     expect(chain('/src/ui/pages/EarPage.tsx', '/src/ui/ear/TuneStaff.tsx')).toBeNull();
     expect(chain('/src/ui/pages/EarPage.tsx', '/src/ui/notation/ScoreView.tsx')).toBeNull();
+  });
+
+  // The dictionaries (docs/TRANSLATING.md, "Where the strings are"), some 175 kB each: every
+  // language is a chunk of its own, loaded when it is the reader's, and English is one of them, so
+  // a reader of another language does not download both. English's keys are the type every other
+  // module names, and naming a type loads nothing.
+  it('the start loads no dictionary: each comes on demand, English too', () => {
+    const loader = SOURCES['/src/i18n/locale.ts']!;
+    for (const locale of ['en', 'zh-CN', 'zh-TW', 'ja', 'ko']) {
+      const dictionary = `/src/i18n/${locale}.ts`;
+      expect(SOURCES[dictionary], dictionary).toBeDefined();
+      for (const root of ['/src/main.tsx', ...HOME_BLOCKS])
+        expect(chain(root, dictionary), `${root} ${dictionary}`).toBeNull();
+      expect(loader).toContain(`import('./${locale}.ts')`);
+    }
+    // The check can find one: the pages a search engine reads are drawn with English at hand.
+    expect(chain('/src/site/main.ts', '/src/i18n/en.ts')).not.toBeNull();
+    // No module of the app but those pages has English as more than a type: one that did would
+    // put the dictionary back beside whatever loads it.
+    const holders = Object.keys(SOURCES).filter(
+      (path) =>
+        !path.endsWith('.test.ts') &&
+        !path.startsWith('/src/site/') &&
+        staticImports(path).includes('/src/i18n/en.ts'),
+    );
+    expect(holders).toEqual([]);
   });
 });

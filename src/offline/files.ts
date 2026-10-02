@@ -3,8 +3,9 @@
 // sw.js; nothing here knows a file's name in advance.
 
 /**
- * `app` is stored when the worker is installed. The others are large or not always needed: stored
- * when first fetched, and all at once with Settings' "Store everything".
+ * `app` is stored when the worker is installed (the English dictionary with it). The others are
+ * large or not always needed: stored when first fetched, and all at once with Settings' "Store
+ * everything".
  */
 export const OFFLINE_GROUPS = [
   'app',
@@ -30,6 +31,7 @@ export interface OfflineList {
 
 const VEROVIO = /[\\/]node_modules[\\/]verovio[\\/]/;
 const DICTIONARY = /[\\/]src[\\/]i18n[\\/][^\\/]+\.ts$/;
+const ENGLISH = /[\\/]en\.ts$/;
 
 /**
  * The group of a file of the build, or null when the worker leaves it alone. `from` is what the
@@ -44,8 +46,13 @@ export function groupOf(path: string, from: readonly string[] = []): OfflineGrou
     if (path.endsWith('.map')) return null;
     // Verovio's two files, shipped as they are (ui/notation/verovio.ts).
     if (from.length > 0 && from.every((source) => VEROVIO.test(source))) return 'engraver';
-    // A dictionary other than English (i18n/locale.ts): its own chunk, loaded when it is chosen.
-    if (from.length === 1 && DICTIONARY.test(from[0]!)) return 'languages';
+    // A dictionary (i18n/locale.ts): its own chunk, loaded when it is the reader's language. All
+    // but English, which is the app: it is what every language falls back to, so without it
+    // neither an English reader's app nor a language whose dictionary is missing would open
+    // without a network.
+    if (from.length === 1 && DICTIONARY.test(from[0]!)) {
+      return ENGLISH.test(from[0]!) ? 'app' : 'languages';
+    }
     return 'app';
   }
   if (path === 'manifest.webmanifest' || path === 'favicon.svg') return 'app';

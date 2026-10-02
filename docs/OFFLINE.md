@@ -19,11 +19,14 @@ list, each file with the group it is in, and a version that is the hash of the l
 
 - **The app**: `index.html`, every script and stylesheet under `/assets/` except the two below,
   the fonts, the manifest, the icons. Stored when the worker is installed, in the background, after
-  the page has loaded: from then on every page of the app opens without a network.
+  the page has loaded: from then on every page of the app opens without a network. The English
+  dictionary is one of these files: it is loaded on demand like every other dictionary, but it is
+  what a language falls back to when its own dictionary is not to be had, so the app cannot open
+  without it.
 - **Large and not always needed**: the music engraver (Verovio, about 7 MB, for Pieces and
   Scales), the built-in piano's samples (about 4 MB), the lessons' pictures, and the dictionaries
-  of the languages not in use. Stored when first fetched; all at once with **Store everything**
-  (below).
+  of the four languages other than English. Stored when first fetched (so a reader's own
+  language is stored at the first visit); all at once with **Store everything** (below).
 - **Not the app's**: anything else on the origin (the privacy page, profile pages, the account
   service's paths, and the site's own pages: the lessons, the pieces and the home pages a search
   engine reads, [SITE.md](SITE.md)) and every other origin (the sync service). The worker does
@@ -125,11 +128,17 @@ list, each file with the group it is in, and a version that is the hash of the l
 ## Clarifications (decided during G6a)
 
 - **The list** (`src/offline/files.ts`, written by the plugin in `vite.config.ts`). 336 files in
-  the build of release 0.2.0: the app's 221 (4.5 MB as stored), the engraver's 2 (7.3 MB), the
-  piano's 90 samples (3.8 MB), the lessons' 6 pictures (0.8 MB), the 4 dictionaries (0.8 MB) and
-  the 13 licence texts (0.1 MB). The pages of [SITE.md](SITE.md) are not among them. A file's group comes from what the
+  the build after release 0.2.0, with English a chunk of its own: the app's 221 (4.5 MB
+  as stored, the English dictionary's 0.2 MB among them), the engraver's 2 (7.3 MB), the
+  piano's 90 samples (3.8 MB), the lessons' 6 pictures (0.8 MB), the 4 other dictionaries (0.8 MB)
+  and the 13 licence texts (0.1 MB). The pages of [SITE.md](SITE.md) are not among them. A file's group comes from what the
   build made it from, never from its name: the engraver is whatever comes out of
-  `node_modules/verovio`, a language is a chunk loaded on demand for a file of `src/i18n/`. The
+  `node_modules/verovio`, a language is a chunk loaded on demand for a file of `src/i18n/` other
+  than `en.ts`. **English is the app**: it is a chunk loaded on demand like the others
+  ([TRANSLATING.md](TRANSLATING.md), "Where the strings are"), but every language falls back to
+  it, so it is stored at the install; in the `languages` group an English reader's app might
+  not open without a network, and a language whose dictionary is missing would have nothing to
+  fall back to. The
   lessons' own texts (per lesson and language) are small and are the app. Of `public/` only what
   is named is listed (the manifest, the favicon, `icons/`, `piano/`, `learn/`, `licenses/`):
   `_headers`, `robots.txt`, the sitemap, the social card and whatever is added later are not the
@@ -140,7 +149,10 @@ list, each file with the group it is in, and a version that is the hash of the l
   `x.html` with a redirect to `x`, which cannot be stored, and one such file among the app's
   would fail every install. The build fails when its list is not sound (`listProblems`,
   `src/offline/list.ts`: the page is there, every file under `/assets/` the page names is there,
-  no other page and not `sw.js`) or when it has not written `sw.js`. The **licence texts**, which About fetches when one is opened, are not in the
+  no other page and not `sw.js`) or when it has not written `sw.js`. The five dictionaries are
+  among the files the page names: its script for the reader's dictionary
+  (`src/i18n/dictionaryPreload.ts`) holds each as a whole `<link … href="…">` tag, which the
+  check reads like any other, so a page is held to its build's dictionaries as to its scripts. The **licence texts**, which About fetches when one is opened, are not in the
   specification's groups: they are in the second (stored when first read, and with Store
   everything). Each entry has the file's size, so Settings says "about 12 MB" from the list. The
   version is the first 12 hex digits of the SHA-256 of the list.
@@ -208,7 +220,9 @@ list, each file with the group it is in, and a version that is the hash of the l
   before there is a worker. Once one is in charge, the page asks it to store the files of its
   list that the page has loaded already (`performance.getEntriesByType('resource')`,
   `src/offline/client.ts`), so a Chinese, Japanese or Korean reader's app opens in its language
-  without a network after the first visit.
+  without a network after the first visit. Should that dictionary be missing from the store all
+  the same, the app opens in English, which the install stored, and keeps the reader's choice
+  for the next visit with a network.
 - **Store everything** is the page asking the worker, file by file and four at a time, to store
   what its list has and its store lacks (`status` and `store` messages, `src/offline/messages.ts`;
   the worker may be another build's than the page's, so the two messages are all there is, and a
@@ -247,5 +261,8 @@ list, each file with the group it is in, and a version that is the hash of the l
   one profile with a tab left open on the first, the paths that are not the app's, a build below
   `/dacapo/`, the withdrawal worker, a network that accepts the connection and does not answer
   (the stored page after three seconds; a release waiting behind such a request takes over
-  after thirty), and a release after an install cut short by killing the worker. Not run in
-  Safari or Firefox.
+  after thirty), and a release after an install cut short by killing the worker. With English a
+  chunk of its own: the install stores it and no other dictionary; without a network an English
+  profile opens in English and a Chinese one in Chinese; and a Chinese profile whose dictionary
+  was deleted from the store opens in English, not as a blank page. Not run in Safari or
+  Firefox.

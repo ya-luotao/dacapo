@@ -1,5 +1,5 @@
 import { readPref, writePref } from '../lib/localPrefs.ts';
-import { en, type Dictionary } from './en.ts';
+import type { Dictionary } from './en.ts';
 
 export const LOCALES = ['en', 'zh-CN', 'zh-TW', 'ja', 'ko'] as const;
 export type Locale = (typeof LOCALES)[number];
@@ -28,10 +28,14 @@ export const SENTENCE_GAP: Record<Locale, string> = {
  */
 export const FIRST_DAY: Record<Locale, number> = { en: 7, 'zh-CN': 1, 'zh-TW': 7, ja: 7, ko: 7 };
 
-export type DictionaryLoaders = Record<Exclude<Locale, 'en'>, () => Promise<Dictionary>>;
+export type DictionaryLoaders = Record<Locale, () => Promise<Dictionary>>;
 
-// English is bundled as the fallback; every other dictionary is its own chunk, loaded on demand.
+// Every dictionary is its own chunk, loaded on demand: English too, so a reader of another
+// language does not download both. English is still what a language falls back to, and so the
+// one dictionary the offline worker stores with the app (`groupOf` in offline/files.ts); the
+// built page asks for the reader's dictionary beside the app's script (`dictionaryPreload.ts`).
 const LOADERS: DictionaryLoaders = {
+  en: () => import('./en.ts').then((m) => m.en),
   'zh-CN': () => import('./zh-CN.ts').then((m) => m.zhCN),
   'zh-TW': () => import('./zh-TW.ts').then((m) => m.zhTW),
   ja: () => import('./ja.ts').then((m) => m.ja),
@@ -44,20 +48,29 @@ export interface LoadedLocale {
   dictionary: Dictionary;
 }
 
-/** A loader that caches what it loaded. It never rejects: a failed load falls back to English and is retried next time. */
+/**
+ * A loader that caches what it loaded. A language whose dictionary cannot be loaded falls back to
+ * English and is retried next time. It rejects only when English itself cannot be loaded: then
+ * there are no words to show, as when the app's own script does not arrive.
+ */
 export function createLocaleLoader(loaders: DictionaryLoaders) {
   const loaded = new Map<Locale, Dictionary>();
-  return async (locale: Locale): Promise<LoadedLocale> => {
-    if (locale === 'en') return { locale, dictionary: en };
+  const load = async (locale: Locale): Promise<Dictionary> => {
     const cached = loaded.get(locale);
-    if (cached) return { locale, dictionary: cached };
-    try {
-      const dictionary = await loaders[locale]();
-      loaded.set(locale, dictionary);
-      return { locale, dictionary };
-    } catch {
-      return { locale: 'en', dictionary: en };
+    if (cached) return cached;
+    const dictionary = await loaders[locale]();
+    loaded.set(locale, dictionary);
+    return dictionary;
+  };
+  return async (locale: Locale): Promise<LoadedLocale> => {
+    if (locale !== 'en') {
+      try {
+        return { locale, dictionary: await load(locale) };
+      } catch {
+        // Not to be had (no network, a release that renamed it): English, below.
+      }
     }
+    return { locale: 'en', dictionary: await load('en') };
   };
 }
 

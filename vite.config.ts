@@ -6,6 +6,7 @@ import react from '@vitejs/plugin-react';
 import { JSDOM } from 'jsdom';
 import { build, type Plugin, type ResolvedConfig } from 'vite';
 import { defineConfig } from 'vitest/config';
+import { dictionaryPreloadScript } from './src/i18n/dictionaryPreload.ts';
 import { groupOf, PAGE, type OfflineFile, type OfflineList } from './src/offline/files.ts';
 import { listProblems } from './src/offline/list.ts';
 
@@ -103,6 +104,55 @@ function offlineWorker(): Plugin {
       if (!written.includes(version)) {
         throw new Error('The build did not write sw.js with its list (docs/OFFLINE.md).');
       }
+    },
+  };
+}
+
+/**
+ * The reader's dictionary beside the app's script (src/i18n/dictionaryPreload.ts): writes into the
+ * built page's head the few lines that name the dictionary of the language the app will start
+ * in, each by the name this build gave its chunk. Only in a build: `pnpm dev` loads the
+ * dictionaries as modules of their own.
+ *
+ * The addresses are in the page as `href`s, so the offline worker's check of the page holds them
+ * to its list like every other file under assets/ (`listProblems`, below).
+ */
+function dictionaryPreload(): Plugin {
+  let config: ResolvedConfig;
+  return {
+    name: 'dacapo:dictionary-preload',
+    apply: 'build',
+    configResolved(resolved) {
+      config = resolved;
+    },
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, context) {
+        if (!context.bundle) return;
+        const addresses: Record<string, string> = {};
+        for (const file of Object.values(context.bundle)) {
+          if (file.type !== 'chunk' || !file.isDynamicEntry || !file.facadeModuleId) continue;
+          const dictionary = /[\\/]src[\\/]i18n[\\/]([^\\/]+)\.ts$/.exec(file.facadeModuleId);
+          if (dictionary) addresses[dictionary[1]!] = `${config.base}${file.fileName}`;
+        }
+        // English is a chunk of its own, loaded like the others (src/i18n/locale.ts): were it
+        // part of the app's script again, every reader of another language would download both.
+        if (!addresses.en) throw new Error('The build made no chunk of the English dictionary.');
+        const script = dictionaryPreloadScript(addresses);
+        if (script === null) {
+          config.logger.warn('The page asks for no dictionary ahead: an address is not plain.');
+          return;
+        }
+        // Just before the app's script, as Vite has written it into the head: after the page's
+        // encoding (which must come within its first 1024 bytes) and before the stylesheet (a
+        // script after a stylesheet waits for it, and this one must not wait).
+        const app = html.indexOf('<script type="module"');
+        const head = html.indexOf('</head>');
+        if (app < 0 || app > head) {
+          throw new Error('The built page has no script of the app in its head.');
+        }
+        return `${html.slice(0, app)}<script>${script}</script>\n    ${html.slice(app)}`;
+      },
     },
   };
 }
@@ -209,7 +259,7 @@ export default defineConfig({
   // A sub-path such as `/dacapo/` when the app is served below the site root; `/` by default.
   base: process.env.BASE_PATH ?? '/',
   // The pages before the worker: its list is taken from the build as it then stands.
-  plugins: [react(), sitePages(), offlineWorker()],
+  plugins: [react(), dictionaryPreload(), sitePages(), offlineWorker()],
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },

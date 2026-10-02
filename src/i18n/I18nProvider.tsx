@@ -54,9 +54,13 @@ export function I18nProvider({
   useEffect(() => {
     if (current.requested === requested) return;
     let cancelled = false;
-    void loadLocale(requested).then((loaded) => {
-      if (!cancelled) setCurrent({ ...loaded, requested });
-    });
+    void loadLocale(requested).then(
+      (loaded) => {
+        if (!cancelled) setCurrent({ ...loaded, requested });
+      },
+      // Not even English could be loaded: the language shown stays.
+      () => {},
+    );
     return () => {
       cancelled = true;
     };

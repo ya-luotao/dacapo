@@ -50,6 +50,14 @@ describe('groupOf', () => {
     expect(groupOf('assets/x.js', [`${ROOT}/src/i18n/sub/ko.ts`])).toBe('app');
   });
 
+  it('the English dictionary is the app: stored at install, for every language to fall back to', () => {
+    expect(groupOf('assets/en-CkT0p3Wm.js', [`${ROOT}/src/i18n/en.ts`])).toBe('app');
+    expect(groupOf('assets/x.js', ['C:\\dacapo\\src\\i18n\\en.ts'])).toBe('app');
+    // By what it is made from, not by its name: a translation named like it is a language.
+    expect(groupOf('assets/en-CkT0p3Wm.js', [`${ROOT}/src/i18n/ko.ts`])).toBe('languages');
+    expect(groupOf('assets/x.js', [`${ROOT}/src/i18n/en-GB.ts`])).toBe('languages');
+  });
+
   it('the samples, the lessons’ pictures and the licence texts are stored when fetched', () => {
     expect(groupOf('piano/A0-f.mp3')).toBe('piano');
     expect(groupOf('learn/two-hands.webp')).toBe('pictures');

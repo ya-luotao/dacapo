@@ -114,25 +114,71 @@ describe('detectLocale', () => {
 });
 
 describe('loading dictionaries', () => {
-  it.each(TRANSLATIONS)('loads %s on demand', async (locale) => {
+  it.each(LOCALES)('loads %s on demand', async (locale) => {
     expect(await loadLocale(locale)).toEqual({ locale, dictionary: DICTIONARIES[locale] });
   });
 
-  it('has English without loading anything', async () => {
-    const load = createLocaleLoader(failing());
+  it('loads English like any other: when it is asked for, and once', async () => {
+    let calls = 0;
+    const load = createLocaleLoader({
+      ...failing(),
+      en: () => {
+        calls++;
+        return Promise.resolve(en);
+      },
+    });
+    expect(calls).toBe(0);
     expect(await load('en')).toEqual({ locale: 'en', dictionary: en });
+    expect(await load('en')).toEqual({ locale: 'en', dictionary: en });
+    expect(calls).toBe(1);
+  });
+
+  it('loads no English for a language whose dictionary is there', async () => {
+    let english = 0;
+    const load = createLocaleLoader({
+      ...failing(),
+      en: () => {
+        english++;
+        return Promise.resolve(en);
+      },
+      ja: () => Promise.resolve(ja),
+    });
+    expect(await load('ja')).toEqual({ locale: 'ja', dictionary: ja });
+    expect(english).toBe(0);
   });
 
   it('falls back to English when a dictionary cannot be loaded, and retries next time', async () => {
     let fail = true;
-    const loaders = {
+    let english = 0;
+    const load = createLocaleLoader({
       ...failing(),
+      en: () => {
+        english++;
+        return Promise.resolve(en);
+      },
       ja: () => (fail ? Promise.reject(new Error('offline')) : Promise.resolve(ja)),
-    };
-    const load = createLocaleLoader(loaders);
+    });
     expect(await load('ja')).toEqual({ locale: 'en', dictionary: en });
+    // The English it fell back to is the English a later choice of English shows.
+    expect(await load('ko')).toEqual({ locale: 'en', dictionary: en });
+    expect(await load('en')).toEqual({ locale: 'en', dictionary: en });
+    expect(english).toBe(1);
     fail = false;
     expect(await load('ja')).toEqual({ locale: 'ja', dictionary: ja });
+  });
+
+  it('rejects only when English itself cannot be loaded, and tries again next time', async () => {
+    let fail = true;
+    const load = createLocaleLoader({
+      ...failing(),
+      en: () => (fail ? Promise.reject(new Error('offline')) : Promise.resolve(en)),
+    });
+    await expect(load('en')).rejects.toThrow('offline');
+    // The fallback of another language is English too: there are no words to show.
+    await expect(load('ja')).rejects.toThrow('offline');
+    fail = false;
+    expect(await load('ja')).toEqual({ locale: 'en', dictionary: en });
+    expect(await load('en')).toEqual({ locale: 'en', dictionary: en });
   });
 
   it('loads each dictionary once', async () => {
@@ -152,7 +198,7 @@ describe('loading dictionaries', () => {
 
 function failing(): DictionaryLoaders {
   const fail = () => Promise.reject(new Error('not loadable'));
-  return { 'zh-CN': fail, 'zh-TW': fail, ja: fail, ko: fail };
+  return { en: fail, 'zh-CN': fail, 'zh-TW': fail, ja: fail, ko: fail };
 }
 
 describe('formatMessage', () => {

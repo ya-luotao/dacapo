@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { dictionaryPreloadScript } from '../i18n/dictionaryPreload.ts';
 import { pageBelongs, pathBelow, route, type RequestFacts } from './route.ts';
 
 const ROOT = 'https://playdacapo.com/';
@@ -199,6 +200,31 @@ describe('pageBelongs', () => {
       '<link rel="stylesheet" crossorigin href="/assets/index-BBBB.css">',
     );
     expect(pageBelongs(html, ROOT, listed)).toBe(false);
+  });
+
+  // The page's script for the reader's dictionary (i18n/dictionaryPreload.ts) names each
+  // dictionary in a tag it may add: those are files the page names like any other.
+  it('holds the dictionaries the page’s script names to the list too', () => {
+    const app = '<script type="module" crossorigin src="/assets/index-AAAA.js"></script>';
+    const script = (addresses: Record<string, string>) =>
+      `<script>${dictionaryPreloadScript(addresses)!}</script>`;
+    expect(pageBelongs(page(script({ ja: '/assets/ja-DDDD.js' }), app), ROOT, listed)).toBe(true);
+    // A dictionary of another build: the page is not this build's, whatever its other files.
+    expect(pageBelongs(page(script({ ja: '/assets/ja-NEW0.js' }), app), ROOT, listed)).toBe(false);
+    expect(
+      pageBelongs(
+        page(script({ ja: '/assets/ja-DDDD.js', ko: '/assets/ko-NEW0.js' }), app),
+        ROOT,
+        listed,
+      ),
+    ).toBe(false);
+    // Below a sub-path, as the build writes them there.
+    const sub = page(
+      script({ ja: '/dacapo/assets/ja-DDDD.js' }),
+      '<script type="module" crossorigin src="/dacapo/assets/index-AAAA.js"></script>',
+    );
+    expect(pageBelongs(sub, SUB, listed)).toBe(true);
+    expect(pageBelongs(sub.replace('ja-DDDD', 'ja-NEW0'), SUB, listed)).toBe(false);
   });
 
   it('a page that names no file of the app is not the app', () => {
