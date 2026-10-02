@@ -21,6 +21,7 @@ import { countUnplaced } from '../notation/verovio.ts';
 import { usePractice, usePracticeStore, useStorageStatus } from '../practice/context.ts';
 import { usePieceFormat } from './format.ts';
 import { HandsEditor } from './HandsEditor.tsx';
+import { PieceBeyond } from './PieceBeyond.tsx';
 import { PieceProgress } from './PieceProgress.tsx';
 import { forgetPiecePrefs } from './prefs.ts';
 
@@ -51,7 +52,9 @@ export function YourPieces() {
 
   // Pieces imported before their facts were kept (or before they counted the notes, P6) get them
   // now, one at a time.
-  const missing = pieces.find((p) => !p.facts?.notes);
+  const missing = pieces.find(
+    (p) => !p.facts?.notes || (p.facts.keys === undefined && p.facts.bars.both > 0),
+  );
   useEffect(() => {
     if (!missing) return;
     const id = setTimeout(() => {
@@ -266,6 +269,7 @@ function ImportedPiece({ piece }: { piece: StoredPiece }) {
           <span className="library-piece-note">
             {piece.fileName} · {t('pieces.imported', { date: format.date(piece.importedAt) })}
           </span>
+          <PieceBeyond facts={piece.facts} />
           <PieceProgress pieceId={piece.id} facts={piece.facts} />
         </Link>
         <div className="your-piece-actions">

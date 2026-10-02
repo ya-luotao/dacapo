@@ -2,6 +2,7 @@
 // from MusicXML (musicxml.ts). The renderer only draws; everything that counts or compares uses
 // this model.
 
+import { hasKey, isFullKeys, type KeyRange } from './instrument.ts';
 import type { Articulation, GraceNote, HarmonyMark, Markings, Ornament } from './markings.ts';
 import type { Letter } from './note.ts';
 import { ornamentKeys } from './ornaments.ts';
@@ -185,6 +186,13 @@ export interface Step {
   heldIds: string[];
   /** The notes here with grace notes or an ornament, and the keys those add; absent when none. */
   ornaments?: StepOrnament[];
+  /**
+   * The keys here beyond the player's keyboard, ascending, and their notes: the app plays them
+   * (docs/PERSONAL.md, "The instrument's keys"). Absent when the step has none. `midis` and
+   * `noteIds` are then the player's alone; with none of them left the step is passed.
+   */
+  given?: number[];
+  givenIds?: string[];
 }
 
 /** A note of a step with grace notes or an ornament (docs/EXPRESSION.md, "Playing them"). */
@@ -196,12 +204,19 @@ export interface StepOrnament {
   keys: number[];
 }
 
-/** Steps for a hand selection in play order. Onsets with only tied notes are no step. */
+/**
+ * Steps for a hand selection in play order. Onsets with only tied notes are no step. On a
+ * keyboard with fewer keys (`keys`) the steps are the same ones, each with its keys beyond the
+ * keyboard set apart (`given`): a step is never left out, so a step's index means the same on
+ * every keyboard.
+ */
 export function buildSteps(
   score: Score,
   hands: HandSelection,
   order: readonly PlayedMeasure[] = performanceOrder(score.measures),
+  keys?: KeyRange | null,
 ): Step[] {
+  const beyond = keys && !isFullKeys(keys) ? (midi: number) => !hasKey(keys, midi) : null;
   const byMeasure = new Map<number, ScoreNote[]>();
   for (const note of score.notes) {
     if (!inHands(note.hand, hands)) continue;
@@ -240,6 +255,13 @@ export function buildSteps(
         heldIds: group.filter((n) => n.tieStop).map((n) => n.id),
         ...(ornaments.length > 0 && { ornaments }),
       });
+      const step = steps.at(-1)!;
+      if (beyond && step.midis.some(beyond)) {
+        step.given = step.midis.filter(beyond);
+        step.givenIds = pressed.filter((n) => beyond(n.midi)).map((n) => n.id);
+        step.midis = step.midis.filter((midi) => !beyond(midi));
+        step.noteIds = pressed.filter((n) => !beyond(n.midi)).map((n) => n.id);
+      }
     }
   });
   return steps;

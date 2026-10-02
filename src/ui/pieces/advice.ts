@@ -1,7 +1,7 @@
 import { reviewLine, type ReviewLine } from '../../core/advice.ts';
 import type { PieceSessionRecord } from '../../core/log.ts';
 import type { PieceFacts, PieceStep } from '../../core/pieceRecords.ts';
-import { playsEveryNote, reviewSchedule } from '../../core/review.ts';
+import { playsEveryNote, reviewSchedule, runNotes } from '../../core/review.ts';
 import type { Hand, Step } from '../../core/score.ts';
 import { countsForLadder, tempoLadder, type TempoLadder } from '../../core/tempoLadder.ts';
 import type { RecordedRun } from './record.ts';
@@ -41,7 +41,7 @@ export function afterRun(
   const stepsWith = [...(steps ?? []), ...run.steps];
   // One hand of two is counted against its own steps, as the review counts a run whose notes it
   // does not know: the piece's facts count both hands' keys.
-  const written = playsEveryNote(session.hands, facts) && session.leftHand === undefined;
+  const written = playsEveryNote(session.hands, facts);
   return {
     whole: countsForLadder(session, run.steps, facts),
     ladder: tempoLadder(pieceId, session.hands, sessionsWith, stepsWith, facts),
@@ -54,7 +54,7 @@ export function afterRun(
             reviewSchedule(pieceId, sessionsWith, stepsWith, facts),
             out,
           ),
-    notes: (written ? facts.notes?.[session.repeats] : undefined) ?? session.steps,
+    notes: written ? runNotes(session, facts) : session.steps,
   };
 }
 

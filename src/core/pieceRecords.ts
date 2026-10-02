@@ -7,7 +7,7 @@ import { IN_TIME_MS } from './rhythmRun.ts';
 import type { NoteTiming } from './rhythm.ts';
 import type { RepeatMode } from './repeats.ts';
 import { performanceOrder, playOrder } from './repeats.ts';
-import { buildSteps, type HandSelection, type Score } from './score.ts';
+import { buildSteps, keyRange, type HandSelection, type Score } from './score.ts';
 import type { BarLoop } from './wait.ts';
 import type { MemoryStage } from './memory.ts';
 import type { PatternId } from './progressions.ts';
@@ -52,7 +52,13 @@ export interface PieceStep {
   /** When it was completed; in rhythm mode, when it was due. */
   at: number;
   mode?: 'rhythm' | 'memory';
-  /** Rhythm mode: each key of the step, how early (−) or late (+) in ms, null when missed. */
+  /**
+   * Rhythm mode: each key of the step that was the player's, how early (−) or late (+) in ms,
+   * null when missed. The keys the app played for the player (beyond their keyboard,
+   * docs/PERSONAL.md, "The instrument's keys") are not among them. In every mode an empty list
+   * says the step had none of the player's keys and was passed (`isPassed`); a step of wait or
+   * memory mode that was played has no list at all.
+   */
   notes?: NoteTiming[];
   /**
    * Memory mode: the prompts on the step (a wrong key or a peek while its bar was hidden), and
@@ -68,6 +74,14 @@ export interface PieceStep {
 }
 
 export const stepMode = (step: Pick<PieceStep, 'mode'>): PracticeMode => step.mode ?? 'wait';
+
+/**
+ * A step that had none of the player's keys (all of them beyond their keyboard): the app played
+ * it and the run went by. It is a step of the run all the same, counted wherever steps are
+ * counted to tell a pass or a round (an assignment's runs, a loop's rounds, the bars a run went
+ * through); it is left out where the player's own steps are judged.
+ */
+export const isPassed = (step: Pick<PieceStep, 'notes'>): boolean => step.notes?.length === 0;
 
 /** The written bars a run looped over, with their printed numbers for the log. */
 export interface LoopRange extends BarLoop {
@@ -114,10 +128,17 @@ export interface PieceSession extends PieceRunHeader {
   endedAt: number;
   /** Time on the steps, each capped at `IDLE_MS` (the same idle rule as every other session). */
   activeMs: number;
+  /** The steps the player had a key of: a step passed (`isPassed`) is not among them. */
   steps: number;
   wrong: number;
   /** Played to the end, or a loop ended with Finish; false when left or restarted. */
   completed: boolean;
+  /**
+   * The notes of the run the app played for the player, beyond their keyboard (docs/PERSONAL.md,
+   * "The instrument's keys"); absent when none. The run's other figures are of the notes the
+   * player had.
+   */
+  given?: number;
   /** Rhythm mode only. */
   rhythm?: RhythmCounts;
   /** Memory mode only: the stage it was played at, and its prompts. */
@@ -140,11 +161,13 @@ export function byStepTime(a: PieceStep, b: PieceStep): number {
 /**
  * The session of a run from its steps (of that run, in order). Time is the sum of the step
  * times, so a pause to listen to the demo, which restarts the step's clock, is never practice.
+ * `given`: the notes the app played for the player, which the step records do not count.
  */
 export function pieceSession(
   header: PieceRunHeader,
   steps: readonly PieceStep[],
   completed: boolean,
+  given = 0,
 ): PieceSession {
   const last = steps.at(-1);
   return {
@@ -156,9 +179,10 @@ export function pieceSession(
       last ? last.at + (header.mode === 'rhythm' ? Math.min(last.ms, IDLE_MS) : 0) : 0,
     ),
     activeMs: steps.reduce((sum, s) => sum + Math.min(s.ms, IDLE_MS), 0),
-    steps: steps.length,
+    steps: steps.reduce((sum, s) => sum + (isPassed(s) ? 0 : 1), 0),
     wrong: steps.reduce((sum, s) => sum + s.wrong, 0),
     completed,
+    ...(given > 0 && { given }),
     ...(header.mode === 'rhythm' && { rhythm: rhythmCounts(steps) }),
     ...(header.mode === 'memory' && {
       memory: {
@@ -223,12 +247,19 @@ export interface PieceFacts {
    * before it, until they are filled in again.
    */
   notes?: Readonly<Record<RepeatMode, number>>;
+  /**
+   * The lowest and the highest key its hands play: what a library card needs to say that the
+   * piece goes beyond the player's keyboard (docs/PERSONAL.md, "The instrument's keys"). Absent
+   * in facts kept before it, until they are filled in again, and for a piece without a note.
+   */
+  keys?: readonly [lowest: number, highest: number];
 }
 
 export function pieceFacts(score: Score): PieceFacts {
   const order = performanceOrder(score.measures);
   const count = (hands: HandSelection) =>
     new Set(buildSteps(score, hands, order).map((s) => s.measure)).size;
+  const span = keyRange(score, 'both');
   const keys = (repeats: RepeatMode) =>
     buildSteps(score, 'both', playOrder(score.measures, repeats)).reduce(
       (sum, step) => sum + step.midis.length,
@@ -238,5 +269,6 @@ export function pieceFacts(score: Score): PieceFacts {
     checksum: pieceChecksum(score),
     bars: { right: count('right'), left: count('left'), both: count('both') },
     notes: { play: keys('play'), skip: keys('skip') },
+    ...(span && { keys: span }),
   };
 }

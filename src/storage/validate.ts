@@ -289,10 +289,10 @@ const isTranspose = (v: unknown) => v === undefined || isTransposition(v);
 const isDeviation = (v: unknown) =>
   v === null || (typeof v === 'number' && Number.isFinite(v) && Math.abs(v) <= 1000);
 
+/** A rhythm step's keys: none when the app played them all (docs/PERSONAL.md, G6c). */
 function isNoteTimings(v: unknown): v is NoteTiming[] {
   return (
     Array.isArray(v) &&
-    v.length > 0 &&
     v.length <= 88 &&
     v.every((n) => isObject(n) && isMidi(n.midi) && isDeviation(n.deviation))
   );
@@ -365,6 +365,8 @@ function validatePieceSession(value: Fields): Validation<PieceSessionRecord> {
     // Counted in rhythm mode only, and the prompts in memory mode only.
     rhythm: (v) => (value.mode === 'rhythm' ? isRhythmCounts(v) : v === undefined),
     memory: (v) => (value.mode === 'memory' ? isMemoryCounts(v) : v === undefined),
+    // The notes played for the player are never written as 0: none is their absence.
+    given: (v) => v === undefined || (isCount(v) && v > 0),
   });
   if (field) return fail(field);
   const s = value as unknown as PieceSessionRecord;
@@ -379,6 +381,7 @@ function validatePieceSession(value: Fields): Validation<PieceSessionRecord> {
       steps: s.steps,
       wrong: s.wrong,
       completed: s.completed,
+      ...(s.given !== undefined && { given: s.given }),
       ...(s.rhythm && {
         rhythm: { notes: s.rhythm.notes, hits: s.rhythm.hits, inTime: s.rhythm.inTime },
       }),
@@ -1462,6 +1465,7 @@ export function validateScaleRun(value: unknown): Validation<StoredScaleRun> {
 }
 
 const isChecksum = (v: unknown) => typeof v === 'string' && /^[0-9a-f]{8}$/.test(v);
+const isNoKeys = (v: unknown) => Array.isArray(v) && v.length === 0;
 
 export function validatePieceStep(value: unknown): Validation<PieceStep> {
   if (!isObject(value)) return fail('record');
@@ -1477,8 +1481,9 @@ export function validatePieceStep(value: unknown): Validation<PieceStep> {
     wrong: isCount,
     at: isTime,
     mode: isMode,
-    // Rhythm mode's timings, memory mode's prompts and stage, and nothing in wait mode.
-    notes: (v) => (value.mode === 'rhythm' ? isNoteTimings(v) : v === undefined),
+    // Rhythm mode's timings, memory mode's prompts and stage, and nothing in wait mode; in wait
+    // and memory mode an empty list marks a step passed (it had none of the player's keys).
+    notes: (v) => (value.mode === 'rhythm' ? isNoteTimings(v) : v === undefined || isNoKeys(v)),
     prompts: (v) => (value.mode === 'memory' ? isCount(v) : v === undefined),
     stage: (v) => (value.mode === 'memory' ? isMemoryStage(v) : v === undefined),
     transpose: isTranspose,
@@ -1503,6 +1508,7 @@ export function validatePieceStep(value: unknown): Validation<PieceStep> {
         notes: r.notes!.map((n) => ({ midi: n.midi, deviation: n.deviation })),
       }),
       ...(r.mode === 'memory' && { mode: r.mode, prompts: r.prompts!, stage: r.stage! }),
+      ...(r.mode !== 'rhythm' && r.notes !== undefined && { notes: [] }),
       ...(r.transpose !== undefined && { transpose: r.transpose }),
     },
   };
@@ -1558,8 +1564,15 @@ function isFacts(v: unknown): v is PieceFacts {
     isIndex(v.bars.right) &&
     isIndex(v.bars.left) &&
     isIndex(v.bars.both) &&
-    (v.notes === undefined || (isObject(v.notes) && isIndex(v.notes.play) && isIndex(v.notes.skip)))
+    (v.notes === undefined ||
+      (isObject(v.notes) && isIndex(v.notes.play) && isIndex(v.notes.skip))) &&
+    (v.keys === undefined || isKeySpan(v.keys))
   );
+}
+
+/** A piece's lowest and highest key. */
+function isKeySpan(v: unknown): v is [number, number] {
+  return Array.isArray(v) && v.length === 2 && isMidi(v[0]) && isMidi(v[1]) && v[0] <= v[1];
 }
 
 export function isOpenFreePlay(value: unknown): value is OpenFreePlay {
@@ -1614,6 +1627,7 @@ export function validatePiece(value: unknown): Validation<StoredPiece> {
           ...(p.facts.notes && {
             notes: { play: p.facts.notes.play, skip: p.facts.notes.skip },
           }),
+          ...(p.facts.keys && { keys: [p.facts.keys[0], p.facts.keys[1]] as const }),
         },
       }),
     },

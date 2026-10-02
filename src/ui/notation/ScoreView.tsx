@@ -280,7 +280,8 @@ export function ScoreView({
     };
   }, [drawing, score, hands]);
 
-  // The current step: its notes inked, the played ones "ok", tied continuations muted.
+  // The current step: its notes inked, the played ones "ok", tied continuations muted, and so are
+  // the notes the app plays for the player (beyond their keyboard): shown, not pressed.
   useLayoutEffect(() => {
     if (!drawing || !step) return;
     const midiOf = new Map(score.notes.map((n) => [n.id, n.midi]));
@@ -291,7 +292,7 @@ export function ScoreView({
       el.classList.add(pressed.includes(midiOf.get(id)!) ? 'is-pressed' : 'is-current');
       marked.push(el);
     }
-    for (const id of step.heldIds) {
+    for (const id of [...step.heldIds, ...(step.givenIds ?? [])]) {
       const el = drawing.notes.get(id);
       if (!el) continue;
       el.classList.add('is-held');
@@ -390,7 +391,7 @@ export function ScoreView({
     const origin = sheet.getBoundingClientRect();
     const box = measureBox(measure, origin);
     const heads = unionRect(
-      step.noteIds.flatMap((id) => drawing.notes.get(id) ?? []),
+      [...step.noteIds, ...(step.givenIds ?? [])].flatMap((id) => drawing.notes.get(id) ?? []),
       origin,
     );
     if (!box) {

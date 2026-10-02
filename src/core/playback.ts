@@ -2,6 +2,7 @@
 // hand not being practised. Everything here is in performance ticks (see `buildSteps`) or in
 // milliseconds at a tempo; the MIDI side lives in `src/output/`.
 
+import { hasKey, isFullKeys, type KeyRange } from './instrument.ts';
 import { firstOccurrence, resolveLoop, type PlayedMeasure } from './repeats.ts';
 import {
   inHands,
@@ -377,27 +378,39 @@ export interface AccompanimentPlan {
  * completes steps: the notes starting from a step's onset up to the next practised step belong
  * to that step. Notes before the first step of the span are played after its last step when the
  * span loops (as the lead-in to the next time round), and not at all otherwise.
+ *
+ * The same goes for the notes of the practised hands beyond the player's keyboard
+ * (docs/PERSONAL.md, "The instrument's keys"): `include` says which notes the instrument plays
+ * (the other hand's by default), and a step with none of the player's keys sets nothing off: its
+ * notes belong to the step before it.
  */
 export function accompanimentPlan(options: {
   score: Pick<Score, 'measures' | 'notes' | 'tempos'>;
   order: readonly PlayedMeasure[];
   steps: readonly Step[];
-  hand: Hand;
+  /** The hand practised: the other one is played. Null with `include` alone. */
+  hand: Hand | null;
+  /** The notes to play, if not the other hand's. */
+  include?: (note: ScoreNote) => boolean;
   loop: BarLoop | null;
   scale: number;
   /** Where trills start (the piece's setting): on their note by default. */
   trillStart?: TrillStart;
 }): AccompanimentPlan | null {
   const { score, order, steps, hand, loop, scale } = options;
+  const include = options.include ?? (hand ? otherHand(hand) : null);
+  if (!include) return null;
   const realising = { trillStart: options.trillStart ?? DEFAULT_REALISE.trillStart };
   const span = playSpan(score, order, loop, -1);
   if (!span) return null;
-  const inSpan = steps.filter((s) => s.played >= span.first && s.played <= span.last);
+  const inSpan = steps.filter(
+    (s) => s.played >= span.first && s.played <= span.last && s.midis.length > 0,
+  );
   if (inSpan.length === 0) return null;
   const ms = timeline(score, order, scale);
   const lapTicks = span.to - span.from;
   const end = ms(span.to);
-  const others = sourcedNotes(score, order, otherHand(hand), span.first, span.last).map((n) => ({
+  const others = sourcedNotes(score, order, include, span.first, span.last).map((n) => ({
     ...n,
     off: Math.min(n.off, span.to),
   }));
@@ -442,7 +455,76 @@ export function accompanimentPlan(options: {
   return plan;
 }
 
+/**
+ * What an accompaniment sounded, from the steps completed and when (ms, in the order completed):
+ * each step's notes from its completion on, as `createAccompanist` plays them (a note not yet
+ * started when the next step is completed is dropped, one sounding is cut where the score ends
+ * it). For playing a run back with the notes the app played for the player.
+ */
+export function accompanied(
+  plan: AccompanimentPlan,
+  completions: readonly { step: number; at: number }[],
+): DemoNote[] {
+  const out: (DemoNote | null)[] = [];
+  let active: { index: number; end: number }[] = [];
+  let round = 0;
+  let last = -1;
+  for (const { step, at } of completions) {
+    // Steps come in order; coming back to an earlier one is the loop going round.
+    if (last >= 0 && step <= last) round++;
+    last = step;
+    const group = plan.steps.get(step);
+    if (!group) continue;
+    const pos = round * plan.lapTicks + group.pos;
+    active = active.filter(({ index, end }) => {
+      const note = out[index]!;
+      if (note.on > at) {
+        out[index] = null;
+        return false;
+      }
+      if (end > pos) return true;
+      note.off = Math.min(note.off, at);
+      return false;
+    });
+    for (const n of group.notes) {
+      active.push({ index: out.length, end: pos + n.until });
+      out.push({ midi: n.midi, on: at + n.at, off: at + n.at + n.length });
+    }
+  }
+  return out
+    .filter((n): n is DemoNote => n !== null)
+    .sort((a, b) => a.on - b.on || a.midi - b.midi);
+}
+
 /** What accompanies a hand: the other hand and every part nobody practises. */
 export function otherHand(hand: Hand): (note: ScoreNote) => boolean {
   return (note) => !inHands(note.hand, hand);
+}
+
+/**
+ * The notes of the hands practised that lie beyond the player's keyboard: the app plays them for
+ * the player (docs/PERSONAL.md, "The instrument's keys"). Null when the keyboard has every key.
+ */
+export function beyondKeyboard(
+  hands: HandSelection,
+  keys: KeyRange | null | undefined,
+): ((note: ScoreNote) => boolean) | null {
+  if (!keys || isFullKeys(keys)) return null;
+  return (note) => inHands(note.hand, hands) && !hasKey(keys, note.midi);
+}
+
+/**
+ * What the instrument plays while `hands` are practised: the other hand when it accompanies
+ * (`accompany`, one hand practised), and whatever of the practised hands is beyond the keyboard.
+ * Null when that is nothing.
+ */
+export function playedForPlayer(
+  hands: HandSelection,
+  accompany: boolean,
+  keys: KeyRange | null | undefined,
+): ((note: ScoreNote) => boolean) | null {
+  const other = accompany && hands !== 'both' ? otherHand(hands) : null;
+  const beyond = beyondKeyboard(hands, keys);
+  if (!other || !beyond) return other ?? beyond;
+  return (note) => other(note) || beyond(note);
 }

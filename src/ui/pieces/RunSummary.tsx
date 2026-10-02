@@ -6,6 +6,7 @@ import { useT } from '../../i18n/index.ts';
 import { Advice } from '../Advice.tsx';
 import { useLogFormat } from '../progress/format.ts';
 import { usePieceAdviceWords } from './adviceWords.ts';
+import { useBeyondWords } from './beyond.ts';
 import type { usePieceFormat } from './format.ts';
 import { PlayBackButton } from './PlayBackButton.tsx';
 import { SaveMidiButton } from './SaveMidiButton.tsx';
@@ -14,6 +15,8 @@ interface RunSummaryProps {
   summary: Summary;
   /** Memory mode: the prompts per bar (none needed: an empty list); null in wait mode. */
   prompts?: BarPrompts[] | null;
+  /** The notes the app played for the player (beyond their keyboard); 0 when none. */
+  given?: number;
   /** Ended with Finish while looping. */
   looped: boolean;
   format: ReturnType<typeof usePieceFormat>;
@@ -35,6 +38,7 @@ interface RunSummaryProps {
 export function RunSummary({
   summary,
   prompts = null,
+  given = 0,
   looped,
   format,
   onAgain,
@@ -49,6 +53,7 @@ export function RunSummary({
   const t = useT();
   const log = useLogFormat();
   const words = usePieceAdviceWords(format);
+  const beyond = useBeyondWords();
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => heading.current?.focus({ preventScroll: true }), []);
   // The bar to loop: by heart, the one that needed most prompts; else the slowest.
@@ -84,6 +89,7 @@ export function RunSummary({
           </div>
         )}
       </dl>
+      {given > 0 && <p className="help run-given">{beyond.given(given)}</p>}
       {/* Where it slowed down, and beside it (under it on a phone) what to work on next. */}
       <div className="note-lists run-notes">
         <div>

@@ -44,6 +44,15 @@ export interface RecordInput {
   /** Memory mode: the step's prompts and the stage it was played at. */
   prompts?: number;
   stage?: MemoryStage;
+  /** Wait and memory mode: the step had none of the player's keys and was passed. */
+  passed?: true;
+  /** Its keys the app played for the player (beyond their keyboard); absent when none. */
+  given?: number;
+}
+
+/** The notes of a run the app played for the player: what its session keeps as `given`. */
+export function givenNotes(records: readonly Pick<RecordInput, 'given'>[]): number {
+  return records.reduce((sum, r) => sum + (r.given ?? 0), 0);
 }
 
 /** A run of either mode, as far as the log cares. */
@@ -125,6 +134,8 @@ export function storedStep(
       prompts: record.prompts ?? 0,
       stage: record.stage,
     }),
+    // A step passed has none of the player's keys: in rhythm mode its list is empty already.
+    ...(record.passed && { notes: [] }),
     ...(header.transpose !== undefined && { transpose: header.transpose }),
   };
 }
@@ -145,7 +156,8 @@ export function recordedRun(run: RecordableRun, context: RunContext): RecordedRu
   if (!first) return null;
   const header = runHeader(run, first, context);
   const steps = run.records.map((record, n) => storedStep(header, context.checksum, n, record));
-  return { session: pieceSession(header, steps, run.ended?.completed ?? false), steps };
+  const completed = run.ended?.completed ?? false;
+  return { session: pieceSession(header, steps, completed, givenNotes(run.records)), steps };
 }
 
 interface Tracked {
@@ -268,6 +280,7 @@ export function useRunRecorder(
     if (t.closed || !t.header) return;
     t.closed = true;
     const header = { ...t.header, tempo: latest.current.tempo };
-    store.finishPieceRun(header.id, pieceSession(header, t.steps, completed));
+    const given = givenNotes(t.run.records.slice(0, t.count));
+    store.finishPieceRun(header.id, pieceSession(header, t.steps, completed, given));
   }
 }

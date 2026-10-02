@@ -4,6 +4,11 @@
 // blocking. A step with grace notes or an ornament waits for its principal: the ornament's other
 // keys, in any order, count as neither right nor wrong, on the step and after it until a key of
 // the steps that follow is played (docs/EXPRESSION.md, "Playing them").
+//
+// On a keyboard with fewer keys (docs/PERSONAL.md, "The instrument's keys") a step waits for the
+// keys the player has; the others (`Step.given`) are the app's, and count as neither right nor
+// wrong when the player strikes one. A step with none of the player's keys is passed: the run
+// never waits on it, and it is recorded as it is gone by, without time or wrong notes.
 
 import { firstOccurrence, resolveLoop, type PlayedMeasure } from './repeats.ts';
 import type { Step } from './score.ts';
@@ -41,6 +46,17 @@ export interface WaitState {
    * nor wrong until a key of a later step that is none of them is played. Null when none.
    */
   carry?: Carry | null;
+  /**
+   * Steps passed before the current one and not recorded yet (the run begins after them): they
+   * go into the records with the first step completed. Absent when none.
+   */
+  lead?: readonly number[];
+  /**
+   * The keys the app plays around the current step, neither right nor wrong when the player
+   * strikes one: those of the step completed last, of the steps passed since and of the current
+   * step. Absent when none.
+   */
+  given?: readonly number[];
 }
 
 /** An ornament going on after its step was completed. */
@@ -63,25 +79,79 @@ export interface StepRecord {
   wrong: number;
   /** When it was completed (performance.now() clock). */
   at: number;
+  /** The step had none of the player's keys: it was passed, at the moment the run went by it. */
+  passed?: true;
+  /** Its keys the app played for the player; absent when none. */
+  given?: number;
+}
+
+/** A step completed, with the steps passed on the way to it and from it to the next. */
+interface Completed {
+  record: StepRecord;
+  /** Absent when no step was passed. */
+  passed?: { before: StepRecord[]; after: StepRecord[] };
 }
 
 export type PressResult =
   | { kind: 'progress' | 'wrong' | 'ignored'; state: WaitState }
+  /** A key the app plays for the player (beyond their keyboard), struck all the same. */
+  | { kind: 'given'; state: WaitState }
   /**
    * A key of an ornament (or grace note), neither right nor wrong: `step` is the ornamented step,
    * `principal` whether the key is its principal struck again after the step was completed.
    */
   | { kind: 'ornament'; state: WaitState; step: number; principal: boolean }
-  | { kind: 'complete' | 'finished'; state: WaitState; record: StepRecord };
+  | ({ kind: 'complete' | 'finished'; state: WaitState } & Completed);
 
-/** A run over `steps`; null when there is nothing to play. */
+/** A step the player has a key of: the run waits on it. */
+const waited = (step: Step | undefined): step is Step =>
+  step !== undefined && step.midis.length > 0;
+
+/** The record of a step passed at `time`. */
+function passedRecord(steps: readonly Step[], index: number, time: number): StepRecord {
+  const step = steps[index]!;
+  return {
+    step: index,
+    measure: step.measure,
+    pass: step.pass,
+    ms: 0,
+    wrong: 0,
+    at: time,
+    passed: true,
+    ...(step.given && { given: step.given.length }),
+  };
+}
+
+/** The keys the app plays for the steps `indices`, without duplicates; undefined when none. */
+function givenIn(steps: readonly Step[], indices: readonly number[]): number[] | undefined {
+  const keys = [...new Set(indices.flatMap((i) => steps[i]?.given ?? []))];
+  return keys.length > 0 ? keys : undefined;
+}
+
+/**
+ * A run over `steps`; null when there is nothing to play. It begins on the first step at or
+ * after `start` that has a key of the player's, else on the first such step of the range.
+ */
 export function startWait(steps: readonly Step[], range?: Partial<WaitRange>): WaitState | null {
   if (steps.length === 0) return null;
   const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(n, hi));
   const first = clamp(range?.first ?? 0, 0, steps.length - 1);
   const last = clamp(range?.last ?? steps.length - 1, first, steps.length - 1);
+  let from = clamp(range?.start ?? first, first, last);
+  const next = (begin: number) => {
+    for (let i = begin; i <= last; i++) if (waited(steps[i])) return i;
+    return -1;
+  };
+  let current = next(from);
+  if (current < 0) {
+    from = first;
+    current = next(first);
+  }
+  if (current < 0) return null;
+  const lead = Array.from({ length: current - from }, (_, k) => from + k);
+  const given = givenIn(steps, [...lead, current]);
   return {
-    current: clamp(range?.start ?? first, first, last),
+    current,
     pressed: [],
     wrong: 0,
     since: null,
@@ -90,6 +160,8 @@ export function startWait(steps: readonly Step[], range?: Partial<WaitRange>): W
     loop: range?.loop ?? false,
     laps: 0,
     finished: false,
+    ...(lead.length > 0 && { lead }),
+    ...(given && { given }),
   };
 }
 
@@ -120,6 +192,7 @@ export function press(
         principal: !carry.keys.includes(midi),
         state: { ...state, since },
       };
+    if (state.given?.includes(midi)) return { kind: 'given', state: { ...state, since } };
     return { kind: 'wrong', state: { ...state, since, wrong: state.wrong + 1 } };
   }
   // A key of the step ends an ornament still going on, unless it is one of its keys.
@@ -135,6 +208,7 @@ export function press(
     ms: Math.max(0, time - since),
     wrong: state.wrong,
     at: time,
+    ...(step.given && { given: step.given.length }),
   };
   const next = step.ornaments
     ? {
@@ -143,25 +217,53 @@ export function press(
         principals: step.ornaments.map((o) => o.midi),
       }
     : kept;
-  const atEnd = state.current >= state.last;
+  // On to the next step the player has a key of: the steps before it are passed as it is reached,
+  // round the loop too.
+  const after: number[] = [];
+  let following = state.current + 1;
+  while (following <= state.last && !waited(steps[following])) after.push(following++);
+  const atEnd = following > state.last;
+  if (atEnd && state.loop) {
+    following = state.first;
+    while (following < state.current && !waited(steps[following])) after.push(following++);
+  }
+  const before = state.lead ?? [];
+  const passed =
+    before.length + after.length > 0
+      ? {
+          passed: {
+            before: before.map((i) => passedRecord(steps, i, time)),
+            after: after.map((i) => passedRecord(steps, i, time)),
+          },
+        }
+      : {};
+  // The state without what the step completed has settled: its lead is recorded with it.
+  const rest: WaitState = { ...state };
+  delete rest.lead;
+  delete rest.given;
   if (atEnd && !state.loop) {
+    const given = givenIn(steps, [state.current, ...after]);
     return {
       kind: 'finished',
       record,
-      state: { ...state, pressed, since, finished: true, carry: next },
+      ...passed,
+      state: { ...rest, pressed, since, finished: true, carry: next, ...(given && { given }) },
     };
   }
+  const given = givenIn(steps, [state.current, ...after, following]);
   return {
     kind: 'complete',
     record,
+    ...passed,
     state: {
-      ...state,
-      current: atEnd ? state.first : state.current + 1,
+      ...rest,
+      current: following,
       pressed: [],
       wrong: 0,
       since: time,
       laps: atEnd ? state.laps + 1 : state.laps,
       carry: next,
+      ...(given && { given }),
     },
   };
 }

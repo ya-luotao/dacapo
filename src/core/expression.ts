@@ -14,6 +14,7 @@ import {
   type OrnamentKind,
   type PedalMark,
 } from './markings.ts';
+import type { KeyRange } from './instrument.ts';
 import { beatTicks } from './metronome.ts';
 import { playSpan, realiseAt, timeline } from './playback.ts';
 import { playOrder, resolveLoop, type PlayedMeasure, type RepeatMode } from './repeats.ts';
@@ -113,6 +114,11 @@ export interface ExpressionInput {
   events: readonly TakeEvent[];
   /** The melody for the balance (default: the right hand's top note). */
   melody?: Melody;
+  /**
+   * The keyboard the run was played on, when it had fewer keys (docs/PERSONAL.md, "The
+   * instrument's keys"): the notes beyond it were the app's, and nothing is judged of them.
+   */
+  keys?: KeyRange | null;
 }
 
 // --- Output ---------------------------------------------------------------------------------------
@@ -630,9 +636,10 @@ export function runSteps(
   hands: HandSelection,
   repeats: RepeatMode,
   loop: BarLoop | null,
+  keys?: KeyRange | null,
 ): RunSteps {
   const order = playOrder(score.measures, repeats);
-  const steps = buildSteps(score, hands, order);
+  const steps = buildSteps(score, hands, order, keys);
   let first = 0;
   let last = steps.length - 1;
   if (loop) {
@@ -1976,7 +1983,11 @@ function analyzeOrnaments(
   times: RunTimes,
 ): OrnamentsAnalysis {
   const { steps, score } = ctx;
-  const inScore = score.notes.some((n) => ctx.practised(n.hand) && decorated(n));
+  // An ornament on a note beyond the player's keyboard is the app's to play.
+  const given = new Set(steps.flatMap((s) => s.givenIds ?? []));
+  const inScore = score.notes.some(
+    (n) => ctx.practised(n.hand) && decorated(n) && !given.has(n.id),
+  );
   // Each step's first key, per round.
   const starts = new Map<string, number>();
   for (const n of notes) {
@@ -2078,7 +2089,7 @@ export function ornamentsToLookAt(o: OrnamentsAnalysis): LookAt<OrnamentJudgemen
 
 export function analyzeExpression(input: ExpressionInput): ExpressionAnalysis {
   const { score, hands, repeats, loop, mode, events } = input;
-  const { order, steps, first, last } = runSteps(score, hands, repeats, loop);
+  const { order, steps, first, last } = runSteps(score, hands, repeats, loop, input.keys);
   const clock = mode === 'rhythm' ? runClock(score, order, loop, input.scale ?? 1) : null;
   const notes = playedNotes(score, steps, events, clock, input.latency ?? 0);
   const rounds = [...new Set(notes.map((n) => n.round))].sort((a, b) => a - b);

@@ -148,11 +148,17 @@ export function runReducer(run: Run, action: RunAction): Run {
       // In memory mode a wrong key in a hidden bar shows the step's notes: a prompt.
       const prompts = run.prompts + (result.kind === 'wrong' && stepHidden(run) ? 1 : 0);
       const completed = result.kind === 'complete' || result.kind === 'finished';
+      const passedBy = (record: StepRecord): RunRecord => ({
+        ...record,
+        epoch: action.at,
+        ...(run.memory && { prompts: 0, stage: run.memory.stage }),
+      });
       const take = run.take ?? startTake(action.time, action.at, action.pedals);
       // The key belongs to the step it was pressed on, unless it is not one of its keys; a key of
-      // an ornament to its step, unless it is the principal struck again after the step.
+      // an ornament to its step, unless it is the principal struck again after the step. A key
+      // the app plays for the player is none of the player's: it matches nothing.
       const step =
-        result.kind === 'wrong'
+        result.kind === 'wrong' || result.kind === 'given'
           ? -1
           : result.kind === 'ornament'
             ? result.principal
@@ -168,11 +174,14 @@ export function runReducer(run: Run, action: RunAction): Run {
         records: completed
           ? [
               ...run.records,
+              // The steps passed on the way to it, then from it to the next: no prompt is theirs.
+              ...(result.passed?.before ?? []).map(passedBy),
               {
                 ...result.record,
                 epoch: action.at,
                 ...(run.memory && { prompts, stage: run.memory.stage }),
               },
+              ...(result.passed?.after ?? []).map(passedBy),
             ]
           : run.records,
         prompts: completed ? 0 : prompts,

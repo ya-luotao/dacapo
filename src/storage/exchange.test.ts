@@ -41,6 +41,7 @@ import {
   sampleRhythmSession,
   sampleSightSession,
   sampleImprovSession,
+  sampleKeyboardRun,
   sampleRhythmEarChoice,
   sampleRhythmEarSession,
   sampleRhythmEarTaps,
@@ -51,7 +52,8 @@ import {
   T0,
 } from './fixtures.ts';
 import { createIndexedDbRepository, type PracticeRepository } from './repository.ts';
-import { validateLesson } from './validate.ts';
+import { validateLesson, validatePieceStep, validateSession } from './validate.ts';
+import { validatePieceSession21, validatePieceStep21 } from './validate21.ts';
 
 const PREFS: Preferences = { locale: 'zh-CN', theme: 'dark' };
 const NOW = Date.UTC(2026, 8, 25, 8, 30);
@@ -718,7 +720,8 @@ describe('versions', () => {
         pieceSteps: [
           ...steps,
           { ...steps[0]!, id: 'y1', notes: undefined },
-          { ...steps[0]!, id: 'y2', notes: [] },
+          // More keys than a piano has. (No key at all is a step passed: see G6c below.)
+          { ...steps[0]!, id: 'y2', notes: Array.from({ length: 89 }, () => steps[0]!.notes![0]) },
           { ...steps[0]!, id: 'y3', notes: [{ midi: 200, deviation: 3 }] },
           { ...steps[0]!, id: 'y4', notes: [{ midi: 60, deviation: 5000 }] },
           { ...steps[0]!, id: 'y5', mode: undefined },
@@ -833,7 +836,8 @@ describe('versions', () => {
           { ...steps[0]!, id: 'y1', prompts: undefined },
           { ...steps[0]!, id: 'y2', stage: 'most' },
           { ...plain[0]!, id: 'y3', prompts: 0 },
-          { ...steps[0]!, id: 'y4', notes: [] },
+          // Timings are rhythm mode's. (An empty list is a step passed: see G6c below.)
+          { ...steps[0]!, id: 'y4', notes: [{ midi: 60, deviation: 5 }] },
         ],
         scaleRuns: [],
         answers: [],
@@ -2177,5 +2181,154 @@ describe('versions', () => {
       { collection: 'pieces', index: 1, field: 'review', problem: 'invalid' },
       { collection: 'pieces', index: 2, field: 'facts', problem: 'invalid' },
     ]);
+  });
+});
+
+describe('a run on a keyboard with fewer keys (G6c)', () => {
+  it('imports a step passed in every mode, and the notes played for the player', () => {
+    const wait = sampleKeyboardRun('k1');
+    const rhythm = sampleKeyboardRun('k2', 'rhythm');
+    const memory = sampleKeyboardRun('k3', 'memory');
+    const sessions = [wait.session, rhythm.session, memory.session];
+    const steps = [...wait.steps, ...rhythm.steps, ...memory.steps];
+    expect(sessions.map((s) => [s.steps, s.given])).toEqual([
+      [3, 3],
+      [3, 3],
+      [3, 3],
+    ]);
+    // In rhythm mode the run's notes are those the player had: three steps, one with one key.
+    expect(rhythm.session.rhythm!.notes).toBe(5);
+    const file = parsed(
+      fileWith({
+        version: 8,
+        pieces: [],
+        sessions,
+        pieceSteps: steps,
+        scaleRuns: [],
+        answers: [],
+        takes: [],
+      }),
+    );
+    expect(file.invalid).toEqual([]);
+    expect(file.sessions).toEqual(sessions);
+    expect(file.pieceSteps).toEqual(steps);
+    expect(file.pieceSteps.filter((s) => s.notes?.length === 0)).toHaveLength(3);
+  });
+
+  it('is strict about both: a list of no keys or none, a count or nothing', () => {
+    const { steps, session } = sampleKeyboardRun('k1');
+    const file = parsed(
+      fileWith({
+        version: 8,
+        pieces: [],
+        sessions: [
+          session,
+          { ...session, id: 'x1', given: 0 },
+          { ...session, id: 'x2', given: -1 },
+          { ...session, id: 'x3', given: 1.5 },
+          { ...session, id: 'x4', given: '3' },
+          { ...session, id: 'x5', given: null },
+        ],
+        pieceSteps: [
+          ...steps,
+          // Timings are rhythm mode's: in wait mode a step has none, or the empty list of one
+          // passed.
+          { ...steps[0]!, id: 'y1', notes: [{ midi: 60, deviation: 5 }] },
+          { ...steps[0]!, id: 'y2', notes: null },
+          { ...steps[0]!, id: 'y3', notes: {} },
+          { ...steps[0]!, id: 'y4', notes: 0 },
+        ],
+        scaleRuns: [],
+        answers: [],
+        takes: [],
+      }),
+    );
+    expect(file.sessions).toEqual([session]);
+    expect(file.pieceSteps).toEqual(steps);
+    expect(file.invalid).toEqual([
+      { collection: 'sessions', index: 1, field: 'given', problem: 'invalid' },
+      { collection: 'sessions', index: 2, field: 'given', problem: 'invalid' },
+      { collection: 'sessions', index: 3, field: 'given', problem: 'invalid' },
+      { collection: 'sessions', index: 4, field: 'given', problem: 'invalid' },
+      { collection: 'sessions', index: 5, field: 'given', problem: 'invalid' },
+      { collection: 'pieceSteps', index: 4, field: 'notes', problem: 'invalid' },
+      { collection: 'pieceSteps', index: 5, field: 'notes', problem: 'invalid' },
+      { collection: 'pieceSteps', index: 6, field: 'notes', problem: 'invalid' },
+      { collection: 'pieceSteps', index: 7, field: 'notes', problem: 'invalid' },
+    ]);
+  });
+
+  it('is refused in part by a build from before: the steps passed; the session’s count is left out', () => {
+    for (const mode of ['wait', 'rhythm', 'memory'] as const) {
+      const { steps, session } = sampleKeyboardRun('k1', mode);
+      // This build keeps every record as it is.
+      for (const step of steps) expect(validatePieceStep(step)).toEqual({ ok: true, value: step });
+      expect(validateSession(session)).toEqual({ ok: true, value: session });
+      // A build before SYNC_SCHEMA 22 refuses the step passed and keeps the rest; it keeps the
+      // session without the notes played for the player, which it does not know.
+      expect(steps.map((step) => validatePieceStep21(step).ok)).toEqual([true, true, false, true]);
+      expect(validatePieceStep21(steps[2])).toEqual({ ok: false, field: 'notes' });
+      for (const step of [steps[0]!, steps[1]!, steps[3]!])
+        expect(validatePieceStep21(step)).toEqual({ ok: true, value: step });
+      const { given, ...before } = session;
+      expect(given).toBe(3);
+      expect(validatePieceSession21(session)).toEqual({ ok: true, value: before });
+    }
+    // On the records of every run from before, the two builds agree.
+    const { steps, session } = sampleRun('r1', 3);
+    for (const step of steps) expect(validatePieceStep21(step)).toEqual(validatePieceStep(step));
+    expect(validatePieceSession21(session)).toEqual(validateSession(session));
+    const timed = sampleRhythmRun('r2', 3);
+    for (const step of timed.steps)
+      expect(validatePieceStep21(step)).toEqual(validatePieceStep(step));
+    expect(validatePieceSession21(timed.session)).toEqual(validateSession(timed.session));
+  });
+
+  it('round-trips through a file, whose version stays', async () => {
+    const source = await freshRepository();
+    const runs = [
+      sampleKeyboardRun('k1'),
+      sampleKeyboardRun('k2', 'rhythm'),
+      sampleKeyboardRun('k3', 'memory'),
+    ];
+    for (const { steps, session } of runs) {
+      for (const step of steps) await source.addPieceStep(step, null);
+      await source.finishPieceRun(session.id, session);
+    }
+    const exported = await exportOf(source);
+    expect(exported.version).toBe(10);
+    const file = parsed(exportText(exported));
+    expect(file.invalid).toEqual([]);
+    const target = await freshRepository();
+    expect(await target.merge(file)).toMatchObject({ sessions: 3, pieceSteps: 12 });
+    const byId = <T extends { id: string }>(list: readonly T[]) =>
+      [...list].sort((a, b) => (a.id < b.id ? -1 : 1));
+    expect(byId((await target.load()).sessions)).toEqual(byId(runs.map((r) => r.session)));
+    expect(byId(await target.allPieceSteps())).toEqual(byId(runs.flatMap((r) => r.steps)));
+    // Again: nothing new.
+    expect(await target.merge(file)).toMatchObject({ sessions: 0, pieceSteps: 0 });
+  });
+
+  it('keeps the lowest and highest key among a piece’s facts, and refuses broken ones', () => {
+    const facts = {
+      checksum: '0123abcd',
+      bars: { right: 3, left: 2, both: 3 },
+      notes: { play: 40, skip: 30 },
+      keys: [33, 88] as const,
+    };
+    const file = parsed(
+      fileWith({
+        version: 2,
+        pieces: [
+          samplePiece(1, { facts }),
+          { ...samplePiece(2), facts: { ...facts, keys: [88, 33] } },
+          { ...samplePiece(3), facts: { ...facts, keys: [33] } },
+          { ...samplePiece(4), facts: { ...facts, keys: [33, 200] } },
+          { ...samplePiece(5), facts: { ...facts, keys: '33-88' } },
+        ],
+      }),
+    );
+    expect(file.pieces).toEqual([samplePiece(1, { facts })]);
+    expect(file.invalid.map((i) => i.field)).toEqual(['facts', 'facts', 'facts', 'facts']);
   });
 });

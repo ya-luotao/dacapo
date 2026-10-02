@@ -5,7 +5,7 @@
 // time through: each round of a loop counts as a run, as someone practising a phrase counts it.
 
 import { IDLE_MS } from './activity.ts';
-import { stepMode, type PieceStep, type PracticeMode } from './pieceRecords.ts';
+import { isPassed, stepMode, type PieceStep, type PracticeMode } from './pieceRecords.ts';
 import type { PlayedMeasure } from './repeats.ts';
 import type { HandSelection } from './score.ts';
 import { median } from './session.ts';
@@ -230,9 +230,14 @@ interface Figures {
 
 function figures(steps: readonly PieceStep[], metric: BarMetric): Figures {
   if (metric !== 'timing') {
+    // The steps the player had a key of: a step passed (beyond their keyboard, docs/PERSONAL.md,
+    // "The instrument's keys") took no time of theirs. A bar gone through with none of the
+    // player's steps held nobody up: it counts no step and is at ease.
+    const own = steps.some(isPassed) ? steps.filter((s) => !isPassed(s)) : steps;
     return {
-      count: steps.length,
-      medianMs: median(steps.map((s) => Math.min(s.ms, IDLE_MS))),
+      count: own.length,
+      medianMs:
+        own.length === 0 && steps.length > 0 ? 0 : median(own.map((s) => Math.min(s.ms, IDLE_MS))),
       wrong: steps.reduce((n, s) => n + s.wrong, 0),
       missed: 0,
       prompts: steps.reduce((n, s) => n + (s.prompts ?? 0), 0),

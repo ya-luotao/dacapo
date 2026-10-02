@@ -79,6 +79,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: '09efdf72',
       bars: { right: 8, left: 8, both: 8 },
       notes: { play: 35, skip: 35 },
+      keys: [48, 79],
     },
   },
   {
@@ -95,6 +96,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: '7a47ee21',
       bars: { right: 16, left: 16, both: 16 },
       notes: { play: 85, skip: 85 },
+      keys: [43, 67],
     },
   },
   {
@@ -111,6 +113,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: 'a2c6a2a0',
       bars: { right: 16, left: 16, both: 16 },
       notes: { play: 232, skip: 116 },
+      keys: [59, 79],
     },
   },
   {
@@ -127,6 +130,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: '6be48d2b',
       bars: { right: 8, left: 8, both: 8 },
       notes: { play: 42, skip: 42 },
+      keys: [48, 81],
     },
   },
   {
@@ -142,6 +146,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: '12d399be',
       bars: { right: 12, left: 12, both: 12 },
       notes: { play: 79, skip: 79 },
+      keys: [60, 79],
     },
   },
   {
@@ -158,6 +163,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: 'b8164335',
       bars: { right: 8, left: 8, both: 8 },
       notes: { play: 52, skip: 52 },
+      keys: [43, 74],
     },
   },
   {
@@ -174,6 +180,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: '7c04d493',
       bars: { right: 9, left: 8, both: 9 },
       notes: { play: 32, skip: 32 },
+      keys: [40, 72],
     },
   },
   {
@@ -190,6 +197,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: 'a0ae966d',
       bars: { right: 9, left: 9, both: 9 },
       notes: { play: 55, skip: 55 },
+      keys: [41, 72],
     },
   },
   {
@@ -205,6 +213,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: 'b1609557',
       bars: { right: 13, left: 13, both: 13 },
       notes: { play: 98, skip: 98 },
+      keys: [55, 76],
     },
   },
   {
@@ -220,6 +229,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: 'a4109d0e',
       bars: { right: 20, left: 20, both: 20 },
       notes: { play: 278, skip: 174 },
+      keys: [47, 76],
     },
   },
   {
@@ -236,6 +246,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: 'b99b28f6',
       bars: { right: 20, left: 20, both: 20 },
       notes: { play: 303, skip: 254 },
+      keys: [55, 81],
     },
   },
   {
@@ -251,6 +262,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: 'b80fe0e1',
       bars: { right: 32, left: 32, both: 32 },
       notes: { play: 406, skip: 203 },
+      keys: [43, 83],
     },
   },
   {
@@ -266,6 +278,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: '7db61cc9',
       bars: { right: 31, left: 33, both: 33 },
       notes: { play: 480, skip: 271 },
+      keys: [45, 93],
     },
   },
   {
@@ -281,6 +294,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: '3deaa5fc',
       bars: { right: 32, left: 32, both: 32 },
       notes: { play: 312, skip: 212 },
+      keys: [48, 79],
     },
   },
   {
@@ -296,6 +310,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: '2718f11a',
       bars: { right: 25, left: 20, both: 25 },
       notes: { play: 293, skip: 146 },
+      keys: [33, 88],
     },
   },
   {
@@ -311,6 +326,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: 'aaa8934c',
       bars: { right: 35, left: 35, both: 35 },
       notes: { play: 549, skip: 549 },
+      keys: [36, 81],
     },
   },
   {
@@ -326,6 +342,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: '1bd02b28',
       bars: { right: 32, left: 32, both: 32 },
       notes: { play: 398, skip: 199 },
+      keys: [43, 82],
     },
   },
   {
@@ -341,6 +358,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: '57131154',
       bars: { right: 20, left: 20, both: 20 },
       notes: { play: 342, skip: 171 },
+      keys: [38, 81],
     },
   },
   {
@@ -356,6 +374,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: '77bc647c',
       bars: { right: 23, left: 22, both: 23 },
       notes: { play: 408, skip: 235 },
+      keys: [47, 84],
     },
   },
   {
@@ -371,6 +390,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: 'f8a3c552',
       bars: { right: 33, left: 32, both: 33 },
       notes: { play: 188, skip: 188 },
+      keys: [43, 77],
     },
   },
   {
@@ -386,6 +406,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: '9e16a928',
       bars: { right: 24, left: 24, both: 24 },
       notes: { play: 246, skip: 246 },
+      keys: [42, 79],
     },
   },
   {
@@ -401,6 +422,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: '842bdcd3',
       bars: { right: 13, left: 13, both: 13 },
       notes: { play: 286, skip: 286 },
+      keys: [24, 75],
     },
   },
   {
@@ -416,6 +438,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: 'db34d100',
       bars: { right: 38, left: 47, both: 47 },
       notes: { play: 455, skip: 228 },
+      keys: [33, 81],
     },
   },
   {
@@ -433,6 +456,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: 'eeb5c6ad',
       bars: { right: 24, left: 0, both: 24 },
       notes: { play: 42, skip: 42 },
+      keys: [67, 76],
     },
   },
   {
@@ -450,6 +474,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: '778fec8a',
       bars: { right: 20, left: 0, both: 20 },
       notes: { play: 44, skip: 44 },
+      keys: [60, 77],
     },
   },
   {
@@ -467,6 +492,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: 'f8cdf8f2',
       bars: { right: 8, left: 0, both: 8 },
       notes: { play: 27, skip: 27 },
+      keys: [62, 74],
     },
   },
   {
@@ -484,6 +510,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: '45518e37',
       bars: { right: 15, left: 0, both: 15 },
       notes: { play: 35, skip: 35 },
+      keys: [62, 74],
     },
   },
   {
@@ -501,6 +528,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: '19fc9bb3',
       bars: { right: 16, left: 0, both: 16 },
       notes: { play: 98, skip: 98 },
+      keys: [62, 76],
     },
   },
   {
@@ -518,6 +546,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: 'f1e65c83',
       bars: { right: 25, left: 0, both: 25 },
       notes: { play: 110, skip: 85 },
+      keys: [67, 76],
     },
   },
   {
@@ -535,6 +564,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: '1fc67ba5',
       bars: { right: 18, left: 0, both: 18 },
       notes: { play: 84, skip: 56 },
+      keys: [62, 76],
     },
   },
   {
@@ -552,6 +582,7 @@ export const BUILT_IN: readonly BuiltInPiece[] = [
       checksum: 'ec992a8e',
       bars: { right: 24, left: 0, both: 24 },
       notes: { play: 100, skip: 100 },
+      keys: [60, 74],
     },
   },
 ];

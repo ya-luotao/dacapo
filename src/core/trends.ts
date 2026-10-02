@@ -12,7 +12,7 @@ import {
   type Answer,
 } from './answers.ts';
 import type { SessionRecord } from './log.ts';
-import { stepMode, type PieceStep } from './pieceRecords.ts';
+import { isPassed, stepMode, type PieceStep } from './pieceRecords.ts';
 import { runFigures } from './scaleProgress.ts';
 import { parseExerciseKey } from './scales.ts';
 import { isTimed, median, type Attempt } from './session.ts';
@@ -215,7 +215,8 @@ export function pieceStepObservations(steps: readonly PieceStep[]): {
   for (const step of steps) {
     const mode = stepMode(step);
     if (mode === 'wait') {
-      if (step.transpose === undefined)
+      // A step passed had none of the player's keys: there was nothing to get right.
+      if (step.transpose === undefined && !isPassed(step))
         wait.push({ at: step.at, value: step.wrong === 0 ? 1 : 0, run: step.sessionId });
       continue;
     }

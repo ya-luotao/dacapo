@@ -22,12 +22,14 @@ import {
   sampleRhythmSession,
   sampleSightSession,
   sampleImprovSession,
+  sampleKeyboardRun,
   sampleRhythmEarSession,
   sampleStoredAssignment,
   sampleStoredReport,
   T0,
 } from '../storage/fixtures.ts';
 import { createIndexedDbRepository } from '../storage/repository.ts';
+import { validatePieceSession21, validatePieceStep21 } from '../storage/validate21.ts';
 import { createPracticeStore, type PracticeStore } from '../ui/practice/store.ts';
 import { ApiError, type SyncApi } from './api.ts';
 import { CHANGE_DELAY_MS, createSyncClient, START_DELAY_MS, type SyncClient } from './client.ts';
@@ -1649,5 +1651,129 @@ describe('the public profile', () => {
     await ipad.client.signOut();
     expect(ipad.client.getStatus().profile).toBeNull();
     await expect(ipad.client.loadProfile()).rejects.toMatchObject({ code: 'unauthorized' });
+  });
+});
+
+describe('a run on a keyboard with fewer keys (G6c)', () => {
+  /** What a build before SYNC_SCHEMA 22 keeps of the service's records of a run: the steps it validates, the session without what it does not know. */
+  async function asSchema21(d: Device, service: Service, sessionId: string, stepIds: string[]) {
+    const state = (await d.db.get('meta', SYNC_STATE_KEY)) as SyncState;
+    await d.db.clear('pieceSteps');
+    for (const id of stepIds) {
+      const kept = validatePieceStep21(service.body('pieceSteps', id));
+      if (kept.ok) await d.db.put('pieceSteps', kept.value);
+    }
+    const session = validatePieceSession21(service.body('sessions', sessionId));
+    if (!session.ok) throw new Error('the session should validate');
+    await d.db.put('sessions', session.value);
+    await d.db.put('meta', { ...state, schema: 21 }, SYNC_STATE_KEY);
+    await d.store.reloadAll();
+    return session.value;
+  }
+
+  it.each(['wait', 'rhythm', 'memory'] as const)(
+    'syncs a %s run with its steps passed and the notes played for the player',
+    async (mode) => {
+      const service = fakeService();
+      const ipad = await device(service);
+      const mac = await device(service);
+      const { steps, session } = sampleKeyboardRun('k1', mode, { pieceId: 'p1' });
+      for (const step of steps) ipad.store.recordPieceStep(step, null);
+      ipad.store.finishPieceRun('k1', session);
+      await ipad.store.settled();
+      await signIn(ipad);
+      expect(service.body('sessions', 'k1')).toMatchObject({ given: 3, steps: 3 });
+      expect(service.body('pieceSteps', steps[2]!.id)).toMatchObject({ notes: [] });
+      await signIn(mac);
+      expect(mac.store.getSnapshot().sessions).toContainEqual(session);
+      mac.store.loadPieceSteps('p1');
+      await vi.waitFor(() => expect(mac.store.getPieceSteps('p1')).toEqual(steps));
+    },
+  );
+
+  it('comes whole to a device once its build is updated, and nothing goes back and forth', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    const { steps, session } = sampleKeyboardRun('k1', 'rhythm', { pieceId: 'p1' });
+    for (const step of steps) ipad.store.recordPieceStep(step, null);
+    ipad.store.finishPieceRun('k1', session);
+    await ipad.store.settled();
+    await signIn(ipad);
+    await signIn(mac);
+
+    // The Mac as its build before schema 22 left it: the step passed refused, the session kept
+    // without the notes played for the player, the cursor past both.
+    const kept = await asSchema21(
+      mac,
+      service,
+      'k1',
+      steps.map((s) => s.id),
+    );
+    expect(kept).not.toHaveProperty('given');
+    mac.store.loadPieceSteps('p1');
+    await vi.waitFor(() =>
+      expect(mac.store.getPieceSteps('p1')).toEqual([steps[0], steps[1], steps[3]]),
+    );
+    expect(mac.store.getSnapshot().sessions).toContainEqual(kept);
+
+    // Updated: it pulls everything again, and takes back what it had left out.
+    const sync = vi.spyOn(service.api, 'sync');
+    await mac.client.syncNow();
+    expect(SYNC_SCHEMA).toBeGreaterThanOrEqual(22);
+    expect(sync.mock.calls.map((call) => call[1])).toEqual([0]);
+    // It sent nothing of its own: its copies were the lesser ones.
+    expect(sync.mock.calls.flatMap((call) => call[2])).toEqual([]);
+    expect(mac.store.getSnapshot().sessions).toContainEqual(session);
+    expect(mac.store.getSnapshot().sessions).not.toContainEqual(kept);
+    mac.store.loadPieceSteps('p1');
+    await vi.waitFor(() => expect(mac.store.getPieceSteps('p1')).toEqual(steps));
+
+    // Both devices agree with the service, and further rounds change nothing on it.
+    const before = [
+      service.body('sessions', 'k1'),
+      ...steps.map((s) => service.body('pieceSteps', s.id)),
+    ];
+    expect(before).toEqual([session, ...steps]);
+    sync.mockClear();
+    for (const d of [ipad, mac, ipad, mac]) await d.client.syncNow();
+    expect(sync.mock.calls.flatMap((call) => call[2])).toEqual([]);
+    expect([
+      service.body('sessions', 'k1'),
+      ...steps.map((s) => service.body('pieceSteps', s.id)),
+    ]).toEqual(before);
+    expect(ipad.store.getSnapshot().sessions).toEqual(mac.store.getSnapshot().sessions);
+  });
+
+  it('keeps the whole run when the device that made it meets a copy from an older build', async () => {
+    const service = fakeService();
+    const ipad = await device(service);
+    const mac = await device(service);
+    const { steps, session } = sampleKeyboardRun('k1', 'wait', { pieceId: 'p1' });
+    // The service holds what an older build made of the run (it had it from a file, say): the
+    // session without its count, the steps without the one passed.
+    const stripped = { ...session };
+    delete stripped.given;
+    for (const step of [steps[0]!, steps[1]!, steps[3]!]) mac.store.recordPieceStep(step, null);
+    mac.store.finishPieceRun('k1', stripped);
+    await mac.store.settled();
+    await signIn(mac);
+    expect(service.body('sessions', 'k1')).toEqual(stripped);
+
+    // The iPad has the run whole: its copy of the session is the longer one, and wins everywhere.
+    for (const step of steps) ipad.store.recordPieceStep(step, null);
+    ipad.store.finishPieceRun('k1', session);
+    await ipad.store.settled();
+    await signIn(ipad);
+    await ipad.client.syncNow();
+    expect(service.body('sessions', 'k1')).toEqual(session);
+    expect(service.body('pieceSteps', steps[2]!.id)).toEqual(steps[2]);
+    await mac.client.syncNow();
+    expect(mac.store.getSnapshot().sessions).toContainEqual(session);
+    mac.store.loadPieceSteps('p1');
+    await vi.waitFor(() => expect(mac.store.getPieceSteps('p1')).toEqual(steps));
+    const sync = vi.spyOn(service.api, 'sync');
+    for (const d of [ipad, mac, ipad]) await d.client.syncNow();
+    expect(sync.mock.calls.flatMap((call) => call[2])).toEqual([]);
   });
 });

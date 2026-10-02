@@ -4,9 +4,21 @@
 // version (the demo at the run's tempo), then the run, bar by bar or all of it at once.
 
 import { playedNotes, runClock, runSteps, runTimes, type PlayedNote } from './expression.ts';
+import { hasKey, type KeyRange } from './instrument.ts';
 import type { TrillStart } from './ornaments.ts';
-import { demoPlan, playSpan, timeline, type DemoControl, type DemoPlan } from './playback.ts';
-import type { RepeatMode } from './repeats.ts';
+import {
+  accompanied,
+  accompanimentPlan,
+  beyondKeyboard,
+  DEMO_VELOCITY,
+  demoPlan,
+  playSpan,
+  timeline,
+  type DemoControl,
+  type DemoNote,
+  type DemoPlan,
+} from './playback.ts';
+import type { PlayedMeasure, RepeatMode } from './repeats.ts';
 import type { HandSelection, Score, Step } from './score.ts';
 import { TAKE_OFF, TAKE_ON, TAKE_PEDALS, type TakeEvent } from './takes.ts';
 import type { BarLoop } from './wait.ts';
@@ -34,6 +46,13 @@ export interface PlaybackRun {
   events: readonly TakeEvent[];
   /** Where trills start in the written version (the piece's setting). */
   trillStart?: TrillStart;
+  /**
+   * The keyboard the run was played on, when it had fewer keys (docs/PERSONAL.md, "The
+   * instrument's keys"): the notes beyond it, which the app played for the player, are played
+   * again with the run, at `givenVelocity` (the demo's when absent).
+   */
+  keys?: KeyRange | null;
+  givenVelocity?: number;
 }
 
 /** A key as it sounds in the plan. */
@@ -74,6 +93,7 @@ interface Anchor {
 }
 
 interface Reading {
+  order: PlayedMeasure[];
   steps: Step[];
   notes: PlayedNote[];
   /** Key downs and ups in the take's ms, paired. */
@@ -94,7 +114,7 @@ const isPedal = (kind: number) => (TAKE_PEDALS as readonly number[]).includes(ki
 
 function read(run: PlaybackRun): Reading | null {
   const { score, events } = run;
-  const { order, steps } = runSteps(score, run.hands, run.repeats, run.loop);
+  const { order, steps } = runSteps(score, run.hands, run.repeats, run.loop, run.keys);
   const clock = run.mode === 'rhythm' ? runClock(score, order, run.loop, run.tempo / 100) : null;
   const notes = playedNotes(score, steps, events, clock, run.latency);
   const strokes: Reading['strokes'] = [];
@@ -127,13 +147,13 @@ function read(run: PlaybackRun): Reading | null {
   const anchors = [...first.values()].sort(
     (a, b) => a.at - b.at || a.round - b.round || a.step - b.step,
   );
-  const reading = { steps, notes, strokes, anchors, cursor: anchors, end, clock };
+  const reading = { order, steps, notes, strokes, anchors, cursor: anchors, end, clock };
   if (run.mode === 'wait') {
     const early: Anchor[] = [];
     for (const s of strokes) {
       if (s.step >= 0 && steps[s.step] !== undefined) continue;
       const next = anchors.find((a) => a.at > s.on);
-      if (next && isWrong(reading, run.mode, s.midi, s.on))
+      if (next && isWrong(reading, run, s.midi, s.on))
         early.push({ round: next.round, step: next.step, at: s.on });
     }
     // The cursor stays where a wrong key moved it when the step's own key comes.
@@ -154,14 +174,94 @@ function ornamental(step: Step | undefined, midi: number): boolean {
 /**
  * Whether a key matched to nothing is wrong: not in a rhythm run's count-in, and not the principal
  * of an ornament struck again (or, in a take from before X4, a key of the ornament) on the step the
- * run was on or the one before it.
+ * run was on or the one before it. Nor is a key the app played for the player (beyond the keyboard
+ * the run was played on) struck all the same, on the screen say: of the step the run was on, the
+ * one before, the one after, or a step passed between them, it counted as neither right nor wrong.
  */
-function isWrong(r: Reading, mode: PlaybackRun['mode'], midi: number, at: number): boolean {
+function isWrong(
+  r: Reading,
+  { mode, keys }: Pick<PlaybackRun, 'mode' | 'keys'>,
+  midi: number,
+  at: number,
+): boolean {
   if (mode === 'rhythm' && at < 0) return false;
   const k = r.anchors.findLastIndex((a) => a.at <= at);
   for (const anchor of [r.anchors[k], r.anchors[k - 1]])
     if (anchor && ornamental(r.steps[anchor.step], midi)) return false;
+  if (keys && !hasKey(keys, midi)) {
+    const around = [r.anchors[k - 1], r.anchors[k], r.anchors[k + 1]].flatMap((a) =>
+      a ? [a.step] : [],
+    );
+    const from = Math.min(...around);
+    const to = Math.max(...around);
+    for (let i = from; i <= to; i++) if (r.steps[i]?.given?.includes(midi)) return false;
+  }
   return true;
+}
+
+/**
+ * The notes the app played for the player in the run (those beyond its keyboard), in the take's
+ * ms, as they sounded: in rhythm mode on the run's clock, from the bar the run began in (its
+ * first key matched) to the take's end; in wait mode with each step completed, as the other
+ * hand's are (`accompanied`). Empty for a run on a keyboard with every key.
+ */
+function playedFor(run: PlaybackRun, r: Reading): DemoNote[] {
+  const include = beyondKeyboard(run.hands, run.keys);
+  if (!include) return [];
+  const { score, loop } = run;
+  const scale = run.tempo / 100;
+  const { order, steps } = r;
+  if (r.clock) {
+    const written = demoPlan({
+      score,
+      order,
+      steps,
+      hands: run.hands,
+      loop,
+      startBar: loop?.from ?? 0,
+      scale,
+      include,
+      trillStart: run.trillStart,
+    });
+    const first = r.anchors[0];
+    if (!written || !first) return [];
+    const lap = r.clock.length ?? 0;
+    const from = first.round * lap + r.clock.ms(order[steps[first.step]!.played]!.start);
+    const rounds = lap > 0 ? Math.floor(r.end / lap) : 0;
+    const out: DemoNote[] = [];
+    for (let round = first.round; round <= rounds; round++) {
+      for (const n of written.notes) {
+        const on = round * lap + n.on;
+        if (on >= from - 0.5 && on <= r.end)
+          out.push({ midi: n.midi, on, off: round * lap + n.off });
+      }
+    }
+    return out;
+  }
+  const plan = accompanimentPlan({
+    score,
+    order,
+    steps,
+    hand: null,
+    include,
+    loop,
+    scale,
+    trillStart: run.trillStart,
+  });
+  if (!plan) return [];
+  // A step is completed with the last of the player's keys it waits for.
+  const visits = new Map<string, { step: number; keys: Set<number>; at: number }>();
+  for (const n of r.notes) {
+    const id = `${n.round}:${n.step}`;
+    const visit = visits.get(id) ?? { step: n.step, keys: new Set<number>(), at: -Infinity };
+    visit.keys.add(n.note.midi);
+    visit.at = Math.max(visit.at, n.on);
+    visits.set(id, visit);
+  }
+  const completions = [...visits.values()]
+    .filter((v) => steps[v.step]!.midis.every((midi) => v.keys.has(midi)))
+    .sort((a, b) => a.at - b.at);
+  return accompanied(plan, completions);
 }
 
 /** The pedals of the take as plan controls, `shift` added to their times. */
@@ -196,10 +296,17 @@ export function takePlayback(run: PlaybackRun): TakePlayback | null {
       on: s.on + shift,
       off: s.off + shift,
       step: matched ? s.step : null,
-      wrong: !matched && isWrong(r, run.mode, s.midi, s.on),
+      wrong: !matched && isWrong(r, run, s.midi, s.on),
     };
   });
   const velocities = r.strokes.map((s) => s.velocity);
+  // The notes the app played for the player, so the run is heard whole.
+  for (const n of playedFor(run, r)) {
+    keys.push({ midi: n.midi, on: n.on + shift, off: n.off + shift, step: null, wrong: false });
+    velocities.push(run.givenVelocity ?? DEMO_VELOCITY);
+  }
+  const byOn = keys.map((_, i) => i).sort((a, b) => keys[a]!.on - keys[b]!.on || a - b);
+  const sounded = byOn.map((i) => ({ ...keys[i]!, velocity: velocities[i]! }));
   const steps = r.cursor.map((a) => ({ step: a.step, at: a.at + shift }));
   const bars: TakePlayback['bars'] = [];
   for (const a of r.anchors) {
@@ -208,16 +315,16 @@ export function takePlayback(run: PlaybackRun): TakePlayback | null {
   }
   return {
     plan: {
-      notes: keys.map((k, i) => ({ midi: k.midi, on: k.on, off: k.off, velocity: velocities[i]! })),
+      notes: sounded.map(({ midi, on, off, velocity }) => ({ midi, on, off, velocity })),
       steps,
-      length: r.end + shift + PLAYBACK_TAIL_MS,
+      length: Math.max(r.end, ...sounded.map((k) => k.off - shift)) + shift + PLAYBACK_TAIL_MS,
       start: 0,
       loop: false,
       controls: pedals(run.events, shift),
       cues: cuesOf(keys, []),
     },
     steps: r.steps,
-    keys,
+    keys: sounded.map(({ midi, on, off, step, wrong }) => ({ midi, on, off, step, wrong })),
     parts: [],
     bars,
   };
@@ -261,6 +368,7 @@ export function comparePlayback(run: PlaybackRun, by: CompareBy): TakePlayback |
   const written = timeline(score, order, scale);
   const zero = written(span.from);
   const times = runTimes(r.notes, r.clock, run.latency);
+  const given = playedFor(run, r);
 
   // The first round's bars, in the order played, each from its first key (or its downbeat on a
   // rhythm run's clock, whichever is earlier) to the next one's.
@@ -342,8 +450,15 @@ export function comparePlayback(run: PlaybackRun, by: CompareBy): TakePlayback |
         on,
         off,
         step: matched ? s.step : null,
-        wrong: !matched && isWrong(r, run.mode, s.midi, s.on),
+        wrong: !matched && isWrong(r, run, s.midi, s.on),
       });
+    }
+    for (const n of given) {
+      if (n.on < w.start || n.on >= w.end) continue;
+      const on = n.on + shift;
+      const off = Math.min(n.off, w.end) + shift;
+      notes.push({ midi: n.midi, on, off, velocity: run.givenVelocity ?? DEMO_VELOCITY });
+      keys.push({ midi: n.midi, on, off, step: null, wrong: false });
     }
     for (const anchor of r.cursor)
       if (anchor.round === 0 && anchor.at >= w.start && anchor.at < w.end)

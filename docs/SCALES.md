@@ -32,7 +32,9 @@ rank against onset time and separated the mean deviation of each note from the l
   from `core/score.ts`, not `note.ts`'s `Pitch`. Spellings are locked by a test.
 - **Range and shape.** 1, 2, 3 or 4 octaves, up and back down, ending on the tonic (the top note
   once). The right hand starts on the lowest tonic at or above C4 for one and two octaves, at or
-  above C3 for three and four; the left hand an octave lower.
+  above C3 for three and four; the left hand an octave lower. On a keyboard with fewer than 88
+  keys the octaves and hands that run beyond it are marked in the setup and are not suggested;
+  they can still be chosen ([PERSONAL.md](PERSONAL.md), "The instrument's keys").
 - **Hands.** Right, left, or together an octave apart (parallel motion). Contrary motion from a
   unison tonic, since S5.
 - **Fingering.** Standard fingering per scale and hand, drawn on the score and used to mark the

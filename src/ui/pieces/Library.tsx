@@ -3,6 +3,7 @@ import { Link } from 'wouter';
 import { useT } from '../../i18n/index.ts';
 import { BUILT_IN, type BuiltInPiece } from '../../pieces/library/index.ts';
 import { usePieceFormat } from './format.ts';
+import { PieceBeyond } from './PieceBeyond.tsx';
 import { PieceProgress } from './PieceProgress.tsx';
 
 /**
@@ -97,6 +98,7 @@ function Group({
                   {t(`library.${piece.id}.style`)}
                 </span>
                 <span className="library-piece-note">{t(`library.${piece.id}.note`)}</span>
+                <PieceBeyond facts={piece.facts} />
                 <PieceProgress pieceId={piece.id} facts={piece.facts} />
               </Link>
             </li>

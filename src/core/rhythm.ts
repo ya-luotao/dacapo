@@ -42,6 +42,12 @@ export interface TimedStep {
   slot: number;
   /** Its notes with grace notes or an ornament, timed; absent when none. */
   ornaments?: TimedOrnament[];
+  /**
+   * Its keys beyond the player's keyboard, which the app plays in time (`Step.given`); absent
+   * when none. `midis` are then the player's alone: with none the step is due all the same, and
+   * settles with no note.
+   */
+  given?: readonly number[];
 }
 
 /**
@@ -128,6 +134,7 @@ export function rhythmPlan(options: {
       ),
       slot: (nextAt ?? length) - at,
       ...ornamentsOf(s, byId, lengthOf, exact, realising),
+      ...(s.given && { given: s.given }),
     };
   });
   return {
@@ -195,11 +202,15 @@ export interface StepTiming {
   notes: NoteTiming[];
   /** Note-ons that matched nothing and were closest to this step. */
   extra: number;
+  /** Its keys the app played for the player; absent when none. */
+  given?: number;
 }
 
 export type PlayResult =
   | { kind: 'hit'; step: number; round: number; midi: number; deviation: number }
   | { kind: 'extra'; midi: number }
+  /** A key the app plays for the player (beyond their keyboard), struck within its step's window. */
+  | { kind: 'given'; midi: number }
   /**
    * A key of an ornament within its span, neither right nor wrong: `step` is the ornamented step,
    * `principal` whether the key is its principal struck again.
@@ -314,6 +325,7 @@ export function createMatcher(plan: RhythmPlan): Matcher {
       slot: o.spec.slot,
       notes: o.spec.midis.map((midi) => ({ midi, deviation: o.deviations.get(midi) ?? null })),
       extra: o.extra,
+      ...(o.spec.given && { given: o.spec.given.length }),
     };
   }
 
@@ -343,6 +355,9 @@ export function createMatcher(plan: RhythmPlan): Matcher {
         midi,
         principal: !span.keys.includes(midi),
       };
+    // A key the app plays for the player, struck with its step: neither a hit nor an extra note.
+    if (open.some((o) => o.spec.given?.includes(midi) && Math.abs(time - o.due) <= o.spec.window))
+      return { kind: 'given', midi };
     let nearest: Open | null = null;
     for (const o of open) {
       if (!nearest || Math.abs(time - o.due) < Math.abs(time - nearest.due)) nearest = o;

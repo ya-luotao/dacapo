@@ -96,6 +96,7 @@ export function rhythmReducer(state: RhythmRunState, action: RhythmAction): Rhyt
         wrong: t.extra,
         epoch: Math.round(state.epochOrigin + t.due),
         notes: t.notes,
+        ...(t.given !== undefined && { given: t.given }),
       }));
       return {
         ...state,

@@ -10,6 +10,7 @@ import {
 import { SENTENCE_GAP, useI18n } from '../../i18n/index.ts';
 import { Advice } from '../Advice.tsx';
 import { usePieceAdviceWords } from './adviceWords.ts';
+import { useBeyondWords } from './beyond.ts';
 import { DeviationChart } from './DeviationChart.tsx';
 import type { PieceFormat } from './format.ts';
 import { PlayBackButton } from './PlayBackButton.tsx';
@@ -17,6 +18,8 @@ import { SaveMidiButton } from './SaveMidiButton.tsx';
 
 interface RhythmSummaryProps {
   summary: Summary;
+  /** The notes the app played for the player (beyond their keyboard); 0 when none. */
+  given?: number;
   /** Played to the end (not stopped). */
   done: boolean;
   /** A loop, which only ends with Stop. */
@@ -41,6 +44,7 @@ interface RhythmSummaryProps {
 /** The end of a rhythm run: the figures, the tendency, where the tempo moved, and every note. */
 export function RhythmSummary({
   summary,
+  given = 0,
   done,
   looped,
   format,
@@ -56,6 +60,7 @@ export function RhythmSummary({
 }: RhythmSummaryProps) {
   const { t, locale } = useI18n();
   const words = usePieceAdviceWords(format);
+  const beyond = useBeyondWords();
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => heading.current?.focus({ preventScroll: true }), []);
   const percent = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
@@ -147,6 +152,7 @@ export function RhythmSummary({
           <dd>{summary.extra}</dd>
         </div>
       </dl>
+      {given > 0 && <p className="help run-given">{beyond.given(given)}</p>}
       <p className="rhythm-verdict">
         <Tendency tendency={summary.tendency} />
         {gap}

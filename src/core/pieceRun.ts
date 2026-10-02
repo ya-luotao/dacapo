@@ -47,8 +47,13 @@ export function barStats(
 export const bySlowest = (a: BarStat, b: BarStat): number =>
   b.meanMs - a.meanMs || b.wrong - a.wrong || a.measure - b.measure;
 
-/** The slowest bars are those whose steps took longest on average; at most `count`. */
-export function summarizeRun(records: readonly StepRecord[], count = 3): RunSummary {
+/**
+ * The slowest bars are those whose steps took longest on average; at most `count`. The steps are
+ * those the player had a key of: a step passed (all of it beyond their keyboard) took no time
+ * and is not one of them.
+ */
+export function summarizeRun(all: readonly StepRecord[], count = 3): RunSummary {
+  const records = all.some((r) => r.passed) ? all.filter((r) => !r.passed) : all;
   const slowest = barStats(records).sort(bySlowest).slice(0, count);
   return {
     activeMs: records.reduce((sum, r) => sum + Math.min(r.ms, IDLE_MS), 0),

@@ -53,7 +53,9 @@ and practices (G3's links between them read it too).
   three rungs are followed by its relative harmonic minor in the same three. A rung is an
   exercise key (`major:C:1:right`, `harmonicMinor:A:2:both`; a test holds every rung to
   `parseExerciseKey`), and is _played_ once it has a recorded run. (Arpeggios, contrary motion and
-  technique are the player's choice.)
+  technique are the player's choice.) A rung that runs beyond the player's keyboard is not
+  proposed: the ladder goes on to the next that stays on it ([PERSONAL.md](PERSONAL.md), "The
+  instrument's keys").
 - **The next piece**, when none is in hand, goes by where the player is ([PIECES.md](PIECES.md),
   "Next for you"; until G5b it was the first by grade): of the built-in pieces written for two
   hands that have no session at all, the first, in the library's order, at the highest grade of
@@ -100,6 +102,7 @@ and practices (G3's links between them read it too).
   ladder takes its place when there is no such scale, or when every exercise played in the last 14
   days has at least five runs (the runs its figure is taken over): the scales in hand have had
   their work, so a new one joins. The second warm-up of the 45-minute plan is the other of the two.
+  Neither is a scale that runs beyond the player's keyboard ([PERSONAL.md](PERSONAL.md)).
   Done: a run of that exercise recorded today.
 - **Work**: the **piece in hand** — the piece practised most recently in the last 14 days that has
   not been played to its end (`isRunToTheEnd`), built-in or imported. Its step opens the next step

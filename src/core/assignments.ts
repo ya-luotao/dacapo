@@ -35,7 +35,7 @@ import { HARMONY_MASTERY_WINDOW, harmonyLevelProgress } from './harmonySession.t
 import { LEVEL_IDS, type LevelId } from './levels.ts';
 import type { PieceSessionRecord, SessionRecord } from './log.ts';
 import { levelProgress, MASTERY_WINDOW } from './mastery.ts';
-import type { PieceStep } from './pieceRecords.ts';
+import { isPassed, type PieceStep } from './pieceRecords.ts';
 import { playOrder, type RepeatMode } from './repeats.ts';
 import { RHYTHM_LEVEL_IDS, type RhythmLevelId } from './rhythmCells.ts';
 import {
@@ -243,11 +243,13 @@ function passFigures(session: PieceSessionRecord, steps: readonly PieceStep[]): 
       inTime: ratio(inTime.length, notes.length),
     };
   }
+  // Of the steps the player had a key of: a step passed is the app's (docs/PERSONAL.md, G6c).
   const wrong = steps.reduce((sum, s) => sum + s.wrong, 0);
+  const own = steps.reduce((sum, s) => sum + (isPassed(s) ? 0 : 1), 0);
   return {
     at,
     tempo: session.tempo,
-    right: steps.length > 0 ? rounded(Math.max(0, 1 - wrong / steps.length)) : null,
+    right: own > 0 ? rounded(Math.max(0, 1 - wrong / own)) : null,
     inTime: null,
   };
 }

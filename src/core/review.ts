@@ -5,7 +5,7 @@
 
 import { IDLE_MS } from './activity.ts';
 import type { PieceSessionRecord } from './log.ts';
-import type { PieceFacts, PieceStep } from './pieceRecords.ts';
+import { isPassed, type PieceFacts, type PieceStep } from './pieceRecords.ts';
 import { barStats, bySlowest, type BarStat } from './pieceRun.ts';
 import type { HandSelection } from './score.ts';
 import { median } from './session.ts';
@@ -120,6 +120,10 @@ export function gradeFigures(errors: number, notes: number, steady: boolean): Re
  * piece's facts do not have them yet, and for a run with a left hand made from the chord symbols,
  * whose keys the piece's facts do not count). A run whose step records are not here can keep the
  * interval, but not move it up.
+ *
+ * A run on a keyboard with fewer keys is graded on the notes the player had (docs/PERSONAL.md,
+ * "The instrument's keys"): the notes played for them (`given`) come off the piece's keys, and
+ * the steps passed, which took no time, are no part of the run's median step or of a bar's.
  */
 export function gradeRun(
   session: PieceSessionRecord,
@@ -127,13 +131,30 @@ export function gradeRun(
   facts: Pick<PieceFacts, 'notes'>,
 ): ReviewGrade {
   const rhythm = session.mode === 'rhythm' ? session.rhythm : undefined;
-  const written = session.leftHand === undefined ? facts.notes?.[session.repeats] : undefined;
-  const notes = rhythm ? rhythm.notes : (written ?? session.steps);
+  const notes = rhythm ? rhythm.notes : runNotes(session, facts);
   const errors = session.wrong + (rhythm ? rhythm.notes - rhythm.hits : 0);
   const steady = rhythm
     ? rhythm.inTime >= IN_TIME_SHARE * rhythm.notes
-    : Boolean(steps && steps.length > 0 && evenBars(steps));
+    : Boolean(steps && evenBars(playedSteps(steps)));
   return gradeFigures(errors, notes, steady);
+}
+
+/** The steps of a run the player had a key of: those passed (`isPassed`) left out. */
+export function playedSteps<T extends Pick<PieceStep, 'notes'>>(steps: readonly T[]): T[] {
+  return steps.some(isPassed) ? steps.filter((s) => !isPassed(s)) : [...steps];
+}
+
+/**
+ * The notes a run in wait or memory mode is counted against: the piece's keys for its repeats
+ * without those played for the player, or its own steps when the piece's keys are not known (and
+ * for a left hand made from the chord symbols).
+ */
+export function runNotes(
+  session: Pick<PieceSessionRecord, 'leftHand' | 'repeats' | 'steps' | 'given'>,
+  facts: Pick<PieceFacts, 'notes'>,
+): number {
+  const written = session.leftHand === undefined ? facts.notes?.[session.repeats] : undefined;
+  return written === undefined ? session.steps : Math.max(0, written - (session.given ?? 0));
 }
 
 /**

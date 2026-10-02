@@ -215,7 +215,9 @@ The screenshots use generated practice data.
   [Web MIDI](https://developer.mozilla.org/docs/Web/API/Web_MIDI_API), which dacapo uses to
   read your keyboard. Other browsers can still use the fallback input.
 - **MIDI keyboard:** recommended, but optional. You can also play with your computer
-  keyboard or by clicking the on-screen piano.
+  keyboard or by clicking the on-screen piano. A keyboard with fewer than 88 keys works: say
+  which keys it has under Settings → Sound → Your keyboard (76, 73, 61 or 49 keys, or press its
+  lowest and its highest key), and the notes of a piece beyond them are played for you.
 - **Sound:** the notes of demos and of the other hand are played by your instrument over MIDI,
   or by the built-in piano from the computer when the instrument has no MIDI output. The clicks
   of rhythm mode and the metronome come from the computer too; to hear them in a digital piano's

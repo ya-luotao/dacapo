@@ -180,7 +180,10 @@ winner.
   and the semitones a run was transposed by, `transpose` on the session, its steps and its take,
   both of which older builds strip; 19: the collection `assignments`, which older builds skip;
   20: tunes played by ear, answers of the family `tune` and `ear` sessions of that family, which
-  older builds skip; 21: the collection `lessons`, which older builds skip), and the sync state
+  older builds skip; 21: the collection `lessons`, which older builds skip; 22: a piece run on
+  a keyboard with fewer keys ([PERSONAL.md](PERSONAL.md), "The instrument's keys"), whose steps
+  passed have an empty list of keys, `notes: []`, which older builds refuse, and whose session
+  has the notes played for the player, `given`, which older builds strip), and the sync state
   keeps the
   schema its cursor was reached with. When the build's is higher, the next round starts again from
   cursor 0. Pulling a record already stored changes nothing, except where the stored copy differs:

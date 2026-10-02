@@ -17,18 +17,21 @@ import { analyzeExpression, type Melody } from '../../core/expression.ts';
 import { leftHandFor, leftHandPatterns, type LeftHandChoice } from '../../core/leadSheet.ts';
 import { parseMeter, tempoForMeter } from '../../core/metronomeSettings.ts';
 import { piecePhrases, piecePlan, stepsPerBar, type StageStart } from '../../core/piecePlan.ts';
+import type { PieceSessionRecord } from '../../core/log.ts';
 import { pieceFacts, type PieceFacts, type PracticeMode } from '../../core/pieceRecords.ts';
 import { summarizeRun } from '../../core/pieceRun.ts';
+import { beyondKeys, isFullKeys, type KeyRange } from '../../core/instrument.ts';
 import {
   accompanimentPlan,
   baseTempo,
   DEMO_VELOCITY,
   demoPlan,
-  otherHand,
+  playedForPlayer,
 } from '../../core/playback.ts';
 import type { TrillStart } from '../../core/ornaments.ts';
 import { isProgressionPieceId } from '../../core/progressions.ts';
 import { rhythmPlan } from '../../core/rhythm.ts';
+import { keysOfRun } from '../../core/runKeys.ts';
 import { runGrid } from '../../core/smfWrite.ts';
 import {
   PEDALS_UP,
@@ -47,7 +50,13 @@ import {
 import { summarizeRhythm } from '../../core/rhythmRun.ts';
 import { tempoLadder } from '../../core/tempoLadder.ts';
 import { playOrder, type RepeatMode } from '../../core/repeats.ts';
-import { buildSteps, keyRange, type HandSelection, type Score } from '../../core/score.ts';
+import {
+  buildSteps,
+  keyRange,
+  type HandSelection,
+  type Score,
+  type Step,
+} from '../../core/score.ts';
 import { waitRange, type BarLoop, type WaitState } from '../../core/wait.ts';
 import type { TakeState } from '../../core/takes.ts';
 import { pieceKey, transposedKey, TRANSPOSITIONS } from '../../core/transpose.ts';
@@ -59,6 +68,7 @@ import { createDemoPlayer, type DemoState } from '../../output/demo.ts';
 import { browserClock } from '../../output/scheduler.ts';
 import { useHubState, useInput, useKeyboardOctave } from '../input/context.ts';
 import { InputNotice } from '../input/InputNotice.tsx';
+import { useInstrumentKeys } from '../instrument.ts';
 import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
 import { useMetronome, useOfferTempo } from '../metronome/context.ts';
 import { ScoreView, type ScoreStatus } from '../notation/ScoreView.tsx';
@@ -79,6 +89,7 @@ import {
 } from './prefs.ts';
 import { startLoop, type PieceStart } from '../startParams.ts';
 import {
+  givenNotes,
   recordedRun,
   useRunRecorder,
   waitRecording,
@@ -102,6 +113,7 @@ import { RhythmSummary } from './RhythmSummary.tsx';
 import { useRhythmPlayer } from './useRhythmPlayer.ts';
 import type { OpenPiece } from './usePiece.ts';
 import { useBarFormat } from './barFormat.ts';
+import { useBeyondWords } from './beyond.ts';
 import { shiftText, useKeyName } from './keyFormat.ts';
 import { FocusBar, FocusEnter } from '../focus/FocusBar.tsx';
 import { useFocusState } from '../focus/focus.ts';
@@ -285,7 +297,14 @@ export function PieceSession({
     (m) => m.repeat.backwardTimes !== null || m.repeat.ending.length > 0,
   );
   const order = useMemo(() => playOrder(score.measures, repeats), [score, repeats]);
-  const steps = useMemo(() => buildSteps(score, hands, order), [score, hands, order]);
+  // The instrument's keys (docs/PERSONAL.md, "The instrument's keys"): on a keyboard with fewer
+  // keys the steps wait for the keys it has, and the app plays the others.
+  const instrument = useInstrumentKeys();
+  const keyboard = isFullKeys(instrument) ? null : instrument;
+  const steps = useMemo(
+    () => buildSteps(score, hands, order, keyboard),
+    [score, hands, order, keyboard],
+  );
   const range = useMemo(
     () => waitRange(steps, order, loop, startBar),
     [steps, order, loop, startBar],
@@ -300,14 +319,29 @@ export function PieceSession({
     () => demoPlan({ score, order, steps, hands, loop, startBar, scale, trillStart }),
     [score, order, steps, hands, loop, startBar, scale, trillStart],
   );
+  // What the instrument plays for the player: the other hand when it accompanies, and the notes
+  // of the hands practised that lie beyond the keyboard, whether or not it does.
+  const forPlayer = useMemo(
+    () => playedForPlayer(hands, accompany, keyboard),
+    [hands, accompany, keyboard],
+  );
   const backing = useMemo(
     () =>
-      hands === 'both'
-        ? null
-        : accompanimentPlan({ score, order, steps, hand: hands, loop, scale, trillStart }),
-    [score, order, steps, hands, loop, scale, trillStart],
+      forPlayer
+        ? accompanimentPlan({
+            score,
+            order,
+            steps,
+            hand: null,
+            include: forPlayer,
+            loop,
+            scale,
+            trillStart,
+          })
+        : null,
+    [score, order, steps, forPlayer, loop, scale, trillStart],
   );
-  const accompanying = accompany && hasOutput && backing !== null && !listening;
+  const accompanying = hasOutput && backing !== null && !listening;
   const timed = useMemo(
     () =>
       rhythmMode ? rhythmPlan({ score, order, steps, loop, startBar, scale, trillStart }) : null,
@@ -316,7 +350,7 @@ export function PieceSession({
   // In rhythm mode the other hand plays in time, from the same timeline.
   const timedBacking = useMemo(
     () =>
-      rhythmMode && hands !== 'both' && accompany && hasOutput
+      rhythmMode && forPlayer && hasOutput
         ? demoPlan({
             score,
             order,
@@ -325,14 +359,14 @@ export function PieceSession({
             loop,
             startBar,
             scale,
-            include: otherHand(hands),
+            include: forPlayer,
             trillStart,
           })
         : null,
     [
       rhythmMode,
       hands,
-      accompany,
+      forPlayer,
       hasOutput,
       score,
       order,
@@ -627,7 +661,7 @@ export function PieceSession({
       onEnd: (reason) => dispatchRhythm({ type: 'end', reason }),
     });
     takeOpen.current = true;
-    setRhythmSettings({ hands, repeats, loop, tempo, latency, transpose });
+    setRhythmSettings({ hands, repeats, loop, tempo, latency, transpose, keys: keyboard });
     dispatchRhythm({
       type: 'start',
       id,
@@ -964,8 +998,30 @@ export function PieceSession({
       latency: source.settings.latency,
       events: source.events,
       trillStart,
+      // The notes the app played for the player sound as the other hand does.
+      keys: source.settings.keys,
+      givenVelocity: ACCOMPANIMENT_LEVELS[readAccompanimentLevel()],
     };
     return compare === 'off' ? takePlayback(input) : comparePlayback(input, compare);
+  }
+
+  /**
+   * The keyboard a past run was played on, as far as its notes tell (`keysOfRun`): its take is
+   * read with it, whatever keyboard is chosen now.
+   */
+  function keysOfPast(session: PieceSessionRecord, events: readonly TakeEvent[]): KeyRange | null {
+    const played = scoreIn(session.transpose ?? 0);
+    if (!played || !session.given) return null;
+    return keysOfRun({
+      score: played,
+      hands: session.hands,
+      repeats: session.repeats,
+      loop: session.loop,
+      mode: session.mode === 'rhythm' ? 'rhythm' : 'wait',
+      given: session.given,
+      events,
+      records: allRecords?.filter((r) => r.sessionId === session.id),
+    });
   }
 
   /** Plays a run back: whatever plays stops, and listening is no hesitation. */
@@ -1093,9 +1149,10 @@ export function PieceSession({
             mode: 'wait',
             events: waitTake.events,
             melody,
+            keys: keyboard,
           })
         : null,
-    [waitTake, score, hands, repeats, loop, melody],
+    [waitTake, score, hands, repeats, loop, melody, keyboard],
   );
   const rhythmTake = rhythmSummary ? rhythm.take : null;
   const rhythmExpression = useMemo(
@@ -1111,6 +1168,7 @@ export function PieceSession({
             latency: rhythmSettings.latency,
             events: rhythmTake.events,
             melody,
+            keys: rhythmSettings.keys,
           })
         : null,
     [rhythmTake, rhythmSettings, score, melody],
@@ -1161,6 +1219,20 @@ export function PieceSession({
     return keyboardRange(span[0], span[1]);
   }, [score]);
   const whites = useMemo(() => whiteKeys(keys), [keys]);
+  // What of the piece lies beyond the player's keyboard: its page says so under the score.
+  const beyond = useMemo(
+    () =>
+      keyboard &&
+      beyondKeys(
+        score.notes.flatMap((n) => (n.hand === null || n.tieStop ? [] : [n.midi])),
+        keyboard,
+      ),
+    [score, keyboard],
+  );
+  const beyondWords = useBeyondWords();
+  // Every step of these bars is the app's: nothing is left for the player to play.
+  const allGiven =
+    range !== null && !steps.slice(range.first, range.last + 1).some((s) => s.midis.length > 0);
   const marked = useMemo(() => {
     // A run played back shows the keys it pressed, its wrong ones apart.
     if (playbackView)
@@ -1192,6 +1264,11 @@ export function PieceSession({
     if (listening || memoryMode || !showKeys || !step?.ornaments) return NO_HINTS;
     return new Set(step.ornaments.flatMap((o) => o.keys).filter((k) => !marked.has(k)));
   }, [listening, memoryMode, showKeys, step, marked]);
+  // The keys the app plays for the player, in the same lighter mark: shown, not asked for.
+  const lighter = useMemo(() => {
+    if (playback || listening || memoryMode || !showKeys || !step?.given) return hinted;
+    return new Set([...hinted, ...step.given]);
+  }, [playback, listening, memoryMode, showKeys, step, hinted]);
 
   // The fingers printed for the keys marked (a piece without fingering has none).
   const notesById = useMemo(() => new Map(score.notes.map((n) => [n.id, n])), [score]);
@@ -1247,13 +1324,16 @@ export function PieceSession({
       stage: run.memory?.stage ?? null,
       hands,
       twoHands,
-      steps: run.records.map((r) => ({
-        measure: r.measure,
-        ms: r.ms,
-        wrong: r.wrong,
-        prompts: r.prompts,
-        hand: stepHand(run.steps[r.step], (id) => notesById.get(id)?.hand),
-      })),
+      // The steps the player had a key of: one passed is the app's.
+      steps: run.records
+        .filter((r) => !r.passed)
+        .map((r) => ({
+          measure: r.measure,
+          ms: r.ms,
+          wrong: r.wrong,
+          prompts: r.prompts,
+          hand: stepHand(run.steps[r.step], (id) => notesById.get(id)?.hand),
+        })),
       notes: after.notes,
       whole: after.whole,
       next: after.ladder.next,
@@ -1831,6 +1911,7 @@ export function PieceSession({
           {summary && !runsOpen && (
             <RunSummary
               summary={summary}
+              given={givenNotes(run.records)}
               prompts={prompts}
               looped={run.ended}
               format={format}
@@ -1844,7 +1925,7 @@ export function PieceSession({
               onAdvice={takeAdvice}
               expression={expressionPanel(
                 waitExpression,
-                { hands, repeats, loop, tempo, latency: 0, transpose },
+                { hands, repeats, loop, tempo, latency: 0, transpose, keys: keyboard },
                 run.take,
                 'wait',
               )}
@@ -1854,7 +1935,15 @@ export function PieceSession({
                       startPlayback({
                         events: run.take!.events,
                         mode: 'wait',
-                        settings: { hands, repeats, loop, tempo, latency: 0, transpose },
+                        settings: {
+                          hands,
+                          repeats,
+                          loop,
+                          tempo,
+                          latency: 0,
+                          transpose,
+                          keys: keyboard,
+                        },
                         startedAt: null,
                       })
                   : undefined
@@ -1866,7 +1955,15 @@ export function PieceSession({
                         {
                           events: run.take!.events,
                           mode: 'wait',
-                          settings: { hands, repeats, loop, tempo, latency: 0, transpose },
+                          settings: {
+                            hands,
+                            repeats,
+                            loop,
+                            tempo,
+                            latency: 0,
+                            transpose,
+                            keys: keyboard,
+                          },
                           startedAt: null,
                         },
                         run.take!.startedAt,
@@ -1878,6 +1975,7 @@ export function PieceSession({
           {rhythmSummary && !calibration && !runsOpen && (
             <RhythmSummary
               summary={rhythmSummary}
+              given={givenNotes(rhythm.records)}
               done={rhythm.end === 'done'}
               looped={loop !== null}
               format={format}
@@ -1932,6 +2030,7 @@ export function PieceSession({
               checksum={checksum}
               leftHand={leftHand}
               scoreIn={scoreIn}
+              keysOf={keysOfPast}
               format={format}
               melody={melody}
               aspects={aspects}
@@ -1950,6 +2049,7 @@ export function PieceSession({
                           tempo: session.tempo,
                           latency: take.latency,
                           transpose: session.transpose ?? 0,
+                          keys: keysOfPast(session, take.events),
                         },
                         startedAt: session.startedAt,
                       })
@@ -1967,6 +2067,7 @@ export function PieceSession({
                       tempo: session.tempo,
                       latency: take.latency,
                       transpose: session.transpose ?? 0,
+                      keys: null,
                     },
                     startedAt: session.startedAt,
                   },
@@ -2024,7 +2125,7 @@ export function PieceSession({
               beat={beat}
               ended={rhythm.status === 'ended' && rhythm.timings.length === 0}
               last={rhythm.last}
-              nothing={!range || !timed}
+              nothing={!range || !timed || allGiven}
               click={clickMode}
               bpm={bpm}
               bar={step ? format.barStatus(step.measure, step.pass) : ''}
@@ -2038,9 +2139,11 @@ export function PieceSession({
               step={step}
               started={run.startedAt !== null}
               nothing={!range}
+              allGiven={allGiven}
               showKeys={showKeys && !memoryMode}
               prompts={run.memory ? run.prompts : null}
-              total={range ? range.last - range.first + 1 : 0}
+              position={wait ? ownSteps(steps, wait.first, wait.current) : 0}
+              total={range ? ownSteps(steps, range.first, range.last) : 0}
               bar={step ? format.barStatus(step.measure, step.pass) : ''}
               beat={step ? format.beat(step.beat) : ''}
             />
@@ -2055,6 +2158,14 @@ export function PieceSession({
                   key: keyName(transposedKey(writtenKey, transpose)),
                   shift: shiftText(transpose),
                   written: keyName(writtenKey),
+                })}
+              </p>
+            )}
+            {beyond && (
+              <p className="muted">
+                {beyondWords.page({
+                  below: beyond.below?.lowest ?? null,
+                  above: beyond.above?.highest ?? null,
                 })}
               </p>
             )}
@@ -2119,7 +2230,7 @@ export function PieceSession({
                     ? 'button is-compact piece-go'
                     : 'button button-primary is-compact piece-go'
                 }
-                disabled={!timed || calibrating}
+                disabled={!timed || calibrating || allGiven}
                 aria-describedby={`${showKeysId}-go`}
                 onClick={onStart}
               >
@@ -2202,7 +2313,7 @@ export function PieceSession({
             sustained={sustained}
             pointer={pointer}
             marked={marked}
-            hinted={hinted}
+            hinted={lighter}
             wrong={playback ? playbackWrong : rhythmMode ? NO_WRONG : wrong}
             fingers={fingers}
             range={keys}
@@ -2298,6 +2409,18 @@ interface RunSettings {
   latency: number;
   /** Semitones the piece was moved by; 0 in the written key. */
   transpose: number;
+  /** The keyboard it was played on, when it had fewer keys; null with every key. */
+  keys: KeyRange | null;
+}
+
+/**
+ * The steps from `first` to `last` the player has a key of: a step passed (all of it beyond
+ * their keyboard) is no step of theirs, on the status line as in the summary.
+ */
+function ownSteps(steps: readonly Step[], first: number, last: number): number {
+  let n = 0;
+  for (let i = first; i <= last; i++) if (steps[i] && steps[i]!.midis.length > 0) n++;
+  return n;
 }
 
 const NO_WRONG: ReadonlySet<number> = new Set();
@@ -2317,8 +2440,10 @@ function StatusLine({
   step,
   started,
   nothing,
+  allGiven,
   showKeys,
   prompts,
+  position,
   total,
   bar,
   beat,
@@ -2329,9 +2454,13 @@ function StatusLine({
   step: { pass: number; midis: number[] } | null;
   started: boolean;
   nothing: boolean;
+  /** Every note of the bars is beyond the player's keyboard. */
+  allGiven: boolean;
   showKeys: boolean;
   /** Memory mode: the prompts on the step so far; null in wait mode. */
   prompts: number | null;
+  /** The step the run is on, and how many there are: of the steps the player has a key of. */
+  position: number;
   total: number;
   bar: string;
   beat: string;
@@ -2339,6 +2468,7 @@ function StatusLine({
   const t = useT();
   const { midiName } = useNoteNames();
   if (nothing) return <p className="piece-status-main">{t('pieces.nothing')}</p>;
+  if (allGiven) return <p className="piece-status-main">{t('pieces.beyond.all')}</p>;
   if (demo !== 'stopped') {
     const parts = [t(demo === 'paused' ? 'pieces.status.demoPaused' : 'pieces.status.demo')];
     if (step) {
@@ -2355,7 +2485,7 @@ function StatusLine({
   const parts = [
     bar,
     t('pieces.status.beat', { beat }),
-    t('pieces.status.step', { n: wait.current - wait.first + 1, total }),
+    t('pieces.status.step', { n: position, total }),
   ];
   if (wait.wrong > 0) parts.push(t('pieces.status.wrong', { n: wait.wrong }));
   if (prompts) parts.push(t('pieces.status.prompts', { n: prompts }));

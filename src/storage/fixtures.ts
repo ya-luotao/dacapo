@@ -216,6 +216,43 @@ export function sampleRhythmRun(
 }
 
 /**
+ * A run of four steps on a keyboard with fewer keys (docs/PERSONAL.md, "The instrument's keys"):
+ * its third step passed (none of the player's keys), three notes played for the player. In
+ * rhythm mode its second step lists one of its two keys: the other was the app's.
+ */
+export function sampleKeyboardRun(
+  sessionId: string,
+  mode: 'wait' | 'rhythm' | 'memory' = 'wait',
+  patch: Partial<PieceStep> = {},
+): { steps: PieceStep[]; session: PieceSession } {
+  const steps = [0, 1, 2, 3].map((n) =>
+    mode === 'rhythm'
+      ? sampleRhythmStep(sessionId, n, patch)
+      : sampleStep(sessionId, n, {
+          ...(mode === 'memory' && { mode, prompts: 0, stage: 'alternate' }),
+          ...patch,
+        }),
+  );
+  steps[2] = { ...steps[2]!, ms: mode === 'rhythm' ? 667 : 0, wrong: 0, notes: [] };
+  if (mode === 'rhythm') steps[1] = { ...steps[1]!, notes: steps[1]!.notes!.slice(0, 1) };
+  const first = steps[0]!;
+  return {
+    steps,
+    session: pieceSession(
+      sampleHeader(sessionId, {
+        pieceId: first.pieceId,
+        hands: first.hands,
+        startedAt: mode === 'rhythm' ? first.at : first.at - first.ms,
+        ...(mode !== 'wait' && { mode }),
+      }),
+      steps,
+      true,
+      3,
+    ),
+  };
+}
+
+/**
  * Chunk `chunk` of the take of run `sessionId`: `events` key presses (a key down, then up 300 ms
  * later, every 400 ms: C4 D4 E4 … matched to steps 0, 1, 2 …, every fifth one wrong), the sustain
  * pedal down at the start.

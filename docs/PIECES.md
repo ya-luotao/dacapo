@@ -45,7 +45,9 @@ for drawing.
   not count again unless the score repeats it). Wrong notes are counted and shown, never block.
   A step with grace notes or an ornament waits for its principal: the ornament's other keys, in
   any order, count as neither right nor wrong, before the principal and after it until a key of
-  the steps that follow (X4).
+  the steps that follow (X4). On a keyboard with fewer than 88 keys a step waits for the keys
+  the player has, the app plays the others, and a step with none of the player's keys is passed
+  ([PERSONAL.md](PERSONAL.md), "The instrument's keys").
 - Hand selection: right, left, both. Loop: choose a measure range (A–B); after the last step the
   cursor returns to A. "Start from measure n".
 - Per step: time to complete and wrong notes, used for the measure heatmap.
@@ -57,7 +59,9 @@ for drawing.
 - **Demo**: play the selection (hands, loop range) at a chosen tempo with the cursor following.
 - **Accompaniment**: when practising one hand, the other hand is played by the instrument — in
   wait mode, its notes belonging to the current step sound when the step is completed (with
-  their relative timing at the current tempo); in rhythm mode, in time.
+  their relative timing at the current tempo); in rhythm mode, in time. The notes of the
+  practised hands beyond the player's keyboard are played the same way, with or without the
+  other hand ([PERSONAL.md](PERSONAL.md)).
 - All notes off on stop, pause, route change, device loss and page hide. Verify the MP11SE does
   not echo received notes back to its USB MIDI input; if it does, filter them.
 
@@ -67,7 +71,8 @@ for drawing.
   matched to the nearest expected note of the step (pitch + time window); deviation in ms early
   / late, missed and extra notes. A principal with an ornament is due where the ornament strikes
   it (an appoggiatura's half its length later), and the ornament's keys within its span are no
-  extra notes (X4).
+  extra notes (X4). A note beyond the player's keyboard is not due: the app plays it in time
+  ([PERSONAL.md](PERSONAL.md)).
 - Latency calibration (tap along to the click) stored as a preference.
 - The click is a short Web Audio click, or a MIDI click on the instrument if it supports it —
   decide in the spike.
@@ -233,6 +238,16 @@ for drawing.
   store or index changed, so the database stays at version 3; records without a mode are wait
   mode's. Rhythm sessions carry `mode` and the counts of notes, hits and notes in time. A rhythm run
   is recorded once a key has been played. Export format 4; formats 1–3 still import.
+- **Records on a keyboard with fewer keys (G6c).** A run keeps the piece's checksum and a record
+  for every step, as on 88 keys. A rhythm step's `notes` are the keys that were the player's;
+  a step passed (none of them the player's) has an empty list, `notes: []`, in every mode, with
+  no time and no wrong note in wait and memory mode (`isPassed` in `core/pieceRecords.ts`). The
+  session's `steps` are the steps the player had, and `given` the notes played for them (absent:
+  none). The take has the player's keys alone. A build from before refuses a step with an empty
+  list and leaves `given` out: `SYNC_SCHEMA` 22 makes a build that learns them pull everything
+  again ([SYNC.md](SYNC.md)); the export format stays, since they are records in lists the file
+  has. How each reader takes such a run is in [PERSONAL.md](PERSONAL.md), "Clarifications
+  (decided during G6c)".
 - **Timing heatmap.** Weak bars by Hesitation or Timing. Timing is the median distance from the
   beat of the notes played in the bar, with missed and extra notes per note as the number, over
   the same last 5 runs and with the same not-enough-data rule (2 runs, 3 notes); edges at 10, 20,

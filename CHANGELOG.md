@@ -15,6 +15,33 @@ click's tempo and grid of scale runs played with it (from version 7), the takes 
 (from version 8), assignments and kept reports (from version 9), and the lessons finished (from
 version 10). Version 1 to 9 files still import.
 
+### The instrument's keys (G6c, [docs/PERSONAL.md](docs/PERSONAL.md))
+
+- **Settings → Sound → Your keyboard**: 88 keys (A0–C8, as before), 76 (E1–G7), 73 (E1–E7), 61
+  (C2–C7), 49 (C2–C6), or **Other**: press the lowest key of your MIDI keyboard, then the
+  highest. Kept on the device, neither synced nor exported. The computer keys and the keys on
+  the screen reach every note as before.
+- **Nothing is taken away; what does not fit is said, and the app plays it.** A piece's card
+  and its page say when it goes beyond your keyboard ("Goes below your keyboard, to A1"). In
+  wait, memory and rhythm mode the notes beyond it are played for you with their step, as the
+  other hand's are, and are neither waited for nor counted; a step with nothing left to play is
+  passed. The summary says how many notes were played for you.
+- **The run counts as any other**: for the review, an assignment, weak bars, the plan, the
+  tempo ladder and the advice, with its figures those of the notes you had. Played back, it is
+  heard whole: your keys, and the notes the app played for you.
+- **Scales**: the octaves and hands that run beyond your keyboard are marked in the setup, and
+  are not proposed by today's plan or as the scale to play next; they can still be chosen.
+- **Read**: a card for a note beyond your keyboard is not drawn, and a level left with fewer
+  than five notes says so. On Ear, the chord cards and sight-reading, a key asked for beyond
+  your keyboard is right in any octave.
+- **Play** shows your keyboard's keys, and all 88 when asked.
+- **Records and sync.** A step that was passed is recorded as one (an empty list of keys), and
+  a run's session says how many notes were played for the player. A build from before refuses
+  the first and leaves out the second, so the sync schema is 22: an updated device pulls
+  everything again and takes back what it had left out. The export format stays at version 10
+  (a build from before lists the steps passed among the records it could not read and imports
+  the rest), and the database stays at version 9.
+
 ### Pages a search engine can read (W1 and W2, [docs/SITE.md](docs/SITE.md))
 
 - **The lessons have pages of their own**: `playdacapo.com/learn/` and a page for each of the

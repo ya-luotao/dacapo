@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { takeEvents, type TakeEvent } from '../../core/takes.ts';
 import { analyzeExpression, type Melody } from '../../core/expression.ts';
+import type { KeyRange } from '../../core/instrument.ts';
 import type { PieceSessionRecord } from '../../core/log.ts';
 import type { LeftHandChoice } from '../../core/leadSheet.ts';
 import type { Score } from '../../core/score.ts';
@@ -38,6 +39,7 @@ export function YourRuns({
   checksum,
   leftHand,
   scoreIn,
+  keysOf,
   format,
   melody,
   aspects,
@@ -53,6 +55,8 @@ export function YourRuns({
   leftHand: LeftHandChoice;
   /** The piece in the key a run was played in (semitones from the written key). */
   scoreIn: (transpose: number) => Score | null;
+  /** The keyboard a run was played on, as far as its notes tell; null with every key. */
+  keysOf: (run: PieceSessionRecord, events: readonly TakeEvent[]) => KeyRange | null;
   format: PieceFormat;
   melody: Melody;
   /** The aspects judged; with none, a run offers no expression. */
@@ -145,6 +149,7 @@ export function YourRuns({
           checksum={checksum}
           otherLeftHand={(open.leftHand ?? 'written') !== leftHand}
           score={scoreIn(open.transpose ?? 0)}
+          keysOf={keysOf}
           format={format}
           melody={melody}
           aspects={aspects}
@@ -183,6 +188,7 @@ function PastRun({
   checksum,
   otherLeftHand,
   score,
+  keysOf,
   format,
   melody,
   aspects,
@@ -197,6 +203,7 @@ function PastRun({
   otherLeftHand: boolean;
   /** The piece in the run's key; null when it cannot be had. */
   score: Score | null;
+  keysOf: (run: PieceSessionRecord, events: readonly TakeEvent[]) => KeyRange | null;
   format: PieceFormat;
   melody: Melody;
   aspects: readonly ExpressionAspect[];
@@ -220,8 +227,11 @@ function PastRun({
             latency: take.latency,
             events: take.events,
             melody,
+            // The notes the app played for the player are none of the run's to judge.
+            keys: keysOf(run, take.events),
           })
         : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the keyboard is read off the run and its take
     [take, score, run, melody],
   );
   if (otherLeftHand) return <p className="muted">{t('pieces.runs.otherLeftHand')}</p>;
