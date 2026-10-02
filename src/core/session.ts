@@ -55,6 +55,11 @@ export interface SessionState {
   /** Cards to answer; normally one of `SESSION_LENGTHS`. */
   length: number;
   hint: boolean;
+  /**
+   * The notes drawn from when they are not all of the level's: a session of some of them
+   * ("Practise these", docs/ADVICE.md). It is a session of the level like any other.
+   */
+  notes?: readonly StaffNote[];
   startedAt: number;
   endedAt: number | null;
   phase: 'running' | 'done';
@@ -70,6 +75,22 @@ export interface StartOptions {
   at: number;
   stats: StatsByKey;
   rng: Rng;
+  /** Some of the level's notes to draw from, in place of them all. */
+  notes?: readonly StaffNote[];
+}
+
+/**
+ * The next note of `notes`, by the weakness model; never on the key of `previous`, unless every
+ * note is on it (a session of one note, or of one key on both staves).
+ */
+function draw(
+  notes: readonly StaffNote[],
+  stats: StatsByKey,
+  previous: StaffNote | null,
+  rng: Rng,
+): StaffNote {
+  const other = previous !== null && notes.some((note) => note.midi !== previous.midi);
+  return pickNext(notes, stats, other ? previous : null, rng);
 }
 
 function newCard(index: number, note: StaffNote, hint: boolean): Card {
@@ -84,16 +105,18 @@ export function startSession({
   at,
   stats,
   rng,
+  notes,
 }: StartOptions): SessionState {
   return {
     id,
     level: level.id,
     length,
     hint,
+    ...(notes && { notes }),
     startedAt: at,
     endedAt: null,
     phase: 'running',
-    card: newCard(0, pickNext(level.notes, stats, null, rng), hint),
+    card: newCard(0, draw(notes ?? level.notes, stats, null, rng), hint),
     attempts: [],
   };
 }
@@ -177,7 +200,7 @@ export function advance(
 ): SessionState {
   if (state.phase !== 'running' || state.card.status !== 'correct') return state;
   if (state.attempts.length >= state.length) return endSession(state, at);
-  const note = pickNext(level.notes, stats, state.card.note, rng);
+  const note = draw(state.notes ?? level.notes, stats, state.card.note, rng);
   return { ...state, card: newCard(state.card.index + 1, note, state.hint) };
 }
 

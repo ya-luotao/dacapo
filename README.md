@@ -70,11 +70,14 @@ practising the notes you are slowest at. Progress is visible day by day.
   levels from the right hand in C position to chords in the left hand in keys of four sharps or
   flats; look at it for a few seconds, then play it through once in time (or note by note, for a
   first look), the bars covered as you play them if you want to read ahead, and see every bar
-  judged.
+  judged. After a session of cards, **Practise these** asks just the ones you missed or were slow
+  on, and the summary says when a level has just been mastered, or was a level too far
+  ([docs/ADVICE.md](docs/ADVICE.md)).
 - **Ear training.** Intervals and chords by ear, in twelve levels from the octave, fifth and
   major third to compound intervals, inversions and seventh chords. Your instrument or the
   built-in piano plays the question; play it back on the keys (the first note or the root is
-  marked) or name it. The next question favours what you miss, and every answer is kept. **Echo**
+  marked) or name it. The next question favours what you miss, every answer is kept, and after a
+  session **Practise these** asks just the ones you missed. **Echo**
   plays a short melody after the chord of its key, in seven levels from three notes by step to
   minor keys and chromatic notes; play it back note by note, and a wrong note shows the melody on
   the staff with yours over it. **Rhythm** plays a bar after a bar of clicks, in Rhythm's eight

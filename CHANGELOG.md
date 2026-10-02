@@ -15,6 +15,26 @@ click's tempo and grid of scale runs played with it (from version 7), the takes 
 (from version 8), assignments and kept reports (from version 9), and the lessons finished (from
 version 10). Version 1 to 9 files still import.
 
+### What to work on next: cards (G2c, [docs/ADVICE.md](docs/ADVICE.md))
+
+- **Practise these.** After a session of cards with something missed, or something slower than
+  the level's mastery allows, a button starts a short session of just those items, filled up to
+  three with the level's weakest: ten cards, or twice the items. On Read's notes, intervals, key signatures and chords, Ear's
+  intervals and chords and Harmony's chord symbols; on Read's rhythm it is four lines built of
+  the cells to work on. It is a session of the level like any other: its answers count for the
+  level's figures and its mastery.
+- **On the Progress page** the heatmap's weakest notes and each kind of question's weakest
+  items have the same button: it opens the practice on a session of those items
+  (`#/read?family=notes&level=L2&items=…`). Items the level does not have are dropped, and with
+  none left the page opens on the level.
+- **Mastered, just now.** The summary of the session that masters a level says so, and **Next
+  level** is its first button, the one Enter presses. After a family's last level it names the
+  family to go on with ("Next: Read · Intervals.") and opens it on the level it suggests.
+- **A level too far.** Under 60 % right in a session while the level below is not mastered:
+  the summary says so in one sentence, and its first button is that level. A session stopped
+  before its tenth answer is not told.
+- Nothing new is stored, synced or exported.
+
 ### A piece's plan (G5c, [docs/PIECES.md](docs/PIECES.md))
 
 - **Plan**, under a piece's Options beside Weak bars: how a teacher would take the piece. It is

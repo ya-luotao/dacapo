@@ -54,6 +54,8 @@ export interface EarConfig {
   length: number;
   /** A tune: in the key of its lead sheet (the default), or in another drawn here. */
   tuneKey?: 'own' | 'other';
+  /** Some of the level's items to draw from, in place of them all ("Practise these"). */
+  items?: readonly string[];
 }
 
 export interface EarView {
@@ -239,7 +241,7 @@ export function createEarController({
         level,
         by: config.by,
         directions: config.directions,
-        items: levelItems(level, config.directions),
+        items: config.items ?? levelItems(level, config.directions),
         length: config.length,
         at: now(),
         stats,

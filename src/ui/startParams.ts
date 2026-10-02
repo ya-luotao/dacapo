@@ -108,18 +108,37 @@ export function parseScaleStart(search: string): ScaleStart | null {
 export interface LevelStart {
   family: string;
   level: string;
+  /**
+   * Items of the level to practise alone ("Practise these", docs/ADVICE.md), as given: the page
+   * keeps those the level has, and opens on the level as usual when none is.
+   */
+  items?: string[];
 }
 
-/** The route that opens `page` on a level of a family. */
+/** The items of a start are joined by this: no item has one. */
+const ITEM_SEPARATOR = ',';
+/** More items than a session of them would ever have are not read. */
+const MAX_START_ITEMS = 50;
+
+/** The route that opens `page` on a level of a family, with `items` on a session of those. */
 export function levelStartPath(page: 'read' | 'ear' | 'harmony', start: LevelStart): string {
-  return `/${page}${query({ family: start.family, level: start.level })}`;
+  return `/${page}${query({
+    family: start.family,
+    level: start.level,
+    items: start.items && start.items.length > 0 ? start.items.join(ITEM_SEPARATOR) : null,
+  })}`;
 }
 
 export function parseLevelStart(search: string): LevelStart | null {
   const params = new URLSearchParams(search);
   const family = params.get('family');
   const level = params.get('level');
-  return family && level ? { family, level } : null;
+  if (!family || !level) return null;
+  const items = (params.get('items') ?? '')
+    .split(ITEM_SEPARATOR)
+    .filter((item) => item.length > 0)
+    .slice(0, MAX_START_ITEMS);
+  return items.length > 0 ? { family, level, items } : { family, level };
 }
 
 /** The route of a piece's page, opened as it was left. */

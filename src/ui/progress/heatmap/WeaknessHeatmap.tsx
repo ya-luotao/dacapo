@@ -1,10 +1,13 @@
 import { Fragment, useId, useMemo, useState } from 'react';
+import { Link } from 'wouter';
 import { MIN_ATTEMPTS, noteCells, weakestNotes, type LevelFilter } from '../../../core/heatmap.ts';
 import { isLevelId, LEVEL_IDS } from '../../../core/levels.ts';
+import { practiceStart } from '../../../core/practiceLevels.ts';
 import type { StatsByKey } from '../../../core/weakness.ts';
 import { useT } from '../../../i18n/index.ts';
 import { EmptyState } from '../../EmptyState.tsx';
 import { useReadFormat } from '../../read/format.ts';
+import { levelStartPath } from '../../startParams.ts';
 import { HeatTable } from './HeatTable.tsx';
 import { KeyboardView } from './KeyboardView.tsx';
 import { Legend, Swatch } from './Legend.tsx';
@@ -23,6 +26,17 @@ export function WeaknessHeatmap({ stats }: { stats: StatsByKey }) {
   const practised = useMemo(() => noteCells(stats).length > 0, [stats]);
   const cells = useMemo(() => noteCells(stats, filter), [stats, filter]);
   const weakest = useMemo(() => weakestNotes(cells), [cells]);
+  // "Practise these" (docs/ADVICE.md): Read opened on a session of those notes, at the level
+  // chosen here, else at the first that has them.
+  const practise = useMemo(() => {
+    const start = practiceStart(
+      'notes',
+      weakest.map((cell) => cell.key),
+      LEVEL_IDS,
+      filter === 'all' ? null : filter,
+    );
+    return start && levelStartPath('read', start);
+  }, [weakest, filter]);
 
   return (
     <section className="heatmap" aria-labelledby={`${id}-title`}>
@@ -76,20 +90,27 @@ export function WeaknessHeatmap({ stats }: { stats: StatsByKey }) {
             <p className="muted">{t('heatmap.emptyLevel')}</p>
           ) : (
             <>
-              <p className="hm-weakest">
-                <strong>{t('heatmap.weakest')}</strong>{' '}
-                {weakest.length === 0
-                  ? t('heatmap.weakest.none', { n: MIN_ATTEMPTS })
-                  : weakest.map((cell, i) => (
-                      <Fragment key={cell.key}>
-                        {i > 0 && t('app.listSeparator')}
-                        <span className="hm-weak-note">
-                          <Swatch bucket={cell.bucket} />
-                          {read.note(cell.key)}
-                        </span>
-                      </Fragment>
-                    ))}
-              </p>
+              <div className="hm-weakest">
+                <p>
+                  <strong>{t('heatmap.weakest')}</strong>{' '}
+                  {weakest.length === 0
+                    ? t('heatmap.weakest.none', { n: MIN_ATTEMPTS })
+                    : weakest.map((cell, i) => (
+                        <Fragment key={cell.key}>
+                          {i > 0 && t('app.listSeparator')}
+                          <span className="hm-weak-note">
+                            <Swatch bucket={cell.bucket} />
+                            {read.note(cell.key)}
+                          </span>
+                        </Fragment>
+                      ))}
+                </p>
+                {practise && (
+                  <Link href={practise} className="button is-compact">
+                    {t('read.practise')}
+                  </Link>
+                )}
+              </div>
               <Legend />
               {view === 'staff' ? <StaffView cells={cells} /> : <KeyboardView cells={cells} />}
               <p className="help">{t('heatmap.hint')}</p>

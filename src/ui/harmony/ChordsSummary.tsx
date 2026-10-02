@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { CardAction, CardAdvice } from '../../core/advice.ts';
 import { nextHarmonyLevel, parseSymbolItem } from '../../core/chordSymbols.ts';
 import {
   HARMONY_MASTERY_WINDOW,
@@ -7,6 +8,7 @@ import {
 } from '../../core/harmonySession.ts';
 import { useT } from '../../i18n/index.ts';
 import { useNoteNames } from '../noteNames.ts';
+import { SummaryEnd } from '../SummaryEnd.tsx';
 import { useReadFormat } from '../read/format.ts';
 import { heldNames, useHarmonyFormat } from './format.ts';
 import { SymbolText } from './SymbolText.tsx';
@@ -17,6 +19,9 @@ interface ChordsSummaryProps {
   onAgain: () => void;
   onNextLevel: () => void;
   onChooseLevel: () => void;
+  /** What to work on next (docs/ADVICE.md, "Cards"), and what its button does. */
+  advice?: CardAdvice | null;
+  onAdvice?: (action: CardAction) => void;
 }
 
 /** The end of a session of chord symbols, as Read's summary: figures, slowest, missed, mastery. */
@@ -26,6 +31,8 @@ export function ChordsSummary({
   onAgain,
   onNextLevel,
   onChooseLevel,
+  advice,
+  onAdvice,
 }: ChordsSummaryProps) {
   const t = useT();
   const read = useReadFormat();
@@ -88,34 +95,30 @@ export function ChordsSummary({
         </ItemList>
       </div>
 
-      <p className={progress.mastered ? 'read-mastery is-mastered' : 'read-mastery'}>
-        {progress.mastered
-          ? t('read.summary.mastered', { level })
-          : t('read.summary.progress', {
-              level,
-              stats: t('read.level.stats', {
-                cards: progress.cards,
-                window: HARMONY_MASTERY_WINDOW,
-                accuracy: read.percent(progress.accuracy),
-                median: read.seconds(progress.medianMs),
+      <SummaryEnd
+        family="chordSymbol"
+        level={level}
+        mastery={{
+          mastered: progress.mastered,
+          text: progress.mastered
+            ? t('read.summary.mastered', { level })
+            : t('read.summary.progress', {
+                level,
+                stats: t('read.level.stats', {
+                  cards: progress.cards,
+                  window: HARMONY_MASTERY_WINDOW,
+                  accuracy: read.percent(progress.accuracy),
+                  median: read.seconds(progress.medianMs),
+                }),
               }),
-            })}
-      </p>
-
-      <div className="actions">
-        {/* Focused on arrival: Enter or Space starts again (no card is live here). */}
-        <button type="button" className="button button-primary" onClick={onAgain} autoFocus>
-          {t('read.again')}
-        </button>
-        {next && (
-          <button type="button" className="button" onClick={onNextLevel}>
-            {t('read.nextLevel')}
-          </button>
-        )}
-        <button type="button" className="button" onClick={onChooseLevel}>
-          {t('read.chooseLevel')}
-        </button>
-      </div>
+        }}
+        percent={read.percent(summary.accuracy)}
+        advice={advice}
+        onAdvice={onAdvice}
+        onAgain={onAgain}
+        onNextLevel={next ? onNextLevel : null}
+        onChooseLevel={onChooseLevel}
+      />
     </section>
   );
 }

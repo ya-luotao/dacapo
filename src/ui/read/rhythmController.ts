@@ -19,6 +19,8 @@ export interface RhythmConfig {
   bpm: number;
   /** Exercises. */
   length: number;
+  /** Items to work on (`rhythm:<cell>:<meter>`): their cells come first ("Practise these"). */
+  focus?: readonly string[];
 }
 
 export interface RhythmControllerOptions {
@@ -96,7 +98,8 @@ export function createRhythmController({
           bpm: config.bpm,
           length: config.length,
           at: now(),
-          exercise: nextExercise(level, answers(), rng),
+          exercise: nextExercise(level, answers(), rng, config.focus),
+          focus: config.focus,
         }),
       );
     },
@@ -106,7 +109,7 @@ export function createRhythmController({
     next() {
       if (!state || state.phase !== 'running') return;
       const level = getRhythmLevel(state.level);
-      update(nextRhythmExercise(state, nextExercise(level, answers(), rng), now()));
+      update(nextRhythmExercise(state, nextExercise(level, answers(), rng, state.focus), now()));
     },
     stop,
     close() {

@@ -472,3 +472,68 @@ describe('every level’s exercise', () => {
     }
   });
 });
+
+describe('an exercise with cells to work on', () => {
+  const level = getRhythmLevel('R5');
+  const draw = (focus: readonly string[], seed: number, stats = {}) =>
+    drawExercise({ level, meter: '4/4', bars: 4, stats, rng: seededRng(seed), focus });
+
+  it('is made of those cells wherever one can stand', () => {
+    // Two cells of one beat each that start and end with a note: every place takes one.
+    const focus = level.cells.filter(
+      (key) =>
+        cellBeats(key) === 1 && startsWithNote(key) && endsWithNote(key) && !key.startsWith('~'),
+    );
+    expect(focus.length).toBeGreaterThanOrEqual(2);
+    const two = focus.slice(0, 2);
+    for (let seed = 1; seed <= 40; seed++) {
+      const keys = draw(two, seed).cells.map((c) => c.key);
+      expect(keys.every((key) => two.includes(key))).toBe(true);
+    }
+  });
+
+  it('never has the same cell three times in a row, and fills in what they cannot', () => {
+    const one = level.cells.find(
+      (key) => cellBeats(key) === 1 && startsWithNote(key) && endsWithNote(key),
+    )!;
+    for (let seed = 1; seed <= 40; seed++) {
+      const keys = draw([one], seed).cells.map((c) => c.key);
+      keys.forEach((key, i) => {
+        if (i >= 2) expect(keys[i - 1] === key && keys[i - 2] === key).toBe(false);
+      });
+      // Two of three places at least are its own.
+      expect(keys.filter((key) => key === one).length * 3).toBeGreaterThanOrEqual(
+        keys.length * 2 - 2,
+      );
+    }
+  });
+
+  it('keeps the weights among them: the weak cell comes more often', () => {
+    const [weak, other] = level.cells
+      .filter((key) => cellBeats(key) === 1 && startsWithNote(key) && endsWithNote(key))
+      .filter((key) => !level.adds.includes(key)) as [string, string];
+    const seen = (key: string, correct: boolean) =>
+      Array.from({ length: 5 }).reduce<ReturnType<typeof emptyStats>>(
+        (s) => updateStats(s, { correct, ms: 10, hinted: false, timedOut: false, at: 0 }),
+        emptyStats(rhythmItem(key, '4/4')),
+      );
+    const stats = {
+      [rhythmItem(weak, '4/4')]: seen(weak, false),
+      [rhythmItem(other, '4/4')]: seen(other, true),
+    };
+    let weakCount = 0;
+    let otherCount = 0;
+    for (let seed = 1; seed <= 60; seed++) {
+      for (const cell of draw([weak, other], seed, stats).cells) {
+        if (cell.key === weak) weakCount++;
+        else if (cell.key === other) otherCount++;
+      }
+    }
+    expect(weakCount).toBeGreaterThan(otherCount * 1.3);
+  });
+
+  it('is an exercise of the level as ever without them', () => {
+    const plain = drawExercise({ level, meter: '4/4', bars: 4, stats: {}, rng: seededRng(3) });
+    expect(draw([], 3)).toEqual(plain);
+  });
+});

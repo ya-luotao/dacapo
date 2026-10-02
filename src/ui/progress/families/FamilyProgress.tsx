@@ -1,9 +1,11 @@
 import { useId, useMemo, useState } from 'react';
+import { Link } from 'wouter';
 import type { Answer } from '../../../core/answers.ts';
 import {
   ANSWER_FAMILIES,
   confusionMatrix,
   familyAnswers,
+  familyLevelIds,
   familyLevels,
   filterAnswers,
   isFamilyAnswer,
@@ -18,12 +20,15 @@ import {
   type FamilyLevel,
   type ItemFigures,
 } from '../../../core/answerProgress.ts';
+import { pageOfFamily } from '../../../core/assignments.ts';
 import { ANSWER_MODES, type AnswerMode } from '../../../core/earSession.ts';
 import { EAR_FAMILIES } from '../../../core/earItems.ts';
+import { isPractiseFamily, practiceStart } from '../../../core/practiceLevels.ts';
 import { useT } from '../../../i18n/index.ts';
 import { EmptyState } from '../../EmptyState.tsx';
 import { useReadFormat } from '../../read/format.ts';
 import { Segmented } from '../../Segmented.tsx';
+import { levelStartPath } from '../../startParams.ts';
 import { useHeatFormat } from '../heatmap/format.ts';
 import { ConfusionGrid } from './ConfusionGrid.tsx';
 import { useFamilyFormat } from './format.tsx';
@@ -191,7 +196,7 @@ function FamilySection({ family, answers, open, onToggle }: FamilySectionProps) 
           <p className="muted">{t('families.emptyFilter')}</p>
         ) : (
           <>
-            <Weakest family={family} items={items} />
+            <Weakest family={family} items={items} level={level === 'all' ? null : level} />
             <ConfusionGrid family={family} matrix={matrix} top={top} />
             <ItemTable family={family} items={items} />
           </>
@@ -256,11 +261,33 @@ function LevelRow({ levels, tunes }: { levels: readonly FamilyLevel[]; tunes: bo
   );
 }
 
-/** The three weakest items, with their figures. */
-function Weakest({ family, items }: { family: AnswerFamily; items: readonly ItemFigures[] }) {
+/**
+ * The three weakest items, with their figures, and where a session draws its items by weight
+ * "Practise these" (docs/ADVICE.md): the family's page opened on a session of those items, at the
+ * level chosen above, else at the first that has them.
+ */
+function Weakest({
+  family,
+  items,
+  level,
+}: {
+  family: AnswerFamily;
+  items: readonly ItemFigures[];
+  level: string | null;
+}) {
   const t = useT();
   const format = useFamilyFormat();
   const weakest = useMemo(() => weakestItems(items), [items]);
+  const practise = useMemo(() => {
+    if (!isPractiseFamily(family)) return null;
+    const start = practiceStart(
+      family,
+      weakest.map((item) => item.item),
+      familyLevelIds(family),
+      level,
+    );
+    return start && levelStartPath(pageOfFamily(family), start);
+  }, [family, weakest, level]);
 
   return (
     <div className="family-weakest">
@@ -283,6 +310,11 @@ function Weakest({ family, items }: { family: AnswerFamily; items: readonly Item
             </li>
           ))}
         </ol>
+      )}
+      {practise && (
+        <Link href={practise} className="button is-compact">
+          {t('read.practise')}
+        </Link>
       )}
     </div>
   );

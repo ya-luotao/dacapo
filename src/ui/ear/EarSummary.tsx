@@ -1,7 +1,9 @@
+import type { CardAction, CardAdvice } from '../../core/advice.ts';
 import { nextEarLevel, parseItem } from '../../core/earItems.ts';
 import type { EarLevelProgress, EarSessionSummary } from '../../core/earSession.ts';
 import { WHOLE_TUNE } from '../../core/tuneList.ts';
 import { useT } from '../../i18n/index.ts';
+import { SummaryEnd } from '../SummaryEnd.tsx';
 import { useReadFormat } from '../read/format.ts';
 import { useEarFormat } from './format.ts';
 
@@ -13,6 +15,9 @@ interface EarSummaryProps {
   onChooseLevel: () => void;
   /** A tune: the same one in another key. */
   onAnotherKey?: () => void;
+  /** What to work on next (docs/ADVICE.md, "Cards"), and what its button does. */
+  advice?: CardAdvice | null;
+  onAdvice?: (action: CardAction) => void;
 }
 
 export function EarSummary({
@@ -22,6 +27,8 @@ export function EarSummary({
   onNextLevel,
   onChooseLevel,
   onAnotherKey,
+  advice,
+  onAdvice,
 }: EarSummaryProps) {
   const t = useT();
   const read = useReadFormat();
@@ -116,41 +123,39 @@ export function EarSummary({
         )}
       </div>
 
-      <p className={progress.mastered ? 'read-mastery is-mastered' : 'read-mastery'}>
-        {progress.mastered
-          ? tune
-            ? t('ear.tune.mastered', { tune: level })
-            : t('read.summary.mastered', { level })
-          : t(tune ? 'ear.tune.progress' : 'read.summary.progress', {
-              level,
-              tune: level,
-              stats: format.levelStats(
-                progress,
-                read.percent(progress.accuracy),
-                read.seconds(progress.medianMs),
-              ),
-            })}
-      </p>
-
-      <div className="actions">
-        {/* Focused on arrival: Enter or Space starts again (no question is live here). */}
-        <button type="button" className="button button-primary" onClick={onAgain} autoFocus>
-          {t('read.again')}
-        </button>
+      <SummaryEnd
+        family={summary.family}
+        level={level}
+        mastery={{
+          mastered: progress.mastered,
+          text: progress.mastered
+            ? tune
+              ? t('ear.tune.mastered', { tune: level })
+              : t('read.summary.mastered', { level })
+            : t(tune ? 'ear.tune.progress' : 'read.summary.progress', {
+                level,
+                tune: level,
+                stats: format.levelStats(
+                  progress,
+                  read.percent(progress.accuracy),
+                  read.seconds(progress.medianMs),
+                ),
+              }),
+        }}
+        percent={read.percent(summary.accuracy)}
+        advice={advice}
+        onAdvice={onAdvice}
+        onAgain={onAgain}
+        onNextLevel={next ? onNextLevel : null}
+        onChooseLevel={onChooseLevel}
+        labels={tune ? { next: t('ear.tune.next'), choose: t('ear.tune.choose') } : undefined}
+      >
         {tune && onAnotherKey && (
           <button type="button" className="button" onClick={onAnotherKey}>
             {t('ear.tune.key.other')}
           </button>
         )}
-        {next && (
-          <button type="button" className="button" onClick={onNextLevel}>
-            {t(tune ? 'ear.tune.next' : 'read.nextLevel')}
-          </button>
-        )}
-        <button type="button" className="button" onClick={onChooseLevel}>
-          {t(tune ? 'ear.tune.choose' : 'read.chooseLevel')}
-        </button>
-      </div>
+      </SummaryEnd>
     </section>
   );
 }

@@ -35,7 +35,8 @@ why it needs sound and links to Settings → Sound; the theory drills (on the st
 Each family has levels, like Read's L1–L7: a level is a pool of items, the next item favours the
 ones you miss or answer slowly (the `weakness.ts` pattern, keyed by item instead of by note), and a
 level is "mastered" at ≥ 90 % over its last 40 answers without a replay. A session is 10, 20 or 50
-items.
+items. Its summary also says what to work on next: a level mastered just now, a level too far, and
+**Practise these**, a short session of the items missed ([ADVICE.md](ADVICE.md), "Cards").
 
 ### Intervals
 
@@ -171,7 +172,8 @@ items.
 ## Theory on the staff — new kinds of card on **Read**
 
 Read already drills single notes. It gains a choice of what to read; each is a set of levels with
-the same session, weakness and mastery rules.
+the same session, weakness and mastery rules, and the same advice at the end of a session
+([ADVICE.md](ADVICE.md), "Cards").
 
 - **Intervals** — two notes on one staff (melodic or harmonic): name the interval (number and
   quality). Spelling matters: C–D♯ is an augmented second, C–E♭ a minor third; the item is keyed by

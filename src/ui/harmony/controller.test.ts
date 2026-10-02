@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { isChordSymbolAnswer } from '../../core/answers.ts';
-import { symbolPitchClasses, symbolVoicing } from '../../core/chordSymbols.ts';
+import {
+  getHarmonyLevel,
+  harmonyLevelItems,
+  symbolPitchClasses,
+  symbolVoicing,
+} from '../../core/chordSymbols.ts';
+import { harmonyLevelProgress } from '../../core/harmonySession.ts';
 import { seededRng } from '../../core/random.ts';
 import { createPracticeStore } from '../practice/store.ts';
 import { ADVANCE_DELAY_MS } from '../read/controller.ts';
@@ -101,5 +107,37 @@ describe('harmony controller', () => {
     controller.setHint(false);
     answer(1000);
     expect(practice.getSnapshot().answers[0]).toMatchObject({ hinted: true, correct: true });
+  });
+});
+
+describe('harmony controller: a session of some of the level’s symbols', () => {
+  it('shows those symbols only, and is a session of the level like any other', () => {
+    const { practice, flush, state, start, answer } = setup();
+    const items = harmonyLevelItems(getHarmonyLevel('H2')).slice(1, 4);
+    start({ level: 'H2', items });
+    const shown: string[] = [];
+    for (let i = 0; i < 10; i++) {
+      shown.push(state().card.item);
+      answer(i * 10_000);
+      flush();
+    }
+    expect(state().phase).toBe('done');
+    expect(new Set(shown)).toEqual(new Set(items));
+    for (let i = 1; i < shown.length; i++) expect(shown[i]).not.toBe(shown[i - 1]);
+
+    const answers = practice.getSnapshot().answers.filter(isChordSymbolAnswer);
+    expect(answers).toHaveLength(10);
+    expect(answers.every((a) => a.level === 'H2' && a.sessionId === 'h1')).toBe(true);
+    expect(harmonyLevelProgress(answers, 'H2').cards).toBe(10);
+
+    // Nothing says which kind of session it was: the record has what any session's has.
+    start({ level: 'H2' });
+    for (let i = 0; i < 10; i++) {
+      answer(200_000 + i * 10_000);
+      flush();
+    }
+    const [some, all] = practice.getSnapshot().sessions;
+    expect(some).toMatchObject({ kind: 'harmony', level: 'H2', cards: 10 });
+    expect(Object.keys(some!).sort()).toEqual(Object.keys(all!).sort());
   });
 });

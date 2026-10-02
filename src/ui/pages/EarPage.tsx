@@ -1,25 +1,33 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { Link } from 'wouter';
+import { sessionMastery, toPractise } from '../../core/advice.ts';
 import { anyMastered } from '../../core/curriculum.ts';
 import {
+  DIRECTIONS,
   directionsOf,
   EAR_LEVELS,
   getEarLevel,
   levelsOf,
   nextEarLevel,
+  parseItem,
   PROMPT_VELOCITY,
+  type Direction,
   type EarLevelId,
 } from '../../core/earItems.ts';
 import {
+  EAR_TARGET_MS,
   earLevelProgress,
+  earStats,
   summarizeEar,
   suggestedEarLevel,
   type EarLevelProgress,
 } from '../../core/earSession.ts';
 import { isEarAnswer, isRhythmEarAnswer } from '../../core/answers.ts';
 import { openingLevel } from '../../core/levelChoice.ts';
+import { practiceLevelItems } from '../../core/practiceLevels.ts';
 import { isTuneId } from '../../core/tuneList.ts';
 import { getTune, tuneKey } from '../../core/tunes.ts';
+import { noteWeight } from '../../core/weakness.ts';
 import {
   nextRhythmEarLevel,
   rhythmEarLevelProgress,
@@ -31,6 +39,13 @@ import {
 } from '../../core/rhythmEar.ts';
 import { useT } from '../../i18n/index.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
+import {
+  practiceOf,
+  sessionAdvice,
+  takeAdvice,
+  useFamilyAfter,
+  type Practise,
+} from '../cardAdvice.ts';
 import { createEarController, type EarSound } from '../ear/controller.ts';
 import { EarSession } from '../ear/EarSession.tsx';
 import { EarSetup } from '../ear/EarSetup.tsx';
@@ -118,6 +133,8 @@ function Ear({ search }: { search: string }) {
 
   // What the page was opened on, in place of what it remembers and what it would suggest.
   const [opened] = useState(() => earStart(parseLevelStart(search)));
+  // Opened with items of the level (Progress's "Practise these"): a session of those starts.
+  const [openedItems] = useState(() => parseLevelStart(search)?.items ?? null);
   const [prefs, setPrefs] = useState(() => {
     const stored = readEarPrefs();
     return opened ? { ...stored, family: opened.family } : stored;
@@ -271,6 +288,103 @@ function Ear({ search }: { search: string }) {
     });
   }
 
+  // "Practise these" (docs/ADVICE.md), where a session draws its items by weight: intervals
+  // (in the directions given) and chords. What a list of items becomes as a short session.
+  function practiceItemsOf(
+    id: EarLevelId,
+    listed: readonly string[],
+    directions: readonly Direction[],
+  ): Practise | null {
+    const { family } = getEarLevel(id);
+    const own = practiceLevelItems(family, id);
+    if (!own) return null;
+    const inDirections = own.filter((item) => {
+      const parsed = parseItem(item);
+      return parsed?.family !== 'interval' || directions.includes(parsed.direction);
+    });
+    const of = earStats(answers);
+    return practiceOf(listed, inDirections, (item) => noteWeight(of[item], EAR_TARGET_MS));
+  }
+
+  /** The directions the intervals among `items` are played in. */
+  const directionsIn = (items: readonly string[]) =>
+    DIRECTIONS.filter((d) =>
+      items.some((item) => {
+        const parsed = parseItem(item);
+        return parsed?.family === 'interval' && parsed.direction === d;
+      }),
+    );
+
+  /** A session of some of the level's items: of the level like any other, and shorter. */
+  function startItems(id: EarLevelId, practise: Practise) {
+    controller.start({
+      level: id,
+      by: prefs.by,
+      // Intervals: in the directions the items have.
+      directions: directionsIn(practise.items),
+      chordStyle: prefs.chordStyle,
+      length: practise.length,
+      items: practise.items,
+    });
+  }
+
+  // Opened with items: once the stored answers are in, a session of those the level has starts
+  // (the page is on that level already, and intervals are filled up in the directions the items
+  // have); with none of them the level's, or without a sound, the level as usual.
+  useEffect(() => {
+    if (!loaded || !opened || !openedItems) return;
+    if (opened.family === 'rhythmEar' || sound === 'none') return;
+    const practise = practiceItemsOf(opened.level, openedItems, directionsIn(openedItems));
+    if (practise) startItems(opened.level, practise);
+    // Once, when the records are in: what the page was opened with never changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded]);
+
+  // What to work on next after a session (docs/ADVICE.md, "Cards").
+  const after = useFamilyAfter();
+  const advice = summary
+    ? sessionAdvice({
+        family: summary.family,
+        level: summary.level,
+        ...sessionMastery(
+          answers,
+          (a) => a.sessionId === summary.id,
+          (of) => earLevelProgress(of, summary.level).mastered,
+        ),
+        isMastered: (id) => progress.get(id as EarLevelId)?.mastered === true,
+        answers: summary.items,
+        correct: summary.correct,
+        complete: summary.items >= summary.length,
+        // Ear's mastery draws no line for the time: the missed items alone.
+        practise: practiceItemsOf(
+          summary.level,
+          toPractise(
+            summary.missed.map((m) => m.item),
+            [],
+            null,
+          ),
+          view?.session.directions ?? [],
+        )?.items,
+        familyAfter: after,
+      })
+    : null;
+  const rhythmAdvice = rhythmSummary
+    ? sessionAdvice({
+        family: 'rhythmEar',
+        level: rhythmSummary.level,
+        ...sessionMastery(
+          rhythmAnswers,
+          (a) => a.sessionId === rhythmSummary.id,
+          (of) => rhythmEarLevelProgress(of, rhythmSummary.level).mastered,
+        ),
+        isMastered: (id) => rhythmProgress.get(id as RhythmEarLevelId)?.mastered === true,
+        answers: rhythmSummary.items,
+        correct: rhythmSummary.correct,
+        complete: rhythmSummary.questions >= rhythmSummary.length,
+        familyAfter: after,
+      })
+    : null;
+
   /** Again: a tune in the key it was just played in, its own or another one drawn anew. */
   function again(summary: { level: EarLevelId; key?: { tonic: string } }) {
     if (!isTuneId(summary.level) || !summary.key) return start(summary.level);
@@ -314,6 +428,17 @@ function Ear({ search }: { search: string }) {
             startRhythm(next);
           }}
           onChooseLevel={rhythmController.close}
+          advice={rhythmAdvice}
+          onAdvice={(action) =>
+            takeAdvice(
+              action,
+              (id) => {
+                keepLevel('rhythmEar', id);
+                startRhythm(id as RhythmEarLevelId);
+              },
+              () => undefined,
+            )
+          }
         />
       ) : summary ? (
         <EarSummary
@@ -327,6 +452,17 @@ function Ear({ search }: { search: string }) {
           }}
           onChooseLevel={controller.close}
           onAnotherKey={() => start(summary.level, 'other')}
+          advice={advice}
+          onAdvice={(action) =>
+            takeAdvice(
+              action,
+              (id) => {
+                keepLevel(summary.family, id);
+                start(id as EarLevelId);
+              },
+              (items) => startItems(summary.level, items),
+            )
+          }
         />
       ) : calibration ? (
         <CalibrationSheet

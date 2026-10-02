@@ -260,6 +260,11 @@ export const ko: Dictionary = {
   'read.again': '다시 하기',
   'read.nextLevel': '다음 레벨',
   'read.chooseLevel': '레벨 선택',
+  'read.practise': '이것만 연습',
+  'read.advice.mastered': '{level} 레벨을 마스터했어요.',
+  'read.advice.next': '다음: {family}.',
+  'read.advice.tooFar':
+    '정답률 {percent}, 그리고 {below} 레벨은 아직 마스터하지 않았어요. 그 레벨부터 하세요.',
   'read.noteOnStaff': '{note} ({staff})',
   'read.seconds': '{value}초',
   'read.none': '—',

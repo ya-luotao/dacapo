@@ -308,3 +308,39 @@ describe('the item model', () => {
     expect(nextExercise(getRhythmLevel('R2'), [], seededRng(1)).bars).toBe(4);
   });
 });
+
+describe('an exercise for cells to work on', () => {
+  const level = getRhythmLevel('R3');
+  const meters = (focus: readonly string[]) =>
+    new Set(
+      Array.from({ length: 30 }, (_, i) => nextExercise(level, [], seededRng(i + 1), focus).meter),
+    );
+
+  it('is in a meter the cells have, and has them', () => {
+    expect(level.meters).toEqual(['4/4', '3/4']);
+    const focus = ['rhythm:hd:3/4', 'rhythm:qd-e:3/4'];
+    expect(meters(focus)).toEqual(new Set(['3/4']));
+    for (let seed = 1; seed <= 30; seed++) {
+      const exercise = nextExercise(level, [], seededRng(seed), focus);
+      const keys = new Set(exercise.cells.map((cell) => cell.key));
+      expect(keys.has('hd') || keys.has('qd-e')).toBe(true);
+    }
+  });
+
+  it('with cells of two meters is in either, each line with the cells of its own', () => {
+    const focus = ['rhythm:hd:3/4', 'rhythm:w:4/4'];
+    expect(meters(focus)).toEqual(new Set(['3/4', '4/4']));
+    for (let seed = 1; seed <= 30; seed++) {
+      const exercise = nextExercise(level, [], seededRng(seed), focus);
+      const keys = exercise.cells.map((cell) => cell.key);
+      expect(keys).toContain(exercise.meter === '3/4' ? 'hd' : 'w');
+    }
+  });
+
+  it('is the level’s as usual without cells, or with cells it does not have', () => {
+    expect(meters([])).toEqual(new Set(level.meters));
+    expect(meters(['rhythm:c:qe:6/8', 'nope'])).toEqual(new Set(level.meters));
+    const usual = nextExercise(level, [], seededRng(7));
+    expect(nextExercise(level, [], seededRng(7), ['nope'])).toEqual(usual);
+  });
+});

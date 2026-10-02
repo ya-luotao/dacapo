@@ -1,11 +1,13 @@
+import type { CardAction, CardAdvice } from '../../core/advice.ts';
 import { getRhythmLevel, nextRhythmLevel } from '../../core/rhythmCells.ts';
 import type { RhythmLevelProgress, RhythmSessionSummary } from '../../core/rhythmRead.ts';
 import { useT } from '../../i18n/index.ts';
+import { SummaryEnd } from '../SummaryEnd.tsx';
 import { useReadFormat } from './format.ts';
 import { useRhythmFormat } from './rhythmFormat.ts';
 
 /** How many of the cells missed most the summary names. */
-const MISSED_SHOWN = 5;
+export const MISSED_SHOWN = 5;
 
 interface RhythmSummaryProps {
   summary: RhythmSessionSummary;
@@ -13,6 +15,9 @@ interface RhythmSummaryProps {
   onAgain: () => void;
   onNextLevel: () => void;
   onChooseLevel: () => void;
+  /** What to work on next (docs/ADVICE.md, "Cards"), and what its button does. */
+  advice?: CardAdvice | null;
+  onAdvice?: (action: CardAction) => void;
 }
 
 /** The end of a session of rhythm lines, as Read's summary: figures, tendency, misses, mastery. */
@@ -22,6 +27,8 @@ export function RhythmSummary({
   onAgain,
   onNextLevel,
   onChooseLevel,
+  advice,
+  onAdvice,
 }: RhythmSummaryProps) {
   const t = useT();
   const read = useReadFormat();
@@ -79,26 +86,22 @@ export function RhythmSummary({
         )}
       </div>
 
-      <p className={progress.mastered ? 'read-mastery is-mastered' : 'read-mastery'}>
-        {progress.mastered
-          ? t('read.summary.mastered', { level })
-          : t('read.summary.progress', { level, stats: format.stats(progress) })}
-      </p>
-
-      <div className="actions">
-        {/* Focused on arrival: Enter or Space starts again. */}
-        <button type="button" className="button button-primary" onClick={onAgain} autoFocus>
-          {t('read.again')}
-        </button>
-        {next && (
-          <button type="button" className="button" onClick={onNextLevel}>
-            {t('read.nextLevel')}
-          </button>
-        )}
-        <button type="button" className="button" onClick={onChooseLevel}>
-          {t('read.chooseLevel')}
-        </button>
-      </div>
+      <SummaryEnd
+        family="rhythm"
+        level={level}
+        mastery={{
+          mastered: progress.mastered,
+          text: progress.mastered
+            ? t('read.summary.mastered', { level })
+            : t('read.summary.progress', { level, stats: format.stats(progress) }),
+        }}
+        percent={read.percent(summary.accuracy)}
+        advice={advice}
+        onAdvice={onAdvice}
+        onAgain={onAgain}
+        onNextLevel={next ? onNextLevel : null}
+        onChooseLevel={onChooseLevel}
+      />
     </section>
   );
 }

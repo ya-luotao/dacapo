@@ -2077,6 +2077,32 @@ kbd {
 }
 
 /*
+ * After a session of cards the advice is a sentence where the level's standing is told, in its
+ * measure and without a rule: said in place of "mastered" when the session mastered the level,
+ * under how far the level is otherwise. Its button leads the summary's own row.
+ */
+.card-advice .advice {
+  max-width: 38rem;
+  margin-top: 2rem;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.read-mastery + .card-advice .advice {
+  margin-top: 0.5rem;
+}
+
+.card-advice .advice-text {
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.card-advice.is-mastered .advice-text {
+  color: var(--ok);
+  font-weight: 600;
+}
+
+/*
  * After a run of a piece the advice stands beside the bars that held it up, behind a hairline as
  * the figures stand beside each other, its button under it: the summary's own row of buttons
  * stays one row.
@@ -5467,7 +5493,15 @@ kbd {
 }
 
 .hm-weakest {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
   margin: 0 0 1rem;
+}
+
+.hm-weakest p {
+  margin: 0;
 }
 
 .hm-weak-note {
@@ -6100,6 +6134,10 @@ kbd {
   gap: 0.375rem;
   margin: 0;
   padding-inline-start: 1.25rem;
+}
+
+.family-weakest .button {
+  margin-top: 0.75rem;
 }
 
 .family-weakest li::marker {

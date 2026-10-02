@@ -7,6 +7,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from 'react';
+import { sessionMastery, toPractise } from '../../core/advice.ts';
 import { isChordSymbolAnswer } from '../../core/answers.ts';
 import {
   HARMONY_LEVEL_IDS,
@@ -16,17 +17,29 @@ import {
 } from '../../core/chordSymbols.ts';
 import { anyMastered } from '../../core/curriculum.ts';
 import {
+  HARMONY_MASTERY_MEDIAN_MS,
+  HARMONY_TARGET_MS,
   harmonyLevelProgress,
+  harmonyStats,
   suggestedHarmonyLevel,
   summarizeHarmony,
   type HarmonyLevelProgress,
 } from '../../core/harmonySession.ts';
 import { openingLevel } from '../../core/levelChoice.ts';
+import { practiceLevelItems } from '../../core/practiceLevels.ts';
 import { DEFAULT_SESSION_LENGTH, type SessionLength } from '../../core/session.ts';
 import { PEDALS_UP, type PedalPositions } from '../../core/takes.ts';
+import { noteWeight } from '../../core/weakness.ts';
 import { useT } from '../../i18n/index.ts';
 import { isBuiltin } from '../../output/output.ts';
 import { browserClock } from '../../output/scheduler.ts';
+import {
+  practiceOf,
+  sessionAdvice,
+  takeAdvice,
+  useFamilyAfter,
+  type Practise,
+} from '../cardAdvice.ts';
 import { useInput } from '../input/context.ts';
 import { InputNotice } from '../input/InputNotice.tsx';
 import { LessonLine } from '../learn/LessonLine.tsx';
@@ -101,6 +114,7 @@ function Harmony({ search }: { search: string }) {
   const suggested = suggestedHarmonyLevel(progress, HARMONY_LEVEL_IDS);
   // Opened on a level: that one, on Chords, in place of the suggestion and the practice shown last.
   const [opened] = useState(() => startLevel(search));
+  const [openedItems] = useState(() => parseLevelStart(search)?.items ?? null);
   const [picked, setPicked] = useState<HarmonyLevelId | null>(opened);
   const [length, setLength] = useState<SessionLength>(DEFAULT_SESSION_LENGTH);
   const [hint, setHint] = useState(false);
@@ -177,6 +191,56 @@ function Harmony({ search }: { search: string }) {
     controller.setHint(next);
   }
 
+  // "Practise these" (docs/ADVICE.md): what a list of symbols becomes as a short session.
+  function practiceItemsOf(id: HarmonyLevelId, listed: readonly string[]): Practise | null {
+    const of = harmonyStats(answers.filter(isChordSymbolAnswer));
+    return practiceOf(listed, practiceLevelItems('chordSymbol', id) ?? [], (item) =>
+      noteWeight(of[item], HARMONY_TARGET_MS),
+    );
+  }
+
+  /** A session of some of the level's symbols: of the level like any other, and shorter. */
+  function startItems(id: HarmonyLevelId, practise: Practise) {
+    controller.start({ level: id, length: practise.length, hint, items: practise.items });
+  }
+
+  // Opened with items (Progress's "Practise these"): once the stored answers are in, a session of
+  // those the level has starts; with none of them the level's, the level as usual.
+  useEffect(() => {
+    if (!loaded || !opened || !openedItems) return;
+    const practise = practiceItemsOf(opened, openedItems);
+    if (practise) startItems(opened, practise);
+    // Once, when the records are in: what the page was opened with never changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded]);
+
+  // What to work on next after a session (docs/ADVICE.md, "Cards").
+  const after = useFamilyAfter();
+  const advice = summary
+    ? sessionAdvice({
+        family: 'chordSymbol',
+        level: summary.level,
+        ...sessionMastery(
+          answers.filter(isChordSymbolAnswer),
+          (a) => a.sessionId === summary.id,
+          (of) => harmonyLevelProgress(of, summary.level).mastered,
+        ),
+        isMastered: (id) => progress.get(id as HarmonyLevelId)?.mastered === true,
+        answers: summary.cards,
+        correct: summary.correct,
+        complete: summary.cards >= summary.length,
+        practise: practiceItemsOf(
+          summary.level,
+          toPractise(
+            summary.missed.map((m) => m.item),
+            summary.slowest,
+            HARMONY_MASTERY_MEDIAN_MS,
+          ),
+        )?.items,
+        familyAfter: after,
+      })
+    : null;
+
   if (improvView.phase === 'running') {
     return (
       <section className="read harmony">
@@ -222,6 +286,17 @@ function Harmony({ search }: { search: string }) {
             start(next);
           }}
           onChooseLevel={controller.close}
+          advice={advice}
+          onAdvice={(action) =>
+            takeAdvice(
+              action,
+              (id) => {
+                changePrefs({ level: id as HarmonyLevelId });
+                start(id as HarmonyLevelId);
+              },
+              (items) => startItems(summary.level, items),
+            )
+          }
         />
       ) : (
         <>

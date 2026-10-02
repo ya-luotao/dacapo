@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react';
+import type { CardAction, CardAdvice } from '../../core/advice.ts';
 import { nextLevel } from '../../core/levels.ts';
 import { MASTERY_WINDOW, type LevelProgress } from '../../core/mastery.ts';
 import type { SessionSummary } from '../../core/session.ts';
 import { useT } from '../../i18n/index.ts';
+import { SummaryEnd } from '../SummaryEnd.tsx';
 import { useReadFormat } from './format.ts';
 
 interface ReadSummaryProps {
@@ -11,6 +13,9 @@ interface ReadSummaryProps {
   onAgain: () => void;
   onNextLevel: () => void;
   onChooseLevel: () => void;
+  /** What to work on next (docs/ADVICE.md, "Cards"), and what its button does. */
+  advice?: CardAdvice | null;
+  onAdvice?: (action: CardAction) => void;
 }
 
 export function ReadSummary({
@@ -19,6 +24,8 @@ export function ReadSummary({
   onAgain,
   onNextLevel,
   onChooseLevel,
+  advice,
+  onAdvice,
 }: ReadSummaryProps) {
   const t = useT();
   const format = useReadFormat();
@@ -61,34 +68,30 @@ export function ReadSummary({
         </NoteList>
       </div>
 
-      <p className={progress.mastered ? 'read-mastery is-mastered' : 'read-mastery'}>
-        {progress.mastered
-          ? t('read.summary.mastered', { level })
-          : t('read.summary.progress', {
-              level,
-              stats: t('read.level.stats', {
-                cards: progress.cards,
-                window: MASTERY_WINDOW,
-                accuracy: format.percent(progress.accuracy),
-                median: format.seconds(progress.medianMs),
+      <SummaryEnd
+        family="notes"
+        level={level}
+        mastery={{
+          mastered: progress.mastered,
+          text: progress.mastered
+            ? t('read.summary.mastered', { level })
+            : t('read.summary.progress', {
+                level,
+                stats: t('read.level.stats', {
+                  cards: progress.cards,
+                  window: MASTERY_WINDOW,
+                  accuracy: format.percent(progress.accuracy),
+                  median: format.seconds(progress.medianMs),
+                }),
               }),
-            })}
-      </p>
-
-      <div className="actions">
-        {/* Focused on arrival: Enter or Space starts again (no card is live here). */}
-        <button type="button" className="button button-primary" onClick={onAgain} autoFocus>
-          {t('read.again')}
-        </button>
-        {next && (
-          <button type="button" className="button" onClick={onNextLevel}>
-            {t('read.nextLevel')}
-          </button>
-        )}
-        <button type="button" className="button" onClick={onChooseLevel}>
-          {t('read.chooseLevel')}
-        </button>
-      </div>
+        }}
+        percent={format.percent(summary.accuracy)}
+        advice={advice}
+        onAdvice={onAdvice}
+        onAgain={onAgain}
+        onNextLevel={next ? onNextLevel : null}
+        onChooseLevel={onChooseLevel}
+      />
     </section>
   );
 }

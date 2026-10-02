@@ -1,4 +1,4 @@
-import { getLevel, type LevelId } from '../../core/levels.ts';
+import { getLevel, type LevelId, type StaffNote } from '../../core/levels.ts';
 import type { Rng } from '../../core/random.ts';
 import {
   advance,
@@ -30,7 +30,8 @@ export interface ReadController {
   getState: () => SessionState | null;
   /** For `useSyncExternalStore`. */
   subscribe: (onChange: () => void) => () => void;
-  start: (level: LevelId, length: number, hint: boolean) => void;
+  /** With `notes`, a session of those of the level's notes alone ("Practise these"). */
+  start: (level: LevelId, length: number, hint: boolean, notes?: readonly StaffNote[]) => void;
   painted: (cardIndex: number, time: number) => void;
   /** A note-on with its `performance.now()` timestamp. */
   press: (midi: number, time: number) => void;
@@ -100,12 +101,21 @@ export function createReadController({
       listeners.add(onChange);
       return () => void listeners.delete(onChange);
     },
-    start(level, length, hint) {
+    start(level, length, hint, notes) {
       cancelTimer();
       stop();
       const { stats } = practice.getSnapshot();
       update(
-        startSession({ id: newId(), level: getLevel(level), length, hint, at: now(), stats, rng }),
+        startSession({
+          id: newId(),
+          level: getLevel(level),
+          length,
+          hint,
+          at: now(),
+          stats,
+          rng,
+          ...(notes && { notes }),
+        }),
       );
     },
     painted(cardIndex, time) {

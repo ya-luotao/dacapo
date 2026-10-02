@@ -237,6 +237,45 @@ describe('opening Read, Ear or Harmony on a level', () => {
     expect(parseLevelStart('')).toBeNull();
   });
 
+  it('carries items to practise alone, as they are stored', () => {
+    const start = { family: 'notes', level: 'L3', items: ['C3@bass', 'F#3@bass', 'B3@bass'] };
+    const path = levelStartPath('read', start);
+    expect(path).toBe('/read?family=notes&level=L3&items=C3%40bass%2CF%233%40bass%2CB3%40bass');
+    expect(parseLevelStart(path.slice(path.indexOf('?') + 1))).toEqual(start);
+    // Every kind of item comes back as it went.
+    for (const items of [
+      ['int:m3:down', 'int:P5:harm'],
+      ['ks:3f:minor', 'ks:0:major'],
+      ['sym:Bbmaj7', 'sym:F#m7b5', 'sym:C/E'],
+      ['rhythm:c:qe:6/8'],
+    ]) {
+      const there = levelStartPath('ear', { family: 'x', level: 'y', items });
+      expect(parseLevelStart(there.slice(there.indexOf('?') + 1))?.items).toEqual(items);
+    }
+  });
+
+  it('a start without items has none', () => {
+    expect(levelStartPath('read', { family: 'notes', level: 'L3', items: [] })).toBe(
+      '/read?family=notes&level=L3',
+    );
+    expect(parseLevelStart('family=notes&level=L3&items=')).toEqual({
+      family: 'notes',
+      level: 'L3',
+    });
+    expect(parseLevelStart('family=notes&level=L3&items=,,')).toEqual({
+      family: 'notes',
+      level: 'L3',
+    });
+    // Items without a family and a level open nothing.
+    expect(parseLevelStart('items=C4@treble')).toBeNull();
+  });
+
+  it('reads no more items than a session would have', () => {
+    const many = Array.from({ length: 200 }, (_, i) => `item${i}`);
+    const read = parseLevelStart(`family=notes&level=L3&items=${many.join(',')}`);
+    expect(read?.items).toEqual(many.slice(0, 50));
+  });
+
   it('Read takes its own families and levels', () => {
     const start = (family: string, level: string) => readStart({ family, level });
     expect(start('notes', 'L3')).toEqual({ choice: 'notes', level: 'L3' });

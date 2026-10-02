@@ -1,12 +1,17 @@
 import { useEffect, useId, useMemo, useState, useSyncExternalStore } from 'react';
+import { sessionMastery, toPractise } from '../../core/advice.ts';
 import { isRhythmAnswer, isTheoryAnswer } from '../../core/answers.ts';
 import { anyMastered } from '../../core/curriculum.ts';
 import { openingLevel } from '../../core/levelChoice.ts';
-import { LEVEL_IDS, nextLevel, type LevelId } from '../../core/levels.ts';
-import { levelProgress, suggestedLevel } from '../../core/mastery.ts';
+import { getLevel, LEVEL_IDS, nextLevel, type LevelId } from '../../core/levels.ts';
+import { levelProgress, MASTERY_MEDIAN_MS, suggestedLevel } from '../../core/mastery.ts';
+import { practiceLevelItems } from '../../core/practiceLevels.ts';
 import { nextRhythmLevel, RHYTHM_LEVEL_IDS, type RhythmLevelId } from '../../core/rhythmCells.ts';
+import { RHYTHM_TARGET_MS } from '../../core/rhythmExercise.ts';
 import {
+  RHYTHM_SESSION_LENGTHS,
   rhythmLevelProgress,
+  rhythmStats,
   suggestedRhythmLevel,
   summarizeRhythmSession,
   type RhythmLevelProgress,
@@ -31,9 +36,20 @@ import {
   suggestedTheoryLevel,
   summarizeTheory,
   theoryLevelProgress,
+  theoryMasteryMedianMs,
+  theoryStats,
+  theoryTargetMs,
   type TheoryLevelProgress,
 } from '../../core/theorySession.ts';
+import { noteWeight } from '../../core/weakness.ts';
 import { useT } from '../../i18n/index.ts';
+import {
+  practiceOf,
+  sessionAdvice,
+  takeAdvice,
+  useFamilyAfter,
+  type Practise,
+} from '../cardAdvice.ts';
 import { useInput } from '../input/context.ts';
 import { InputNotice } from '../input/InputNotice.tsx';
 import { LessonLine } from '../learn/LessonLine.tsx';
@@ -61,7 +77,7 @@ import {
 } from '../read/rhythmPrefs.ts';
 import { RhythmSession } from '../read/RhythmSession.tsx';
 import { RhythmSetup } from '../read/RhythmSetup.tsx';
-import { RhythmSummary } from '../read/RhythmSummary.tsx';
+import { MISSED_SHOWN, RhythmSummary } from '../read/RhythmSummary.tsx';
 import { createTheoryController } from '../read/theoryController.ts';
 import { TheorySession } from '../read/TheorySession.tsx';
 import { TheorySetup } from '../read/TheorySetup.tsx';
@@ -96,7 +112,7 @@ export function ReadPage() {
 function Read({ search }: { search: string }) {
   const t = useT();
   const practice = usePracticeStore();
-  const { attempts, answers, sessions } = usePractice();
+  const { attempts, answers, sessions, stats } = usePractice();
   const { loaded } = useStorageStatus();
   const { hub } = useInput();
   const [controller] = useState(() => createReadController({ practice }));
@@ -117,6 +133,8 @@ function Read({ search }: { search: string }) {
 
   // What the page was opened on, in place of what it remembers and what it would suggest.
   const [opened] = useState(() => readStart(parseLevelStart(search)));
+  // Opened with items of the level (Progress's "Practise these"): a session of those starts.
+  const [openedItems] = useState(() => parseLevelStart(search)?.items ?? null);
   const [prefs, setPrefs] = useState(() => {
     const stored = readReadPrefs();
     if (!opened) return stored;
@@ -316,6 +334,156 @@ function Read({ search }: { search: string }) {
     controller.setHint(next);
   }
 
+  // "Practise these" (docs/ADVICE.md): what a list of items becomes as a short session of the
+  // level, by what each kind of card draws from and weighs by.
+  const practiceNotes = (id: LevelId, listed: readonly string[]) =>
+    practiceOf(listed, practiceLevelItems('notes', id) ?? [], (key) => noteWeight(stats[key]));
+  const practiceTheory = (id: TheoryLevelId, listed: readonly string[]) => {
+    const { family } = getTheoryLevel(id);
+    const of = theoryStats(answers.filter(isTheoryAnswer));
+    return practiceOf(listed, practiceLevelItems(family, id) ?? [], (item) =>
+      noteWeight(of[item], theoryTargetMs(family)),
+    );
+  };
+  const practiceRhythm = (id: RhythmLevelId, listed: readonly string[]) => {
+    const of = rhythmStats(answers.filter(isRhythmAnswer));
+    return practiceOf(listed, practiceLevelItems('rhythm', id) ?? [], (item) =>
+      noteWeight(of[item], RHYTHM_TARGET_MS),
+    );
+  };
+
+  // A session of some of the level's items: of the level like any other, and shorter.
+  function startNotes(id: LevelId, practise: Practise) {
+    const notes = getLevel(id).notes.filter((n) => practise.items.includes(n.key));
+    controller.start(id, practise.length, hint, notes);
+  }
+
+  function startTheoryItems(id: TheoryLevelId, practise: Practise) {
+    theory.start({
+      level: id,
+      by: prefs.chordBy,
+      length: practise.length,
+      hint,
+      items: practise.items,
+    });
+  }
+
+  /** Lines for the cells to work on: the shortest session, its unit being a line and not a card. */
+  function startRhythmItems(id: RhythmLevelId, practise: Practise) {
+    rhythm.start({
+      level: id,
+      bpm: tempoOf(rhythmPrefs, id),
+      length: RHYTHM_SESSION_LENGTHS[0],
+      focus: practise.items,
+    });
+  }
+
+  // Opened with items: once the stored answers are in, a session of those the level has starts
+  // (the page is on that level already); with none of them the level's, the level as usual.
+  useEffect(() => {
+    if (!loaded || !opened || !openedItems) return;
+    if (opened.choice === 'notes') {
+      const practise = practiceNotes(opened.level, openedItems);
+      if (practise) startNotes(opened.level, practise);
+    } else if (opened.choice === 'theory') {
+      const practise = practiceTheory(opened.level, openedItems);
+      if (practise) startTheoryItems(opened.level, practise);
+    } else if (opened.choice === 'rhythm') {
+      const practise = practiceRhythm(opened.level, openedItems);
+      if (practise) startRhythmItems(opened.level, practise);
+    }
+    // Once, when the records are in: what the page was opened with never changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded]);
+
+  // What to work on next after each kind of session (docs/ADVICE.md, "Cards").
+  const after = useFamilyAfter();
+  const advice = summary
+    ? sessionAdvice({
+        family: 'notes',
+        level: summary.level,
+        ...sessionMastery(
+          attempts,
+          (a) => a.sessionId === summary.id,
+          (of) => levelProgress(of, summary.level).mastered,
+        ),
+        isMastered: (id) => progress.get(id as LevelId)?.mastered === true,
+        answers: summary.cards,
+        correct: summary.correct,
+        complete: summary.cards >= summary.length,
+        practise: practiceNotes(
+          summary.level,
+          toPractise(
+            summary.missed,
+            summary.slowest.map((s) => ({ item: s.note, ms: s.ms })),
+            MASTERY_MEDIAN_MS,
+          ),
+        )?.items,
+        familyAfter: after,
+      })
+    : null;
+  const theoryAdvice = theorySummary
+    ? sessionAdvice({
+        family: theorySummary.family,
+        level: theorySummary.level,
+        ...sessionMastery(
+          answers.filter(isTheoryAnswer),
+          (a) => a.sessionId === theorySummary.id,
+          (of) => theoryLevelProgress(of, theorySummary.level).mastered,
+        ),
+        isMastered: (id) => theoryProgress.get(id as TheoryLevelId)?.mastered === true,
+        answers: theorySummary.cards,
+        correct: theorySummary.correct,
+        complete: theorySummary.cards >= theorySummary.length,
+        practise: practiceTheory(
+          theorySummary.level,
+          toPractise(
+            theorySummary.missed.map((m) => m.item),
+            theorySummary.slowest,
+            theoryMasteryMedianMs(theorySummary.family),
+          ),
+        )?.items,
+        familyAfter: after,
+      })
+    : null;
+  const rhythmAdvice = rhythmSummary
+    ? sessionAdvice({
+        family: 'rhythm',
+        level: rhythmSummary.level,
+        ...sessionMastery(
+          answers.filter(isRhythmAnswer),
+          (a) => a.sessionId === rhythmSummary.id,
+          (of) => rhythmLevelProgress(of, rhythmSummary.level).mastered,
+        ),
+        isMastered: (id) => rhythmProgress.get(id as RhythmLevelId)?.mastered === true,
+        answers: rhythmSummary.cells,
+        correct: rhythmSummary.correct,
+        complete: rhythmSummary.exercises >= rhythmSummary.length,
+        practise: practiceRhythm(
+          rhythmSummary.level,
+          rhythmSummary.missed.slice(0, MISSED_SHOWN).map((m) => m.item),
+        )?.items,
+        familyAfter: after,
+      })
+    : null;
+  // A fragment is played, not answered: its level can be mastered just now, and no more is said.
+  const sightAdvice = sightSummary
+    ? sessionAdvice({
+        family: 'sight',
+        level: sightSummary.level,
+        ...sessionMastery(
+          sessions.filter((s) => s.kind === 'sight'),
+          (s) => s.id === sightSummary.id,
+          (of) => sightLevelProgress(of, sightSummary.level).mastered,
+        ),
+        isMastered: (id) => sightProgress.get(id as SightLevelId)?.mastered === true,
+        answers: 0,
+        correct: 0,
+        complete: sightSummary.fragments.length >= sightSummary.length,
+        familyAfter: after,
+      })
+    : null;
+
   function onTheoryHint(next: boolean) {
     setHint(next);
     theory.setHint(next);
@@ -388,6 +556,17 @@ function Read({ search }: { search: string }) {
             start(next);
           }}
           onChooseLevel={controller.close}
+          advice={advice}
+          onAdvice={(action) =>
+            takeAdvice(
+              action,
+              (id) => {
+                keepLevel('notes', id);
+                start(id as LevelId);
+              },
+              (items) => startNotes(summary.level, items),
+            )
+          }
         />
       ) : rhythmSummary ? (
         <RhythmSummary
@@ -400,6 +579,17 @@ function Read({ search }: { search: string }) {
             startRhythm(next);
           }}
           onChooseLevel={rhythm.close}
+          advice={rhythmAdvice}
+          onAdvice={(action) =>
+            takeAdvice(
+              action,
+              (id) => {
+                keepLevel('rhythm', id);
+                startRhythm(id as RhythmLevelId);
+              },
+              (items) => startRhythmItems(rhythmSummary.level, items),
+            )
+          }
         />
       ) : sightSummary ? (
         <SightSummary
@@ -412,6 +602,17 @@ function Read({ search }: { search: string }) {
             startSight(next);
           }}
           onChooseLevel={sight.close}
+          advice={sightAdvice}
+          onAdvice={(action) =>
+            takeAdvice(
+              action,
+              (id) => {
+                keepLevel('sight', id);
+                startSight(id as SightLevelId);
+              },
+              () => undefined,
+            )
+          }
         />
       ) : theorySummary ? (
         <TheorySummary
@@ -424,6 +625,17 @@ function Read({ search }: { search: string }) {
             startTheory(next);
           }}
           onChooseLevel={theory.close}
+          advice={theoryAdvice}
+          onAdvice={(action) =>
+            takeAdvice(
+              action,
+              (id) => {
+                keepLevel(theorySummary.family, id);
+                startTheory(id as TheoryLevelId);
+              },
+              (items) => startTheoryItems(theorySummary.level, items),
+            )
+          }
         />
       ) : (
         <>

@@ -30,6 +30,7 @@ import {
   type TheorySessionState,
 } from './theorySession.ts';
 import type { AnswerMode } from './earSession.ts';
+import type { NoteStats } from './weakness.ts';
 
 const T = 1_700_000_000_000;
 let ids = 0;
@@ -334,5 +335,64 @@ describe('figures', () => {
     ] as const);
     expect(suggestedTheoryLevel('readInterval', progress)).toBe('RI2');
     expect(suggestedTheoryLevel('keySignature', new Map())).toBe('KS1');
+  });
+});
+
+describe('a session of some of the level’s items', () => {
+  const level = getTheoryLevel('RI2');
+  const all = theoryLevelItems(level);
+
+  /** The items of `n` cards of a session of `items`, each answered right. */
+  function drawn(items: readonly string[], n: number, stats: Record<string, NoteStats> = {}) {
+    const rng = seededRng(11);
+    let state = startTheorySession({
+      id: 's',
+      level,
+      by: 'name',
+      length: n + 1,
+      hint: false,
+      at: T,
+      stats,
+      rng,
+      items,
+    });
+    const out = [state.card.prompt.item];
+    while (out.length < n) {
+      const answered = { ...state, card: { ...state.card, status: 'correct' as const } };
+      state = advanceTheory(answered, { at: T, stats, rng });
+      out.push(state.card.prompt.item);
+    }
+    return out;
+  }
+  /** An item answered five times, wrong every time or right every time. */
+  const seen = (item: string, correct: boolean) =>
+    theoryStats(
+      Array.from({ length: 5 }, (_, i) => answer(i, { item, correct, ms: 2000, level: 'RI2' })),
+    )[item]!;
+
+  it('draws those items alone, never the same twice in a row', () => {
+    const items = all.slice(3, 6);
+    const cards = drawn(items, 200);
+    expect(new Set(cards)).toEqual(new Set(items));
+    cards.forEach((item, i) => {
+      if (i > 0) expect(item).not.toBe(cards[i - 1]);
+    });
+  });
+
+  it('keeps the weights among them: the weak item comes more often', () => {
+    const [weak, a, b] = all.slice(3, 6) as [string, string, string];
+    const stats = { [weak]: seen(weak, false), [a]: seen(a, true), [b]: seen(b, true) };
+    const cards = drawn([weak, a, b], 600, stats);
+    const count = (item: string) => cards.filter((c) => c === item).length;
+    expect(count(weak)).toBeGreaterThan(count(a) * 1.3);
+    expect(count(weak)).toBeGreaterThan(count(b) * 1.3);
+  });
+
+  it('two items take turns, and one item is asked again', () => {
+    const [a, b] = all.slice(0, 2) as [string, string];
+    const two = drawn([a, b], 6);
+    expect(two).toEqual([two[0], two[1], two[0], two[1], two[0], two[1]]);
+    expect(new Set(two)).toEqual(new Set([a, b]));
+    expect(drawn([a], 4)).toEqual([a, a, a, a]);
   });
 });

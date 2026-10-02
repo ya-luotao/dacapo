@@ -24,6 +24,7 @@ import {
 import { recoverEarSessions, type SessionRecord } from './log.ts';
 import { seededRng } from './random.ts';
 import type { TuneId } from './tuneList.ts';
+import { emptyStats, updateStats, type NoteStats } from './weakness.ts';
 import { getTune, tuneKey, tuneKeys, tunePrompt } from './tunes.ts';
 
 const AT = 1_700_000_000_000;
@@ -785,5 +786,65 @@ describe('a tune session', () => {
       expect(suggested(twinkle.slice(0, 6))).toBe(TWINKLE);
       expect(suggested(twinkle)).toBe('trad-frere-jacques');
     });
+  });
+});
+
+describe('a session of some of the level’s items', () => {
+  const level = getEarLevel('I4');
+  const all = levelItems(level, ['up', 'down']);
+
+  /** The items of `n` questions of a session of `items`, each answered. */
+  function drawn(items: readonly string[], n: number, stats: Record<string, NoteStats> = {}) {
+    const rng = seededRng(13);
+    let state = startEarSession({
+      id: 's',
+      level,
+      by: 'name',
+      directions: ['up', 'down'],
+      items,
+      length: n + 1,
+      at: AT,
+      stats,
+      rng,
+    });
+    const out = [state.card.prompt.item];
+    while (out.length < n) {
+      const answered = { ...state, card: { ...state.card, status: 'correct' as const } };
+      state = advanceEar(answered, { at: AT, stats, rng });
+      out.push(state.card.prompt.item);
+    }
+    return out;
+  }
+  /** An item answered five times, wrong every time or right every time. */
+  const seen = (item: string, correct: boolean): NoteStats =>
+    Array.from({ length: 5 }).reduce<NoteStats>(
+      (stats) => updateStats(stats, { correct, ms: 2500, hinted: false, timedOut: false, at: AT }),
+      emptyStats(item),
+    );
+
+  it('draws those items alone, never the same twice in a row', () => {
+    const items = all.slice(4, 7);
+    const cards = drawn(items, 200);
+    expect(new Set(cards)).toEqual(new Set(items));
+    cards.forEach((item, i) => {
+      if (i > 0) expect(item).not.toBe(cards[i - 1]);
+    });
+  });
+
+  it('keeps the weights among them: the weak item comes more often', () => {
+    const [weak, a, b] = all.slice(4, 7) as [string, string, string];
+    const stats = { [weak]: seen(weak, false), [a]: seen(a, true), [b]: seen(b, true) };
+    const cards = drawn([weak, a, b], 600, stats);
+    const count = (item: string) => cards.filter((c) => c === item).length;
+    expect(count(weak)).toBeGreaterThan(count(a) * 1.3);
+    expect(count(weak)).toBeGreaterThan(count(b) * 1.3);
+  });
+
+  it('two items take turns, and one item is asked again', () => {
+    const [a, b] = all.slice(0, 2) as [string, string];
+    const two = drawn([a, b], 6);
+    expect(two).toEqual([two[0], two[1], two[0], two[1], two[0], two[1]]);
+    expect(new Set(two)).toEqual(new Set([a, b]));
+    expect(drawn([a], 4)).toEqual([a, a, a, a]);
   });
 });

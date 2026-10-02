@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { getLevel } from '../../core/levels.ts';
+import { levelProgress } from '../../core/mastery.ts';
 import { seededRng } from '../../core/random.ts';
 import { createPracticeStore } from '../practice/store.ts';
 import { ADVANCE_DELAY_MS, createReadController } from './controller.ts';
@@ -98,5 +100,40 @@ describe('read controller', () => {
     controller.setHint(true);
     expect(controller.getState()).toBeNull();
     expect(practice.getSnapshot().attempts).toHaveLength(0);
+  });
+});
+
+describe('read controller: a session of some of the level’s notes', () => {
+  it('shows those notes only, and is a session of the level like any other', () => {
+    const { practice, controller, flush, state, answer } = setup();
+    const notes = getLevel('L2').notes.slice(2, 5);
+    controller.start('L2', 10, false, notes);
+    const shown: string[] = [];
+    for (let i = 0; i < 10; i++) {
+      shown.push(state().card.note.key);
+      answer(i * 10_000);
+      flush();
+    }
+    expect(state().phase).toBe('done');
+    expect(new Set(shown)).toEqual(new Set(notes.map((n) => n.key)));
+    for (let i = 1; i < shown.length; i++) expect(shown[i]).not.toBe(shown[i - 1]);
+
+    // Its answers are the level's: they count for its figures and its mastery.
+    const { attempts, sessions } = practice.getSnapshot();
+    expect(attempts).toHaveLength(10);
+    expect(attempts.every((a) => a.level === 'L2' && a.sessionId === 's1')).toBe(true);
+    expect(levelProgress(attempts, 'L2').cards).toBe(10);
+    expect(sessions[0]).toMatchObject({ id: 's1', level: 'L2', cards: 10, length: 10 });
+
+    // Nothing says which kind of session it was: the record has what any session's has.
+    controller.start('L2', 10, false);
+    for (let i = 0; i < 10; i++) {
+      answer(200_000 + i * 10_000);
+      flush();
+    }
+    const [some, all] = practice.getSnapshot().sessions;
+    expect(Object.keys(some!).sort()).toEqual(Object.keys(all!).sort());
+    const [first, last] = [attempts[0]!, practice.getSnapshot().attempts.at(-1)!];
+    expect(Object.keys(first).sort()).toEqual(Object.keys(last).sort());
   });
 });

@@ -1,7 +1,8 @@
 # dacapo — Advice specification (what to work on next)
 
-Status: G2a (Pieces: the tempo ladder, the advice after a run, the review line) and G2b (Scales:
-the advice for a run's verdict) are built; G2c (Cards) is planned. This extends [MVP.md](MVP.md)
+Status: built. G2a (Pieces: the tempo ladder, the advice after a run, the review line), G2b
+(Scales: the advice for a run's verdict) and G2c (Cards: mastered just now, Practise these, the
+buttons on Progress, a level too far). This extends [MVP.md](MVP.md)
 and the later specifications; their principles and fixed decisions still apply — **measure, don't guess** above all: every
 sentence of advice rests on a figure the summary already shows, and says which.
 
@@ -235,9 +236,76 @@ sessions and their figures, and a session of chosen items is stored as a session
 - **Words.** A tempo reads "60%", as the tempo control writes it. In the Apple apps the delay is
   "the device's" (`pieces.advice.late.calibrate.app`): they have no computer to speak of.
 
+## Clarifications (decided during G2c)
+
+- **One sentence, and Practise these beside it.** A summary of cards says one sentence at most:
+  mastered just now, else a level too far. **Practise these** has no sentence; it is a button
+  whenever the session left something to practise, beside the sentence's button too and never
+  the primary one. The sentence's button leads the summary's row and is the one focused; without
+  one that is **Again**, as before.
+- **Mastered just now** is the family's own rule over the level's answers without the session's
+  and with them (`sessionMastery`): Read's notes by their attempts, the theory cards, Read's rhythm, Ear's families,
+  rhythm dictation and the chord symbols by their answers, sight-reading by its sessions. The
+  sentence stands where the summary's "…is mastered. Try the next level whenever you are ready."
+  stands, in its place for that summary; the next session of the level shows that line again, and
+  **Again** first. A tune is learnt, not mastered: its summary is as it was.
+- **Next level** is the button the summary always had, now first: it starts the next level and
+  keeps it as the level picked (LEARN.md, G3).
+- **After the last level** (`familyAfter`): of the families that are open and not mastered
+  throughout, one of the same page before one of another, then the one longest left alone (one
+  never practised before all), then the pages' order; never the family just finished, whatever
+  its lower levels. The sentence names it as today's plan does ("Next: Read · Intervals.") and
+  the button, with the same name, opens its page on the level it suggests. With no such family
+  the sentence stands alone. Scales and Pieces are not families of cards and are not proposed
+  here.
+- **A level too far.** "Right" is the summary's own figure (cards; cells for Read's rhythm; cells
+  tapped or bars chosen for rhythm dictation; melodies for Echo), and under 60 % means under:
+  6 of 10 is not (`TOO_FAR_SHARE`). The level below is the one before it in its family. It is
+  said of a session played to its end, or stopped with at least ten answers, the shortest
+  session's length (`TOO_FAR_MIN_ANSWERS`): a session stopped after two cards says nothing of the
+  level. The button is the level's name; it starts that level with the setup's settings and
+  keeps it as the level picked. Sight-reading has no such figure, and a tune no level below:
+  neither is told.
+- **Practise these: something to practise.** The summary always lists its three slowest items,
+  however fast they were, so the list alone offers nothing. The button is there when the session
+  has a missed item, or an item that was slow in fact: its slowest timed answer not under the
+  line the family's mastery draws for the median (`toPractise`: Read's notes 2 s,
+  `MASTERY_MEDIAN_MS`; the theory cards 3 s, chords 4 s, `theoryMasteryMedianMs`; the chord
+  symbols 3 s, `HARMONY_MASTERY_MEDIAN_MS`). An answer at the line is slow, as a median at it is
+  not mastered. Ear's mastery draws no line for the time: its missed items alone. A session with
+  nothing missed and every answer under the line has no button. Read's rhythm keeps its own
+  list, the cells to work on (five at most).
+- **Practise these: the items** are the missed ones, then those slow ones, each once. Fewer than
+  three are filled up with the level's weakest by the weights its sessions draw by, the heaviest
+  first and of equals the earlier in the level; Ear's intervals only in the directions the
+  session had. The session is ten cards, or twice the items when that is more.
+- **Practise these: the session** draws by the same weights within those items, never one twice
+  in a row; a single item is asked again and again, and so is one key written on both staves. It
+  takes the setup's settings (the hint, how a chord or an interval is answered); Ear's intervals
+  are played in the directions the items have. For Read's rhythm it is four lines, the shortest
+  session, in a meter the cells have: a line is built of those cells wherever one can stand, and
+  of the level's others only where none can. Its record is a session's and an answer's like any
+  other, so **Again** after it is the level as usual.
+- **From Progress.** The button stands under the heatmap's weakest notes and under a family's
+  weakest items where Practise these is offered: Ear's intervals and chords, Read's intervals,
+  key signatures and chords, the chord symbols; not Echo, cadences, tunes or rhythm dictation.
+  Its link names the level chosen in the section's filter when that level has any of the items,
+  else the first level that has them all, else the first that has the first of them
+  (`practiceStart`), and the items as they are stored, joined by commas
+  (`#/read?family=notes&level=L2&items=B4@treble,G4@treble`).
+- **On arrival** the page keeps the items the level has (it reads fifty at most), fills them up
+  to three (Ear's intervals in the directions the items have), and starts the session as soon as
+  the stored answers are in, with the settings it remembers. Nothing is stored for having come
+  this way. With no item of the level left, or without a sound for Ear, the page opens on the
+  level as a task's link does.
+- **One implementation.** `ui/SummaryEnd.tsx` is the end of all seven summaries (the standing
+  line, the sentence, the buttons), `ui/cardAdvice.ts` joins the rules to a page's records, and
+  `core/practiceLevels.ts` says what each level draws from: one list for the summary's check,
+  the link's and the fill-up.
+
 ## Milestones
 
 1. ✓ **G2a Pieces** — `core/tempoLadder.ts`, `core/advice.ts` for wait, memory and rhythm runs, the
    review line, the ladder on the card and in the tempo control.
 2. ✓ **G2b Scales** — the advice for a run's verdict.
-3. **G2c Cards** — mastered just now, Practise these, the buttons on Progress, a level too far.
+3. ✓ **G2c Cards** — mastered just now, Practise these, the buttons on Progress, a level too far.

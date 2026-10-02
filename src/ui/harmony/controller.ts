@@ -24,6 +24,8 @@ export interface HarmonyConfig {
   level: HarmonyLevelId;
   length: number;
   hint: boolean;
+  /** Some of the level's items to draw from, in place of them all ("Practise these"). */
+  items?: readonly string[];
 }
 
 export interface HarmonyControllerOptions {
@@ -129,7 +131,7 @@ export function createHarmonyController({
           at: now(),
           stats: stats(),
           rng,
-          items: harmonyLevelItems(level),
+          items: config.items ?? harmonyLevelItems(level),
         }),
       );
     },

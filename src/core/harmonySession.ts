@@ -89,7 +89,7 @@ export interface HarmonyStartOptions {
   at: number;
   stats: StatsByKey;
   rng: Rng;
-  /** The level's items; `harmonyLevelItems(level)`. */
+  /** The level's items, `harmonyLevelItems(level)`, or some of them ("Practise these"). */
   items: readonly string[];
 }
 
@@ -102,7 +102,9 @@ function newCard(
   hint: boolean,
   rng: Rng,
 ): HarmonyCard {
-  const item = pickItem(items, stats, previous, rng, HARMONY_TARGET_MS);
+  // A session of one item (some of the level's, docs/ADVICE.md) asks it again.
+  const item =
+    items.length === 1 ? items[0]! : pickItem(items, stats, previous, rng, HARMONY_TARGET_MS);
   const symbol = parseSymbolItem(item);
   if (!symbol) throw new RangeError(`Not a chord symbol: ${item}`);
   return {

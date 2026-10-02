@@ -6,7 +6,13 @@
 
 import { activeTime } from './activity.ts';
 import type { PlayResult, RhythmPlan, StepTiming } from './rhythm.ts';
-import { cellOnsets, RHYTHM_LEVELS, type RhythmLevel, type RhythmLevelId } from './rhythmCells.ts';
+import {
+  cellOnsets,
+  parseRhythmItem,
+  RHYTHM_LEVELS,
+  type RhythmLevel,
+  type RhythmLevelId,
+} from './rhythmCells.ts';
 import {
   drawExercise,
   EXERCISE_BARS,
@@ -261,15 +267,21 @@ export function rhythmStats(answers: readonly RhythmAnswer[]): Record<string, No
 
 /**
  * The next exercise of a level: a meter of it at random, cells by the item model. R9–R10 play two
- * bars, and R10 no two against three, until the level's first `HANDS_WARMUP_CELLS` cells.
+ * bars, and R10 no two against three, until the level's first `HANDS_WARMUP_CELLS` cells. With
+ * items to work on (`focus`: `rhythm:<cell>:<meter>`, "Practise these"), the meter is one of
+ * theirs and their cells come first in it (`drawExercise`).
  */
 export function nextExercise(
   level: RhythmLevel,
   answers: readonly RhythmAnswer[],
   rng: Rng,
+  focus: readonly string[] = [],
 ): RhythmExercise {
   const warm = answers.filter((a) => a.level === level.id).length >= HANDS_WARMUP_CELLS;
-  const meter = level.meters[Math.floor(rng() * level.meters.length)] ?? level.meters[0]!;
+  const wanted = focus.flatMap((item) => parseRhythmItem(item) ?? []);
+  const meters = level.meters.filter((m) => wanted.some((w) => w.meter === m));
+  const from = meters.length > 0 ? meters : level.meters;
+  const meter = from[Math.floor(rng() * from.length)] ?? from[0]!;
   return drawExercise({
     level,
     meter,
@@ -277,6 +289,7 @@ export function nextExercise(
     stats: rhythmStats(answers),
     rng,
     cross: !level.hands || warm,
+    focus: wanted.filter((w) => w.meter === meter).map((w) => w.cell),
   });
 }
 
@@ -304,6 +317,8 @@ export interface RhythmSessionState {
   /** The last run of the exercise on the stand, once it has been played. */
   last: RhythmRun | null;
   answers: readonly RhythmAnswer[];
+  /** The items its exercises are drawn for ("Practise these"); absent in a session of the level. */
+  focus?: readonly string[];
 }
 
 export function startRhythmSession(options: {
@@ -313,12 +328,14 @@ export function startRhythmSession(options: {
   length: number;
   at: number;
   exercise: RhythmExercise;
+  focus?: readonly string[];
 }): RhythmSessionState {
   return {
     id: options.id,
     level: options.level,
     bpm: options.bpm,
     length: options.length,
+    ...(options.focus && options.focus.length > 0 && { focus: options.focus }),
     startedAt: options.at,
     endedAt: null,
     phase: 'running',

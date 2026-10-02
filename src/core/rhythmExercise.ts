@@ -152,6 +152,11 @@ export interface DrawOptions {
   startWithNote?: boolean;
   /** The item a cell is weighted by: `rhythm:<cell>:<meter>` unless given (dictation's own). */
   itemOf?: (cell: string, meter: RhythmMeter) => string;
+  /**
+   * Cells to work on ("Practise these", docs/ADVICE.md): wherever one of them can stand it is one
+   * of them that is drawn, by the same weights; the level's other cells fill what they cannot.
+   */
+  focus?: readonly string[];
 }
 
 /**
@@ -160,13 +165,15 @@ export interface DrawOptions {
  * the level's own new ones, a third as often those with nothing to play; never the same cell
  * three times in a row, nor two with nothing to play. A cell tied from the one before needs a note
  * there to tie from and never follows another tie; the first cell starts with a note (R7 starts
- * half of its exercises off the beat, with `er-e`); and every bar has a note to play.
+ * half of its exercises off the beat, with `er-e`); and every bar has a note to play. With cells
+ * to work on (`focus`), those come first wherever the same rules let one stand.
  */
 export function drawExercise(options: DrawOptions): RhythmExercise {
   const { level, meter, bars, stats, rng } = options;
   const cross = options.cross ?? true;
   const startWithNote = options.startWithNote ?? true;
   const itemOf = options.itemOf ?? rhythmItem;
+  const focus = new Set(options.focus ?? []);
   const pool = level.cells.filter((key) => cross || !key.split('|').includes(R10_CROSS));
   const perBar = beatsPerBar(meter);
   const keys: string[] = [];
@@ -194,11 +201,13 @@ export function drawExercise(options: DrawOptions): RhythmExercise {
         const last = at + cellBeats(key) >= perBar;
         return !last || played || sounds;
       });
+      const allowed = preferred.length > 0 ? preferred : possible;
+      const wanted = allowed.filter((key) => focus.has(key));
       let key: string;
       if (keys.length === 0 && offBeat && fits.includes('er-e')) key = 'er-e';
       else
         key = pickWeighted(
-          preferred.length > 0 ? preferred : possible,
+          wanted.length > 0 ? wanted : allowed,
           (k) =>
             noteWeight(stats[itemOf(k, meter)], RHYTHM_TARGET_MS) *
             (level.adds.includes(k) ? NEW_CELL_WEIGHT : 1) *

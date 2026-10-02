@@ -24,6 +24,8 @@ export interface TheoryConfig {
   by: AnswerMode;
   length: number;
   hint: boolean;
+  /** Some of the level's items to draw from, in place of them all ("Practise these"). */
+  items?: readonly string[];
 }
 
 export interface TheoryControllerOptions {
@@ -132,7 +134,7 @@ export function createTheoryController({
           at: now(),
           stats: stats(),
           rng,
-          items: theoryLevelItems(level),
+          items: config.items ?? theoryLevelItems(level),
         }),
       );
     },

@@ -118,7 +118,7 @@ export interface TheoryStartOptions {
   at: number;
   stats: StatsByKey;
   rng: Rng;
-  /** The level's items; `theoryLevelItems(level)`. */
+  /** The level's items, `theoryLevelItems(level)`, or some of them ("Practise these"). */
   items: readonly string[];
 }
 
@@ -131,7 +131,11 @@ function newCard(
   hint: boolean,
   rng: Rng,
 ): TheoryCard {
-  const item = pickItem(items, stats, previous, rng, theoryTargetMs(level.family));
+  // A session of one item (some of the level's, docs/ADVICE.md) asks it again.
+  const item =
+    items.length === 1
+      ? items[0]!
+      : pickItem(items, stats, previous, rng, theoryTargetMs(level.family));
   return {
     index,
     prompt: makeTheoryPrompt(level, item, rng),

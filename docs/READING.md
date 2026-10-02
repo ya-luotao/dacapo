@@ -67,7 +67,8 @@ sound alike (`h` and `q` tied to `q`) are separate items.
   (the next cell favours the ones missed or played unevenly, never the same one three times in a
   row), in one meter. It ends with a note on the downbeat of a fifth bar, so the run ends on a beat.
 - A session is 4, 8 or 16 exercises, each one count-in, run and result, with **Again** (the same
-  exercise) and **Next**.
+  exercise) and **Next**. Its summary lists the cells to work on, and **Practise these** starts
+  four lines built of them ([ADVICE.md](ADVICE.md), "Cards").
 
 ### Judging
 

@@ -1,5 +1,6 @@
-// What to work on next (docs/ADVICE.md): after a run, at most one sentence of advice, chosen by a
-// fixed order of rules from the figures its summary already shows, with the action that does it.
+// What to work on next (docs/ADVICE.md): after a run or a session, at most one sentence of advice,
+// chosen by a fixed order of rules from the figures its summary already shows, with the action
+// that does it.
 // The rules draw no line of their own: they use the review's (`CLEAN_NOTES`, `POOR_NOTES`,
 // `IN_TIME_SHARE`, `SLOW_BAR`) and rhythm mode's (`TENDENCY_MS`). Pure: figures in, an `Advice`
 // (the rule, the values its sentence takes, the action as data) or null out; the UI turns it into
@@ -17,8 +18,10 @@ import {
 } from './review.ts';
 import { loopableDrift, TENDENCY_MS, type RhythmSummary } from './rhythmRun.ts';
 import { CLICK_MAX_BPM, CLICK_MIN_BPM } from './scaleClick.ts';
+import type { LevelFamily } from './assignmentRecords.ts';
 import type { DriftDirection } from './drift.ts';
 import type { Hand, HandSelection } from './score.ts';
+import { SESSION_LENGTHS } from './session.ts';
 import { LADDER_STEP, SCORE_TEMPO, tempoBelow } from './tempoLadder.ts';
 
 /** What an advice's button does: it sets the page up, and the run starts. */
@@ -493,4 +496,230 @@ export function scaleAdvice(run: ScaleRun): ScaleAdvice | null {
   }
   const bpm = clickTempo(played);
   return bpm === null ? null : { rule: 'even', action: { kind: 'click', bpm } };
+}
+
+// --- Cards (Read, Ear, Harmony) ------------------------------------------------------------------
+
+/** A session with under this share of its answers right may be a level too far. */
+export const TOO_FAR_SHARE = 0.6;
+/**
+ * A session stopped early is told so only with this many answers, the shortest session's length:
+ * two cards say nothing of a level.
+ */
+export const TOO_FAR_MIN_ANSWERS: number = SESSION_LENGTHS[0];
+/** "Practise these" is of at least this many items: the list is filled up to it. */
+export const PRACTISE_MIN_ITEMS = 3;
+/** Its cards: this many, or twice the items when that is more. */
+export const PRACTISE_CARDS = 10;
+
+/** What a card advice's button does. */
+export type CardAction =
+  /** A level of the same family (the next one, or the one below): started, and kept as picked. */
+  | { kind: 'level'; level: string }
+  /** Another family, at the level it suggests: its page is opened on it. */
+  | { kind: 'family'; family: LevelFamily; level: string }
+  /** A short session of the items listed. */
+  | { kind: 'practise'; items: readonly string[]; length: number };
+
+/** The one sentence a summary of cards says: the rule that applied, its figures, its button. */
+export type CardSentence =
+  /**
+   * The session took the level from not mastered to mastered: the next level, or after the
+   * family's last the family to go on with; nothing to press when there is neither.
+   */
+  | { rule: 'mastered'; action: Exclude<CardAction, { kind: 'practise' }> | null }
+  /** Under `TOO_FAR_SHARE` right, and the level below is not mastered: that one first. */
+  | {
+      rule: 'tooFar';
+      correct: number;
+      answers: number;
+      below: string;
+      action: Extract<CardAction, { kind: 'level' }>;
+    };
+
+/** The advice after a session of cards. */
+export interface CardAdvice {
+  /** The sentence and the summary's primary button; null when neither rule applies. */
+  say: CardSentence | null;
+  /**
+   * "Practise these": a button whenever there are missed or slow items, beside the sentence's
+   * own and never in its place; a button without a sentence when no rule applies.
+   */
+  practise: Extract<CardAction, { kind: 'practise' }> | null;
+}
+
+/** A session of cards, for its advice. */
+export interface CardSession {
+  /** The level was mastered before the session's first answer, and is after its last. */
+  masteredBefore: boolean;
+  mastered: boolean;
+  /** The family's next level; null after its last. */
+  nextLevel: string | null;
+  /** After the last level: the family to go on with and its suggested level; null without one. */
+  nextFamily: { family: LevelFamily; level: string } | null;
+  /** Its answers, and those right. */
+  answers: number;
+  correct: number;
+  /** It was played to its end (not stopped before the last of what was planned). */
+  complete: boolean;
+  /** The level below and whether it is mastered; null at the family's first level. */
+  below: { level: string; mastered: boolean } | null;
+  /** The items "Practise these" would take (`practiceItems`); empty where there are none. */
+  practise: readonly string[];
+}
+
+/** The cards of a "Practise these" session of `items` items. */
+export const practiceLength = (items: number): number => Math.max(PRACTISE_CARDS, 2 * items);
+
+/**
+ * The one sentence after a session of cards; the first rule that applies:
+ *
+ * 1. mastered just now: the next level, or after the last the next family;
+ * 2. a level too far: under `TOO_FAR_SHARE` of the answers right while the level below is not
+ *    mastered: that level first. Said of a session played to its end, or stopped with at least
+ *    `TOO_FAR_MIN_ANSWERS` answers.
+ */
+function cardSentence(session: CardSession): CardSentence | null {
+  if (session.mastered && !session.masteredBefore) {
+    const { nextLevel, nextFamily } = session;
+    return {
+      rule: 'mastered',
+      action:
+        nextLevel !== null
+          ? { kind: 'level', level: nextLevel }
+          : nextFamily && { kind: 'family', ...nextFamily },
+    };
+  }
+  const { answers, correct, below } = session;
+  const enough = answers > 0 && (session.complete || answers >= TOO_FAR_MIN_ANSWERS);
+  if (enough && correct < TOO_FAR_SHARE * answers && below && !below.mastered)
+    return {
+      rule: 'tooFar',
+      correct,
+      answers,
+      below: below.level,
+      action: { kind: 'level', level: below.level },
+    };
+  return null;
+}
+
+/**
+ * After a session of cards (docs/ADVICE.md, "Cards"): one sentence at most (`cardSentence`), and
+ * "Practise these" when there are items for it: the third in the order, a button without a
+ * sentence when neither rule applies, and beside the sentence's button when one does. Null when
+ * there is nothing to say and nothing to practise.
+ */
+export function cardAdvice(session: CardSession): CardAdvice | null {
+  const say = cardSentence(session);
+  const practise =
+    session.practise.length > 0
+      ? {
+          kind: 'practise' as const,
+          items: session.practise,
+          length: practiceLength(session.practise.length),
+        }
+      : null;
+  return say || practise ? { say, practise } : null;
+}
+
+/**
+ * Whether a session took its level to mastery: the family's own rule (`mastered`) over the
+ * family's records without the session's (`ofSession`), and over them all. The records are the
+ * rule's own: Read's attempts, a family's answers, sight-reading's sessions.
+ */
+export function sessionMastery<R>(
+  records: readonly R[],
+  ofSession: (record: R) => boolean,
+  mastered: (records: readonly R[]) => boolean,
+): Pick<CardSession, 'masteredBefore' | 'mastered'> {
+  return {
+    masteredBefore: mastered(records.filter((record) => !ofSession(record))),
+    mastered: mastered(records),
+  };
+}
+
+/**
+ * What a session leaves to practise: the items it missed, then those of its "slowest" list that
+ * were slow in fact, their slowest timed answer not under `line`, the line the family's mastery
+ * draws for the median (an answer at the line is slow, as a median at it is not mastered). A
+ * family whose mastery has no such line (`null`) has its missed items alone. Each item once.
+ */
+export function toPractise(
+  missed: readonly string[],
+  slowest: readonly { item: string; ms: number }[],
+  line: number | null,
+): string[] {
+  const slow = line === null ? [] : slowest.filter((s) => s.ms >= line).map((s) => s.item);
+  return [...new Set([...missed, ...slow])];
+}
+
+/**
+ * The items of a "Practise these" session: those `listed` (the missed, then the slow ones:
+ * `toPractise`) that are the level's own, each once; filled up to `PRACTISE_MIN_ITEMS`
+ * with the level's weakest by the usual weights (the heaviest first, of equals the earlier in
+ * the level). Empty when none of the listed ones is the level's.
+ */
+export function practiceItems(
+  listed: readonly string[],
+  levelItems: readonly string[],
+  weight: (item: string) => number,
+): string[] {
+  const own = new Set(levelItems);
+  const items = [...new Set(listed)].filter((item) => own.has(item));
+  if (items.length === 0 || items.length >= PRACTISE_MIN_ITEMS) return items;
+  const rest = levelItems
+    .filter((item) => !items.includes(item))
+    .map((item, index) => ({ item, index, weight: weight(item) }))
+    .sort((a, b) => b.weight - a.weight || a.index - b.index);
+  return [...items, ...rest.slice(0, PRACTISE_MIN_ITEMS - items.length).map((r) => r.item)];
+}
+
+/**
+ * The level a list of items is practised at (Progress's weakest, which may be of several levels):
+ * the first of `levels` that has them all; else the first that has the first of them. Null when
+ * no level has it.
+ */
+export function levelOfItems(
+  items: readonly string[],
+  levels: readonly { id: string; items: readonly string[] }[],
+): string | null {
+  const first = items[0];
+  if (first === undefined) return null;
+  const all = levels.find((level) => items.every((item) => level.items.includes(item)));
+  return (all ?? levels.find((level) => level.items.includes(first)))?.id ?? null;
+}
+
+/** A family as today's plan sees it (`FamilyState` of `core/today.ts`): what the rule reads. */
+export interface FamilyStanding {
+  family: LevelFamily;
+  open: boolean;
+  /** Its first level not mastered; null once all are. */
+  suggested: string | null;
+  /** Epoch ms of its latest session; null when it was never practised. */
+  lastAt: number | null;
+}
+
+/**
+ * The family to go on with after `family`'s last level is mastered: of those open and not
+ * mastered throughout, the one today's plan would put first (the longest left alone, a family
+ * never practised before all; equals in the pages' order), a family of the same page before one
+ * of another. Null when there is none.
+ */
+export function familyAfter(
+  family: LevelFamily,
+  families: readonly FamilyStanding[],
+  pageOf: (family: LevelFamily) => string,
+): { family: LevelFamily; level: string } | null {
+  const page = pageOf(family);
+  const left = families
+    .map((f, index) => ({ f, index }))
+    .filter(({ f }) => f.family !== family && f.open && f.suggested !== null)
+    .sort(
+      (a, b) =>
+        Number(pageOf(b.f.family) === page) - Number(pageOf(a.f.family) === page) ||
+        (a.f.lastAt ?? -Infinity) - (b.f.lastAt ?? -Infinity) ||
+        a.index - b.index,
+    );
+  const next = left[0]?.f;
+  return next ? { family: next.family, level: next.suggested! } : null;
 }

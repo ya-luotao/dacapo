@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getLevel, type Level, type LevelId } from './levels.ts';
+import { getLevel, type Level, type LevelId, type StaffNote } from './levels.ts';
 import { seededRng } from './random.ts';
 import {
   advance,
@@ -397,5 +397,101 @@ describe('recoverSummary', () => {
     });
     expect(recovered.startedAt).toBe(Math.round(state.attempts[0]!.at - 700));
     expect(recoverSummary([])).toBeNull();
+  });
+});
+
+describe('a session of some of the level’s notes', () => {
+  const level = getLevel('L2');
+  const answer = (correct: boolean) => ({
+    correct,
+    ms: 1500,
+    hinted: false,
+    timedOut: false,
+    at: AT,
+  });
+  /** A note answered five times, wrong every time or right every time. */
+  const seen = (key: string, correct: boolean): NoteStats =>
+    Array.from({ length: 5 }).reduce<NoteStats>(
+      (stats) => updateStats(stats, answer(correct)),
+      emptyStats(key),
+    );
+
+  /** The notes of `n` cards of a session of `notes`, each answered right. */
+  function drawn(
+    notes: readonly StaffNote[],
+    n: number,
+    stats: Record<string, NoteStats> = {},
+    from: Level = level,
+  ): StaffNote[] {
+    const rng = seededRng(5);
+    const options = { id: 's', level: from, length: n + 1, hint: false, at: AT, stats, rng };
+    let state = startSession({ ...options, notes });
+    const out = [state.card.note];
+    while (out.length < n) {
+      const answered = { ...state, card: { ...state.card, status: 'correct' as const } };
+      state = advance(answered, { level: from, at: AT, stats, rng });
+      out.push(state.card.note);
+    }
+    return out;
+  }
+
+  it('draws those notes alone, never the same key twice in a row', () => {
+    const notes = level.notes.slice(2, 5);
+    const cards = drawn(notes, 200);
+    expect(new Set(cards.map((n) => n.key))).toEqual(new Set(notes.map((n) => n.key)));
+    cards.forEach((note, i) => {
+      if (i > 0) expect(note.midi).not.toBe(cards[i - 1]!.midi);
+    });
+  });
+
+  it('keeps the weights among them: the weak note comes more often', () => {
+    const [weak, a, b] = level.notes.slice(2, 5) as [StaffNote, StaffNote, StaffNote];
+    const stats = {
+      [weak.key]: seen(weak.key, false),
+      [a.key]: seen(a.key, true),
+      [b.key]: seen(b.key, true),
+    };
+    const cards = drawn([weak, a, b], 600, stats);
+    const count = (note: StaffNote) => cards.filter((c) => c.key === note.key).length;
+    expect(count(weak)).toBeGreaterThan(count(a) * 1.3);
+    expect(count(weak)).toBeGreaterThan(count(b) * 1.3);
+    // A note of the level outside them is never drawn, however weak.
+    const other = level.notes[0]!;
+    const with0 = drawn([weak, a, b], 200, { ...stats, [other.key]: seen(other.key, false) });
+    expect(with0.some((c) => c.key === other.key)).toBe(false);
+  });
+
+  it('two notes take turns; one note, or one key on both staves, is asked again', () => {
+    const [a, b] = level.notes.slice(0, 2) as [StaffNote, StaffNote];
+    const two = drawn([a, b], 6).map((n) => n.key);
+    expect(new Set([two[0], two[1]])).toEqual(new Set([a.key, b.key]));
+    expect(two).toEqual([two[0], two[1], two[0], two[1], two[0], two[1]]);
+    expect(drawn([a], 4).map((n) => n.key)).toEqual([a.key, a.key, a.key, a.key]);
+    // Middle C is written on both staves of the grand staff: the same key.
+    const grand = getLevel('L5');
+    const both = grand.notes.filter((n) => n.midi === 60);
+    expect(both).toHaveLength(2);
+    const cards = drawn(both, 20, {}, grand);
+    expect(cards.every((n) => n.midi === 60)).toBe(true);
+  });
+
+  it('is a session of the level like any other: its attempts are the level’s', () => {
+    const notes = level.notes.slice(2, 5);
+    const rng = seededRng(2);
+    let state = startSession({
+      id: 's',
+      level,
+      length: 2,
+      hint: false,
+      at: AT,
+      stats: {},
+      rng,
+      notes,
+    });
+    state = answerCorrectly(state, 1000);
+    expect(state.attempts[0]).toMatchObject({ level: 'L2', sessionId: 's', correct: true });
+    expect(summarize(state)).toMatchObject({ level: 'L2', cards: 1, length: 2 });
+    // A session of the whole level keeps no list of its own.
+    expect(start().state.notes).toBeUndefined();
   });
 });

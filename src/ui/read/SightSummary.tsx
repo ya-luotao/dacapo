@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import type { CardAction, CardAdvice } from '../../core/advice.ts';
 import { generateFragment } from '../../core/sightFragment.ts';
 import { nextSightLevel, SIGHT_GENERATOR_VERSIONS } from '../../core/sightLevels.ts';
 import {
@@ -8,6 +9,7 @@ import {
   type SightSessionSummary,
 } from '../../core/sightRead.ts';
 import { useT } from '../../i18n/index.ts';
+import { SummaryEnd } from '../SummaryEnd.tsx';
 import { useReadFormat } from './format.ts';
 import { useRhythmFormat } from './rhythmFormat.ts';
 import { useSightFormat } from './sightFormat.ts';
@@ -18,6 +20,9 @@ interface SightSummaryProps {
   onAgain: () => void;
   onNextLevel: () => void;
   onChooseLevel: () => void;
+  /** What to work on next (docs/ADVICE.md, "Cards"), and what its button does. */
+  advice?: CardAdvice | null;
+  onAdvice?: (action: CardAction) => void;
 }
 
 /** The end of a sight-reading session: each fragment's first run in time, and mastery. */
@@ -27,6 +32,8 @@ export function SightSummary({
   onAgain,
   onNextLevel,
   onChooseLevel,
+  advice,
+  onAdvice,
 }: SightSummaryProps) {
   const t = useT();
   const read = useReadFormat();
@@ -105,25 +112,22 @@ export function SightSummary({
         </ol>
       </div>
 
-      <p className={progress.mastered ? 'read-mastery is-mastered' : 'read-mastery'}>
-        {progress.mastered
-          ? t('read.summary.mastered', { level })
-          : t('read.summary.progress', { level, stats: format.stats(progress) })}
-      </p>
-
-      <div className="actions">
-        <button type="button" className="button button-primary" onClick={onAgain} autoFocus>
-          {t('read.again')}
-        </button>
-        {next && (
-          <button type="button" className="button" onClick={onNextLevel}>
-            {t('read.nextLevel')}
-          </button>
-        )}
-        <button type="button" className="button" onClick={onChooseLevel}>
-          {t('read.chooseLevel')}
-        </button>
-      </div>
+      <SummaryEnd
+        family="sight"
+        level={level}
+        mastery={{
+          mastered: progress.mastered,
+          text: progress.mastered
+            ? t('read.summary.mastered', { level })
+            : t('read.summary.progress', { level, stats: format.stats(progress) }),
+        }}
+        percent={''}
+        advice={advice}
+        onAdvice={onAdvice}
+        onAgain={onAgain}
+        onNextLevel={next ? onNextLevel : null}
+        onChooseLevel={onChooseLevel}
+      />
     </section>
   );
 }

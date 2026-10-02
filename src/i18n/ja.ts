@@ -263,6 +263,11 @@ export const ja: Dictionary = {
   'read.again': 'もう一度',
   'read.nextLevel': '次のレベル',
   'read.chooseLevel': 'レベルを選ぶ',
+  'read.practise': 'これらを練習',
+  'read.advice.mastered': '「{level}」を習得しました。',
+  'read.advice.next': '次は{family}です。',
+  'read.advice.tooFar':
+    '正答率は{percent}で、「{below}」はまだ習得していません。まずはそちらから。',
   'read.noteOnStaff': '{note}（{staff}）',
   'read.seconds': '{value}秒',
   'read.none': '—',
