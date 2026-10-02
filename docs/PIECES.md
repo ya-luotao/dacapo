@@ -541,7 +541,8 @@ or sent to a teacher as sound.
 ## A way through the pieces (G5)
 
 Status: G5a is built (ten first pieces at Initial and grade 1, each with its edition's fingering;
-see "Content and copyright"). G5b and G5c are planned.
+see "Content and copyright"), and so is G5b (the next piece by the grade reached, **Next for you**
+on the Pieces page, each grade's pieces played). G5c is planned.
 
 Goal: the library is a list, and a piece's page a set of tools (hands, a loop, modes, a tempo, weak
 bars). A learner is not told which piece to take next, nor how to go about a new one: a teacher
@@ -598,6 +599,37 @@ four bars". G5b says the first, G5c the second, both from the records and nothin
   and the next step. Nothing is stored: the plan is its records read another way, so it is the
   same on every device the records are on.
 
+### Clarifications (decided during G5b/G5c)
+
+- **The grade reached** is the highest grade of any built-in piece played to its end, a lead
+  sheet among them, as TODAY.md had it ("The next piece"); a piece "with no session at all" has
+  no run of any kind. With nothing played to its end the grade reached is none: once every
+  Initial piece written for two hands has a session, there is no next piece until one is played
+  to its end. Above grade 5 there is nothing to go up to.
+- **Where the pieces stand** (`core/piecesStanding.ts`: the pieces played to their end, those in
+  review and due, the piece in hand, the next piece) moved out of `core/today.ts`, which reads
+  it as before. The Pieces page reads it on its own, so it loads the rules of no other practice.
+- **Open.** The Pieces page proposes the next piece whether or not Pieces is "open": that only
+  decides what Today and Where you are propose, and no page reads it (TODAY.md). Someone on the
+  page is told where to begin.
+- **The row** is in the manner of Due for review: the piece's name opens it as it was left, and
+  the way on stands at the end of the row, with the arrow the home page's links have
+  ("Continue", "Begin"). The piece in hand says "Last played today", "… yesterday" or "… 3 days
+  ago" (calendar days) and its steady bars as its card counts them, for the hands last chosen
+  ("right hand: 3 of 8 bars steady"). The next piece says its grade and how many bars it has
+  (the written bars with something to play: `PieceFacts.bars.both`). An imported piece in hand
+  has the same row; one whose facts are not kept yet has no steady bars.
+- **Its place is kept.** The heading and the room of one row stand from the first paint, and the
+  row is drawn once everything it says is in (the records, and for the piece in hand its step
+  records), so the library under it does not move. The room is the row's to the pixel on a wide
+  screen; on a phone a long line may wrap, which the room cannot know. When there is neither a
+  piece in hand nor a next piece the section goes (the library within reach is used up).
+- **A grade's count** is of the pieces under its heading, the pieces written out: the lead
+  sheets have a heading of their own and no count (Where you are counts them within their grade,
+  as before). It is shown once the records are read, under the grade's name where the name has
+  a column of its own, and after it on a phone ("Grade 1 · 2 of 6"); a screen reader hears
+  "Grade 1: 2 of 6 played to the end".
+
 ## Milestones
 
 1. ✓ **P0 Spike** — choose the renderer (OpenSheetMusicDisplay vs Verovio vs other), prove
@@ -612,3 +644,6 @@ four bars". G5b says the first, G5c the second, both from the records and nothin
 8. ✓ **P7 Memorising** — memory mode, fading stages, prompts, start anywhere.
 9. ✓ **G6b A take as a MIDI file** — `core/smfWrite.ts`, Save as MIDI on the summaries, Your runs
    and Improvise.
+10. ✓ **G5a First pieces** — ten pieces at Initial and grade 1, with their editions' fingering.
+11. ✓ **G5b Next for you** — the next piece by the grade reached, the row on the Pieces page,
+    each grade's pieces played.

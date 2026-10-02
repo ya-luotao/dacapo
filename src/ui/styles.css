@@ -6365,6 +6365,14 @@ tr.is-few .cm-row {
   letter-spacing: 0.04em;
 }
 
+/* How many of a grade's pieces were played to the end: under its name, where the name has a
+   column of its own. */
+.library-level-played {
+  display: block;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
 .library-list {
   margin: 0;
   padding: 0;
@@ -6472,6 +6480,15 @@ tr.is-few .cm-row {
     padding-top: 0.875rem;
     padding-inline: 0.75rem;
   }
+
+  /* On one line with the name: "Grade 1 · 2 of 6". */
+  .library-level-played {
+    display: inline;
+  }
+
+  .library-level-played::before {
+    content: ' · ';
+  }
 }
 
 .your-pieces {
@@ -6503,6 +6520,32 @@ tr.is-few .cm-row {
   margin-top: 0.75rem;
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
+}
+
+/* Next for you (G5b): one row over the library, in the same lines, its way on at the end. */
+.next-piece .review-list {
+  margin-top: 0.25rem;
+}
+
+.next-piece .your-piece-actions {
+  align-self: center;
+  padding-block: 0;
+}
+
+/* The row's place while the records are read: a title's line and a line under it, between the
+   rules, so the library does not move when it is in. */
+.next-piece-waiting {
+  box-sizing: content-box;
+  min-height: 4.75rem;
+  margin-top: 0.25rem;
+  border-block: 1px solid var(--border);
+}
+
+@media (max-width: 40rem) {
+  /* The way on is under the piece's lines. */
+  .next-piece-waiting {
+    min-height: 8.875rem;
+  }
 }
 
 .piece-review-option {

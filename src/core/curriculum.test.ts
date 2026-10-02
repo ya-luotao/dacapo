@@ -332,6 +332,7 @@ describe('the next piece', () => {
     grade: p.level,
     leadSheet: p.leadSheet === true,
   }));
+  const byId = new Map(library.map((p) => [p.id, p]));
   const none = new Set<string>();
   /** The pieces of a grade written for two hands, in the library's order. */
   const written = (grade: number) =>
@@ -350,11 +351,11 @@ describe('the next piece', () => {
     expect(nextPiece(library, new Set(written(0)), none)).toBeNull();
   });
 
-  it('goes by grade, then by the library’s order, among pieces without a session', () => {
+  it('stays at the grade reached while it has a piece without a session, in the library’s order', () => {
     const ode = new Set(['beethoven-ode-to-joy']);
     // An Initial piece played to its end: the Initial pieces not begun still come first.
     expect(nextPiece(library, ode, ode)).toBe('turk-aller-anfang');
-    // Initial used up: grade 1, in the library's order.
+    // Initial used up: the grade above, in the library's order.
     const initial = new Set(written(0));
     expect(written(1)).toEqual([
       'turk-bey-der-wiege',
@@ -388,6 +389,63 @@ describe('the next piece', () => {
     expect(nextPiece(library, upToTwo, new Set(['bach-musette-in-d']))).toBe(
       'burgmuller-arabesque',
     );
+  });
+
+  it('never goes back below the grade reached', () => {
+    // Für Elise (grade 3) played to its end, and nothing else begun: the other grade 3 pieces,
+    // in the library's order, not the ten first pieces.
+    const elise = new Set(['beethoven-fur-elise']);
+    expect(written(3)).toEqual([
+      'burgmuller-arabesque',
+      'beethoven-fur-elise',
+      'tchaikovsky-morning-prayer',
+    ]);
+    expect(nextPiece(library, elise, elise)).toBe('burgmuller-arabesque');
+    expect(nextPiece(library, new Set([...elise, 'burgmuller-arabesque']), elise)).toBe(
+      'tchaikovsky-morning-prayer',
+    );
+    // The grade reached is the highest of those finished, whatever was finished below it.
+    const finished = new Set(['turk-aller-anfang', 'bach-musette-in-d']);
+    expect(written(2)[0]).toBe('schumann-soldiers-march');
+    expect(nextPiece(library, finished, finished)).toBe('schumann-soldiers-march');
+    // A piece of a lower grade without a session is never the next piece, whatever is left above.
+    for (const reached of [1, 2, 3, 4, 5]) {
+      const done = new Set([written(reached)[0]!]);
+      const started = new Set(done);
+      for (let next = nextPiece(library, started, done); next;) {
+        expect(byId.get(next)!.grade, next).toBeGreaterThanOrEqual(reached);
+        expect(byId.get(next)!.grade, next).toBeLessThanOrEqual(reached + 1);
+        started.add(next);
+        next = nextPiece(library, started, done);
+      }
+    }
+  });
+
+  it('goes up one grade once the grade reached has none left, and no further', () => {
+    const elise = new Set(['beethoven-fur-elise']);
+    // Grade 3 used up: the first of grade 4.
+    const three = new Set(written(3));
+    expect(written(4)).toEqual(['chopin-prelude-in-c-minor', 'satie-gymnopedie-1']);
+    expect(nextPiece(library, three, elise)).toBe('chopin-prelude-in-c-minor');
+    // Grade 4 used up too, with nothing of it finished: grade 5 is two above the grade reached.
+    const four = new Set([...three, ...written(4)]);
+    expect(written(5)).toEqual(['bach-prelude-in-c']);
+    expect(nextPiece(library, four, elise)).toBeNull();
+    // A grade 4 piece finished: grade 5 is within reach; above the last grade there is nothing.
+    const satie = new Set(['satie-gymnopedie-1']);
+    expect(nextPiece(library, four, satie)).toBe('bach-prelude-in-c');
+    const all = new Set(library.map((p) => p.id));
+    expect(nextPiece(library, all, new Set(['bach-prelude-in-c']))).toBeNull();
+  });
+
+  it('takes the grade reached from a lead sheet played to its end, and proposes none', () => {
+    // Auld Lang Syne is a lead sheet of grade 2: the written pieces of grade 2 follow it.
+    const sheet = new Set(['trad-auld-lang-syne']);
+    expect(byId.get('trad-auld-lang-syne')).toMatchObject({ grade: 2, leadSheet: true });
+    expect(nextPiece(library, sheet, sheet)).toBe('schumann-soldiers-march');
+    // The other lead sheets of grade 2 are not proposed when its written pieces are used up.
+    const two = new Set([...sheet, ...written(2)]);
+    expect(nextPiece(library, two, sheet)).toBe('burgmuller-arabesque');
   });
 
   it('never proposes a lead sheet or an imported piece', () => {

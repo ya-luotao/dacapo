@@ -54,11 +54,14 @@ and practices (G3's links between them read it too).
   exercise key (`major:C:1:right`, `harmonicMinor:A:2:both`; a test holds every rung to
   `parseExerciseKey`), and is _played_ once it has a recorded run. (Arpeggios, contrary motion and
   technique are the player's choice.)
-- **The next piece**, when none is in hand: of the built-in pieces written for two hands that have
-  no session at all, the first by grade and then by the library's order, no more than one grade
-  above the highest grade of a built-in piece played to its end; Initial only, when none has been.
-  When no piece is left within that, there is no next piece (the library is the player's to choose
-  from). Lead sheets and imported pieces are not proposed.
+- **The next piece**, when none is in hand, goes by where the player is ([PIECES.md](PIECES.md),
+  "Next for you"; until G5b it was the first by grade): of the built-in pieces written for two
+  hands that have no session at all, the first, in the library's order, at the highest grade of
+  a built-in piece played to its end; when that grade has none left, the first of the grade
+  above; the first of Initial when none has been played to its end. So it never goes back below
+  the grade reached, and never more than one grade up. When no piece is left within that, there
+  is no next piece (the library is the player's to choose from). Lead sheets and imported pieces
+  are not proposed.
 
 ## Today's plan (`core/today.ts`, pure)
 
@@ -188,6 +191,8 @@ the plan reads became records of their own with G3, synced and exported: LEARN.m
   without `core/scales.ts`, like the assignment's block. `core/assignments.ts` now exports
   `untilDue` (the line where today began is the end of yesterday), `levelsMastered` (the mastery
   of many levels at once, by the checklist's own reading of each page's rule) and `openTasks`.
+  Since G5b where the pieces stand (played to the end, in review, in hand, next) is worked out
+  in `core/piecesStanding.ts`, which `curriculumState` reads and the Pieces page reads on its own.
   The hooks and components are in `ui/today/` and `ui/home/Today.tsx`; the section on Progress is
   `ui/progress/WhereYouAre.tsx`.
 - **Before today.** A session belongs to the day it began; a scale session grows run by run, so

@@ -15,6 +15,21 @@ click's tempo and grid of scale runs played with it (from version 7), the takes 
 (from version 8), assignments and kept reports (from version 9), and the lessons finished (from
 version 10). Version 1 to 9 files still import.
 
+### Next for you (G5b, [docs/PIECES.md](docs/PIECES.md))
+
+- **The Pieces page says which piece is yours now.** One row above the library, **Next for
+  you**: the piece you have in hand (practised in the last fourteen days and not yet played to
+  its end), with when you last played it, how many of its bars are steady and **Continue**; or,
+  when none is in hand, the piece to begin next, with its grade and length and **Begin**.
+- **The next piece goes by the grade you have reached**: the first piece you have not begun at
+  the highest grade of a piece you played to its end, and the first of the grade above once
+  that grade has none left. It no longer goes back to the first pieces for someone playing
+  grade 3, and never jumps more than a grade. Today's plan and Where you are propose the same
+  piece.
+- **Each grade's heading** says how many of its pieces you have played to the end ("Grade 1 ·
+  2 of 6").
+- Worked out from your records; nothing is stored, synced or exported for it.
+
 ### The lessons in Traditional Chinese (G3, [docs/LEARN.md](docs/LEARN.md))
 
 - **The lessons are in Traditional Chinese** for readers in 繁體中文: the fifteen lessons and

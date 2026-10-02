@@ -22,25 +22,26 @@ import {
   isOpen,
   lessonNumber,
   nextLesson,
-  nextPiece,
   nextRung,
   OPENS_WITH,
   practised,
   sessionPractice,
-  type CurriculumPiece,
   type Practice,
 } from './curriculum.ts';
-import type { PieceSessionRecord, SessionRecord } from './log.ts';
+import type { SessionRecord } from './log.ts';
 import { firstNotMastered } from './mastery.ts';
-import type { PieceFacts, PieceStep } from './pieceRecords.ts';
-import { byReview, daysBetween, isRunToTheEnd, reviewSchedule, reviewStatus } from './review.ts';
+import type { PieceStep } from './pieceRecords.ts';
 import {
-  playedLately,
-  RECENT_RUNS,
-  scaleProgress,
-  SUGGEST_DAYS,
-  weakestLately,
-} from './scaleRanking.ts';
+  IN_HAND_DAYS,
+  piecesStanding,
+  runsToTheEnd,
+  sessionsByPiece,
+  type PiecesStanding,
+  type StandingPiece,
+  type StandingRecords,
+} from './piecesStanding.ts';
+import { daysBetween } from './review.ts';
+import { playedLately, RECENT_RUNS, scaleProgress, weakestLately } from './scaleRanking.ts';
 import { exerciseKeyParts } from './scaleTypes.ts';
 import type { Attempt } from './session.ts';
 import { opensEverything, readingFloor, type StartingPoint } from './startingPoint.ts';
@@ -62,37 +63,22 @@ import {
 
 // --- The records ---------------------------------------------------------------------------------
 
-/** A piece on this device, with what the plan needs of it. */
-export interface TodayPiece extends CurriculumPiece {
-  /**
-   * Its bar and note counts: a run to the end and the review schedule are told by them. Null for
-   * an imported piece whose facts are not kept yet (they are when it is next listed).
-   */
-  facts: Pick<PieceFacts, 'bars' | 'notes'> | null;
-  /** Taken out of review. */
-  out: boolean;
-}
+/** A piece on this device, with what the plan needs of it (core/piecesStanding.ts). */
+export type TodayPiece = StandingPiece;
 
 /** The records the plan is made from and ticked by: those of whoever practises. */
-export interface TodayRecords {
-  sessions: readonly SessionRecord[];
+export interface TodayRecords extends StandingRecords {
   /** In the order they happened. */
   attempts: readonly Attempt[];
   /** In the order they happened. */
   answers: readonly Answer[];
-  /**
-   * Step records by piece id, for the pieces whose records are loaded: a run to the end is told
-   * by them (every bar played); without them, by its session alone.
-   */
-  steps?: ReadonlyMap<string, readonly PieceStep[]>;
-  /** Every piece here: the built-in ones in the library's order, then the imported ones. */
-  pieces: readonly TodayPiece[];
 }
 
 // --- Where every practice stands -----------------------------------------------------------------
 
-/** The piece in hand is looked for among those practised in the last this many calendar days. */
-export const IN_HAND_DAYS = SUGGEST_DAYS;
+// The piece in hand is looked for among those practised in the last `IN_HAND_DAYS` days: where
+// the pieces stand is in piecesStanding.ts, which the Pieces page reads without the rest.
+export { IN_HAND_DAYS };
 /** A piece step is done with this much time on the piece today, or a run to its end. */
 export const WORK_MS = 5 * 60_000;
 
@@ -129,18 +115,9 @@ export interface ScalesState {
   next: string | null;
 }
 
-export interface PiecesState {
+/** Where the pieces stand (core/piecesStanding.ts), as Today and Where you are propose them. */
+export interface PiecesState extends Omit<PiecesStanding, 'finished'> {
   open: boolean;
-  /** Pieces in review (those taken out are not), and the ones due, the longest overdue first. */
-  inReview: number;
-  due: { id: string; overdue: number }[];
-  /** Per grade, the built-in pieces played to their end of those the grade has. */
-  grades: { grade: number; played: number; of: number }[];
-  /**
-   * The piece in hand: the one practised most recently in the last `IN_HAND_DAYS` days that was
-   * never played to its end, with the day it was last practised.
-   */
-  inHand: { id: string; day: DayKey } | null;
   /** The piece to begin when none is in hand; null when there is none to propose. */
   next: string | null;
 }
@@ -174,84 +151,15 @@ const utcNoon = (day: DayKey): number => {
   return Date.UTC(y!, m! - 1, d, 12);
 };
 
-/** A whole run when the piece's facts are not here to tell: completed, no loop, as written. */
-const wholeRun = (s: PieceSessionRecord): boolean =>
-  s.completed && s.loop === null && s.transpose === undefined && s.hands === 'both';
-
-/** The runs to the end among `sessions` of one piece, told by its facts and step records. */
-function runsToTheEnd(
-  piece: TodayPiece,
-  sessions: readonly PieceSessionRecord[],
-  steps: readonly PieceStep[] | undefined,
-): PieceSessionRecord[] {
-  const { facts } = piece;
-  if (!facts) return sessions.filter(wholeRun);
-  const bySession = new Map<string, PieceStep[]>();
-  for (const step of steps ?? []) {
-    const list = bySession.get(step.sessionId);
-    if (list) list.push(step);
-    else bySession.set(step.sessionId, [step]);
-  }
-  return sessions.filter((s) => isRunToTheEnd(s, bySession.get(s.id), facts));
-}
-
-function sessionsByPiece(sessions: readonly SessionRecord[]): Map<string, PieceSessionRecord[]> {
-  const byPiece = new Map<string, PieceSessionRecord[]>();
-  for (const session of sessions) {
-    if (session.kind !== 'piece') continue;
-    const list = byPiece.get(session.pieceId);
-    if (list) list.push(session);
-    else byPiece.set(session.pieceId, [session]);
-  }
-  return byPiece;
-}
-
+/** The pieces' standing, with the next piece only once Pieces is open. */
 function piecesState(
   records: TodayRecords,
   { today, lessonsDone, timeZone, start }: StateOptions,
   had: ReadonlySet<Practice>,
 ): PiecesState {
-  const byPiece = sessionsByPiece(records.sessions);
-  const finished = new Set<string>();
-  const reviews: { id: string; isDue: boolean; since: number; overdue: number }[] = [];
-  const grades = new Map<number, { grade: number; played: number; of: number }>();
-  const lately = addDays(today, -(IN_HAND_DAYS - 1));
-  let inHand: { id: string; at: number; day: DayKey } | null = null;
-
-  for (const piece of records.pieces) {
-    const sessions = byPiece.get(piece.id) ?? [];
-    const steps = records.steps?.get(piece.id);
-    if (runsToTheEnd(piece, sessions, steps).length > 0) finished.add(piece.id);
-    if (piece.grade !== null) {
-      let entry = grades.get(piece.grade);
-      if (!entry) grades.set(piece.grade, (entry = { grade: piece.grade, played: 0, of: 0 }));
-      entry.of++;
-      if (finished.has(piece.id)) entry.played++;
-    }
-    if (piece.facts && !piece.out) {
-      const schedule = reviewSchedule(piece.id, sessions, steps ?? null, piece.facts, timeZone);
-      if (schedule) reviews.push({ id: piece.id, ...reviewStatus(schedule, today) });
-    }
-    if (finished.has(piece.id) || sessions.length === 0) continue;
-    // Practised lately and never played to its end: the latest such piece is the one in hand.
-    const at = Math.max(...sessions.map((s) => s.startedAt));
-    const day = dayKey(at, timeZone);
-    if (day >= lately && (inHand === null || at > inHand.at)) inHand = { id: piece.id, at, day };
-  }
-
+  const { inReview, due, grades, inHand, next } = piecesStanding(records, { today, timeZone });
   const open = isOpen('pieces', lessonsDone, had, start);
-  return {
-    open,
-    inReview: reviews.length,
-    due: reviews
-      .filter((r) => r.isDue)
-      .sort(byReview)
-      .map(({ id, overdue }) => ({ id, overdue })),
-    grades: [...grades.values()].sort((a, b) => a.grade - b.grade),
-    inHand: inHand && { id: inHand.id, day: inHand.day },
-    next:
-      inHand === null && open ? nextPiece(records.pieces, new Set(byPiece.keys()), finished) : null,
-  };
+  return { open, inReview, due, grades, inHand, next: open ? next : null };
 }
 
 /**

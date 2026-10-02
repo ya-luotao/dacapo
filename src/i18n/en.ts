@@ -1353,6 +1353,13 @@ export const en = {
   'pieces.leadSheets': 'Lead sheets',
   'pieces.leadSheets.help':
     'A tune with chord symbols above it. Play the tune, and let the left hand be made from the symbols, in a pattern you choose under Options.',
+  'pieces.level.played': '{n} of {m}',
+  'pieces.level.played.label': '{level}: {n} of {m} played to the end',
+  'pieces.next.title': 'Next for you',
+  'pieces.next.today': 'Last played today',
+  'pieces.next.continue': 'Continue',
+  'pieces.next.begin': 'Begin',
+  'pieces.next.bars': '{n} bars',
   'pieces.edition': 'Source: {source}. {licence}.',
   'library.beethoven-ode-to-joy.title': 'Ode to Joy',
   'library.beethoven-ode-to-joy.composer': 'Ludwig van Beethoven',

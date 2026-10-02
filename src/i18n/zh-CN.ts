@@ -1302,6 +1302,13 @@ export const zhCN: Dictionary = {
   'pieces.leadSheets': '旋律谱',
   'pieces.leadSheets.help':
     '带和弦记号的旋律。右手弹旋律，左手由和弦记号生成，伴奏型在“选项”里选。',
+  'pieces.level.played': '{n}/{m}',
+  'pieces.level.played.label': '{level}：{m} 首中已完整弹完 {n} 首',
+  'pieces.next.title': '接下来练这首',
+  'pieces.next.today': '上次练是今天',
+  'pieces.next.continue': '继续',
+  'pieces.next.begin': '开始',
+  'pieces.next.bars': '{n} 小节',
   'pieces.edition': '来源：{source}。{licence}。',
   'library.beethoven-ode-to-joy.title': '欢乐颂',
   'library.beethoven-ode-to-joy.composer': '贝多芬',

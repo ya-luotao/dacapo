@@ -1,15 +1,13 @@
 import { useMemo } from 'react';
-import { barHeatmap, steadyBars } from '../../core/barHeatmap.ts';
 import type { PieceSessionRecord } from '../../core/log.ts';
 import type { PieceFacts } from '../../core/pieceRecords.ts';
-import type { HandSelection } from '../../core/score.ts';
 import { tempoLadder } from '../../core/tempoLadder.ts';
 import { useT } from '../../i18n/index.ts';
 import { usePieceSteps, usePractice } from '../practice/context.ts';
 import { usePieceFormat } from './format.ts';
-import { readPref } from '../../lib/localPrefs.ts';
-import { readPiecePrefs, WEAK_ALL_KEYS_PREF } from './prefs.ts';
+import { readPiecePrefs } from './prefs.ts';
 import { usePieceReview } from './review.ts';
+import { useSteadyBars } from './steady.ts';
 
 /**
  * A quiet line on a library card: when the piece was last practised, how many runs, how many of
@@ -92,34 +90,15 @@ function Ladder({
 
 function Steady({ pieceId, facts }: { pieceId: string; facts: PieceFacts }) {
   const t = useT();
-  const records = usePieceSteps(pieceId);
-  const prefs = readPiecePrefs(pieceId);
-  const hands: HandSelection = prefs.hands;
-  // With a left hand from the symbols the piece is practised on other notes: the practice page
-  // leaves their checksum and bar counts here (docs/HARMONY.md, H3).
-  const { checksum, bars: counts } = prefs.practised ?? facts;
-  // Runs in the written key, unless Weak bars was asked for every key (H4).
-  const allKeys = readPref(WEAK_ALL_KEYS_PREF) === '1';
-  const steady = useMemo(() => {
-    if (!records) return null;
-    const bars = [
-      ...new Set(
-        records
-          .filter((r) => r.hands === hands && r.checksum === checksum)
-          .filter((r) => allKeys || r.transpose === undefined)
-          .map((r) => r.measure),
-      ),
-    ];
-    return steadyBars(barHeatmap(records, { checksum, hands, bars, allKeys }).cells).steady;
-  }, [records, checksum, hands, allKeys]);
+  const steady = useSteadyBars(pieceId, facts);
   if (steady === null) return null;
   return (
     <>
       {' · '}
       {t('pieces.progress.steady', {
-        n: steady,
-        m: counts[hands],
-        hands: t(`pieces.progress.hands.${hands}`),
+        n: steady.steady,
+        m: steady.of,
+        hands: t(`pieces.progress.hands.${steady.hands}`),
       })}
     </>
   );

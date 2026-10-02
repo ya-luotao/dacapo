@@ -127,6 +127,20 @@ describe('what the start loads', () => {
       expect(chain(block, '/src/core/scaleProgress.ts'), block).toBeNull();
   });
 
+  // Where the pieces stand (docs/PIECES.md, "Next for you": the piece in hand, the next piece,
+  // the pieces played to their end) comes with the Pieces page and with the plan's rows. The
+  // Pieces page reads it apart from today's plan, so it loads no other practice's rules for it.
+  it('the start loads no standing of the pieces: the Pieces page does, without today’s rules', () => {
+    const standing = '/src/core/piecesStanding.ts';
+    expect(chain('/src/main.tsx', standing)).toBeNull();
+    expect(chain('/src/main.tsx', '/src/ui/pieces/PiecesPage.tsx')).toBeNull();
+    for (const root of ['/src/ui/pieces/PiecesPage.tsx', '/src/ui/today/TodayPlan.tsx'])
+      expect(chain(root, standing), root).not.toBeNull();
+    for (const rules of ['/src/core/today.ts', '/src/core/assignments.ts', '/src/core/mastery.ts'])
+      expect(chain('/src/ui/pieces/PiecesPage.tsx', rules), rules).toBeNull();
+    for (const heavy of HEAVY) expect(chain(standing, heavy)).toBeNull();
+  });
+
   // The recap of a week (docs/PERSONAL.md, "Your week") is the state at the week's end against
   // the state at its start, by every practice's mastery rule: it comes with Progress and with
   // the plan's rows, whose line about last week it words. The start knows only on which days of

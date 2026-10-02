@@ -1346,6 +1346,13 @@ export const ja: Dictionary = {
   'pieces.leadSheets': 'リードシート',
   'pieces.leadSheets.help':
     'コードネームのついたメロディーです。右手でメロディーを弾き、左手はコードネームから作られます。伴奏形は「オプション」で選べます。',
+  'pieces.level.played': '{n}/{m}',
+  'pieces.level.played.label': '{level}：{m}曲中{n}曲を最後まで演奏済み',
+  'pieces.next.title': '次はこの曲',
+  'pieces.next.today': '最後に弾いたのは今日',
+  'pieces.next.continue': '続きから',
+  'pieces.next.begin': 'はじめる',
+  'pieces.next.bars': '{n}小節',
   'pieces.edition': '出典：{source}。{licence}。',
   'library.beethoven-ode-to-joy.title': '歓喜の歌',
   'library.beethoven-ode-to-joy.composer': 'ベートーヴェン',

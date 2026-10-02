@@ -1303,6 +1303,13 @@ export const zhTW: Dictionary = {
   'pieces.leadSheets': '旋律譜',
   'pieces.leadSheets.help':
     '帶和弦記號的旋律。右手彈旋律，左手由和弦記號產生，伴奏型在「選項」裡選。',
+  'pieces.level.played': '{n}/{m}',
+  'pieces.level.played.label': '{level}：{m} 首中已完整彈完 {n} 首',
+  'pieces.next.title': '接下來練這首',
+  'pieces.next.today': '上次練是今天',
+  'pieces.next.continue': '繼續',
+  'pieces.next.begin': '開始',
+  'pieces.next.bars': '{n} 小節',
   'pieces.edition': '來源：{source}。{licence}。',
   'library.beethoven-ode-to-joy.title': '快樂頌',
   'library.beethoven-ode-to-joy.composer': '貝多芬',

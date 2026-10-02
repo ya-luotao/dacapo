@@ -212,10 +212,12 @@ export interface CurriculumPiece {
 }
 
 /**
- * The piece to begin when none is in hand: of the built-in pieces written for two hands that
- * have no session at all (`started`: the pieces that have one), the first by grade and then by
- * the library's order (`pieces` is in it), no more than one grade above the highest grade of a
- * built-in piece played to its end (`finished`); Initial only, when none has been. Null when no
+ * The piece to begin when none is in hand (docs/PIECES.md, "Next for you"): it goes by where the
+ * player is. Of the built-in pieces written for two hands that have no session at all (`started`:
+ * the pieces that have one), the first, in the library's order (`pieces` is in it), at the
+ * highest grade of a built-in piece played to its end (`finished`); when that grade has none
+ * left, the first of the grade above. With nothing played to its end yet: the first of Initial.
+ * So it never goes back below the grade reached, and never more than one grade up. Null when no
  * piece is left within that: the library is the player's to choose from. Lead sheets and imported
  * pieces are not proposed.
  */
@@ -225,12 +227,9 @@ export function nextPiece(
   finished: ReadonlySet<string>,
 ): string | null {
   const grades = pieces.flatMap((p) => (p.grade !== null && finished.has(p.id) ? [p.grade] : []));
-  const limit = grades.length > 0 ? Math.max(...grades) + 1 : 0;
-  let next: { id: string; grade: number } | null = null;
-  for (const piece of pieces) {
-    if (piece.grade === null || piece.leadSheet || started.has(piece.id)) continue;
-    if (piece.grade > limit) continue;
-    if (next === null || piece.grade < next.grade) next = { id: piece.id, grade: piece.grade };
-  }
-  return next?.id ?? null;
+  const firstOf = (grade: number): string | null =>
+    pieces.find((p) => p.grade === grade && !p.leadSheet && !started.has(p.id))?.id ?? null;
+  if (grades.length === 0) return firstOf(0);
+  const reached = Math.max(...grades);
+  return firstOf(reached) ?? firstOf(reached + 1);
 }

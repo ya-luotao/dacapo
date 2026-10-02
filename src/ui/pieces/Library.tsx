@@ -6,11 +6,12 @@ import { usePieceFormat } from './format.ts';
 import { PieceProgress } from './PieceProgress.tsx';
 
 /**
- * The built-in pieces, by level, like the contents page of a method book; then the lead sheets
- * under a heading of their own (docs/HARMONY.md, "Lead sheets (H3)"), the easiest first, each
- * with its level.
+ * The built-in pieces, by level, like the contents page of a method book, each grade's heading
+ * with how many of its pieces were played to the end (docs/PIECES.md, "Next for you"; `finished`,
+ * null while the records are read); then the lead sheets under a heading of their own
+ * (docs/HARMONY.md, "Lead sheets (H3)"), the easiest first, each with its level.
  */
-export function Library() {
+export function Library({ finished }: { finished: ReadonlySet<string> | null }) {
   const t = useT();
   const format = usePieceFormat();
   const id = useId();
@@ -28,6 +29,7 @@ export function Library() {
           key={level}
           label={format.level(level)}
           pieces={pieces.filter((p) => p.level === level)}
+          finished={finished}
         />
       ))}
       {leadSheets.length > 0 && (
@@ -48,6 +50,7 @@ function Group({
   help,
   pieces,
   level,
+  finished,
 }: {
   label: string;
   /** A line over the list saying what the group holds. */
@@ -55,13 +58,31 @@ function Group({
   pieces: readonly BuiltInPiece[];
   /** Each piece's level, where the heading does not say it. */
   level?: (piece: BuiltInPiece) => string;
+  /** A grade: the pieces played to their end, for its heading's count ("2 of 6"). */
+  finished?: ReadonlySet<string> | null;
 }) {
   const t = useT();
   const id = useId();
+  const count = finished && {
+    n: pieces.filter((piece) => finished.has(piece.id)).length,
+    m: pieces.length,
+  };
   return (
     <section className="library-level" aria-labelledby={id}>
       <h3 id={id} className="library-level-name">
-        {label}
+        {count ? (
+          <>
+            <span aria-hidden="true">
+              {label}
+              <span className="library-level-played">{t('pieces.level.played', count)}</span>
+            </span>
+            <span className="visually-hidden">
+              {t('pieces.level.played.label', { level: label, ...count })}
+            </span>
+          </>
+        ) : (
+          label
+        )}
       </h3>
       <div>
         {help && <p className="library-level-help">{help}</p>}

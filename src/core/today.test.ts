@@ -22,6 +22,7 @@ import type { PieceSessionRecord, ReadSessionRecord, SessionRecord } from './log
 import { levelProgress, MASTERY_WINDOW, suggestedLevel } from './mastery.ts';
 import { stepId, type PieceStep } from './pieceRecords.ts';
 import { RECENT_RUNS, scaleProgress, suggestedExercise } from './scaleProgress.ts';
+import { SUGGEST_DAYS } from './scaleRanking.ts';
 import { withRun, type ScaleSession } from './scaleRecords.ts';
 import { recoverSummary, type Attempt } from './session.ts';
 import { READS, type Reads, type StartingPoint } from './startingPoint.ts';
@@ -29,6 +30,7 @@ import {
   assignmentComesFirst,
   curriculumState,
   DEFAULT_PLAN_MINUTES,
+  IN_HAND_DAYS,
   LESSON_FIRST,
   PLAN_COUNTS,
   PLAN_MINUTES,
@@ -596,6 +598,8 @@ describe('the piece', () => {
   });
 
   it('is not a piece left for more than fourteen days', () => {
+    // The Scales page's fourteen days, kept where the Pieces page reads them without its rules.
+    expect(IN_HAND_DAYS).toBe(SUGGEST_DAYS);
     expect(work(withSessions(played('a', MINUET, -13, { hour: 1 })))).toMatchObject([
       { piece: MINUET, why: { kind: 'inHand', days: 13 } },
     ]);
@@ -993,9 +997,10 @@ describe('the plan', () => {
       played('t3', 'burgmuller-arabesque', 0, { whole: true }),
     );
     const next = todayPlan(ended, options({ today: '2026-09-25', minutes: 45 }));
-    // The piece in hand was played to its end: a new piece is begun (the first by grade that
-    // has no session yet), and it has come due for review, last in the line.
-    expect(names(next, 'work')).toEqual([FIRST]);
+    // The piece in hand was played to its end: a new piece is begun (the first of its grade, the
+    // third, that has no session yet: not the Initial pieces), and it has come due for review,
+    // last in the line.
+    expect(names(next, 'work')).toEqual(['tchaikovsky-morning-prayer']);
     expect(names(next, 'play')).toEqual([MARCH, ODE, MINUET]);
     const state = curriculumState(ended, options({ today: '2026-09-25' }));
     expect(state.pieces.due.at(-1)).toEqual({ id: 'burgmuller-arabesque', overdue: 0 });

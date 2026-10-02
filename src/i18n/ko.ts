@@ -1342,6 +1342,13 @@ export const ko: Dictionary = {
   'pieces.leadSheets': '리드 시트',
   'pieces.leadSheets.help':
     "코드 기호가 붙은 선율이에요. 오른손으로 선율을 치고, 왼손은 코드 기호에서 만들어져요. 반주 패턴은 '옵션'에서 골라요.",
+  'pieces.level.played': '{n}/{m}',
+  'pieces.level.played.label': '{level}: {m}곡 중 {n}곡을 끝까지 침',
+  'pieces.next.title': '다음은 이 곡',
+  'pieces.next.today': '오늘 마지막으로 연습',
+  'pieces.next.continue': '이어서 하기',
+  'pieces.next.begin': '시작하기',
+  'pieces.next.bars': '{n}마디',
   'pieces.edition': '출처: {source}. {licence}.',
   'library.beethoven-ode-to-joy.title': '환희의 송가',
   'library.beethoven-ode-to-joy.composer': '루트비히 판 베토벤',
