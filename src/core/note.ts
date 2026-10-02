@@ -1,6 +1,8 @@
 // Pitches use scientific pitch notation: C4 = middle C = MIDI 60.
 // The octave number belongs to the letter, so B#3 = MIDI 60 and Cb4 = MIDI 59.
 
+import type { SpelledPitch } from './score.ts';
+
 export const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'] as const;
 export type Letter = (typeof LETTERS)[number];
 
@@ -75,6 +77,15 @@ export function isBlack(midi: number): boolean {
 
 export function pitchToMidi({ letter, accidental, octave }: Pitch): number {
   return (octave + 1) * 12 + LETTER_SEMITONES[letter] + accidental;
+}
+
+/**
+ * The key of a pitch as a score writes it. Here, not with the reading of MusicXML
+ * (musicxml.ts), which brings its parser and the unzipping with it: the keys, the theory cards
+ * and the melodies by ear are loaded when the app starts and need this alone.
+ */
+export function midiOf(pitch: SpelledPitch): number {
+  return (pitch.octave + 1) * 12 + LETTER_SEMITONES[pitch.step] + Math.round(pitch.alter);
 }
 
 /** The default spelling of a key: naturals for white keys, sharps or flats for black keys. */

@@ -15,7 +15,7 @@ import { MAX_BPM, MIN_BPM } from '../../core/pulse.ts';
 import { dayKey } from '../../core/streak.ts';
 import { useT, type MessageKey } from '../../i18n/index.ts';
 import { currentShell } from '../../lib/shell.ts';
-import { BUILT_IN_IDS } from '../../pieces/library/index.ts';
+import { BUILT_IN_IDS } from '../../pieces/library/ids.ts';
 import { readLegacyLessons } from '../learn/progress.ts';
 import { usePractice, useStorageStatus } from '../practice/context.ts';
 import { readGoal } from '../progress/goal.ts';

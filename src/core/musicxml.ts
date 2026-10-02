@@ -6,7 +6,7 @@ import { formatSymbol, symbolFromMusicXml, type MusicXmlDegree } from './chordSy
 import { applyHands, detectHands } from './hands.ts';
 import type { GraceNote, HarmonyMark, Ornament, OrnamentKind } from './markings.ts';
 import { createMarkingReader, type SlurEnd } from './musicxmlMarkings.ts';
-import { LETTERS, type Letter } from './note.ts';
+import { LETTERS, midiOf, type Letter } from './note.ts';
 import {
   staffKey,
   TICKS_PER_QUARTER,
@@ -38,7 +38,8 @@ export class ScoreError extends Error {
   }
 }
 
-const STEP_SEMITONES: Record<Letter, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+// A written pitch's key: defined in note.ts, so that what needs it alone does not load the parser.
+export { midiOf };
 
 function child(el: Element, name: string): Element | null {
   for (const c of el.children) if (c.localName === name) return c;
@@ -67,10 +68,6 @@ function parseEndingNumbers(value: string): number[] {
     else if (/^\d+$/.test(part)) out.push(Number(part));
   }
   return out;
-}
-
-export function midiOf(pitch: SpelledPitch): number {
-  return (pitch.octave + 1) * 12 + STEP_SEMITONES[pitch.step] + Math.round(pitch.alter);
 }
 
 function readParts(root: Element, parts: Element[]): PartInfo[] {

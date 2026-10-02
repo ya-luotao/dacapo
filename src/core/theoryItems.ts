@@ -1,8 +1,8 @@
 import { CHORD_TONES, DIRECTIONS, type ChordQuality, type Direction } from './earItems.ts';
-import { midiOf } from './musicxml.ts';
 import {
   LETTERS,
   ledgerLineCount,
+  midiOf,
   pitchClass,
   staffPosition,
   type Clef,

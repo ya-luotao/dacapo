@@ -28,6 +28,11 @@ four times, nothing cached), the median of five loads.
 - **Without a network** the app opens as before. The English dictionary is stored with the app
   when the offline worker is installed, the reader's own at the first visit, and a language
   whose dictionary is missing opens in English ([docs/OFFLINE.md](docs/OFFLINE.md)).
+- **Two things the start did not need** now come with the pages that do: the reading of
+  MusicXML with its unzipping (27 kB; the start used one small function of it) and what the
+  library says of each piece (19 kB; the home page only counts the pieces). With them out, the
+  start is 916 kB (275 kB) in English and 918 kB (281 kB) in Simplified Chinese, and the first
+  paint at 2.12 s and 2.15 s: 0.09 s and 0.55 s earlier than in 0.2.0.
 
 ## 0.2.0 — 2026-10-02
 

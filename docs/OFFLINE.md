@@ -127,8 +127,8 @@ list, each file with the group it is in, and a version that is the hash of the l
 
 ## Clarifications (decided during G6a)
 
-- **The list** (`src/offline/files.ts`, written by the plugin in `vite.config.ts`). 336 files in
-  the build after release 0.2.0, with English a chunk of its own: the app's 221 (4.5 MB
+- **The list** (`src/offline/files.ts`, written by the plugin in `vite.config.ts`). 338 files in
+  the build after release 0.2.0, with English a chunk of its own: the app's 223 (4.5 MB
   as stored, the English dictionary's 0.2 MB among them), the engraver's 2 (7.3 MB), the
   piano's 90 samples (3.8 MB), the lessons' 6 pictures (0.8 MB), the 4 other dictionaries (0.8 MB)
   and the 13 licence texts (0.1 MB). The pages of [SITE.md](SITE.md) are not among them. A file's group comes from what the

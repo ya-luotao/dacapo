@@ -4,7 +4,8 @@ import { describe, expect, it } from 'vitest';
 // fingering and plates, over 100 kB) and of the validators (storage/validate.ts): those come with
 // the pages that need them. The home page's assignment block is loaded at the start whenever an
 // assignment is current, and today's plan for every returning player, so they are held to the
-// same. The dictionaries are kept out of the start in the same way (at the end).
+// same. The dictionaries, the reading of scores and the library of pieces are kept out of the start
+// in the same way (at the end).
 
 const SOURCES = import.meta.glob<string>('/src/**/*.{ts,tsx}', {
   query: '?raw',
@@ -255,5 +256,41 @@ describe('what the start loads', () => {
         staticImports(path).includes('/src/i18n/en.ts'),
     );
     expect(holders).toEqual([]);
+  });
+
+  // Reading a score (core/musicxml.ts: the MusicXML parser, the unzipping and the markings, over
+  // 25 kB) comes with the pages that show one. The keys, the theory cards and the melodies by
+  // ear, which the start has, need one function a score's pitches share with it (`midiOf`), and
+  // that is in note.ts.
+  it('the start loads no reading of scores: the pages that show one do', () => {
+    for (const reading of [
+      '/src/core/musicxml.ts',
+      '/src/core/musicxmlMarkings.ts',
+      '/src/core/hands.ts',
+    ])
+      expect(chain('/src/main.tsx', reading), reading).toBeNull();
+    for (const light of [
+      '/src/core/keys.ts',
+      '/src/core/theoryItems.ts',
+      '/src/core/earMelody.ts',
+    ]) {
+      expect(chain('/src/main.tsx', light), light).not.toBeNull();
+      expect(chain(light, '/src/core/musicxml.ts'), light).toBeNull();
+    }
+    expect(SOURCES['/src/core/note.ts']).toContain('export function midiOf(');
+    expect(staticImports('/src/core/note.ts')).toEqual([]);
+    // What reads a piece's file does have it: the check can find it.
+    for (const root of ['/src/ui/pieces/PieceSession.tsx', '/src/pieces/load.ts'])
+      expect(chain(root, '/src/core/musicxml.ts'), root).not.toBeNull();
+  });
+
+  // The library (pieces/library/index.ts: each piece's edition, source and facts, some 19 kB):
+  // the home page says how many pieces there are, and counts their ids.
+  it('the start counts the built-in pieces, and loads nothing else of the library', () => {
+    expect(chain('/src/main.tsx', '/src/pieces/library/ids.ts')).not.toBeNull();
+    expect(chain('/src/main.tsx', '/src/pieces/library/index.ts')).toBeNull();
+    expect(staticImports('/src/pieces/library/ids.ts')).toEqual([]);
+    // The Pieces page does have the library: the check can find it.
+    expect(chain('/src/ui/pieces/PiecesPage.tsx', '/src/pieces/library/index.ts')).not.toBeNull();
   });
 });

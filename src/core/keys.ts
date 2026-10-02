@@ -3,8 +3,7 @@
 // lessons), so it stands apart from scales.ts, whose exercises bring Hanon's fingering and plates
 // with them. See docs/SCALES.md ("Exercises", Keys).
 
-import { midiOf } from './musicxml.ts';
-import { LETTERS, type Letter } from './note.ts';
+import { LETTERS, midiOf, type Letter } from './note.ts';
 import type { Direction, ExerciseType, ScaleType, Tonic } from './scaleTypes.ts';
 import type { SpelledPitch } from './score.ts';
 

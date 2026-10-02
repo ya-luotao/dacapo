@@ -126,8 +126,8 @@ way, fingering included.
 2. Encode it: a `sources/<id>.py` for `generate.py`, or a `pdmx/<id>.json` for `prepare-pdmx.ts`.
 3. Run `verify.ts` until it matches, or have the piece read blind a second time; settle every
    difference against the edition and note any editorial decision in the file's comment.
-4. Add the piece to `src/pieces/library/index.ts` (metadata, level) and its strings to every
-   dictionary in `src/i18n/`.
+4. Add the piece to `src/pieces/library/index.ts` (metadata, level), its id to `ids.ts` beside
+   it, and its strings to every dictionary in `src/i18n/`.
 5. Add it to `library.test.ts`: a checksum line, a markings line, a fingering line if it has
    any, and a test of its structure (bars, repeats).
 6. Add the oracle to `verify-library.sh`, and a line to `THIRD_PARTY_NOTICES.md` if the encoding

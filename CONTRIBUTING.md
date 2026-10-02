@@ -86,8 +86,8 @@ encoding under CC BY-SA or a non-commercial licence. The tools are in `scripts/p
    against the scan.
 4. **Record where it comes from.** `<identification>` in the file names the composer, the
    licence, the encoder and the source edition with a URL. Repeat these in
-   `src/pieces/library/index.ts`, with a level, and add its title, composer and one-sentence note
-   to every dictionary in `src/i18n/`.
+   `src/pieces/library/index.ts`, with a level; add its id to `ids.ts` beside it, and its title,
+   composer and one-sentence note to every dictionary in `src/i18n/`.
 5. **Lock it.** Add a checksum line and a structure test to `src/pieces/library/library.test.ts`.
    Add the oracle to `scripts/pieces/verify-library.sh`, and a line to
    [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) if the encoding is not ours.

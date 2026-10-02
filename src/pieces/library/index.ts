@@ -2,45 +2,13 @@
 // comes from. The MusicXML is loaded only when a piece is opened.
 
 import type { PieceFacts } from '../../core/pieceRecords.ts';
+import { BUILT_IN_IDS, type BuiltInId } from './ids.ts';
 
 /** 0 = Initial; 1–5 = the usual graded-exam steps, roughly. */
 export type PieceLevel = 0 | 1 | 2 | 3 | 4 | 5;
 
-export const BUILT_IN_IDS = [
-  'turk-aller-anfang',
-  'beethoven-ode-to-joy',
-  'czerny-op599-no11',
-  'turk-muntere-knabe',
-  'beyer-kinderlied',
-  'turk-hans-ohne-sorgen',
-  'turk-matt-und-krank',
-  'turk-bey-der-wiege',
-  'beyer-abendlied',
-  'beyer-op101-no66',
-  'schumann-melodie',
-  'petzold-minuet-in-g',
-  'burgmuller-arabesque',
-  'schumann-soldiers-march',
-  'beethoven-fur-elise',
-  'bach-prelude-in-c',
-  'petzold-minuet-in-g-minor',
-  'bach-musette-in-d',
-  'burgmuller-candeur',
-  'tchaikovsky-old-french-song',
-  'tchaikovsky-morning-prayer',
-  'chopin-prelude-in-c-minor',
-  'satie-gymnopedie-1',
-  'trad-twinkle-twinkle',
-  'trad-frere-jacques',
-  'lyte-row-your-boat',
-  'trad-amazing-grace',
-  'pierpont-jingle-bells',
-  'foster-oh-susanna',
-  'trad-auld-lang-syne',
-  'trad-swing-low',
-] as const;
-
-export type BuiltInId = (typeof BUILT_IN_IDS)[number];
+// The ids are in a file of their own (ids.ts), for what needs no more than them.
+export { BUILT_IN_IDS, type BuiltInId };
 
 export interface BuiltInPiece {
   id: BuiltInId;
