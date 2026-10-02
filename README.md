@@ -24,17 +24,13 @@ and no account needed.
   <img src="docs/images/heatmap-staff.webp" alt="The weakness heatmap on the grand staff, with the details of one note" width="32%">
 </p>
 
-**Status:** the MVP (version 0.1.0) is complete: all five milestones of
-[docs/MVP.md](docs/MVP.md) are built and tested. It has not been used day to day for long yet,
-so expect rough edges; bug reports are welcome. See [CHANGELOG.md](CHANGELOG.md) for what is in
-each release. Practising pieces ([docs/PIECES.md](docs/PIECES.md)) is built too, not yet in a
-release: the library, MusicXML import, wait mode, MIDI playback, practice records with a measure
-heatmap, a rhythm mode with a metronome and timing analysis, a metronome of its own for any
-practice, and a built-in piano for keyboards without a sound of their own. So are scales
-([docs/SCALES.md](docs/SCALES.md)) with an analysis of how even they are, a focus mode for
-practising, and an optional account that syncs your practice between your devices
-([docs/SYNC.md](docs/SYNC.md)); the Apple app gets it in its next release, with its privacy
-details updated.
+**Status:** version 0.2.0. Everything in the feature list below is built, tested and live at
+[playdacapo.com](https://playdacapo.com/); [CHANGELOG.md](CHANGELOG.md) has what is in each
+release. It has not been used day to day for long yet, so expect rough edges; bug reports are
+welcome. What is judged from loudness, the pedal and how long a key is held uses provisional
+thresholds until they are set from runs recorded on real instruments, and the Japanese, Korean and
+Traditional Chinese texts await review by native speakers. The Apple app
+([docs/APPLE.md](docs/APPLE.md)) is built from the same code and is not in the App Store yet.
 
 ## Why
 
@@ -276,11 +272,15 @@ caching, so that a new release reaches browsers at their next visit. The officia
 [playdacapo.com](https://playdacapo.com/), is `pnpm build:site` served by a Cloudflare Worker
 (`wrangler.jsonc`), deployed by Cloudflare Workers Builds on every push to `main`.
 
-## Roadmap (after the MVP)
+## Roadmap
 
-These are deliberately out of scope for the MVP and are the candidates once it is used daily:
+Everything the MVP left out has since been built, except one thing, which stays out on purpose:
 
-- AI coaching
+- AI coaching. The advice after a run is made by rules from what was measured
+  ([docs/ADVICE.md](docs/ADVICE.md)); nothing is sent to a model.
+
+What is open now is listed with each specification in `docs/` (its Status line and its
+Clarifications): the thresholds above, the App Store release, and reviews by native speakers.
 
 ## Contributing
 

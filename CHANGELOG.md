@@ -6,6 +6,21 @@ which is noted when it changes.
 
 ## Unreleased
 
+Nothing yet.
+
+## 0.2.0 — 2026-10-02
+
+Everything built since the MVP. Pieces on the real score in wait, rhythm and memory mode, with a
+library of thirty-one works, playback, a review schedule and a plan for learning each; scales and
+technique measured for evenness; ear training, theory, rhythm and sight-reading; harmony from
+chord symbols to improvising; fifteen lessons in three languages; expression judged from the
+score's own markings; a plan for the day and a sentence of advice after each run; assignments
+between a teacher and a student; an optional account that syncs between devices; the app working
+without a network; and pages of their own for the lessons and the pieces. The newest is first.
+
+Database version 9 and sync schema 22: a browser that has opened this release cannot open its
+data with an older build ([docs/SYNC.md](docs/SYNC.md), "Builds").
+
 Export format version 10: the file now includes imported pieces (from version 2), piece practice
 sessions and their step records (from version 3), rhythm-mode steps with their timings (from
 version 4), scale sessions with every scale run as played (from version 5), ear-training answers

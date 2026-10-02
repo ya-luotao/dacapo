@@ -1,7 +1,7 @@
 {
   "name": "dacapo",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Free, open-source piano practice with a MIDI keyboard: sight-reading on a real grand staff, scales measured for evenness, real pieces in wait and rhythm mode, and a metronome, all in the browser.",
   "keywords": [
     "piano",
