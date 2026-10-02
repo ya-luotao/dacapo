@@ -292,8 +292,10 @@ export const USERNAME_MIN = 3;
 export const USERNAME_MAX = 30;
 
 /**
- * Not available as usernames: the service's paths and the names of the app. The service also
- * refuses names with an offensive word, which only it knows.
+ * Not available as usernames: the service's paths, the names of the app, and the site's own
+ * addresses (docs/SITE.md): a profile lives at `/<name>`, and a file of the build is served
+ * before the service is asked. The service also refuses names with an offensive word, which only
+ * it knows.
  */
 export const RESERVED_USERNAMES: ReadonlySet<string> = new Set([
   'api',
@@ -321,6 +323,13 @@ export const RESERVED_USERNAMES: ReadonlySet<string> = new Set([
   'piano',
   'dacapo',
   'playdacapo',
+  'learn',
+  'pieces',
+  'zh-cn',
+  'zh-tw',
+  'en',
+  'start',
+  'sitemap',
 ]);
 
 /** A username as it is stored: trimmed and lower-cased. */

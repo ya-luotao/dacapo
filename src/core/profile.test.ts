@@ -8,6 +8,7 @@ import {
   MAX_PROFILE_BYTES,
   NAMED_PROFILE_VERSION,
   normalizeUsername,
+  RESERVED_USERNAMES,
   usernameProblem,
   type ProfileInput,
 } from './profile.ts';
@@ -712,5 +713,15 @@ describe('usernames', () => {
     expect(usernameProblem('clara--s')).toBe('hyphens');
     expect(usernameProblem('privacy')).toBe('unavailable');
     expect(usernameProblem('playdacapo')).toBe('unavailable');
+  });
+
+  it('are never the site’s own addresses, nor the ones kept for later (docs/SITE.md)', () => {
+    for (const name of ['learn', 'pieces', 'zh-cn', 'zh-tw', 'start', 'sitemap']) {
+      expect(usernameProblem(name), name).toBe('unavailable');
+    }
+    // Too short to be a username at all, and kept all the same.
+    expect(RESERVED_USERNAMES.has('en')).toBe(true);
+    expect(usernameProblem('learner')).toBeNull();
+    expect(usernameProblem('zh-cnn')).toBeNull();
   });
 });

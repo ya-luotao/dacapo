@@ -31,7 +31,12 @@ private activity keeps the grid and hides everything else.
 - Not available (the same answer as a taken name): the paths the service uses or may use (`api`,
   `v1`, `u`, `privacy`, `terms`, `about`, `help`, `support`, `settings`, `admin`, `app`, `www`,
   `mail`, `static`, `assets`, `blog`, `docs`, `report`, `robots`, `favicon`), the web app's folders
-  (`icons`, `licenses`, `piano`), `dacapo`, `playdacapo`, and names containing a word on the service's blocklist of offensive words.
+  (`icons`, `licenses`, `piano`), `dacapo`, `playdacapo`, the site's own addresses
+  ([SITE.md](SITE.md): `learn`, `pieces`, `zh-cn`, `zh-tw`, and `en`, `start`, `sitemap` kept for
+  later), and names containing a word on the service's blocklist of offensive words. The site's
+  addresses are refused by the app now; the service's list gains them with its next deploy (a
+  file of the build is served before the service is asked, so a profile at such a name could
+  never be seen).
 - Optional: an account without a username syncs as before. A username can exist with the profile
   off; it is reserved and nobody sees it.
 - It can be changed at any time. The old name is free again at once and its URL is 404, as on

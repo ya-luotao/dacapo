@@ -19,15 +19,23 @@ interface Current extends LoadedLocale {
   requested: Locale;
 }
 
-/** `initial` is loaded before the first render, so the app never flashes English. */
+/**
+ * `initial` is loaded before the first render, so the app never flashes English. `chosen` is a
+ * language taken from the address as the app started (`langParam.ts`): the choice for this visit
+ * even where the browser keeps nothing.
+ */
 export function I18nProvider({
   initial,
+  chosen = null,
   children,
 }: {
   initial: LoadedLocale;
+  chosen?: Locale | null;
   children: ReactNode;
 }) {
-  const [override, setOverrideState] = useState<Locale | null>(readLocaleOverride);
+  const [override, setOverrideState] = useState<Locale | null>(
+    () => chosen ?? readLocaleOverride(),
+  );
   const requested = preferredLocale(override);
   const [current, setCurrent] = useState<Current>(() => ({ ...initial, requested }));
   const [noteNaming, setNoteNamingState] = useState<NoteNaming>(readNoteNaming);
