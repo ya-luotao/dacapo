@@ -25,10 +25,16 @@ version 10). Version 1 to 9 files still import.
 - **Each cell is a button** that sets the loop, the hands, the mode and the tempo and starts the
   run, with a tick once its stage is done. The order is a suggestion: any stage can be started.
 - **A stage is done by your records**, by lines the app already draws: a hand, or together,
-  when every bar of the phrase is steady with those hands (its last three runs without a wrong
-  note and without hesitating); in time, by one time through the phrase in rhythm mode, clean
-  and in time, at the tempo ladder's rung or any other; the whole piece, by a run to its end,
-  which is also what brings it into review. A bar that stops being steady opens its stage again.
+  when every bar of the phrase is steady with those hands (its last three times through without
+  a wrong note and without hesitating: press the cell and play the phrase three times round);
+  in time, by one time through the phrase in rhythm mode, clean and in time, at the tempo
+  ladder's rung or any other; the whole piece, by a run to its end, which is also what brings
+  it into review. The tick comes as the round ends. A bar that stops being steady opens its
+  stage again.
+- **A time through a loop is a run** for the bars' figures: a card's "bars steady", the Weak
+  bars map with its last five runs, and the plan count each time round a loop as a run, where a
+  looped run used to count once however often it went round. So three clean times round make a
+  bar steady. Runs without a loop count as before.
 - **Today's step for the piece in hand opens the plan's next step**, and says which ("Bars
   5–8, left hand · Last played 2 days ago"); so does **Continue** under Next for you on the
   Pieces page.

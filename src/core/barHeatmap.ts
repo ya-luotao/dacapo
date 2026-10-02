@@ -1,7 +1,8 @@
 // Data for the measure heatmap: one cell per written bar of a piece, for one hand selection. In
 // wait mode it is coloured by hesitation (the median time per step) and marked by wrong notes
 // per step; in rhythm mode by timing (the median distance from the beat per note) and marked by
-// missed and extra notes per note. Only recent runs count, so practice shows.
+// missed and extra notes per note. Only recent runs count, so practice shows. A run here is one
+// time through: each round of a loop counts as a run, as someone practising a phrase counts it.
 
 import { IDLE_MS } from './activity.ts';
 import { stepMode, type PieceStep, type PracticeMode } from './pieceRecords.ts';
@@ -58,13 +59,96 @@ export function metricScale(metric: BarMetric): { edges: readonly number[]; anch
     : { edges: BAR_EDGES_MS, anchor: ANCHOR_MS };
 }
 
-/** Each bar is judged on the latest runs that played it. */
+/** Each bar is judged on the latest runs that played it (a round of a loop is a run). */
 export const WINDOW_RUNS = 5;
 /** Less than this is "not enough data": one run can be a warm-up or a fluke. */
 export const MIN_RUNS = 2;
 export const MIN_STEPS = 3;
 /** A bar is steady when its last `STEADY_RUNS` runs were at ease and without a wrong note. */
 export const STEADY_RUNS = 3;
+
+/** The steps one time through each written bar takes, by measure index. */
+export type BarSteps = ReadonlyMap<number, number>;
+
+const byId = (a: PieceStep, b: PieceStep): number => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+
+/** A session's step records as it played them: a bar of one pass, step after step. */
+function stretches(run: readonly PieceStep[]): PieceStep[][] {
+  const out: PieceStep[][] = [];
+  for (const step of [...run].sort(byId)) {
+    const last = out.at(-1)?.[0];
+    if (last && last.measure === step.measure && last.pass === step.pass) out.at(-1)!.push(step);
+    else out.push([step]);
+  }
+  return out;
+}
+
+/** The steps a time through each bar takes, counted in a score's steps (any play order). */
+export function barStepsIn(
+  steps: readonly { measure: number; played: number }[],
+): Map<number, number> {
+  // A bar played again on a repeat has the same steps: the first time it is played is counted.
+  const first = new Map<number, number>();
+  const counts = new Map<number, number>();
+  for (const step of steps) {
+    if (!first.has(step.measure)) first.set(step.measure, step.played);
+    if (first.get(step.measure) !== step.played) continue;
+    counts.set(step.measure, (counts.get(step.measure) ?? 0) + 1);
+  }
+  return counts;
+}
+
+/**
+ * The steps a time through each bar takes, as the records themselves show them: the most steps
+ * a run played in a bar before it went on to another. For the places that have no score to count
+ * them in (a library card); a bar only ever looped on its own has none.
+ */
+export function barStepsOf(runs: Iterable<readonly PieceStep[]>): Map<number, number> {
+  const counts = new Map<number, number>();
+  for (const run of runs) {
+    for (const stretch of stretches(run).slice(0, -1)) {
+      const { measure } = stretch[0]!;
+      counts.set(measure, Math.max(counts.get(measure) ?? 0, stretch.length));
+    }
+  }
+  return counts;
+}
+
+/**
+ * The times through of one session, told from its step records (docs/PIECES.md, "Measure
+ * heatmap"): its records in the order played, each with the round it belongs to (0 for the
+ * first). A new round begins where the run comes back to a bar it has played in this round (the
+ * loop went round; a repeat's second pass is another pass, and the same round), and, in a loop
+ * of one bar, after the steps a time through the bar takes (`barSteps`; without them such a loop
+ * is one round). A run without a loop is one time through.
+ */
+export function timesThrough(
+  run: readonly PieceStep[],
+  barSteps: BarSteps = new Map(),
+): { step: PieceStep; round: number }[] {
+  const out: { step: PieceStep; round: number }[] = [];
+  let round = 0;
+  let played = new Set<string>();
+  for (const stretch of stretches(run)) {
+    const { measure, pass } = stretch[0]!;
+    const bar = `${measure}:${pass}`;
+    if (played.has(bar)) {
+      round++;
+      played = new Set();
+    }
+    played.add(bar);
+    const perRound = barSteps.get(measure) ?? Infinity;
+    stretch.forEach((step, n) => {
+      // Round and round one bar: the run is back at its first step.
+      if (n > 0 && n % perRound === 0) {
+        round++;
+        played = new Set([bar]);
+      }
+      out.push({ step, round });
+    });
+  }
+  return out;
+}
 
 /** 0 (under `edges[0]`) … `BAR_BUCKETS - 1`; an edge value belongs to the higher bucket. */
 export function barBucket(ms: number, edges: readonly number[] = BAR_EDGES_MS): number {
@@ -118,10 +202,18 @@ export interface BarHeatmapOptions {
    * default only runs in the written key count.
    */
   allKeys?: boolean;
+  /**
+   * The steps a time through each bar takes with these hands, where the score is at hand: they
+   * tell the rounds of a loop of one bar apart. Without them, as the records show them
+   * (`barStepsOf`).
+   */
+  barSteps?: BarSteps;
 }
 
+/** One time through a bar: a run, or a round of a looped run. */
 interface RunInBar {
-  sessionId: string;
+  /** The session and the round: the order of equals. */
+  id: string;
   /** The latest step of the run in the bar: the order of the runs. */
   last: number;
   steps: PieceStep[];
@@ -160,12 +252,12 @@ function figures(steps: readonly PieceStep[], metric: BarMetric): Figures {
 
 export function barHeatmap(
   records: readonly PieceStep[],
-  { checksum, hands, bars, metric = 'hesitation', allKeys = false }: BarHeatmapOptions,
+  { checksum, hands, bars, metric = 'hesitation', allKeys = false, barSteps }: BarHeatmapOptions,
 ): BarHeatmap {
   const mode = metricMode(metric);
   const { edges, anchor } = metricScale(metric);
   const stale = new Set<string>();
-  const byBar = new Map<number, Map<string, RunInBar>>();
+  const sessions = new Map<string, PieceStep[]>();
   for (const record of records) {
     if (record.hands !== hands || stepMode(record) !== mode) continue;
     if (record.transpose !== undefined && !allKeys) continue;
@@ -173,20 +265,32 @@ export function barHeatmap(
       stale.add(record.sessionId);
       continue;
     }
-    let runs = byBar.get(record.measure);
-    if (!runs) byBar.set(record.measure, (runs = new Map<string, RunInBar>()));
-    const run = runs.get(record.sessionId);
-    if (run) {
-      run.steps.push(record);
-      run.last = Math.max(run.last, record.at);
-    } else {
-      runs.set(record.sessionId, { sessionId: record.sessionId, last: record.at, steps: [record] });
+    const session = sessions.get(record.sessionId);
+    if (session) session.push(record);
+    else sessions.set(record.sessionId, [record]);
+  }
+
+  // Each time through a bar is a run of it: a session's rounds are told apart first.
+  const perBar = barSteps ?? barStepsOf(sessions.values());
+  const byBar = new Map<number, Map<string, RunInBar>>();
+  for (const [sessionId, session] of sessions) {
+    for (const { step, round } of timesThrough(session, perBar)) {
+      let runs = byBar.get(step.measure);
+      if (!runs) byBar.set(step.measure, (runs = new Map<string, RunInBar>()));
+      const id = `${sessionId} ${String(round).padStart(6, '0')}`;
+      const run = runs.get(id);
+      if (run) {
+        run.steps.push(step);
+        run.last = Math.max(run.last, step.at);
+      } else {
+        runs.set(id, { id, last: step.at, steps: [step] });
+      }
     }
   }
 
   const cells = bars.map((measure): BarCell => {
     const latest = [...(byBar.get(measure)?.values() ?? [])].sort(
-      (a, b) => b.last - a.last || (a.sessionId < b.sessionId ? 1 : -1),
+      (a, b) => b.last - a.last || (a.id < b.id ? 1 : -1),
     );
     const window = latest.slice(0, WINDOW_RUNS);
     const { count, medianMs, wrong, missed, prompts } = figures(

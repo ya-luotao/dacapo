@@ -6,11 +6,14 @@ import {
   BAR_EDGES_MS,
   barBucket,
   barHeatmap,
+  barStepsIn,
+  barStepsOf,
   byBarWeakness,
   isWeak,
   MEMORY_EDGES,
   metricScale,
   steadyBars,
+  timesThrough,
   TIMING_ANCHOR_MS,
   TIMING_EDGES_MS,
   weakestLoop,
@@ -353,5 +356,252 @@ describe('the memory metric', () => {
     expect(memoryHeat(waiting).cells[0]!.runs).toBe(0);
     expect(heat(memoryRun(1, 1)).cells[0]!.runs).toBe(0);
     expect(memoryHeat(memoryRun(1, 0)).cells[0]!.bucket).toBeNull();
+  });
+});
+
+// docs/PIECES.md, "Measure heatmap": a time through a loop is a run.
+describe('a time through a loop is a run', () => {
+  interface LoopOptions {
+    /** The written bars looped, in the order played, each with its pass. */
+    bars?: (number | [measure: number, pass: number])[];
+    rounds: number;
+    /** Steps a bar (two unless said). */
+    perBar?: number;
+    ms?: number;
+    /** By round (0 the first), the bars with a wrong note on their first step. */
+    wrong?: Record<number, number[]>;
+    /** Steps left out at the end: the run was stopped there. */
+    cut?: number;
+    patch?: Partial<PieceStep>;
+  }
+
+  /** A looped run `r`: `rounds` times through its bars, step after step, as it is recorded. */
+  function looped(r: number, o: LoopOptions): PieceStep[] {
+    const out: PieceStep[] = [];
+    for (let round = 0; round < o.rounds; round++) {
+      for (const bar of o.bars ?? [0, 1, 2, 3]) {
+        const [measure, pass] = typeof bar === 'number' ? [bar, 1] : bar;
+        for (let i = 0; i < (o.perBar ?? 2); i++) {
+          out.push(
+            sampleStep(`loop${r}`, out.length, {
+              measure,
+              pass,
+              ms: o.ms ?? 600,
+              wrong: i === 0 && o.wrong?.[round]?.includes(measure) ? 1 : 0,
+              at: T + r * 600_000 + out.length * 1000,
+              ...o.patch,
+            }),
+          );
+        }
+      }
+    }
+    return out.slice(0, out.length - (o.cut ?? 0));
+  }
+  const rounds = (records: PieceStep[], barSteps?: Map<number, number>) =>
+    timesThrough(records, barSteps).map((r) => r.round);
+
+  it('tells the rounds from the records: the run comes back to a bar it has played', () => {
+    expect(rounds(looped(1, { bars: [0, 1], rounds: 3, perBar: 1 }))).toEqual([0, 0, 1, 1, 2, 2]);
+    // A run without a loop is one time through, a repeat played and all: the second pass of a
+    // bar is another pass, not another round.
+    const repeated = looped(2, {
+      bars: [
+        [0, 1],
+        [1, 1],
+        [0, 2],
+        [1, 2],
+        [2, 1],
+      ],
+      rounds: 1,
+      perBar: 1,
+    });
+    expect(rounds(repeated)).toEqual([0, 0, 0, 0, 0]);
+    // Looped, the repeat goes round with it.
+    const both = looped(3, {
+      bars: [
+        [0, 1],
+        [0, 2],
+      ],
+      rounds: 2,
+    });
+    expect(rounds(both)).toEqual([0, 0, 0, 0, 1, 1, 1, 1]);
+    // A loop that begins in a second pass and ends after its repeat.
+    const second = looped(4, {
+      bars: [
+        [1, 2],
+        [2, 1],
+      ],
+      rounds: 2,
+      perBar: 1,
+    });
+    expect(rounds(second)).toEqual([0, 0, 1, 1]);
+    // The order is the order played, whatever order the records come in.
+    const shuffled = [...looped(5, { bars: [0, 1], rounds: 2, perBar: 1 })].reverse();
+    expect(timesThrough(shuffled).map((r) => [r.step.measure, r.round])).toEqual([
+      [0, 0],
+      [1, 0],
+      [0, 1],
+      [1, 1],
+    ]);
+  });
+
+  it('makes a bar steady by three clean times round one loop', () => {
+    const three = looped(1, { rounds: 3 });
+    const { cells } = heat(three);
+    expect(cells.map((c) => c.runs)).toEqual([3, 3, 3, 3]);
+    expect(cells.every((c) => c.steady)).toBe(true);
+    expect(steadyBars(cells)).toEqual({ steady: 4, total: 4 });
+    // Two times round are not three.
+    expect(heat(looped(2, { rounds: 2 })).cells.some((c) => c.steady)).toBe(false);
+    // Nor are three times round slowly.
+    expect(heat(looped(3, { rounds: 3, ms: 1400 })).cells.some((c) => c.steady)).toBe(false);
+  });
+
+  it('keeps a bar open by a wrong note in one of its last three rounds, and no longer', () => {
+    // Two clean rounds and one with a wrong note in bar 2: that bar is not steady, the others are.
+    const slip = heat(looped(1, { rounds: 3, wrong: { 1: [2] } })).cells;
+    expect(slip.map((c) => c.steady)).toEqual([true, true, false, true]);
+    // A wrong note in the first round, then three clean ones: steady.
+    const early = heat(looped(2, { rounds: 4, wrong: { 0: [2] } })).cells;
+    expect(early.every((c) => c.steady)).toBe(true);
+    expect(early[2]).toMatchObject({ runs: 4, wrong: 1 });
+    // And a wrong note in a later round opens it again.
+    const late = heat([
+      ...looped(3, { rounds: 3 }),
+      ...looped(4, { rounds: 1, wrong: { 0: [1] } }),
+    ]);
+    expect(late.cells.map((c) => c.steady)).toEqual([true, false, true, true]);
+  });
+
+  it('judges a bar on its last five times through, of one run or of several', () => {
+    // Eight rounds of one loop: four slow ones, then four at ease. The window is the last five.
+    const first = looped(1, { rounds: 4, ms: 4000 });
+    const later = looped(2, { rounds: 4, ms: 600 });
+    const bar = cell([...first, ...later], 0);
+    expect(bar).toMatchObject({ runs: 5, steps: 10, medianMs: 600, steady: true });
+    // Two rounds are enough data, as two runs are.
+    expect(cell(looped(3, { rounds: 2 }), 0)).toMatchObject({ runs: 2, bucket: barBucket(600) });
+    expect(cell(looped(4, { rounds: 1 }), 0)).toMatchObject({ runs: 1, bucket: null });
+    // A round and a run count alike: two runs without a loop and one round of a loop.
+    const mixed = [
+      ...run(5, { 0: [{ ms: 600, steps: 2 }] }),
+      ...run(6, { 0: [{ ms: 600, steps: 2 }] }),
+      ...looped(7, { rounds: 1 }),
+    ];
+    expect(cell(mixed, 0)).toMatchObject({ runs: 3, steady: true });
+  });
+
+  it('counts a round stopped part-way for the bars it reached', () => {
+    // Three rounds and a fourth stopped after bar 1 (two bars of two steps left out).
+    const { cells } = heat(looped(1, { rounds: 4, cut: 4, wrong: { 3: [0] } }));
+    expect(cells.map((c) => c.runs)).toEqual([4, 4, 3, 3]);
+    // The wrong note of the last round is bar 0's; the bars it did not reach are as they were.
+    expect(cells.map((c) => c.steady)).toEqual([false, true, true, true]);
+  });
+
+  it('leaves a run without a loop as it was: one run, both passes of a repeat together', () => {
+    const repeated = [1, 2].flatMap((r) =>
+      looped(r, {
+        bars: [
+          [0, 1],
+          [0, 2],
+          [1, 1],
+        ],
+        rounds: 1,
+      }),
+    );
+    expect(cell(repeated, 0)).toMatchObject({ runs: 2, steps: 8, passes: 2 });
+    // Looped, each time round has both passes.
+    const round = looped(3, {
+      bars: [
+        [0, 1],
+        [0, 2],
+      ],
+      rounds: 3,
+    });
+    expect(cell(round, 0)).toMatchObject({ runs: 3, steps: 12, passes: 2, steady: true });
+  });
+
+  it('tells the rounds of a loop of one bar by the steps a time through it takes', () => {
+    const one = looped(1, { bars: [2], rounds: 3, perBar: 4 });
+    expect(
+      barStepsIn([0, 1, 2, 3, 4, 5].map((n) => ({ measure: 2, played: n < 4 ? 0 : 7 }))),
+    ).toEqual(new Map([[2, 4]]));
+    // With the score at hand: three times through.
+    const known = barHeatmap(one, {
+      checksum: CHECKSUM,
+      hands: 'right',
+      bars: [2],
+      barSteps: new Map([[2, 4]]),
+    });
+    expect(known.cells[0]).toMatchObject({ runs: 3, steps: 12, steady: true });
+    expect(rounds(one, new Map([[2, 4]]))).toEqual([0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2]);
+    // Without it, and with nothing else to go by: one run, as before.
+    expect(cell(one, 2)).toMatchObject({ runs: 1, steps: 12, steady: false });
+    // The records of a run that went through the bar and on show its steps.
+    const through = looped(2, { bars: [1, 2, 3], rounds: 1, perBar: 4 });
+    expect(barStepsOf([through])).toEqual(
+      new Map([
+        [1, 4],
+        [2, 4],
+      ]),
+    );
+    expect(cell([...through, ...one], 2)).toMatchObject({ runs: 4, steady: true });
+  });
+
+  it('counts the rounds of a rhythm run and of a run by heart the same way', () => {
+    const notes = [{ midi: 60, deviation: 8 }];
+    const rhythm = looped(1, { rounds: 3, patch: { mode: 'rhythm', notes } });
+    const inTime = timing(rhythm).cells;
+    expect(inTime.map((c) => c.runs)).toEqual([3, 3, 3, 3]);
+    expect(inTime.every((c) => c.steady)).toBe(true);
+    // A note missed in the round the run was stopped in is that round's.
+    const missed = looped(2, {
+      bars: [0],
+      rounds: 1,
+      perBar: 1,
+      patch: { mode: 'rhythm', notes: [{ midi: 60, deviation: null }] },
+    });
+    expect(timing([...rhythm, ...missed]).cells.map((c) => c.steady)).toEqual([
+      false,
+      true,
+      true,
+      true,
+    ]);
+    // Memory: prompts per time through.
+    const byHeart = looped(3, { rounds: 4, patch: { mode: 'memory', stage: 'phrases' } }).map(
+      (s, n) => ({ ...s, prompts: n === 0 ? 2 : 0 }),
+    );
+    const memory = barHeatmap(byHeart, {
+      checksum: CHECKSUM,
+      hands: 'right',
+      bars: [0, 1],
+      metric: 'memory',
+    }).cells;
+    // Two prompts in bar 0 in the first of four rounds: one in two a time through, and none in
+    // the last three.
+    expect(memory[0]).toMatchObject({ runs: 4, perRun: 0.5, steady: true });
+    expect(memory[1]).toMatchObject({ runs: 4, perRun: 0, steady: true });
+  });
+
+  it('gives the card, the weakest bars and the map one count', () => {
+    // Bars 0 to 3 three times round, bar 2 with a wrong note the last time.
+    const records = looped(1, { rounds: 3, wrong: { 2: [2] } });
+    // The card has no score: it takes the bars from the records.
+    const bars = [...new Set(records.map((r) => r.measure))];
+    const card = steadyBars(
+      barHeatmap(records, { checksum: CHECKSUM, hands: 'right', bars }).cells,
+    );
+    // The page has the steps of each bar.
+    const page = barHeatmap(records, {
+      checksum: CHECKSUM,
+      hands: 'right',
+      bars,
+      barSteps: new Map(bars.map((bar) => [bar, 2])),
+    });
+    expect(card).toEqual({ steady: 3, total: 4 });
+    expect(steadyBars(page.cells)).toEqual(card);
+    const order: PlayedMeasure[] = bars.map((measure, i) => ({ measure, pass: 1, start: i }));
+    expect(weakestLoop(page.cells, order)).toEqual({ from: 2, to: 2 });
   });
 });

@@ -172,6 +172,19 @@ for drawing.
   note. "Loop the weakest bars" loops the weakest bar, with a neighbour played right before or
   after it when that one is weak too (slower than the anchor or with wrong notes). Records with
   another checksum are kept, left out and counted in a note.
+- **A time through a loop is a run** (since G5c), for the window of five, for "not enough data"
+  and for "steady" alike, in the hesitation, timing and memory figures: three clean times round
+  a loop make its bars steady, as three runs do. The rounds of a run are told from its step
+  records (`timesThrough` in `core/barHeatmap.ts`): a new round begins where the run comes back
+  to a bar it has already played in this round; a repeat's second pass is another pass of the
+  same round, so a run without a loop is one time through, as before. A round stopped part-way
+  counts for the bars it reached. A loop of one bar is told apart by the steps a time through
+  the bar takes: from the score where it is at hand (the piece's page, the plan), else from the
+  records of a run that went through the bar and on (a library card); a bar only ever looped on
+  its own, seen without its score, is one run as before. The window was kept in times through
+  too: a long looped run fills it with its own last five rounds, which is where the bar stands
+  when the run ends, and each time through then weighs the same (a run of fifteen rounds used
+  to weigh fifteen times a run of one).
 - **Per piece in this browser**: the hands and the tempo (`localStorage`). Built-in pieces carry
   their checksum and bar counts in the library index (locked by a test); imported pieces store
   them at import and when opened.
@@ -643,9 +656,9 @@ four bars". G5b says the first, G5c the second, both from the records and nothin
   a phrase has an empty cell where it has no such stage.
 - **Steady** is asked of `barHeatmap` (its hesitation figure: wait mode's runs, in the written
   key, of the notes as they are now); the plan draws no line of its own. So a hand's stage takes
-  three runs (`STEADY_RUNS`), and a loop that went round three times is one run: Finish, Again
-  or the stage's own button ends a run and begins the next. The panel says in one line what
-  makes a stage done.
+  three times through (`STEADY_RUNS`) without a wrong note or a hesitation, and a time round a
+  loop is one (see "A time through a loop is a run" under P3's Clarifications): press the cell,
+  play the phrase three times round. The panel says so in one line.
 - **A piece written for one hand.** On its page Both is that hand (see "Lead sheets"), so a run
   with Both counts for the hand's stage as a run with the hand does. In time and the whole piece
   are with that hand.
@@ -691,9 +704,11 @@ four bars". G5b says the first, G5c the second, both from the records and nothin
   left to a screen reader, and the score keeps its fourteen rem. On a phone the panel is one
   column and each phrase is a row of its stages under its bars, the stages' names over them (the
   rows are laid out as grids there, so the table's roles are written out).
-- **After a run.** The run in progress is held out of the plan until it is over (played to the
-  end, Finish, started again or replaced by another stage), so a tick comes after a run and not
-  under the player's hands.
+- **As a round is completed.** Of the run in progress the plan counts the times through it has
+  finished: the steps of the round it is in are held out until its last step is played (or the
+  run is over), so a tick comes as the third clean round ends, not under the player's hands,
+  and without Finish. In rhythm mode a time through is told whole from the records, so In time
+  ticks as a clean round ends too. (Weak bars' map goes on moving with every step, as before.)
 - **A stage's button** goes where an advice's button goes: the same setters for the hands, the
   loop, the mode and the tempo, and the same start (`begin`, shared with `takeAdvice`: in rhythm
   mode what Start does, the count-in or the calibration offered first; in wait mode the run
@@ -718,7 +733,7 @@ four bars". G5b says the first, G5c the second, both from the records and nothin
   hand, and a run of the left hand or of both then counts for nothing; the panel's buttons set
   it right.
 - **The start.** The files `index.html` loads were 943,646 bytes (287,948 gzipped) before G5b,
-  944,417 (288,138) with it, and are 948,950 (289,040) with G5c: 3.9 kB of styles, which are one
+  944,417 (288,138) with it, and are 948,965 (289,057) with G5c: 3.9 kB of styles, which are one
   file for every page, and 1.3 kB of strings in English. The plan's rules, the reading of a
   piece's file for it and the panel come with the pieces' pages and the plan's rows
   (`ui/assignments/startup.test.ts`).

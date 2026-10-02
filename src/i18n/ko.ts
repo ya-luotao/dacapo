@@ -1687,7 +1687,7 @@ export const ko: Dictionary = {
   'pieces.plan.start': '시작',
   'pieces.plan.done': '모든 단계를 마쳤어요.',
   'pieces.plan.how':
-    '한 손·양손: 마디마다 최근 {n}회가 안정되면(틀린 음 없이, 망설임 없이) 완료예요. 박자에 맞춰: 리듬 모드에서 한 번, 틀리지 않고 박자에 맞게 치면 완료예요.',
+    '한 손·양손: 최근 {n}번을 틀린 음 없이, 망설임 없이 치면 완료예요(구간 반복은 한 바퀴가 한 번이에요). 박자에 맞춰: 리듬 모드에서 한 번, 틀리지 않고 박자에 맞게 치면 완료예요.',
   'pieces.plan.table': '계획: 악구마다 한 줄, 단계마다 한 칸.',
   'pieces.plan.phrase': '마디',
   'pieces.plan.stage.together': '양손',

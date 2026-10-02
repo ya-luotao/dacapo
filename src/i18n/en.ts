@@ -1709,7 +1709,7 @@ export const en = {
   'pieces.plan.start': 'Start',
   'pieces.plan.done': 'Every stage is done.',
   'pieces.plan.how':
-    'A hand, or together, is done once each bar’s last {n} runs were steady: no wrong note, no hesitation. In time: once through in rhythm mode, clean and in time.',
+    'A hand, or together, is done after {n} times through without a wrong note or a hesitation, round a loop or run by run. In time: once through in rhythm mode, clean and in time.',
   'pieces.plan.table': 'The plan: a row for each phrase, a column for each stage.',
   'pieces.plan.phrase': 'Bars',
   'pieces.plan.stage.together': 'Together',

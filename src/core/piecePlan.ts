@@ -4,7 +4,7 @@
 // "steady", the review's clean and in time, a run to the end. Pure, and nothing of it is stored:
 // the plan is the records read another way, so it is the same wherever the records are.
 
-import { barHeatmap } from './barHeatmap.ts';
+import { barHeatmap, barStepsIn, type BarSteps } from './barHeatmap.ts';
 import type { PieceSessionRecord } from './log.ts';
 import { phraseStarts } from './memory.ts';
 import {
@@ -48,6 +48,18 @@ export interface PiecePhrase {
 export interface PlanSource {
   phrases: readonly PiecePhrase[];
   facts: PieceFacts;
+  /**
+   * The steps a time through each bar takes, per hand selection: they tell the rounds of a loop
+   * of one bar apart (a first ending is a phrase of one bar).
+   */
+  barSteps: Readonly<Record<HandSelection, BarSteps>>;
+}
+
+/** The steps a time through each written bar of a score takes, per hand selection. */
+export function stepsPerBar(score: Score): Record<HandSelection, Map<number, number>> {
+  const order = performanceOrder(score.measures);
+  const count = (hands: HandSelection) => barStepsIn(buildSteps(score, hands, order));
+  return { right: count('right'), left: count('left'), both: count('both') };
 }
 
 /**
@@ -56,21 +68,7 @@ export interface PlanSource {
  */
 export function piecePhrases(score: Score): PiecePhrase[] {
   const { measures } = score;
-  // Every written bar the first time it is played: the steps of one time through it.
-  const order = performanceOrder(measures);
-  const first = new Map<number, number>();
-  order.forEach((played, index) => {
-    if (!first.has(played.measure)) first.set(played.measure, index);
-  });
-  const perBar = (hands: HandSelection): Map<number, number> => {
-    const count = new Map<number, number>();
-    for (const step of buildSteps(score, hands, order)) {
-      if (first.get(step.measure) !== step.played) continue;
-      count.set(step.measure, (count.get(step.measure) ?? 0) + 1);
-    }
-    return count;
-  };
-  const counts = { right: perBar('right'), left: perBar('left'), both: perBar('both') };
+  const counts = stepsPerBar(score);
   const starts = phraseStarts(measures);
   return starts.flatMap((start, i): PiecePhrase[] => {
     // An upbeat belongs to the first phrase, which is counted from the bar after it.
@@ -96,7 +94,7 @@ export function piecePhrases(score: Score): PiecePhrase[] {
 
 /** What a piece's plan is made of, from its score as written. */
 export function planSource(score: Score): PlanSource {
-  return { phrases: piecePhrases(score), facts: pieceFacts(score) };
+  return { phrases: piecePhrases(score), facts: pieceFacts(score), barSteps: stepsPerBar(score) };
 }
 
 /**
@@ -149,7 +147,8 @@ export interface PlanInput extends PlanSource {
  *
  * - a hand, or together: when every bar of the phrase those hands play is steady with them, by
  *   the bar heatmap's own rule (`barHeatmap`: the bar's last runs without a wrong note and
- *   without hesitating). In a piece written for one hand, Both is that hand, and counts for it.
+ *   without hesitating, each round of a loop a run). In a piece written for one hand, Both is
+ *   that hand, and counts for it.
  * - in time: by one time through the phrase's bars in rhythm mode, with the hands that play
  *   every note, that the review would grade clean and in time (`gradeFigures`), at any tempo;
  * - the whole piece: by a run to the end (`isRunToTheEnd`).
@@ -180,7 +179,8 @@ export function piecePlan(input: PlanInput): PiecePlan {
     let steady = steadyBars.get(hands);
     if (!steady) {
       const bars = [...new Set(phrases.flatMap((p) => p.bars[hands]))];
-      const { cells } = barHeatmap(written, { checksum, hands, bars });
+      const barSteps = input.barSteps[hands];
+      const { cells } = barHeatmap(written, { checksum, hands, bars, barSteps });
       steady = new Set(cells.filter((c) => c.steady).map((c) => c.measure));
       steadyBars.set(hands, steady);
     }

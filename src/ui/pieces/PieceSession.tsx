@@ -12,11 +12,11 @@ import {
 import { flushSync } from 'react-dom';
 import { Link } from 'wouter';
 import { rhythmAdvice, waitAdvice, type AdviceAction } from '../../core/advice.ts';
-import { barHeatmap, weakestLoop, type BarMetric } from '../../core/barHeatmap.ts';
+import { barHeatmap, barStepsIn, weakestLoop, type BarMetric } from '../../core/barHeatmap.ts';
 import { analyzeExpression, type Melody } from '../../core/expression.ts';
 import { leftHandFor, leftHandPatterns, type LeftHandChoice } from '../../core/leadSheet.ts';
 import { parseMeter, tempoForMeter } from '../../core/metronomeSettings.ts';
-import { piecePhrases, piecePlan, type StageStart } from '../../core/piecePlan.ts';
+import { piecePhrases, piecePlan, stepsPerBar, type StageStart } from '../../core/piecePlan.ts';
 import { pieceFacts, type PieceFacts, type PracticeMode } from '../../core/pieceRecords.ts';
 import { summarizeRun } from '../../core/pieceRun.ts';
 import {
@@ -421,6 +421,8 @@ export function PieceSession({
     () => [...new Set(steps.map((s) => s.measure))].sort((a, b) => a - b),
     [steps],
   );
+  // The steps a time through each bar takes: they tell the rounds of a loop of one bar apart.
+  const barSteps = useMemo(() => barStepsIn(steps), [steps]);
   const heat = useMemo(
     () =>
       barHeatmap(records ?? [], {
@@ -429,22 +431,49 @@ export function PieceSession({
         bars: handBars,
         metric,
         allKeys,
+        barSteps,
       }),
-    [records, checksum, hands, handBars, metric, allKeys],
+    [records, checksum, hands, handBars, metric, allKeys, barSteps],
   );
   const weakest = useMemo(() => weakestLoop(heat.cells, order), [heat, order]);
   const barFormat = useBarFormat(format, metric);
 
   // The piece's plan (docs/PIECES.md, "A piece's plan"): of the notes as written, from the
-  // records of every run of the piece. The run in progress is held out until it is over, so the
-  // plan changes after a run, not under the player's hands.
-  const phrases = useMemo(() => piecePhrases(written), [written]);
+  // records of every run of the piece. Of the run in progress the times through it has finished
+  // count: a tick comes as a round of the loop is completed, not under the player's hands. (In
+  // rhythm mode a time through is told whole from the records, so all of them are taken.)
+  const planOf = useMemo(
+    () => ({ phrases: piecePhrases(written), barSteps: stepsPerBar(written) }),
+    [written],
+  );
   const live = recorded.ended ? null : recorded.id;
+  const perRound = range ? range.last - range.first + 1 : 0;
+  const lead = range ? (range.start ?? range.first) - range.first : 0;
   const learning = useMemo(() => {
     if (!planShown || !allRecords) return null;
-    const steps = live === null ? allRecords : allRecords.filter((r) => r.sessionId !== live);
-    return piecePlan({ pieceId: piece.id, phrases, facts: writtenFacts, sessions: runs, steps });
-  }, [planShown, allRecords, live, piece.id, phrases, writtenFacts, runs]);
+    const mine = allRecords.filter((r) => r.sessionId === live);
+    // The steps of the round the run is in, not yet through.
+    const open = rhythmMode || perRound === 0 ? 0 : (mine.length + lead) % perRound;
+    const held = new Set(open === 0 ? [] : mine.slice(-open).map((r) => r.id));
+    return piecePlan({
+      pieceId: piece.id,
+      ...planOf,
+      facts: writtenFacts,
+      sessions: runs,
+      steps: held.size === 0 ? allRecords : allRecords.filter((r) => !held.has(r.id)),
+    });
+  }, [
+    planShown,
+    allRecords,
+    live,
+    rhythmMode,
+    perRound,
+    lead,
+    piece.id,
+    planOf,
+    writtenFacts,
+    runs,
+  ]);
 
   /** Stops whatever the instrument is playing for us: the demo, the other hand, a rhythm run. */
   function silence() {

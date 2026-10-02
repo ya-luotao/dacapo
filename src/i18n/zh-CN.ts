@@ -1627,7 +1627,7 @@ export const zhCN: Dictionary = {
   'pieces.plan.start': '开始',
   'pieces.plan.done': '每一步都完成了。',
   'pieces.plan.how':
-    '分手或合手：每个小节最近 {n} 遍都弹稳了（没有错音，没有迟疑）就算完成。跟着拍子：在节奏模式里完整弹一遍，弹对并跟上拍子。',
+    '分手或合手：最近 {n} 遍都没有错音、没有迟疑就算完成，循环时每一圈算一遍。跟着拍子：在节奏模式里完整弹一遍，弹对并跟上拍子。',
   'pieces.plan.table': '计划：每个乐句一行，每个步骤一列。',
   'pieces.plan.phrase': '小节',
   'pieces.plan.stage.together': '合手',

@@ -1700,7 +1700,7 @@ export const ja: Dictionary = {
   'pieces.plan.start': '開始',
   'pieces.plan.done': 'すべての段階が終わりました。',
   'pieces.plan.how':
-    '片手・両手：各小節の直近{n}回が安定（ミスタッチなし、迷いなし）すれば完了です。拍に合わせて：リズムモードで1回、ミスなく拍どおりに通せば完了です。',
+    '片手・両手：直近{n}回の通しにミスタッチも迷いもなければ完了です（ループの1周も1回に数えます）。拍に合わせて：リズムモードで1回、ミスなく拍どおりに通せば完了です。',
   'pieces.plan.table': 'プラン：フレーズごとに1行、段階ごとに1列。',
   'pieces.plan.phrase': '小節',
   'pieces.plan.stage.together': '両手',

@@ -1629,7 +1629,7 @@ export const zhTW: Dictionary = {
   'pieces.plan.start': '開始',
   'pieces.plan.done': '每一步都完成了。',
   'pieces.plan.how':
-    '分手或合手：每個小節最近 {n} 遍都彈穩了（沒有錯音，沒有遲疑）就算完成。跟著拍子：在節奏模式裡完整彈一遍，彈對並跟上拍子。',
+    '分手或合手：最近 {n} 遍都沒有錯音、沒有遲疑就算完成，循環時每一圈算一遍。跟著拍子：在節奏模式裡完整彈一遍，彈對並跟上拍子。',
   'pieces.plan.table': '計畫：每個樂句一列，每個步驟一欄。',
   'pieces.plan.phrase': '小節',
   'pieces.plan.stage.together': '合手',

@@ -4,7 +4,7 @@ import { BUILT_IN } from '../pieces/library/index.ts';
 import furElise from '../pieces/library/beethoven-fur-elise.musicxml?raw';
 import twinkle from '../pieces/library/trad-twinkle-twinkle.musicxml?raw';
 import allerAnfang from '../pieces/library/turk-aller-anfang.musicxml?raw';
-import { STEADY_RUNS } from './barHeatmap.ts';
+import { barHeatmap, STEADY_RUNS, steadyBars } from './barHeatmap.ts';
 import type { PieceSessionRecord } from './log.ts';
 import { isPickup } from './memory.ts';
 import { parseMusicXml } from './musicxml.ts';
@@ -54,8 +54,9 @@ interface RunOptions {
   cut?: number;
   mode?: PracticeMode;
   ms?: number;
-  /** Bars with a wrong note on their first step. */
+  /** Bars with a wrong note on their first step: every time round, or the round `wrongIn`. */
   wrong?: number[];
+  wrongIn?: number;
   /** Rhythm mode: each key's deviation, and the steps (by position in the run) with a key missed. */
   deviation?: (n: number) => number;
   missed?: number[];
@@ -92,7 +93,12 @@ function run(
       measure: step.measure,
       pass: step.pass,
       ms: o.ms ?? 600,
-      wrong: first && o.wrong?.includes(step.measure) ? 1 : 0,
+      wrong:
+        first &&
+        o.wrong?.includes(step.measure) &&
+        (o.wrongIn === undefined || o.wrongIn === Math.floor(n / lap.length))
+          ? 1
+          : 0,
       at: start + n * 600,
       ...(o.mode === 'rhythm' && {
         mode: 'rhythm' as const,
@@ -285,8 +291,65 @@ describe('a piece’s plan', () => {
     expect(named(p.next)).toBe('left 1-4');
     // Three runs of three of its four bars leave the phrase open.
     expect(done(plan(thrice('d', { hands: 'right', bars: [0, 2] })))).toEqual([[], [], []]);
-    // A loop that went round three times is one run.
-    expect(done(plan([run('e', { hands: 'right', bars: [0, 3], laps: 3 })]))).toEqual([[], [], []]);
+  });
+
+  it('takes a time round a loop for a run: three clean rounds of one run are enough', () => {
+    const loop = (id: string, o: RunOptions) => run(id, { hands: 'right', bars: [0, 3], ...o });
+    expect(done(plan([loop('a', { laps: 2 })]))).toEqual([[], [], []]);
+    const three = plan([loop('b', { laps: 3 })]);
+    expect(done(three)).toEqual([['right'], [], []]);
+    expect(named(three.next)).toBe('left 1-4');
+    // Two clean rounds and one with a wrong note are not three clean ones.
+    expect(done(plan([loop('c', { laps: 3, wrong: [2], wrongIn: 1 })]))).toEqual([[], [], []]);
+    // A wrong note in the first round, then three clean rounds: done.
+    expect(done(plan([loop('d', { laps: 4, wrong: [2], wrongIn: 0 })]))).toEqual([
+      ['right'],
+      [],
+      [],
+    ]);
+    // A fourth round stopped in its second bar counts for the bars it reached: its wrong note
+    // in bar 1 opens the stage again, and without one the stage stays done.
+    const cut = loop('e', { laps: 4, cut: 10 });
+    expect(new Set(cut.steps.slice(-6).map((s) => s.measure))).toEqual(new Set([0, 1]));
+    expect(done(plan([cut]))).toEqual([['right'], [], []]);
+    const slip = loop('f', { laps: 4, cut: 10, wrong: [0], wrongIn: 3 });
+    expect(done(plan([slip]))).toEqual([[], [], []]);
+    // Rounds and runs count alike: two rounds of one run and a run after them.
+    expect(done(plan([loop('g', { laps: 2 }), loop('h', {})]))).toEqual([['right'], [], []]);
+  });
+
+  it('tells the rounds of a phrase of one bar by the bar’s steps', () => {
+    // A first ending is a phrase of its own: here, a piece of one bar, looped three times.
+    const bar1 = score(bars(1), quarters(1));
+    const source = planSource(bar1);
+    expect(source.barSteps.right).toEqual(new Map([[0, 4]]));
+    const piece = { score: bar1, source };
+    const once = run('a', { hands: 'right', bars: [0, 0], laps: 3 }, piece);
+    expect(once.steps.length).toBe(12);
+    expect(done(plan([once], source))).toEqual([['right'], []]);
+    expect(
+      done(plan([run('b', { hands: 'right', bars: [0, 0], laps: 2 }, piece)], source)),
+    ).toEqual([[], []]);
+  });
+
+  it('agrees with the card’s steady bars, which have no score to go by', () => {
+    // Bars 1 to 4 three times round with the right hand, bar 3 with a wrong note the last time.
+    const looped = run('a', { hands: 'right', bars: [0, 3], laps: 3, wrong: [2], wrongIn: 2 });
+    const { checksum } = SOURCE.facts;
+    const played = [...new Set(looped.steps.map((s) => s.measure))];
+    const card = steadyBars(
+      barHeatmap(looped.steps, { checksum, hands: 'right', bars: played }).cells,
+    );
+    expect(card).toEqual({ steady: 3, total: 4 });
+    // Not every bar of the phrase is steady: the plan's stage is open.
+    expect(done(plan([looped]))).toEqual([[], [], []]);
+    // A clean round more and the card has all four, and the plan its tick.
+    const more = run('b', { hands: 'right', bars: [0, 3], laps: 3 });
+    const steps = [...looped.steps, ...more.steps];
+    expect(steadyBars(barHeatmap(steps, { checksum, hands: 'right', bars: played }).cells)).toEqual(
+      { steady: 4, total: 4 },
+    );
+    expect(done(plan([looped, more]))).toEqual([['right'], [], []]);
   });
 
   it('counts each hand apart, and together only with both', () => {
