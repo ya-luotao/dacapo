@@ -19,25 +19,24 @@ import {
 import type { ProgressionKey } from '../../core/progressions.ts';
 import { keyName } from '../harmony/progressionFormat.ts';
 import type { EarLevelProgress, MissedItem } from '../../core/earSession.ts';
-import { midiName } from '../../core/note.ts';
 import type { Tonic } from '../../core/scaleTypes.ts';
 import { isTuneId, TUNE_IDS, WHOLE_TUNE, type TuneId, type TunePart } from '../../core/tuneList.ts';
 import { getTune } from '../../core/tunes.ts';
 import { useI18n } from '../../i18n/index.ts';
-import { spelledName, tonicName } from '../scales/format.ts';
-
-/** Keys as note names, low to high: `C4 E4 G♯4`. */
-export function keyNames(keys: readonly number[]): string {
-  return [...keys]
-    .sort((a, b) => a - b)
-    .map((midi) => midiName(midi).replace('#', '♯'))
-    .join(' ');
-}
+import { useNoteNames } from '../noteNames.ts';
+import { tonicName } from '../scales/format.ts';
 
 /** Names of the ear-training items, levels and answers in the current language. */
 export function useEarFormat() {
   const { t, locale } = useI18n();
+  const { midiName, spelledName } = useNoteNames();
   return useMemo(() => {
+    /** Keys as note names, low to high: `C4 E4 G♯4`. */
+    const keyNames = (keys: readonly number[]) =>
+      [...keys]
+        .sort((a, b) => a - b)
+        .map((midi) => midiName(midi))
+        .join(' ');
     const capitalize = (text: string) => text.charAt(0).toLocaleUpperCase(locale) + text.slice(1);
     const interval = (name: string) => t(`ear.interval.${name}` as 'ear.interval.P8');
     const chord = (quality: ChordQuality, inversion: Inversion, withPosition: boolean) =>
@@ -213,6 +212,7 @@ export function useEarFormat() {
 
     return {
       capitalize,
+      keyNames,
       cadenceLine,
       cadenceChords,
       missedCadence,
@@ -271,7 +271,7 @@ export function useEarFormat() {
       tunePlace,
       tuneMiss,
     };
-  }, [t, locale]);
+  }, [t, locale, midiName, spelledName]);
 }
 
 export type EarFormat = ReturnType<typeof useEarFormat>;

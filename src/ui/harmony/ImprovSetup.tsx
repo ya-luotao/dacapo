@@ -10,7 +10,7 @@ import { tonicName } from '../scales/format.ts';
 import { Segmented } from '../Segmented.tsx';
 import type { ImprovController, ImprovView } from './improvController.ts';
 import { PlayBackButton, SaveImprovMidi } from './ImprovFeedback.tsx';
-import { backingSymbols, scaleNotes, useImprovFormat } from './improvFormat.ts';
+import { backingSymbols, useImprovFormat } from './improvFormat.ts';
 import type { BackingChoice, ImprovPrefs } from './improvPrefs.ts';
 import { NumeralsText } from './NumeralsText.tsx';
 
@@ -122,7 +122,7 @@ export function ImprovSetup(props: ImprovSetupProps) {
                     />
                     <span className="level-body">
                       <span className="level-name">{format.scaleOf(choice.key, scale)}</span>
-                      <span className="level-range">{scaleNotes(choice.key, scale)}</span>
+                      <span className="level-range">{format.scaleNotes(choice.key, scale)}</span>
                     </span>
                   </label>
                 );

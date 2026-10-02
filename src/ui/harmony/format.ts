@@ -9,9 +9,10 @@ import {
   type HarmonyLevelId,
   type SymbolQuality,
 } from '../../core/chordSymbols.ts';
-import { letterName, midiToPitch, pitchClass } from '../../core/note.ts';
+import { midiToPitch, pitchClass } from '../../core/note.ts';
 import { useI18n, type MessageKey } from '../../i18n/index.ts';
-import { letterOf } from '../read/theoryFormat.ts';
+import { useNoteNames, type NoteNames } from '../noteNames.ts';
+import { rootName } from '../read/theoryFormat.ts';
 
 /** The words for a quality: the Ear page's for its chords, Harmony's own for the others. */
 const QUALITY_WORDS: Readonly<Record<SymbolQuality, MessageKey>> = {
@@ -32,7 +33,7 @@ const QUALITY_WORDS: Readonly<Record<SymbolQuality, MessageKey>> = {
 };
 
 /** A symbol's notes as named, root first: `D F A C`, `C E♭ G♭ B𝄫`. Its bass is not among them. */
-export function chordToneNames(symbol: ChordSymbol): string {
+export function chordToneNames(symbol: ChordSymbol, { letterOf }: NoteNames): string {
   return symbolTones({ ...symbol, bass: null })
     .map(letterOf)
     .join(' ');
@@ -42,7 +43,11 @@ export function chordToneNames(symbol: ChordSymbol): string {
  * Keys held, low to high, each named as the symbol names that note where it is one of its tones;
  * otherwise with flats beside a flat root or among flat tones, sharps elsewhere.
  */
-export function heldNames(keys: readonly number[], symbol: ChordSymbol): string {
+export function heldNames(
+  keys: readonly number[],
+  symbol: ChordSymbol,
+  { letterOf, letterName }: NoteNames,
+): string {
   const tones = symbolTones(symbol);
   const flats = symbol.root.alter < 0 || tones.some((t) => t.alter < 0);
   return [...keys]
@@ -57,18 +62,22 @@ export function heldNames(keys: readonly number[], symbol: ChordSymbol): string 
 /** Names on the Harmony page in the current language: levels, chords in words, notes. */
 export function useHarmonyFormat() {
   const { t } = useI18n();
+  const names = useNoteNames();
   return useMemo(() => {
     /** `minor 7th chord`. */
     const quality = (q: SymbolQuality) => t(QUALITY_WORDS[q]);
 
-    /** `D minor 7th chord`, `C major triad over E`: a symbol in words, for reading aloud. */
+    /**
+     * `D minor 7th chord`, `C major triad over E`: a symbol in words, for reading aloud. A
+     * chord's name, as its symbol is, so in letters.
+     */
     const words = (symbol: ChordSymbol) => {
       const chord = t('theory.chordName', {
-        root: letterOf(symbol.root),
+        root: rootName(symbol.root),
         chord: quality(symbol.quality),
       });
       const bass = bassTone(symbol);
-      return bass ? t('harmony.chord.over', { chord, bass: letterOf(bass) }) : chord;
+      return bass ? t('harmony.chord.over', { chord, bass: rootName(bass) }) : chord;
     };
 
     /** A symbol as written (`Dm7`) and its words, from a label or an item; the text if neither. */
@@ -82,9 +91,9 @@ export function useHarmonyFormat() {
      * lowest`, or `A C E, G lowest`.
      */
     const notes = (symbol: ChordSymbol) => {
-      const chord = chordToneNames(symbol);
+      const chord = chordToneNames(symbol, names);
       const bass = bassTone(symbol);
-      return bass ? t('harmony.notes.bass', { notes: chord, bass: letterOf(bass) }) : chord;
+      return bass ? t('harmony.notes.bass', { notes: chord, bass: names.letterOf(bass) }) : chord;
     };
 
     return {
@@ -97,7 +106,7 @@ export function useHarmonyFormat() {
       levelName: (id: HarmonyLevelId) => t(`harmony.level.${id}`),
       levelDetail: (id: HarmonyLevelId) => t(`harmony.level.${id}.detail`),
     };
-  }, [t]);
+  }, [t, names]);
 }
 
 export type HarmonyFormat = ReturnType<typeof useHarmonyFormat>;

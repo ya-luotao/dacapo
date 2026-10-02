@@ -12,9 +12,8 @@ import {
 } from '../../core/improv.ts';
 import type { ImprovSession } from '../../core/improvFigures.ts';
 import { keyChord } from '../../core/progressions.ts';
-import { midiName } from '../../core/note.ts';
 import { useT, type Translate } from '../../i18n/index.ts';
-import { letterOf } from '../read/theoryFormat.ts';
+import { useNoteNames, type NoteNames } from '../noteNames.ts';
 import { tonicName } from '../scales/format.ts';
 
 // Names for Improvise in the current language: backings, keys, scales, feels, notes.
@@ -50,16 +49,17 @@ export const backingSymbols = (backing: BackingId, key: string) =>
     .join(' – ');
 
 /** The scale's notes as the key spells them: `F A♭ B♭ C♭ C E♭`. */
-export const scaleNotes = (tonic: string, scale: ImprovScale) =>
+const scaleNotes = (tonic: string, scale: ImprovScale, { letterOf }: NoteNames) =>
   scaleTones(tonic, scale).map(letterOf).join(' ');
 
 /**
  * A key named as the backing's scale or chords spell its pitch class (`A♭4` in F blues, `B3`
  * over G7), else with the key's own signs.
  */
-export function improvNoteName(
+function improvNoteName(
   midi: number,
   session: Pick<ImprovSession, 'backing' | 'key' | 'scale'>,
+  { midiName, spelledName }: NoteNames,
 ): string {
   const pc = ((midi % 12) + 12) % 12;
   const plan = improvPlan({
@@ -80,11 +80,12 @@ export function improvNoteName(
     return midiName(midi, flats ? 'flat' : 'sharp');
   }
   const octave = Math.round((midi - spelled.alter - STEP_PC[spelled.step]!) / 12) - 1;
-  return `${letterOf(spelled)}${octave}`;
+  return spelledName({ ...spelled, octave });
 }
 
 export function useImprovFormat() {
   const t = useT();
+  const names = useNoteNames();
   return useMemo(
     () => ({
       backing: (id: BackingId) => t(`harmony.improv.backing.${id}`),
@@ -96,7 +97,10 @@ export function useImprovFormat() {
       pattern: (pattern: ImprovPattern) => t(`harmony.pattern.${pattern}`),
       patternDetail: (pattern: ImprovPattern) => t(`harmony.pattern.${pattern}.detail`),
       feel: (feel: Feel) => t(`harmony.improv.feel.${feel}`),
+      scaleNotes: (tonic: string, scale: ImprovScale) => scaleNotes(tonic, scale, names),
+      noteName: (midi: number, session: Pick<ImprovSession, 'backing' | 'key' | 'scale'>) =>
+        improvNoteName(midi, session, names),
     }),
-    [t],
+    [t, names],
   );
 }

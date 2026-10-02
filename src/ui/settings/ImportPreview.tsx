@@ -144,9 +144,13 @@ export function ImportPreview({
           />
           <span>
             {t('settings.import.prefs', {
-              language: preferences.locale
-                ? LOCALE_NAMES[preferences.locale]
-                : t('settings.language.system'),
+              // The note names go with the language; a file from before them means letters.
+              language: [
+                preferences.locale
+                  ? LOCALE_NAMES[preferences.locale]
+                  : t('settings.language.system'),
+                t(`settings.noteNames.${preferences.noteNames ?? 'letters'}`),
+              ].join(t('app.listSeparator')),
               theme: t(`settings.theme.${preferences.theme}`),
             })}
             {preferences.goal &&

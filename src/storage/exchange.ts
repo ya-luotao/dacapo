@@ -7,6 +7,7 @@ import {
 import { parseGoalHistory, type GoalHistory } from '../core/goal.ts';
 import { byLessonSlug, replacesLesson, type LessonDone } from '../core/lessonRecords.ts';
 import { byStartDescending, byTime, type SessionRecord } from '../core/log.ts';
+import { isNoteNaming, type NoteNaming } from '../core/noteNames.ts';
 import { byStepTime, type PieceStep } from '../core/pieceRecords.ts';
 import { byRunTime, type StoredScaleRun } from '../core/scaleRecords.ts';
 import type { Attempt } from '../core/session.ts';
@@ -58,6 +59,11 @@ export interface Preferences {
    * file version for it: an older build reads the language and the theme and leaves the rest.
    */
   goal?: GoalHistory;
+  /**
+   * How notes are named. A file from before the setting has none, and means letters; a build
+   * from before it reads the language and the theme and leaves this, so no new version.
+   */
+  noteNames?: NoteNaming;
 }
 
 export interface ExportFile {
@@ -117,6 +123,7 @@ export function buildExport(
       locale: preferences.locale,
       theme: preferences.theme,
       ...(preferences.goal && { goal: preferences.goal }),
+      ...(preferences.noteNames && { noteNames: preferences.noteNames }),
     },
     sessions: [...data.sessions].sort((a, b) => byStartDescending(b, a)),
     attempts: [...data.attempts].sort(byTime),
@@ -223,6 +230,10 @@ function validatePreferences(value: unknown): Preferences | string {
     const goal = parseGoalHistory(value.goal);
     if (goal === null) return 'goal';
     preferences.goal = goal;
+  }
+  if (value.noteNames !== undefined) {
+    if (!isNoteNaming(value.noteNames)) return 'noteNames';
+    preferences.noteNames = value.noteNames;
   }
   return preferences;
 }

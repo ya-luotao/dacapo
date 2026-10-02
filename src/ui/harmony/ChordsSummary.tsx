@@ -6,6 +6,7 @@ import {
   type HarmonySessionSummary,
 } from '../../core/harmonySession.ts';
 import { useT } from '../../i18n/index.ts';
+import { useNoteNames } from '../noteNames.ts';
 import { useReadFormat } from '../read/format.ts';
 import { heldNames, useHarmonyFormat } from './format.ts';
 import { SymbolText } from './SymbolText.tsx';
@@ -28,6 +29,7 @@ export function ChordsSummary({
 }: ChordsSummaryProps) {
   const t = useT();
   const read = useReadFormat();
+  const names = useNoteNames();
   const format = useHarmonyFormat();
   const complete = summary.cards >= summary.length;
   const next = nextHarmonyLevel(summary.level);
@@ -78,7 +80,7 @@ export function ChordsSummary({
                 <SymbolText symbol={symbol} label={format.words(symbol)} />{' '}
                 {t('harmony.summary.miss', {
                   notes: format.notes(symbol),
-                  played: heldNames(missed.answer, symbol),
+                  played: heldNames(missed.answer, symbol, names),
                 })}
               </li>
             );

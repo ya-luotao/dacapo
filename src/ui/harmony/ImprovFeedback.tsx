@@ -10,7 +10,7 @@ import { useLogFormat } from '../progress/format.ts';
 import { useReadFormat } from '../read/format.ts';
 import { useHarmonyFormat } from './format.ts';
 import type { ImprovController, ImprovPlayback, ImprovView } from './improvController.ts';
-import { improvNoteName, useImprovFormat } from './improvFormat.ts';
+import { useImprovFormat } from './improvFormat.ts';
 import { loopPlace } from './improvPlace.ts';
 import { HeardLegend, ImprovKeyboard, LoopStrip, NowNext } from './ImprovStage.tsx';
 import { SymbolText } from './SymbolText.tsx';
@@ -170,6 +170,7 @@ export function SaveImprovMidi({
 function Figures({ session, plan }: { session: ImprovSession; plan: ImprovPlan }) {
   const t = useT();
   const read = useReadFormat();
+  const format = useImprovFormat();
   const f = session.figures;
   const reading = readFigures(f, plan.barMs);
   const oneDecimal = (n: number) => (Math.round(n * 10) / 10).toLocaleString();
@@ -194,10 +195,10 @@ function Figures({ session, plan }: { session: ImprovSession; plan: ImprovPlan }
   if (f.low !== null && f.high !== null)
     sentences.push(
       f.low === f.high
-        ? t('harmony.improv.fig.rangeOne', { low: improvNoteName(f.low, session) })
+        ? t('harmony.improv.fig.rangeOne', { low: format.noteName(f.low, session) })
         : t('harmony.improv.fig.range', {
-            low: improvNoteName(f.low, session),
-            high: improvNoteName(f.high, session),
+            low: format.noteName(f.low, session),
+            high: format.noteName(f.high, session),
             n: f.high - f.low,
           }),
     );

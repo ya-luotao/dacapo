@@ -42,6 +42,7 @@ import { usePractice, usePracticeStore } from '../practice/context.ts';
 import { useNow } from '../progress/useNow.ts';
 import { ScoreView, type ScoreStatus } from '../notation/ScoreView.tsx';
 import { prefetchVerovio, type Engraving } from '../notation/verovio.ts';
+import { useNoteNames } from '../noteNames.ts';
 import { Piano } from '../piano/Piano.tsx';
 import { keyboardRange, whiteKeys } from '../piano/range.ts';
 import { CalibrationSheet, TimingMark } from '../pieces/RhythmParts.tsx';
@@ -331,9 +332,13 @@ function ScaleSession({
     [notes, hands],
   );
   // Each step by name, a chord by its keys.
+  const noteNames = useNoteNames();
   const names = useMemo(
-    () => ({ right: stepNames(notes.right), left: stepNames(notes.left) }),
-    [notes],
+    () => ({
+      right: stepNames(notes.right, noteNames),
+      left: stepNames(notes.left, noteNames),
+    }),
+    [notes, noteNames],
   );
   const xml = useMemo(
     () => scaleMusicXml(exercise, { notesPerBeat: perBeat }),

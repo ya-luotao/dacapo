@@ -10,6 +10,7 @@ import {
 import { useT } from '../../i18n/index.ts';
 import { EngravedStaff } from '../engraving/EngravedStaff.tsx';
 import { useHubState } from '../input/context.ts';
+import { useNoteNames } from '../noteNames.ts';
 import { BLACK_LENGTH, pianoLayout } from '../piano/layout.ts';
 
 // The specimen on the home page: a grand staff with one whole note, and under it the keys from C3
@@ -69,9 +70,10 @@ function useShownPitch(): { pitch: Pitch; played: boolean } {
 
 export function Specimen() {
   const t = useT();
+  const { formatPitch } = useNoteNames();
   const { pitch, played } = useShownPitch();
   const midi = pitchToMidi(pitch);
-  const name = `${pitch.letter}${pitch.accidental === 1 ? '♯' : ''}${pitch.octave}`;
+  const name = formatPitch(pitch);
   const middleC = KEYS.keys.find((k) => k.midi === MIDDLE_C)!;
 
   return (

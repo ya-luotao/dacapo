@@ -410,6 +410,56 @@ describe('parseImport', () => {
     }
   });
 
+  it('keeps the note names with the preferences, and writes them back', () => {
+    const nothing = {
+      sessions: [],
+      attempts: [],
+      stats: {},
+      pieces: [],
+      pieceSteps: [],
+      scaleRuns: [],
+      answers: [],
+      takes: [],
+      assignments: [],
+      lessons: [],
+    };
+    for (const noteNames of ['letters', 'solfege'] as const) {
+      const prefs = { locale: 'ja', theme: 'dark', noteNames } as const;
+      const file = parsed(fileWith({ preferences: prefs }));
+      expect(file.preferences).toEqual(prefs);
+      expect(file.invalid).toEqual([]);
+      const written = buildExport(nothing, prefs, { now: NOW, appVersion: '0.1.0' });
+      expect(written.preferences).toEqual(prefs);
+      expect(parsed(exportText(written)).preferences).toEqual(prefs);
+    }
+  });
+
+  it('reads a file from before the note names as it always did: none, which means letters', () => {
+    const file = parsed(fileWith({ preferences: { locale: 'ko', theme: 'light' } }));
+    expect(file.preferences).toEqual({ locale: 'ko', theme: 'light' });
+    expect(file.preferences).not.toHaveProperty('noteNames');
+  });
+
+  it('reports note names it does not know, as it does a language', () => {
+    const file = parsed(
+      fileWith({ preferences: { locale: null, theme: 'dark', noteNames: 'numbers' } }),
+    );
+    expect(file.preferences).toBeNull();
+    expect(file.invalid).toEqual([
+      { collection: 'preferences', index: 0, field: 'noteNames', problem: 'invalid' },
+    ]);
+  });
+
+  it('leaves a preference it does not know out, so a later build’s file still imports', () => {
+    // What a build from before the note names does with `noteNames`: the language and the theme
+    // are read, the rest is left, and nothing is reported.
+    const file = parsed(
+      fileWith({ preferences: { locale: 'en', theme: 'light', somethingLater: [1, 2] } }),
+    );
+    expect(file.preferences).toEqual({ locale: 'en', theme: 'light' });
+    expect(file.invalid).toEqual([]);
+  });
+
   it('reads the export date and app version when present', () => {
     const file = parsed(fileWith({ app: 'x', exportedAt: 5 }));
     expect(file).toMatchObject({ exportedAt: null, appVersion: null, version: 1 });

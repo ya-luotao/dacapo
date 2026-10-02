@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useLocation } from 'wouter';
-import { midiName, PIANO_HIGHEST, PIANO_LOWEST } from '../../core/note.ts';
+import { PIANO_HIGHEST, PIANO_LOWEST } from '../../core/note.ts';
 import { DEFAULT_START } from '../../core/startingPoint.ts';
 import { SENTENCE_GAP, useI18n, useT } from '../../i18n/index.ts';
 import { audioContext } from '../../output/audio.ts';
@@ -8,6 +8,7 @@ import { isBuiltin } from '../../output/output.ts';
 import { useHubState, useInput } from '../input/context.ts';
 import { useTouchOnly } from '../input/touchOnly.ts';
 import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
+import { useNoteNames } from '../noteNames.ts';
 import { useOutputState, useSampleStatus } from '../output/context.ts';
 import { Piano } from '../piano/Piano.tsx';
 import { DeviceHelp, DeviceStatus } from '../play/DeviceStatus.tsx';
@@ -86,6 +87,7 @@ function reaching(range: readonly [number, number], midi: number): readonly [num
  */
 function Keys() {
   const { t, locale } = useI18n();
+  const { midiName } = useNoteNames();
   const { hub, pointer } = useInput();
   const { held, sustained } = useHubState();
   const fallback = useKeyboardFallback();

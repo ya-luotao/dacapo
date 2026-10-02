@@ -24,7 +24,7 @@ with a MIDI keyboard. The MVP focuses on the first real bottleneck for beginners
 | Quality | ESLint (flat config) + Prettier + `.editorconfig`; GitHub Actions CI: typecheck, lint, test, build |
 | Audio | **None** in the MVP — the piano makes the sound |
 | Browsers | Chrome / Edge recommended. Support is decided by feature detection (`navigator.requestMIDIAccess`), never by browser name; without it the app shows a clear notice and still works with the fallback input (since on every practice page too, see [START.md](START.md)) |
-| Pitch naming | Letter names in every UI language (no solfège or numbered notation in the MVP), scientific pitch notation: C4 = middle C = MIDI 60 |
+| Pitch naming | Letter names in every UI language, scientific pitch notation: C4 = middle C = MIDI 60. No solfège or numbered notation in the MVP; since: do re mi (fixed do) for those who ask for it in Settings, see [PERSONAL.md](PERSONAL.md), while keys, scales, chords and the lessons keep the letters. Movable do and numbered notation stay out |
 | i18n | English (`en`, source of truth) and Simplified Chinese (`zh-CN`); since added: Traditional Chinese (`zh-TW`), Japanese (`ja`) and Korean (`ko`), see [TRANSLATING.md](TRANSLATING.md). Tiny typed dictionary, no i18n library. Missing keys must be a compile error. Auto-detect from `navigator.language`, user toggle persisted in `localStorage` (wrapped in try/catch) |
 | License | MIT |
 | Language of record | English for all code, comments, commits, docs and issues |

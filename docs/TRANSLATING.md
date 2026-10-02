@@ -28,10 +28,29 @@ and no Simplified-only characters in zh-TW.
 - **Some strings are pieces of others.** A bar span goes into `pieces.rhythm.faster`, `{stats}` into `read.summary.progress`, `{level}` is a level name, `{time}` is already a formatted
   duration with its unit. Search `src/ui` for the key to see how it is used, then read the whole
   sentence.
-- **Note names are letter names in every language**: C4, F♯3, B♭ — scientific pitch notation, C4 =
-  middle C (see [MVP.md](MVP.md)). No do-re-mi, no ハニホ, no 다라마, no numbered notation, even
-  where learners usually say them. Keys in the titles of built-in pieces follow each language's
-  convention for titles (see below); note names in the app never change.
+- **Note names are letters by default, and do re mi for the reader who asks** (Settings → Note
+  names, see [PERSONAL.md](PERSONAL.md)): C4, F♯3, B♭ in scientific pitch notation, C4 = middle C
+  (see [MVP.md](MVP.md)), or Do4, Fa♯3, Si♭ with fixed do. So a string never spells a note or a
+  key of the keyboard itself. The name comes in a placeholder the app fills (`{name}`, `{notes}`,
+  `{low}`), or, where the note is part of the sentence, as a **note placeholder**: `{C4}`, `{C}`,
+  `{Fs3}`, `{Bb}` (the letter, `s` for a sharp or `b` for a flat, the octave if there is one).
+  `Treble: {C4} to {C5}` reads "Treble: C4 to C5" or "Treble: Do4 to Do5"; `middle {C}` reads
+  "middle C" or "middle Do". The letter between the braces is the note, in every language: never
+  translate it. The app writes the syllables itself: Do Re Mi Fa Sol La Si in English and both
+  Chinese, ド レ ミ ファ ソ ラ シ in Japanese, 도 레 미 파 솔 라 시 in Korean, the sign and the
+  octave after them. No ハニホ, no 다라마, no movable do, no numbered notation.
+- **What is a name of its own keeps its letters**, written in the string as before: keys and
+  scales (C major, A harmonic minor), chords and their symbols (Am, G7, F/A), roman numerals, a
+  built-in piece's title and description, and the computer keys (A, W, S: the keys of a
+  typewriter). Keys in the titles of built-in pieces follow each language's convention for titles
+  (see below).
+- **A note's name may end in a consonant** (솔) where a letter never did: a particle after a
+  placeholder that carries a note is written both ways, as the dictionary already does
+  (`{bass}을(를)`, `{notes}(이)에요`).
+- **"Letter names" is "note names" once they are do re mi**: Read's hint has its words twice,
+  `read.hint`, `read.hint.label` and `theory.hint.label` for letters and the three
+  `settings.noteNames.hint*` for do re mi. A language whose word covers both (音名, 음이름)
+  writes it in both.
 - **Keep product and format names**: dacapo (always lower case), MIDI, MusicXML, MuseScore, USB,
   Chrome, Edge, Web Audio, JSON, BWV, D.C., D.S., Fine, Coda.
 - **Controls stay short.** Segmented options, buttons, table headers and the navigation must fit
@@ -219,6 +238,7 @@ Chinese and Latin letters, digits and placeholders (`第 {n} 张`, `MIDI 键盘`
 | today's plan / warm up / hard spots / something new            | 今天的计划 / 热身 / 难点 / 新内容               |
 | play through / in hand (a piece) / Where you are               | 完整弹一遍 / 正在练 / 练到哪儿了                |
 | Start (the page) / starting point / It is heard                | 开始 / 你的起点 / 听到了                        |
+| note names (the setting) / Do Re Mi / middle Do                | 音名 / Do Re Mi / 中央 Do（`中央 {C}`）         |
 
 ## Traditional Chinese, Taiwan (`zh-TW`)
 
@@ -340,6 +360,7 @@ terms throughout. Address the learner as 你, as zh-CN does.
 | today's plan / warm up / hard spots / something new            | 今天的計畫 / 暖身 / 難點 / 新內容          | 今天的计划 / 热身 / 难点        |
 | play through / in hand (a piece) / Where you are               | 完整彈一遍 / 正在練 / 練到哪裡了           | 练到哪儿了                      |
 | Start (the page) / starting point / It is heard                | 開始 / 你的起點 / 聽到了                   | 你的起点 / 听到了               |
+| note names (the setting) / Do Re Mi / middle Do                | 音名 / Do Re Mi / 中央 Do（`中央 {C}`）    |                                 |
 
 Keys in titles: `G 大調`, `C 大調`. Composers as Taiwan writes them: 貝多芬, 巴哈 (not 巴赫), 舒曼,
 布爾格彌勒.
@@ -460,9 +481,10 @@ verb phrases for labels and buttons (設定, 開始, もう一度, 補正する)
 | today's plan / warm up / hard spots / something new            | 今日の練習メニュー / ウォームアップ / 難しい箇所 / 新しいこと      |
 | play through / in hand (a piece) / Where you are               | 通して弾く / 練習中 / 現在地                                       |
 | Start (the page) / starting point / It is heard                | はじめに / スタート地点 / 届いています                             |
+| note names (the setting) / Do Re Mi / middle Do                | 音名 / ド レ ミ ファ ソ ラ シ / 中央ド（`中央{C}`）                |
 
-Keys in titles follow Japanese editions: ハ長調, ト長調. Middle C is 中央C. Scale names on the Scales
-page keep the letter names of the app (`D長音階`, `G♯和声的短音階`), not ニ長音階.
+Keys in titles follow Japanese editions: ハ長調, ト長調. Middle C is 中央C (中央ド with do re mi). Scale names on the Scales
+page keep the letters (`D長音階`, `G♯和声的短音階`), not ニ長音階.
 
 ## Korean (`ko`)
 
@@ -485,7 +507,7 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 | tap tempo / subdivide / tempo trainer                          | 두드리기 (not 탭, which reads as “tab”) / 세분 / 빠르기 트레이너     |
 | time signature / accent / mute                                 | 박자 / 강세 (not 셈여림) / 음소거                                    |
 | flashcards / level / mastered                                  | 플래시 카드 / 레벨 / 마스터 완료                                     |
-| middle C                                                       | 가운데 C                                                             |
+| middle C, middle Do                                            | 가운데 C, 가운데 도 (`가운데 {C}`)                                   |
 | wait mode / rhythm mode                                        | 기다리기 모드 / 리듬 모드                                            |
 | loop / repeats / volta                                         | 구간 반복 / 도돌이표 / {n}번 괄호                                    |
 | run / step                                                     | 연주 ({n}회) / 스텝                                                  |
@@ -581,6 +603,7 @@ are nouns or short forms (설정, 시작, 다시 하기, 끔/켬). Korean runs l
 | today's plan / warm up / hard spots / something new            | 오늘 계획 / 워밍업 / 어려운 부분 / 새로운 것                         |
 | play through / in hand (a piece) / Where you are               | 끝까지 치기 / 연습 중 / 현재 위치                                    |
 | Start (the page) / starting point / It is heard                | 시작 / 나의 시작점 / 잘 들려요                                       |
+| note names (the setting) / Do Re Mi                            | 음이름 / 도 레 미 파 솔 라 시                                        |
 
 Keys in titles use letters: G장조, C장조, matching the letter names in the app. Composer names
 follow the National Institute of Korean Language: 루트비히 판 베토벤, 요한 제바스티안 바흐.

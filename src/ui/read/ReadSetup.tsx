@@ -1,9 +1,9 @@
 import { useId } from 'react';
 import { LEVELS, type Level, type LevelId } from '../../core/levels.ts';
 import { MASTERY_WINDOW, type LevelProgress } from '../../core/mastery.ts';
-import { formatPitch } from '../../core/note.ts';
 import { SESSION_LENGTHS, type SessionLength } from '../../core/session.ts';
 import { useT } from '../../i18n/index.ts';
+import { useHintWords, useNoteNames } from '../noteNames.ts';
 import { useReadFormat } from './format.ts';
 
 interface ReadSetupProps {
@@ -20,6 +20,7 @@ interface ReadSetupProps {
 
 export function ReadSetup(props: ReadSetupProps) {
   const t = useT();
+  const hint = useHintWords();
   const id = useId();
 
   return (
@@ -82,7 +83,7 @@ export function ReadSetup(props: ReadSetupProps) {
               onChange={(e) => props.onHint(e.target.checked)}
               aria-describedby={`${id}-hint`}
             />
-            <span>{t('read.hint')}</span>
+            <span>{t(hint.toggle)}</span>
           </label>
           <p id={`${id}-hint`} className="help">
             {t('read.hint.help')}
@@ -109,6 +110,7 @@ interface LevelOptionProps {
 function LevelOption({ name, level, checked, suggested, progress, onChange }: LevelOptionProps) {
   const t = useT();
   const format = useReadFormat();
+  const { formatPitch } = useNoteNames();
   const staves =
     level.clefs.length === 2 ? t('read.level.both') : t(`read.level.${level.clefs[0]!}`);
 

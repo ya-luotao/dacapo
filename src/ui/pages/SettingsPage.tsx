@@ -1,5 +1,6 @@
 import { useId, useState } from 'react';
 import { Link } from 'wouter';
+import { NOTE_NAMINGS } from '../../core/noteNames.ts';
 import { isLocale, LOCALE_NAMES, LOCALES, useI18n } from '../../i18n/index.ts';
 import type { Preferences } from '../../storage/exchange.ts';
 import { AccountSection } from '../settings/AccountSection.tsx';
@@ -12,9 +13,10 @@ import { REPO_URL } from '../../lib/links.ts';
 const SYSTEM = 'system';
 
 export function SettingsPage() {
-  const { t, override, setOverride } = useI18n();
+  const { t, override, setOverride, noteNaming, setNoteNaming } = useI18n();
   const [theme, setThemeState] = useState<ThemePreference>(currentTheme);
   const languageId = useId();
+  const noteNamesId = useId();
   const themeId = useId();
 
   function onLanguageChange(value: string) {
@@ -29,6 +31,8 @@ export function SettingsPage() {
   function onApplyPreferences(preferences: Preferences) {
     setOverride(preferences.locale);
     onThemeChange(preferences.theme);
+    // A file from before the note names has none: letters, as the app named notes then.
+    setNoteNaming(preferences.noteNames ?? 'letters');
   }
 
   return (
@@ -54,6 +58,27 @@ export function SettingsPage() {
           {t('settings.language.help')}
         </p>
       </div>
+
+      <fieldset className="field" aria-describedby={`${noteNamesId}-help`}>
+        <legend>{t('settings.noteNames')}</legend>
+        <div className="segmented">
+          {NOTE_NAMINGS.map((naming) => (
+            <label key={naming}>
+              <input
+                type="radio"
+                name={noteNamesId}
+                value={naming}
+                checked={noteNaming === naming}
+                onChange={() => setNoteNaming(naming)}
+              />
+              <span>{t(`settings.noteNames.${naming}`)}</span>
+            </label>
+          ))}
+        </div>
+        <p id={`${noteNamesId}-help`} className="help">
+          {t('settings.noteNames.help')}
+        </p>
+      </fieldset>
 
       <fieldset className="field" aria-describedby={`${themeId}-help`}>
         <legend>{t('settings.theme')}</legend>
@@ -83,7 +108,7 @@ export function SettingsPage() {
       <AccountSection />
 
       <DataSection
-        preferences={{ locale: override, theme }}
+        preferences={{ locale: override, theme, noteNames: noteNaming }}
         onApplyPreferences={onApplyPreferences}
       />
 

@@ -4,7 +4,7 @@ import { useT } from '../../i18n/index.ts';
 import { useHubState, useInput, useKeyboardOctave } from '../input/context.ts';
 import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
 import type { ImprovController, ImprovView } from './improvController.ts';
-import { scaleNotes, useImprovFormat } from './improvFormat.ts';
+import { useImprovFormat } from './improvFormat.ts';
 import { useLoopPlace } from './improvPlace.ts';
 import { HeardLegend, ImprovKeyboard, LoopStrip, NowNext } from './ImprovStage.tsx';
 
@@ -59,7 +59,7 @@ export function ImprovSession({ view, controller }: ImprovSessionProps) {
 
       <p className="improv-scale-line">
         <span className="improv-scale-name">{format.scaleOf(spec.key, spec.scale)}</span>{' '}
-        <span className="improv-scale-notes">{scaleNotes(spec.key, spec.scale)}</span>
+        <span className="improv-scale-notes">{format.scaleNotes(spec.key, spec.scale)}</span>
       </p>
 
       <ImprovKeyboard

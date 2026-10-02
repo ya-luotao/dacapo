@@ -19,19 +19,19 @@ import {
 import { accidentalMarks, spellInKey } from '../../core/earMelody.ts';
 import { CADENCE_NUMERALS, isCadence } from '../../core/cadences.ts';
 import type { EarCard } from '../../core/earSession.ts';
-import { formatPitch, pitchToMidi, type Pitch } from '../../core/note.ts';
+import { pitchToMidi, type Pitch } from '../../core/note.ts';
 import { WHOLE_TUNE } from '../../core/tuneList.ts';
 import { getTune, tunePitch, tuneSpan } from '../../core/tunes.ts';
 import { useT } from '../../i18n/index.ts';
 import { useHubState, useInput, useKeyboardOctave } from '../input/context.ts';
 import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
+import { useNoteNames } from '../noteNames.ts';
 import { Piano } from '../piano/Piano.tsx';
 import { useReadFormat } from '../read/format.ts';
-import { spelledName } from '../scales/format.ts';
 import { MelodyStaff, NotesStaff } from '../staff/GrandStaff.tsx';
 import { STAFF_HEIGHT, STAFF_WIDTH, type MelodyDrawing } from '../staff/draw.ts';
 import type { EarController, EarView } from './controller.ts';
-import { keyNames, useEarFormat } from './format.ts';
+import { useEarFormat } from './format.ts';
 import { earShortcut, nameKey } from './shortcuts.ts';
 
 const NONE: ReadonlySet<number> = new Set();
@@ -85,6 +85,7 @@ export function EarSession({ view, controller }: EarSessionProps) {
   const t = useT();
   const format = useEarFormat();
   const read = useReadFormat();
+  const { formatPitch, spelledName } = useNoteNames();
   const region = useRef<HTMLElement>(null);
   const { pointer } = useInput();
   const { held, sustained } = useHubState();
@@ -135,7 +136,7 @@ export function EarSession({ view, controller }: EarSessionProps) {
       playedName: spelledName(spellInKey(played, melody)),
       at: null,
     };
-  }, [echo, tune, status, card.answer, prompt, format]);
+  }, [echo, tune, status, card.answer, prompt, format, spelledName]);
 
   // A tune's first wrong answer is drawn by Verovio: fetch both while the first phrase plays.
   const isTune = tune !== undefined;
@@ -380,7 +381,7 @@ export function EarSession({ view, controller }: EarSessionProps) {
                     })
                 : typeof scored.answer === 'string'
                   ? t('ear.wrong.named', { name: format.name(scored.answer, session.level) })
-                  : t('read.wrong', { played: keyNames(scored.answer) })}
+                  : t('read.wrong', { played: format.keyNames(scored.answer) })}
             </p>
             {/* The sheet shows it; this is for screen readers. */}
             {!melodic && (

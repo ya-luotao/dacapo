@@ -16,7 +16,6 @@ import { barHeatmap, weakestLoop, type BarMetric } from '../../core/barHeatmap.t
 import { analyzeExpression, type Melody } from '../../core/expression.ts';
 import { leftHandFor, leftHandPatterns, type LeftHandChoice } from '../../core/leadSheet.ts';
 import { parseMeter, tempoForMeter } from '../../core/metronomeSettings.ts';
-import { midiName } from '../../core/note.ts';
 import { pieceFacts, type PieceFacts, type PracticeMode } from '../../core/pieceRecords.ts';
 import { summarizeRun } from '../../core/pieceRun.ts';
 import {
@@ -64,6 +63,7 @@ import { useMetronome, useOfferTempo } from '../metronome/context.ts';
 import { ScoreView, type ScoreStatus } from '../notation/ScoreView.tsx';
 import { useOutputState } from '../output/context.ts';
 import { ACCOMPANIMENT_LEVELS, readAccompanimentLevel } from '../output/prefs.ts';
+import { useNoteNames } from '../noteNames.ts';
 import { Piano } from '../piano/Piano.tsx';
 import { keyboardRange, whiteKeys } from '../piano/range.ts';
 import { usePieceSteps, usePracticeStore } from '../practice/context.ts';
@@ -2235,6 +2235,7 @@ function StatusLine({
   beat: string;
 }) {
   const t = useT();
+  const { midiName } = useNoteNames();
   if (nothing) return <p className="piece-status-main">{t('pieces.nothing')}</p>;
   if (demo !== 'stopped') {
     const parts = [t(demo === 'paused' ? 'pieces.status.demoPaused' : 'pieces.status.demo')];

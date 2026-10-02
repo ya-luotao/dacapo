@@ -1,8 +1,8 @@
 import { useId, useMemo, useRef, useState, type PointerEvent } from 'react';
 import { MAX_WINDOW_MS } from '../../core/rhythm.ts';
 import { IN_TIME_MS, type RhythmSummary, type RunNote } from '../../core/rhythmRun.ts';
-import { midiName } from '../../core/note.ts';
 import { useT } from '../../i18n/index.ts';
+import { useNoteNames } from '../noteNames.ts';
 import type { PieceFormat } from './format.ts';
 import { useTimingWords } from './timingWords.ts';
 
@@ -33,6 +33,7 @@ export function DeviationChart({
   format: PieceFormat;
 }) {
   const t = useT();
+  const { midiName } = useNoteNames();
   const id = useId();
   const words = useTimingWords();
   const frame = useRef<HTMLDivElement>(null);

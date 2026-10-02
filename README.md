@@ -184,8 +184,8 @@ practising the notes you are slowest at. Progress is visible day by day.
 - **Your data stays yours.** Everything is stored in your browser (IndexedDB). Export it as a
   JSON file and import it on another computer.
 - **Five languages**: English, 简体中文, 繁體中文 (Taiwan), 日本語 and 한국어, each with its own
-  terms for the staff and the keyboard, and its own fonts. Note names stay letter names (C4, F♯)
-  in every language.
+  terms for the staff and the keyboard, and its own fonts. Notes are named by letter (C4, F♯) in
+  every language, or as do re mi (Do4, Fa♯) for those who choose it in Settings.
 - Light and dark themes. Everything works from the keyboard, and charts have a table view and
   labels for screen readers. Chrome and Edge can install it as an app, and once it has been
   opened it opens and works without a network.

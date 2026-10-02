@@ -1,10 +1,11 @@
-import { midiName } from '../../core/note.ts';
 import { useT } from '../../i18n/index.ts';
 import type { HubState } from '../../input/index.ts';
+import { useNoteNames } from '../noteNames.ts';
 
 /** Held notes low to high; when nothing is held, the last chord, dimmed. */
 export function NoteReadout({ held, lastChord }: Pick<HubState, 'held' | 'lastChord'>) {
   const t = useT();
+  const { midiName } = useNoteNames();
   const live = held.size > 0;
   const notes = live ? [...held.keys()].sort((a, b) => a - b) : lastChord;
 

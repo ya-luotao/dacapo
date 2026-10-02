@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import { SPEED_BUCKETS, SPEED_EDGES_MS, type Figures } from '../../../core/heatmap.ts';
-import { isBlack, midiName } from '../../../core/note.ts';
+import { isBlack } from '../../../core/note.ts';
 import { useI18n } from '../../../i18n/index.ts';
+import { useNoteNames } from '../../noteNames.ts';
 import { useReadFormat } from '../../read/format.ts';
 
 /** CSS colour of a speed bucket (tokens in styles.css). */
@@ -11,6 +12,7 @@ export const heatColor = (bucket: number) => `var(--heat-${bucket})`;
 export function useHeatFormat() {
   const { t, locale } = useI18n();
   const read = useReadFormat();
+  const { midiName } = useNoteNames();
   return useMemo(() => {
     const number = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 });
     const edge = (ms: number) => number.format(ms / 1000);
@@ -65,7 +67,7 @@ export function useHeatFormat() {
             });
       },
     };
-  }, [t, locale, read]);
+  }, [t, locale, read, midiName]);
 }
 
 export type HeatFormat = ReturnType<typeof useHeatFormat>;

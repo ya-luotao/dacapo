@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
 import { parseNoteKey, type LevelId } from '../../core/levels.ts';
-import { formatPitch } from '../../core/note.ts';
 import { useI18n } from '../../i18n/index.ts';
+import { useNoteNames } from '../noteNames.ts';
 
 /** Locale-aware formatting of the figures shown on the Read route. */
 export function useReadFormat() {
   const { t, locale } = useI18n();
+  const { formatPitch } = useNoteNames();
   return useMemo(() => {
     const percent = new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 0 });
     const decimal = new Intl.NumberFormat(locale, {
@@ -27,7 +28,7 @@ export function useReadFormat() {
       },
       level: (id: LevelId) => `${id} · ${t(`read.level.${id}`)}`,
     };
-  }, [t, locale]);
+  }, [t, locale, formatPitch]);
 }
 
 export type ReadFormat = ReturnType<typeof useReadFormat>;

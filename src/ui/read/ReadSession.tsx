@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useId, useMemo, useRef, type CSSProperties } from 'react';
-import { formatPitch, letterName, midiName } from '../../core/note.ts';
 import type { SessionState } from '../../core/session.ts';
 import { useT } from '../../i18n/index.ts';
 import { useHubState, useInput, useKeyboardOctave } from '../input/context.ts';
 import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
+import { useHintWords, useNoteNames } from '../noteNames.ts';
 import { Piano } from '../piano/Piano.tsx';
 import { GrandStaff, type StaffState } from '../staff/GrandStaff.tsx';
 import { STAFF_HEIGHT, STAFF_WIDTH } from '../staff/draw.ts';
@@ -25,6 +25,8 @@ interface ReadSessionProps {
 export function ReadSession({ session, controller, onHint }: ReadSessionProps) {
   const t = useT();
   const format = useReadFormat();
+  const { formatPitch, letterName, midiName } = useNoteNames();
+  const hint = useHintWords();
   const hintId = useId();
   const region = useRef<HTMLElement>(null);
   const { pointer } = useInput();
@@ -68,7 +70,7 @@ export function ReadSession({ session, controller, onHint }: ReadSessionProps) {
             onChange={(e) => onHint(e.target.checked)}
             aria-describedby={hintId}
           />
-          <span>{t('read.hint')}</span>
+          <span>{t(hint.toggle)}</span>
         </label>
         <span id={hintId} className="visually-hidden">
           {t('read.hint.help')}
@@ -95,7 +97,7 @@ export function ReadSession({ session, controller, onHint }: ReadSessionProps) {
             <>
               <span aria-hidden="true">{letterName(note.pitch)}</span>
               <span className="visually-hidden">
-                {t('read.hint.label', { name: letterName(note.pitch) })}
+                {t(hint.one, { name: letterName(note.pitch) })}
               </span>
             </>
           )}

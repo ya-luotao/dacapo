@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { ornamentsToLookAt, type ExpressionAnalysis } from '../../core/expression.ts';
 import { useI18n } from '../../i18n/index.ts';
 import { JudgedList, LookAtList } from './ExpressionParts.tsx';
-import { keyNames, type ExpressionWords } from './expressionWords.ts';
+import type { ExpressionWords } from './expressionWords.ts';
 import type { PieceFormat } from './format.ts';
 
 /**
@@ -28,7 +28,7 @@ export function OrnamentsTab({
 
   const count = (verdict: string) => judgements.filter((j) => j.verdict === verdict).length;
   const names = (keys: readonly number[], j: (typeof judgements)[number]) =>
-    keys.length === 0 ? '–' : keyNames(keys, j);
+    keys.length === 0 ? '–' : words.keyNames(keys, j);
 
   return (
     <>

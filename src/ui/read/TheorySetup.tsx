@@ -13,6 +13,7 @@ import {
   type TheoryLevelProgress,
 } from '../../core/theorySession.ts';
 import { useI18n } from '../../i18n/index.ts';
+import { useHintWords } from '../noteNames.ts';
 import { Segmented } from '../Segmented.tsx';
 import { useReadFormat } from './format.ts';
 import { useTheoryFormat } from './theoryFormat.ts';
@@ -36,6 +37,7 @@ interface TheorySetupProps {
 export function TheorySetup(props: TheorySetupProps) {
   const { t, locale } = useI18n();
   const format = useTheoryFormat();
+  const hint = useHintWords();
   const id = useId();
   const seconds = new Intl.NumberFormat(locale).format(theoryMasteryMedianMs(props.family) / 1000);
 
@@ -99,7 +101,7 @@ export function TheorySetup(props: TheorySetupProps) {
               onChange={(e) => props.onHint(e.target.checked)}
               aria-describedby={`${id}-hint`}
             />
-            <span>{t('read.hint')}</span>
+            <span>{t(hint.toggle)}</span>
           </label>
           <p id={`${id}-hint`} className="help">
             {t(

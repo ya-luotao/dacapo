@@ -12,9 +12,9 @@ import { pitchClass } from '../../core/note.ts';
 import { useT } from '../../i18n/index.ts';
 import { useHubState, useInput, useKeyboardOctave } from '../input/context.ts';
 import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
+import { useNoteNames } from '../noteNames.ts';
 import { Piano } from '../piano/Piano.tsx';
 import { useReadFormat } from '../read/format.ts';
-import { letterOf } from '../read/theoryFormat.ts';
 import type { HarmonyController } from './controller.ts';
 import { createLatchedPointer } from './latch.ts';
 import { chordToneNames, heldNames, useHarmonyFormat } from './format.ts';
@@ -36,6 +36,7 @@ export function ChordsSession({ session, controller, onHint }: ChordsSessionProp
   const t = useT();
   const read = useReadFormat();
   const format = useHarmonyFormat();
+  const names = useNoteNames();
   const hintId = useId();
   const region = useRef<HTMLElement>(null);
   const { pointer } = useInput();
@@ -126,11 +127,11 @@ export function ChordsSession({ session, controller, onHint }: ChordsSessionProp
       <div className={`read-feedback harmony-feedback is-${status}`} role="status">
         {status === 'waiting' && !waitingForBass && (
           <p className="read-prompt">
-            {bass ? t('harmony.task.slash', { bass: letterOf(bass) }) : t('harmony.task')}
+            {bass ? t('harmony.task.slash', { bass: names.letterOf(bass) }) : t('harmony.task')}
           </p>
         )}
         {waitingForBass && bass && status === 'waiting' && (
-          <p className="read-prompt">{t('harmony.bass', { bass: letterOf(bass) })}</p>
+          <p className="read-prompt">{t('harmony.bass', { bass: names.letterOf(bass) })}</p>
         )}
         {status === 'correct' && (
           <p className="read-result">
@@ -144,16 +145,16 @@ export function ChordsSession({ session, controller, onHint }: ChordsSessionProp
           <>
             <p className="read-result">
               <ResultIcon ok={false} />
-              {t('read.wrong', { played: heldNames(wrongKeys, symbol) })}
+              {t('read.wrong', { played: heldNames(wrongKeys, symbol, names) })}
             </p>
             <p className="read-target">
               {bass
                 ? t('harmony.wrong.slash', {
                     symbol: written,
-                    notes: chordToneNames(symbol),
-                    bass: letterOf(bass),
+                    notes: chordToneNames(symbol, names),
+                    bass: names.letterOf(bass),
                   })
-                : t('harmony.wrong', { symbol: written, notes: chordToneNames(symbol) })}
+                : t('harmony.wrong', { symbol: written, notes: chordToneNames(symbol, names) })}
             </p>
           </>
         )}

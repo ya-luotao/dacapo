@@ -1,8 +1,8 @@
 import { useEffect, useId, useRef } from 'react';
-import { midiName } from '../../core/note.ts';
 import type { CompareBy, PlaybackPart, TakePlayback } from '../../core/takePlayback.ts';
 import { useT } from '../../i18n/index.ts';
 import type { DemoState } from '../../output/demo.ts';
+import { useNoteNames } from '../noteNames.ts';
 import type { PieceFormat } from './format.ts';
 
 export type CompareChoice = 'off' | CompareBy;
@@ -44,6 +44,7 @@ export function PlaybackBar({
   onClose: () => void;
 }) {
   const t = useT();
+  const { midiName } = useNoteNames();
   const id = useId();
   const play = useRef<HTMLButtonElement>(null);
   useEffect(() => play.current?.focus({ preventScroll: true }), []);

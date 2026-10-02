@@ -1,8 +1,9 @@
 # dacapo — Personal settings specification (your keyboard, your goal, your note names, your week)
 
-Status: G6d (the daily goal) and G6f (your week) are built; the instrument's keys and note
-names are planned. This extends [MVP.md](MVP.md) and the later specifications; their principles and
-fixed decisions still apply, with one of them changed on purpose (note names, below).
+Status: G6d (the daily goal), G6e (note names) and G6f (your week) are built, and the decisions
+made while building them are under "Clarifications"; the instrument's keys are planned. This
+extends [MVP.md](MVP.md) and the later specifications; their principles and fixed decisions
+still apply, with one of them changed on purpose (note names, below).
 
 Goal: dacapo treats every player alike in four places where players differ: it assumes 88 keys,
 a goal of five minutes a day, and letter names for the notes, and it never looks back over a week
@@ -195,10 +196,86 @@ minutes]` pairs, oldest first), `goalOn(history, day)`, `withGoal` for a change,
   "How you are doing". They are shown to whoever has the page, with ticks alone too. The days of
   a week are written as the language writes a span of days (`Intl`'s `formatRange`).
 
+## Clarifications (decided during G6e)
+
+- **Code.** `core/noteNames.ts` is the pure formatter: `noteName` (a letter, its sign, its
+  octave, in a naming and a language), `createNoteNames` (the names for the app's two
+  spellings: a key's `formatPitch`, `letterName`, `midiName`, a written note's `spelledName`,
+  `letterOf`) and `fillNoteNames` (the notes in a dictionary's string). `core/note.ts` is
+  untouched. `ui/noteNames.ts` has the hook, `useNoteNames`; `ui/LetterNames.tsx` pins the
+  letters for what is inside it. `ui/noteNames.test.ts` fails when a file of `ui/` takes
+  `letterName`, `formatPitch` or `midiName` from `core/note.ts`, or writes a ♯ or ♭ itself,
+  outside two short lists (the lessons; a chord's root, a chord symbol, a scale's tonic, the
+  accidental drawn on a staff): new code cannot name a note past the setting.
+- **Where the choice is kept.** Beside the language, in the same provider (`noteNaming` and
+  `setNoteNaming` of `useI18n`), because the dictionaries' strings need it too: `t` fills a
+  note's placeholder as it reads the string. The hook in `ui/` is what formatters call.
+  `dacapo.noteNames` holds `solfege`; letters keep nothing, as following the browser's language
+  keeps nothing. A change shows at once on every page; another tab follows when it is loaded
+  again, as with the language.
+- **Notes in the dictionaries.** A string that names a note or a key of the keyboard writes it
+  as a placeholder: `{C4}`, `{C}`, `{A0}` (the letter, `s` or `b` for a sharp or a flat, the
+  octave if any), filled by `t` itself, so no call site can leave it out: "Treble: {C4} to
+  {C5}", "middle {C} position", "Piano keyboard, {A0} to {C8}". Ten strings have one, the same
+  in every language (`i18n.test.ts` lists them).
+- **Middle C** follows the setting wherever the app says it ("middle Do", 中央 Do, 中央ド, 가운데
+  도): it names a key by its note, as "C position" does.
+- **Read's hint** is "Show letter names" while notes are letters and "Show note names" once
+  they are do re mi (`settings.noteNames.hint` and the two labels a screen reader hears); 音名
+  and 음이름 say both. A key signature's hint names the notes it raises or lowers (Fa♯ Do♯
+  Sol♯), and "its tonic is Fa" names the key to press, so both follow; the key itself stays
+  "F major".
+- **Chords.** A chord's symbol and its name in words keep their letters, the bass of a slash
+  chord in them too (C/E, "C major triad over E"). Its notes follow ("C is Do Mi Sol", the
+  hint, the keys played), and so does the bass where it is the key to put lowest ("Play this
+  chord with Mi lowest"). On Read, the buttons that name a chord's root stay C D E F G A B: they
+  are the chord's name, and the computer keys that choose them are those letters.
+- **Improvise.** A scale's notes ("Fa La♭ Si♭ Do♭ Do Mi♭") and the range played follow; the
+  scale's and the key's names and the backing's symbols do not.
+- **A piece's entry in the library** stays as written, its description with its title ("long
+  bass notes with F♯ in the left"): a programme note in each language's own convention, which
+  in Japanese already names a drone's notes ニ, イ, ホ.
+- **The lessons.** `LessonProvider` wraps the whole lesson page in `LetterNames`: the text, the
+  figures, the keyboard's labels and what it says to a screen reader. The names the figures
+  print come from `learn/lesson.ts` and `learn/notes.ts`, which are letters by construction.
+  The list of lessons and the links to a lesson are words, with no note in them.
+- **Signs and octaves.** A double sharp or flat is written as before, after the syllable
+  (Fa𝄪5). In Chinese the syllables are Latin, as the letters were, with the same spaces round
+  them. A language the app does not have would get the Latin ones.
+- **A name stays in one piece.** Japanese may end a line between any two kana, and between a
+  kana and a sign or a digit, which would leave ファ at the end of one line and ♯4 at the start
+  of the next. The Japanese names carry a word joiner (U+2060: it shows nothing and is not read
+  aloud) between their parts, so a name goes to the next line whole, as a letter name does.
+  Korean wraps between words already, and the Latin syllables are words.
+- **The export file.** `preferences.noteNames` is `letters` or `solfege`, written by every
+  export from now on. No new export version: a build from before reads the language and the
+  theme of `preferences` and leaves any field it does not know, so the file imports there as it
+  did. A file without the field means letters: applying its preferences sets letters, and the
+  import preview says so with the language ("English, C D E, Dark"). (The goal differs: a file
+  without one changes none, since a goal is a history and a naming is a state.) A value this build does
+  not know makes the preferences invalid, as an unknown language does; the records import all
+  the same.
+- **Not synced**, as no preference is; the public profile is the service's page and keeps the
+  letters.
+- **Korean particles.** Letter names all end in a vowel when read; 솔 does not. Two sentences
+  that ended a list of a chord's notes with 예요 now end it with (이)에요, as the dictionary
+  already writes 을(를) after a note: the only change to a string that a reader with C D E sees.
+- **Widths.** Sol♯4, ファ♯4 and 솔♯4 are wider than G♯4. One thing ran out of its box at
+  375 px: the mark on middle C (Do4, ド4, 도4) on a keyboard whose keys are narrower than 18 px,
+  a piece's on a phone. There the mark leaves out its octave with do re mi ("Do" under its
+  dot), by the key's own width; with letters it is as it was. The rest fits in the five
+  languages: the mark on Play's and Read's keyboards and the heatmap's labels on the C keys
+  keep their octave, Ear's answer buttons name intervals and chords and are unchanged, and
+  sentences, lists and table cells wrap as they did. Play's readout wraps to a second line one
+  or two notes sooner than with letters, as it always has for a larger chord.
+- **The keys beyond the keyboard** (G6c's "Goes below your keyboard, to La1") are not built
+  yet; that sentence names a key, so it will be named through `useNoteNames`.
+
 ## Milestones
 
 1. **G6c The instrument's keys**
 2. ✓ **G6d The daily goal** — `core/goal.ts`, each day by the goal it had, the control in
    Settings, the goal in the export file's preferences.
-3. **G6e Note names**
+3. ✓ **G6e Note names** — `core/noteNames.ts`, `useNoteNames`, the notes in the dictionaries'
+   strings as placeholders, Settings' control, the export's `noteNames`.
 4. ✓ **G6f Your week** — `core/recap.ts`, Last week and This week so far on Progress, Home's line.

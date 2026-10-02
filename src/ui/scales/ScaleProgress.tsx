@@ -11,6 +11,7 @@ import type { ScaleExercise } from '../../core/scaleTypes.ts';
 import type { Hand } from '../../core/score.ts';
 import { dayKey } from '../../core/streak.ts';
 import { SENTENCE_GAP, useI18n } from '../../i18n/index.ts';
+import { useNoteNames } from '../noteNames.ts';
 import { useScaleRuns } from '../practice/context.ts';
 import { useLogFormat } from '../progress/format.ts';
 import { fewKeys, stepNames, useExerciseLabel } from './format.ts';
@@ -41,9 +42,13 @@ export function ScaleProgress({
   const runs = useScaleRuns(key);
   const places = useMemo(() => (runs && runs.length > 0 ? placesOverRuns(runs) : null), [runs]);
   const notes = useMemo(() => scaleNotes(exercise), [exercise]);
+  const noteNames = useNoteNames();
   const names = useMemo(
-    () => ({ right: stepNames(notes.right), left: stepNames(notes.left) }),
-    [notes],
+    () => ({
+      right: stepNames(notes.right, noteNames),
+      left: stepNames(notes.left, noteNames),
+    }),
+    [notes, noteNames],
   );
   /** A pattern that never turns (the five-finger group): its places have no direction. */
   const oneWay = (hand: Hand) => notes[hand].every((n) => n.direction === 'up');

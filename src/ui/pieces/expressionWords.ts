@@ -12,9 +12,9 @@ import type {
   Touch,
   Verdict,
 } from '../../core/expression.ts';
-import { formatPitch, midiName } from '../../core/note.ts';
 import type { Hand } from '../../core/score.ts';
 import { useI18n, type Translate } from '../../i18n/index.ts';
+import { useNoteNames, type NoteNames } from '../noteNames.ts';
 import type { PieceFormat } from './format.ts';
 
 // Every judged marking in words (docs/EXPRESSION.md, "UI": colour is never the only sign): what
@@ -36,20 +36,24 @@ export interface VerdictLabel {
   tone: 'ok' | 'warn' | 'bad';
 }
 
-/** A note as written, or by its key when the spelling has no symbol here (a double sharp). */
-function spelled({ midi, pitch }: Pick<OrnamentJudgement, 'midi' | 'pitch'>): string {
-  const accidental = pitch.alter;
-  return accidental === -1 || accidental === 0 || accidental === 1
-    ? formatPitch({ letter: pitch.step, accidental, octave: pitch.octave })
-    : midiName(midi);
-}
+export function createExpressionWords(
+  t: Translate,
+  format: PieceFormat,
+  locale: string,
+  { formatPitch, midiName }: NoteNames,
+) {
+  /** A note as written, or by its key when the spelling has no symbol here (a double sharp). */
+  const spelled = ({ midi, pitch }: Pick<OrnamentJudgement, 'midi' | 'pitch'>): string => {
+    const accidental = pitch.alter;
+    return accidental === -1 || accidental === 0 || accidental === 1
+      ? formatPitch({ letter: pitch.step, accidental, octave: pitch.octave })
+      : midiName(midi);
+  };
 
-/** Keys named in the spelling of the note they decorate: flats beside a flat. */
-export function keyNames(keys: readonly number[], j: Pick<OrnamentJudgement, 'pitch'>): string {
-  return keys.map((k) => midiName(k, j.pitch.alter < 0 ? 'flat' : 'sharp')).join(' ');
-}
+  /** Keys named in the spelling of the note they decorate: flats beside a flat. */
+  const keyNames = (keys: readonly number[], j: Pick<OrnamentJudgement, 'pitch'>): string =>
+    keys.map((k) => midiName(k, j.pitch.alter < 0 ? 'flat' : 'sharp')).join(' ');
 
-export function createExpressionWords(t: Translate, format: PieceFormat, locale: string) {
   const hand = (h: Hand) => t(`pieces.expression.hand.${h}`);
   const percentFormat = new Intl.NumberFormat(locale, {
     style: 'percent',
@@ -217,6 +221,7 @@ export function createExpressionWords(t: Translate, format: PieceFormat, locale:
     ornament,
     ornamentVerdict,
     ornamentProblem,
+    keyNames,
   };
 }
 
@@ -224,5 +229,6 @@ export type ExpressionWords = ReturnType<typeof createExpressionWords>;
 
 export function useExpressionWords(format: PieceFormat): ExpressionWords {
   const { t, locale } = useI18n();
-  return useMemo(() => createExpressionWords(t, format, locale), [t, format, locale]);
+  const names = useNoteNames();
+  return useMemo(() => createExpressionWords(t, format, locale, names), [t, format, locale, names]);
 }

@@ -1,26 +1,20 @@
 import { useCallback } from 'react';
 import { octavesOf } from '../../core/scales.ts';
-import type { SpelledPitch } from '../../core/score.ts';
 import { stepsOf, type ScaleExercise, type ScaleNote } from '../../core/scaleTypes.ts';
 import { useT } from '../../i18n/index.ts';
+import type { NoteNames } from '../noteNames.ts';
 import { tonicName, useExerciseName } from './exerciseName.ts';
 
 // An exercise's name needs none of the exercises' rules: it is in exerciseName.ts, for the
 // pages that load without them.
 export { tonicName, useExerciseName };
 
-const ACCIDENTALS: Record<number, string> = { [-2]: '𝄫', [-1]: '♭', 0: '', 1: '♯', 2: '𝄪' };
-
-/** A written note as the scale spells it: `F𝄪5`, `E♭4`. */
-export function spelledName(pitch: SpelledPitch): string {
-  return `${pitch.step}${ACCIDENTALS[pitch.alter] ?? ''}${pitch.octave}`;
-}
-
 /**
  * Each step of a hand's run by name, as the chart, the table and the sentences name it: a note
- * (`F♯4`), or a chord's keys lowest first (`C4–E4–G4`). Indexed by step, as the figures are.
+ * as the scale spells it (`F♯4`, `F𝄪5`), or a chord's keys lowest first (`C4–E4–G4`). Indexed by
+ * step, as the figures are.
  */
-export function stepNames(notes: readonly ScaleNote[]): string[] {
+export function stepNames(notes: readonly ScaleNote[], { spelledName }: NoteNames): string[] {
   return stepsOf(notes).map((step) => step.map((note) => spelledName(note.pitch)).join('–'));
 }
 

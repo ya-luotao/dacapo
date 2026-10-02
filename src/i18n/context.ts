@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react';
+import type { NoteNaming } from '../core/noteNames.ts';
 import type { MessageKey } from './en.ts';
 import type { Locale } from './locale.ts';
 
@@ -10,7 +11,13 @@ export interface I18nContextValue {
   /** The user's explicit choice, or null when following the browser language. */
   override: Locale | null;
   setOverride: (locale: Locale | null) => void;
+  /** How notes are named (docs/PERSONAL.md): by letter, or as do re mi for those who ask. */
+  noteNaming: NoteNaming;
+  setNoteNaming: (naming: NoteNaming) => void;
+  /** The dictionary's words, a note named in them (`{C4}`) as `noteNaming` names it. */
   t: Translate;
+  /** `t` in a naming of one's own: a lesson keeps the letters whatever the setting. */
+  translate: (naming: NoteNaming) => Translate;
 }
 
 export const I18nContext = createContext<I18nContextValue | null>(null);

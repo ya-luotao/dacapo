@@ -1,5 +1,6 @@
 import { useId, useMemo, useState, type ReactNode } from 'react';
 import type { LessonLanguage } from '../../learn/lessons.ts';
+import { LetterNames } from '../LetterNames.tsx';
 import { LessonContext, useCopy } from './lesson.ts';
 
 // The parts of a lesson's page: the lesson itself (its language, and which exercise listens),
@@ -16,7 +17,13 @@ export function LessonProvider({
 }) {
   const [active, setActive] = useState<string | null>(null);
   const value = useMemo(() => ({ slug, language, active, setActive }), [slug, language, active]);
-  return <LessonContext value={value}>{children}</LessonContext>;
+  // A lesson teaches the letters: its text, its figures and their keyboards keep them whatever
+  // the note names chosen in Settings (docs/PERSONAL.md).
+  return (
+    <LessonContext value={value}>
+      <LetterNames>{children}</LetterNames>
+    </LessonContext>
+  );
 }
 
 // The page.

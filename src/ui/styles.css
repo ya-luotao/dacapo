@@ -1234,6 +1234,18 @@ kbd {
   color: #fff;
 }
 
+/* Do4, ド4 and 도4 are wider than C4: on a key too narrow for them (a piece's keyboard on a
+   phone), middle C's mark leaves out its octave. With letters nothing changes. */
+.piano[data-naming='solfege'] .key-white:has(> .key-mark) {
+  container-type: inline-size;
+}
+
+@container (max-width: 17.9px) {
+  .piano[data-naming='solfege'] .key-mark-octave {
+    display: none;
+  }
+}
+
 /* Computer-keyboard hint: a footnote under the instrument, set off by a hairline. */
 
 .keys-hint {

@@ -1,4 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import {
+  fillNoteNames,
+  isNotePlaceholder,
+  WORD_JOINER,
+  type NoteNaming,
+} from '../core/noteNames.ts';
 import { BUILT_IN_IDS } from '../pieces/library/index.ts';
 import { en, type Dictionary, type MessageKey } from './en.ts';
 import { ja } from './ja.ts';
@@ -156,5 +162,69 @@ describe('formatMessage', () => {
 
   it('returns the template unchanged without vars', () => {
     expect(formatMessage('Hello {name}')).toBe('Hello {name}');
+  });
+});
+
+// A note of the keyboard in a string is a placeholder (`{C4}`, see docs/TRANSLATING.md), named
+// as the reader asked: by letter, or as do re mi in the language's script.
+describe('notes named in the dictionaries', () => {
+  const noteKeys = (dictionary: Dictionary) =>
+    Object.entries(dictionary)
+      .filter(([, value]) => placeholders(value).some((name) => isNotePlaceholder(name!)))
+      .map(([key]) => key);
+
+  it('are in the strings that name a note or a key, and in no other', () => {
+    expect(noteKeys(en)).toEqual([
+      'home.read.text',
+      'piano.label',
+      'piano.key.middleC',
+      'read.level.L1',
+      'read.level.L2',
+      'read.level.L3',
+      'read.level.L4',
+      'rhythm.keys.hands',
+      'sight.level.F1',
+      'sight.level.F2',
+    ]);
+    // The same strings in every language: the placeholders are the same for every key.
+    for (const locale of TRANSLATIONS) expect(noteKeys(DICTIONARIES[locale])).toEqual(noteKeys(en));
+  });
+
+  it.each(LOCALES)('%s reads them in letters as it always did, and in do re mi', (locale) => {
+    const dictionary = DICTIONARIES[locale];
+    const read = (key: MessageKey, naming: NoteNaming) =>
+      fillNoteNames(dictionary[key], naming, locale).replaceAll(WORD_JOINER, '');
+    for (const key of noteKeys(dictionary) as MessageKey[]) {
+      expect(read(key, 'letters'), key).not.toMatch(/\{[A-G]/);
+      expect(read(key, 'solfege'), key).not.toMatch(/\{[A-G]/);
+      expect(read(key, 'solfege'), key).not.toBe(read(key, 'letters'));
+    }
+    const range = {
+      en: 'C4 to C5',
+      'zh-CN': 'C4 到 C5',
+      'zh-TW': 'C4 到 C5',
+      ja: 'C4〜C5',
+      ko: 'C4–C5',
+    };
+    const inDoReMi = {
+      en: 'Do4 to Do5',
+      'zh-CN': 'Do4 到 Do5',
+      'zh-TW': 'Do4 到 Do5',
+      ja: 'ド4〜ド5',
+      ko: '도4–도5',
+    };
+    expect(read('read.level.L2', 'letters')).toContain(range[locale]);
+    expect(read('read.level.L2', 'solfege')).toContain(inDoReMi[locale]);
+  });
+
+  it('name the setting’s two choices by what they write, whatever the naming', () => {
+    for (const locale of LOCALES) {
+      expect(DICTIONARIES[locale]['settings.noteNames.letters']).toBe('C D E');
+    }
+    expect(en['settings.noteNames.solfege']).toBe('Do Re Mi');
+    expect(zhCN['settings.noteNames.solfege']).toBe('Do Re Mi');
+    expect(zhTW['settings.noteNames.solfege']).toBe('Do Re Mi');
+    expect(ja['settings.noteNames.solfege']).toBe('ド レ ミ');
+    expect(ko['settings.noteNames.solfege']).toBe('도 레 미');
   });
 });

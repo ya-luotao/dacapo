@@ -15,6 +15,27 @@ click's tempo and grid of scale runs played with it (from version 7), the takes 
 (from version 8), assignments and kept reports (from version 9), and the lessons finished (from
 version 10). Version 1 to 9 files still import.
 
+### Note names: do re mi for those who ask (G6e, [docs/PERSONAL.md](docs/PERSONAL.md))
+
+- **Settings → Note names**: C D E, as before, or **Do Re Mi**. With fixed do, C is Do whatever
+  the key: Do4, Fa♯3, Si♭, written ド レ ミ ファ ソ ラ シ in Japanese and 도 레 미 파 솔 라 시
+  in Korean. It takes effect at once, is kept on the device, and goes into the export file with
+  the other preferences (`preferences.noteNames`). A file without it means letters, and it
+  takes no new export version: an older build reads the language and the theme from a newer
+  file and leaves the rest.
+- It names **the notes and the keys of the keyboard** wherever the app names one: the keyboard's
+  labels, Play's readout, Read's names on a card, in its answers, its summaries and its level
+  names ("Treble: Do4 to Do5", "middle Do position"), the heatmap with its tables and weakest
+  notes, the notes in Ear's, theory's and Harmony's answers, the keys a Scales verdict points at
+  ("You hesitated before Fa4"), a piece's Show keys, and what a screen reader hears for the same.
+  Read's "Show letter names" reads "Show note names".
+- **What is a name of its own keeps its letters**: keys and scales (C major), chords and their
+  symbols (Am, G7, F/A), roman numerals, a piece's title and description, the computer keys, and
+  the lessons with their figures, which teach the letters.
+- For translators: a note in a dictionary's string is now a placeholder (`{C4}`, `middle {C}`),
+  see [docs/TRANSLATING.md](docs/TRANSLATING.md). Korean writes "(이)에요" after a chord's
+  notes, which may now end in 솔.
+
 ### Lessons and practice, joined (G3, [docs/LEARN.md](docs/LEARN.md))
 
 - **Practise it goes to the thing itself.** A lesson ends with one or two buttons that open

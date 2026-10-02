@@ -36,14 +36,14 @@ import {
 import { useT } from '../../i18n/index.ts';
 import { useHubState, useInput, useKeyboardOctave } from '../input/context.ts';
 import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
+import { useHintWords, useNoteNames, type NoteNames } from '../noteNames.ts';
 import { Piano } from '../piano/Piano.tsx';
-import { spelledName } from '../scales/format.ts';
 import type { StaffState } from '../staff/GrandStaff.tsx';
 import { TheoryStaff } from '../staff/GrandStaff.tsx';
 import { theoryBox, type TheoryDrawing } from '../staff/draw.ts';
 import { useReadFormat } from './format.ts';
 import type { TheoryController } from './theoryController.ts';
-import { letterOf, playedNames, rootName, useTheoryFormat } from './theoryFormat.ts';
+import { playedNames, rootName, useTheoryFormat } from './theoryFormat.ts';
 import {
   chordKey,
   chordShortcut,
@@ -75,6 +75,7 @@ function hintNames(
   prompt: TheoryPrompt,
   signatureLetters: (fifths: number) => string,
   none: string,
+  { letterOf }: NoteNames,
 ) {
   if (prompt.family === 'keySignature') {
     return [prompt.fifths === 0 ? none : signatureLetters(prompt.fifths)];
@@ -105,6 +106,8 @@ export function TheorySession({ session, controller, onHint }: TheorySessionProp
   const t = useT();
   const read = useReadFormat();
   const format = useTheoryFormat();
+  const noteNames = useNoteNames();
+  const hint = useHintWords();
   const hintId = useId();
   const region = useRef<HTMLElement>(null);
   const { pointer, keyboard } = useInput();
@@ -130,8 +133,10 @@ export function TheorySession({ session, controller, onHint }: TheorySessionProp
   const aspect = boxWidth / boxHeight;
   const names = useMemo(
     () =>
-      session.hint ? hintNames(prompt, format.signatureLetters, t('theory.signature.none')) : null,
-    [session.hint, prompt, format, t],
+      session.hint
+        ? hintNames(prompt, format.signatureLetters, t('theory.signature.none'), noteNames)
+        : null,
+    [session.hint, prompt, format, t, noteNames],
   );
 
   const answer = session.answers.at(-1);
@@ -168,7 +173,7 @@ export function TheorySession({ session, controller, onHint }: TheorySessionProp
 
   const staffLabel = t(`theory.staff.${prompt.family}`);
   const writtenNotes =
-    prompt.family === 'keySignature' ? '' : prompt.notes.map(spelledName).join(' ');
+    prompt.family === 'keySignature' ? '' : prompt.notes.map(noteNames.spelledName).join(' ');
 
   return (
     <section
@@ -190,7 +195,7 @@ export function TheorySession({ session, controller, onHint }: TheorySessionProp
             onChange={(e) => onHint(e.target.checked)}
             aria-describedby={hintId}
           />
-          <span>{t('read.hint')}</span>
+          <span>{t(hint.toggle)}</span>
         </label>
         <span id={hintId} className="visually-hidden">
           {t(
@@ -224,9 +229,7 @@ export function TheorySession({ session, controller, onHint }: TheorySessionProp
               names={names}
             />
             {names && (
-              <p className="visually-hidden">
-                {t('theory.hint.label', { names: names.join(', ') })}
-              </p>
+              <p className="visually-hidden">{t(hint.several, { names: names.join(', ') })}</p>
             )}
           </div>
 
@@ -247,14 +250,17 @@ export function TheorySession({ session, controller, onHint }: TheorySessionProp
                   {typeof card.wrong === 'string'
                     ? t('theory.chose', { name: format.name(card.wrong, session.level) })
                     : t('read.wrong', {
-                        played: playedNames(card.wrong, storedPrompt(prompt)),
+                        played: playedNames(card.wrong, storedPrompt(prompt), noteNames),
                       })}
                 </p>
                 <p className="read-target">
                   {prompt.family === 'keySignature'
                     ? t('theory.wrong.key', {
                         key: format.key(prompt.fifths, prompt.mode),
-                        tonic: rootName(tonicPitch(signatureTonic(prompt.fifths, prompt.mode), 4)),
+                        // The key to play, by its note; the key it is the tonic of keeps its name.
+                        tonic: noteNames.letterOf(
+                          tonicPitch(signatureTonic(prompt.fifths, prompt.mode), 4),
+                        ),
                       })
                     : named && right
                       ? t('theory.wrong.name', {

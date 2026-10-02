@@ -1,8 +1,7 @@
 import { useMemo } from 'react';
 import { isSeventh } from '../../core/earItems.ts';
 import { midiOf } from '../../core/musicxml.ts';
-import { formatPitch, midiToPitch, type Clef } from '../../core/note.ts';
-import type { SpelledPitch } from '../../core/score.ts';
+import type { Clef } from '../../core/note.ts';
 import {
   getTheoryLevel,
   parseChordName,
@@ -20,22 +19,26 @@ import {
 import type { TheoryMissed } from '../../core/theorySession.ts';
 import { signatureTonic } from '../../core/keys.ts';
 import { useI18n } from '../../i18n/index.ts';
-import { spelledName, tonicName } from '../scales/format.ts';
+import { useNoteNames, type NoteNames } from '../noteNames.ts';
+import { tonicName } from '../scales/format.ts';
 
 const SIGNS: Readonly<Record<number, string>> = { [-2]: '𝄫', [-1]: '♭', 0: '', 1: '♯', 2: '𝄪' };
 
-/** A written note without its octave, as the hint shows it: `F𝄪`, `E♭`. */
-export const letterOf = (p: Pick<SpelledPitch, 'step' | 'alter'>) =>
-  `${p.step}${SIGNS[p.alter] ?? ''}`;
-
-/** A chord's root as written: `F♯`. */
-export const rootName = (root: Root) => letterOf(root);
+/**
+ * A chord's root, or its bass, as its name and its symbol write it: `F♯`. A chord's name is in
+ * letters whatever the note names (docs/PERSONAL.md); a note of it is named by `useNoteNames`.
+ */
+export const rootName = (root: Root) => `${root.step}${SIGNS[root.alter] ?? ''}`;
 
 /**
  * Keys played for a card, low to high, each named as the card writes it where it is one of its
  * notes; otherwise with flats in a flat key or among flat notes, sharps elsewhere.
  */
-export function playedNames(keys: readonly number[], prompt: string[] | string): string {
+export function playedNames(
+  keys: readonly number[],
+  prompt: string[] | string,
+  { spelledName, midiName }: NoteNames,
+): string {
   const written = Array.isArray(prompt) ? prompt.map(parseSpelled).filter((p) => p !== null) : [];
   const fifths = typeof prompt === 'string' ? parseSignature(prompt) : null;
   const flats = fifths !== null ? fifths < 0 : written.some((p) => p.alter < 0);
@@ -43,7 +46,7 @@ export function playedNames(keys: readonly number[], prompt: string[] | string):
     .sort((a, b) => a - b)
     .map((midi) => {
       const note = written.find((p) => midiOf(p) === midi);
-      return note ? spelledName(note) : formatPitch(midiToPitch(midi, flats ? 'flat' : 'sharp'));
+      return note ? spelledName(note) : midiName(midi, flats ? 'flat' : 'sharp');
     })
     .join(' ');
 }
@@ -51,7 +54,9 @@ export function playedNames(keys: readonly number[], prompt: string[] | string):
 /** Names of the theory cards' items, levels and answers in the current language. */
 export function useTheoryFormat() {
   const { t, locale } = useI18n();
+  const names = useNoteNames();
   return useMemo(() => {
+    const { spelledName, letterOf } = names;
     const capitalize = (text: string) => text.charAt(0).toLocaleUpperCase(locale) + text.slice(1);
 
     /** `augmented 2nd`, `perfect octave`; RI1's answer `3` as `3rd`. */
@@ -139,7 +144,7 @@ export function useTheoryFormat() {
     const answer = (missed: Pick<TheoryMissed, 'answer' | 'prompt'>, level: TheoryLevelId) =>
       typeof missed.answer === 'string'
         ? name(missed.answer, level)
-        : playedNames(missed.answer, missed.prompt);
+        : playedNames(missed.answer, missed.prompt, names);
 
     /** The right answer of a missed card, in words. */
     const right = (missed: TheoryMissed, level: TheoryLevelId) => {
@@ -159,7 +164,7 @@ export function useTheoryFormat() {
 
     /** A signature's sharps or flats in order, for the hint: `F♯ C♯ G♯`. */
     const signatureLetters = (fifths: number) =>
-      signatureAccidentals(fifths).map(rootName).join(' ');
+      signatureAccidentals(fifths).map(letterOf).join(' ');
 
     return {
       capitalize,
@@ -185,7 +190,7 @@ export function useTheoryFormat() {
           : t(`theory.level.${level.id}.detail`);
       },
     };
-  }, [t, locale]);
+  }, [t, locale, names]);
 }
 
 export type TheoryFormat = ReturnType<typeof useTheoryFormat>;

@@ -8,6 +8,7 @@ import { useT } from '../../i18n/index.ts';
 import { useHubState, useInput } from '../input/context.ts';
 import { ScoreView, type ScoreStatus } from '../notation/ScoreView.tsx';
 import type { Engraving } from '../notation/verovio.ts';
+import { useNoteNames } from '../noteNames.ts';
 import { Piano } from '../piano/Piano.tsx';
 import { keyboardRange, whiteKeys } from '../piano/range.ts';
 import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
@@ -46,6 +47,7 @@ export function ScaleLoop({
 }) {
   const t = useT();
   const title = useExerciseTitle();
+  const noteNames = useNoteNames();
   const focus = useFocusState();
   const { hub, pointer } = useInput();
   const { held, sustained } = useHubState();
@@ -117,7 +119,7 @@ export function ScaleLoop({
     const range = keyRange(score, hands) ?? [60, 72];
     return keyboardRange(range[0], range[1]);
   }, [score, hands]);
-  const where = stepNames(run)[place.index] ?? '';
+  const where = stepNames(run, noteNames)[place.index] ?? '';
 
   return (
     <div className="scale-session scale-loop">
@@ -128,7 +130,11 @@ export function ScaleLoop({
         <p className="scale-status" role="status">
           {loop.rounds === 0 && loop.next === 0 && loop.played.length === 0
             ? t('scales.loop.start', {
-                key: stepNames(dueNotes.filter((n) => n.hand === dueNotes[0]!.hand))[0] ?? '',
+                key:
+                  stepNames(
+                    dueNotes.filter((n) => n.hand === dueNotes[0]!.hand),
+                    noteNames,
+                  )[0] ?? '',
               })
             : t('scales.loop.rounds', { n: loop.rounds })}
         </p>

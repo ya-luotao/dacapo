@@ -1,7 +1,8 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, type CSSProperties } from 'react';
 import { keyCells, type NoteCell } from '../../../core/heatmap.ts';
-import { MIDDLE_C, midiName, pitchClass } from '../../../core/note.ts';
+import { MIDDLE_C, pitchClass } from '../../../core/note.ts';
 import { useT } from '../../../i18n/index.ts';
+import { useNoteNames } from '../../noteNames.ts';
 import { useReadFormat } from '../../read/format.ts';
 import { BLACK_LENGTH, pianoLayout } from '../../piano/layout.ts';
 import { CellDetails, Tooltip } from './Details.tsx';
@@ -17,6 +18,7 @@ export function KeyboardView({ cells }: { cells: readonly NoteCell[] }) {
   const t = useT();
   const read = useReadFormat();
   const format = useHeatFormat();
+  const { midiName } = useNoteNames();
   const box = useRef<HTMLDivElement>(null);
   const scroller = useRef<HTMLDivElement>(null);
 

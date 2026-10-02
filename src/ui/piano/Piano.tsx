@@ -6,9 +6,10 @@ import {
   type CSSProperties,
   type PointerEvent,
 } from 'react';
-import { MIDDLE_C, midiName, PIANO_HIGHEST, PIANO_LOWEST } from '../../core/note.ts';
+import { MIDDLE_C, midiToPitch, PIANO_HIGHEST, PIANO_LOWEST } from '../../core/note.ts';
 import { useT } from '../../i18n/index.ts';
 import type { PointerInput } from '../../input/index.ts';
+import { useNoteNames } from '../noteNames.ts';
 import {
   BLACK_LENGTH,
   pianoLayout,
@@ -26,6 +27,7 @@ interface Keys {
 }
 
 const FULL = keysOf(PIANO_LOWEST, PIANO_HIGHEST);
+const MIDDLE_C_PITCH = midiToPitch(MIDDLE_C);
 
 function keysOf(low: number, high: number): Keys {
   const layout = pianoLayout(low, high);
@@ -108,6 +110,7 @@ export function Piano({
   className,
 }: PianoProps) {
   const t = useT();
+  const { midiName, letterName, naming } = useNoteNames();
   const scroller = useRef<HTMLDivElement>(null);
   const [low, high] = range ?? [PIANO_LOWEST, PIANO_HIGHEST];
   const piano = useMemo(() => (range ? keysOf(low, high) : FULL), [range, low, high]);
@@ -124,7 +127,7 @@ export function Piano({
           return [midi, midi === MIDDLE_C ? t('piano.key.middleC', { name }) : name];
         }),
       ),
-    [t, layout],
+    [t, midiName, layout],
   );
 
   useLayoutEffect(() => {
@@ -163,6 +166,7 @@ export function Piano({
     <div className={className ? `piano-scroller ${className}` : 'piano-scroller'} ref={scroller}>
       <div
         className="piano"
+        data-naming={naming}
         role="group"
         aria-label={
           range
@@ -229,8 +233,10 @@ export function Piano({
               ) : (
                 midi === MIDDLE_C &&
                 keyNames === NO_STRINGS && (
+                  // The octave apart: where the keys are narrow, do re mi leaves it out (styles.css).
                   <span className="key-mark" aria-hidden="true">
-                    C4
+                    {letterName(MIDDLE_C_PITCH)}
+                    <span className="key-mark-octave">{MIDDLE_C_PITCH.octave}</span>
                   </span>
                 )
               )}

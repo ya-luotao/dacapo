@@ -1,7 +1,7 @@
-import { midiName } from '../../core/note.ts';
 import { useT } from '../../i18n/index.ts';
 import { NOTE_KEYS, noteForKey } from '../../input/keyboard.ts';
 import { useKeyboardOctave } from '../input/context.ts';
+import { useNoteNames } from '../noteNames.ts';
 
 // Where each key sits in a 16-column grid: the home row two columns per key, the upper row
 // between its neighbours, like black keys between white keys.
@@ -38,6 +38,7 @@ function keysAt(octave: number) {
  */
 export function Keycaps({ held }: { held?: ReadonlyMap<number, number> }) {
   const t = useT();
+  const { midiName } = useNoteNames();
   const octave = useKeyboardOctave();
 
   return (
@@ -81,6 +82,7 @@ export function Keycaps({ held }: { held?: ReadonlyMap<number, number> }) {
 
 export function KeyboardHint() {
   const t = useT();
+  const { midiName } = useNoteNames();
   const octave = useKeyboardOctave();
   const playable = keysAt(octave).flatMap(({ midi }) => (midi === null ? [] : [midi]));
 

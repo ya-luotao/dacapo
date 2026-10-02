@@ -1,12 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import {
-  isBlack,
-  MIDDLE_C,
-  midiName,
-  PIANO_HIGHEST,
-  PIANO_LOWEST,
-  pitchClass,
-} from '../../core/note.ts';
+import { isBlack, MIDDLE_C, PIANO_HIGHEST, PIANO_LOWEST, pitchClass } from '../../core/note.ts';
 import { ExerciseFrame } from './exercises.tsx';
 import { LessonPiano } from './LessonPiano.tsx';
 import { Choices } from './kit.tsx';
@@ -77,7 +70,7 @@ export function LetterKeys({
     const classes = new Map<number, string>();
     for (const midi of keysIn(range)) {
       const pc = pitchClass(midi);
-      const letter = midiName(midi).replace(/-?\d+$/, '');
+      const letter = keyName(midi).replace(/-?\d+$/, '');
       if (isBlack(midi)) {
         if (view === 'c' && TWO.has(pc)) classes.set(midi, 'lk-two');
         if (view === 'f' && THREE.has(pc)) classes.set(midi, 'lk-three');
