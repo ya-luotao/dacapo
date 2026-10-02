@@ -5,7 +5,7 @@ import { bodyStart, HEAD_WIDTH } from '../engraving/geometry.ts';
 import { formatMessage } from '../../i18n/locale.ts';
 import { Choices } from './kit.tsx';
 import { LessonPiano } from './LessonPiano.tsx';
-import { keyName, usePlayNotes } from './lesson.ts';
+import { keyName, usePlayNotes, useStaticPage } from './lesson.ts';
 import { pitch } from './notes.ts';
 import { splitMinutes, tempoLadder } from './practice.ts';
 
@@ -96,6 +96,7 @@ export function TempoLadder({
   staffLabel: string;
 }) {
   const player = usePlayNotes();
+  const staticPage = useStaticPage();
   const [target, setTarget] = useState<(typeof TARGETS)[number]>('100');
   const [rung, setRung] = useState(0);
   const bpms = tempoLadder(Number(target), RUNGS);
@@ -120,17 +121,19 @@ export function TempoLadder({
 
   return (
     <>
-      <div className="plate-toolbar">
-        <span className="plate-select">{labels.target}</span>
-        <Choices
-          value={target}
-          onChange={(next) => {
-            setTarget(next);
-            player.stop();
-          }}
-          options={TARGETS.map((t) => ({ value: t, label: `♩ = ${t}` }))}
-        />
-      </div>
+      {!staticPage && (
+        <div className="plate-toolbar">
+          <span className="plate-select">{labels.target}</span>
+          <Choices
+            value={target}
+            onChange={(next) => {
+              setTarget(next);
+              player.stop();
+            }}
+            options={TARGETS.map((t) => ({ value: t, label: `♩ = ${t}` }))}
+          />
+        </div>
+      )}
       <p className="plate-readout is-small" aria-live="polite">
         <span className="plate-readout-name">
           {formatMessage(labels.rung, { percent: RUNGS[rung]!, bpm: bpms[rung]! })}
@@ -149,17 +152,21 @@ export function TempoLadder({
       <ol className="tempo-ladder" aria-label={labels.target}>
         {RUNGS.map((percent, i) => (
           <li key={percent}>
-            <button
-              type="button"
-              className={rung === i ? 'button is-compact is-current' : 'button is-compact'}
-              aria-pressed={rung === i}
-              onClick={() => play(i)}
-            >
-              <svg className="button-glyph" viewBox="0 0 10 12" aria-hidden="true">
-                <path d="M1 1l8 5-8 5z" />
-              </svg>
-              {formatMessage(labels.rung, { percent, bpm: bpms[i]! })}
-            </button>
+            {staticPage ? (
+              formatMessage(labels.rung, { percent, bpm: bpms[i]! })
+            ) : (
+              <button
+                type="button"
+                className={rung === i ? 'button is-compact is-current' : 'button is-compact'}
+                aria-pressed={rung === i}
+                onClick={() => play(i)}
+              >
+                <svg className="button-glyph" viewBox="0 0 10 12" aria-hidden="true">
+                  <path d="M1 1l8 5-8 5z" />
+                </svg>
+                {formatMessage(labels.rung, { percent, bpm: bpms[i]! })}
+              </button>
+            )}
           </li>
         ))}
       </ol>
@@ -187,23 +194,26 @@ export function PracticePlan({
   labels: { length: string; minutes: string; total: string };
 }) {
   const [length, setLength] = useState<(typeof LENGTHS)[number]>('20');
+  const staticPage = useStaticPage();
   const minutes = splitMinutes(
     Number(length),
     parts.map((p) => p.weight),
   );
   return (
     <>
-      <div className="plate-toolbar">
-        <span className="plate-select">{labels.length}</span>
-        <Choices
-          value={length}
-          onChange={setLength}
-          options={LENGTHS.map((l) => ({
-            value: l,
-            label: formatMessage(labels.minutes, { n: l }),
-          }))}
-        />
-      </div>
+      {!staticPage && (
+        <div className="plate-toolbar">
+          <span className="plate-select">{labels.length}</span>
+          <Choices
+            value={length}
+            onChange={setLength}
+            options={LENGTHS.map((l) => ({
+              value: l,
+              label: formatMessage(labels.minutes, { n: l }),
+            }))}
+          />
+        </div>
+      )}
       <div className="plan-bar" aria-hidden="true">
         {parts.map((part, i) => (
           <span

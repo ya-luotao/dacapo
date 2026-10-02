@@ -74,7 +74,7 @@ export function setFocusKeyboard(keyboard: boolean): void {
 }
 
 export function useFocusState(): FocusState {
-  return useSyncExternalStore(subscribe, snapshot);
+  return useSyncExternalStore(subscribe, snapshot, snapshot);
 }
 
 /** Whether the page open now shows its focus bar (the header hides then). */

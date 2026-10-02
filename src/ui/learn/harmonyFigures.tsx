@@ -35,6 +35,7 @@ import {
   usePlayNotes,
   useStartOnPress,
   type TimedNote,
+  useStaticPage,
 } from './lesson.ts';
 import { pitch, tonicName } from './notes.ts';
 
@@ -145,6 +146,7 @@ export function ChordBuilder({
   labels: BuilderLabels;
   staffLabel: string;
 }) {
+  const staticPage = useStaticPage();
   const player = usePlayNotes();
   const [root, setRoot] = useState<string>(initialRoot);
   const [quality, setQuality] = useState<Quality>(qualities[0]!);
@@ -199,20 +201,22 @@ export function ChordBuilder({
   return (
     <>
       <div className="plate-toolbar">
-        <label className="plate-select">
-          <span>{labels.root}</span>
-          <select
-            className="is-compact"
-            value={root}
-            onChange={(e) => choose(() => setRoot(e.target.value))}
-          >
-            {ROOTS.map((r) => (
-              <option key={r} value={r}>
-                {tonicName(r)}
-              </option>
-            ))}
-          </select>
-        </label>
+        {!staticPage && (
+          <label className="plate-select">
+            <span>{labels.root}</span>
+            <select
+              className="is-compact"
+              value={root}
+              onChange={(e) => choose(() => setRoot(e.target.value))}
+            >
+              {ROOTS.map((r) => (
+                <option key={r} value={r}>
+                  {tonicName(r)}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <Choices
           className={qualities.length > 3 ? 'is-grid' : undefined}
           value={quality}
@@ -273,6 +277,7 @@ export function KeyChords({
   labels: { key: string; qualities: Record<'major' | 'minor' | 'diminished', string> };
   staffLabel: string;
 }) {
+  const staticPage = useStaticPage();
   const player = usePlayNotes();
   const [tonic, setTonic] = useState<string>('C');
   const [picked, setPicked] = useState<number>(0);
@@ -340,23 +345,25 @@ export function KeyChords({
   return (
     <>
       <div className="plate-toolbar">
-        <label className="plate-select">
-          <span>{labels.key}</span>
-          <select
-            className="is-compact"
-            value={tonic}
-            onChange={(e) => {
-              setTonic(e.target.value);
-              player.stop();
-            }}
-          >
-            {KEY_TONICS.map((t) => (
-              <option key={t} value={t}>
-                {tonicName(t)}
-              </option>
-            ))}
-          </select>
-        </label>
+        {!staticPage && (
+          <label className="plate-select">
+            <span>{labels.key}</span>
+            <select
+              className="is-compact"
+              value={tonic}
+              onChange={(e) => {
+                setTonic(e.target.value);
+                player.stop();
+              }}
+            >
+              {KEY_TONICS.map((t) => (
+                <option key={t} value={t}>
+                  {tonicName(t)}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
       </div>
       <p className="plate-readout is-small" aria-live="polite">
         <span className="plate-readout-name">
@@ -376,25 +383,27 @@ export function KeyChords({
         labels={staffLabels}
         fifths={fifths}
       />
-      <div className="plate-actions is-center" role="group" aria-label={staffLabel}>
-        {chords.map((c, k) => (
-          <button
-            key={c.numeral}
-            type="button"
-            className={picked === k ? 'button is-compact is-current' : 'button is-compact'}
-            aria-pressed={picked === k}
-            onClick={() => pick(k)}
-          >
-            {c.numeral}
-          </button>
-        ))}
-        <PlayButton
-          onClick={() => {
-            setPicked(0);
-            play([0, 1, 2, 3, 4, 5, 6, 0], 700);
-          }}
-        />
-      </div>
+      {!staticPage && (
+        <div className="plate-actions is-center" role="group" aria-label={staffLabel}>
+          {chords.map((c, k) => (
+            <button
+              key={c.numeral}
+              type="button"
+              className={picked === k ? 'button is-compact is-current' : 'button is-compact'}
+              aria-pressed={picked === k}
+              onClick={() => pick(k)}
+            >
+              {c.numeral}
+            </button>
+          ))}
+          <PlayButton
+            onClick={() => {
+              setPicked(0);
+              play([0, 1, 2, 3, 4, 5, 6, 0], 700);
+            }}
+          />
+        </div>
+      )}
       <LessonPiano range={KEY_CHORD_KEYS} keyNames={names} keyClasses={classes} />
     </>
   );

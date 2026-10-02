@@ -1,0 +1,318 @@
+/*
+ * What only the site's pages have (docs/SITE.md). Everything else is the app's stylesheet, as
+ * built: one look. This is written into each page's head, so the app's own files do not grow.
+ */
+
+/* Where the page is: dacapo › Lessons › The staff and the clefs. */
+.site-crumbs {
+  margin: -1.25rem 0 1.5rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.site-crumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.125rem 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-crumbs li + li::before {
+  content: '›';
+  margin-right: 0.5rem;
+  color: var(--control);
+}
+
+.site-crumbs a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .site-crumbs a:hover {
+    color: var(--text);
+    text-decoration: underline;
+  }
+}
+
+/* Two links, not the app's eight: on a phone they sit together under the brand. */
+@media (max-width: 48rem) {
+  .header .nav {
+    justify-content: flex-start;
+    gap: 0 1.75rem;
+  }
+}
+
+/* The same page in the other languages, over the footer. */
+.site-languages {
+  margin-top: 4rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.9375rem;
+}
+
+.site-languages ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-languages a,
+.site-languages span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+}
+
+.site-languages span {
+  color: var(--text-muted);
+}
+
+/* The way into the app, at the head and the foot of a page. */
+.site-open {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin: 1.5rem 0 0;
+}
+
+.site-open .help {
+  flex: 1 1 16rem;
+  margin: 0;
+}
+
+@media (max-width: 40rem) {
+  .site-open .button {
+    flex: 1 1 100%;
+    text-align: center;
+  }
+}
+
+/* A lesson without scripts: its contents are links, its keys are not pressed, and a line stands
+   where an exercise is. */
+.lesson-toc a {
+  display: flex;
+  align-items: baseline;
+  gap: 0.625rem;
+  padding: 0.375rem 0;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  text-decoration: none;
+}
+
+.lesson-toc a::before {
+  content: '';
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--border);
+  transform: translateY(-2px);
+}
+
+@media (hover: hover) {
+  .lesson-toc a:hover {
+    color: var(--text);
+  }
+}
+
+.piano .key {
+  cursor: default;
+}
+
+/* A timeline is drawn a unit to a pixel at the width it has in the app. Drawn once, it keeps the
+   width it was drawn at and scrolls on a phone, so its words stay the size they were set in. */
+.period-timeline,
+.touch-timeline,
+.pedal-lanes {
+  overflow-x: auto;
+}
+
+.period-timeline svg {
+  min-width: 40rem;
+}
+
+.touch-timeline svg,
+.pedal-lanes svg {
+  min-width: 35rem;
+}
+
+.plate-toolbar:empty,
+.plate-actions:empty {
+  display: none;
+}
+
+.exercise-line {
+  margin: 0;
+  padding: 1rem;
+  border: 1px dashed var(--control);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  text-align: center;
+}
+
+.tempo-ladder li {
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.form-part-still {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.25rem;
+  padding: 0.25rem 0.125rem;
+  border-radius: var(--radius-sm);
+}
+
+.form-part.is-0 .form-part-still {
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+}
+
+.form-part.is-1 .form-part-still {
+  background: color-mix(in srgb, var(--lk-three) 22%, var(--surface));
+}
+
+.form-part.is-2 .form-part-still {
+  background: color-mix(in srgb, var(--ok) 20%, var(--surface));
+}
+
+.form-part.is-3 .form-part-still {
+  background: color-mix(in srgb, var(--lk-two) 20%, var(--surface));
+}
+
+/* Inside the piano: every part with what it does, where the app says one at a time. */
+.inside-parts-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0 0 1.25rem;
+  font-size: 0.9375rem;
+}
+
+.inside-parts-list dt {
+  display: inline;
+  font-weight: 600;
+}
+
+.inside-parts-list dd {
+  display: inline;
+  margin: 0 0 0 0.375rem;
+  color: var(--text-muted);
+}
+
+/* A piece: what it is, its score, where it comes from. */
+.site-piece {
+  max-width: 50rem;
+}
+
+.site-piece h1 {
+  margin-bottom: 0.25rem;
+}
+
+.site-piece .eyebrow {
+  color: var(--accent);
+}
+
+.site-piece-composer {
+  margin: 0 0 1rem;
+  color: var(--text-muted);
+  font-size: 1.0625rem;
+}
+
+.site-piece h2 {
+  margin: 3rem 0 1rem;
+}
+
+.site-piece-lead {
+  max-width: 38rem;
+  margin: 1rem 0 0;
+  text-wrap: pretty;
+}
+
+/* The score is engraved in black on nothing: on the sheet it keeps its ink, and in the dark the
+   image is turned to the paper's colour, as the app draws its score. On a phone the sheet
+   scrolls sideways rather than shrink the notes past reading. */
+.site-score {
+  margin: 0;
+}
+
+.site-score-sheet {
+  overflow-x: auto;
+  padding: 0.25rem 0.5rem 0.5rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-sheet);
+}
+
+.site-score img {
+  display: block;
+  width: 100%;
+  min-width: 34rem;
+  height: auto;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .site-score img {
+    filter: invert(0.9);
+  }
+}
+
+:root[data-theme='dark'] .site-score img {
+  filter: invert(0.9);
+}
+
+.site-score figcaption {
+  margin-top: 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.site-facts {
+  display: grid;
+  grid-template-columns: minmax(7rem, max-content) minmax(0, 1fr);
+  gap: 0.5rem 1.5rem;
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.site-facts > div {
+  display: contents;
+}
+
+.site-facts dt {
+  color: var(--text-muted);
+}
+
+.site-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 30rem) {
+  .site-facts {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .site-facts dd {
+    margin-bottom: 0.75rem;
+  }
+}
+
+/* The library's list is a page of its own here. */
+.site-pieces .library {
+  margin-top: 2.5rem;
+}

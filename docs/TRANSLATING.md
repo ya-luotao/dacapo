@@ -135,7 +135,15 @@ in each, and the zh-TW texts have 「」 quotes and no Simplified-only character
    `:is(:lang(zh), :lang(ja), :lang(ko))` rules.
 5. Check the Read session, Pieces practice, Progress and Settings at 1280 × 800 and at 375 px in
    both themes.
-6. List the language in `README.md`, and add a section with its tone and glossary below.
+6. The site's pages ([SITE.md](SITE.md)) follow `LOCALES`: the language gets a home page and the
+   pieces' pages under its code in lower case (`/xx/`). Add its dictionary to `src/site/words.ts`
+   and its Open Graph name to `src/site/document.ts` (both are compile errors until then), its
+   home page to the alternates in `index.html`, its folder to the files
+   `apple/scripts/embed-web.sh` leaves out, and its code to the names nobody can take
+   (`RESERVED_USERNAMES` in `src/core/profile.ts`, and the service's list) when it is three
+   characters or more; `src/site/pages.test.ts` fails until these are done. Its strings include
+   the `site.*` block, which only the pages show.
+7. List the language in `README.md`, and add a section with its tone and glossary below.
 
 ## Simplified Chinese (`zh-CN`)
 

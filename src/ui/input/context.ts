@@ -11,15 +11,15 @@ export function useInput(): InputSystem {
 
 export function useHubState(): HubState {
   const { hub } = useInput();
-  return useSyncExternalStore(hub.subscribe, hub.getState);
+  return useSyncExternalStore(hub.subscribe, hub.getState, hub.getState);
 }
 
 export function useMidiStatus(): MidiStatus {
   const { midi } = useInput();
-  return useSyncExternalStore(midi.subscribeStatus, midi.getStatus);
+  return useSyncExternalStore(midi.subscribeStatus, midi.getStatus, midi.getStatus);
 }
 
 export function useKeyboardOctave(): number {
   const { keyboard } = useInput();
-  return useSyncExternalStore(keyboard.subscribeOctave, keyboard.getOctave);
+  return useSyncExternalStore(keyboard.subscribeOctave, keyboard.getOctave, keyboard.getOctave);
 }

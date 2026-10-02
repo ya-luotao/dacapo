@@ -9,7 +9,7 @@ import {
 import { useHubState, useInput } from '../input/context.ts';
 import { PART_IDS, type PartId } from './actionParts.ts';
 import { Choices } from './kit.tsx';
-import { keyName, usePlayKey } from './lesson.ts';
+import { keyName, usePlayKey, useStaticPage } from './lesson.ts';
 import { LessonPiano } from './LessonPiano.tsx';
 import { PianoActionDrawing } from './PianoActionDrawing.tsx';
 
@@ -80,6 +80,7 @@ export function InsideAction({ copy }: { copy: InsideCopy }) {
   const { hub } = useInput();
   const { sustain: pedal } = useHubState();
   const play = usePlayKey();
+  const staticPage = useStaticPage();
   const [speed, setSpeed] = useState<Speed>('4');
   const [touch, setTouch] = useState<Touch>('key');
   const [showNames, setShowNames] = useState(true);
@@ -208,46 +209,50 @@ export function InsideAction({ copy }: { copy: InsideCopy }) {
           ]}
         />
       </div>
-      <div className="plate-toolbar">
-        <button
-          type="button"
-          className={showNames ? 'button is-compact is-current' : 'button is-compact'}
-          aria-pressed={showNames}
-          onClick={() => setShowNames(!showNames)}
-        >
-          {copy.names}
-        </button>
-        <button
-          type="button"
-          className={sustain || pedal ? 'button is-compact is-current' : 'button is-compact'}
-          aria-pressed={sustain || pedal}
-          // Held down by a real pedal: only letting go of it lifts it.
-          disabled={pedal}
-          onClick={() => setSustain(!sustain)}
-        >
-          {copy.sustain}
-        </button>
-        <button
-          type="button"
-          className="button button-primary is-compact"
-          onClick={() => play(60, 700)}
-        >
-          <svg className="button-glyph" viewBox="0 0 10 12" aria-hidden="true">
-            <path d="M1 1l8 5-8 5z" />
-          </svg>
-          {copy.play}
-        </button>
-      </div>
+      {!staticPage && (
+        <>
+          <div className="plate-toolbar">
+            <button
+              type="button"
+              className={showNames ? 'button is-compact is-current' : 'button is-compact'}
+              aria-pressed={showNames}
+              onClick={() => setShowNames(!showNames)}
+            >
+              {copy.names}
+            </button>
+            <button
+              type="button"
+              className={sustain || pedal ? 'button is-compact is-current' : 'button is-compact'}
+              aria-pressed={sustain || pedal}
+              // Held down by a real pedal: only letting go of it lifts it.
+              disabled={pedal}
+              onClick={() => setSustain(!sustain)}
+            >
+              {copy.sustain}
+            </button>
+            <button
+              type="button"
+              className="button button-primary is-compact"
+              onClick={() => play(60, 700)}
+            >
+              <svg className="button-glyph" viewBox="0 0 10 12" aria-hidden="true">
+                <path d="M1 1l8 5-8 5z" />
+              </svg>
+              {copy.play}
+            </button>
+          </div>
 
-      <div className="inside-readout">
-        <span>
-          {copy.pressed} <b>{view.midi === null ? '—' : keyName(view.midi)}</b>
-        </span>
-        <span className="inside-meter">
-          {copy.loudness}
-          <i style={{ transform: `scaleX(${state.ring})` }} />
-        </span>
-      </div>
+          <div className="inside-readout">
+            <span>
+              {copy.pressed} <b>{view.midi === null ? '—' : keyName(view.midi)}</b>
+            </span>
+            <span className="inside-meter">
+              {copy.loudness}
+              <i style={{ transform: `scaleX(${state.ring})` }} />
+            </span>
+          </div>
+        </>
+      )}
 
       <div className="act-scroll" ref={scroller}>
         <PianoActionDrawing
@@ -260,29 +265,43 @@ export function InsideAction({ copy }: { copy: InsideCopy }) {
         />
       </div>
 
-      <p className="inside-part" aria-live="polite">
-        {shown ? (
-          <>
-            <b>{shown.name}</b> {shown.text}
-          </>
-        ) : (
-          <span className="muted">{copy.pointAt}</span>
-        )}
-      </p>
-      {/* The parts by name, for the keyboard and for a small screen. */}
-      <div className="inside-parts">
-        {PART_IDS.map((id) => (
-          <button
-            key={id}
-            type="button"
-            className={focus === id ? 'is-current' : undefined}
-            aria-pressed={focus === id}
-            onClick={() => setFocus(focus === id ? null : id)}
-          >
-            {copy.parts[id].name}
-          </button>
-        ))}
-      </div>
+      {staticPage ? (
+        // Nothing can be pointed at: every part with what it does, one under another.
+        <dl className="inside-parts-list">
+          {PART_IDS.map((id) => (
+            <div key={id}>
+              <dt>{copy.parts[id].name}</dt>
+              <dd>{copy.parts[id].text}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : (
+        <>
+          <p className="inside-part" aria-live="polite">
+            {shown ? (
+              <>
+                <b>{shown.name}</b> {shown.text}
+              </>
+            ) : (
+              <span className="muted">{copy.pointAt}</span>
+            )}
+          </p>
+          {/* The parts by name, for the keyboard and for a small screen. */}
+          <div className="inside-parts">
+            {PART_IDS.map((id) => (
+              <button
+                key={id}
+                type="button"
+                className={focus === id ? 'is-current' : undefined}
+                aria-pressed={focus === id}
+                onClick={() => setFocus(focus === id ? null : id)}
+              >
+                {copy.parts[id].name}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
       <ol className="inside-steps">
         {copy.steps.map((step, i) => (

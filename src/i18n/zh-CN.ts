@@ -2980,4 +2980,39 @@ export const zhCN: Dictionary = {
   'about.sounds': '音色',
   'about.salamander':
     'Salamander Grand Piano V3，内置钢琴的音色：Alexander Holm 录制的雅马哈 C5。知识共享署名 3.0（CC BY 3.0）。dacapo 项目从它的 16 个力度层中选取 3 层，剪裁后编码为 MP3。',
+
+  // Pages a search engine can read (docs/SITE.md): what only they say.
+  'site.exercise': '这个练习要在 dacapo 里做。',
+  'site.lesson.open': '在 dacapo 里打开这一课',
+  'site.lesson.note': '在 dacapo 里，图例会发声，会回应你的键盘，练习也会检查你弹的音。',
+  'site.piece.practise': '在 dacapo 里练这首曲子',
+  'site.piece.note':
+    '在 dacapo 里，乐谱会等你弹对了再往下走，也可以跟着拍子走，并且记下让你慢下来的小节。',
+  'site.lessons': '课程',
+  'site.breadcrumb': '当前位置',
+  'site.languages': '本页的其他语言',
+  'site.title.lesson': '{title} — 钢琴入门课 · dacapo',
+  'site.title.lessons': '钢琴入门课程 · dacapo',
+  'site.title.piece': '{title}，{composer} — 乐谱 · dacapo',
+  'site.title.pieces': '按级别排列的钢琴曲目与乐谱 · dacapo',
+  'site.pieces.lede':
+    '{n} 首公有领域的曲子，按级别排列。每一首都有乐谱和出处，并且可以在 dacapo 里练。',
+  'site.piece.work': '作品',
+  'site.piece.composer': '作曲',
+  'site.piece.grade': '级别',
+  'site.piece.style': '时期与曲式',
+  'site.piece.bars': '小节数',
+  'site.piece.fingering': '指法',
+  'site.piece.fingering.printed': '照原版本所印',
+  'site.piece.fingering.none': '无',
+  'site.piece.leadSheet':
+    '这是一份旋律谱：旋律上方标着和弦记号。在 dacapo 里，你弹旋律，左手由和弦记号生成，伴奏型由你选。',
+  'site.piece.score': '乐谱',
+  'site.piece.score.alt': '《{title}》的乐谱：共 {bars} 小节，{key}，{time} 拍。',
+  'site.piece.score.open': '单独打开乐谱',
+  'site.piece.origin': '出处',
+  'site.piece.source': '来源',
+  'site.piece.encoder': '编码',
+  'site.piece.licence': '许可',
+  'site.about': '课程和内置曲目也各有自己的网页，不打开 dacapo 也能读，搜索引擎也找得到。',
 };

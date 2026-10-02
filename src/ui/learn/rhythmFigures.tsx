@@ -22,9 +22,9 @@ import {
   type Time,
 } from '../engraving/rhythmLayout.ts';
 import { sharedClickTrack } from '../pieces/useRhythmPlayer.ts';
-import { ExerciseFrame } from './exercises.tsx';
+import { ExerciseFrame, ExerciseLine } from './exercises.tsx';
 import { Choices } from './kit.tsx';
-import { useCopy, useExercise, useNoteOn, usePlayKey } from './lesson.ts';
+import { useCopy, useExercise, useNoteOn, usePlayKey, useStaticPage } from './lesson.ts';
 
 // The rhythm lessons: a beat to hear and tap along with, rhythms written on a single line with
 // their counts under them, played back with the click, and an exercise that times your taps.
@@ -224,6 +224,7 @@ function CountDots({
 /** A steady beat: pick a tempo, start it, and tap any key along with it to see how close you are. */
 export function BeatPulse({ labels }: { labels: { tempo: string } }) {
   const copy = useCopy();
+  const staticPage = useStaticPage();
   const exercise = useExercise();
   const [bpm, setBpm] = useState(72);
   const [origin, setOrigin] = useState<number | null>(null);
@@ -282,6 +283,8 @@ export function BeatPulse({ labels }: { labels: { tempo: string } }) {
             side: last < 0 ? copy('early') : copy('late'),
           });
 
+  // Tapping with the beat is an exercise: a page without scripts says so in its place.
+  if (staticPage) return <ExerciseLine />;
   return (
     <div className={exercise.active ? 'exercise is-active' : 'exercise'}>
       <div className="beat-row">
@@ -363,6 +366,7 @@ export function RhythmRows({
   spacing?: number;
 }) {
   const copy = useCopy();
+  const staticPage = useStaticPage();
   const player = usePlayRhythm();
   const [playing, setPlaying] = useState<number | null>(null);
   return (
@@ -371,22 +375,24 @@ export function RhythmRows({
         <div key={row.title} className="rhythm-row">
           <div className="rhythm-row-head">
             <p>{row.title}</p>
-            <button
-              type="button"
-              className="button is-compact"
-              onClick={() => {
-                if (player.playing && playing === i) {
-                  player.stop();
-                  return;
-                }
-                setPlaying(i);
-                const time = row.time ?? [4, 4];
-                player.play(row.rhythm, time, bpm, { subdivide: meterOf(time).compound });
-              }}
-            >
-              <PlayGlyph />
-              {player.playing && playing === i ? copy('stop') : copy('listen')}
-            </button>
+            {!staticPage && (
+              <button
+                type="button"
+                className="button is-compact"
+                onClick={() => {
+                  if (player.playing && playing === i) {
+                    player.stop();
+                    return;
+                  }
+                  setPlaying(i);
+                  const time = row.time ?? [4, 4];
+                  player.play(row.rhythm, time, bpm, { subdivide: meterOf(time).compound });
+                }}
+              >
+                <PlayGlyph />
+                {player.playing && playing === i ? copy('stop') : copy('listen')}
+              </button>
+            )}
           </div>
           <RhythmLine
             rhythm={row.rhythm}
@@ -405,6 +411,7 @@ export function RhythmRows({
 /** The same beat grouped in bars of four, three or two: the first beat of each bar is the strong one. */
 export function TimeSignatures() {
   const copy = useCopy();
+  const staticPage = useStaticPage();
   const player = usePlayRhythm();
   const [time, setTime] = useState<'4' | '3' | '2'>('4');
   const perBar = Number(time);
@@ -427,18 +434,20 @@ export function TimeSignatures() {
             { value: '2', label: '2/4' },
           ]}
         />
-        <button
-          type="button"
-          className="button is-compact"
-          onClick={() =>
-            player.playing
-              ? player.stop()
-              : player.play(rhythm, [perBar, 4], 88, { countIn: false })
-          }
-        >
-          <PlayGlyph />
-          {player.playing ? copy('stop') : copy('listen')}
-        </button>
+        {!staticPage && (
+          <button
+            type="button"
+            className="button is-compact"
+            onClick={() =>
+              player.playing
+                ? player.stop()
+                : player.play(rhythm, [perBar, 4], 88, { countIn: false })
+            }
+          >
+            <PlayGlyph />
+            {player.playing ? copy('stop') : copy('listen')}
+          </button>
+        )}
       </div>
       <RhythmLine
         rhythm={rhythm}
@@ -462,6 +471,7 @@ export function CompoundTime({
   labels: { beats: string; eighths: string; clicks: string };
 }) {
   const copy = useCopy();
+  const staticPage = useStaticPage();
   const player = usePlayRhythm();
   const [time, setTime] = useState<'3/4' | '6/8'>('6/8');
   const [click, setClick] = useState<'beats' | 'eighths'>('beats');
@@ -492,21 +502,23 @@ export function CompoundTime({
             { value: 'eighths', label: labels.eighths },
           ]}
         />
-        <button
-          type="button"
-          className="button is-compact"
-          onClick={() =>
-            player.playing
-              ? player.stop()
-              : player.play(SIX_EIGHTHS, signature, 96, {
-                  countIn: false,
-                  subdivide: click === 'eighths',
-                })
-          }
-        >
-          <PlayGlyph />
-          {player.playing ? copy('stop') : copy('listen')}
-        </button>
+        {!staticPage && (
+          <button
+            type="button"
+            className="button is-compact"
+            onClick={() =>
+              player.playing
+                ? player.stop()
+                : player.play(SIX_EIGHTHS, signature, 96, {
+                    countIn: false,
+                    subdivide: click === 'eighths',
+                  })
+            }
+          >
+            <PlayGlyph />
+            {player.playing ? copy('stop') : copy('listen')}
+          </button>
+        )}
       </div>
       <RhythmLine
         rhythm={SIX_EIGHTHS}

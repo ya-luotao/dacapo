@@ -14,7 +14,14 @@ import { EngravedStaff, type StaffLabel, type StaffNote } from '../engraving/Eng
 import { bodyStart, HEAD_WIDTH } from '../engraving/geometry.ts';
 import { Choices, Picture, PlayButton } from './kit.tsx';
 import { LessonPiano } from './LessonPiano.tsx';
-import { keyName, useCopy, useNoteOn, usePlayKey, usePlaySequence } from './lesson.ts';
+import {
+  keyName,
+  useCopy,
+  useNoteOn,
+  usePlayKey,
+  usePlaySequence,
+  useStaticPage,
+} from './lesson.ts';
 import {
   majorScale,
   phraseIn,
@@ -48,6 +55,7 @@ const LANDMARKS: readonly { text: string; clef: Clef }[] = [
 
 /** The landmark notes on the grand staff and the keyboard; pick one to hear it and see its key. */
 export function LandmarkMap({ label }: { label: string }) {
+  const staticPage = useStaticPage();
   const play = usePlayKey();
   const [picked, setPicked] = useState<number | null>(null);
   const notes: StaffNote[] = LANDMARKS.map(({ text, clef }, i) => ({
@@ -85,19 +93,21 @@ export function LandmarkMap({ label }: { label: string }) {
         label={label}
         notes={notes}
       />
-      <div className="plate-actions is-center" role="group" aria-label={label}>
-        {LANDMARKS.map(({ text }, i) => (
-          <button
-            key={text}
-            type="button"
-            className={picked === i ? 'button is-compact is-current' : 'button is-compact'}
-            aria-pressed={picked === i}
-            onClick={() => pick(i)}
-          >
-            {text}
-          </button>
-        ))}
-      </div>
+      {!staticPage && (
+        <div className="plate-actions is-center" role="group" aria-label={label}>
+          {LANDMARKS.map(({ text }, i) => (
+            <button
+              key={text}
+              type="button"
+              className={picked === i ? 'button is-compact is-current' : 'button is-compact'}
+              aria-pressed={picked === i}
+              onClick={() => pick(i)}
+            >
+              {text}
+            </button>
+          ))}
+        </div>
+      )}
       <LessonPiano range={STAFF_KEYS} keyNames={names} keyClasses={classes} />
     </>
   );
@@ -120,6 +130,7 @@ export function IntervalExplorer({
   shapes: Record<IntervalSize, string>;
   staffLabel: string;
 }) {
+  const staticPage = useStaticPage();
   const copy = useCopy();
   const listen = usePlaySequence();
   const [size, setSize] = useState<IntervalSize>(2);
@@ -159,13 +170,15 @@ export function IntervalExplorer({
       />
       <div className="plate-actions">
         <PlayButton onClick={() => listen.play(keys, 600)} />
-        <button
-          type="button"
-          className="button is-compact"
-          onClick={() => setStart((start + 1) % STARTS.length)}
-        >
-          {copy('another')}
-        </button>
+        {!staticPage && (
+          <button
+            type="button"
+            className="button is-compact"
+            onClick={() => setStart((start + 1) % STARTS.length)}
+          >
+            {copy('another')}
+          </button>
+        )}
       </div>
       <LessonPiano range={MIDDLE_KEYS} keyNames={names} keyClasses={classes} />
     </>
@@ -398,6 +411,7 @@ export function ScaleBuilder({
   };
   staffLabel: string;
 }) {
+  const staticPage = useStaticPage();
   const listen = usePlaySequence();
   const [tonic, setTonic] = useState<string>('C');
   const [view, setView] = useState<'accidentals' | 'signature'>('accidentals');
@@ -426,16 +440,18 @@ export function ScaleBuilder({
   return (
     <>
       <div className="plate-toolbar">
-        <label className="plate-select">
-          <span>{labels.tonic}</span>
-          <select className="is-compact" value={tonic} onChange={(e) => setTonic(e.target.value)}>
-            {MAJOR_TONICS.map((t) => (
-              <option key={t} value={t}>
-                {tonicName(t)}
-              </option>
-            ))}
-          </select>
-        </label>
+        {!staticPage && (
+          <label className="plate-select">
+            <span>{labels.tonic}</span>
+            <select className="is-compact" value={tonic} onChange={(e) => setTonic(e.target.value)}>
+              {MAJOR_TONICS.map((t) => (
+                <option key={t} value={t}>
+                  {tonicName(t)}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <Choices
           value={view}
           onChange={setView}
@@ -841,6 +857,7 @@ export function RelativeMinor({
   };
   staffLabel: string;
 }) {
+  const staticPage = useStaticPage();
   const listen = usePlaySequence();
   const [major, setMajor] = useState<string>('C');
   const [view, setView] = useState<'major' | 'minor'>('major');
@@ -891,23 +908,25 @@ export function RelativeMinor({
   return (
     <>
       <div className="plate-toolbar">
-        <label className="plate-select">
-          <span>{labels.key}</span>
-          <select
-            className="is-compact"
-            value={major}
-            onChange={(e) => {
-              setMajor(e.target.value);
-              listen.stop();
-            }}
-          >
-            {RELATIVE_MAJORS.map((t) => (
-              <option key={t} value={t}>
-                {tonicName(t)}
-              </option>
-            ))}
-          </select>
-        </label>
+        {!staticPage && (
+          <label className="plate-select">
+            <span>{labels.key}</span>
+            <select
+              className="is-compact"
+              value={major}
+              onChange={(e) => {
+                setMajor(e.target.value);
+                listen.stop();
+              }}
+            >
+              {RELATIVE_MAJORS.map((t) => (
+                <option key={t} value={t}>
+                  {tonicName(t)}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <Choices
           value={view}
           onChange={(next) => {
@@ -985,6 +1004,7 @@ export function MinorScaleBuilder({
   };
   staffLabel: string;
 }) {
+  const staticPage = useStaticPage();
   const listen = usePlaySequence();
   const [tonic, setTonic] = useState<string>('A');
   const [kind, setKind] = useState<MinorKind>(initial);
@@ -1039,23 +1059,25 @@ export function MinorScaleBuilder({
   return (
     <>
       <div className="plate-toolbar">
-        <label className="plate-select">
-          <span>{labels.tonic}</span>
-          <select
-            className="is-compact"
-            value={tonic}
-            onChange={(e) => {
-              setTonic(e.target.value);
-              listen.stop();
-            }}
-          >
-            {BUILDER_MINORS.map((t) => (
-              <option key={t} value={t}>
-                {tonicName(t)}
-              </option>
-            ))}
-          </select>
-        </label>
+        {!staticPage && (
+          <label className="plate-select">
+            <span>{labels.tonic}</span>
+            <select
+              className="is-compact"
+              value={tonic}
+              onChange={(e) => {
+                setTonic(e.target.value);
+                listen.stop();
+              }}
+            >
+              {BUILDER_MINORS.map((t) => (
+                <option key={t} value={t}>
+                  {tonicName(t)}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <Choices
           value={kind}
           onChange={(next) => {

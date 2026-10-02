@@ -65,4 +65,18 @@ describe('groupOf', () => {
     expect(groupOf('something-new/file.bin')).toBeNull();
     expect(groupOf('assets/index-CUBJweyU.js.map')).toBeNull();
   });
+
+  it('the site’s pages are none of the worker’s, beside the lessons’ pictures or anywhere', () => {
+    // docs/SITE.md: written into the build before the list is taken, and left out of it.
+    expect(groupOf('learn/index.html')).toBeNull();
+    expect(groupOf('learn/staff.html')).toBeNull();
+    expect(groupOf('zh-cn/learn/staff.html')).toBeNull();
+    expect(groupOf('zh-tw/index.html')).toBeNull();
+    expect(groupOf('ja/pieces/bach-prelude-in-c.html')).toBeNull();
+    expect(groupOf('pieces/index.html')).toBeNull();
+    expect(groupOf('pieces/bach-prelude-in-c.html')).toBeNull();
+    expect(groupOf('pieces/bach-prelude-in-c.svg')).toBeNull();
+    // The picture next to the page is still stored when fetched.
+    expect(groupOf('learn/hands-either-side.webp')).toBe('pictures');
+  });
 });

@@ -3141,4 +3141,40 @@ export const ja: Dictionary = {
   'about.sounds': '音源',
   'about.salamander':
     'Salamander Grand Piano V3（内蔵ピアノの音）：Alexander Holmが録音したヤマハC5。クリエイティブ・コモンズ 表示 3.0（CC BY 3.0）。16あるベロシティレイヤーのうち3つを、dacapoプロジェクトが切り詰めてMP3にエンコードしました。',
+
+  // Pages a search engine can read (docs/SITE.md): what only they say.
+  'site.exercise': 'この練習問題はdacapoの中で行います。',
+  'site.lesson.open': 'このレッスンをdacapoで開く',
+  'site.lesson.note': 'dacapoの中では、図が音を出して鍵盤に応え、練習問題は弾いた音を確かめます。',
+  'site.piece.practise': 'dacapoで練習する',
+  'site.piece.note':
+    'dacapoの中では、楽譜が正しい鍵を待つか拍を刻み、つまずいた小節を覚えておきます。',
+  'site.lessons': 'レッスン',
+  'site.breadcrumb': '現在の位置',
+  'site.languages': 'このページのほかの言語',
+  'site.title.lesson': '{title} — ピアノのレッスン · dacapo',
+  'site.title.lessons': 'はじめてのピアノレッスン · dacapo',
+  'site.title.piece': '{title}／{composer} — 楽譜 · dacapo',
+  'site.title.pieces': 'グレード別のピアノ曲と楽譜 · dacapo',
+  'site.pieces.lede':
+    'パブリックドメインの{n}曲をグレード順に並べています。どの曲にも楽譜と出典があり、dacapoで練習できます。',
+  'site.piece.work': '作品',
+  'site.piece.composer': '作曲者',
+  'site.piece.grade': 'グレード',
+  'site.piece.style': '時代と形式',
+  'site.piece.bars': '小節数',
+  'site.piece.fingering': '運指',
+  'site.piece.fingering.printed': '底本の版に印刷されているとおり',
+  'site.piece.fingering.none': 'なし',
+  'site.piece.leadSheet':
+    'リードシートです。メロディーの上にコードネームが書かれています。dacapoの中では、メロディーを弾くと、左手は選んだ伴奏形でコードネームから作られます。',
+  'site.piece.score': '楽譜',
+  'site.piece.score.alt': '「{title}」の楽譜：{bars}小節、{key}、{time}拍子。',
+  'site.piece.score.open': '楽譜だけを開く',
+  'site.piece.origin': '出典',
+  'site.piece.source': '底本',
+  'site.piece.encoder': '入力',
+  'site.piece.licence': 'ライセンス',
+  'site.about':
+    'レッスンと収録曲には、それぞれ独立したページもあります。dacapoを開かなくても読め、検索エンジンでも見つかります。',
 };

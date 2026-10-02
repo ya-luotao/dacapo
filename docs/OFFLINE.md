@@ -25,8 +25,9 @@ list, each file with the group it is in, and a version that is the hash of the l
   of the languages not in use. Stored when first fetched; all at once with **Store everything**
   (below).
 - **Not the app's**: anything else on the origin (the privacy page, profile pages, the account
-  service's paths) and every other origin (the sync service). The worker does not touch these
-  requests at all.
+  service's paths, and the site's own pages: the lessons, the pieces and the home pages a search
+  engine reads, [SITE.md](SITE.md)) and every other origin (the sync service). The worker does
+  not touch these requests at all.
 
 ## How a request is answered
 
@@ -132,7 +133,10 @@ list, each file with the group it is in, and a version that is the hash of the l
   lessons' own texts (per lesson and language) are small and are the app. Of `public/` only what
   is named is listed (the manifest, the favicon, `icons/`, `piano/`, `learn/`, `licenses/`):
   `_headers`, `robots.txt`, the sitemap, the social card and whatever is added later are not the
-  worker's. No page but the app's is ever listed, in whatever folder: Cloudflare answers
+  worker's; nor are the site's pages and the pieces' scores, which the build writes before the
+  list is taken (`learn/staff.html` beside the lessons' pictures, `pieces/…`, `zh-cn/…`:
+  [SITE.md](SITE.md)), so `sw.js` is the same with them and without. No page but the app's is
+  ever listed, in whatever folder: Cloudflare answers
   `x.html` with a redirect to `x`, which cannot be stored, and one such file among the app's
   would fail every install. The build fails when its list is not sound (`listProblems`,
   `src/offline/list.ts`: the page is there, every file under `/assets/` the page names is there,

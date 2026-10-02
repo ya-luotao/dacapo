@@ -182,7 +182,10 @@ describe('a lesson', () => {
 
 // --- Nothing names a note on its own ------------------------------------------------------------
 
-const SOURCES = import.meta.glob<string>('/src/ui/**/*.{ts,tsx}', {
+// The site's pages (docs/SITE.md) are held to the same rules: they have no setting to follow, so
+// they name notes in letters, and take those from the same places (the page's `t`, pinned to the
+// letters in site/words.ts, and the formatters of ui/), never from `core/note.ts` themselves.
+const SOURCES = import.meta.glob<string>(['/src/ui/**/*.{ts,tsx}', '/src/site/**/*.{ts,tsx}'], {
   query: '?raw',
   import: 'default',
   eager: true,
@@ -216,6 +219,9 @@ describe('the note names of ui/', () => {
   it('are scanned from the sources', () => {
     expect(Object.keys(SOURCES).length).toBeGreaterThan(200);
     expect(SOURCES['/src/ui/noteNames.ts']).toBeDefined();
+    expect(SOURCES['/src/site/render.tsx']).toBeDefined();
+    // A page of the site asks for the letters, whatever the reader of the app chose.
+    expect(code(SOURCES['/src/site/words.ts']!)).toContain("noteNaming: 'letters'");
   });
 
   it('come from useNoteNames: only the lessons take letter names from core/note.ts', () => {

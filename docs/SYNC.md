@@ -231,7 +231,9 @@ winner.
 ## Builds
 
 - The official builds set `VITE_SYNC_ENDPOINT=https://api.playdacapo.com`: the web build with
-  `pnpm build:site`, the Apple app in `apple/scripts/embed-web.sh`
+  `pnpm build:site` (which also sets `SITE_URL=https://playdacapo.com`, the address its pages
+  and its sitemap are written with: [SITE.md](SITE.md)), the Apple app in
+  `apple/scripts/embed-web.sh`
   (`DACAPO_SYNC_ENDPOINT` overrides it; empty builds an app without accounts). Every other build
   (`pnpm dev`, `pnpm build`, the tests, a fork) has no account unless it sets the variable.
 - To work on sync locally, run the service with `wrangler dev` (its email is printed, code
@@ -257,6 +259,12 @@ winner.
   ([OFFLINE.md](OFFLINE.md)), served without caching (`public/_headers`). It is the same file for
   the same build, so a push that changes nothing of the app deploys no new worker. The Apple
   app's bundle leaves it out (`apple/scripts/embed-web.sh`).
+- A build also writes the site's pages ([SITE.md](SITE.md)): `learn/…`, `pieces/…` with each
+  piece's score as `pieces/<id>.svg`, the same under `zh-cn/` and `zh-tw/`, the pieces and a home
+  page under `ja/` and `ko/`, and, where `SITE_URL` is set, `sitemap.xml`. They are the same
+  files for the same sources. Cloudflare serves `learn/staff.html` at `/learn/staff` and
+  `learn/index.html` at `/learn/`, and redirects the other spellings there. The worker's list
+  has none of them, and the Apple app's bundle leaves them out.
 
 ## Service storage (`dacapo-cloud`)
 

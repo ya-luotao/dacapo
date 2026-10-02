@@ -1,7 +1,7 @@
 import { useId, useMemo, useState, type ReactNode } from 'react';
 import type { LessonLanguage } from '../../learn/lessons.ts';
 import { LetterNames } from '../LetterNames.tsx';
-import { LessonContext, useCopy } from './lesson.ts';
+import { LessonContext, useCopy, useStaticPage } from './lesson.ts';
 
 // The parts of a lesson's page: the lesson itself (its language, and which exercise listens),
 // sections, numbered plates, notes in the margin, pictures and a row of choices.
@@ -9,14 +9,20 @@ import { LessonContext, useCopy } from './lesson.ts';
 export function LessonProvider({
   slug,
   language,
+  staticPage = false,
   children,
 }: {
   slug: string;
   language: LessonLanguage;
+  /** Drawn once for a page without scripts (docs/SITE.md): no controls, no exercises. */
+  staticPage?: boolean;
   children: ReactNode;
 }) {
   const [active, setActive] = useState<string | null>(null);
-  const value = useMemo(() => ({ slug, language, active, setActive }), [slug, language, active]);
+  const value = useMemo(
+    () => ({ slug, language, active, setActive, staticPage }),
+    [slug, language, active, staticPage],
+  );
   // A lesson teaches the letters: its text, its figures and their keyboards keep them whatever
   // the note names chosen in Settings (docs/PERSONAL.md).
   return (
@@ -97,9 +103,10 @@ export function Picture({ src, alt, caption }: { src: string; alt: string; capti
   );
 }
 
-/** A button that plays what a figure shows: Listen, or a label of its own. */
+/** A button that plays what a figure shows: Listen, or a label of its own. Not on a page without scripts. */
 export function PlayButton({ onClick, label }: { onClick: () => void; label?: string }) {
   const copy = useCopy();
+  if (useStaticPage()) return null;
   return (
     <button type="button" className="button is-compact" onClick={onClick}>
       <svg className="button-glyph" viewBox="0 0 10 12" aria-hidden="true">
@@ -110,7 +117,10 @@ export function PlayButton({ onClick, label }: { onClick: () => void; label?: st
   );
 }
 
-/** A row of choices over a figure, drawn as the app's segmented control. */
+/**
+ * A row of choices over a figure, drawn as the app's segmented control. A page without scripts
+ * shows the figure as the first choice draws it, and not the row.
+ */
 export function Choices<T extends string>({
   label,
   value,
@@ -126,6 +136,7 @@ export function Choices<T extends string>({
   className?: string;
 }) {
   const name = useId();
+  if (useStaticPage()) return null;
   return (
     <div
       className={`segmented is-compact plate-choices${className ? ` ${className}` : ''}`}

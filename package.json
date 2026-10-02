@@ -38,7 +38,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:site": "VITE_SYNC_ENDPOINT=https://api.playdacapo.com pnpm build",
+    "build:site": "VITE_SYNC_ENDPOINT=https://api.playdacapo.com SITE_URL=https://playdacapo.com pnpm build",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint .",

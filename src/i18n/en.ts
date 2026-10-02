@@ -3146,6 +3146,43 @@ export const en = {
   'about.sounds': 'Sounds',
   'about.salamander':
     'Salamander Grand Piano V3, the built-in piano’s sound: a Yamaha C5 recorded by Alexander Holm. Creative Commons Attribution 3.0 (CC BY 3.0). The dacapo project took three of its sixteen velocity layers, trimmed them and encoded them as MP3.',
+
+  // Pages a search engine can read (docs/SITE.md): what only they say.
+  'site.exercise': 'This exercise is played in the app.',
+  'site.lesson.open': 'Open this lesson in dacapo',
+  'site.lesson.note':
+    'In the app the figures sound and answer to your keyboard, and the exercises check what you play.',
+  'site.piece.practise': 'Practise it in dacapo',
+  'site.piece.note':
+    'In the app the score waits for the right keys, or keeps time, and remembers the bars that slow you down.',
+  'site.lessons': 'Lessons',
+  'site.breadcrumb': 'You are here',
+  'site.languages': 'This page in other languages',
+  'site.title.lesson': '{title} — a piano lesson · dacapo',
+  'site.title.lessons': 'Piano lessons for beginners · dacapo',
+  'site.title.piece': '{title}, {composer} — score · dacapo',
+  'site.title.pieces': 'Piano pieces by grade, with their scores · dacapo',
+  'site.pieces.lede':
+    '{n} public-domain pieces by grade. Each has its score, where it comes from, and a way to practise it in dacapo.',
+  'site.piece.work': 'Work',
+  'site.piece.composer': 'Composer',
+  'site.piece.grade': 'Grade',
+  'site.piece.style': 'Period and form',
+  'site.piece.bars': 'Bars',
+  'site.piece.fingering': 'Fingering',
+  'site.piece.fingering.printed': 'As the source edition prints it',
+  'site.piece.fingering.none': 'None',
+  'site.piece.leadSheet':
+    'A lead sheet: the tune, with chord symbols above it. In the app you play the tune, and the left hand is made from the symbols in a pattern you choose.',
+  'site.piece.score': 'The score',
+  'site.piece.score.alt': 'The score of {title}: {bars} bars, {key}, {time} time.',
+  'site.piece.score.open': 'Open the score on its own',
+  'site.piece.origin': 'Where it comes from',
+  'site.piece.source': 'Source',
+  'site.piece.encoder': 'Encoded by',
+  'site.piece.licence': 'Licence',
+  'site.about':
+    'The lessons and the built-in pieces also have pages of their own, which can be read without the app and found by a search engine.',
 };
 
 export type MessageKey = keyof typeof en;

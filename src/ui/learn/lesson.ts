@@ -171,6 +171,12 @@ export interface LessonContextValue {
   /** The active exercise, or null: only it hears the keys. */
   active: string | null;
   setActive: (id: string | null) => void;
+  /**
+   * The lesson is drawn once, for a page without scripts (docs/SITE.md): its figures as they
+   * first appear, without the buttons and choices that nothing would answer, and a line in place
+   * of each exercise.
+   */
+  staticPage?: boolean;
 }
 
 export const LessonContext = createContext<LessonContextValue>({
@@ -182,6 +188,11 @@ export const LessonContext = createContext<LessonContextValue>({
 
 export function useLessonLanguage(): LessonLanguage {
   return useContext(LessonContext).language;
+}
+
+/** Whether the lesson is drawn for a page without scripts: a figure then leaves its controls out. */
+export function useStaticPage(): boolean {
+  return useContext(LessonContext).staticPage === true;
 }
 
 /** The words the figures use, in the lesson's language. */

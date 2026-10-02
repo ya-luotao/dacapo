@@ -3103,4 +3103,41 @@ export const ko: Dictionary = {
   'about.sounds': '음원',
   'about.salamander':
     'Salamander Grand Piano V3, 내장 피아노의 소리: Alexander Holm이 녹음한 야마하 C5. 크리에이티브 커먼즈 저작자표시 3.0(CC BY 3.0). 16개 벨로시티 레이어 중 3개를 dacapo 프로젝트가 다듬어 MP3로 인코딩했어요.',
+
+  // Pages a search engine can read (docs/SITE.md): what only they say.
+  'site.exercise': '이 연습 문제는 dacapo 안에서 풀어요.',
+  'site.lesson.open': '이 레슨을 dacapo에서 열기',
+  'site.lesson.note':
+    'dacapo 안에서는 그림이 소리를 내고 건반에 반응하며, 연습 문제가 친 음을 확인해 줘요.',
+  'site.piece.practise': 'dacapo에서 연습하기',
+  'site.piece.note':
+    'dacapo 안에서는 악보가 맞는 건반을 기다리거나 박자에 맞춰 나아가고, 느려지는 마디를 기억해 둬요.',
+  'site.lessons': '레슨',
+  'site.breadcrumb': '현재 위치',
+  'site.languages': '이 페이지의 다른 언어',
+  'site.title.lesson': '{title} — 피아노 레슨 · dacapo',
+  'site.title.lessons': '처음 배우는 피아노 레슨 · dacapo',
+  'site.title.piece': '{title}, {composer} — 악보 · dacapo',
+  'site.title.pieces': '그레이드별 피아노 곡과 악보 · dacapo',
+  'site.pieces.lede':
+    '퍼블릭 도메인 곡 {n}개를 그레이드 순으로 실었어요. 곡마다 악보와 출처가 있고, dacapo에서 연습할 수 있어요.',
+  'site.piece.work': '작품',
+  'site.piece.composer': '작곡',
+  'site.piece.grade': '그레이드',
+  'site.piece.style': '시대와 형식',
+  'site.piece.bars': '마디 수',
+  'site.piece.fingering': '운지',
+  'site.piece.fingering.printed': '원본 판에 인쇄된 대로',
+  'site.piece.fingering.none': '없음',
+  'site.piece.leadSheet':
+    '리드 시트예요. 선율 위에 코드 기호가 적혀 있어요. dacapo 안에서는 선율을 치면 왼손은 고른 반주 패턴으로 코드 기호에서 만들어져요.',
+  'site.piece.score': '악보',
+  'site.piece.score.alt': '「{title}」 악보: {bars}마디, {key}, {time}박자.',
+  'site.piece.score.open': '악보만 따로 열기',
+  'site.piece.origin': '출처',
+  'site.piece.source': '원본',
+  'site.piece.encoder': '입력',
+  'site.piece.licence': '라이선스',
+  'site.about':
+    '레슨과 기본 곡은 각각 따로 된 페이지로도 읽을 수 있어요. dacapo를 열지 않아도 볼 수 있고, 검색 엔진에서도 찾을 수 있어요.',
 };

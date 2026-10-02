@@ -2982,4 +2982,39 @@ export const zhTW: Dictionary = {
   'about.sounds': '音色',
   'about.salamander':
     'Salamander Grand Piano V3，內建鋼琴的音色：Alexander Holm 錄製的山葉 C5。創用 CC 姓名標示 3.0（CC BY 3.0）。dacapo 專案從它的 16 個力度層中選用 3 層，裁剪後編碼為 MP3。',
+
+  // Pages a search engine can read (docs/SITE.md): what only they say.
+  'site.exercise': '這個練習要在 dacapo 裡做。',
+  'site.lesson.open': '在 dacapo 裡打開這一課',
+  'site.lesson.note': '在 dacapo 裡，圖例會發出聲音，會回應你的鍵盤，練習也會檢查你彈的音。',
+  'site.piece.practise': '在 dacapo 裡練這首曲子',
+  'site.piece.note':
+    '在 dacapo 裡，樂譜會等你彈對了才往下走，也可以跟著拍子走，並且記下讓你慢下來的小節。',
+  'site.lessons': '課程',
+  'site.breadcrumb': '目前位置',
+  'site.languages': '本頁的其他語言',
+  'site.title.lesson': '{title} — 鋼琴入門課 · dacapo',
+  'site.title.lessons': '鋼琴入門課程 · dacapo',
+  'site.title.piece': '{title}，{composer} — 樂譜 · dacapo',
+  'site.title.pieces': '依級數排列的鋼琴樂曲與樂譜 · dacapo',
+  'site.pieces.lede':
+    '{n} 首公有領域的樂曲，依級數排列。每一首都有樂譜和出處，也可以在 dacapo 裡練。',
+  'site.piece.work': '作品',
+  'site.piece.composer': '作曲',
+  'site.piece.grade': '級數',
+  'site.piece.style': '時期與曲式',
+  'site.piece.bars': '小節數',
+  'site.piece.fingering': '指法',
+  'site.piece.fingering.printed': '依原版本所印',
+  'site.piece.fingering.none': '無',
+  'site.piece.leadSheet':
+    '這是一份旋律譜：旋律上方標著和弦記號。在 dacapo 裡，你彈旋律，左手由和弦記號產生，伴奏型由你選。',
+  'site.piece.score': '樂譜',
+  'site.piece.score.alt': '《{title}》的樂譜：共 {bars} 小節，{key}，{time} 拍。',
+  'site.piece.score.open': '單獨打開樂譜',
+  'site.piece.origin': '出處',
+  'site.piece.source': '來源',
+  'site.piece.encoder': '編碼',
+  'site.piece.licence': '授權',
+  'site.about': '課程和內建樂曲也各有自己的網頁，不必打開 dacapo 就能讀，搜尋引擎也找得到。',
 };

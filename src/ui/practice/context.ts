@@ -13,12 +13,12 @@ export function usePracticeStore(): PracticeStore {
 
 export function usePractice(): PracticeData {
   const store = usePracticeStore();
-  return useSyncExternalStore(store.subscribe, store.getSnapshot);
+  return useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
 }
 
 export function useStorageStatus(): StorageStatus {
   const store = usePracticeStore();
-  return useSyncExternalStore(store.subscribeStatus, store.getStatus);
+  return useSyncExternalStore(store.subscribeStatus, store.getStatus, store.getStatus);
 }
 
 /** A piece's step records, read from storage on first use; null while loading. */

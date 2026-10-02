@@ -31,8 +31,11 @@ fi
 
 mkdir -p "${dest}"
 # _headers is for the web server (wrangler.jsonc), not the app; nor is the offline worker, which
-# the app never registers (docs/OFFLINE.md): the build is in the bundle.
-rsync -a --delete --exclude _headers --exclude /sw.js "${src}/" "${dest}/"
+# the app never registers (docs/OFFLINE.md): the build is in the bundle. Nor are the pages a
+# search engine reads (docs/SITE.md): the lessons' and the pieces' pages with the engraved scores,
+# the home pages under each language's code, and the sitemap. The lessons' pictures stay
+# (learn/*.webp); src/site/pages.test.ts holds this line to the site's list of files.
+rsync -a --delete --exclude _headers --exclude /sw.js --exclude '/learn/*.html' --exclude /pieces/ --exclude /zh-cn/ --exclude /zh-tw/ --exclude /ja/ --exclude /ko/ --exclude /sitemap.xml "${src}/" "${dest}/"
 echo "Embedded web app from ${src} ($(du -sh "${dest}" | cut -f1))"
 
 # Release: the Debug-only Info.plist keys (Config/Info.plist, DACAPO_DEBUG_HARNESS) and the

@@ -1,4 +1,5 @@
 import { useMemo, useState, type ComponentProps, type PointerEvent, type ReactNode } from 'react';
+import { useT } from '../../i18n/index.ts';
 import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
 import { LessonPiano } from './LessonPiano.tsx';
 import {
@@ -9,6 +10,7 @@ import {
   useNoteOn,
   usePlaySequence,
   useStartOnPress,
+  useStaticPage,
 } from './lesson.ts';
 
 // The lessons' exercises, which all look alike: what to do and how far along, the figure, what
@@ -30,6 +32,12 @@ interface FrameProps {
   children: ReactNode;
 }
 
+/** What a page without scripts has in place of an exercise (docs/SITE.md): one line saying so. */
+export function ExerciseLine() {
+  const t = useT();
+  return <p className="exercise-line">{t('site.exercise')}</p>;
+}
+
 export function ExerciseFrame({
   active,
   prompt,
@@ -43,6 +51,7 @@ export function ExerciseFrame({
 }: FrameProps) {
   const copy = useCopy();
   const fallback = useKeyboardFallback();
+  if (useStaticPage()) return <ExerciseLine />;
   return (
     <div
       className={active ? 'exercise is-active' : 'exercise'}

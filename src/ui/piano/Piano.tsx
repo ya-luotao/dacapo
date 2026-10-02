@@ -89,6 +89,11 @@ interface PianoProps {
   keyClasses?: ReadonlyMap<number, string>;
   /** Names printed on some keys, in place of middle C's mark. */
   keyNames?: ReadonlyMap<number, string>;
+  /**
+   * Drawn, not played: on a page without scripts (docs/SITE.md) the keys are no buttons, and the
+   * keyboard is a picture with its name.
+   */
+  still?: boolean;
   className?: string;
 }
 
@@ -107,6 +112,7 @@ export function Piano({
   range,
   keyClasses = NO_STRINGS,
   keyNames = NO_STRINGS,
+  still = false,
   className,
 }: PianoProps) {
   const t = useT();
@@ -167,7 +173,7 @@ export function Piano({
       <div
         className="piano"
         data-naming={naming}
-        role="group"
+        role={still ? 'img' : 'group'}
         aria-label={
           range
             ? t('piano.label.range', { low: midiName(low), high: midiName(high) })
@@ -189,17 +195,52 @@ export function Piano({
             (marked.has(midi) ? ' is-marked' : hinted.has(midi) ? ' is-hinted' : '') +
             (wrong.has(midi) ? ' is-wrong' : '') +
             (keyClasses.has(midi) ? ` ${keyClasses.get(midi)}` : '');
+          const look = {
+            className: `key ${black ? 'key-black' : 'key-white'}${state}`,
+            style: {
+              left: percent(left),
+              width: percent(width),
+              height: black ? `${BLACK_LENGTH * 100}%` : undefined,
+            },
+          };
+          const mark =
+            finger !== undefined ? (
+              <span className="key-target" aria-hidden="true">
+                <span className="key-finger">{finger}</span>
+              </span>
+            ) : marked.has(midi) ? (
+              <span className="key-target" aria-hidden="true">
+                <svg viewBox="0 0 10 8">
+                  <path d="M5 0l5 8H0z" />
+                </svg>
+              </span>
+            ) : keyNames.has(midi) ? (
+              <span className="key-mark key-name" aria-hidden="true">
+                {keyNames.get(midi)}
+              </span>
+            ) : (
+              midi === MIDDLE_C &&
+              keyNames === NO_STRINGS && (
+                // The octave apart: where the keys are narrow, do re mi leaves it out (styles.css).
+                <span className="key-mark" aria-hidden="true">
+                  {letterName(MIDDLE_C_PITCH)}
+                  <span className="key-mark-octave">{MIDDLE_C_PITCH.octave}</span>
+                </span>
+              )
+            );
+          if (still) {
+            return (
+              <span key={midi} {...look}>
+                {mark}
+              </span>
+            );
+          }
           return (
             <button
               key={midi}
               type="button"
               tabIndex={-1}
-              className={`key ${black ? 'key-black' : 'key-white'}${state}`}
-              style={{
-                left: percent(left),
-                width: percent(width),
-                height: black ? `${BLACK_LENGTH * 100}%` : undefined,
-              }}
+              {...look}
               data-midi={midi}
               aria-label={
                 finger !== undefined
@@ -216,30 +257,7 @@ export function Piano({
               {velocity !== undefined && (
                 <span className="key-fill" style={{ opacity: velocityOpacity(velocity) }} />
               )}
-              {finger !== undefined ? (
-                <span className="key-target" aria-hidden="true">
-                  <span className="key-finger">{finger}</span>
-                </span>
-              ) : marked.has(midi) ? (
-                <span className="key-target" aria-hidden="true">
-                  <svg viewBox="0 0 10 8">
-                    <path d="M5 0l5 8H0z" />
-                  </svg>
-                </span>
-              ) : keyNames.has(midi) ? (
-                <span className="key-mark key-name" aria-hidden="true">
-                  {keyNames.get(midi)}
-                </span>
-              ) : (
-                midi === MIDDLE_C &&
-                keyNames === NO_STRINGS && (
-                  // The octave apart: where the keys are narrow, do re mi leaves it out (styles.css).
-                  <span className="key-mark" aria-hidden="true">
-                    {letterName(MIDDLE_C_PITCH)}
-                    <span className="key-mark-octave">{MIDDLE_C_PITCH.octave}</span>
-                  </span>
-                )
-              )}
+              {mark}
             </button>
           );
         })}

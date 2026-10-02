@@ -39,5 +39,10 @@ export default defineConfig(
     files: ['src/offline/sw.ts', 'scripts/offline/*.js'],
     languageOptions: { globals: globals.serviceworker },
   },
+  {
+    // The site's pages (docs/SITE.md) are drawn once, when the app is built: nothing to refresh.
+    files: ['src/site/**/*.tsx'],
+    rules: { 'react-refresh/only-export-components': 'off' },
+  },
   prettier,
 );

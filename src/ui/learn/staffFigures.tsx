@@ -18,7 +18,7 @@ import { ExerciseFrame } from './exercises.tsx';
 import { LessonPiano } from './LessonPiano.tsx';
 import { pitch } from './notes.ts';
 import { Choices } from './kit.tsx';
-import { keyName, useCopy, useExercise, useNoteOn, usePlayKey } from './lesson.ts';
+import { keyName, useCopy, useExercise, useNoteOn, usePlayKey, useStaticPage } from './lesson.ts';
 
 // The lessons' staves: the lines and spaces, a clef that names them, the grand staff joined to
 // the keyboard, and flashcards answered on it.
@@ -94,6 +94,7 @@ export function LinesAndSpaces({
 
 /** Notes climbing the treble staff a step at a time; higher on the page is higher in sound. */
 export function StepsUp({ label }: { label: string }) {
+  const staticPage = useStaticPage();
   const copy = useCopy();
   const play = usePlayKey();
   const steps = useMemo(() => ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'].map(pitch), []);
@@ -133,14 +134,16 @@ export function StepsUp({ label }: { label: string }) {
         notes={notes}
         onPick={(pick) => play(pitchToMidi(pitchAtPosition('treble', pick.position)))}
       />
-      <div className="plate-actions">
-        <button type="button" className="button is-compact" onClick={listen}>
-          <svg className="button-glyph" viewBox="0 0 10 12" aria-hidden="true">
-            <path d="M1 1l8 5-8 5z" />
-          </svg>
-          {copy('listen')}
-        </button>
-      </div>
+      {!staticPage && (
+        <div className="plate-actions">
+          <button type="button" className="button is-compact" onClick={listen}>
+            <svg className="button-glyph" viewBox="0 0 10 12" aria-hidden="true">
+              <path d="M1 1l8 5-8 5z" />
+            </svg>
+            {copy('listen')}
+          </button>
+        </div>
+      )}
     </>
   );
 }

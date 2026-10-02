@@ -155,6 +155,13 @@ all.
   (`useCompleteLesson`), shown as a tick on the list; the tick is a record of the practice store,
   exported and synced like the rest ("The tick is a record", below).
 - Nothing a lesson says may be browser-only in the Apple app, which shows the same lessons.
+- A lesson is also drawn once, without scripts, as a page of the site ([SITE.md](SITE.md)): its
+  text and its figures as they first appear. So a figure must draw without a browser (what it
+  needs of one goes in an effect), and what only a script can answer is left out there: `Choices`
+  and `PlayButton` leave themselves out, an `ExerciseFrame` becomes one line, the keyboard is a
+  picture, and a control a figure draws itself (a button, a `<select>`) is wrapped in
+  `useStaticPage()` (`lesson.ts`). `src/site/render.test.ts` draws every lesson and fails on any
+  control left in.
 
 ## Lessons and practice, joined (G3)
 

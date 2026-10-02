@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { baseTempo, performedNotes, timeline } from '../../core/playback.ts';
 import { performanceOrder } from '../../core/repeats.ts';
 import type { Score } from '../../core/score.ts';
-import { loadBuiltIn, type BuiltInId } from '../../pieces/library/index.ts';
-import { readScore } from '../../pieces/load.ts';
+import type { BuiltInId } from '../../pieces/library/index.ts';
 import { Choices, PlayButton } from './kit.tsx';
-import { useCopy, useElementWidth, usePlayNotes, type TimedNote } from './lesson.ts';
+import { useLibraryScore } from './libraryScores.ts';
+import { useCopy, useElementWidth, usePlayNotes, useStaticPage, type TimedNote } from './lesson.ts';
 import {
   FORMS,
   PERIOD_SPANS,
@@ -22,33 +22,6 @@ import {
 // of its sections, bar by bar, repeats played, each section heard alone or all in turn.
 
 const VELOCITY = 72;
-
-/** Scores already read, so a figure opened twice reads its file once. */
-const scores = new Map<BuiltInId, Promise<Score>>();
-
-function libraryScore(id: BuiltInId): Promise<Score> {
-  let score = scores.get(id);
-  if (!score) {
-    score = loadBuiltIn(id).then((xml) => readScore(xml));
-    scores.set(id, score);
-  }
-  return score;
-}
-
-/** A library piece's score, read from its file when the figure first needs it. */
-function useLibraryScore(id: BuiltInId): Score | null {
-  const [loaded, setLoaded] = useState<{ id: BuiltInId; score: Score } | null>(null);
-  useEffect(() => {
-    let live = true;
-    void libraryScore(id).then((score) => {
-      if (live) setLoaded({ id, score });
-    });
-    return () => {
-      live = false;
-    };
-  }, [id]);
-  return loaded?.id === id ? loaded.score : null;
-}
 
 /**
  * The notes of the played bars `first`–`last` (positions in the order the piece is played, its
@@ -252,6 +225,7 @@ export function FormTimeline({
   readouts: Record<FormName, string>;
 }) {
   const copy = useCopy();
+  const staticPage = useStaticPage();
   const [form, setForm] = useState<FormName>(forms[0]!);
   const spec = FORMS[form];
   const score = useLibraryScore(spec.piece);
@@ -310,22 +284,31 @@ export function FormTimeline({
               current === i ? ' is-current' : ''
             }`}
           >
-            <button type="button" onClick={() => play(i, i)}>
-              <b>{s.label}</b>
-              <span>{s.from === s.to ? s.from : `${s.from}–${s.to}`}</span>
-            </button>
+            {staticPage ? (
+              <div className="form-part-still">
+                <b>{s.label}</b>
+                <span>{s.from === s.to ? s.from : `${s.from}–${s.to}`}</span>
+              </div>
+            ) : (
+              <button type="button" onClick={() => play(i, i)}>
+                <b>{s.label}</b>
+                <span>{s.from === s.to ? s.from : `${s.from}–${s.to}`}</span>
+              </button>
+            )}
           </li>
         ))}
       </ol>
-      <div className="plate-actions">
-        {player.started === null ? (
-          <PlayButton onClick={() => play(0, segments.length - 1)} />
-        ) : (
-          <button type="button" className="button is-compact" onClick={player.stop}>
-            {copy('stop')}
-          </button>
-        )}
-      </div>
+      {!staticPage && (
+        <div className="plate-actions">
+          {player.started === null ? (
+            <PlayButton onClick={() => play(0, segments.length - 1)} />
+          ) : (
+            <button type="button" className="button is-compact" onClick={player.stop}>
+              {copy('stop')}
+            </button>
+          )}
+        </div>
+      )}
     </>
   );
 }

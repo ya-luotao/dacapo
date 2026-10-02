@@ -1,7 +1,9 @@
 import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync, rmSync, statSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import react from '@vitejs/plugin-react';
+import { JSDOM } from 'jsdom';
 import { build, type Plugin, type ResolvedConfig } from 'vite';
 import { defineConfig } from 'vitest/config';
 import { groupOf, PAGE, type OfflineFile, type OfflineList } from './src/offline/files.ts';
@@ -105,10 +107,109 @@ function offlineWorker(): Plugin {
   };
 }
 
+/** What `src/site/main.ts` gives the build, as far as this file needs to know it. */
+interface SiteModule {
+  renderSite: (sources: {
+    appPage: string;
+    origin: string | null;
+    parseXml: (xml: string) => unknown;
+  }) => Promise<{ path: string; content: string }[]>;
+}
+
+/**
+ * The site's address without its path, from `SITE_URL` (`https://playdacapo.com` for the official
+ * build, `pnpm build:site`); the path is the base path. Null for a build that has none: its pages
+ * link relatively and it has no sitemap (docs/SITE.md, "Forks and sub-paths").
+ */
+function siteOrigin(): string | null {
+  const given = process.env.SITE_URL?.trim();
+  if (!given) return null;
+  let url: URL;
+  try {
+    url = new URL(given);
+  } catch {
+    throw new Error(`SITE_URL is not an address: ${given}`);
+  }
+  if (!/^https?:$/.test(url.protocol)) throw new Error(`SITE_URL is not a web address: ${given}`);
+  return url.origin;
+}
+
+/**
+ * The pages a search engine can read (docs/SITE.md): once the app's bundle is written, builds
+ * src/site/main.ts for Node, runs it, and writes the pages, the pieces' scores and the sitemap
+ * into the build. Only in a build: `pnpm dev` and the tests have no pages.
+ *
+ * They are written before the offline worker's list is taken (below), which leaves them out: a
+ * page is none of the app's files (`groupOf` in src/offline/files.ts). A page that cannot be
+ * drawn, or one that would take the place of a file of the app, fails the build.
+ */
+function sitePages(): Plugin {
+  let config: ResolvedConfig;
+  return {
+    name: 'dacapo:site-pages',
+    apply: 'build',
+    enforce: 'post',
+    configResolved(resolved) {
+      config = resolved;
+    },
+    async writeBundle(_options, bundle) {
+      // Not for a build that is not the site (SSR: this plugin's own, for one).
+      if (config.build.ssr) return;
+      const outDir = resolve(config.root, config.build.outDir);
+      // Beside the dependencies it leaves to Node (React, Verovio), and out of the build.
+      const work = resolve(config.root, 'node_modules/.dacapo/site');
+      rmSync(work, { recursive: true, force: true });
+      await build({
+        configFile: false,
+        root: config.root,
+        base: config.base,
+        mode: config.mode,
+        logLevel: 'warn',
+        publicDir: false,
+        plugins: [react()],
+        define: { __APP_VERSION__: JSON.stringify(pkg.version) },
+        build: {
+          ssr: resolve(config.root, 'src/site/main.ts'),
+          outDir: work,
+          emptyOutDir: true,
+        },
+      });
+      // The address differs from build to build, so a second build in one process runs its own.
+      const built = `${pathToFileURL(join(work, 'main.js')).href}?${Date.now()}`;
+      const { renderSite } = (await import(built)) as SiteModule;
+      // The scores are MusicXML, read as the app reads them: with a DOM parser, here jsdom's.
+      const parser = new new JSDOM('').window.DOMParser();
+      const files = await renderSite({
+        appPage: readFileSync(join(outDir, 'index.html'), 'utf8'),
+        origin: siteOrigin(),
+        parseXml: (xml) => parser.parseFromString(xml, 'application/xml'),
+      });
+      // The app's own files: what the bundle holds and what public/ gave.
+      const taken = new Set(Object.keys(bundle));
+      if (config.publicDir) for (const file of filesBelow(config.publicDir)) taken.add(file);
+      for (const file of files) {
+        if (taken.has(file.path)) {
+          throw new Error(`A page of the site would replace a file of the app: ${file.path}.`);
+        }
+        const to = join(outDir, file.path);
+        mkdirSync(dirname(to), { recursive: true });
+        writeFileSync(to, file.content);
+      }
+      const bytes = files.reduce((sum, file) => sum + Buffer.byteLength(file.content), 0);
+      config.logger.info(
+        `site: ${files.length} files (${(bytes / 1e6).toFixed(1)} MB), ${
+          siteOrigin() ?? 'no address: relative links, no sitemap'
+        }`,
+      );
+    },
+  };
+}
+
 export default defineConfig({
   // A sub-path such as `/dacapo/` when the app is served below the site root; `/` by default.
   base: process.env.BASE_PATH ?? '/',
-  plugins: [react(), offlineWorker()],
+  // The pages before the worker: its list is taken from the build as it then stands.
+  plugins: [react(), sitePages(), offlineWorker()],
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
