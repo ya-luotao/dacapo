@@ -279,11 +279,11 @@ NOT NULL DEFAULT 'off'`, `accounts.profile_titles INTEGER NOT NULL DEFAULT 0`; a
 
 ## Milestones
 
-1. **P1 Service** — the migration, the username, settings and profile endpoints with the document
-   check, the limits, the account deletion, the privacy page; tested locally. Deploying (the
-   migration first) and the `report@` forwarding rule wait for the maintainer's go-ahead.
-2. **P2 Client** — `core/profile.ts`, the API calls, publishing after sync and on 409; tests
+1. ✓ **P1 Service** — the migration, the username, settings and profile endpoints with the
+   document check, the limits, the account deletion, the privacy page; deployed (the migration
+   first) on 2026-09-29. The `report@` forwarding rule is the maintainer's to set up and keep.
+2. ✓ **P2 Client** — `core/profile.ts`, the API calls, publishing after sync and on 409; tests
    against the fake service.
-3. **P3 Settings** — the Profile block in every language.
-4. **P4 Public page** — the Worker's page in five languages, report link, noindex.
-5. **P5 Apple** — APPLE.md, the review notes, the privacy label rechecked; SYNC.md's table.
+3. ✓ **P3 Settings** — the Profile block in every language.
+4. ✓ **P4 Public page** — the Worker's page in five languages, report link, noindex.
+5. ✓ **P5 Apple** — APPLE.md, the review notes, the privacy label rechecked; SYNC.md's table.

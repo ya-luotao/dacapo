@@ -124,10 +124,10 @@ list, each file with the group it is in, and a version that is the hash of the l
 
 ## Clarifications (decided during G6a)
 
-- **The list** (`src/offline/files.ts`, written by the plugin in `vite.config.ts`). 306 files in
-  the build of 2026-10-02: the app's 191 (4.2 MB as stored, about 1.3 MB over the wire), the
-  engraver's 2 (7.3 MB), the piano's 90 samples (3.8 MB), the lessons' 6 pictures (0.8 MB), the 4
-  dictionaries (0.7 MB) and the 13 licence texts (0.1 MB). A file's group comes from what the
+- **The list** (`src/offline/files.ts`, written by the plugin in `vite.config.ts`). 336 files in
+  the build of release 0.2.0: the app's 221 (4.5 MB as stored), the engraver's 2 (7.3 MB), the
+  piano's 90 samples (3.8 MB), the lessons' 6 pictures (0.8 MB), the 4 dictionaries (0.8 MB) and
+  the 13 licence texts (0.1 MB). The pages of [SITE.md](SITE.md) are not among them. A file's group comes from what the
   build made it from, never from its name: the engraver is whatever comes out of
   `node_modules/verovio`, a language is a chunk loaded on demand for a file of `src/i18n/`. The
   lessons' own texts (per lesson and language) are small and are the app. Of `public/` only what
