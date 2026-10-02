@@ -150,7 +150,9 @@ practising the notes you are slowest at. Progress is visible day by day.
   a button sets it up: one hand at a time, a few bars in a loop, a slower tempo, or the next
   rung of a tempo ladder that takes the piece up to the score's tempo ten per cent at a time.
   The library says which piece is next for you: the one you have in hand, or the first you have
-  not begun at the grade you have reached.
+  not begun at the grade you have reached. A piece's plan takes it phrase by phrase, each hand,
+  then together, then in time, then the whole piece, ticks what your records show is done, and
+  starts the next step with one click.
 - **Scales, measured for evenness.** Major, the three minors, chromatic and the major and minor
   arpeggios in every key, one to four octaves, one hand, both, or in contrary motion from one
   tonic, drawn with Hanon's fingering. Play at your own tempo or with the

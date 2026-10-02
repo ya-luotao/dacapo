@@ -192,7 +192,8 @@ sessions and their figures, and a session of chosen items is stored as a session
   which begins at the first key as every run there does. In rhythm mode, and for "Rhythm mode at
   60%", the page is set up and then does what Start does: the count-in begins, or the calibration
   is offered first to a player it was never offered to. "Calibrate" opens the calibration, whose
-  own button starts the run.
+  own button starts the run. A stage of a piece's plan ([PIECES.md](PIECES.md), "A piece's
+  plan") is started the same way, with its bars, hands, mode and tempo set at once.
 - **On the summaries.** After a wait or memory run the sentence stands beside the bars that held
   the run up (under them on a phone) with its button under it, and the summary's own buttons
   stay one row; "Saved…" moved under that row, so the buttons still show on a 1280 × 800 screen.

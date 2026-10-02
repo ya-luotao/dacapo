@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'wouter';
+import { piecesStanding } from '../../core/piecesStanding.ts';
 import type { StartingPoint } from '../../core/startingPoint.ts';
 import type { DayKey } from '../../core/streak.ts';
 import {
@@ -7,6 +8,7 @@ import {
   planFor,
   planProgress,
   readPlan,
+  recordsBefore,
   type PlanMinutes,
   type TodayPlan as Plan,
   type TodayRecords,
@@ -20,7 +22,7 @@ import { recordsKnown } from '../practice/store.ts';
 import { readStartPref } from '../start/prefs.ts';
 import { useTodayFormat } from './format.ts';
 import { readKeptPlan, writeKeptPlan } from './prefs.ts';
-import { useTodayRecords } from './useTodayRecords.ts';
+import { useRecordsWithPlan, useTodayRecords } from './useTodayRecords.ts';
 import { WeekLine } from './WeekLine.tsx';
 
 function Arrow() {
@@ -37,9 +39,13 @@ function Arrow() {
  * reshuffle it); made again when the length is changed. Null while the records are being read.
  * A plan made while the records are there and cannot be seen (a database of a later version, a
  * read that failed) is shown and not kept: it would stand for the day once a reload has them.
+ *
+ * A plan to be made names the next step of the plan of the piece in hand (docs/PIECES.md, "A
+ * piece's plan"), which takes that piece's score and step records: they are read first, and
+ * only then is the plan made, since it is kept as it is made.
  */
 function usePlan(
-  records: TodayRecords | null,
+  base: TodayRecords | null,
   today: DayKey,
   minutes: PlanMinutes,
   lessonsDone: ReadonlySet<string>,
@@ -47,6 +53,17 @@ function usePlan(
 ): Plan | null {
   const keep = recordsKnown(useStorageStatus());
   const [kept, setKept] = useState(() => readPlan(readKeptPlan()));
+  // The kept plan stands: nothing is made, and no score is read.
+  const stands = kept?.day === today && kept.minutes === minutes;
+  // The piece in hand when the day began, as the plan will find it.
+  const inHand = useMemo(
+    () =>
+      base && !stands
+        ? (piecesStanding(recordsBefore(base, today), { today }).inHand?.id ?? null)
+        : null,
+    [base, stands, today],
+  );
+  const records = useRecordsWithPlan(base, inHand);
   const plan = useMemo(
     () => (records ? planFor(kept, records, { today, minutes, lessonsDone, start }) : null),
     [kept, records, today, minutes, lessonsDone, start],

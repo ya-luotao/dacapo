@@ -8,8 +8,10 @@ import { useT } from '../../i18n/index.ts';
 import { builtInPiece, type PieceLevel } from '../../pieces/library/index.ts';
 import { usePractice } from '../practice/context.ts';
 import { useNow } from '../progress/useNow.ts';
-import { piecePath } from '../startParams.ts';
+import { piecePath, pieceStartPath } from '../startParams.ts';
 import { usePieceFormat } from './format.ts';
+import { useNextStep } from './planSource.ts';
+import { usePlanWords } from './planWords.ts';
 import { useSteadyBars } from './steady.ts';
 
 function Arrow() {
@@ -57,9 +59,10 @@ function usePieceOf(id: string | null): RowPiece | null {
 
 /**
  * Next for you (docs/PIECES.md, G5b): one row above the library. The piece in hand, with when it
- * was last played, its bars steady and the way on; else the piece to begin next, with its grade
- * and length. Nothing when there is neither. Its place is kept while the records are read, so
- * the library under it does not move.
+ * was last played, its bars steady and the next step of its plan as the way on (G5c); else the
+ * piece to begin next, with its grade and length. Nothing when there is neither. Its place is
+ * kept while the records and the piece in hand's score are read, so the library under it does
+ * not move.
  */
 export function NextForYou({ standing }: { standing: PiecesStanding | null }) {
   const t = useT();
@@ -123,9 +126,16 @@ function Row({
   );
 }
 
-/** The piece in hand: when it was last played and its bars steady, and Continue. */
+type Way = { label: string; href: string };
+
+/**
+ * The piece in hand: when it was last played and its bars steady, and Continue with the next
+ * step of its plan, which the link opens. A piece whose score cannot be read is opened as it was
+ * left.
+ */
 function InHand({ piece, day }: { piece: RowPiece; day: DayKey }) {
   const t = useT();
+  const words = usePlanWords();
   const today = dayKey(useNow());
   const days = daysBetween(day, today);
   const last =
@@ -134,15 +144,18 @@ function InHand({ piece, day }: { piece: RowPiece; day: DayKey }) {
       : days === 1
         ? t('today.why.inHand.one')
         : t('today.why.inHand.other', { n: days });
-  return piece.facts ? (
-    <InHandSteady piece={piece} facts={piece.facts} last={last} />
-  ) : (
-    <Row
-      piece={piece}
-      line={last}
-      action={{ label: t('pieces.next.continue'), href: piecePath(piece.id) }}
-    />
-  );
+  const step = useNextStep(piece.id);
+  const way: Way | null =
+    step === undefined
+      ? null
+      : step
+        ? {
+            label: t('pieces.next.continue.step', { step: words.step(step) }),
+            href: pieceStartPath(piece.id, step),
+          }
+        : { label: t('pieces.next.continue'), href: piecePath(piece.id) };
+  if (piece.facts) return <InHandSteady piece={piece} facts={piece.facts} last={last} way={way} />;
+  return way ? <Row piece={piece} line={last} action={way} /> : <Waiting />;
 }
 
 /** The row once the piece's step records are in: its steady bars are told by them. */
@@ -150,26 +163,23 @@ function InHandSteady({
   piece,
   facts,
   last,
+  way,
 }: {
   piece: RowPiece;
   facts: PieceFacts;
   last: string;
+  /** Null while the plan's step is being read. */
+  way: Way | null;
 }) {
   const t = useT();
   const steady = useSteadyBars(piece.id, facts);
-  if (steady === null) return <Waiting />;
+  if (steady === null || way === null) return <Waiting />;
   const bars = t('pieces.progress.steady', {
     n: steady.steady,
     m: steady.of,
     hands: t(`pieces.progress.hands.${steady.hands}`),
   });
-  return (
-    <Row
-      piece={piece}
-      line={[last, bars].join(' · ')}
-      action={{ label: t('pieces.next.continue'), href: piecePath(piece.id) }}
-    />
-  );
+  return <Row piece={piece} line={[last, bars].join(' · ')} action={way} />;
 }
 
 /** The piece to begin next: its grade and its length, and Begin. */

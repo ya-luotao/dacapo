@@ -76,6 +76,22 @@ describe('opening a piece with settings', () => {
     });
   });
 
+  it('names no tempo for a step of a piece’s plan in wait mode: the piece keeps its own', () => {
+    const path = pieceStartPath('turk-aller-anfang', {
+      bars: { from: 0, to: 3 },
+      hands: 'right',
+      mode: 'wait',
+      tempo: null,
+    });
+    expect(path).toBe('/pieces/turk-aller-anfang?bars=1-4&hands=right&mode=wait');
+    expect(parsePieceStart(opened(path).search)).toEqual({
+      bars: { from: 1, to: 4 },
+      hands: 'right',
+      mode: 'wait',
+      tempo: null,
+    });
+  });
+
   it('takes what it can read and leaves the rest', () => {
     expect(parsePieceStart('')).toBeNull();
     expect(parsePieceStart('utm=x')).toBeNull();

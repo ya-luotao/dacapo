@@ -22,6 +22,8 @@ const PIECE_PREFS = 'dacapo.pieces.byPiece';
 export const WEAK_ALL_KEYS_PREF = 'dacapo.pieces.weakAllKeys';
 /** The hands chosen last on any piece: the default for a piece not practised yet. */
 export const HANDS_PREF = 'dacapo.pieces.hands';
+/** A piece's page shows its plan (docs/PIECES.md, "A piece's plan"): off unless turned on. */
+export const PLAN_PREF = 'dacapo.pieces.plan';
 export const DEFAULT_TEMPO = SCORE_TEMPO;
 /** The tempo choices (the ladder's rungs are among them: `core/tempoLadder.ts`). */
 export { TEMPOS };

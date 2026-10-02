@@ -15,6 +15,28 @@ click's tempo and grid of scale runs played with it (from version 7), the takes 
 (from version 8), assignments and kept reports (from version 9), and the lessons finished (from
 version 10). Version 1 to 9 files still import.
 
+### A piece's plan (G5c, [docs/PIECES.md](docs/PIECES.md))
+
+- **Plan**, under a piece's Options beside Weak bars: how a teacher would take the piece. It is
+  cut into its phrases (four bars, or fewer up to a double bar), and each phrase has its stages
+  in the order they are worked: **Right hand**, **Left hand**, **Together**, then **In time**;
+  after the phrases, **The whole piece**. One line says what comes next ("Next: bars 5–8, left
+  hand") with **Start**, and a table has the phrases as rows and the stages as columns.
+- **Each cell is a button** that sets the loop, the hands, the mode and the tempo and starts the
+  run, with a tick once its stage is done. The order is a suggestion: any stage can be started.
+- **A stage is done by your records**, by lines the app already draws: a hand, or together,
+  when every bar of the phrase is steady with those hands (its last three runs without a wrong
+  note and without hesitating); in time, by one time through the phrase in rhythm mode, clean
+  and in time, at the tempo ladder's rung or any other; the whole piece, by a run to its end,
+  which is also what brings it into review. A bar that stops being steady opens its stage again.
+- **Today's step for the piece in hand opens the plan's next step**, and says which ("Bars
+  5–8, left hand · Last played 2 days ago"); so does **Continue** under Next for you on the
+  Pieces page.
+- A piece written for one hand, a lead sheet among them, has that hand, In time and the whole
+  piece. Imported pieces have a plan too.
+- Nothing is stored for it: the plan is the records read another way, so it is the same on
+  every device the records are on. Only whether the panel is shown is kept, in the browser.
+
 ### Next for you (G5b, [docs/PIECES.md](docs/PIECES.md))
 
 - **The Pieces page says which piece is yours now.** One row above the library, **Next for

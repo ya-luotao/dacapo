@@ -33,16 +33,20 @@ export interface PieceStart {
   tempo: number | null;
 }
 
-/** The route that opens piece `pieceId` with a task's bars, hands, mode and tempo. */
+/**
+ * The route that opens piece `pieceId` with a task's bars, hands, mode and tempo, or with those
+ * of a step of its plan (docs/PIECES.md, "A piece's plan"), which in wait mode names no tempo:
+ * the piece then keeps its own.
+ */
 export function pieceStartPath(
   pieceId: string,
-  start: { bars: BarLoop | null; hands: HandSelection; mode: PracticeMode; tempo: number },
+  start: { bars: BarLoop | null; hands: HandSelection; mode: PracticeMode; tempo: number | null },
 ): string {
   return `/pieces/${encodeURIComponent(pieceId)}${query({
     bars: start.bars ? `${start.bars.from + 1}-${start.bars.to + 1}` : null,
     hands: start.hands,
     mode: start.mode,
-    tempo: String(start.tempo),
+    tempo: start.tempo === null ? null : String(start.tempo),
   })}`;
 }
 

@@ -4,6 +4,7 @@
 // in today.ts, which is loaded apart from the start.
 
 import type { LessonTask, LevelTask, ScaleTask } from './assignmentRecords.ts';
+import type { StageStart } from './piecePlan.ts';
 import type { DayKey } from './streak.ts';
 
 /** The lengths a plan can have, in minutes: those of lesson 14's figure of a session. */
@@ -67,8 +68,11 @@ export type PlanTask = ScaleTask | LevelTask | LessonTask;
 /**
  * A step of the plan. A scale, a level and the lesson are an assignment's tasks, ticked and
  * started as those are; a piece is a step of its own (a piece task wants bars, hands, a tempo and
- * the steps of a pass): the piece is opened as it was left, and `goal` says what ticks it, a run
- * to its end or five minutes on it (`work`), or a run to its end alone (`through`).
+ * the steps of a pass): `goal` says what ticks it, a run to its end or five minutes on it
+ * (`work`), or a run to its end alone (`through`). The piece in hand is opened on the next step
+ * of its plan as it stood when the day began (`step`: docs/PIECES.md, "A piece's plan"), which
+ * its line names; a piece without one (the next piece, a piece to play through, a piece whose
+ * score was not read, a plan kept before there were plans) is opened as it was left.
  */
 export type PlanStep =
   | { kind: 'task'; id: string; part: PlanPart; why: PlanWhy; task: PlanTask }
@@ -79,6 +83,7 @@ export type PlanStep =
       why: PlanWhy;
       piece: string;
       goal: 'work' | 'through';
+      step?: StageStart;
     };
 
 /** The plan of a day, as it is kept in the browser for the rest of that day. */

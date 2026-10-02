@@ -20,8 +20,11 @@ import { CURRICULUM_LESSONS, MINOR_LESSON, scaleLadder } from './curriculum.ts';
 import { LEVEL_IDS, type LevelId } from './levels.ts';
 import type { PieceSessionRecord, ReadSessionRecord, SessionRecord } from './log.ts';
 import { levelProgress, MASTERY_WINDOW, suggestedLevel } from './mastery.ts';
+import { planSource, type StageStart } from './piecePlan.ts';
 import { stepId, type PieceStep } from './pieceRecords.ts';
 import { RECENT_RUNS, scaleProgress, suggestedExercise } from './scaleProgress.ts';
+import { bars, note, Q, quarters, score } from './scoreFixtures.ts';
+import { buildSteps, type HandSelection } from './score.ts';
 import { SUGGEST_DAYS } from './scaleRanking.ts';
 import { withRun, type ScaleSession } from './scaleRecords.ts';
 import { recoverSummary, type Attempt } from './session.ts';
@@ -1118,6 +1121,163 @@ describe('the kept plan', () => {
     // What a plan does not hold is not kept.
     const extra = readPlan({ ...plan, note: 'x', steps: [{ ...plan.steps[0], note: 'y' }] });
     expect(extra).toEqual({ ...first, steps: [first.steps[0]] });
+  });
+});
+
+// docs/PIECES.md, "A piece's plan": the work step opens the next step of the plan of the piece
+// in hand, as it stood when the day began.
+describe('the piece in hand’s next step', () => {
+  /** An imported piece of eight bars: quarter notes over a whole note in the left hand. */
+  const written = score(bars(8), [
+    ...quarters(8, [60, 62, 64, 65]),
+    ...Array.from({ length: 8 }, (_, i) => note(i, i * 4 * Q, 4 * Q, 48, 'left')),
+  ]);
+  const source = planSource(written);
+  const mine: TodayPiece = {
+    id: 'mine',
+    grade: null,
+    leadSheet: false,
+    facts: source.facts,
+    out: false,
+  };
+  const plans = new Map([['mine', source]]);
+
+  /** A wait-mode run of bars 1 to 4 on day `day`, without a wrong note: session and steps. */
+  function loop(id: string, day: number, hands: HandSelection, hour = 17) {
+    const steps = buildSteps(written, hands)
+      .filter((step) => step.measure <= 3)
+      .map((step, n): PieceStep => ({
+        id: stepId(id, n),
+        sessionId: id,
+        pieceId: 'mine',
+        checksum: source.facts.checksum,
+        hands,
+        measure: step.measure,
+        pass: 1,
+        ms: 600,
+        wrong: 0,
+        at: at(day, hour) + n * 600,
+      }));
+    const session: PieceSessionRecord = {
+      ...played(id, 'mine', day, { hands, hour }),
+      loop: { from: 0, to: 3, fromLabel: '1', toLabel: '4' },
+      steps: steps.length,
+    };
+    return { session, steps };
+  }
+  const records = (runs: ReturnType<typeof loop>[], withPlans = true): TodayRecords => ({
+    ...EMPTY,
+    sessions: runs.map((r) => r.session),
+    steps: new Map([['mine', runs.flatMap((r) => r.steps)]]),
+    pieces: [...LIBRARY, mine],
+    ...(withPlans && { plans }),
+  });
+  const work = (r: TodayRecords) => part(todayPlan(r, options()), 'work')[0];
+  const bars14 = { from: 0, to: 3, fromLabel: '1', toLabel: '4' };
+  const right: StageStart = {
+    stage: 'right',
+    bars: bars14,
+    hands: 'right',
+    mode: 'wait',
+    tempo: null,
+  };
+
+  it('is the work step’s, with what starting it sets', () => {
+    expect(work(records([loop('a', -1, 'right')]))).toEqual({
+      kind: 'piece',
+      id: 'work',
+      part: 'work',
+      why: { kind: 'inHand', days: 1 },
+      piece: 'mine',
+      goal: 'work',
+      step: right,
+    });
+    // Without the piece's score there is no plan: the piece is opened as it was left.
+    const bare = work(records([loop('a', -1, 'right')], false));
+    expect(bare).toMatchObject({ piece: 'mine', goal: 'work' });
+    expect(bare).not.toHaveProperty('step');
+    // Where you are has the same state.
+    const state = curriculumState(records([loop('a', -1, 'right')]), options());
+    expect(state.pieces.inHand).toEqual({ id: 'mine', day: '2026-09-23', step: right });
+  });
+
+  it('moves on as the stages are done: the right hand’s bars steady, the left hand is next', () => {
+    const three = [loop('a', -3, 'right'), loop('b', -2, 'right'), loop('c', -1, 'right')];
+    expect(work(records(three))).toMatchObject({
+      why: { kind: 'inHand', days: 1 },
+      step: { ...right, stage: 'left', hands: 'left' },
+    });
+  });
+
+  it('is as it stood when the day began: what is played today ticks the step and leaves it', () => {
+    const before = [loop('a', -2, 'right'), loop('b', -1, 'right')];
+    const plan = todayPlan(records(before), options());
+    // A third steady run today finishes the stage: the day's plan still names the right hand.
+    const today = [...before, loop('c', 0, 'right', 9)];
+    expect(todayPlan(records(today), options())).toEqual(plan);
+    expect(part(plan, 'work')[0]).toMatchObject({ step: right });
+    // The step is done as before: by five minutes on the piece or a run to its end.
+    const index = plan.steps.findIndex((step) => step.id === 'work');
+    expect(done(plan, records(today))[index]).toBe(false);
+    const long = loop('d', 0, 'left', 10);
+    long.session = { ...long.session, activeMs: WORK_MS };
+    expect(done(plan, records([...today, long]))[index]).toBe(true);
+    // Tomorrow's plan has the next stage.
+    const next = todayPlan(records(today), options({ today: '2026-09-25' }));
+    expect(part(next, 'work')[0]).toMatchObject({ step: { stage: 'left' } });
+  });
+
+  it('is kept with the plan, and read back field by field', () => {
+    const plan = todayPlan(records([loop('a', -1, 'right')]), options());
+    const kept = JSON.parse(JSON.stringify(plan)) as TodayPlan;
+    expect(readPlan(kept)).toEqual(plan);
+    const index = plan.steps.findIndex((step) => step.id === 'work');
+    const withStep = (step: unknown, patch: object = {}): unknown => ({
+      ...kept,
+      steps: kept.steps.map((s, i) => (i === index ? { ...s, step, ...patch } : s)),
+    });
+    const stepOf = (value: unknown) => {
+      const read = readPlan(value)?.steps[index];
+      return read?.kind === 'piece' ? read.step : undefined;
+    };
+
+    // A stage in time, with its tempo; the whole piece, without bars.
+    const inTime = { ...right, stage: 'inTime', hands: 'both', mode: 'rhythm', tempo: 60 };
+    expect(stepOf(withStep(inTime))).toEqual(inTime);
+    const whole = { stage: 'whole', bars: null, hands: 'both', mode: 'wait', tempo: null };
+    expect(stepOf(withStep(whole))).toEqual(whole);
+    // What a step does not hold is not kept.
+    expect(stepOf(withStep({ ...right, done: false, bars: { ...bars14, note: 'x' } }))).toEqual(
+      right,
+    );
+
+    // A plan kept before a piece had a plan: its work step has none, and stands as it was.
+    const old = Object.fromEntries(
+      Object.entries(kept.steps[index]!).filter(([field]) => field !== 'step'),
+    );
+    const earlier = { ...kept, steps: kept.steps.map((s, i) => (i === index ? old : s)) };
+    expect(readPlan(earlier)).toEqual(earlier);
+    expect(stepOf(earlier)).toBeUndefined();
+    // Only the piece in hand has one: on a piece to play through it is not kept.
+    expect(stepOf(withStep(right, { goal: 'through' }))).toBeUndefined();
+
+    // A step that is anything else is no plan: it is made again.
+    const broken: unknown[] = [
+      null,
+      'bars 1 to 4',
+      { ...right, stage: 'encore' },
+      { ...right, hands: 'feet' },
+      { ...right, mode: 'memory' },
+      { ...right, tempo: 65 },
+      { ...right, tempo: undefined },
+      { ...right, bars: null },
+      { ...right, bars: { from: 3, to: 0, fromLabel: '4', toLabel: '1' } },
+      { ...right, bars: { from: 0, to: 3 } },
+      { ...right, bars: { ...bars14, from: -1 } },
+      { ...right, bars: { ...bars14, toLabel: 'x'.repeat(40) } },
+      { ...whole, bars: bars14 },
+    ];
+    for (const step of broken) expect(readPlan(withStep(step)), JSON.stringify(step)).toBeNull();
   });
 });
 

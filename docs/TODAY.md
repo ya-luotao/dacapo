@@ -81,8 +81,8 @@ and practices (G3's links between them read it too).
   `ScaleTask` (at any tempo, one run), `LevelTask` (one session) and `LessonTask`
   (`core/assignmentRecords.ts`) with today as their window: `taskProgress` ticks them, and Home
   names and starts them as it does an assignment's tasks. A piece step is a step of its own (a
-  `PieceTask` wants bars, hands, a tempo and the steps of a pass; the piece in hand is opened as it
-  was left, and five minutes on it count).
+  `PieceTask` wants bars, hands, a tempo and the steps of a pass; the piece in hand is opened on
+  the next step of its plan, and five minutes on it count).
 - **Length.** 10, 20, 30 or 45 minutes (the lengths of lesson 14's figure), 20 unless chosen;
   kept per device (`dacapo.today.minutes`). The length sets how many steps each part has:
 
@@ -102,9 +102,13 @@ and practices (G3's links between them read it too).
   their work, so a new one joins. The second warm-up of the 45-minute plan is the other of the two.
   Done: a run of that exercise recorded today.
 - **Work**: the **piece in hand** — the piece practised most recently in the last 14 days that has
-  not been played to its end (`isRunToTheEnd`), built-in or imported. Its step opens the piece as
-  it was left. Done: a run to its end today, or at least five minutes on it today. Without a piece
-  in hand, and when Pieces is open: **the next piece** (above), done the same way.
+  not been played to its end (`isRunToTheEnd`), built-in or imported. Its step opens the next step
+  of the piece's plan ([PIECES.md](PIECES.md), "A piece's plan": the bars, the hands, the mode and
+  the tempo of the first stage not done when the day began), and its line names it ("Bars 5–8,
+  left hand · Last played 2 days ago"); until G5c it opened the piece as it was left, as it still
+  does for a piece whose score cannot be read. Done: a run to its end today, or at least five
+  minutes on it today. Without a piece in hand, and when Pieces is open: **the next piece**
+  (above), opened as it is and done the same way.
 - **New.** A _level_ step is the suggested level (the family's own rule: its first level not
   mastered) of an open family that is not mastered throughout. Of those families, the one whose
   last session is longest ago comes first, one never practised before all others, equals in the
@@ -234,7 +238,11 @@ the plan reads became records of their own with G3, synced and exported: LEARN.m
 - **The kept plan** is `dacapo.today` as JSON: `{ day, minutes, steps, lessonsDone }`. It is read
   back field by field (the day, a length of the four, each step's part, reason and task: an
   exercise key, a level its family has, a lesson of the fifteen); anything else is no plan, and
-  the plan is made again. It is made and kept even while an assignment hides its steps. It is
+  the plan is made again. Since G5c the work step of the piece in hand also keeps the step of
+  the piece's plan it opens (`step`: a stage, its bars with their printed numbers, the hands, the
+  mode, a tempo or none), read back field by field too; a plan kept before has none and stands as
+  it was ([PIECES.md](PIECES.md), "Clarifications (decided during G5b/G5c)"). It is made and kept
+  even while an assignment hides its steps. It is
   not kept when it was made over records that are there and cannot be seen (a database of a
   later version of dacapo, a read that failed: [LEARN.md](LEARN.md), "Clarifications (decided
   during G3)"): the reload that has the records makes the day's plan. A piece

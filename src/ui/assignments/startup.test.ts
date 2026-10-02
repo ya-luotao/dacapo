@@ -141,6 +141,31 @@ describe('what the start loads', () => {
     for (const heavy of HEAVY) expect(chain(standing, heavy)).toBeNull();
   });
 
+  // A piece's plan (docs/PIECES.md, "A piece's plan": its phrases, each stage's state, the next
+  // step) is its records read another way, with the score to tell the phrases. Neither its rules
+  // nor the reading of a piece's file comes with the start: the piece's page has them, and the
+  // Pieces page and the plan's rows, which name the next step of the piece in hand.
+  it('the start loads no plan of a piece: the pieces’ pages and the plan’s rows do', () => {
+    const plan = ['/src/core/piecePlan.ts', '/src/core/barHeatmap.ts', '/src/core/memory.ts'];
+    const reading = ['/src/ui/pieces/planSource.ts', '/src/pieces/load.ts'];
+    for (const module of [...plan, ...reading, '/src/ui/pieces/PlanPanel.tsx'])
+      expect(chain('/src/main.tsx', module), module).toBeNull();
+    for (const root of [
+      '/src/ui/pieces/PiecesPage.tsx',
+      '/src/ui/pieces/PieceSession.tsx',
+      '/src/ui/today/TodayPlan.tsx',
+    ]) {
+      expect(chain(root, '/src/core/piecePlan.ts'), root).not.toBeNull();
+      for (const heavy of HEAVY) expect(chain(root, heavy), root).toBeNull();
+    }
+    for (const root of ['/src/ui/pieces/PiecesPage.tsx', '/src/ui/today/TodayPlan.tsx'])
+      expect(chain(root, '/src/ui/pieces/planSource.ts'), root).not.toBeNull();
+    // The step today's plan keeps is data: its shape alone is named at the start.
+    expect(staticImports('/src/core/todayRecords.ts')).toEqual([]);
+    // The plan's words need no score, so today's row names a step without the piece's page.
+    expect(chain('/src/ui/pieces/planWords.ts', '/src/ui/notation/ScoreView.tsx')).toBeNull();
+  });
+
   // The recap of a week (docs/PERSONAL.md, "Your week") is the state at the week's end against
   // the state at its start, by every practice's mastery rule: it comes with Progress and with
   // the plan's rows, whose line about last week it words. The start knows only on which days of

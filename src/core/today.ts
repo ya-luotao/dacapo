@@ -28,9 +28,10 @@ import {
   sessionPractice,
   type Practice,
 } from './curriculum.ts';
-import type { SessionRecord } from './log.ts';
+import type { PieceSessionRecord, SessionRecord } from './log.ts';
 import { firstNotMastered } from './mastery.ts';
-import type { PieceStep } from './pieceRecords.ts';
+import { nextStep, STAGES, type PlanSource, type StageStart } from './piecePlan.ts';
+import { isHandSelection, type LoopRange, type PieceStep } from './pieceRecords.ts';
 import {
   IN_HAND_DAYS,
   piecesStanding,
@@ -46,6 +47,7 @@ import { exerciseKeyParts } from './scaleTypes.ts';
 import type { Attempt } from './session.ts';
 import { opensEverything, readingFloor, type StartingPoint } from './startingPoint.ts';
 import { addDays, dayKey, type DayKey } from './streak.ts';
+import { TEMPOS } from './tempoLadder.ts';
 import {
   DEFAULT_PLAN_MINUTES,
   isPlanMinutes,
@@ -72,6 +74,12 @@ export interface TodayRecords extends StandingRecords {
   attempts: readonly Attempt[];
   /** In the order they happened. */
   answers: readonly Answer[];
+  /**
+   * What a piece's plan is made of (its phrases, from its score), by piece id, for the pieces
+   * whose scores were read: the piece in hand's gives the next step of its plan, with its step
+   * records (`steps`). Without it the piece is opened as it was left.
+   */
+  plans?: ReadonlyMap<string, PlanSource>;
 }
 
 // --- Where every practice stands -----------------------------------------------------------------
@@ -116,8 +124,13 @@ export interface ScalesState {
 }
 
 /** Where the pieces stand (core/piecesStanding.ts), as Today and Where you are propose them. */
-export interface PiecesState extends Omit<PiecesStanding, 'finished'> {
+export interface PiecesState extends Omit<PiecesStanding, 'finished' | 'inHand'> {
   open: boolean;
+  /**
+   * The piece in hand (core/piecesStanding.ts), and the next step of its plan (docs/PIECES.md,
+   * "A piece's plan") when its score was read (`TodayRecords.plans`).
+   */
+  inHand: { id: string; day: DayKey; step?: StageStart } | null;
   /** The piece to begin when none is in hand; null when there is none to propose. */
   next: string | null;
 }
@@ -159,7 +172,27 @@ function piecesState(
 ): PiecesState {
   const { inReview, due, grades, inHand, next } = piecesStanding(records, { today, timeZone });
   const open = isOpen('pieces', lessonsDone, had, start);
-  return { open, inReview, due, grades, inHand, next: open ? next : null };
+  const step = inHand ? nextStage(records, inHand.id) : null;
+  return {
+    open,
+    inReview,
+    due,
+    grades,
+    inHand: inHand && { ...inHand, ...(step && { step }) },
+    next: open ? next : null,
+  };
+}
+
+/** The next step of a piece's plan, from the records given; null when its score was not read. */
+function nextStage(records: TodayRecords, pieceId: string): StageStart | null {
+  const source = records.plans?.get(pieceId);
+  if (!source) return null;
+  return nextStep({
+    pieceId,
+    ...source,
+    sessions: records.sessions.filter((s): s is PieceSessionRecord => s.kind === 'piece'),
+    steps: records.steps?.get(pieceId) ?? [],
+  });
 }
 
 /**
@@ -287,6 +320,7 @@ export function recordsBefore(
     answers: records.answers.filter((a) => before(a.at)),
     ...(records.steps && { steps }),
     pieces: records.pieces,
+    ...(records.plans && { plans: records.plans }),
   };
 }
 
@@ -335,6 +369,7 @@ export function planOf(state: CurriculumState, options: PlanOptions): TodayPlan 
       why: { kind: 'inHand', days: daysBetween(inHand.day, today) },
       piece: inHand.id,
       goal: 'work',
+      ...(inHand.step && { step: inHand.step }),
     });
   } else if (state.pieces.next !== null) {
     steps.push({
@@ -511,9 +546,37 @@ function readStep(v: unknown): PlanStep | null {
   }
   if (v.kind === 'piece' && typeof v.piece === 'string' && v.piece.length <= 200) {
     if (v.goal !== 'work' && v.goal !== 'through') return null;
-    return { kind: 'piece', id: v.id, part, why, piece: v.piece, goal: v.goal };
+    const { id, piece, goal } = v;
+    // A plan kept before a piece had a plan has no step: the piece is opened as it was left.
+    // Only the piece in hand has one, and one that cannot be read is no plan.
+    if (v.step === undefined || goal !== 'work')
+      return { kind: 'piece', id, part, why, piece, goal };
+    const step = readStage(v.step);
+    return step && { kind: 'piece', id, part, why, piece, goal, step };
   }
   return null;
+}
+
+/** A written bar's printed number, as a loop keeps it. */
+const isLabel = (v: unknown): v is string => typeof v === 'string' && v.length <= 20;
+
+function readBars(v: unknown): LoopRange | null {
+  if (!isRecord(v) || !isCount(v.from) || !isCount(v.to) || v.from > v.to) return null;
+  if (!isLabel(v.fromLabel) || !isLabel(v.toLabel)) return null;
+  return { from: v.from, to: v.to, fromLabel: v.fromLabel, toLabel: v.toLabel };
+}
+
+/** The step of a piece's plan a work step opens: a stage, its bars, hands, mode and tempo. */
+function readStage(v: unknown): StageStart | null {
+  if (!isRecord(v) || !isHandSelection(v.hands)) return null;
+  const stage = STAGES.find((s) => s === v.stage);
+  if (!stage || (v.mode !== 'wait' && v.mode !== 'rhythm')) return null;
+  const tempo = v.tempo === null ? null : TEMPOS.find((t) => t === v.tempo);
+  if (tempo === undefined) return null;
+  // The whole piece has no bars; a stage of a phrase has its phrase's.
+  const bars = stage === 'whole' ? null : readBars(v.bars);
+  if (stage === 'whole' ? v.bars !== null : bars === null) return null;
+  return { stage, bars, hands: v.hands, mode: v.mode, tempo };
 }
 
 /**

@@ -16,6 +16,7 @@ import { barHeatmap, weakestLoop, type BarMetric } from '../../core/barHeatmap.t
 import { analyzeExpression, type Melody } from '../../core/expression.ts';
 import { leftHandFor, leftHandPatterns, type LeftHandChoice } from '../../core/leadSheet.ts';
 import { parseMeter, tempoForMeter } from '../../core/metronomeSettings.ts';
+import { piecePhrases, piecePlan, type StageStart } from '../../core/piecePlan.ts';
 import { pieceFacts, type PieceFacts, type PracticeMode } from '../../core/pieceRecords.ts';
 import { summarizeRun } from '../../core/pieceRun.ts';
 import {
@@ -68,7 +69,14 @@ import { Piano } from '../piano/Piano.tsx';
 import { keyboardRange, whiteKeys } from '../piano/range.ts';
 import { usePieceSteps, usePracticeStore } from '../practice/context.ts';
 import { usePieceFormat } from './format.ts';
-import { readPiecePrefs, TEMPOS, WEAK_ALL_KEYS_PREF, withStart, writePiecePrefs } from './prefs.ts';
+import {
+  PLAN_PREF,
+  readPiecePrefs,
+  TEMPOS,
+  WEAK_ALL_KEYS_PREF,
+  withStart,
+  writePiecePrefs,
+} from './prefs.ts';
 import { startLoop, type PieceStart } from '../startParams.ts';
 import {
   recordedRun,
@@ -98,6 +106,7 @@ import { shiftText, useKeyName } from './keyFormat.ts';
 import { FocusBar, FocusEnter } from '../focus/FocusBar.tsx';
 import { useFocusState } from '../focus/focus.ts';
 import { BarTargets, BarTints, WeakBarsBar, WeakBarsTable } from './WeakBars.tsx';
+import { PlanPanel } from './PlanPanel.tsx';
 import { ExpressionPanel } from './ExpressionPanel.tsx';
 import {
   EXPRESSION_ASPECTS,
@@ -235,6 +244,8 @@ export function PieceSession({
   /** "Your runs", laid over the score. */
   const [runsOpen, setRunsOpen] = useState(false);
   const [weakBars, setWeakBarsState] = useState(() => readPref(WEAK_BARS_PREF) === '1');
+  /** The piece's plan, over the score (per browser, as Weak bars is). */
+  const [planShown, setPlanShownState] = useState(() => readPref(PLAN_PREF) === '1');
   const [metric, setMetric] = useState<BarMetric>(metricOf(prefs.mode));
   const [table, setTable] = useState(false);
   const [accompany, setAccompanyState] = useState(() => readPref(ACCOMPANY_PREF) !== '0');
@@ -423,6 +434,17 @@ export function PieceSession({
   );
   const weakest = useMemo(() => weakestLoop(heat.cells, order), [heat, order]);
   const barFormat = useBarFormat(format, metric);
+
+  // The piece's plan (docs/PIECES.md, "A piece's plan"): of the notes as written, from the
+  // records of every run of the piece. The run in progress is held out until it is over, so the
+  // plan changes after a run, not under the player's hands.
+  const phrases = useMemo(() => piecePhrases(written), [written]);
+  const live = recorded.ended ? null : recorded.id;
+  const learning = useMemo(() => {
+    if (!planShown || !allRecords) return null;
+    const steps = live === null ? allRecords : allRecords.filter((r) => r.sessionId !== live);
+    return piecePlan({ pieceId: piece.id, phrases, facts: writtenFacts, sessions: runs, steps });
+  }, [planShown, allRecords, live, piece.id, phrases, writtenFacts, runs]);
 
   /** Stops whatever the instrument is playing for us: the demo, the other hand, a rhythm run. */
   function silence() {
@@ -800,6 +822,11 @@ export function PieceSession({
     if (!next) setTable(false);
   }
 
+  function setPlanShown(next: boolean) {
+    setPlanShownState(next);
+    writePref(PLAN_PREF, next ? '1' : null);
+  }
+
   function loopWeakest() {
     if (!weakest) return;
     setLoop(weakest);
@@ -857,11 +884,40 @@ export function PieceSession({
         changeTempo(action.tempo);
         break;
     }
-    if (action.kind === 'rhythm' || rhythmMode) {
+    begin(action.kind === 'rhythm' || rhythmMode);
+  }
+
+  /**
+   * The page is set up: in rhythm mode the run starts as Start would, once the page has rendered
+   * with the new settings; in wait and memory mode it begins at the first key.
+   */
+  function begin(inTime: boolean) {
+    if (inTime) {
       dispatchRhythm({ type: 'reset', id: newRunId() });
       startNext.current = true;
     }
     settle();
+  }
+
+  /**
+   * A stage of the piece's plan (docs/PIECES.md, "A piece's plan"): its bars, hands, mode and
+   * tempo are set at once, and the run starts as after an advice's button. The plan is of the
+   * piece as written, so the piece is put back in its written key, as a task's button opens it,
+   * and a stage that plays a written left hand has it as written: a run counts for nothing
+   * otherwise. A lead sheet keeps the left hand made from its symbols under its melody.
+   */
+  function startStage(stage: StageStart) {
+    if (transpose !== 0) setTranspose(0);
+    if (leftHand !== 'written' && stage.hands !== 'right' && writtenFacts.bars.left > 0)
+      setLeftHand('written');
+    setHands(stage.hands);
+    setLoop(stage.bars && { from: stage.bars.from, to: stage.bars.to });
+    setStartBar(stage.bars?.from ?? 0);
+    if (mode !== stage.mode) setMode(stage.mode);
+    if (stage.tempo !== null) changeTempo(stage.tempo);
+    // The whole piece again in wait mode, with nothing to change: a new run all the same.
+    if (stage.mode === 'wait' && mode === 'wait' && stage.bars === null && loop === null) restart();
+    begin(stage.mode === 'rhythm');
   }
 
   /** The plan of a run played back: as it was played, or compared with the score as written. */
@@ -1572,6 +1628,18 @@ export function PieceSession({
               <span id={`${showKeysId}-weak`} className="visually-hidden">
                 {t('pieces.weak.help')}
               </span>
+              <label className="check">
+                <input
+                  type="checkbox"
+                  checked={planShown}
+                  onChange={(e) => setPlanShown(e.target.checked)}
+                  aria-describedby={`${showKeysId}-plan`}
+                />
+                <span>{t('pieces.plan')}</span>
+              </label>
+              <span id={`${showKeysId}-plan`} className="visually-hidden">
+                {t('pieces.plan.help')}
+              </span>
               {EXPRESSION_ASPECTS.map((aspect) => (
                 <label key={aspect} className="check">
                   <input
@@ -1660,6 +1728,11 @@ export function PieceSession({
           onTable={() => setTable(true)}
           onMetric={setMetric}
         />
+      )}
+
+      {/* In focus mode the plan folds away with the controls. */}
+      {planShown && !(focus.on && !settingsOpen) && (
+        <PlanPanel plan={learning} format={format} onStart={startStage} />
       )}
 
       <div className="piece-stage">

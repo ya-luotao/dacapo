@@ -540,9 +540,10 @@ or sent to a teacher as sound.
 
 ## A way through the pieces (G5)
 
-Status: G5a is built (ten first pieces at Initial and grade 1, each with its edition's fingering;
-see "Content and copyright"), and so is G5b (the next piece by the grade reached, **Next for you**
-on the Pieces page, each grade's pieces played). G5c is planned.
+Status: built. G5a: ten first pieces at Initial and grade 1, each with its edition's fingering
+(see "Content and copyright"). G5b: the next piece by the grade reached, **Next for you** on the
+Pieces page, each grade's pieces played. G5c: a piece's plan, on its page, in today's plan and
+under Next for you.
 
 Goal: the library is a list, and a piece's page a set of tools (hands, a loop, modes, a tempo, weak
 bars). A learner is not told which piece to take next, nor how to go about a new one: a teacher
@@ -621,7 +622,8 @@ four bars". G5b says the first, G5c the second, both from the records and nothin
   has the same row; one whose facts are not kept yet has no steady bars.
 - **Its place is kept.** The heading and the room of one row stand from the first paint, and the
   row is drawn once everything it says is in (the records, and for the piece in hand its step
-  records), so the library under it does not move. The room is the row's to the pixel on a wide
+  records and, since G5c, its score, for its plan's step), so the library under it does not
+  move. The room is the row's to the pixel on a wide
   screen; on a phone a long line may wrap, which the room cannot know. When there is neither a
   piece in hand nor a next piece the section goes (the library within reach is used up).
 - **A grade's count** is of the pieces under its heading, the pieces written out: the lead
@@ -629,6 +631,97 @@ four bars". G5b says the first, G5c the second, both from the records and nothin
   as before). It is shown once the records are read, under the grade's name where the name has
   a column of its own, and after it on a phone ("Grade 1 · 2 of 6"); a screen reader hears
   "Grade 1: 2 of 6 played to the end".
+- **The phrases** (`piecePhrases` in `core/piecePlan.ts`) are memory mode's: each from its
+  `phraseStarts` bar to the bar before the next. An upbeat belongs to the first, which is named
+  from the upbeat's printed number ("bars 0–4"); a volta begins a phrase, so a first ending is a
+  phrase of its own. A phrase in which nothing is played is left out. Bars are written measures:
+  a repeated phrase is one phrase, and a run that plays it twice has both passes in its bars'
+  figures, as the heatmap has.
+- **The bars of a stage** are the phrase's bars in which those hands have something to play: a
+  bar a hand rests in has no step, and could never be steady. A phrase with notes for one hand
+  has that hand's stage and In time. The columns are the stages the phrases have between them;
+  a phrase has an empty cell where it has no such stage.
+- **Steady** is asked of `barHeatmap` (its hesitation figure: wait mode's runs, in the written
+  key, of the notes as they are now); the plan draws no line of its own. So a hand's stage takes
+  three runs (`STEADY_RUNS`), and a loop that went round three times is one run: Finish, Again
+  or the stage's own button ends a run and begins the next. The panel says in one line what
+  makes a stage done.
+- **A piece written for one hand.** On its page Both is that hand (see "Lead sheets"), so a run
+  with Both counts for the hand's stage as a run with the hand does. In time and the whole piece
+  are with that hand.
+- **In time** is one time through the phrase: the steps of a rhythm run inside the phrase, in
+  the order played, taken as many at a time as one time through has, so each round of a loop
+  and each pass of a repeat is judged apart; through every bar the hands play; with the hands
+  that play every note of the piece (both, or the only hand). It is graded by the review's
+  `gradeFigures` on its own notes: missed and extra notes against the notes due (at most 1 in
+  50, which in a phrase of fewer than fifty notes is none) and 80 % within ±50 ms. Rounds are
+  not added up, since the notes missed while reaching for Stop would sink every looped run; a
+  round cut short counts for nothing, and the rounds before it stand.
+- **The tempo.** In time starts at the ladder's next rung for those hands (60 % at first), and at
+  the score's tempo once the ladder is climbed. Only runs to the end climb the ladder
+  (ADVICE.md), so looping the phrases in time leaves the rung where it is: every phrase is taken
+  at one tempo until the whole piece has been played in time. A stage in wait mode names no
+  tempo: the tempo control paces only Listen and the other hand there, and stays as the player
+  has it (`tempo: null`, and the link carries none).
+- **The whole piece** starts in wait mode, with both hands (or the only one) and no loop: the
+  run in which every key has to be found, after which the summary's advice leads on to rhythm
+  mode and the ladder. Any run to the end ticks it (`isRunToTheEnd`: in rhythm or memory mode
+  too, as the review has it).
+- **Runs that are not of the piece as written.** A run in another key counts for nothing. A run
+  with a left hand made from the chord symbols was played on other notes (another checksum):
+  only its right hand alone is the melody as written, and counts for the right hand's stage and,
+  in a piece for one hand, for In time, as it counts for an assignment's task
+  ([ASSIGNMENTS.md](ASSIGNMENTS.md)); its run to the end brings a lead sheet into review and so
+  ticks the whole piece. So a lead sheet, which opens with a left hand from its symbols, has the
+  plan of its melody (the right hand, In time, the whole piece) whatever accompanies it. Runs of
+  another version of the notes are left out, as from the heatmap.
+- **The next step** stays the first stage not done when the whole piece was played early. When
+  every stage is done the line says so. A piece in review whose bars stop being steady has open
+  stages again on its page; nothing proposes it, since it is no longer in hand.
+- **Plan** is a checkbox under Options, beside Weak bars, kept in this browser
+  (`dacapo.pieces.plan`). The panel stands between the control row (and Weak bars' row) and the
+  score: at its left the line "Next: bars 5–8, left hand" with **Start** and the line on what
+  makes a stage done; beside them the table, a row for each phrase and a column for each stage,
+  the whole piece as the last row with one cell under the first stage. A cell is a button with
+  the arrow, or a tick once its stage is done ("Done: bars 1–4, right hand" for a screen reader,
+  "Start bars 1–4, right hand" before); the next step's cell is marked.
+- **Its height** follows the screen: the stages' names and two phrases at least, twelve rem at
+  most, less when Weak bars is on too, and the phrases scroll within it, the next step's row
+  brought into view. At 1280 × 800 with both panels on the line on what makes a stage done is
+  left to a screen reader, and the score keeps its fourteen rem. On a phone the panel is one
+  column and each phrase is a row of its stages under its bars, the stages' names over them (the
+  rows are laid out as grids there, so the table's roles are written out).
+- **After a run.** The run in progress is held out of the plan until it is over (played to the
+  end, Finish, started again or replaced by another stage), so a tick comes after a run and not
+  under the player's hands.
+- **A stage's button** goes where an advice's button goes: the same setters for the hands, the
+  loop, the mode and the tempo, and the same start (`begin`, shared with `takeAdvice`: in rhythm
+  mode what Start does, the count-in or the calibration offered first; in wait mode the run
+  begins at the first key). It also puts the piece back in its written key and, for a stage that
+  plays a written left hand, the left hand as written: a run counts for nothing otherwise.
+- **Focus mode.** The plan folds away with the control row and comes back with Settings. (Weak
+  bars' row stays in focus mode, as before.)
+- **Today** ([TODAY.md](TODAY.md)). The work step of the piece in hand keeps the next step of
+  its plan as it stood when the day began (`step`: the stage, its bars with their printed
+  numbers, the hands, the mode, the tempo): its link is `pieceStartPath` of it, and its line
+  names it before the reason ("Bars 5–8, left hand · Last played 2 days ago", the reason with
+  its capital as under a level's name). The bars are named by their printed numbers, the score
+  not being there, so a volta is not named. The plan is made once the piece's score and step
+  records are read, since it is kept as made. `readPlan` reads the step field by field: a step
+  without one (a plan kept before G5c, a piece whose score could not be read) is opened as it
+  was left, as before; one that cannot be read is no plan, and the plan is made again; on a
+  piece to play through it is not kept. What ticks the step has not changed.
+- **Next for you** has the same step in its way on ("Continue: bars 5–8, left hand"), as the
+  records are now. A link opens the piece in its written key with the left hand the player
+  chose, as a task's link does. **Known limit:** a piece with chord symbols and a written left
+  hand, practised with a left hand from the symbols, is opened by such a link with that left
+  hand, and a run of the left hand or of both then counts for nothing; the panel's buttons set
+  it right.
+- **The start.** The files `index.html` loads were 943,646 bytes (287,948 gzipped) before G5b,
+  944,417 (288,138) with it, and are 948,950 (289,040) with G5c: 3.9 kB of styles, which are one
+  file for every page, and 1.3 kB of strings in English. The plan's rules, the reading of a
+  piece's file for it and the panel come with the pieces' pages and the plan's rows
+  (`ui/assignments/startup.test.ts`).
 
 ## Milestones
 
@@ -647,3 +740,5 @@ four bars". G5b says the first, G5c the second, both from the records and nothin
 10. ✓ **G5a First pieces** — ten pieces at Initial and grade 1, with their editions' fingering.
 11. ✓ **G5b Next for you** — the next piece by the grade reached, the row on the Pieces page,
     each grade's pieces played.
+12. ✓ **G5c A piece's plan** — `core/piecePlan.ts`, Plan on a piece's page, the next step in
+    today's plan and under Next for you.

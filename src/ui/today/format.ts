@@ -6,8 +6,9 @@ import { useI18n, type MessageKey } from '../../i18n/index.ts';
 import { isBuiltInId } from '../../pieces/library/index.ts';
 import { familyKey, levelKey, useScaleKeyWords, useTaskFormat } from '../assignments/taskFormat.ts';
 import { taskStartPath } from '../assignments/useChecklist.ts';
+import { usePlanWords } from '../pieces/planWords.ts';
 import { usePractice } from '../practice/context.ts';
-import { levelStartPath, scaleStartPath } from '../startParams.ts';
+import { levelStartPath, pieceStartPath, scaleStartPath } from '../startParams.ts';
 
 /**
  * Today's plan and "Where you are" in words (docs/TODAY.md): what a step is, why it is there,
@@ -19,6 +20,8 @@ export function useTodayFormat() {
   const scale = useScaleKeyWords();
   const tasks = useTaskFormat(scale);
   const { pieces } = usePractice();
+  // A step of a piece's plan, named by the printed numbers of its bars (the score is not here).
+  const plan = usePlanWords();
 
   return useMemo(() => {
     const days = (n: number, one: MessageKey, other: MessageKey) =>
@@ -59,9 +62,15 @@ export function useTodayFormat() {
         : family(task.family);
     };
 
-    /** Where a step starts; null for a piece that is no longer here. */
-    const start = (step: PlanStep): string | null =>
-      step.kind === 'piece' ? piecePath(step.piece) : taskStartPath(step.task, []);
+    /**
+     * Where a step starts; null for a piece that is no longer here. The piece in hand opens on
+     * the step of its plan the day's plan keeps (docs/PIECES.md, "A piece's plan").
+     */
+    const start = (step: PlanStep): string | null => {
+      if (step.kind !== 'piece') return taskStartPath(step.task, []);
+      const path = piecePath(step.piece);
+      return path !== null && step.step ? pieceStartPath(step.piece, step.step) : path;
+    };
 
     /** Why a step is in the plan: one line, from the figures its rule used. */
     const why = (reason: PlanWhy): string => {
@@ -89,12 +98,17 @@ export function useTodayFormat() {
 
     /**
      * The line under a step's name: why it is there, and for a level its own name first ("Major
-     * keys to two sharps or flats · Not practised yet"). A tune's title is in its name already.
+     * keys to two sharps or flats · Not practised yet"), for the piece in hand the step of its
+     * plan ("Bars 5–8, left hand · Last played 2 days ago"). A tune's title is in its name
+     * already.
      */
-    const line = (step: PlanStep): string =>
-      step.kind === 'task' && step.task.kind === 'level' && step.task.family !== 'tune'
+    const line = (step: PlanStep): string => {
+      if (step.kind === 'piece')
+        return step.step ? [plan.title(step.step), why(step.why)].join(' · ') : why(step.why);
+      return step.task.kind === 'level' && step.task.family !== 'tune'
         ? [t(levelKey(step.task.family, step.task.level)), why(step.why)].join(' · ')
         : why(step.why);
+    };
 
     return {
       name,
@@ -110,5 +124,5 @@ export function useTodayFormat() {
       pieceTitle,
       piecePath,
     };
-  }, [t, scale, tasks, pieces]);
+  }, [t, scale, tasks, pieces, plan]);
 }
