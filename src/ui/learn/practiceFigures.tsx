@@ -205,6 +205,7 @@ export function PracticePlan({
         <div className="plate-toolbar">
           <span className="plate-select">{labels.length}</span>
           <Choices
+            className="is-lengths"
             value={length}
             onChange={setLength}
             options={LENGTHS.map((l) => ({

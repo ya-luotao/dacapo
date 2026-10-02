@@ -191,6 +191,8 @@ export const zhCN: Dictionary = {
   'midi.unnamedDevice': 'MIDI 设备',
   'midi.help.unsupported':
     '此浏览器无法连接 MIDI 键盘。请在电脑上使用 Chrome 或 Edge，也可以先用电脑键盘弹奏。',
+  'midi.help.unsupported.touch':
+    '此浏览器无法连接 MIDI 键盘。请在电脑上使用 Chrome 或 Edge，也可以先用屏幕上的琴键弹奏。',
   'midi.help.noPermission':
     'dacapo 需要 MIDI 设备权限。请在浏览器的网站设置中允许此网站使用 MIDI，然后重试。',
   'midi.help.noDevice': '用 USB 线连接键盘并打开电源，连接后会自动显示在这里。',
@@ -2919,6 +2921,8 @@ export const zhCN: Dictionary = {
   'midi.status.unsupported.app': 'MIDI 不可用',
   'midi.help.unsupported.app':
     'dacapo 无法在这台设备上启动 MIDI。请关闭 dacapo 再重新打开；在此之前，可以用屏幕上的键盘或电脑键盘弹奏。',
+  'midi.help.unsupported.touch.app':
+    'dacapo 无法在这台设备上启动 MIDI。请关闭 dacapo 再重新打开；在此之前，可以用屏幕上的键盘弹奏。',
   'midi.status.noPermission.app': 'MIDI 不可用',
   'midi.help.noPermission.app': 'dacapo 无法在这台设备上打开 MIDI。',
   'midi.help.noDevice.app': '连接 MIDI 键盘并打开电源，连接后会自动显示在这里。',

@@ -15,6 +15,19 @@ click's tempo and grid of scale runs played with it (from version 7), the takes 
 (from version 8), assignments and kept reports (from version 9), and the lessons finished (from
 version 10). Version 1 to 9 files still import.
 
+### Small fixes
+
+- **No MIDI on a phone or a tablet**: the help under "MIDI is not available in this browser"
+  (Play, Settings → Sound, the start page) names the keys on the screen, not a computer
+  keyboard the device does not have. On a computer it reads as before.
+- **Lesson 14's session plan**: the four lengths (10, 20, 30, 45 minutes) fit a phone's width
+  in Chinese too; the last one was cut off.
+- **Scales**: "(rough: few notes)" goes under the timing spread where the column cannot hold
+  both. In Japanese and Chinese it ran over the figure beside it.
+- **Weak bars count times through**, and now say so: "Times through (last 5)", "your last 3
+  times through", where they said runs. A time round a loop has counted since the piece's
+  plan, so the map could say "3 runs" beside a card's "1 run", which counts sessions.
+
 ### The instrument's keys (G6c, [docs/PERSONAL.md](docs/PERSONAL.md))
 
 - **Settings → Sound → Your keyboard**: 88 keys (A0–C8, as before), 76 (E1–G7), 73 (E1–E7), 61

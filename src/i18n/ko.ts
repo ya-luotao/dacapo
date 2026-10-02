@@ -195,6 +195,8 @@ export const ko: Dictionary = {
   'midi.unnamedDevice': 'MIDI 기기',
   'midi.help.unsupported':
     '이 브라우저는 MIDI 키보드와 연결할 수 없어요. 컴퓨터에서 Chrome이나 Edge를 사용하세요. 우선은 컴퓨터 키보드로 쳐도 돼요.',
+  'midi.help.unsupported.touch':
+    '이 브라우저는 MIDI 키보드와 연결할 수 없어요. 컴퓨터에서 Chrome이나 Edge를 사용하세요. 우선은 화면의 건반으로 쳐도 돼요.',
   'midi.help.noPermission':
     'dacapo가 MIDI 기기를 쓰려면 권한이 필요해요. 브라우저의 사이트 설정에서 이 사이트의 MIDI를 허용한 뒤 다시 시도하세요.',
   'midi.help.noDevice':
@@ -1649,7 +1651,7 @@ export const ko: Dictionary = {
   'pieces.trillStart.upper': '윗음부터',
   'pieces.weak': '약한 마디',
   'pieces.weak.help':
-    '지금 고른 손으로 친 최근 5회 연주에서 스텝마다 걸린 시간에 따라 마디에 색을 칠하고, 틀린 음을 표시해요.',
+    '지금 고른 손으로 최근 다섯 번 치는 동안 스텝마다 걸린 시간에 따라 마디에 색을 칠하고, 틀린 음을 표시해요.',
   'pieces.weak.group': '스텝당 시간으로 색칠한 악보의 마디예요. 화살표 키로 마디 사이를 이동해요.',
   'pieces.weak.legend': '스텝당 시간(초)',
   'pieces.weak.noData': '아직 데이터 부족',
@@ -1667,27 +1669,27 @@ export const ko: Dictionary = {
   'pieces.weak.writtenKey':
     "여기 보이는 것은 원래 조의 연주예요. '모든 조'를 켜면 이 조의 연주도 함께 세요.",
   'pieces.weak.perStep': '스텝당 중앙값',
-  'pieces.weak.runs': '연주 횟수(최근 {n}회)',
+  'pieces.weak.runs': '친 횟수(최근 {n}번)',
   'pieces.weak.steps': '스텝',
   'pieces.weak.wrong': '틀린 음',
   'pieces.weak.wrong.value': '{n}개 (스텝당 {rate})',
-  'pieces.weak.passes': '한 번 연주에서 두 번 친 마디예요. 둘 다 계산해요.',
-  'pieces.weak.steady': '안정: 최근 3회 모두 스텝당 1초 미만이었고 틀린 음이 없었어요.',
-  'pieces.weak.noData.details': '아직 데이터가 부족해요. {runs}회 연주와 {steps}스텝이 필요해요.',
+  'pieces.weak.passes': '한 번 치는 동안 두 번 지나가는 마디예요. 둘 다 계산해요.',
+  'pieces.weak.steady': '안정: 최근 3번 모두 스텝당 1초 미만이었고 틀린 음이 없었어요.',
+  'pieces.weak.noData.details': '아직 데이터가 부족해요. {runs}번 치고 {steps}스텝이 쌓여야 해요.',
   'pieces.weak.aria':
-    '{bar}: 스텝당 {time}, {band}. {steps}스텝 중 틀린 음 {wrong}개. {runs}회 연주.',
-  'pieces.weak.aria.noData': '{bar}: 아직 데이터 부족. {runs}회 연주.',
+    '{bar}: 스텝당 {time}, {band}. {steps}스텝 중 틀린 음 {wrong}개. {runs}번 쳤어요.',
+  'pieces.weak.aria.noData': '{bar}: 아직 데이터 부족. {runs}번 쳤어요.',
   'pieces.weak.table.title': '약한 마디 (약한 순)',
   'pieces.weak.table.close': '닫기',
   'pieces.weak.table.bar': '마디',
   'pieces.weak.table.band': '스텝당 시간',
   'pieces.weak.table.median': '중앙값',
   'pieces.weak.table.wrong': '틀린 음',
-  'pieces.weak.table.runs': '연주 횟수',
+  'pieces.weak.table.runs': '친 횟수',
   'pieces.weak.table.steady': '안정',
   'pieces.weak.table.yes': '예',
   'pieces.weak.table.help':
-    '지금 고른 손으로 각 마디를 친 최근 {n}회 연주 기준이에요. 도돌이표로 두 번 친 경우 둘 다 계산해요.',
+    '지금 고른 손으로 각 마디를 친 최근 {n}번 기준이에요. 도돌이표로 두 번 친 경우 둘 다 계산해요.',
   'pieces.plan': '계획',
   'pieces.plan.help':
     '곡을 악구마다 한 손씩, 양손, 박자에 맞춰, 마지막으로 곡 전체 순서로 연습하고, 다음에 할 것을 알려 줘요.',
@@ -2086,7 +2088,7 @@ export const ko: Dictionary = {
   'pieces.weak.metric.hesitation': '망설임',
   'pieces.weak.metric.timing': '타이밍',
   'pieces.weak.help.timing':
-    '지금 고른 손으로 친 최근 5회 리듬 연주에서 음이 박에서 얼마나 벗어났는지에 따라 마디에 색을 칠하고, 놓친 음과 더 친 음을 표시해요.',
+    '지금 고른 손으로 리듬 모드에서 최근 다섯 번 치는 동안 음이 박에서 얼마나 벗어났는지에 따라 마디에 색을 칠하고, 놓친 음과 더 친 음을 표시해요.',
   'pieces.weak.group.timing':
     '박에서 벗어난 정도로 색칠한 악보의 마디예요. 화살표 키로 마디 사이를 이동해요.',
   'pieces.weak.legend.timing': '박에서 벗어난 정도(ms)',
@@ -2097,26 +2099,27 @@ export const ko: Dictionary = {
   'pieces.weak.missed.value': '{n}개 (음당 {rate})',
   'pieces.weak.allMissed': '모든 음을 놓침',
   'pieces.weak.steady.timing':
-    '안정: 최근 3회 모두 박과의 차이가 30ms 이내였고, 놓친 음도 더 친 음도 없었어요.',
-  'pieces.weak.noData.timing': '아직 데이터가 부족해요. 리듬 연주 {runs}회와 {steps}음이 필요해요.',
+    '안정: 최근 3번 모두 박과의 차이가 30ms 이내였고, 놓친 음도 더 친 음도 없었어요.',
+  'pieces.weak.noData.timing':
+    '아직 데이터가 부족해요. 리듬 모드에서 {runs}번 치고 {steps}음이 쌓여야 해요.',
   'pieces.weak.aria.timing':
-    '{bar}: 박에서 {time}, {band}. {steps}음 중 놓치거나 더 친 음 {wrong}개. {runs}회 연주.',
+    '{bar}: 박에서 {time}, {band}. {steps}음 중 놓치거나 더 친 음 {wrong}개. {runs}번 쳤어요.',
   'pieces.weak.table.title.timing': '박이 어긋난 마디 (약한 순)',
   'pieces.weak.table.band.timing': '박과의 차이',
   'pieces.weak.table.wrong.timing': '놓친 음·더 친 음',
   'pieces.weak.table.help.timing':
-    '지금 고른 손으로 각 마디를 친 최근 {n}회 리듬 연주 기준이에요. 도돌이표로 두 번 친 경우 둘 다 계산해요.',
+    '지금 고른 손으로 리듬 모드에서 각 마디를 친 최근 {n}번 기준이에요. 도돌이표로 두 번 친 경우 둘 다 계산해요.',
   'pieces.weak.loop.none.timing':
-    '먼저 리듬 연주를 몇 번 해 보세요. 마디마다 두 번 이상 쳐야 판단할 수 있어요.',
+    '먼저 리듬 모드에서 몇 번 쳐 보세요. 마디마다 두 번 이상 쳐야 판단할 수 있어요.',
   'pieces.weak.metric.memory': '암보',
   'pieces.weak.help.memory':
     '이 손으로 친 최근 다섯 번의 암보 연습에서 마디마다 필요했던 도움 횟수로 마디에 색을 칠해요: 가려져 있을 때 틀린 건반과 살짝 보기.',
   'pieces.weak.group.memory':
-    '연주 한 번당 도움 횟수로 본 악보의 마디. 화살표 키로 마디 사이를 옮겨 다닐 수 있어요.',
+    '한 번당 도움 횟수로 본 악보의 마디. 화살표 키로 마디 사이를 옮겨 다닐 수 있어요.',
   'pieces.weak.legend.memory': '한 번당 도움',
   'pieces.weak.noData.memory':
     '아직 데이터가 부족해요: 암보 연습 {runs}번과 {steps}스텝이 필요해요.',
-  'pieces.weak.perRun': '최근 연주의 평균',
+  'pieces.weak.perRun': '최근 몇 번의 평균',
   'pieces.weak.perRun.value': '{value}번(한 번당)',
   'pieces.weak.steady.memory': '안정: 최근 3번의 암보 연습에서 도움 없음.',
   'pieces.weak.loop.none.memory':
@@ -3042,6 +3045,8 @@ export const ko: Dictionary = {
   'midi.status.unsupported.app': 'MIDI를 쓸 수 없어요',
   'midi.help.unsupported.app':
     '이 기기에서 MIDI를 시작하지 못했어요. dacapo를 닫았다가 다시 여세요. 그동안은 화면의 건반이나 컴퓨터 키보드로 칠 수 있어요.',
+  'midi.help.unsupported.touch.app':
+    '이 기기에서 MIDI를 시작하지 못했어요. dacapo를 닫았다가 다시 여세요. 그동안은 화면의 건반으로 칠 수 있어요.',
   'midi.status.noPermission.app': 'MIDI를 쓸 수 없어요',
   'midi.help.noPermission.app': '이 기기에서 MIDI를 열지 못했어요.',
   'midi.help.noDevice.app':

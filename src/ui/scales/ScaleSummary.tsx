@@ -469,6 +469,7 @@ export function ScaleSummary({
           <dt>{t('scales.result.spread')}</dt>
           <dd>
             {two ? <PerHand hands={hands} value={spreadOf} word={handWord} /> : spreadOf(lead)}
+            {rough && <wbr />}
             {rough && <span className="scale-rough"> {t('scales.result.rough')}</span>}
           </dd>
         </div>

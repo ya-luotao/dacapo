@@ -196,6 +196,8 @@ export const en = {
   'midi.unnamedDevice': 'MIDI device',
   'midi.help.unsupported':
     'This browser cannot talk to MIDI keyboards. Use Chrome or Edge on a computer — or play with your computer keyboard for now.',
+  'midi.help.unsupported.touch':
+    'This browser cannot talk to MIDI keyboards. Use Chrome or Edge on a computer — or play on the keys on the screen for now.',
   'midi.help.noPermission':
     'dacapo needs permission to use MIDI devices. Allow MIDI for this site in the browser’s site settings, then try again.',
   'midi.help.noDevice':
@@ -1666,7 +1668,7 @@ export const en = {
   'pieces.trillStart.upper': 'the note above',
   'pieces.weak': 'Weak bars',
   'pieces.weak.help':
-    'Tints each bar by how long its steps took in your last five runs with these hands, and marks wrong notes.',
+    'Tints each bar by how long its steps took in your last five times through with these hands, and marks wrong notes.',
   'pieces.weak.group':
     'Bars of the score by time per step. Use the arrow keys to move between bars.',
   'pieces.weak.legend': 'Time per step, in seconds',
@@ -1675,7 +1677,8 @@ export const en = {
   'pieces.weak.table': 'Table',
   'pieces.weak.loop': 'Loop the weakest bars',
   'pieces.weak.loop.bars': 'Loop the weakest bars ({bars})',
-  'pieces.weak.loop.none': 'Play a few runs first: a bar needs two runs before it can be judged.',
+  'pieces.weak.loop.none':
+    'Play it a few times first: a bar needs two times through before it can be judged.',
   'pieces.weak.loading': 'Reading your runs…',
   'pieces.weak.stale.one':
     'One older run was recorded on a different version of this score and is not counted.',
@@ -1687,28 +1690,29 @@ export const en = {
   'pieces.weak.writtenKey':
     'These are your runs in the written key. Tick All keys to count the runs in this key too.',
   'pieces.weak.perStep': 'median per step',
-  'pieces.weak.runs': 'Runs (last {n})',
+  'pieces.weak.runs': 'Times through (last {n})',
   'pieces.weak.steps': 'Steps',
   'pieces.weak.wrong': 'Wrong notes',
   'pieces.weak.wrong.value': '{n} ({rate} per step)',
-  'pieces.weak.passes': 'Played twice in a run: both passes count.',
+  'pieces.weak.passes': 'Played twice each time through: both passes count.',
   'pieces.weak.steady':
-    'Steady: your last 3 runs were under a second per step, with no wrong note.',
-  'pieces.weak.noData.details': 'Not enough data yet: it takes {runs} runs and {steps} steps.',
+    'Steady: your last 3 times through were under a second per step, with no wrong note.',
+  'pieces.weak.noData.details':
+    'Not enough data yet: it takes {runs} times through and {steps} steps.',
   'pieces.weak.aria':
-    '{bar}: {time} per step, {band}; {wrong} wrong notes in {steps} steps; {runs} runs.',
-  'pieces.weak.aria.noData': '{bar}: not enough data yet; {runs} runs.',
+    '{bar}: {time} per step, {band}; {wrong} wrong notes in {steps} steps; times through: {runs}.',
+  'pieces.weak.aria.noData': '{bar}: not enough data yet; times through: {runs}.',
   'pieces.weak.table.title': 'Weak bars, weakest first',
   'pieces.weak.table.close': 'Close',
   'pieces.weak.table.bar': 'Bar',
   'pieces.weak.table.band': 'Time per step',
   'pieces.weak.table.median': 'Median',
   'pieces.weak.table.wrong': 'Wrong notes',
-  'pieces.weak.table.runs': 'Runs',
+  'pieces.weak.table.runs': 'Times through',
   'pieces.weak.table.steady': 'Steady',
   'pieces.weak.table.yes': 'Yes',
   'pieces.weak.table.help':
-    'From your last {n} runs with these hands that played each bar; both passes of a repeat count.',
+    'From your last {n} times through each bar with these hands; both passes of a repeat count.',
   'pieces.plan': 'Plan',
   'pieces.plan.help':
     'Shows the piece phrase by phrase: each hand, then together, then in time, then the whole piece, with what to do next.',
@@ -2111,7 +2115,7 @@ export const en = {
   'pieces.weak.metric.hesitation': 'Hesitation',
   'pieces.weak.metric.timing': 'Timing',
   'pieces.weak.help.timing':
-    'Tints each bar by how far from the beat its notes were in your last five rhythm runs with these hands, and marks missed and extra notes.',
+    'Tints each bar by how far from the beat its notes were in your last five times through in rhythm mode with these hands, and marks missed and extra notes.',
   'pieces.weak.group.timing':
     'Bars of the score by distance from the beat. Use the arrow keys to move between bars.',
   'pieces.weak.legend.timing': 'Distance from the beat, in ms',
@@ -2122,38 +2126,38 @@ export const en = {
   'pieces.weak.missed.value': '{n} ({rate} per note)',
   'pieces.weak.allMissed': 'every note missed',
   'pieces.weak.steady.timing':
-    'Steady: your last 3 runs were within 30 ms of the beat, with nothing missed or extra.',
+    'Steady: your last 3 times through were within 30 ms of the beat, with nothing missed or extra.',
   'pieces.weak.noData.timing':
-    'Not enough data yet: it takes {runs} rhythm runs and {steps} notes.',
+    'Not enough data yet: it takes {runs} times through in rhythm mode and {steps} notes.',
   'pieces.weak.aria.timing':
-    '{bar}: {time} from the beat, {band}; {wrong} missed or extra of {steps} notes; {runs} runs.',
+    '{bar}: {time} from the beat, {band}; {wrong} missed or extra of {steps} notes; times through: {runs}.',
   'pieces.weak.table.title.timing': 'Bars off the beat, weakest first',
   'pieces.weak.table.band.timing': 'Distance from the beat',
   'pieces.weak.table.wrong.timing': 'Missed and extra',
   'pieces.weak.table.help.timing':
-    'From your last {n} rhythm runs with these hands that played each bar; both passes of a repeat count.',
+    'From your last {n} times through each bar in rhythm mode with these hands; both passes of a repeat count.',
   'pieces.weak.loop.none.timing':
-    'Play a few rhythm runs first: a bar needs two runs before it can be judged.',
+    'Play it a few times in rhythm mode first: a bar needs two times through before it can be judged.',
   'pieces.weak.metric.memory': 'Memory',
   'pieces.weak.help.memory':
-    'Tints each bar by how many prompts it needed in your last five memory runs with these hands: wrong keys and peeks while it was hidden.',
+    'Tints each bar by how many prompts it needed in your last five times through from memory with these hands: wrong keys and peeks while it was hidden.',
   'pieces.weak.group.memory':
-    'Bars of the score by prompts per run. Use the arrow keys to move between bars.',
-  'pieces.weak.legend.memory': 'Prompts per run',
+    'Bars of the score by prompts per time through. Use the arrow keys to move between bars.',
+  'pieces.weak.legend.memory': 'Prompts per time through',
   'pieces.weak.noData.memory':
-    'Not enough data yet: it takes {runs} memory runs and {steps} steps.',
-  'pieces.weak.perRun': 'over the last runs',
-  'pieces.weak.perRun.value': '{value} a run',
-  'pieces.weak.steady.memory': 'Steady: no prompt in your last 3 memory runs.',
+    'Not enough data yet: it takes {runs} times through from memory and {steps} steps.',
+  'pieces.weak.perRun': 'over the last times through',
+  'pieces.weak.perRun.value': '{value} a time',
+  'pieces.weak.steady.memory': 'Steady: no prompt in your last 3 times through from memory.',
   'pieces.weak.loop.none.memory':
-    'Play a few memory runs first: a bar needs two runs before it can be judged.',
+    'Play it a few times from memory first: a bar needs two times through before it can be judged.',
   'pieces.weak.table.title.memory': 'Bars that need prompts, weakest first',
-  'pieces.weak.table.band.memory': 'Prompts per run',
-  'pieces.weak.table.median.memory': 'Per run',
+  'pieces.weak.table.band.memory': 'Prompts per time through',
+  'pieces.weak.table.median.memory': 'Per time through',
   'pieces.weak.table.help.memory':
-    'From your last {n} memory runs with these hands that played each bar; both passes of a repeat count.',
+    'From your last {n} times through each bar from memory with these hands; both passes of a repeat count.',
   'pieces.weak.aria.memory':
-    '{bar}: prompts {time}, {band}; {wrong} wrong notes in {steps} steps; {runs} runs.',
+    '{bar}: prompts {time}, {band}; {wrong} wrong notes in {steps} steps; times through: {runs}.',
   'pieces.ms': '{value} ms',
   'pieces.advice.wrong.hands': 'Many wrong notes ({wrong} in {steps}): one hand at a time first.',
   'pieces.advice.wrong.bars': 'Many wrong notes ({wrong} in {steps}): a few bars at a time.',
@@ -3083,6 +3087,8 @@ export const en = {
   'midi.status.unsupported.app': 'MIDI is not available',
   'midi.help.unsupported.app':
     'dacapo could not start MIDI on this device. Close dacapo and open it again — until then, play on the keyboard on screen or a computer keyboard.',
+  'midi.help.unsupported.touch.app':
+    'dacapo could not start MIDI on this device. Close dacapo and open it again — until then, play on the keyboard on screen.',
   'midi.status.noPermission.app': 'MIDI is not available',
   'midi.help.noPermission.app': 'dacapo could not open MIDI on this device.',
   'midi.help.noDevice.app':

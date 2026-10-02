@@ -2,19 +2,15 @@ import { useI18n, useT, type MessageKey } from '../../i18n/index.ts';
 import type { MidiStatus } from '../../input/index.ts';
 import { isBuiltin } from '../../output/output.ts';
 import { useInput, useMidiStatus } from '../input/context.ts';
+import { useTouchOnly } from '../input/touchOnly.ts';
 import { useOutputState } from '../output/context.ts';
+import { deviceHelp } from './deviceHelp.ts';
 
 const LABELS: Record<Exclude<MidiStatus['state'], 'connected'>, MessageKey> = {
   pending: 'midi.status.pending',
   unsupported: 'midi.status.unsupported',
   'no-permission': 'midi.status.noPermission',
   'no-device': 'midi.status.noDevice',
-};
-
-const HELP: Partial<Record<MidiStatus['state'], MessageKey>> = {
-  unsupported: 'midi.help.unsupported',
-  'no-permission': 'midi.help.noPermission',
-  'no-device': 'midi.help.noDevice',
 };
 
 export function DeviceStatus() {
@@ -67,7 +63,7 @@ export function DeviceHelp() {
   const t = useT();
   const { midi } = useInput();
   const status = useMidiStatus();
-  const help = HELP[status.state];
+  const help = deviceHelp(status.state, useTouchOnly());
   if (!help) return null;
 
   return (

@@ -191,6 +191,8 @@ export const zhTW: Dictionary = {
   'midi.unnamedDevice': 'MIDI 裝置',
   'midi.help.unsupported':
     '這個瀏覽器無法連接 MIDI 鍵盤。請在電腦上使用 Chrome 或 Edge，或者先用電腦鍵盤彈奏。',
+  'midi.help.unsupported.touch':
+    '這個瀏覽器無法連接 MIDI 鍵盤。請在電腦上使用 Chrome 或 Edge，或者先用螢幕上的琴鍵彈奏。',
   'midi.help.noPermission':
     'dacapo 需要使用 MIDI 裝置的權限。請在瀏覽器的網站設定中允許這個網站使用 MIDI，然後再試一次。',
   'midi.help.noDevice': '用 USB 線連接鍵盤並開啟電源，連接後就會自動顯示在這裡。',
@@ -2921,6 +2923,8 @@ export const zhTW: Dictionary = {
   'midi.status.unsupported.app': '無法使用 MIDI',
   'midi.help.unsupported.app':
     'dacapo 無法在這台裝置上啟動 MIDI。請關閉 dacapo 再重新開啟；在那之前，可以用畫面上的鍵盤或電腦鍵盤彈奏。',
+  'midi.help.unsupported.touch.app':
+    'dacapo 無法在這台裝置上啟動 MIDI。請關閉 dacapo 再重新開啟；在那之前，可以用畫面上的鍵盤彈奏。',
   'midi.status.noPermission.app': '無法使用 MIDI',
   'midi.help.noPermission.app': 'dacapo 無法在這台裝置上開啟 MIDI。',
   'midi.help.noDevice.app': '連接 MIDI 鍵盤並開啟電源，連接後就會自動顯示在這裡。',

@@ -198,6 +198,8 @@ export const ja: Dictionary = {
   'midi.unnamedDevice': 'MIDI機器',
   'midi.help.unsupported':
     'このブラウザはMIDIキーボードに対応していません。パソコンでChromeかEdgeを使うか、ひとまずパソコンのキーボードで弾いてください。',
+  'midi.help.unsupported.touch':
+    'このブラウザはMIDIキーボードに対応していません。パソコンでChromeかEdgeを使うか、ひとまず画面の鍵盤で弾いてください。',
   'midi.help.noPermission':
     'dacapoがMIDI機器を使うには許可が必要です。ブラウザのサイト設定でこのサイトのMIDIを許可してから、もう一度お試しください。',
   'midi.help.noDevice':
@@ -1659,7 +1661,7 @@ export const ja: Dictionary = {
   'pieces.trillStart.upper': '上の音から',
   'pieces.weak': '苦手な小節',
   'pieces.weak.help':
-    '選んでいる手で弾いた直近5回の練習をもとに、1ステップにかかった時間で小節を色分けし、ミスタッチに印をつけます。',
+    '選んでいる手で弾いた直近5回の通しをもとに、1ステップにかかった時間で小節を色分けし、ミスタッチに印をつけます。',
   'pieces.weak.group':
     '楽譜の小節（1ステップあたりの時間で色分け）。矢印キーで小節を移動できます。',
   'pieces.weak.legend': '1ステップあたりの時間（秒）',
@@ -1669,7 +1671,7 @@ export const ja: Dictionary = {
   'pieces.weak.loop': '苦手な小節をループ',
   'pieces.weak.loop.bars': '苦手な小節をループ（{bars}）',
   'pieces.weak.loop.none':
-    'まず何回か通して弾いてください。小節を判定するには、2回分の練習が必要です。',
+    'まず何回か通して弾いてください。小節を判定するには、2回分の通しが必要です。',
   'pieces.weak.loading': '練習記録を読み込んでいます…',
   'pieces.weak.stale.one':
     '以前の練習1回は、この楽譜の別のバージョンで記録されたため、数えていません。',
@@ -1680,27 +1682,27 @@ export const ja: Dictionary = {
   'pieces.weak.writtenKey':
     'ここに出ているのは原調の回です。「すべての調」をオンにすると、この調の回も数えます。',
   'pieces.weak.perStep': '1ステップあたりの中央値',
-  'pieces.weak.runs': '練習回数（直近{n}回）',
+  'pieces.weak.runs': '通した回数（直近{n}回）',
   'pieces.weak.steps': 'ステップ数',
   'pieces.weak.wrong': 'ミスタッチ',
   'pieces.weak.wrong.value': '{n}回（1ステップあたり{rate}）',
-  'pieces.weak.passes': '1回の練習で2度弾く小節です。どちらも数えます。',
+  'pieces.weak.passes': '1回の通しで2度弾く小節です。どちらも数えます。',
   'pieces.weak.steady': '安定：直近3回とも、1ステップ1秒未満・ミスタッチなしで弾けています。',
-  'pieces.weak.noData.details': 'データ不足：{runs}回の練習と{steps}ステップが必要です。',
+  'pieces.weak.noData.details': 'データ不足：{runs}回の通しと{steps}ステップが必要です。',
   'pieces.weak.aria':
-    '{bar}：1ステップあたり{time}、{band}。{steps}ステップ中ミスタッチ{wrong}回。練習{runs}回。',
-  'pieces.weak.aria.noData': '{bar}：データ不足。練習{runs}回。',
+    '{bar}：1ステップあたり{time}、{band}。{steps}ステップ中ミスタッチ{wrong}回。通し{runs}回。',
+  'pieces.weak.aria.noData': '{bar}：データ不足。通し{runs}回。',
   'pieces.weak.table.title': '苦手な小節（苦手な順）',
   'pieces.weak.table.close': '閉じる',
   'pieces.weak.table.bar': '小節',
   'pieces.weak.table.band': '1ステップあたりの時間',
   'pieces.weak.table.median': '中央値',
   'pieces.weak.table.wrong': 'ミスタッチ',
-  'pieces.weak.table.runs': '練習回数',
+  'pieces.weak.table.runs': '通した回数',
   'pieces.weak.table.steady': '安定',
   'pieces.weak.table.yes': '○',
   'pieces.weak.table.help':
-    '選んでいる手で各小節を弾いた直近{n}回の練習から集計しています。くり返しは2回とも数えます。',
+    '選んでいる手で各小節を弾いた直近{n}回の通しから集計しています。くり返しは2回とも数えます。',
   'pieces.plan': 'プラン',
   'pieces.plan.help':
     '曲をフレーズごとに、片手ずつ、両手、拍に合わせて、最後に曲全体、の順で進め、次にやることを示します。',
@@ -2106,7 +2108,7 @@ export const ja: Dictionary = {
   'pieces.weak.metric.hesitation': '迷い',
   'pieces.weak.metric.timing': 'タイミング',
   'pieces.weak.help.timing':
-    '選んでいる手で弾いた直近5回のリズム練習をもとに、音が拍からどれだけずれたかで小節を色分けし、弾き逃しと余分な音に印をつけます。',
+    'リズムモードで、選んでいる手で弾いた直近5回の通しをもとに、音が拍からどれだけずれたかで小節を色分けし、弾き逃しと余分な音に印をつけます。',
   'pieces.weak.group.timing': '楽譜の小節（拍からのずれで色分け）。矢印キーで小節を移動できます。',
   'pieces.weak.legend.timing': '拍からのずれ（ミリ秒）',
   'pieces.weak.wrongKey.timing': '1音あたりの弾き逃し・余分な音',
@@ -2117,35 +2119,36 @@ export const ja: Dictionary = {
   'pieces.weak.allMissed': 'すべて弾き逃し',
   'pieces.weak.steady.timing':
     '安定：直近3回とも拍からのずれが30ミリ秒以内で、弾き逃しも余分な音もありません。',
-  'pieces.weak.noData.timing': 'データ不足：{runs}回のリズム練習と{steps}音が必要です。',
+  'pieces.weak.noData.timing': 'データ不足：リズムモードでの通し{runs}回と{steps}音が必要です。',
   'pieces.weak.aria.timing':
-    '{bar}：拍から{time}、{band}。{steps}音中、弾き逃し・余分な音{wrong}回。練習{runs}回。',
+    '{bar}：拍から{time}、{band}。{steps}音中、弾き逃し・余分な音{wrong}回。通し{runs}回。',
   'pieces.weak.table.title.timing': '拍からずれている小節（ずれが大きい順）',
   'pieces.weak.table.band.timing': '拍からのずれ',
   'pieces.weak.table.wrong.timing': '弾き逃し・余分な音',
   'pieces.weak.table.help.timing':
-    '選んでいる手で各小節を弾いた直近{n}回のリズム練習から集計しています。くり返しは2回とも数えます。',
+    'リズムモードで、選んでいる手で各小節を弾いた直近{n}回の通しから集計しています。くり返しは2回とも数えます。',
   'pieces.weak.loop.none.timing':
-    'まず何回かリズム練習をしてください。小節を判定するには、2回分の練習が必要です。',
+    'まずリズムモードで何回か通して弾いてください。小節を判定するには、2回分の通しが必要です。',
   'pieces.weak.metric.memory': '暗譜',
   'pieces.weak.help.memory':
-    'この手で弾いた直近5回の暗譜練習で、各小節に必要だったヒントの数で小節に色をつけます（隠れているあいだのミスタッチとのぞき見）。',
+    '暗譜で、この手で弾いた直近5回の通しをもとに、各小節に必要だったヒントの数で小節に色をつけます（隠れているあいだのミスタッチとのぞき見）。',
   'pieces.weak.group.memory':
-    '1回あたりのヒントの数で見た楽譜の小節。矢印キーで小節を移動できます。',
+    '通し1回あたりのヒントの数で見た楽譜の小節。矢印キーで小節を移動できます。',
   'pieces.weak.legend.memory': '1回あたりのヒント',
   'pieces.weak.noData.memory':
-    'まだデータが足りません：暗譜練習{runs}回と{steps}ステップが必要です。',
-  'pieces.weak.perRun': '直近の回の平均',
+    'まだデータが足りません：暗譜での通し{runs}回と{steps}ステップが必要です。',
+  'pieces.weak.perRun': '直近の通しの平均',
   'pieces.weak.perRun.value': '{value}回（1回あたり）',
-  'pieces.weak.steady.memory': '安定：直近3回の暗譜練習でヒントなし。',
-  'pieces.weak.loop.none.memory': 'まず暗譜で何回か弾きましょう：小節の判定には2回分が必要です。',
+  'pieces.weak.steady.memory': '安定：暗譜での直近3回の通しでヒントなし。',
+  'pieces.weak.loop.none.memory':
+    'まず暗譜で何回か通して弾きましょう：小節の判定には2回分の通しが必要です。',
   'pieces.weak.table.title.memory': 'ヒントが必要な小節（苦手な順）',
   'pieces.weak.table.band.memory': '1回あたりのヒント',
   'pieces.weak.table.median.memory': '1回あたり',
   'pieces.weak.table.help.memory':
-    'その小節を弾いた、この手での直近{n}回の暗譜練習から。反復の2回目も数えます。',
+    'その小節を弾いた、この手での暗譜の直近{n}回の通しから。反復の2回目も数えます。',
   'pieces.weak.aria.memory':
-    '{bar}：ヒント{time}、{band}。{steps}ステップでミスタッチ{wrong}回。{runs}回。',
+    '{bar}：ヒント{time}、{band}。{steps}ステップでミスタッチ{wrong}回。通し{runs}回。',
   'pieces.ms': '{value}ミリ秒',
   'pieces.advice.wrong.hands':
     'ミスタッチが多めです（{steps}ステップ中{wrong}回）。まずは片手ずつ練習しましょう。',
@@ -3075,6 +3078,8 @@ export const ja: Dictionary = {
   'midi.status.unsupported.app': 'MIDIを使えません',
   'midi.help.unsupported.app':
     'この端末でMIDIを開始できませんでした。dacapoを閉じて、もう一度開いてください。それまでは、画面の鍵盤かパソコンのキーボードで弾けます。',
+  'midi.help.unsupported.touch.app':
+    'この端末でMIDIを開始できませんでした。dacapoを閉じて、もう一度開いてください。それまでは、画面の鍵盤で弾けます。',
   'midi.status.noPermission.app': 'MIDIを使えません',
   'midi.help.noPermission.app': 'この端末でMIDIを開けませんでした。',
   'midi.help.noDevice.app':

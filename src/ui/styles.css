@@ -8826,6 +8826,20 @@ select.is-compact {
   margin: 0 0 1rem;
 }
 
+/* "(rough: few notes)" beside the spread where its column holds both, as far as the column's
+   rule, and under it where it does not (Japanese, Chinese). The break is the <wbr> before it. */
+.scale-summary .figures div:has(> dd > .scale-rough) {
+  padding-inline-end: 0;
+}
+
+.scale-summary .figures dd:has(> .scale-rough) {
+  white-space: normal;
+}
+
+.scale-summary .figures dd > .scale-rough {
+  white-space: nowrap;
+}
+
 /* With the click, a second row of figures: the run against it. */
 .scale-summary .scale-click-figures {
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -13368,6 +13382,11 @@ a.today-step-name::after {
   border-color: var(--accent);
   background: var(--accent-soft);
   color: var(--accent);
+}
+
+/* The four lengths fit a phone's width in every language: less room beside each there. */
+.plate-choices.is-lengths span {
+  padding-inline: clamp(0.375rem, 2vw, 0.875rem);
 }
 
 .plan-bar {
