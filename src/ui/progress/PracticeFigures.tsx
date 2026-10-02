@@ -1,5 +1,6 @@
-import { STREAK_GOAL_MS, type PracticeLog } from '../../core/streak.ts';
-import { useT } from '../../i18n/index.ts';
+import { Link } from 'wouter';
+import type { PracticeLog } from '../../core/streak.ts';
+import { SENTENCE_GAP, useI18n } from '../../i18n/index.ts';
 import { useLogFormat } from './format.ts';
 
 const MINUTE_MS = 60_000;
@@ -12,9 +13,9 @@ export function PracticeFigures({
   log: PracticeLog;
   piecesToday?: number | null;
 }) {
-  const t = useT();
+  const { t, locale } = useI18n();
   const format = useLogFormat();
-  const reached = log.todayMs >= STREAK_GOAL_MS;
+  const reached = log.todayMs >= log.goalMs;
 
   return (
     <div className="practice-figures">
@@ -39,13 +40,18 @@ export function PracticeFigures({
         {reached
           ? t('progress.today.reached')
           : t('progress.today.toGo', {
-              n: Math.ceil((STREAK_GOAL_MS - log.todayMs) / MINUTE_MS),
+              n: Math.ceil((log.goalMs - log.todayMs) / MINUTE_MS),
             })}
       </p>
       {piecesToday !== null && (
         <p className="help">{t('progress.pieces', { time: format.minutes(piecesToday) })}</p>
       )}
-      <p className="help">{t('progress.goal', { n: STREAK_GOAL_MS / MINUTE_MS })}</p>
+      {/* The goal is today's: the days before a change keep the goal they had. */}
+      <p className="help">
+        {t('progress.goal', { n: log.goalMs / MINUTE_MS })}
+        {SENTENCE_GAP[locale]}
+        <Link href="/settings">{t('progress.goal.change')}</Link>
+      </p>
     </div>
   );
 }

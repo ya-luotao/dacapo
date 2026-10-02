@@ -1,6 +1,7 @@
 # dacapo — Personal settings specification (your keyboard, your goal, your note names, your week)
 
-Status: planned. This extends [MVP.md](MVP.md) and the later specifications; their principles and
+Status: G6d (the daily goal) is built; the instrument's keys, note names and your week are
+planned. This extends [MVP.md](MVP.md) and the later specifications; their principles and
 fixed decisions still apply, with one of them changed on purpose (note names, below).
 
 Goal: dacapo treats every player alike in four places where players differ: it assumes 88 keys,
@@ -86,9 +87,52 @@ names by default, do-re-mi for those who ask**.
 - **Home**, on the first two days of a week: one line under Today's figures, "Last week: 5 days,
   1 h 40 min, two levels mastered", linking to it.
 
+## Clarifications (decided during G6d/G6f)
+
+- **Code (the goal).** `core/goal.ts` has the goals to choose from, the history (`[day,
+minutes]` pairs, oldest first), `goalOn(history, day)`, `withGoal` for a change, and the
+  reading back (`parseGoalHistory`, strict, for an export file; `readGoalHistory` for the
+  preference). `core/streak.ts` takes a goal that is one figure or each day's own (`DayGoal`):
+  the streaks, the practice log, a month's days at goal; `goalSteps` is the chart's line and
+  `levelOn` a day's shade. `ui/progress/goal.ts` reads and writes `dacapo.goal`; it and
+  `core/goal.ts` load with the start (Home's line towards the goal reads them).
+- **A change counts from its own day.** Today is judged by the new goal at once: a day that had
+  reached five minutes has not reached twenty, so today leaves the streak until it does. The
+  streak up to yesterday stands, since today never breaks one.
+- **Changes on one day.** The last is kept. A change back to the goal of the day before leaves
+  no change at all (5 → 20 → 5 in one sitting is no history). A change dated after today (a
+  clock set back, a history from a device a day ahead) is dropped when the goal is next chosen:
+  the choice counts from today.
+- **The preference** is read field by field: a list of pairs, each a day the calendar has and
+  one of the six goals; given out of order it is put in order. Anything else is no history, and
+  the goal is five minutes for every day. With the goal at five throughout, nothing is kept.
+- **The 30-day chart.** Each bar is dark when its day reached its own goal. The goal line runs
+  level over each stretch of days with one goal and a riser joins two levels; the margin names
+  today's goal, and the table names each day's when the goal changed within the 30 days ("5 min
+  · ✓ Reached"). The chart is scaled so that the highest goal shown sits at most halfway up.
+- **The year grid.** Each day is shaded against its own goal, and a month's "days at goal" are
+  counted the same way. The legend is in the minutes of today's goal; when a day shown had
+  another, a line under it says so.
+- **Home and Progress.** The line towards the goal counts down to today's goal, and the
+  contents' "5 minutes a day" names it. On Progress the sentence under the figures names today's
+  goal and links to Settings.
+- **The control** is a row of six segments ("5 min" … "45 min"), in one row on a phone too: the
+  widest label (zh-TW's) has room to spare at 375 px and fits at 320, so no select was needed.
+- **Export and import.** A file always has `preferences.goal`, an empty list when no goal was
+  chosen. The file's version stays: a build from before reads the language and the theme from
+  `preferences` and leaves any other field, so it imports the file and its goal stays as it was.
+  On import, "Also apply the preferences" puts the file's history in place of the device's,
+  whole, with its days (the line names the goal the file has today). A file without `goal` says
+  nothing of the goal and changes none. A goal that cannot be read is listed with the invalid
+  records, as a bad language is, and none of the file's preferences is applied.
+- **Not for others.** The public profile publishes what it did (`core/profile.ts` is built with
+  five minutes a day, and a test holds it to that), and an assignment's minutes a day are the
+  teacher's, not the goal.
+
 ## Milestones
 
 1. **G6c The instrument's keys**
-2. **G6d The daily goal**
+2. ✓ **G6d The daily goal** — `core/goal.ts`, each day by the goal it had, the control in
+   Settings, the goal in the export file's preferences.
 3. **G6e Note names**
 4. **G6f Your week**

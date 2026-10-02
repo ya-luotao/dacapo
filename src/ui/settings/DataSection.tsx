@@ -1,4 +1,6 @@
 import { useId, useRef, useState } from 'react';
+import { GOAL_MINUTES, goalOn, withGoal, type GoalMinutes } from '../../core/goal.ts';
+import { dayKey } from '../../core/streak.ts';
 import {
   buildExport,
   exportFileName,
@@ -16,7 +18,9 @@ import { currentShell } from '../../lib/shell.ts';
 import { usePractice, usePracticeStore, useStorageStatus } from '../practice/context.ts';
 import { useSyncStatus } from '../sync/context.ts';
 import type { StorageStatus } from '../practice/store.ts';
+import { readGoal, writeGoal } from '../progress/goal.ts';
 import { useNow } from '../progress/useNow.ts';
+import { Segmented } from '../Segmented.tsx';
 import { ImportPreview } from './ImportPreview.tsx';
 import { OfflineBlock } from './OfflineBlock.tsx';
 
@@ -57,7 +61,8 @@ function storageMessage(status: StorageStatus): MessageKey {
 }
 
 interface DataSectionProps {
-  preferences: Preferences;
+  /** The preferences the page above keeps; the daily goal is this section's own. */
+  preferences: Omit<Preferences, 'goal'>;
   onApplyPreferences: (preferences: Preferences) => void;
 }
 
@@ -71,6 +76,14 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
   const now = useNow();
   const fileInput = useRef<HTMLInputElement>(null);
   const [state, setState] = useState<ImportState>({ step: 'idle' });
+  // The daily goal (docs/PERSONAL.md): kept as its changes, so the days before one keep theirs.
+  const [goal, setGoal] = useState(readGoal);
+
+  function onGoal(minutes: GoalMinutes) {
+    const changed = withGoal(goal, dayKey(Date.now()), minutes);
+    setGoal(changed);
+    writeGoal(changed);
+  }
 
   async function onExport() {
     let pieceSteps, scaleRuns, takes;
@@ -85,10 +98,11 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
       return;
     }
     const at = Date.now();
-    const file = buildExport({ ...data, pieceSteps, scaleRuns, takes }, preferences, {
-      now: at,
-      appVersion: __APP_VERSION__,
-    });
+    const file = buildExport(
+      { ...data, pieceSteps, scaleRuns, takes },
+      { ...preferences, goal },
+      { now: at, appVersion: __APP_VERSION__ },
+    );
     downloadText(exportText(file), exportFileName(at));
   }
 
@@ -138,7 +152,15 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
         takes: parsed.takes,
         assignments: parsed.assignments,
       });
-      if (applyPreferences && parsed.preferences) onApplyPreferences(parsed.preferences);
+      if (applyPreferences && parsed.preferences) {
+        // The file's goal takes this device's place, with its days; a file without one says
+        // nothing of the goal.
+        if (parsed.preferences.goal) {
+          setGoal(parsed.preferences.goal);
+          writeGoal(parsed.preferences.goal);
+        }
+        onApplyPreferences(parsed.preferences);
+      }
       setState({ step: 'done', added });
     } catch {
       setState({ step: 'failed' });
@@ -152,6 +174,16 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
       <p className={status.state === 'unavailable' ? 'data-status is-warning' : 'data-status'}>
         {t(storageMessage(status))}
       </p>
+
+      <Segmented
+        className="data-goal"
+        legend={t('settings.goal')}
+        name={`${id}-goal`}
+        options={GOAL_MINUTES.map((n) => ({ value: n, label: t('progress.minutes', { n }) }))}
+        value={goalOn(goal, dayKey(now))}
+        onChange={onGoal}
+        help={t('settings.goal.help')}
+      />
 
       <div className="data-actions">
         <div>
@@ -218,6 +250,7 @@ export function DataSection({ preferences, onApplyPreferences }: DataSectionProp
             assignmentIds: new Set(data.assignments.map((a) => a.id)),
           })}
           working={state.working}
+          today={dayKey(now)}
           onApply={(applyPreferences) =>
             void onApply(state.parsed, state.fileName, state.stored, applyPreferences)
           }

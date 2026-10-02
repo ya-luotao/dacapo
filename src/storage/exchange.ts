@@ -4,6 +4,7 @@ import {
   type AssignmentRecord,
   type LiveAssignmentRecord,
 } from '../core/assignmentRecords.ts';
+import { parseGoalHistory, type GoalHistory } from '../core/goal.ts';
 import { byStartDescending, byTime, type SessionRecord } from '../core/log.ts';
 import { byStepTime, type PieceStep } from '../core/pieceRecords.ts';
 import { byRunTime, type StoredScaleRun } from '../core/scaleRecords.ts';
@@ -48,6 +49,12 @@ export interface Preferences {
   /** null follows the browser language. */
   locale: Locale | null;
   theme: ThemePreference;
+  /**
+   * The daily goal as its changes, each with its day (core/goal.ts). A file from before the goal
+   * could be chosen has none: it says nothing of the goal, and importing it changes none. No new
+   * file version for it: an older build reads the language and the theme and leaves the rest.
+   */
+  goal?: GoalHistory;
 }
 
 export interface ExportFile {
@@ -100,7 +107,11 @@ export function buildExport(
     version: EXPORT_VERSION,
     exportedAt: new Date(now).toISOString(),
     app: { version: appVersion },
-    preferences: { locale: preferences.locale, theme: preferences.theme },
+    preferences: {
+      locale: preferences.locale,
+      theme: preferences.theme,
+      ...(preferences.goal && { goal: preferences.goal }),
+    },
     sessions: [...data.sessions].sort((a, b) => byStartDescending(b, a)),
     attempts: [...data.attempts].sort(byTime),
     noteStats: Object.values(data.stats).sort((a, b) => (a.key < b.key ? -1 : 1)),
@@ -187,7 +198,13 @@ function validatePreferences(value: unknown): Preferences | string {
   if (!isObject(value)) return 'record';
   if (value.locale !== null && !isLocale(value.locale)) return 'locale';
   if (!isThemePreference(value.theme)) return 'theme';
-  return { locale: value.locale, theme: value.theme };
+  const preferences: Preferences = { locale: value.locale, theme: value.theme };
+  if (value.goal !== undefined) {
+    const goal = parseGoalHistory(value.goal);
+    if (goal === null) return 'goal';
+    preferences.goal = goal;
+  }
+  return preferences;
 }
 
 function validateAll<T extends { id: string }>(

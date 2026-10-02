@@ -15,6 +15,20 @@ click's tempo and grid of scale runs played with it (from version 7), the takes 
 (from version 8), and assignments and kept reports (from version 9). Version 1 to 8 files still
 import.
 
+### The daily goal (G6d, [docs/PERSONAL.md](docs/PERSONAL.md))
+
+- **Settings → Your data → Daily goal**: 5, 10, 15, 20, 30 or 45 minutes a day; 5 as before.
+  The streak, the line towards today's goal on Home and Progress, the goal line of the 30-day
+  chart and the shades of the year grid (1×, 3× and 6× the goal) follow it.
+- **A change never rewrites the past.** Each change is kept with its day and a day is judged by
+  the goal it had: a streak earned at five minutes stays when the goal becomes twenty, the
+  chart's goal line steps on the day of the change, and the grid's earlier days keep their
+  shades.
+- Kept on the device (`dacapo.goal`) and not synced. The export file's preferences gain `goal`,
+  applied with the other preferences on import; the file's version stays, and an older build
+  imports such a file and leaves the goal. The public profile is as it was: its streak counts
+  five minutes a day.
+
 ### What to work on next: scales (G2b, [docs/ADVICE.md](docs/ADVICE.md))
 
 - After a scale or technique run, **one sentence under the verdict says what to work on

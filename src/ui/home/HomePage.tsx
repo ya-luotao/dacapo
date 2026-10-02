@@ -8,15 +8,17 @@ import { SIGHT_LEVELS } from '../../core/sightLevels.ts';
 import { TUNE_IDS } from '../../core/tuneList.ts';
 import { THEORY_LEVELS } from '../../core/theoryItems.ts';
 import { currentAssignments } from '../../core/assignmentRecords.ts';
+import { goalOn } from '../../core/goal.ts';
 import { LEVELS } from '../../core/levels.ts';
 import { LESSONS } from '../../learn/lessons.ts';
 import { MAX_BPM, MIN_BPM } from '../../core/pulse.ts';
-import { dayKey, STREAK_GOAL_MS } from '../../core/streak.ts';
+import { dayKey } from '../../core/streak.ts';
 import { useT, type MessageKey } from '../../i18n/index.ts';
 import { currentShell } from '../../lib/shell.ts';
 import { BUILT_IN_IDS } from '../../pieces/library/index.ts';
 import { readDone } from '../learn/progress.ts';
 import { usePractice, useStorageStatus } from '../practice/context.ts';
+import { readGoal } from '../progress/goal.ts';
 import { useNow } from '../progress/useNow.ts';
 import { readStartPref } from '../start/prefs.ts';
 import { readReturning, writeReturning } from '../today/prefs.ts';
@@ -27,8 +29,6 @@ import { Today } from './Today.tsx';
 const HomeAssignment = lazy(() =>
   import('../assignments/HomeAssignment.tsx').then((m) => ({ default: m.HomeAssignment })),
 );
-
-const MINUTE_MS = 60_000;
 
 /** The contents, like the first page of a method book: each practice, numbered as a movement. */
 const CONTENTS: readonly {
@@ -105,8 +105,8 @@ const CONTENTS: readonly {
     numeral: 'VIII',
     title: 'nav.progress',
     text: 'home.progress.text',
+    // Its minutes are today's goal, which the player may have chosen: filled in by the page.
     meta: 'home.progress.meta',
-    values: { n: STREAK_GOAL_MS / MINUTE_MS },
   },
 ];
 
@@ -212,6 +212,8 @@ export function HomePage() {
   const t = useT();
   const returning = useReturning();
   const web = currentShell() === 'web';
+  // The contents name today's goal: five minutes, unless another was chosen in Settings.
+  const [goalMinutes] = useState(() => goalOn(readGoal(), dayKey(Date.now())));
 
   return (
     <div className="home">
@@ -232,7 +234,9 @@ export function HomePage() {
                   <span className="contents-title">{t(item.title)}</span>
                   <span className="contents-text">{t(item.text)}</span>
                 </span>
-                <span className="contents-meta">{t(item.meta, item.values)}</span>
+                <span className="contents-meta">
+                  {t(item.meta, item.path === '/progress' ? { n: goalMinutes } : item.values)}
+                </span>
                 <Arrow />
               </Link>
             </li>

@@ -932,6 +932,7 @@ export const zhTW: Dictionary = {
   'progress.today.toGo': '距離今日目標還差 {n} 分鐘',
   'progress.goal':
     '一天至少練習 {n} 分鐘（音符閃卡、自由彈奏和樂曲合併計算，以你當地的日期為準），就算連續練習的一天。',
+  'progress.goal.change': '到「設定」變更目標',
   'where.title': '練到哪裡了',
   'where.help': '每項練習進行到了哪裡，下一步是什麼。',
   'where.lessons': '{of} 課中已讀完 {done} 課',
@@ -968,6 +969,7 @@ export const zhTW: Dictionary = {
   'progress.year.none': '未練習',
   'progress.year.under': '不到 {n} 分鐘',
   'progress.year.atLeast': '{n} 分鐘以上',
+  'progress.year.changed': '這段期間改過目標：每一天依當天的目標上色，圖例顯示的是今天的目標。',
   'progress.year.month': '月份',
   'progress.year.practised': '練習天數',
   'progress.year.reached': '達標天數',
@@ -2654,6 +2656,9 @@ export const zhTW: Dictionary = {
   'settings.storage.unknown': '已儲存在這台裝置上。',
   'settings.storage.memory': '未儲存：這個瀏覽器不讓 dacapo 儲存資料。關閉分頁前請先匯出。',
   'settings.storage.loading': '正在讀取練習紀錄⋯',
+  'settings.goal': '每日目標',
+  'settings.goal.help':
+    '一天至少練習這麼久，就算連續練習的一天。變更從今天起算，之前的日子仍依當時的目標計算。',
   'settings.export': '匯出資料',
   'settings.export.help':
     '下載 {file}，內含你的練習紀錄、作答紀錄、匯入的樂曲、樂曲和音階的練習明細、演奏實錄、作業以及偏好設定。',
@@ -2697,6 +2702,7 @@ export const zhTW: Dictionary = {
   'settings.import.record.assignments': '作業或報告',
   'settings.import.more': '⋯⋯還有 {n} 筆',
   'settings.import.prefs': '同時套用檔案中的偏好設定：{language}、{theme}',
+  'settings.import.prefs.goal': '、每日目標 {n} 分鐘',
   'settings.import.apply': '匯入',
   'settings.import.cancel': '取消',
   'settings.import.working': '正在匯入⋯',

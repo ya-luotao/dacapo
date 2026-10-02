@@ -952,6 +952,7 @@ export const ko: Dictionary = {
   'progress.today.toGo': '오늘 목표까지 {n}분',
   'progress.goal':
     '하루에 {n}분 이상 연습하면 연속 기록에 들어가요. 플래시 카드, 자유 연주, 곡 연습을 모두 합산하고, 날짜는 이 기기의 시간대를 기준으로 해요.',
+  'progress.goal.change': '설정에서 목표 바꾸기',
   'where.title': '현재 위치',
   'where.help': '연습마다 어디까지 왔는지, 다음에 할 것이 무엇인지 보여 줘요.',
   'where.lessons': '레슨 {of}개 중 {done}개 완료',
@@ -989,6 +990,8 @@ export const ko: Dictionary = {
   'progress.year.none': '연습 안 함',
   'progress.year.under': '{n}분 미만',
   'progress.year.atLeast': '{n}분 이상',
+  'progress.year.changed':
+    '이 기간에 목표가 바뀌었어요. 날마다 그날의 목표를 기준으로 색을 칠했고, 범례는 오늘 목표를 기준으로 해요.',
   'progress.year.month': '월',
   'progress.year.practised': '연습한 날',
   'progress.year.reached': '목표 달성한 날',
@@ -2761,6 +2764,9 @@ export const ko: Dictionary = {
   'settings.storage.memory':
     '저장 안 됨: 이 브라우저가 dacapo의 데이터 저장을 허용하지 않아요. 탭을 닫기 전에 내보내세요.',
   'settings.storage.loading': '연습 기록을 불러오는 중…',
+  'settings.goal': '하루 목표',
+  'settings.goal.help':
+    '하루에 이만큼 연습하면 연속 기록에 들어가요. 바꾼 목표는 오늘부터 적용되고, 그 전의 날은 그때의 목표 그대로예요.',
   'settings.export': '데이터 내보내기',
   'settings.export.help':
     '연습 내역, 응답, 가져온 곡, 곡과 스케일의 연습 상세 기록, 연주 테이크, 과제, 환경설정을 담은 {file} 파일을 내려받아요.',
@@ -2806,6 +2812,7 @@ export const ko: Dictionary = {
   'settings.import.record.assignments': '과제 또는 보고서',
   'settings.import.more': '…외 {n}개',
   'settings.import.prefs': '파일의 환경설정도 적용: {language}, {theme}',
+  'settings.import.prefs.goal': ', 하루 목표 {n}분',
   'settings.import.apply': '가져오기',
   'settings.import.cancel': '취소',
   'settings.import.working': '가져오는 중…',

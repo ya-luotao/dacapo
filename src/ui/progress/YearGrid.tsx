@@ -1,10 +1,9 @@
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import {
   LEVEL_GOALS,
+  levelOn,
   monthStarts,
   monthTotals,
-  practiceLevel,
-  STREAK_GOAL_MS,
   weekday,
   yearGrid,
   type DayKey,
@@ -16,13 +15,18 @@ const MINUTE_MS = 60_000;
 /** Monday, Wednesday and Friday are labelled, wherever the week starts. */
 const LABELLED_WEEKDAYS = [1, 3, 5];
 
-/** A year of practice as a grid of weeks, each day shaded by how long it was practised. */
+/**
+ * A year of practice as a grid of weeks, each day shaded by how long it was practised, against
+ * the goal that day had (`goal`, in ms): a goal changed since does not reshade the past.
+ */
 export function YearGrid({
   totals,
   today,
+  goal,
 }: {
   totals: ReadonlyMap<DayKey, number>;
   today: DayKey;
+  goal: (day: DayKey) => number;
 }) {
   const { t, locale } = useI18n();
   const format = useLogFormat();
@@ -32,11 +36,13 @@ export function YearGrid({
     [totals, today, locale],
   );
   const days = useMemo(() => columns.flat().filter((d) => d !== null), [columns]);
-  const months = useMemo(() => monthTotals(days), [days]);
+  const months = useMemo(() => monthTotals(days, goal), [days, goal]);
   const labels = useMemo(() => monthStarts(columns), [columns]);
   const practised = days.filter((d) => d.ms > 0).length;
-  const reached = days.filter((d) => d.ms >= STREAK_GOAL_MS).length;
-  const goal = STREAK_GOAL_MS / MINUTE_MS;
+  const reached = days.filter((d) => d.ms >= goal(d.day)).length;
+  // The legend is in the minutes of today's goal; it says so when a day here had another.
+  const minutes = goal(today) / MINUTE_MS;
+  const changed = days.some((d) => goal(d.day) !== goal(today));
 
   // On a narrow screen the grid scrolls; start at the end, where today is. Keyed on the day, not
   // the totals, which are recomputed every minute and would undo the reader's scrolling.
@@ -74,7 +80,7 @@ export function YearGrid({
                   <span
                     key={d.day}
                     className="year-cell"
-                    data-level={practiceLevel(d.ms)}
+                    data-level={levelOn(d, goal)}
                     data-today={d.day === today || undefined}
                     title={t('progress.history.bar', {
                       day: format.fullDay(d.day),
@@ -94,15 +100,16 @@ export function YearGrid({
         </li>
         <li>
           <span className="year-cell" data-level={1} aria-hidden="true" />
-          {t('progress.year.under', { n: goal })}
+          {t('progress.year.under', { n: minutes })}
         </li>
         {LEVEL_GOALS.map((times, i) => (
           <li key={times}>
             <span className="year-cell" data-level={i + 2} aria-hidden="true" />
-            {t('progress.year.atLeast', { n: goal * times })}
+            {t('progress.year.atLeast', { n: minutes * times })}
           </li>
         ))}
       </ul>
+      {changed && <p className="help year-changed">{t('progress.year.changed')}</p>}
       <details className="history-details">
         <summary>{t('progress.history.table')}</summary>
         <table className="history-table">

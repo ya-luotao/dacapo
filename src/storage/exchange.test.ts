@@ -1,6 +1,7 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { recoverEarSummary, type EarAnswer } from '../core/earSession.ts';
+import type { GoalHistory } from '../core/goal.ts';
 import type { SessionRecord } from '../core/log.ts';
 import { takeChunkId } from '../core/takes.ts';
 import { tunePrompt } from '../core/tunes.ts';
@@ -350,6 +351,59 @@ describe('parseImport', () => {
       expect(file.invalid).toEqual([]);
     },
   );
+
+  // The daily goal (docs/PERSONAL.md): its changes go with the preferences, each with its day.
+  it('exports the daily goal with the preferences and reads it back', async () => {
+    const repo = await freshRepository();
+    const data = await repo.load();
+    const records = { ...data, pieceSteps: [], scaleRuns: [], takes: [] };
+    const goal: GoalHistory = [
+      ['2026-09-10', 20],
+      ['2026-09-24', 10],
+    ];
+    const file = buildExport(records, { ...PREFS, goal }, { now: NOW, appVersion: '0.0.0' });
+    expect(file.preferences).toEqual({ ...PREFS, goal });
+    const back = parsed(exportText(file));
+    expect(back.preferences).toEqual({ ...PREFS, goal });
+    expect(back.invalid).toEqual([]);
+    // No goal chosen: the file says so, as a history without a change.
+    const none = buildExport(records, { ...PREFS, goal: [] }, { now: NOW, appVersion: '0.0.0' });
+    expect(parsed(exportText(none)).preferences).toEqual({ ...PREFS, goal: [] });
+    // The file's version is the one it had: an older build reads the language and the theme.
+    expect(file.version).toBe(EXPORT_VERSION);
+  });
+
+  it('reads a file from before the goal could be chosen as saying nothing of it', () => {
+    const file = parsed(fileWith({}));
+    expect(file.preferences).toEqual(PREFS);
+    expect(file.preferences).not.toHaveProperty('goal');
+    expect(file.invalid).toEqual([]);
+  });
+
+  it('reads the goal’s changes in order, and lists a goal it cannot read', () => {
+    const outOfOrder = parsed(
+      fileWith({
+        preferences: {
+          ...PREFS,
+          goal: [
+            ['2026-09-24', 10],
+            ['2026-09-10', 20],
+          ],
+        },
+      }),
+    );
+    expect(outOfOrder.preferences?.goal).toEqual([
+      ['2026-09-10', 20],
+      ['2026-09-24', 10],
+    ]);
+    for (const goal of [[['2026-09-10', 25]], [['2026-02-30', 20]], 20, null, 'twenty']) {
+      const file = parsed(fileWith({ preferences: { ...PREFS, goal } }));
+      expect(file.preferences, JSON.stringify(goal)).toBeNull();
+      expect(file.invalid).toEqual([
+        { collection: 'preferences', index: 0, field: 'goal', problem: 'invalid' },
+      ]);
+    }
+  });
 
   it('reads the export date and app version when present', () => {
     const file = parsed(fileWith({ app: 'x', exportedAt: 5 }));

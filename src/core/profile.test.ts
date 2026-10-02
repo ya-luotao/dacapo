@@ -16,6 +16,13 @@ import { tonicsFor } from './scales.ts';
 import { EXERCISE_TYPES } from './scaleTypes.ts';
 import { isTechnique, techniqueRules } from './technique.ts';
 import type { StoredPiece } from './storedPiece.ts';
+import { goalMsOn } from './goal.ts';
+import { practiceLog } from './streak.ts';
+
+/** The module's own text: it must not come to read the device's daily goal. */
+const PROFILE_SOURCE = Object.values(
+  import.meta.glob<string>('./profile.ts', { query: '?raw', import: 'default', eager: true }),
+)[0]!;
 
 const MIN = 60_000;
 const DAY = 24 * 60 * MIN;
@@ -302,6 +309,41 @@ describe('buildProfile', () => {
       totals: { days: 4, ms: 43 * MIN },
     });
     expect(document).not.toHaveProperty('activity');
+  });
+
+  // The daily goal is the device's own (docs/PERSONAL.md): the page keeps the service's shades
+  // and the streak of five minutes a day, so what is published does not depend on it.
+  it('publishes the streak of five minutes a day, whatever goal the device has', () => {
+    const sessions = [
+      free('a', NOW - 2 * DAY, 6 * MIN),
+      free('b', NOW - DAY, 5 * MIN),
+      free('c', NOW, 7 * MIN),
+    ];
+    const document = build({ sessions })!;
+    expect(document.streak).toEqual({ current: 3, longest: 3 });
+    expect(document.days).toEqual({
+      '2026-09-27': 6 * MIN,
+      '2026-09-28': 5 * MIN,
+      '2026-09-29': 7 * MIN,
+    });
+    // On a device whose goal is twenty minutes, the same days are no streak in its own log…
+    const goal = goalMsOn([['2026-01-01', 20]]);
+    expect(practiceLog(sessions, { now: NOW, timeZone: 'UTC', goal })).toMatchObject({
+      currentStreak: 0,
+      longestStreak: 0,
+    });
+    // …and the document has nothing to be told the goal with: it is built without it.
+    expect(Object.keys(document).sort()).toEqual([
+      'days',
+      'firstDay',
+      'streak',
+      'titles',
+      'today',
+      'totals',
+      'v',
+      'visibility',
+    ]);
+    expect(PROFILE_SOURCE).not.toMatch(/goal\.ts|goalOn|dacapo\.goal/);
   });
 
   it('counts ear training and the cards as reading for a service before version 2', () => {

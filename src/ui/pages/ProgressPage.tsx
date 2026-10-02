@@ -7,6 +7,7 @@ import { readDone } from '../learn/progress.ts';
 import { usePractice, useStorageStatus } from '../practice/context.ts';
 import { DayHistory } from '../progress/DayHistory.tsx';
 import { FamilyProgress } from '../progress/families/FamilyProgress.tsx';
+import { useGoal } from '../progress/goal.ts';
 import { WeaknessHeatmap } from '../progress/heatmap/WeaknessHeatmap.tsx';
 import { PracticeFigures } from '../progress/PracticeFigures.tsx';
 import { SessionList } from '../progress/SessionList.tsx';
@@ -23,7 +24,9 @@ export function ProgressPage() {
   // has for whoever said on the start page where they start from (docs/START.md).
   const [begun] = useState(() => readDone().size > 0 || readStartPref() !== null);
   const now = useNow();
-  const log = useMemo(() => practiceLog(sessions, { now }), [sessions, now]);
+  // Each day by the goal it had (docs/PERSONAL.md): the streak, the chart's line and the grid.
+  const goal = useGoal();
+  const log = useMemo(() => practiceLog(sessions, { now, goal }), [sessions, now, goal]);
   const piecesToday = useMemo(() => {
     const pieces = sessions.filter((s) => s.kind === 'piece');
     return pieces.length === 0 ? null : (dailyTotals(pieces).get(log.today) ?? 0);
@@ -49,7 +52,7 @@ export function ProgressPage() {
           <WhereYouAre today={log.today} />
           {sessions.length > 0 && (
             <>
-              <DayHistory history={log.history} totals={log.totals} today={log.today} />
+              <DayHistory history={log.history} totals={log.totals} today={log.today} goal={goal} />
               <WeaknessHeatmap stats={stats} />
               <FamilyProgress answers={answers} />
               <Trends sessions={sessions} attempts={attempts} answers={answers} today={log.today} />

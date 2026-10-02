@@ -962,6 +962,7 @@ export const en = {
   'progress.today.toGo': '{n} min to today’s goal',
   'progress.goal':
     'A day counts towards the streak with at least {n} minutes of practice — flashcards, free play and pieces together, by your local date.',
+  'progress.goal.change': 'Change the goal in Settings',
   'where.title': 'Where you are',
   'where.help': 'How far each practice has got, and its next step.',
   'where.lessons': '{done} of {of} lessons read',
@@ -999,6 +1000,8 @@ export const en = {
   'progress.year.none': 'No practice',
   'progress.year.under': 'Under {n} min',
   'progress.year.atLeast': '{n}+ min',
+  'progress.year.changed':
+    'The goal was changed during these months: each day is shaded by the goal it had, and the legend shows today’s.',
   'progress.year.month': 'Month',
   'progress.year.practised': 'Days practised',
   'progress.year.reached': 'Days at goal',
@@ -2805,6 +2808,9 @@ export const en = {
   'settings.storage.memory':
     'Not saved: this browser does not let dacapo store data. Export before you close the tab.',
   'settings.storage.loading': 'Loading your progress…',
+  'settings.goal': 'Daily goal',
+  'settings.goal.help':
+    'A day counts towards the streak with this much practice. A change counts from today: the days before it keep the goal they had.',
   'settings.export': 'Export data',
   'settings.export.help':
     'Downloads {file} with your sessions, answers, imported pieces, piece practice records and takes, scale runs, assignments and preferences.',
@@ -2850,6 +2856,7 @@ export const en = {
   'settings.import.record.assignments': 'Assignment or report',
   'settings.import.more': '…and {n} more',
   'settings.import.prefs': 'Also apply the preferences from the file: {language}, {theme}',
+  'settings.import.prefs.goal': ', daily goal {n} min',
   'settings.import.apply': 'Import',
   'settings.import.cancel': 'Cancel',
   'settings.import.working': 'Importing…',

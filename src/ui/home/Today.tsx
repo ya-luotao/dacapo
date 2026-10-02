@@ -1,10 +1,11 @@
 import { lazy, Suspense, useMemo, useState, type CSSProperties } from 'react';
 import { Link } from 'wouter';
-import { practiceLog, STREAK_GOAL_MS } from '../../core/streak.ts';
+import { practiceLog } from '../../core/streak.ts';
 import { PLAN_MINUTES, type PlanMinutes } from '../../core/todayRecords.ts';
 import { useI18n } from '../../i18n/index.ts';
 import { usePractice, useStorageStatus } from '../practice/context.ts';
 import { useLogFormat } from '../progress/format.ts';
+import { useGoal } from '../progress/goal.ts';
 import { useNow } from '../progress/useNow.ts';
 import { Segmented } from '../Segmented.tsx';
 import { keptRoom, readPlanMinutes, writePlanMinutes } from '../today/prefs.ts';
@@ -37,10 +38,12 @@ export function Today() {
   const { loaded } = useStorageStatus();
   const { sessions } = usePractice();
   const now = useNow();
-  const log = useMemo(() => practiceLog(sessions, { now }), [sessions, now]);
+  // Each day by the goal it had: a goal changed in Settings does not rewrite the streak.
+  const goal = useGoal();
+  const log = useMemo(() => practiceLog(sessions, { now, goal }), [sessions, now, goal]);
   const [minutes, setMinutes] = useState(readPlanMinutes);
   const [steps, setSteps] = useState(true);
-  const reached = log.todayMs >= STREAK_GOAL_MS;
+  const reached = log.todayMs >= log.goalMs;
 
   const day = useMemo(() => {
     // The day key is a calendar date: formatted in UTC so it never shifts.
@@ -101,7 +104,7 @@ export function Today() {
           {reached
             ? t('progress.today.reached')
             : t('progress.today.toGo', {
-                n: Math.ceil((STREAK_GOAL_MS - log.todayMs) / MINUTE_MS),
+                n: Math.ceil((log.goalMs - log.todayMs) / MINUTE_MS),
               })}
         </span>
         {steps && (

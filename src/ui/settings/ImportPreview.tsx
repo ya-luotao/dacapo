@@ -1,4 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { goalOn } from '../../core/goal.ts';
+import type { DayKey } from '../../core/streak.ts';
 import type { ImportPlan, InvalidRecord, ParsedImport } from '../../storage/exchange.ts';
 import { LOCALE_NAMES, useT } from '../../i18n/index.ts';
 import { useLogFormat } from '../progress/format.ts';
@@ -26,6 +28,8 @@ interface ImportPreviewProps {
   parsed: ParsedImport;
   plan: ImportPlan;
   working: boolean;
+  /** The day the file's daily goal is read for. */
+  today: DayKey;
   onApply: (applyPreferences: boolean) => void;
   onCancel: () => void;
 }
@@ -35,6 +39,7 @@ export function ImportPreview({
   parsed,
   plan,
   working,
+  today,
   onApply,
   onCancel,
 }: ImportPreviewProps) {
@@ -142,6 +147,8 @@ export function ImportPreview({
                 : t('settings.language.system'),
               theme: t(`settings.theme.${preferences.theme}`),
             })}
+            {preferences.goal &&
+              t('settings.import.prefs.goal', { n: goalOn(preferences.goal, today) })}
           </span>
         </label>
       )}

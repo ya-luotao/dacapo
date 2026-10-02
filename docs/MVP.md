@@ -161,7 +161,8 @@ staff (e.g. `C4@treble`, `C4@bass` are separate — reading them is a different 
   accuracy, median reaction.
 - "Free play" time on the Play route also counts (a session starts on the first
   note played while Play is open and ends after 60 s of inactivity or on leaving Play).
-- Today's total minutes, current streak (days with ≥ 5 min, local date), 30-day history
+- Today's total minutes, current streak (days with ≥ 5 min, local date; since then the goal can
+  be chosen, each day judged by the goal it had, see [PERSONAL.md](PERSONAL.md)), 30-day history
   view.
 - Export all data to a JSON file (versioned schema) and import it back
   (validate; merge by id; never silently drop data). The export includes user
@@ -181,8 +182,9 @@ staff (e.g. `C4@treble`, `C4@bass` are separate — reading them is a different 
   (`crypto.randomUUID()`), not an auto-increment key, so imports can merge by id. A session's
   minutes are its active time: free play runs from the first note to the last activity; a
   flashcard session runs from start to end with every pause capped at 60 s. Free-play sessions
-  under 10 s are not recorded. The streak goal (5 min) counts flashcards and free play together,
-  and a session belongs to the local date it started on.
+  under 10 s are not recorded. The streak goal (5 min; the player's own since
+  [PERSONAL.md](PERSONAL.md)) counts flashcards and free play together, and a session belongs to
+  the local date it started on.
 
 ## UI
 

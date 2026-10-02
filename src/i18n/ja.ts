@@ -955,6 +955,7 @@ export const ja: Dictionary = {
   'progress.today.toGo': '今日の目標まであと{n}分',
   'progress.goal':
     '1日に{n}分以上練習すると、連続日数に数えられます。フラッシュカード・自由演奏・曲の練習の合計時間で、日付はお使いの端末の時刻で区切ります。',
+  'progress.goal.change': '「設定」で目標を変更',
   'where.title': '現在地',
   'where.help': 'それぞれの練習がどこまで進んだかと、次の一歩です。',
   'where.lessons': '{of}レッスン中{done}レッスン完了',
@@ -992,6 +993,8 @@ export const ja: Dictionary = {
   'progress.year.none': '練習なし',
   'progress.year.under': '{n}分未満',
   'progress.year.atLeast': '{n}分以上',
+  'progress.year.changed':
+    'この期間に目標が変わりました。それぞれの日はその日の目標をもとに色分けし、凡例は今日の目標のものです。',
   'progress.year.month': '月',
   'progress.year.practised': '練習した日数',
   'progress.year.reached': '目標達成日数',
@@ -2792,6 +2795,9 @@ export const ja: Dictionary = {
   'settings.storage.memory':
     '保存されていません：このブラウザではdacapoがデータを保存できません。タブを閉じる前にエクスポートしてください。',
   'settings.storage.loading': '練習記録を読み込んでいます…',
+  'settings.goal': '1日の目標',
+  'settings.goal.help':
+    '1日にこの時間以上練習すると、連続日数に数えられます。変更は今日から反映され、それより前の日は当時の目標のままです。',
   'settings.export': 'データをエクスポート',
   'settings.export.help':
     'セッション、解答、インポートした曲、曲とスケールの練習記録、テイク、課題、設定を含む{file}をダウンロードします。',
@@ -2838,6 +2844,7 @@ export const ja: Dictionary = {
   'settings.import.record.assignments': '課題・レポート',
   'settings.import.more': '…ほか{n}件',
   'settings.import.prefs': 'ファイル内の設定も適用する：{language}、{theme}',
+  'settings.import.prefs.goal': '、1日の目標{n}分',
   'settings.import.apply': 'インポート',
   'settings.import.cancel': 'キャンセル',
   'settings.import.working': 'インポートしています…',

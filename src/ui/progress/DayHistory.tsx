@@ -1,5 +1,5 @@
-import { useId, useState } from 'react';
-import { STREAK_GOAL_MS, type DayKey, type DayTotal } from '../../core/streak.ts';
+import { Fragment, useId, useState } from 'react';
+import { goalSteps, type DayKey, type DayTotal } from '../../core/streak.ts';
 import { useT } from '../../i18n/index.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
 import { useLogFormat } from './format.ts';
@@ -11,15 +11,20 @@ const CHART_PREF = 'dacapo.progress.chart';
 type Chart = 'bars' | 'year';
 const CHARTS: readonly Chart[] = ['bars', 'year'];
 
-/** Practice per day: the last 30 days as bars, or the last year as a grid of weeks. */
+/**
+ * Practice per day: the last 30 days as bars, or the last year as a grid of weeks. `goal` is each
+ * day's goal in ms: a day is judged by the goal it had (docs/PERSONAL.md).
+ */
 export function DayHistory({
   history,
   totals,
   today,
+  goal,
 }: {
   history: readonly DayTotal[];
   totals: ReadonlyMap<DayKey, number>;
   today: DayKey;
+  goal: (day: DayKey) => number;
 }) {
   const t = useT();
   const id = useId();
@@ -54,22 +59,34 @@ export function DayHistory({
         </fieldset>
       </div>
       {chart === 'bars' ? (
-        <DayBars history={history} today={today} />
+        <DayBars history={history} today={today} goal={goal} />
       ) : (
-        <YearGrid totals={totals} today={today} />
+        <YearGrid totals={totals} today={today} goal={goal} />
       )}
     </section>
   );
 }
 
 /** Minutes per day as bars, with the same figures as a table for screen readers and keyboards. */
-function DayBars({ history, today }: { history: readonly DayTotal[]; today: DayKey }) {
+function DayBars({
+  history,
+  today,
+  goal,
+}: {
+  history: readonly DayTotal[];
+  today: DayKey;
+  goal: (day: DayKey) => number;
+}) {
   const t = useT();
   const format = useLogFormat();
-  // The goal line sits at most halfway up, so short days still show as bars.
-  const scale = Math.max(STREAK_GOAL_MS * 2, ...history.map((d) => d.ms));
+  // The goal line: one level stretch per goal, so it steps on the day the goal was changed.
+  const steps = goalSteps(history, goal);
+  // The highest goal line sits at most halfway up, so short days still show as bars.
+  const scale = Math.max(...steps.map((s) => s.goalMs * 2), ...history.map((d) => d.ms));
   const percent = (ms: number) => `${((ms / scale) * 100).toFixed(2)}%`;
-  const reached = history.filter((d) => d.ms >= STREAK_GOAL_MS).length;
+  /** A share of the chart's width, in days. */
+  const across = (days: number) => `${((days / history.length) * 100).toFixed(2)}%`;
+  const reached = history.filter((d) => d.ms >= goal(d.day)).length;
 
   return (
     <>
@@ -78,9 +95,36 @@ function DayBars({ history, today }: { history: readonly DayTotal[]; today: DayK
         role="img"
         aria-label={t('progress.history.label', { reached })}
       >
-        <div className="history-goal" style={{ bottom: percent(STREAK_GOAL_MS) }}>
-          <span className="history-goal-label">{format.minutes(STREAK_GOAL_MS)}</span>
-        </div>
+        {steps.map((step, i) => {
+          const before = steps[i - 1];
+          return (
+            <Fragment key={step.start}>
+              {before && (
+                <div
+                  className="history-goal-step"
+                  style={{
+                    insetInlineStart: across(step.start),
+                    bottom: percent(Math.min(before.goalMs, step.goalMs)),
+                    height: percent(Math.abs(step.goalMs - before.goalMs)),
+                  }}
+                />
+              )}
+              <div
+                className="history-goal"
+                style={{
+                  bottom: percent(step.goalMs),
+                  insetInlineStart: across(step.start),
+                  insetInlineEnd: across(history.length - step.start - step.days),
+                }}
+              >
+                {/* The margin names the goal of today; an earlier one is in the table. */}
+                {i === steps.length - 1 && (
+                  <span className="history-goal-label">{format.minutes(step.goalMs)}</span>
+                )}
+              </div>
+            </Fragment>
+          );
+        })}
         {history.map(({ day, ms }) => (
           <div
             key={day}
@@ -93,7 +137,7 @@ function DayBars({ history, today }: { history: readonly DayTotal[]; today: DayK
           >
             <div
               className={
-                ms >= STREAK_GOAL_MS
+                ms >= goal(day)
                   ? 'history-bar is-reached'
                   : ms > 0
                     ? 'history-bar is-some'
@@ -127,7 +171,9 @@ function DayBars({ history, today }: { history: readonly DayTotal[]; today: DayK
                 </th>
                 <td>{Math.floor(ms / MINUTE_MS)}</td>
                 <td>
-                  {ms >= STREAK_GOAL_MS
+                  {/* Where the goal changed within these days, each day names its own. */}
+                  {steps.length > 1 && `${format.minutes(goal(day))} · `}
+                  {ms >= goal(day)
                     ? `✓ ${t('progress.history.reached')}`
                     : t('progress.history.notReached')}
                 </td>

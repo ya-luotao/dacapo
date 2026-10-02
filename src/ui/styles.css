@@ -4488,6 +4488,13 @@ kbd {
   pointer-events: none;
 }
 
+/* Where the goal was changed the line steps: a riser joins the two levels. */
+.history-goal-step {
+  position: absolute;
+  border-inline-start: 1px dotted var(--text-muted);
+  pointer-events: none;
+}
+
 /* The goal is labelled in the margin to the right of the chart, clear of the bars. */
 .history-chart,
 .history-axis {
@@ -4732,6 +4739,11 @@ kbd {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
+}
+
+/* Under the legend when the goal was changed within the year: which goal a shade is of. */
+.year-changed {
+  font-size: 0.8125rem;
 }
 
 /* Progress: how you are doing (Q1). Small multiples of the scales' trend chart, one per
@@ -5176,6 +5188,37 @@ kbd {
 .data-status.is-warning {
   color: var(--warn);
   font-weight: 600;
+}
+
+/* Settings: your data → the daily goal. Six goals in one row, of one width, on a phone too. */
+.data-goal {
+  margin-top: 1.75rem;
+}
+
+.data-goal .segmented {
+  display: inline-grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  max-width: 100%;
+}
+
+.data-goal .segmented span {
+  min-width: 0;
+  padding-inline: 0.875rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 40rem) {
+  .data-goal .segmented {
+    display: grid;
+  }
+
+  /* "45 分鐘" is the widest of them: six of it fit a 375 px screen at this size. */
+  .data-goal .segmented span {
+    display: grid;
+    place-items: center;
+    padding-inline: 0;
+    font-size: 0.875rem;
+  }
 }
 
 .data-actions {

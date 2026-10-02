@@ -40,6 +40,8 @@ and no Simplified-only characters in zh-TW.
   without plurals still fill both (`1日` / `{n}日`).
 - **Lists and sentences**: `app.listSeparator` joins short lists (`, ` or `、`). Whether two
   sentences are joined with a space is set per language in `SENTENCE_GAP` in `locale.ts`.
+  `settings.import.prefs.goal` goes on from the list `settings.import.prefs` ends with, so it
+  begins with the separator that list uses in your language (`, daily goal {n} min`).
 - **Bar labels are whole templates.** A bar is never "a number inside another string's bar word":
   `pieces.bar.label` is the bar with its word (`bar {bar}`, `{bar}小節目`, `第 {bar} 小節`), and
   `pieces.bar.label.ending`, `.nth` and `.nthEnding` add the volta (`{ending}`, e.g. `1` or `1, 2`)

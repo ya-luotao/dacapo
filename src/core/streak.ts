@@ -2,7 +2,10 @@
 // it started. Dates are `YYYY-MM-DD` strings and day arithmetic works on the calendar, never on
 // 24-hour steps, so days with a daylight-saving change (23 or 25 hours) are one day like any other.
 
-/** A day counts towards the streak with at least this much practice. */
+/**
+ * A day counts towards the streak with at least this much practice, unless the player chose
+ * another goal (core/goal.ts). The public profile is built with this one, whatever was chosen.
+ */
 export const STREAK_GOAL_MS = 5 * 60_000;
 export const HISTORY_DAYS = 30;
 /** Columns of the year grid: a year of whole weeks, plus the one under way. */
@@ -61,8 +64,17 @@ export function dailyTotals(
   return totals;
 }
 
-function reached(totals: ReadonlyMap<DayKey, number>, day: DayKey, goalMs: number): boolean {
-  return (totals.get(day) ?? 0) >= goalMs;
+/**
+ * The goal a day is judged by, in ms: one for every day, or each day's own. A goal the player
+ * changes never rewrites the past, so a day keeps the goal in force on it (`goalMsOn` in goal.ts).
+ */
+export type DayGoal = number | ((day: DayKey) => number);
+
+const goalOf = (goal: DayGoal, day: DayKey): number =>
+  typeof goal === 'number' ? goal : goal(day);
+
+function reached(totals: ReadonlyMap<DayKey, number>, day: DayKey, goal: DayGoal): boolean {
+  return (totals.get(day) ?? 0) >= goalOf(goal, day);
 }
 
 /**
@@ -72,11 +84,11 @@ function reached(totals: ReadonlyMap<DayKey, number>, day: DayKey, goalMs: numbe
 export function currentStreak(
   totals: ReadonlyMap<DayKey, number>,
   today: DayKey,
-  goalMs = STREAK_GOAL_MS,
+  goal: DayGoal = STREAK_GOAL_MS,
 ): number {
-  let day = reached(totals, today, goalMs) ? today : addDays(today, -1);
+  let day = reached(totals, today, goal) ? today : addDays(today, -1);
   let streak = 0;
-  while (reached(totals, day, goalMs)) {
+  while (reached(totals, day, goal)) {
     streak++;
     day = addDays(day, -1);
   }
@@ -85,9 +97,9 @@ export function currentStreak(
 
 export function longestStreak(
   totals: ReadonlyMap<DayKey, number>,
-  goalMs = STREAK_GOAL_MS,
+  goal: DayGoal = STREAK_GOAL_MS,
 ): number {
-  const days = [...totals.keys()].filter((day) => reached(totals, day, goalMs)).sort();
+  const days = [...totals.keys()].filter((day) => reached(totals, day, goal)).sort();
   let longest = 0;
   let run = 0;
   let previous: DayKey | null = null;
@@ -118,6 +130,29 @@ export function dayHistory(
   return history;
 }
 
+/** A stretch of days with one goal: where the goal line of a chart runs level. */
+export interface GoalStep {
+  /** The position of its first day among the days given, and how many days it runs for. */
+  start: number;
+  days: number;
+  goalMs: number;
+}
+
+/**
+ * The goal line over `days` (in order): one stretch per run of days with the same goal, so the
+ * line steps where the goal was changed and is a single stretch when it never was.
+ */
+export function goalSteps(days: readonly DayTotal[], goal: DayGoal): GoalStep[] {
+  const steps: GoalStep[] = [];
+  days.forEach(({ day }, i) => {
+    const goalMs = goalOf(goal, day);
+    const last = steps.at(-1);
+    if (last?.goalMs === goalMs) last.days++;
+    else steps.push({ start: i, days: 1, goalMs });
+  });
+  return steps;
+}
+
 /** The weekday of a date, ISO-numbered as `Intl.Locale` week info is: 1 is Monday, 7 is Sunday. */
 export function weekday(day: DayKey): number {
   const [y, m, d] = day.split('-').map(Number);
@@ -138,6 +173,11 @@ export function practiceLevel(ms: number, goalMs = STREAK_GOAL_MS): PracticeLeve
   if (ms < goalMs * LEVEL_GOALS[1]) return 2;
   if (ms < goalMs * LEVEL_GOALS[2]) return 3;
   return 4;
+}
+
+/** A day's shade on the year grid, by the goal that day had. */
+export function levelOn({ day, ms }: DayTotal, goal: DayGoal = STREAK_GOAL_MS): PracticeLevel {
+  return practiceLevel(ms, goalOf(goal, day));
 }
 
 /**
@@ -195,7 +235,10 @@ export interface MonthTotal {
 }
 
 /** `days` (in order) summed by calendar month, oldest first. */
-export function monthTotals(days: readonly DayTotal[], goalMs = STREAK_GOAL_MS): MonthTotal[] {
+export function monthTotals(
+  days: readonly DayTotal[],
+  goal: DayGoal = STREAK_GOAL_MS,
+): MonthTotal[] {
   const months: MonthTotal[] = [];
   for (const { day, ms } of days) {
     const month = day.slice(0, 7);
@@ -205,7 +248,7 @@ export function monthTotals(days: readonly DayTotal[], goalMs = STREAK_GOAL_MS):
       months.push(last);
     }
     if (ms > 0) last.practised++;
-    if (ms >= goalMs) last.reached++;
+    if (ms >= goalOf(goal, day)) last.reached++;
     last.ms += ms;
   }
   return months;
@@ -214,6 +257,8 @@ export function monthTotals(days: readonly DayTotal[], goalMs = STREAK_GOAL_MS):
 export interface PracticeLog {
   today: DayKey;
   todayMs: number;
+  /** Today's goal, in ms. */
+  goalMs: number;
   currentStreak: number;
   longestStreak: number;
   history: DayTotal[];
@@ -223,15 +268,21 @@ export interface PracticeLog {
 
 export function practiceLog(
   sessions: readonly TimedSession[],
-  { now, timeZone, days = HISTORY_DAYS }: { now: number; timeZone?: string; days?: number },
+  {
+    now,
+    timeZone,
+    days = HISTORY_DAYS,
+    goal = STREAK_GOAL_MS,
+  }: { now: number; timeZone?: string; days?: number; goal?: DayGoal },
 ): PracticeLog {
   const totals = dailyTotals(sessions, timeZone);
   const today = dayKey(now, timeZone);
   return {
     today,
     todayMs: totals.get(today) ?? 0,
-    currentStreak: currentStreak(totals, today),
-    longestStreak: longestStreak(totals),
+    goalMs: goalOf(goal, today),
+    currentStreak: currentStreak(totals, today, goal),
+    longestStreak: longestStreak(totals, goal),
     history: dayHistory(totals, today, days),
     totals,
   };

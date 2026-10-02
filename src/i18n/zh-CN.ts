@@ -931,6 +931,7 @@ export const zhCN: Dictionary = {
   'progress.today.reached': '今日目标已完成',
   'progress.today.toGo': '距今日目标还差 {n} 分钟',
   'progress.goal': '一天练满 {n} 分钟（识谱、自由弹奏和曲目合计，按本地日期计算）就算连续打卡。',
+  'progress.goal.change': '在“设置”中更改目标',
   'where.title': '练到哪儿了',
   'where.help': '每项练习进行到了哪里，下一步是什么。',
   'where.lessons': '{of} 课中已读完 {done} 课',
@@ -967,6 +968,7 @@ export const zhCN: Dictionary = {
   'progress.year.none': '未练习',
   'progress.year.under': '不到 {n} 分钟',
   'progress.year.atLeast': '{n} 分钟以上',
+  'progress.year.changed': '这段时间里改过目标：每一天按当天的目标着色，图例显示的是今天的目标。',
   'progress.year.month': '月份',
   'progress.year.practised': '练习天数',
   'progress.year.reached': '达标天数',
@@ -2652,6 +2654,9 @@ export const zhCN: Dictionary = {
   'settings.storage.unknown': '已保存在本设备上。',
   'settings.storage.memory': '未保存：浏览器不允许 dacapo 存储数据。关闭标签页之前请先导出。',
   'settings.storage.loading': '正在读取练习记录…',
+  'settings.goal': '每日目标',
+  'settings.goal.help':
+    '一天练满这么久，就算连续打卡。更改从今天起算，之前的日子仍按当时的目标计算。',
   'settings.export': '导出数据',
   'settings.export.help':
     '下载 {file}，包含你的练习记录、答题记录、导入的曲目、曲目和音阶的练习明细、演奏实录、作业以及偏好设置。',
@@ -2695,6 +2700,7 @@ export const zhCN: Dictionary = {
   'settings.import.record.assignments': '作业或报告',
   'settings.import.more': '……还有 {n} 条',
   'settings.import.prefs': '同时应用文件中的偏好设置：{language}，{theme}',
+  'settings.import.prefs.goal': '，每日目标 {n} 分钟',
   'settings.import.apply': '导入',
   'settings.import.cancel': '取消',
   'settings.import.working': '正在导入…',

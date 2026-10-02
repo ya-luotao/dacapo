@@ -151,6 +151,18 @@ describe('what the start loads', () => {
     expect(chain('/src/ui/progress/WhereYouAre.tsx', '/src/ui/start/prefs.ts')).not.toBeNull();
   });
 
+  // The daily goal (docs/PERSONAL.md): the home page's line towards today's goal reads the
+  // goal's changes at the start, so they are data and the calendar, nothing more.
+  it('the start loads the daily goal as data', () => {
+    expect(chain('/src/main.tsx', '/src/ui/progress/goal.ts')).not.toBeNull();
+    expect([...loadedWith('/src/ui/progress/goal.ts').keys()].sort()).toEqual([
+      '/src/core/goal.ts',
+      '/src/core/streak.ts',
+      '/src/lib/localPrefs.ts',
+      '/src/ui/progress/goal.ts',
+    ]);
+  });
+
   it('the Ear page loads the melodies, and the staff only on demand', () => {
     expect(chain('/src/ui/pages/EarPage.tsx', '/src/core/tuneData.ts')).not.toBeNull();
     expect(chain('/src/ui/pages/EarPage.tsx', '/src/ui/ear/TuneStaff.tsx')).toBeNull();
