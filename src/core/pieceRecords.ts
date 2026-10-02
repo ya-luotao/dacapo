@@ -112,6 +112,13 @@ export interface PieceRunHeader {
   leftHand?: PatternId;
   /** Semitones the piece was moved by (H4), −6 … 6; absent in the written key. */
   transpose?: number;
+  /**
+   * The keyboard the run was played on, its lowest and highest key, when it had fewer than 88
+   * (docs/PERSONAL.md, "The instrument's keys"): which notes the app played for the player is
+   * read from it, whatever keyboard reads the run. Absent on 88 keys, and on every run from
+   * before the keyboard could be chosen.
+   */
+  keys?: readonly [lowest: number, highest: number];
 }
 
 /** A rhythm run's notes: due, played within their window, and within `IN_TIME_MS`. */

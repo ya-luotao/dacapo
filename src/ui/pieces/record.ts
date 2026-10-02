@@ -10,6 +10,7 @@ import {
 import type { RepeatMode } from '../../core/repeats.ts';
 import type { NoteTiming } from '../../core/rhythm.ts';
 import type { HandSelection } from '../../core/score.ts';
+import { isFullKeys, type KeyRange } from '../../core/instrument.ts';
 import type { MemoryStage } from '../../core/memory.ts';
 import type { PatternId } from '../../core/progressions.ts';
 import { TAKE_CHUNK_EVENTS, takeChunkId, type TakeState } from '../../core/takes.ts';
@@ -30,6 +31,11 @@ export interface RunContext {
   leftHand?: PatternId;
   /** Semitones the piece is moved by; absent (or 0) in the written key. */
   transpose?: number;
+  /**
+   * The player's keyboard: with fewer than 88 keys the run keeps it, so whatever reads the run
+   * knows which notes the app played. Absent (or null): 88 keys.
+   */
+  keys?: KeyRange | null;
 }
 
 /** One step as a run hands it to the recorder. */
@@ -101,6 +107,7 @@ export function runHeader(
     ...(c.mode && { mode: c.mode }),
     ...(c.leftHand && { leftHand: c.leftHand }),
     ...(c.transpose && { transpose: c.transpose }),
+    ...(c.keys && !isFullKeys(c.keys) && { keys: [c.keys.low, c.keys.high] as const }),
   };
 }
 

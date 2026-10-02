@@ -303,7 +303,10 @@ minutes]` pairs, oldest first), `goalOn(history, day)`, `withGoal` for a change,
   as the run goes by it, with no time and no wrong note; the steps passed before the run's
   first key go into the records with its first step. Bars in which every step is the app's
   have nothing to play, and the page says so ("Every note of these bars is beyond your
-  keyboard").
+  keyboard"); so has a start bar from which every step to the end is the app's (the run does
+  not go back to an earlier bar; round a loop it begins at the loop's first step of the
+  player's). In memory mode the bar shown at the start is the first one the player has a step
+  in.
 - **Rhythm mode.** Every step is due at its time, with the windows of 88 keys; the keys due are
   the player's. A step with none settles with no note, nothing missed; an extra note near it is
   an extra note as anywhere. A key the app plays, struck within its step's window, is neither a
@@ -323,14 +326,20 @@ minutes]` pairs, oldest first), `goalOn(history, day)`, `withGoal` for a change,
   every step, the piece's checksum, and in rhythm mode the keys that were the player's. A step
   passed has an empty list of keys (`notes: []`) in every mode, so it is told from a step that
   took no time (a run's first step has none either). The session's `steps` are the steps the
-  player had, and `given` the notes played for them. The take has the player's keys alone, and
-  a key of the app's that the player struck matches nothing in it.
+  player had, and `given` the notes played for them. The session has the keyboard too, `keys`,
+  its lowest and highest key, whenever it had fewer than 88: a reader goes by it, whatever
+  keyboard the device has now. The take has the player's keys alone, and a key of the app's
+  that the player struck matches nothing in it. A step passed has no time, no wrong note and
+  no prompt in wait and memory mode, and a file or a service that says otherwise is refused,
+  as is a keyboard that is not two keys of the piano, the lower first, or a count of notes
+  played for the player beyond 100,000.
 - **Sync and files.** A build from before refuses a step with an empty list of keys and keeps
-  the session without `given`: `SYNC_SCHEMA` 22, so an updated build pulls everything again,
-  the steps passed come to it, and a session kept without its count is replaced by the copy
-  that has it (the longer one wins; SYNC.md). The export format stays at 10: a build from
-  before lists the steps passed among the records it could not read and imports the rest. The
-  database stays at version 9. The keyboard itself is in no record.
+  the session without `given` and `keys`: `SYNC_SCHEMA` 22, so an updated build pulls
+  everything again, the steps passed come to it, and a session kept without them is replaced
+  by the copy that has them (the longer one wins; SYNC.md). The export format stays at 10: a
+  build from before lists the steps passed among the records it could not read and imports the
+  rest. The database stays at version 9. The device's choice of keyboard is in no record; a
+  run's session has the keyboard it was played on.
 - **The run counts as any other.** Every reader that counts steps to tell a pass or a round has
   the steps passed among them: an assignment's runs through its bars, the rounds of a loop for
   the weak bars' map, a phrase in time for the plan, the bars a run to the end goes through.
@@ -342,25 +351,44 @@ minutes]` pairs, oldest first), `goalOn(history, day)`, `withGoal` for a change,
     right and in time of the notes the player had;
   - _weak bars_ are judged on the steps the player had: a bar's time per step and its wrong
     notes per step are of those. A bar that is all the app's has none: it is not coloured, held
-    nobody up, and is steady once it has been gone through three times, so a hand's stage of
-    _the plan_ is not held up by it. The timing map is of the player's notes;
+    nobody up, and is steady once it has been gone through three times, in time as in
+    hesitation. The timing map is of the player's notes;
+  - _the plan_ is made for the keyboard of the device: a hand whose every step of a phrase is
+    the app's has no stage there (nobody can play it, and it is not asked for), Together and
+    In time stay while the phrase has a step of the player's, a phrase with none is left out,
+    and a piece with none has no plan. The stages that stay are reached as on 88 keys, the
+    steps passed counting as gone through. Today's plan and "Next for you" read the same
+    plan;
+  - _a run to the end_ has at least one step of the player's: a session with none brings
+    nothing into review;
   - _the tempo ladder_ climbs with a clean run to the end as on 88 keys;
   - _the advice_, the summaries and the trend of first tries are of the player's steps and
     notes, and the summaries say how many notes were played for the player;
   - _the expression_ judges nothing of a note that was the app's (an accent on it is not one
     the player missed).
-- **A past run is read on any keyboard** (`core/runKeys.ts`). A run keeps no keyboard: when its
-  session says notes were played for the player, which they were is read off the run. In rhythm
-  mode a step's record lists the player's keys, so the step's other keys were the app's (the
-  step records are on the piece's page). In wait and memory mode a step is complete only with
-  every key the player has, so a key of a completed step without a stroke in the take was the
-  app's, and so was a step gone by without one. That gives the keyboard as far as the run's own
-  notes go, which is what playing it back and judging it need. **Play back** then plays the
-  player's keys and the notes the app played for them, as they sounded (in rhythm mode from the
-  bar the run began in). **Save as MIDI** saves the player's keys, as a take has them.
-- **Known limits.** A run cut off by a closed tab is put together from its steps and has no
-  `given` (it is no run to the end, so nothing counts against it). The last step a wait-mode
-  take reaches says nothing of the keyboard, since the run may have stopped on it.
+- **A past run is read on any keyboard** (`core/runKeys.ts`): with the keyboard its session
+  keeps. **Play back** plays the player's keys and the notes the app played for them, as they
+  sounded (in rhythm mode from the bar the run began in). **Save as MIDI** saves the player's
+  keys, as a take has them.
+- **A session without its keyboard** is one a build from before kept (it strips `keys`, and
+  the copy with it comes back with the next round of sync). When such a session says notes
+  were played for the player, which they were is read off the run. In rhythm mode a step's
+  record lists the player's keys, so the step's other keys were the app's (the step records
+  are on the piece's page). In wait and memory mode a step is complete only with every key the
+  player has, so a key of a completed step without a stroke in the take was the app's, and so
+  was every key of a step with a record that says it was passed, or gone by without a stroke;
+  the last step of a run played to its end without a loop was completed too. That gives the
+  keyboard as far as the run's own notes go.
+- **Known limits**, both of a wait or memory run without its keyboard. The last step its take
+  reaches says nothing when the run was stopped or went round a loop: the run may have stopped
+  on it. Round a loop in which the player has a single step, the take does not tell one time
+  round from the next, and says nothing of that step. A note of such a step that the app
+  played is then not played back, and counts as one the player left out. A rhythm run without
+  its keyboard is told from its step records, exactly; without them (they are read with the
+  piece's page) it is read as a run on 88 keys.
+- **A run cut off by a closed tab** is put together from its steps: it has its keyboard, and no
+  count of the notes played for the player, so its summary gives none (it is no run to the
+  end, and nothing counts against it).
 - **The card and the page.** A piece's facts gain `keys`, its lowest and highest key (built-in
   pieces have them in the library's index, locked by its test; an imported piece gets them when
   it is next listed, as it got its count of notes). A card says "Goes below your keyboard, to

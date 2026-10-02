@@ -1682,7 +1682,7 @@ describe('a run on a keyboard with fewer keys (G6c)', () => {
       ipad.store.finishPieceRun('k1', session);
       await ipad.store.settled();
       await signIn(ipad);
-      expect(service.body('sessions', 'k1')).toMatchObject({ given: 3, steps: 3 });
+      expect(service.body('sessions', 'k1')).toMatchObject({ given: 3, steps: 3, keys: [36, 84] });
       expect(service.body('pieceSteps', steps[2]!.id)).toMatchObject({ notes: [] });
       await signIn(mac);
       expect(mac.store.getSnapshot().sessions).toContainEqual(session);
@@ -1711,6 +1711,7 @@ describe('a run on a keyboard with fewer keys (G6c)', () => {
       steps.map((s) => s.id),
     );
     expect(kept).not.toHaveProperty('given');
+    expect(kept).not.toHaveProperty('keys');
     mac.store.loadPieceSteps('p1');
     await vi.waitFor(() =>
       expect(mac.store.getPieceSteps('p1')).toEqual([steps[0], steps[1], steps[3]]),
@@ -1754,6 +1755,7 @@ describe('a run on a keyboard with fewer keys (G6c)', () => {
     // session without its count, the steps without the one passed.
     const stripped = { ...session };
     delete stripped.given;
+    delete stripped.keys;
     for (const step of [steps[0]!, steps[1]!, steps[3]!]) mac.store.recordPieceStep(step, null);
     mac.store.finishPieceRun('k1', stripped);
     await mac.store.settled();

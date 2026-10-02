@@ -78,12 +78,17 @@ export function isWholeRun(
   return new Set(steps.map((s) => s.measure)).size >= facts.bars[session.hands];
 }
 
-/** A run to the end: a whole run (`isWholeRun`) with hands that play every note of the piece. */
+/**
+ * A run to the end: a whole run (`isWholeRun`) with hands that play every note of the piece. A
+ * run without a step of the player's (every one passed, its keys beyond their keyboard) is no
+ * run of theirs, and brings nothing into review.
+ */
 export function isRunToTheEnd(
   session: PieceSessionRecord,
   steps: readonly PieceStep[] | undefined,
   facts: Pick<PieceFacts, 'bars'>,
 ): boolean {
+  if (session.steps === 0) return false;
   return playsEveryNote(session.hands, facts) && isWholeRun(session, steps, facts);
 }
 
@@ -147,14 +152,18 @@ export function playedSteps<T extends Pick<PieceStep, 'notes'>>(steps: readonly 
 /**
  * The notes a run in wait or memory mode is counted against: the piece's keys for its repeats
  * without those played for the player, or its own steps when the piece's keys are not known (and
- * for a left hand made from the chord symbols).
+ * for a left hand made from the chord symbols). The player had a key in each of their steps at
+ * least: a count of the notes played for them that leaves fewer (a file's, a service's) is not
+ * believed, and the run is counted against its steps.
  */
 export function runNotes(
   session: Pick<PieceSessionRecord, 'leftHand' | 'repeats' | 'steps' | 'given'>,
   facts: Pick<PieceFacts, 'notes'>,
 ): number {
   const written = session.leftHand === undefined ? facts.notes?.[session.repeats] : undefined;
-  return written === undefined ? session.steps : Math.max(0, written - (session.given ?? 0));
+  if (written === undefined) return session.steps;
+  if (!session.given) return written;
+  return Math.max(written - session.given, Math.min(session.steps, written));
 }
 
 /**

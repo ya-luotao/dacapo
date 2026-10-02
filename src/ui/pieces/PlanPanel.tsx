@@ -57,6 +57,9 @@ export function PlanPanel({
       frame.scrollTop = bottom - frame.clientHeight;
   }, [at]);
 
+  // Nothing of the piece is the player's to play (every note beyond their keyboard): no plan.
+  if (plan && plan.rows.length === 0) return null;
+
   return (
     <div className="piece-plan" role="region" aria-label={t('pieces.plan')}>
       <div className="piece-plan-lead">

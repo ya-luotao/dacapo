@@ -246,9 +246,12 @@ function figures(steps: readonly PieceStep[], metric: BarMetric): Figures {
   const notes = steps.flatMap((s) => s.notes ?? []);
   const played = notes.flatMap((n) => (n.deviation === null ? [] : [Math.abs(n.deviation)]));
   const missed = notes.length - played.length;
+  // A bar gone through with no note of the player's (every step passed) was nobody's to be late
+  // in: it counts no note and is on the beat, as the hesitation of such a bar is at ease.
+  const allPassed = steps.length > 0 && steps.every(isPassed);
   return {
     count: notes.length,
-    medianMs: median(played),
+    medianMs: allPassed ? 0 : median(played),
     wrong: missed + steps.reduce((n, s) => n + s.wrong, 0),
     missed,
     prompts: 0,

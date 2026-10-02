@@ -2228,6 +2228,16 @@ describe('a run on a keyboard with fewer keys (G6c)', () => {
           { ...session, id: 'x3', given: 1.5 },
           { ...session, id: 'x4', given: '3' },
           { ...session, id: 'x5', given: null },
+          // More notes than any piece has.
+          { ...session, id: 'x6', given: 1e15 },
+          // The keyboard: two keys of the piano, the lowest under the highest.
+          { ...session, id: 'x7', keys: [84, 36] },
+          { ...session, id: 'x8', keys: [36] },
+          { ...session, id: 'x9', keys: [20, 84] },
+          { ...session, id: 'x10', keys: [36, 109] },
+          { ...session, id: 'x11', keys: [36.5, 84] },
+          { ...session, id: 'x12', keys: { low: 36, high: 84 } },
+          { ...session, id: 'x13', keys: [60, 60] },
         ],
         pieceSteps: [
           ...steps,
@@ -2237,6 +2247,9 @@ describe('a run on a keyboard with fewer keys (G6c)', () => {
           { ...steps[0]!, id: 'y2', notes: null },
           { ...steps[0]!, id: 'y3', notes: {} },
           { ...steps[0]!, id: 'y4', notes: 0 },
+          // A step passed took no time and had no wrong note.
+          { ...steps[2]!, id: 'y5', ms: 5000 },
+          { ...steps[2]!, id: 'y6', wrong: 3 },
         ],
         scaleRuns: [],
         answers: [],
@@ -2251,11 +2264,32 @@ describe('a run on a keyboard with fewer keys (G6c)', () => {
       { collection: 'sessions', index: 3, field: 'given', problem: 'invalid' },
       { collection: 'sessions', index: 4, field: 'given', problem: 'invalid' },
       { collection: 'sessions', index: 5, field: 'given', problem: 'invalid' },
+      { collection: 'sessions', index: 6, field: 'given', problem: 'invalid' },
+      { collection: 'sessions', index: 7, field: 'keys', problem: 'invalid' },
+      { collection: 'sessions', index: 8, field: 'keys', problem: 'invalid' },
+      { collection: 'sessions', index: 9, field: 'keys', problem: 'invalid' },
+      { collection: 'sessions', index: 10, field: 'keys', problem: 'invalid' },
+      { collection: 'sessions', index: 11, field: 'keys', problem: 'invalid' },
+      { collection: 'sessions', index: 12, field: 'keys', problem: 'invalid' },
+      { collection: 'sessions', index: 13, field: 'keys', problem: 'invalid' },
       { collection: 'pieceSteps', index: 4, field: 'notes', problem: 'invalid' },
       { collection: 'pieceSteps', index: 5, field: 'notes', problem: 'invalid' },
       { collection: 'pieceSteps', index: 6, field: 'notes', problem: 'invalid' },
       { collection: 'pieceSteps', index: 7, field: 'notes', problem: 'invalid' },
+      { collection: 'pieceSteps', index: 8, field: 'ms', problem: 'invalid' },
+      { collection: 'pieceSteps', index: 9, field: 'wrong', problem: 'invalid' },
     ]);
+    // Nor a prompt, in memory mode; in rhythm mode a step passed has its share of the run's
+    // time, and the extra notes that fell nearest it.
+    const memory = sampleKeyboardRun('k3', 'memory').steps[2]!;
+    expect(validatePieceStep(memory).ok).toBe(true);
+    expect(validatePieceStep({ ...memory, prompts: 1 })).toEqual({ ok: false, field: 'prompts' });
+    expect(validatePieceStep({ ...memory, ms: 1 })).toEqual({ ok: false, field: 'ms' });
+    const rhythm = sampleKeyboardRun('k2', 'rhythm').steps[2]!;
+    expect(validatePieceStep({ ...rhythm, ms: 667, wrong: 2 }).ok).toBe(true);
+    // The keyboard and the count are kept as written.
+    expect(validateSession(session)).toEqual({ ok: true, value: session });
+    expect(session).toMatchObject({ keys: [36, 84], given: 3 });
   });
 
   it('is refused in part by a build from before: the steps passed; the session’s count is left out', () => {
@@ -2270,8 +2304,9 @@ describe('a run on a keyboard with fewer keys (G6c)', () => {
       expect(validatePieceStep21(steps[2])).toEqual({ ok: false, field: 'notes' });
       for (const step of [steps[0]!, steps[1]!, steps[3]!])
         expect(validatePieceStep21(step)).toEqual({ ok: true, value: step });
-      const { given, ...before } = session;
+      const { given, keys, ...before } = session;
       expect(given).toBe(3);
+      expect(keys).toEqual([36, 84]);
       expect(validatePieceSession21(session)).toEqual({ ok: true, value: before });
     }
     // On the records of every run from before, the two builds agree.

@@ -129,25 +129,42 @@ function givenIn(steps: readonly Step[], indices: readonly number[]): number[] |
 }
 
 /**
- * A run over `steps`; null when there is nothing to play. It begins on the first step at or
- * after `start` that has a key of the player's, else on the first such step of the range.
+ * Where a run over `range` begins: the step it starts from, and the first step from there that
+ * has a key of the player's. With none from the start to the end of the range, a loop goes
+ * round and begins at its first such step; without a loop there is nothing of the player's to
+ * play from there, and the answer is null.
  */
-export function startWait(steps: readonly Step[], range?: Partial<WaitRange>): WaitState | null {
+export function firstWaited(
+  steps: readonly Step[],
+  range: Partial<WaitRange> | undefined,
+): { from: number; current: number } | null {
   if (steps.length === 0) return null;
   const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(n, hi));
   const first = clamp(range?.first ?? 0, 0, steps.length - 1);
   const last = clamp(range?.last ?? steps.length - 1, first, steps.length - 1);
-  let from = clamp(range?.start ?? first, first, last);
   const next = (begin: number) => {
     for (let i = begin; i <= last; i++) if (waited(steps[i])) return i;
     return -1;
   };
-  let current = next(from);
-  if (current < 0) {
-    from = first;
-    current = next(first);
-  }
-  if (current < 0) return null;
+  const start = clamp(range?.start ?? first, first, last);
+  const current = next(start);
+  if (current >= 0) return { from: start, current };
+  if (!range?.loop) return null;
+  const round = next(first);
+  return round < 0 ? null : { from: first, current: round };
+}
+
+/**
+ * A run over `steps`; null when there is nothing to play. It begins on the first step at or
+ * after `start` that has a key of the player's (`firstWaited`).
+ */
+export function startWait(steps: readonly Step[], range?: Partial<WaitRange>): WaitState | null {
+  const begin = firstWaited(steps, range);
+  if (!begin) return null;
+  const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(n, hi));
+  const first = clamp(range?.first ?? 0, 0, steps.length - 1);
+  const last = clamp(range?.last ?? steps.length - 1, first, steps.length - 1);
+  const { from, current } = begin;
   const lead = Array.from({ length: current - from }, (_, k) => from + k);
   const given = givenIn(steps, [...lead, current]);
   return {

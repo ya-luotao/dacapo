@@ -242,11 +242,14 @@ for drawing.
   for every step, as on 88 keys. A rhythm step's `notes` are the keys that were the player's;
   a step passed (none of them the player's) has an empty list, `notes: []`, in every mode, with
   no time and no wrong note in wait and memory mode (`isPassed` in `core/pieceRecords.ts`). The
-  session's `steps` are the steps the player had, and `given` the notes played for them (absent:
-  none). The take has the player's keys alone. A build from before refuses a step with an empty
-  list and leaves `given` out: `SYNC_SCHEMA` 22 makes a build that learns them pull everything
+  session's `steps` are the steps the player had, `given` the notes played for them (absent:
+  none), and `keys` the keyboard the run was played on, its lowest and highest key (absent: 88
+  keys): readers go by it, not by the keyboard of the device that reads. The take has the
+  player's keys alone. A build from before refuses a step with an empty list and leaves
+  `given` and `keys` out: `SYNC_SCHEMA` 22 makes a build that learns them pull everything
   again ([SYNC.md](SYNC.md)); the export format stays, since they are records in lists the file
-  has. How each reader takes such a run is in [PERSONAL.md](PERSONAL.md), "Clarifications
+  has. A piece's plan is made for the device's keyboard: a stage with nothing for the player
+  to play is not in it. How each reader takes such a run is in [PERSONAL.md](PERSONAL.md), "Clarifications
   (decided during G6c)".
 - **Timing heatmap.** Weak bars by Hesitation or Timing. Timing is the median distance from the
   beat of the notes played in the bar, with missed and extra notes per note as the number, over
@@ -627,6 +630,11 @@ four bars". G5b says the first, G5c the second, both from the records and nothin
 - `core/piecePlan.ts`, pure: the phrases, each stage's state from the step records and sessions,
   and the next step. Nothing is stored: the plan is its records read another way, so it is the
   same on every device the records are on.
+- **On a keyboard with fewer keys** (G6c, [PERSONAL.md](PERSONAL.md), "The instrument's keys")
+  the plan is that device's: a hand whose every step of a phrase is beyond the keyboard has no
+  stage there, since nobody can play it; **Together** and **In time** stay while the phrase has
+  a step of the player's; a phrase with none is left out, and a piece with none has no plan.
+  With 88 keys, or a keyboard that has every key of the piece, the plan is as above.
 
 ### Clarifications (decided during G5b/G5c)
 

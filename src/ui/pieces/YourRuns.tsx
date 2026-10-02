@@ -231,8 +231,7 @@ function PastRun({
             keys: keysOf(run, take.events),
           })
         : null,
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- the keyboard is read off the run and its take
-    [take, score, run, melody],
+    [take, score, run, melody, keysOf],
   );
   if (otherLeftHand) return <p className="muted">{t('pieces.runs.otherLeftHand')}</p>;
   if (take.state === 'loading') return <p className="muted">{t('pieces.runs.loading')}</p>;

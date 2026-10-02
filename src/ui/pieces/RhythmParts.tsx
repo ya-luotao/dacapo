@@ -89,6 +89,7 @@ export function RhythmStatus({
   ended,
   last,
   nothing,
+  allGiven = false,
   click,
   bpm,
   bar,
@@ -99,6 +100,8 @@ export function RhythmStatus({
   ended: boolean;
   last: LastNote | null;
   nothing: boolean;
+  /** Every step from the start bar on is the app's (beyond the player's keyboard). */
+  allGiven?: boolean;
   click: ClickMode;
   bpm: number;
   /** The bar, already marked when it is a repeat's second pass. */
@@ -107,6 +110,7 @@ export function RhythmStatus({
 }) {
   const t = useT();
   if (nothing) return <p className="piece-status-main">{t('pieces.nothing')}</p>;
+  if (allGiven) return <p className="piece-status-main">{t('pieces.beyond.all')}</p>;
   const tempo = t('pieces.tempo.bpm', { bpm });
   if (beat.state === 'stopped') {
     return (

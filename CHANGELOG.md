@@ -35,9 +35,12 @@ version 10). Version 1 to 9 files still import.
   than five notes says so. On Ear, the chord cards and sight-reading, a key asked for beyond
   your keyboard is right in any octave.
 - **Play** shows your keyboard's keys, and all 88 when asked.
+- **A piece's plan** is made for your keyboard: a hand with nothing to play in a phrase is not
+  asked for.
 - **Records and sync.** A step that was passed is recorded as one (an empty list of keys), and
-  a run's session says how many notes were played for the player. A build from before refuses
-  the first and leaves out the second, so the sync schema is 22: an updated device pulls
+  a run's session says how many notes were played for the player and which keyboard it was
+  played on. A build from before refuses the first and leaves out the rest, so the sync schema
+  is 22: an updated device pulls
   everything again and takes back what it had left out. The export format stays at version 10
   (a build from before lists the steps passed among the records it could not read and imports
   the rest), and the database stays at version 9.

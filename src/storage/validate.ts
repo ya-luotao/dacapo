@@ -61,7 +61,7 @@ import {
   type SightFragmentRecord,
   type SightRunFigures,
 } from '../core/sightRead.ts';
-import { isMidiNote, type Clef } from '../core/note.ts';
+import { isMidiNote, PIANO_HIGHEST, PIANO_LOWEST, type Clef } from '../core/note.ts';
 import type { SpelledPitch } from '../core/score.ts';
 import { isMemoryStage } from '../core/memory.ts';
 import { isPatternId } from '../core/progressions.ts';
@@ -321,6 +321,8 @@ const HEADER_CHECKS: Record<string, (v: unknown) => boolean> = {
   mode: isMode,
   leftHand: (v) => v === undefined || isPatternId(v),
   transpose: isTranspose,
+  // The keyboard a run was played on: two keys of the piano, the lowest under the highest.
+  keys: (v) => v === undefined || isKeyboard(v),
 };
 
 function cleanHeader(h: PieceRunHeader): PieceRunHeader {
@@ -339,8 +341,21 @@ function cleanHeader(h: PieceRunHeader): PieceRunHeader {
     ...((h.mode === 'rhythm' || h.mode === 'memory') && { mode: h.mode }),
     ...(h.leftHand !== undefined && { leftHand: h.leftHand }),
     ...(h.transpose !== undefined && { transpose: h.transpose }),
+    ...(h.keys !== undefined && { keys: [h.keys[0], h.keys[1]] as const }),
   };
 }
+
+function isKeyboard(v: unknown): v is [number, number] {
+  return (
+    Array.isArray(v) &&
+    v.length === 2 &&
+    v.every((key) => Number.isInteger(key) && key >= PIANO_LOWEST && key <= PIANO_HIGHEST) &&
+    v[0] < v[1]
+  );
+}
+
+/** No run has more notes played for the player than this: far above any piece's keys. */
+const MAX_GIVEN = 100_000;
 
 function isMemoryCounts(v: unknown): v is MemoryCounts {
   return isObject(v) && isMemoryStage(v.stage) && isCount(v.prompts);
@@ -366,7 +381,7 @@ function validatePieceSession(value: Fields): Validation<PieceSessionRecord> {
     rhythm: (v) => (value.mode === 'rhythm' ? isRhythmCounts(v) : v === undefined),
     memory: (v) => (value.mode === 'memory' ? isMemoryCounts(v) : v === undefined),
     // The notes played for the player are never written as 0: none is their absence.
-    given: (v) => v === undefined || (isCount(v) && v > 0),
+    given: (v) => v === undefined || (isCount(v) && v > 0 && v <= MAX_GIVEN),
   });
   if (field) return fail(field);
   const s = value as unknown as PieceSessionRecord;
@@ -1466,6 +1481,8 @@ export function validateScaleRun(value: unknown): Validation<StoredScaleRun> {
 
 const isChecksum = (v: unknown) => typeof v === 'string' && /^[0-9a-f]{8}$/.test(v);
 const isNoKeys = (v: unknown) => Array.isArray(v) && v.length === 0;
+/** A step of wait or memory mode with the empty list of keys: one passed. */
+const passedWaiting = (step: Fields) => step.mode !== 'rhythm' && isNoKeys(step.notes);
 
 export function validatePieceStep(value: unknown): Validation<PieceStep> {
   if (!isObject(value)) return fail('record');
@@ -1477,14 +1494,16 @@ export function validatePieceStep(value: unknown): Validation<PieceStep> {
     hands: isHandSelection,
     measure: isIndex,
     pass: (v) => isCount(v) && v >= 1 && v <= 100,
-    ms: isTime,
-    wrong: isCount,
+    // A step passed in wait or memory mode took no time and had no wrong note or prompt.
+    ms: (v) => isTime(v) && (!passedWaiting(value) || v === 0),
+    wrong: (v) => isCount(v) && (!passedWaiting(value) || v === 0),
     at: isTime,
     mode: isMode,
     // Rhythm mode's timings, memory mode's prompts and stage, and nothing in wait mode; in wait
     // and memory mode an empty list marks a step passed (it had none of the player's keys).
     notes: (v) => (value.mode === 'rhythm' ? isNoteTimings(v) : v === undefined || isNoKeys(v)),
-    prompts: (v) => (value.mode === 'memory' ? isCount(v) : v === undefined),
+    prompts: (v) =>
+      value.mode === 'memory' ? isCount(v) && (!passedWaiting(value) || v === 0) : v === undefined,
     stage: (v) => (value.mode === 'memory' ? isMemoryStage(v) : v === undefined),
     transpose: isTranspose,
   });

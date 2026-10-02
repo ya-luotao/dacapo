@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useId,
   useLayoutEffect,
@@ -57,7 +58,7 @@ import {
   type Score,
   type Step,
 } from '../../core/score.ts';
-import { waitRange, type BarLoop, type WaitState } from '../../core/wait.ts';
+import { firstWaited, waitRange, type BarLoop, type WaitState } from '../../core/wait.ts';
 import type { TakeState } from '../../core/takes.ts';
 import { pieceKey, transposedKey, TRANSPOSITIONS } from '../../core/transpose.ts';
 import { useT } from '../../i18n/index.ts';
@@ -379,7 +380,11 @@ export function PieceSession({
   );
 
   // Memory mode: the bars hidden at the stage, for a run from its first bar (P7).
-  const firstBar = range ? (steps[range.start ?? range.first]?.measure ?? startBar) : startBar;
+  // On a keyboard with fewer keys: the first bar the player has a step in from there.
+  const begins = range ? firstWaited(steps, range) : null;
+  const firstBar = range
+    ? (steps[begins?.current ?? range.start ?? range.first]?.measure ?? startBar)
+    : startBar;
   const memory = useMemo(
     () => (memoryMode ? { stage, hidden: hiddenBars(score.measures, stage, firstBar) } : null),
     [memoryMode, stage, score, firstBar],
@@ -434,11 +439,36 @@ export function PieceSession({
     ...(memoryMode && { mode: 'memory' as const }),
     ...(leftHand !== 'written' && { leftHand }),
     ...(transpose !== 0 && { transpose }),
+    // A keyboard with fewer keys goes with the run: whatever reads it knows the app's notes.
+    keys: keyboard,
   };
   useRunRecorder(recorded, context, store);
 
   // The measure heatmap: this piece's step records, read when the page opens.
   const allRecords = usePieceSteps(piece.id);
+  // The keyboard a past run was played on (`keysOfRun`): the one its session keeps, and its
+  // take is read with it, whatever keyboard is chosen now.
+  const keysOfPast = useCallback(
+    (session: PieceSessionRecord, events: readonly TakeEvent[]): KeyRange | null => {
+      if (!session.keys && !session.given) return null;
+      const semitones = session.transpose ?? 0;
+      const played = semitones === transpose ? score : scoreInKey(practised, semitones);
+      if (!played) return null;
+      return keysOfRun({
+        score: played,
+        hands: session.hands,
+        repeats: session.repeats,
+        loop: session.loop,
+        mode: session.mode === 'rhythm' ? 'rhythm' : 'wait',
+        keys: session.keys,
+        given: session.given,
+        completed: session.completed,
+        events,
+        records: allRecords?.filter((r) => r.sessionId === session.id),
+      });
+    },
+    [allRecords, transpose, score, practised],
+  );
   // Runs with another left hand are runs of other notes: neither counted nor an older version.
   const runs = usePieceRuns(piece.id);
   const records = useMemo(() => {
@@ -477,8 +507,8 @@ export function PieceSession({
   // count: a tick comes as a round of the loop is completed, not under the player's hands. (In
   // rhythm mode a time through is told whole from the records, so all of them are taken.)
   const planOf = useMemo(
-    () => ({ phrases: piecePhrases(written), barSteps: stepsPerBar(written) }),
-    [written],
+    () => ({ phrases: piecePhrases(written, keyboard), barSteps: stepsPerBar(written) }),
+    [written, keyboard],
   );
   const live = recorded.ended ? null : recorded.id;
   const perRound = range ? range.last - range.first + 1 : 0;
@@ -1005,25 +1035,6 @@ export function PieceSession({
     return compare === 'off' ? takePlayback(input) : comparePlayback(input, compare);
   }
 
-  /**
-   * The keyboard a past run was played on, as far as its notes tell (`keysOfRun`): its take is
-   * read with it, whatever keyboard is chosen now.
-   */
-  function keysOfPast(session: PieceSessionRecord, events: readonly TakeEvent[]): KeyRange | null {
-    const played = scoreIn(session.transpose ?? 0);
-    if (!played || !session.given) return null;
-    return keysOfRun({
-      score: played,
-      hands: session.hands,
-      repeats: session.repeats,
-      loop: session.loop,
-      mode: session.mode === 'rhythm' ? 'rhythm' : 'wait',
-      given: session.given,
-      events,
-      records: allRecords?.filter((r) => r.sessionId === session.id),
-    });
-  }
-
   /** Plays a run back: whatever plays stops, and listening is no hesitation. */
   function startPlayback(source: PlaybackSource) {
     const data = playbackOf(source, 'off');
@@ -1230,9 +1241,9 @@ export function PieceSession({
     [score, keyboard],
   );
   const beyondWords = useBeyondWords();
-  // Every step of these bars is the app's: nothing is left for the player to play.
-  const allGiven =
-    range !== null && !steps.slice(range.first, range.last + 1).some((s) => s.midis.length > 0);
+  // Every step from the start bar on is the app's (round the loop too): nothing is left for the
+  // player to play.
+  const allGiven = range !== null && begins === null;
   const marked = useMemo(() => {
     // A run played back shows the keys it pressed, its wrong ones apart.
     if (playbackView)
@@ -2125,7 +2136,8 @@ export function PieceSession({
               beat={beat}
               ended={rhythm.status === 'ended' && rhythm.timings.length === 0}
               last={rhythm.last}
-              nothing={!range || !timed || allGiven}
+              nothing={!range || !timed}
+              allGiven={allGiven}
               click={clickMode}
               bpm={bpm}
               bar={step ? format.barStatus(step.measure, step.pass) : ''}

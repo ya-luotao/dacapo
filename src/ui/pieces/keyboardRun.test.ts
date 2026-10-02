@@ -4,7 +4,7 @@ import { passSteps, pieceRuns } from '../../core/assignments.ts';
 import type { PieceTask } from '../../core/assignmentRecords.ts';
 import { barHeatmap, barStepsIn } from '../../core/barHeatmap.ts';
 import { analyzeExpression } from '../../core/expression.ts';
-import type { KeyRange } from '../../core/instrument.ts';
+import { FULL_KEYS, KEYBOARDS, type KeyRange } from '../../core/instrument.ts';
 import {
   GIVEN_NOTES,
   keyboardScore,
@@ -139,7 +139,11 @@ function waitRun(
   };
   const recorded = recordedRun(
     waitRecording(run),
-    context({ loop: labelled, ...(options.memory && { mode: 'memory' }) }),
+    context({
+      loop: labelled,
+      ...(options.memory && { mode: 'memory' }),
+      keys,
+    }),
   )!;
   return { recorded, events: run.take!.events, run };
 }
@@ -224,7 +228,15 @@ function rhythmRun(
     fromLabel: String(loop.from + 1),
     toLabel: String(loop.to + 1),
   };
-  const recorded = recordedRun(run, context({ loop: labelled, tempo, mode: 'rhythm' }))!;
+  const recorded = recordedRun(
+    run,
+    context({
+      loop: labelled,
+      tempo,
+      mode: 'rhythm',
+      keys,
+    }),
+  )!;
   return { recorded, events: state.take!.events, run: undefined as never, timings: state.timings };
 }
 
@@ -266,13 +278,23 @@ describe('what a wait run on a keyboard with fewer keys stores', () => {
       wrong: 1,
       completed: true,
       given: GIVEN_NOTES,
+      // The keyboard it was played on: the piece's notes go beyond it.
+      keys: [SMALL.low, SMALL.high],
     });
     expect(givenNotes(run.run.records)).toBe(GIVEN_NOTES);
     // On 88 keys nothing is passed and nothing given: the session has no such field.
     const whole = waitRun('w88', { keys: null }).recorded;
     expect(whole.session.steps).toBe(STEPS);
     expect('given' in whole.session).toBe(false);
+    expect('keys' in whole.session).toBe(false);
     expect(whole.steps.some((s) => 'notes' in s)).toBe(false);
+    // A keyboard with fewer keys that has every note of the piece: the run keeps the keyboard,
+    // and is otherwise that of 88 keys.
+    const within = waitRun('w88', { keys: KEYBOARDS[61] }).recorded;
+    expect(within.session).toEqual({ ...whole.session, keys: [36, 96] });
+    expect(within.steps).toEqual(whole.steps);
+    // 88 keys named outright are 88 keys.
+    expect(waitRun('w88', { keys: FULL_KEYS }).recorded).toEqual(whole);
   });
 
   it('a take of the keys the player pressed, and only those', () => {
@@ -372,6 +394,12 @@ describe('the review schedule', () => {
     expect(gradeRun(slip.session, slip.steps, facts)).toBe('same');
     expect(gradeRun({ ...slip.session, given: 6 }, slip.steps, facts)).toBe('worse');
     expect(gradeRun({ ...slip.session, given: undefined }, slip.steps, facts)).toBe('same');
+    // A count beyond the piece's notes (a file's, a service's) is not believed: the player had
+    // a key in each of their steps, and the run is counted against those.
+    const crafted = { ...slip.session, given: 100_000 };
+    expect(runNotes(crafted, facts)).toBe(STEPS - PASSED_STEPS);
+    expect(gradeRun(crafted, slip.steps, facts)).toBe('worse');
+    expect(runNotes({ ...slip.session, given: 15 }, facts)).toBe(STEPS - PASSED_STEPS);
     // In rhythm mode the notes due are the player's already.
     const timed = rhythmRun('r1').recorded;
     expect(gradeRun(timed.session, timed.steps, facts)).toBe('better');
@@ -546,8 +574,19 @@ describe('the bar heatmap', () => {
     // Notes due per bar over three runs: 3, 2, none, 3 and 2 a run.
     expect(cells.map((c) => c.steps)).toEqual([9, 6, 0, 9, 6]);
     expect(cells[1]).toMatchObject({ medianMs: 10, wrong: 0, missed: 0, steady: true });
-    // A bar without a note of the player's has no timing to show.
-    expect(cells[2]).toMatchObject({ medianMs: null, wrong: 0, bucket: null });
+    // A bar without a note of the player's has no timing to colour, and nobody was late in it:
+    // it is steady once it has been gone through three times, as its hesitation is.
+    expect(cells[2]).toMatchObject({ medianMs: 0, wrong: 0, bucket: null, steady: true });
+    expect(cells.every((c) => c.steady)).toBe(true);
+    // Twice through is not three times, and a note missed in a bar is the player's still.
+    const twice = barHeatmap(stepsOf(...runs.slice(0, 2)), {
+      checksum: facts.checksum,
+      hands: 'both',
+      bars,
+      metric: 'timing',
+      barSteps,
+    });
+    expect(twice.cells[2]!.steady).toBe(false);
   });
 });
 
@@ -633,7 +672,33 @@ describe('a past run read on any keyboard', () => {
       steps.map((s) => [s.midis, s.given]),
     );
 
-  it('tells its keyboard from its take in wait mode, as far as its notes go', () => {
+  it('has the keyboard its session keeps, in every mode', () => {
+    for (const run of [waitRun('w1'), waitRun('m1', { memory: true }), rhythmRun('r1')]) {
+      const { session } = run.recorded;
+      expect(session.keys).toEqual([48, 72]);
+      const keys = keysOfRun({
+        score,
+        hands: 'both',
+        repeats: 'play',
+        loop: null,
+        mode: session.mode === 'rhythm' ? 'rhythm' : 'wait',
+        keys: session.keys,
+        given: session.given,
+        events: run.events,
+      });
+      expect(keys).toEqual(SMALL);
+      sameSteps(keys);
+    }
+    // A run stopped on its first steps, before any note was the app's, keeps it all the same.
+    const short = recordedRun(
+      { ...waitRecording(waitRun('w2').run), records: waitRun('w2').run.records.slice(0, 2) },
+      context({ keys: SMALL }),
+    )!;
+    expect(short.session).toMatchObject({ keys: [48, 72], steps: 2 });
+    expect('given' in short.session).toBe(false);
+  });
+
+  it('without one, tells it from its take in wait mode, as far as its notes go', () => {
     const run = waitRun('w1');
     const keys = keysOfRun({
       score,
@@ -810,5 +875,75 @@ describe('the notes the app plays as the run goes', () => {
       .sort((a, b) => a.on - b.on || a.midi - b.midi);
     expect(accompanied(plan, completions)).toEqual(live);
     expect(live.map((n) => n.midi)).toEqual([43, 76, 84, 83, 81, 79, 81]);
+  });
+});
+
+describe('a run without its keyboard (kept by a build from before)', () => {
+  // Bars 1–3 alone: the run ends on two steps of the app's, C6 and B5.
+  const short = {
+    ...score,
+    measures: score.measures.slice(0, 3),
+    notes: score.notes.filter((n) => n.measure < 3),
+  };
+  /** A keyboard up to A5: of bars 1–3 only G2, C6 and B5 are beyond it. */
+  const upToA5 = { low: 48, high: 81 };
+
+  function shortRun() {
+    const list = buildSteps(short, 'both', performanceOrder(short.measures), upToA5);
+    let run = startRun({ id: 's1', steps: list, range: { first: 0, last: 5, loop: false } });
+    let time = 1000;
+    for (const step of list) {
+      time += 700;
+      for (const midi of step.midis) {
+        run = runReducer(run, { type: 'press', midi, velocity: 64, time, at: EPOCH + time });
+        run = runReducer(run, { type: 'input', input: { type: 'off', midi, time: time + 100 } });
+      }
+    }
+    const recorded = recordedRun(
+      waitRecording(run),
+      context({ checksum: pieceFacts(short).checksum }),
+    )!;
+    return { list, run, recorded };
+  }
+
+  it('is told the steps passed from their records, where the take has no stroke after them', () => {
+    const { list, run, recorded } = shortRun();
+    expect(run.wait!.finished).toBe(true);
+    expect(recorded.steps.filter(isPassed)).toHaveLength(2);
+    expect(recorded.session).toMatchObject({ given: 3, completed: true });
+    expect('keys' in recorded.session).toBe(false);
+    const past = {
+      score: short,
+      hands: 'both' as const,
+      repeats: 'play' as const,
+      loop: null,
+      mode: 'wait' as const,
+      given: recorded.session.given,
+      events: run.take!.events,
+    };
+    // The take alone: G2 was the app's, and nothing says C6 and B5 were.
+    expect(keysOfRun(past)).toEqual({ low: 44, high: 108 });
+    // With the records: both steps passed, so B5 and everything over it was the app's.
+    const told = keysOfRun({ ...past, records: recorded.steps })!;
+    expect(told).toEqual({ low: 44, high: 82 });
+    expect(
+      buildSteps(short, 'both', performanceOrder(short.measures), told).map((s) => s.given),
+    ).toEqual(list.map((s) => s.given));
+  });
+});
+
+describe('a run in which every step was the app’s', () => {
+  it('is no run to the end, and brings nothing into review', () => {
+    // A crafted session: completed, without a loop, every step passed.
+    const run = waitRun('w1').recorded;
+    const steps = run.steps.map((s) => ({ ...s, ms: 0, wrong: 0, notes: [] }));
+    const session = { ...run.session, steps: 0, wrong: 0, given: 15 };
+    expect(isRunToTheEnd(session, steps, facts)).toBe(false);
+    expect(isRunToTheEnd(session, undefined, facts)).toBe(false);
+    expect(reviewSchedule(PIECE, [session], steps, facts, 'UTC')).toBeNull();
+    // Whatever else the session says: one an older build kept has no count of the app's notes.
+    expect(isRunToTheEnd({ ...run.session, steps: 0 }, steps, facts)).toBe(false);
+    // One step of the player's is a run of the player's.
+    expect(isRunToTheEnd({ ...session, steps: 1, given: 14 }, steps, facts)).toBe(true);
   });
 });

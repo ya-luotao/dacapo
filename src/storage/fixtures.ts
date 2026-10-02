@@ -217,8 +217,9 @@ export function sampleRhythmRun(
 
 /**
  * A run of four steps on a keyboard with fewer keys (docs/PERSONAL.md, "The instrument's keys"):
- * its third step passed (none of the player's keys), three notes played for the player. In
- * rhythm mode its second step lists one of its two keys: the other was the app's.
+ * its third step passed (none of the player's keys), three notes played for the player, on a
+ * keyboard of 49 keys. In rhythm mode its second step lists one of its two keys: the other was
+ * the app's.
  */
 export function sampleKeyboardRun(
   sessionId: string,
@@ -244,6 +245,7 @@ export function sampleKeyboardRun(
         hands: first.hands,
         startedAt: mode === 'rhythm' ? first.at : first.at - first.ms,
         ...(mode !== 'wait' && { mode }),
+        keys: [36, 84],
       }),
       steps,
       true,

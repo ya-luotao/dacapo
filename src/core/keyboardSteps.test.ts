@@ -13,6 +13,7 @@ import { performanceOrder } from './repeats.ts';
 import { createMatcher, rhythmPlan, type StepTiming } from './rhythm.ts';
 import { buildSteps, type Step } from './score.ts';
 import {
+  firstWaited,
   press,
   startWait,
   waitRange,
@@ -246,6 +247,22 @@ describe('wait mode on a keyboard with fewer keys', () => {
   it('has nothing to play where every step is the app’s', () => {
     expect(startWait(steps, { first: 4, last: 5 })).toBeNull();
     expect(startWait(steps, { first: 4, last: 5, loop: true })).toBeNull();
+  });
+
+  it('has nothing to play from a start bar after which every step is the app’s', () => {
+    // Bars 1–3, from bar 3: C6 and B5 to the end. The run does not go back to bar 1.
+    const range = { first: 0, last: 5, start: 4 };
+    expect(firstWaited(steps, range)).toBeNull();
+    expect(startWait(steps, range)).toBeNull();
+    // A loop goes round: it begins at its first step the player has, the steps before it passed.
+    expect(firstWaited(steps, { ...range, loop: true })).toEqual({ from: 0, current: 0 });
+    const looped = startWait(steps, { ...range, loop: true })!;
+    expect(looped).toMatchObject({ current: 0, laps: 0 });
+    expect(looped.lead).toBeUndefined();
+    // With a step of the player's after the start bar, the run begins there.
+    expect(firstWaited(steps, { first: 0, last: 8, start: 4 })).toEqual({ from: 4, current: 6 });
+    // On 88 keys a run begins on the step it starts from.
+    expect(firstWaited(full, { first: 0, last: 8, start: 4 })).toEqual({ from: 4, current: 4 });
   });
 
   it('plays a repeat’s second pass as the first: the steps passed have their pass', () => {

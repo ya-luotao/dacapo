@@ -2,9 +2,12 @@
 // phrase, each hand, then together; then each phrase in time; then the whole piece. A stage is
 // done by the records of the piece's runs, by lines the app already draws: the bar heatmap's
 // "steady", the review's clean and in time, a run to the end. Pure, and nothing of it is stored:
-// the plan is the records read another way, so it is the same wherever the records are.
+// the plan is the records read another way, so it is the same wherever the records are, but for
+// the stages a keyboard with fewer keys leaves nobody to play (docs/PERSONAL.md, "The
+// instrument's keys"): those are not in the plan of a device that has such a keyboard.
 
 import { barHeatmap, barStepsIn, type BarSteps } from './barHeatmap.ts';
+import { isFullKeys, type KeyRange } from './instrument.ts';
 import type { PieceSessionRecord } from './log.ts';
 import { phraseStarts } from './memory.ts';
 import {
@@ -42,6 +45,12 @@ export interface PiecePhrase {
   bars: Readonly<Record<HandSelection, readonly number[]>>;
   /** The steps one time through it takes, per hand selection. */
   steps: Readonly<Record<HandSelection, number>>;
+  /**
+   * On a keyboard with fewer keys (docs/PERSONAL.md, "The instrument's keys"): whether each
+   * hand selection has a step with a key on the keyboard in the phrase. A hand that has none
+   * cannot be played there: every step is the app's. Absent on 88 keys: every hand can be.
+   */
+  playable?: Readonly<Record<HandSelection, boolean>>;
 }
 
 /** What a piece's plan is made of: its phrases, and the facts of the notes they are of. */
@@ -62,13 +71,27 @@ export function stepsPerBar(score: Score): Record<HandSelection, Map<number, num
   return { right: count('right'), left: count('left'), both: count('both') };
 }
 
+/** The written bars in which each hand selection has a step with a key on the keyboard. */
+function barsOnKeys(score: Score, keys: KeyRange): Record<HandSelection, Set<number>> {
+  const order = performanceOrder(score.measures);
+  const bars = (hands: HandSelection) =>
+    new Set(
+      buildSteps(score, hands, order, keys)
+        .filter((step) => step.midis.length > 0)
+        .map((step) => step.measure),
+    );
+  return { right: bars('right'), left: bars('left'), both: bars('both') };
+}
+
 /**
  * The phrases of a score, each with the bars its hands play. A phrase in which nothing is played
- * is left out. Bars are written measures, as a loop's are: a repeated phrase is one phrase.
+ * is left out, and so, on a keyboard with fewer keys (`keys`), is one in which nothing is the
+ * player's to play. Bars are written measures, as a loop's are: a repeated phrase is one phrase.
  */
-export function piecePhrases(score: Score): PiecePhrase[] {
+export function piecePhrases(score: Score, keys?: KeyRange | null): PiecePhrase[] {
   const { measures } = score;
   const counts = stepsPerBar(score);
+  const own = keys && !isFullKeys(keys) ? barsOnKeys(score, keys) : null;
   const starts = phraseStarts(measures);
   return starts.flatMap((start, i): PiecePhrase[] => {
     // An upbeat belongs to the first phrase, which is counted from the bar after it.
@@ -79,6 +102,8 @@ export function piecePhrases(score: Score): PiecePhrase[] {
     const steps = (hands: HandSelection) =>
       span.reduce((sum, bar) => sum + (counts[hands].get(bar) ?? 0), 0);
     if (bars('both').length === 0) return [];
+    const can = (hands: HandSelection) => own === null || span.some((bar) => own[hands].has(bar));
+    if (!can('both')) return [];
     return [
       {
         from,
@@ -87,14 +112,22 @@ export function piecePhrases(score: Score): PiecePhrase[] {
         toLabel: measures[to]!.number,
         bars: { right: bars('right'), left: bars('left'), both: bars('both') },
         steps: { right: steps('right'), left: steps('left'), both: steps('both') },
+        ...(own && { playable: { right: can('right'), left: can('left'), both: can('both') } }),
       },
     ];
   });
 }
 
-/** What a piece's plan is made of, from its score as written. */
-export function planSource(score: Score): PlanSource {
-  return { phrases: piecePhrases(score), facts: pieceFacts(score), barSteps: stepsPerBar(score) };
+/**
+ * What a piece's plan is made of, from its score as written, for the player's keyboard (`keys`;
+ * every key when omitted).
+ */
+export function planSource(score: Score, keys?: KeyRange | null): PlanSource {
+  return {
+    phrases: piecePhrases(score, keys),
+    facts: pieceFacts(score),
+    barSteps: stepsPerBar(score),
+  };
 }
 
 /**
@@ -232,10 +265,22 @@ export function piecePlan(input: PlanInput): PiecePlan {
   // The rung to take in time: the ladder's next, and the score's tempo once it is climbed.
   const rung = tempoLadder(pieceId, every, sessions, own, facts).next ?? SCORE_TEMPO;
 
-  const present = (phrase: PiecePhrase): PhraseStage[] =>
-    phrase.bars.right.length > 0 && phrase.bars.left.length > 0
-      ? ['right', 'left', 'together', 'inTime']
-      : [phrase.bars.right.length > 0 ? 'right' : 'left', 'inTime'];
+  // A stage is there when its hands have something to play in the phrase, and, on a keyboard
+  // with fewer keys, a step of it that the player has a key of: a stage whose every step is the
+  // app's cannot be played, and is not asked for.
+  const can = (phrase: PiecePhrase, hands: HandSelection): boolean =>
+    phrase.bars[hands].length > 0 && (phrase.playable?.[hands] ?? true);
+  const present = (phrase: PiecePhrase): PhraseStage[] => {
+    const hands: PhraseStage[] =
+      phrase.bars.right.length > 0 && phrase.bars.left.length > 0
+        ? ['right', 'left', 'together']
+        : [phrase.bars.right.length > 0 ? 'right' : 'left'];
+    const stages = [...hands, 'inTime' as const];
+    if (!phrase.playable) return stages;
+    return stages.filter((stage) =>
+      can(phrase, stage === 'together' ? 'both' : stage === 'inTime' ? every : stage),
+    );
+  };
   const stages = PHRASE_STAGES.filter((stage) => phrases.some((p) => present(p).includes(stage)));
   const rows = phrases.map((phrase, index) => {
     const { from, to, fromLabel, toLabel } = phrase;
@@ -278,10 +323,14 @@ export function piecePlan(input: PlanInput): PiecePlan {
 
   const open = (wanted: (stage: PlanStage) => boolean): PlanStage | undefined =>
     rows.flatMap((row) => row.stages).find((s) => s !== null && !s.done && wanted(s)) ?? undefined;
+  // A piece with nothing for the player to play (every note beyond their keyboard) has no plan:
+  // no phrase, and no next step.
   const next =
-    open((s) => s.stage !== 'inTime') ??
-    open((s) => s.stage === 'inTime') ??
-    (played ? null : whole);
+    rows.length === 0
+      ? null
+      : (open((s) => s.stage !== 'inTime') ??
+        open((s) => s.stage === 'inTime') ??
+        (played ? null : whole));
   return { stages, rows, whole, next };
 }
 
