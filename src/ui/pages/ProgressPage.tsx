@@ -13,6 +13,7 @@ import { PracticeFigures } from '../progress/PracticeFigures.tsx';
 import { SessionList } from '../progress/SessionList.tsx';
 import { Trends } from '../progress/trends/Trends.tsx';
 import { useNow } from '../progress/useNow.ts';
+import { WeekRecap } from '../progress/WeekRecap.tsx';
 import { WhereYouAre } from '../progress/WhereYouAre.tsx';
 import { readStartPref } from '../start/prefs.ts';
 
@@ -55,6 +56,12 @@ export function ProgressPage() {
               <DayHistory history={log.history} totals={log.totals} today={log.today} goal={goal} />
               <WeaknessHeatmap stats={stats} />
               <FamilyProgress answers={answers} />
+            </>
+          )}
+          {/* What the weeks came to, then how the practices are going (docs/PERSONAL.md). */}
+          <WeekRecap today={log.today} />
+          {sessions.length > 0 && (
+            <>
               <Trends sessions={sessions} attempts={attempts} answers={answers} today={log.today} />
               <SessionList sessions={sessions} />
             </>

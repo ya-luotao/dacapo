@@ -19,6 +19,7 @@ import { readStartPref } from '../start/prefs.ts';
 import { useTodayFormat } from './format.ts';
 import { readKeptPlan, writeKeptPlan } from './prefs.ts';
 import { useTodayRecords } from './useTodayRecords.ts';
+import { WeekLine } from './WeekLine.tsx';
 
 function Arrow() {
   return (
@@ -58,6 +59,8 @@ interface TodayPlanProps {
   minutes: PlanMinutes;
   /** What holds the rows' place while the records are being read. */
   waiting: ReactNode;
+  /** A new week began today or yesterday: a line about the week that ended heads the plan. */
+  week: boolean;
   /** Whether the plan's steps are shown: not while an assignment has open tasks. */
   onSteps: (shown: boolean) => void;
 }
@@ -68,7 +71,7 @@ interface TodayPlanProps {
  * assignment has open tasks it is shown as today instead: a teacher's plan is not set beside one
  * made up here. Loaded apart from the start: making a plan takes the rules of every practice.
  */
-export function TodayPlan({ today, minutes, waiting, onSteps }: TodayPlanProps) {
+export function TodayPlan({ today, minutes, waiting, week, onSteps }: TodayPlanProps) {
   const t = useT();
   const format = useTodayFormat();
   const records = useTodayRecords();
@@ -94,6 +97,7 @@ export function TodayPlan({ today, minutes, waiting, onSteps }: TodayPlanProps) 
   const allDone = plan.steps.length > 0 && done.every(Boolean);
   return (
     <>
+      {week && records && <WeekLine records={records} today={today} />}
       {assignment && <AssignmentBlock current={assignment} today={today} />}
       {steps && (
         <div className="today-plan">

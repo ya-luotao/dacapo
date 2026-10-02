@@ -44,6 +44,13 @@ export function useLogFormat() {
       /** Whole minutes, rounded down, so "5 min" always means the goal is reached. */
       minutes: (ms: number) => t('progress.minutes', { n: Math.floor(ms / MINUTE_MS) }),
       days: (n: number) => (n === 1 ? t('progress.days.one') : t('progress.days.other', { n })),
+      /** A week's time, in hours and whole minutes: "45 min", "2 h", "1 h 40 min". */
+      time: (ms: number) => {
+        const minutes = Math.floor(ms / MINUTE_MS);
+        const [h, m] = [Math.floor(minutes / 60), minutes % 60];
+        if (h === 0) return t('progress.minutes', { n: m });
+        return m === 0 ? t('progress.hours', { h }) : t('progress.hoursMinutes', { h, m });
+      },
       duration: (ms: number) => {
         const seconds = Math.round(ms / 1000);
         const m = Math.floor(seconds / 60);

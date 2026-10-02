@@ -15,6 +15,20 @@ click's tempo and grid of scale runs played with it (from version 7), the takes 
 (from version 8), and assignments and kept reports (from version 9). Version 1 to 8 files still
 import.
 
+### Your week (G6f, [docs/PERSONAL.md](docs/PERSONAL.md))
+
+- **Progress → Last week**, above "How you are doing", with **This week so far** beside it:
+  the days practised and the time (last week's against the week before), then up to six lines of
+  what happened, the most telling first — lessons finished, levels mastered and tunes learnt
+  (named), pieces that came into review, moved up or fell back, a piece brought to a higher
+  tempo, scales played for the first time, the practice that had most of the time and one that
+  is open and had none. Facts from your records, not trends.
+- On the **first two days of a week**, Home has a line under Today's figures ("Last week: 5
+  days, 1 h 40 min, 2 levels mastered") that opens Progress on the week.
+- Worked out from the records by their times, as the state at the week's end against the state
+  at its start (`core/recap.ts`); nothing is stored, synced or exported for it. A lesson counts
+  for the week it was finished in once its tick has a time (G3).
+
 ### The daily goal (G6d, [docs/PERSONAL.md](docs/PERSONAL.md))
 
 - **Settings → Your data → Daily goal**: 5, 10, 15, 20, 30 or 45 minutes a day; 5 as before.

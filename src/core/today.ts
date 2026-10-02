@@ -347,8 +347,15 @@ export interface PlanOptions extends StateOptions {
   minutes: PlanMinutes;
 }
 
-/** The records from before `today` began, on the player's calendar. */
-function recordsBefore(records: TodayRecords, today: DayKey, timeZone?: string): TodayRecords {
+/**
+ * The records from before `today` began, on the player's calendar: what the plan is made from,
+ * and the state a week began or ended in (recap.ts).
+ */
+export function recordsBefore(
+  records: TodayRecords,
+  today: DayKey,
+  timeZone?: string,
+): TodayRecords {
   const before = untilDue(addDays(today, -1), timeZone);
   const sessions = records.sessions.flatMap((session): SessionRecord[] => {
     if (!before(session.startedAt)) return [];

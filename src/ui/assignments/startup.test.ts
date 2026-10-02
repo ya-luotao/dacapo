@@ -127,6 +127,29 @@ describe('what the start loads', () => {
       expect(chain(block, '/src/core/scaleProgress.ts'), block).toBeNull();
   });
 
+  // The recap of a week (docs/PERSONAL.md, "Your week") is the state at the week's end against
+  // the state at its start, by every practice's mastery rule: it comes with Progress and with
+  // the plan's rows, whose line about last week it words. The start knows only on which days of
+  // a week the line has room.
+  it('the start loads no recap of a week: Progress and the plan’s rows do', () => {
+    for (const recap of [
+      '/src/core/recap.ts',
+      '/src/core/tempoLadder.ts',
+      '/src/ui/progress/WeekRecap.tsx',
+      '/src/ui/progress/recapFormat.ts',
+      '/src/ui/today/WeekLine.tsx',
+      '/src/ui/today/lessonTicks.ts',
+    ])
+      expect(chain('/src/main.tsx', recap), recap).toBeNull();
+    expect(chain('/src/main.tsx', '/src/ui/pages/ProgressPage.tsx')).toBeNull();
+    for (const root of ['/src/ui/pages/ProgressPage.tsx', '/src/ui/today/TodayPlan.tsx'])
+      expect(chain(root, '/src/core/recap.ts'), root).not.toBeNull();
+    // What the start reads of the week is the calendar and one figure, beside the plan's data.
+    expect(SOURCES['/src/core/todayRecords.ts']).toContain('WEEK_LINE_DAYS');
+    expect(staticImports('/src/core/recap.ts')).not.toContain('/src/core/trends.ts');
+    for (const heavy of HEAVY) expect(chain('/src/core/recap.ts', heavy)).toBeNull();
+  });
+
   // The start page (docs/START.md) is for whoever presses Start on a first visit: the start has
   // the answer as data and where it is kept (the home page tells a visitor who answered from a
   // first visit by it), and the page itself comes on demand.

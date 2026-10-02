@@ -9,6 +9,12 @@ import type { DayKey } from './streak.ts';
 /** The lengths a plan can have, in minutes: those of lesson 14's figure of a session. */
 export const PLAN_MINUTES = [10, 20, 30, 45] as const;
 export type PlanMinutes = (typeof PLAN_MINUTES)[number];
+/**
+ * On the first this many days of a week the home page has a line about the week that ended
+ * (docs/PERSONAL.md, "Your week"). Here with the plan's data: the start keeps the line's room.
+ */
+export const WEEK_LINE_DAYS = 2;
+
 export const DEFAULT_PLAN_MINUTES: PlanMinutes = 20;
 
 export const isPlanMinutes = (v: unknown): v is PlanMinutes =>

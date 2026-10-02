@@ -5,6 +5,7 @@ import {
   dailyTotals,
   dayHistory,
   dayKey,
+  dayOfWeek,
   longestStreak,
   monthStarts,
   monthTotals,
@@ -12,6 +13,7 @@ import {
   practiceLog,
   STREAK_GOAL_MS,
   weekday,
+  weekStart,
   yearGrid,
   type DayKey,
 } from './streak.ts';
@@ -173,6 +175,25 @@ describe('weekday', () => {
     expect(weekday('2026-10-03')).toBe(6);
     expect(weekday('2026-10-04')).toBe(7);
     expect(weekday('2024-02-29')).toBe(4);
+  });
+});
+
+describe('the week', () => {
+  it('places a day in its week, whichever day the week starts on', () => {
+    // Friday 2 October 2026.
+    expect(dayOfWeek('2026-10-02', 7)).toBe(5);
+    expect(dayOfWeek('2026-10-02', 1)).toBe(4);
+    expect(dayOfWeek('2026-09-27', 7)).toBe(0); // a Sunday
+    expect(dayOfWeek('2026-09-27', 1)).toBe(6);
+    expect(dayOfWeek('2026-09-28', 1)).toBe(0); // a Monday
+  });
+
+  it('begins on the owner’s first day', () => {
+    expect(weekStart('2026-10-02', 7)).toBe('2026-09-27');
+    expect(weekStart('2026-10-02', 1)).toBe('2026-09-28');
+    expect(weekStart('2026-09-27', 7)).toBe('2026-09-27');
+    expect(weekStart('2026-09-27', 1)).toBe('2026-09-21');
+    expect(weekStart('2027-01-01', 7)).toBe('2026-12-27');
   });
 });
 

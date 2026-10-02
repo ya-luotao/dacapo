@@ -4325,6 +4325,7 @@ kbd {
 .history,
 .heatmap,
 .families,
+.recap,
 .trends,
 .sessions {
   margin-top: 3.5rem;
@@ -4413,6 +4414,79 @@ kbd {
 
   .where-rows li.is-closed .where-next {
     grid-column: 1;
+  }
+}
+
+/* Your week: the week that ended and the week under way, side by side on a wide screen; each a
+   list of rows as "Where you are" has them — what, and its figure or the things it names. */
+.recap {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+  gap: 2.5rem clamp(2rem, 5vw, 4rem);
+  max-width: 68rem;
+}
+
+.recap-week {
+  min-width: 0;
+  max-width: 34rem;
+}
+
+.recap-week > .help {
+  margin-top: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* While the records are read, about the room a week's rows take: the charts below stay put. */
+.recap-waiting {
+  min-height: 14rem;
+  margin: 0;
+}
+
+.recap-empty {
+  margin: 1.25rem 0 0;
+  padding-block: 0.5625rem;
+  border-block: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.recap-rows {
+  margin: 1.25rem 0 0;
+  padding: 0;
+  border-top: 1px solid var(--border);
+  list-style: none;
+}
+
+.recap-rows li {
+  display: grid;
+  grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+  gap: 0.125rem 1.5rem;
+  align-items: baseline;
+  padding: 0.5625rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.recap-what {
+  font-weight: 600;
+}
+
+.recap-figure {
+  font-variant-numeric: tabular-nums;
+}
+
+.recap-figure small,
+.recap-names {
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+
+.recap-figure small,
+.recap-names span {
+  display: block;
+}
+
+@media (max-width: 40rem) {
+  .recap-rows li {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -10470,6 +10544,7 @@ select.is-compact {
   --today-head: calc(2.25rem + 1px);
   --today-row: calc(5.375rem + 1.5px);
   --today-part: 0rem;
+  --today-week: 2.5rem;
 }
 
 .today h1 {
@@ -10489,8 +10564,33 @@ select.is-compact {
 
 .today-waiting {
   min-height: calc(
-    var(--today-head) + max(var(--rows), 1) * var(--today-row) + var(--parts) * var(--today-part)
+    var(--week, 0) * var(--today-week) + var(--today-head) + max(var(--rows), 1) *
+      var(--today-row) + var(--parts) * var(--today-part)
   );
+}
+
+/* The week that ended, in one line above the plan on the first days of a new week. It keeps its
+   room when it has nothing to say, and while the plan's rules load (`--today-week`: its line and
+   the space above it). */
+.today-week {
+  min-height: 1.5rem;
+  margin: 1rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  line-height: 1.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.today-week a {
+  color: inherit;
+  text-decoration-color: var(--control);
+}
+
+@media (hover: hover) {
+  .today-week a:hover {
+    color: var(--accent);
+    text-decoration-color: currentColor;
+  }
 }
 
 .today-plan-head {
@@ -10701,6 +10801,12 @@ a.today-step-name::after {
 @media (max-width: 40rem) {
   .today {
     --today-part: 1.5rem;
+    /* On a phone the week's line may take two lines: room for both. */
+    --today-week: 4rem;
+  }
+
+  .today-week {
+    min-height: 3rem;
   }
 
   .today-step {

@@ -108,7 +108,9 @@ practising the notes you are slowest at. Progress is visible day by day.
   shows how far each practice has got and its next step ([docs/TODAY.md](docs/TODAY.md)).
 - **Practice log.** Flashcard sessions and free play are saved: minutes today, a daily streak
   (5 minutes a day, or a goal of your own up to 45; a change never rewrites the days before
-  it), a 30-day chart and the list of sessions. **How you are doing** charts each
+  it), a 30-day chart and the list of sessions. **Last week** says what a week came to (days,
+  time, levels mastered, pieces into review, a tempo reached), with this week so far beside it,
+  and Home says it in a line when a new week begins. **How you are doing** charts each
   practice week by week over half a year (reading speed, sight-reading, theory, ear, rhythm by ear,
   chord symbols, timing against the beat, scale evenness, pieces right the first time) and says in words how the last four weeks
   compare with the four before, level for level where levels differ.

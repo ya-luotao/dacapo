@@ -42,6 +42,12 @@ and no Simplified-only characters in zh-TW.
   sentences are joined with a space is set per language in `SENTENCE_GAP` in `locale.ts`.
   `settings.import.prefs.goal` goes on from the list `settings.import.prefs` ends with, so it
   begins with the separator that list uses in your language (`, daily goal {n} min`).
+- **A week's lines** (`progress.week.*`, PERSONAL.md): the lines that count something
+  (`….lessons.one`, `….levels.other`, …) name a row on Progress and are also the last item of
+  the home page's line (`progress.week.home`: "Last week: 5 days, 1 h 40 min, 2 levels
+  mastered"), so they are short, begin as your language begins a list item, and end without a
+  full stop. `progress.week.item` joins a name and what is said of it ("Ode to Joy: clean at
+  70%"); `….item.hands` adds the hand.
 - **Bar labels are whole templates.** A bar is never "a number inside another string's bar word":
   `pieces.bar.label` is the bar with its word (`bar {bar}`, `{bar}小節目`, `第 {bar} 小節`), and
   `pieces.bar.label.ending`, `.nth` and `.nthEnding` add the volta (`{ending}`, e.g. `1` or `1, 2`)

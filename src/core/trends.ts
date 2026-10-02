@@ -17,7 +17,7 @@ import { runFigures } from './scaleProgress.ts';
 import { parseExerciseKey } from './scales.ts';
 import { isTimed, median, type Attempt } from './session.ts';
 import { firstTimeRun } from './sightRead.ts';
-import { addDays, dayKey, weekday, type DayKey } from './streak.ts';
+import { addDays, dayKey, weekStart, type DayKey } from './streak.ts';
 import { isTechnique } from './technique.ts';
 
 /** The weeks shown: half a year, the week under way the last. */
@@ -262,10 +262,9 @@ export function createDayOf(timeZone?: string): (epochMs: number) => DayKey {
   };
 }
 
-/** The first day of the week `day` is in, weeks starting on `firstDay` (1 Monday … 7 Sunday). */
-export function weekStart(day: DayKey, firstDay: number): DayKey {
-  return addDays(day, -((weekday(day) - firstDay + 7) % 7));
-}
+// The owner's week is the year grid's (`weekStart` in streak.ts), which the recap of a week reads
+// too (recap.ts) without the rules this file has.
+export { weekStart };
 
 /** The first days of the `weeks` weeks up to and including today's, oldest first. */
 export function trendWeekStarts(today: DayKey, firstDay: number, weeks = TREND_WEEKS): DayKey[] {

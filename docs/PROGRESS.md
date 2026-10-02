@@ -40,6 +40,10 @@ four before:
 - Charts follow the app's chart rules (the scales' trend chart): a table view, units, light and
   dark, readable in every language.
 
+What a single week came to (the days practised, the time, what was mastered or reached) is not a
+trend and is not here: **Last week**, right above this section, has it, with this week so far
+beside it ([PERSONAL.md](PERSONAL.md), "Your week").
+
 ## Clarifications (decided during Q1)
 
 - **Where.** The section comes right above the log of sessions ("Sessions"), after "Ear training

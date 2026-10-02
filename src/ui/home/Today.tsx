@@ -1,8 +1,8 @@
 import { lazy, Suspense, useMemo, useState, type CSSProperties } from 'react';
 import { Link } from 'wouter';
-import { practiceLog } from '../../core/streak.ts';
-import { PLAN_MINUTES, type PlanMinutes } from '../../core/todayRecords.ts';
-import { useI18n } from '../../i18n/index.ts';
+import { dayOfWeek, practiceLog } from '../../core/streak.ts';
+import { PLAN_MINUTES, WEEK_LINE_DAYS, type PlanMinutes } from '../../core/todayRecords.ts';
+import { FIRST_DAY, useI18n } from '../../i18n/index.ts';
 import { usePractice, useStorageStatus } from '../practice/context.ts';
 import { useLogFormat } from '../progress/format.ts';
 import { useGoal } from '../progress/goal.ts';
@@ -62,10 +62,15 @@ export function Today() {
   };
 
   const room = useMemo(() => keptRoom(log.today, minutes), [log.today, minutes]);
+  // On the first days of a week the plan is headed by a line about the week that ended
+  // (docs/PERSONAL.md): its words come with the plan's rules, its room is kept from the start.
+  const week = dayOfWeek(log.today, FIRST_DAY[locale]) < WEEK_LINE_DAYS;
   const waiting = (
     <div
       className="today-waiting"
-      style={{ '--rows': room.rows, '--parts': room.parts } as CSSProperties}
+      style={
+        { '--rows': room.rows, '--parts': room.parts, '--week': week ? 1 : 0 } as CSSProperties
+      }
       role="status"
     >
       <span className="visually-hidden">{t('storage.loading')}</span>
@@ -93,7 +98,13 @@ export function Today() {
         </div>
       </dl>
       <Suspense fallback={waiting}>
-        <TodayPlan today={log.today} minutes={minutes} waiting={waiting} onSteps={setSteps} />
+        <TodayPlan
+          today={log.today}
+          minutes={minutes}
+          waiting={waiting}
+          week={week}
+          onSteps={setSteps}
+        />
       </Suspense>
       <div className="today-end">
         {/* Until the records are read the line holds its place, unseen: the row wraps the same. */}

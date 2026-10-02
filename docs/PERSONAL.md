@@ -1,7 +1,7 @@
 # dacapo — Personal settings specification (your keyboard, your goal, your note names, your week)
 
-Status: G6d (the daily goal) is built; the instrument's keys, note names and your week are
-planned. This extends [MVP.md](MVP.md) and the later specifications; their principles and
+Status: G6d (the daily goal) and G6f (your week) are built; the instrument's keys and note
+names are planned. This extends [MVP.md](MVP.md) and the later specifications; their principles and
 fixed decisions still apply, with one of them changed on purpose (note names, below).
 
 Goal: dacapo treats every player alike in four places where players differ: it assumes 88 keys,
@@ -128,6 +128,70 @@ minutes]` pairs, oldest first), `goalOn(history, day)`, `withGoal` for a change,
 - **Not for others.** The public profile publishes what it did (`core/profile.ts` is built with
   five minutes a day, and a test holds it to that), and an assignment's minutes a day are the
   teacher's, not the goal.
+- **Code (the week).** `core/recap.ts` has the week (`lastWeek`, `weekSoFar`), the lines
+  (`RECAP_KINDS`, at most `RECAP_LINES`), `weekRecaps` for Progress and `lastWeekRecap` for the
+  home page's line. `weekStart` moved from `core/trends.ts` (which still exports it) to
+  `core/streak.ts`, with `dayOfWeek`: the recap would otherwise bring the trends, and with them
+  the exercises' rules, to the home page. `recordsBefore` is exported from `core/today.ts`. The
+  section is `ui/progress/WeekRecap.tsx`, its words `ui/progress/recapFormat.ts`, the home
+  page's line `ui/today/WeekLine.tsx`, and the lessons' ticks come from `ui/today/lessonTicks.ts`.
+- **The state at a moment** is the state when a day began, from the records before it, as
+  today's plan has it (TODAY.md, "Before today": a session by the day it began, a scale run by
+  its own first key, an answer by its time), with the lessons ticked by then. The week that ended
+  runs from the state when its first day began to the state when the week under way began; the
+  week under way from there to now.
+- **Days and time.** A day practised is a day with any practice, as the year grid counts "days
+  with practice": the goal is not asked for here. The time is the active time of the sessions
+  begun on the week's days, in hours and whole minutes ("1 h 40 min").
+- **Against the week before.** Its two figures stand under the week's own ("The week before: 4
+  of 7"), without a word for more or less. A first week, with nothing practised before it began,
+  is set against nothing. **This week so far** counts the days so far ("4 of 6") and is set
+  against no week: the week before it is the whole week beside it.
+- **No last week** is shown while nothing was practised and no lesson finished before the week
+  under way began: This week so far stands alone. A week without practice after that is said so
+  ("No practice last week."), and so is a week under way without any yet.
+- **The lines** are one for each kind of thing, in this fixed order, the most telling first:
+  lessons finished; levels mastered; tunes learnt; pieces that came into review; pieces that
+  moved up in review; pieces that fell back; pieces brought to a higher tempo; scales played for
+  the first time; the practice that had most of the time; the open practice that had none. The
+  first six that apply are shown, so the two about where the time went are the first to give way.
+  A line says how many ("2 levels mastered") and names them, one to a row.
+- **Lessons finished** are the fifteen, by the time of their tick. A tick without a time (one
+  made before G3 keeps times) is ticked from before anything else: it opens its practices and is
+  never a week's lesson.
+- **Levels mastered** are those mastered at the week's end and not at its start, each by the rule
+  of its own page (`levelsMastered`). A level no longer mastered is not said. A tune learnt is a
+  level in the code and is said as the app says it ("1 tune learnt"), on a line of its own.
+- **Review.** Of the pieces practised in the week (those taken out of review, and an imported
+  piece whose facts are not kept yet, are passed over): one with no schedule at the start and one
+  at the end came into review; one whose interval is a step longer moved up, a step shorter fell
+  back, and the line names the interval now ("now every 7 days"). A piece that came into review
+  and moved up in the same week came into review.
+- **A tempo reached** is the tempo ladder's (ADVICE.md), for each hands a rhythm run of the week
+  was played with: higher at the end than at the start. A piece is named once, with both hands
+  when their ladder went up, else with the hand that got further (the right on a tie): "Ode to
+  Joy: clean at 70%", "…, right hand: clean at 80%".
+- **Scales played for the first time** are the scales and arpeggios with a run in the week and
+  none before it, in the order first played. Technique is left out, as the Scales trend leaves
+  it out (PROGRESS.md).
+- **Most of the time** is by practice: the fifteen that can be proposed, free play and
+  Improvise. It is said when two or more had time (with one it would say the week's time again);
+  equals go by the order of the contents.
+- **Open, with no practice** is one practice: open at the week's end (its lesson ticked by then,
+  a record of it, or a player's starting point), without a session in the week, and not mastered
+  throughout. Of those, the one left alone longest, one never practised before all others, equals
+  in the order of the contents: the turn a family takes in today's plan. It is said of a week
+  that ended and had practice, not of the week under way, which is not over.
+- **Home's line** is there on the first two days of the owner's week: the days practised, the
+  time, and the first line when it is about what happened ("Last week: 6 days, 1 h 21 min, 1
+  level mastered"; the two lines about the time are Progress's). It leads to Progress opened on
+  the week (`#/progress?show=week`: a route's setting, since the route itself is the fragment).
+  It comes with the plan's rows and its room is kept from the start, one line (two on a phone),
+  also when there is nothing to say (no practice last week): the plan under it stays put.
+- **On Progress** the two weeks stand side by side from about 800 px and one under the other on
+  a phone, as rows in the manner of "Where you are", under "Ear training and theory" and above
+  "How you are doing". They are shown to whoever has the page, with ticks alone too. The days of
+  a week are written as the language writes a span of days (`Intl`'s `formatRange`).
 
 ## Milestones
 
@@ -135,4 +199,4 @@ minutes]` pairs, oldest first), `goalOn(history, day)`, `withGoal` for a change,
 2. ✓ **G6d The daily goal** — `core/goal.ts`, each day by the goal it had, the control in
    Settings, the goal in the export file's preferences.
 3. **G6e Note names**
-4. **G6f Your week**
+4. ✓ **G6f Your week** — `core/recap.ts`, Last week and This week so far on Progress, Home's line.

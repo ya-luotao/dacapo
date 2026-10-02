@@ -159,6 +159,16 @@ export function weekday(day: DayKey): number {
   return new Date(Date.UTC(y!, m! - 1, d)).getUTCDay() || 7;
 }
 
+/** Where a day stands in its week, weeks starting on `firstDay` (1 Monday … 7 Sunday): 0 to 6. */
+export function dayOfWeek(day: DayKey, firstDay: number): number {
+  return (weekday(day) - firstDay + 7) % 7;
+}
+
+/** The first day of the week `day` is in, weeks starting on `firstDay`: the owner's week. */
+export function weekStart(day: DayKey, firstDay: number): DayKey {
+  return addDays(day, -dayOfWeek(day, firstDay));
+}
+
 /**
  * How much practice a day had, for the year grid: 0 none, 1 some but short of the goal, 2 the
  * goal, 3 three times it, 4 six times it. The break between 1 and 2 is the streak's, so the grid
@@ -189,8 +199,7 @@ export function yearGrid(
   today: DayKey,
   { weeks = GRID_WEEKS, firstDay = 7 }: { weeks?: number; firstDay?: number } = {},
 ): (DayTotal | null)[][] {
-  const weekStart = addDays(today, -((weekday(today) - firstDay + 7) % 7));
-  let day = addDays(weekStart, -7 * (weeks - 1));
+  let day = addDays(weekStart(today, firstDay), -7 * (weeks - 1));
   const columns: (DayTotal | null)[][] = [];
   for (let w = 0; w < weeks; w++) {
     const column: (DayTotal | null)[] = [];
