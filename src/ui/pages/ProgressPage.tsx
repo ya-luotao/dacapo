@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'wouter';
 import { dailyTotals, practiceLog } from '../../core/streak.ts';
-import { useT } from '../../i18n/index.ts';
+import { useT, type MessageKey } from '../../i18n/index.ts';
 import { EmptyState } from '../EmptyState.tsx';
 import { usePractice, useStorageStatus } from '../practice/context.ts';
 import { DayHistory } from '../progress/DayHistory.tsx';
@@ -15,6 +15,47 @@ import { useNow } from '../progress/useNow.ts';
 import { WeekRecap } from '../progress/WeekRecap.tsx';
 import { WhereYouAre } from '../progress/WhereYouAre.tsx';
 import { readStartPref } from '../start/prefs.ts';
+
+/** What the page holds once there is practice, in the order it shows it. */
+const PREVIEW: readonly (readonly [numeral: string, title: MessageKey, text: MessageKey])[] = [
+  ['I', 'progress.today', 'progress.preview.today'],
+  ['II', 'where.title', 'progress.preview.where'],
+  ['III', 'heatmap.title', 'progress.preview.heatmap'],
+  ['IV', 'trends.title', 'progress.preview.trends'],
+];
+
+/**
+ * Before the first practice: the empty staff and the way in, then what the page will hold, as the
+ * home page's contents set it, in a paler ink, so the page says what it is for.
+ */
+function ProgressPreview() {
+  const t = useT();
+  return (
+    <>
+      <EmptyState action={{ href: '/read', label: t('progress.empty.action') }}>
+        {t('progress.empty')}
+      </EmptyState>
+      <section className="progress-preview" aria-labelledby="progress-preview">
+        <h2 id="progress-preview" className="eyebrow">
+          {t('progress.preview')}
+        </h2>
+        <ol className="contents">
+          {PREVIEW.map(([numeral, title, text]) => (
+            <li key={title} className="contents-row">
+              <span className="contents-numeral" aria-hidden="true">
+                {numeral}
+              </span>
+              <span className="contents-body">
+                <span className="contents-title">{t(title)}</span>
+                <span className="contents-text">{t(text)}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      </section>
+    </>
+  );
+}
 
 export function ProgressPage() {
   const t = useT();
@@ -44,9 +85,7 @@ export function ProgressPage() {
           {t('storage.loading')}
         </p>
       ) : sessions.length === 0 && !begun ? (
-        <EmptyState action={{ href: '/read', label: t('progress.empty.action') }}>
-          {t('progress.empty')}
-        </EmptyState>
+        <ProgressPreview />
       ) : (
         <>
           <PracticeFigures log={log} piecesToday={piecesToday} />

@@ -966,6 +966,13 @@ export const en = {
   'progress.empty':
     'Nothing here yet. Play something on the Play page or run a Read session, and your practice shows up here.',
   'progress.empty.action': 'Start a Read session',
+  'progress.preview': 'What this page will hold',
+  'progress.preview.today':
+    'Minutes today, the days in a row, and the last thirty days in a chart.',
+  'progress.preview.where': 'How far each practice has got, and its next step.',
+  'progress.preview.heatmap': 'Every note you have read, coloured by how fast you find it.',
+  'progress.preview.trends':
+    'Each practice week by week, and how the last four weeks compare with the four before.',
   'progress.today': 'Today',
   'progress.streak': 'Current streak',
   'progress.longest': 'Longest streak',

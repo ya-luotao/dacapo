@@ -936,6 +936,11 @@ export const zhCN: Dictionary = {
   'progress.empty':
     '这里还没有记录。去“弹奏”页随便弹弹，或者做一组识谱练习，练习记录就会出现在这里。',
   'progress.empty.action': '开始识谱练习',
+  'progress.preview': '练习之后，这里会有',
+  'progress.preview.today': '今天练了几分钟、连续练了几天，以及最近三十天的图表。',
+  'progress.preview.where': '每项练习进行到了哪里，下一步是什么。',
+  'progress.preview.heatmap': '你认过的每个音，按找到它的快慢着色。',
+  'progress.preview.trends': '每项练习一周一周的变化，以及最近四周和之前四周相比如何。',
   'progress.today': '今天',
   'progress.streak': '当前连续',
   'progress.longest': '最长连续',

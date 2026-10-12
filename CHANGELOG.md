@@ -6,6 +6,14 @@ which is noted when it changes.
 
 ## Unreleased
 
+### Progress before the first practice
+
+- **The empty Progress page says what it will hold**: under the empty staff and the way in, its
+  four parts (Today, Where you are, Note by note, How you are doing), each with a line, set as
+  the home page's contents in a paler ink.
+- Small labels in Chinese and Japanese keep their full-width punctuation; only large headings
+  set it half-width.
+
 ### The library's incipits, and a quieter page
 
 - **Each built-in piece shows its first bars** in the library, beside its title, as a catalogue

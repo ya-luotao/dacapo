@@ -333,7 +333,7 @@ body:is(:lang(zh), :lang(ja)) {
 
 /* In headings set large, every mark is half-width, so "看谱，找键。" reads as one line, not two
    halves with a gap. */
-:is(h1, h2, h3, .home-title):is(:lang(zh), :lang(ja)) {
+:is(h1, h2, h3, .home-title):not(.eyebrow):is(:lang(zh), :lang(ja)) {
   font-feature-settings: 'halt';
 }
 
@@ -4344,6 +4344,51 @@ kbd {
 
 .button:is(a) {
   text-decoration: none;
+}
+
+/* Progress before the first practice: what the page will hold, as the home page's contents, in a
+   paler ink and not to be opened. */
+.progress-preview {
+  margin-top: 3rem;
+}
+
+.progress h2.eyebrow {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+}
+
+.progress h2.eyebrow:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+}
+
+.progress-preview .contents {
+  border-top-color: var(--border);
+}
+
+.progress-preview .contents-row {
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  padding-block: 1.125rem 1.25rem;
+}
+
+.progress-preview .contents-title {
+  color: var(--text-muted);
+  font-size: clamp(1.25rem, 1.125rem + 0.5vw, 1.5rem);
+}
+
+@media (hover: hover) {
+  .progress-preview .contents-row:hover {
+    background: none;
+  }
+}
+
+@media (max-width: 40rem) {
+  .progress-preview .contents-row {
+    grid-template-columns: 2.875rem minmax(0, 1fr);
+  }
 }
 
 /* Progress: the page reads as movements, each opened by a hairline and a serif title. */
