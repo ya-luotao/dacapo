@@ -6,6 +6,13 @@ which is noted when it changes.
 
 ## Unreleased
 
+### About: a preface before the licences
+
+- **About says what dacapo is for and how it is made**, as a printed edition's preface: why
+  reading comes first, how it is made (real notation, a printed page, measured then explained,
+  checked note by note), what it leaves out on purpose, thanks, and how to take part. The
+  licences and sources follow, as they were, under a heading of their own. In all five languages.
+
 ### The library's incipits, and a quieter page
 
 - **Each built-in piece shows its first bars** in the library, beside its title, as a catalogue

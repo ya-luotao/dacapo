@@ -4353,7 +4353,8 @@ kbd {
 }
 
 .progress h2,
-.data h2 {
+.data h2,
+.about-page h2 {
   margin: 0 0 0.5rem;
   font-family: var(--font-serif);
   font-size: clamp(1.5rem, 1.3rem + 0.8vw, 1.75rem);
@@ -4364,7 +4365,8 @@ kbd {
 }
 
 .progress h2:is(:lang(zh), :lang(ja), :lang(ko)),
-.data h2:is(:lang(zh), :lang(ja), :lang(ko)) {
+.data h2:is(:lang(zh), :lang(ja), :lang(ko)),
+.about-page h2:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -5229,6 +5231,87 @@ kbd {
     grid-column: 1;
     align-self: start;
   }
+}
+
+/* About: a preface, as a printed edition has one, before the licences. */
+.about-lede {
+  margin: 0.5rem 0 0;
+  font-family: var(--font-serif);
+  font-size: clamp(1.1875rem, 1.1rem + 0.4vw, 1.375rem);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.about-section,
+.about-page .about-licences {
+  margin-top: 3rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.about-section p {
+  margin: 0.75rem 0 0;
+  text-wrap: pretty;
+}
+
+.about-byline {
+  color: var(--text-muted);
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+
+.about-byline:is(:lang(zh), :lang(ja), :lang(ko)) {
+  font-style: normal;
+}
+
+.about-how {
+  margin: 0.5rem 0 0;
+}
+
+.about-how > div {
+  padding-block: 0.875rem;
+}
+
+.about-how > div + div {
+  border-top: 1px solid var(--border);
+}
+
+.about-how dt {
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.about-how dd {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+.about-list {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.about-list li {
+  position: relative;
+  padding: 0.625rem 0 0.625rem 1.5rem;
+  text-wrap: pretty;
+}
+
+/* A short rule before each line, like the dash before a footnote. */
+.about-list li::before {
+  content: '';
+  position: absolute;
+  top: 1.35em;
+  left: 0;
+  width: 0.75rem;
+  border-top: 1px solid var(--control);
+}
+
+.about-licences + p {
+  margin-top: 0.75rem;
 }
 
 /* About: one credit per entry, its licence texts behind disclosures. */

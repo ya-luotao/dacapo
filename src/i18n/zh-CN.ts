@@ -2968,6 +2968,43 @@ export const zhCN: Dictionary = {
   'input.notice.app': '{status}：屏幕上的琴键可以弹，电脑键盘的 A 到 K 也可以。',
 
   'about.title': '关于 dacapo',
+  'about.lede':
+    'Da capo，意大利语，“从头开始”。乐谱上写着它，演奏者就回到开头再弹一遍。练琴大多就是这样。',
+  'about.why': '为什么做它',
+  'about.why.wall':
+    '自学钢琴的人，最先撞上的墙往往不是手指，而是识谱：看到大谱表上的一个音，不数线就找到那个键。大多数练习软件用下落的音块绕开了乐谱，可真正要读的，是印在纸上的谱。',
+  'about.why.measure':
+    'dacapo 只练这件事，并且认真地量：每次作答对不对、用了多久，每条音阶的每个音早了或晚了几毫秒。哪些地方让你慢下来，就多练哪些。',
+  'about.byline': '由 {name} 制作。',
+  'about.how': '怎么做的',
+  'about.how.notation': '真正的乐谱',
+  'about.how.notation.text':
+    '识谱卡片用 VexFlow 绘制，曲目和音阶用 Verovio 刻谱，字形都来自 Bravura 乐谱字体，和出版乐谱用的是同一类排版工具。',
+  'about.how.page': '像一页印好的谱',
+  'about.how.page.text':
+    '暖白的纸、墨色的字、细线代替方框，只用一种“原典版”蓝作强调色；标题用 Source Serif，正文用 Source Sans。中文、日文、韩文各用本语言的字体，每个字才是它自己的写法。',
+  'about.how.measured': '先测量，再说话',
+  'about.how.measured.text':
+    '每遍弹完的那句建议，是按规则从测到的数据得出的，并说明理由。其中的阈值还在用真实乐器上录下的演奏来校准。',
+  'about.how.checked': '逐音核对',
+  'about.how.checked.text':
+    '内置曲目都是公版作品，每首都对照一份独立来源逐音核对过；哈农的练习照 1900 年版转录了两遍，再把两份互相比对。',
+  'about.out': '刻意不做的',
+  'about.out.ai': '不用 AI 当老师：你弹的任何内容都不会发给模型。',
+  'about.out.ads': '没有广告，没有付费项目，也不追踪你的练习。',
+  'about.out.falling': '不用下落的音块。它好看，但教不会你读谱。',
+  'about.thanks': '谢谢',
+  'about.thanks.piano':
+    'Alexander Holm 录制的 Salamander Grand Piano（一台雅马哈 C5），内置钢琴的声音来自它。',
+  'about.thanks.tools': 'Steinberg 的 Bravura 字体；RISM 和 Verovio 的贡献者们；VexFlow 的作者们。',
+  'about.thanks.music':
+    '哈农、蒂尔克、拜厄、车尔尼、布格缪勒和曲库里的其他作曲家，以及扫描、排版、公开他们乐谱的人：Mutopia Project、IMSLP 和 PDMX 数据集。',
+  'about.thanks.people': '每一位报告问题、审阅译文或录入曲目的人：{link}。',
+  'about.thanks.people.link': '贡献者名单',
+  'about.join': '参与',
+  'about.join.text':
+    '发现了问题、想要某首曲子，或者愿意审阅你母语的译文？欢迎到 {link} 提出。不会写代码也有很多事可做：录入一首公版曲目，或者对照扫描件校对一首。',
+  'about.licences': '许可与来源',
   'about.intro':
     'dacapo 包含下列软件、字体、音色和乐谱，它们各自遵循自己的许可。这些全部内置在 dacapo 中，不会从别处获取。',
   'about.software': '软件',
