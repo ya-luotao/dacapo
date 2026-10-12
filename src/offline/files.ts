@@ -59,6 +59,7 @@ export function groupOf(path: string, from: readonly string[] = []): OfflineGrou
   if (path.startsWith('icons/')) return 'app';
   if (path.startsWith('piano/')) return 'piano';
   if (path.startsWith('learn/')) return 'pictures';
+  if (path.startsWith('incipits/')) return 'pictures';
   if (path.startsWith('licenses/')) return 'licences';
   // _headers, robots.txt, the sitemap, the social card, sw.js itself, and whatever is added to
   // public/ later: not the app's to keep.

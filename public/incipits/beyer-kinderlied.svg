@@ -1,0 +1,203 @@
+<svg viewBox="0 0 321 108" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" overflow="visible" id="l19nj5e9">
+<title>beyer-kinderlied</title>
+<desc>Engraved by Verovio 6.3.0-425dd7b</desc>
+<defs>
+<g id="E050-l19nj5e9">
+<path transform="scale(1,-1)" d="M376 415l25 -145c3 -18 3 -18 29 -18c147 0 241 -113 241 -241c0 -113 -67 -198 -168 -238c-14 -6 -15 -5 -13 -17c11 -62 29 -157 29 -214c0 -170 -130 -200 -197 -200c-151 0 -190 98 -190 163c0 62 40 115 107 115c61 0 96 -47 96 -102c0 -58 -36 -85 -67 -94 c-23 -7 -32 -10 -32 -17c0 -13 26 -29 80 -29c59 0 159 18 159 166c0 47 -15 134 -27 201c-2 12 -4 11 -15 9c-20 -4 -46 -6 -69 -6c-245 0 -364 165 -364 339c0 202 153 345 297 464c12 10 11 12 9 24c-7 41 -14 106 -14 164c0 104 24 229 98 311c20 22 51 48 65 48 c11 0 37 -28 52 -50c41 -60 65 -146 65 -233c0 -153 -82 -280 -190 -381c-6 -6 -8 -7 -6 -19zM470 943c-61 0 -133 -96 -133 -252c0 -32 2 -66 6 -92c2 -13 6 -14 13 -8c79 69 174 159 174 270c0 55 -27 82 -60 82zM361 262l-21 128c-2 11 -4 12 -14 4 c-47 -38 -93 -75 -153 -142c-83 -94 -93 -173 -93 -232c0 -139 113 -236 288 -236c20 0 40 2 56 5c15 3 16 3 14 14l-50 298c-2 11 -4 12 -20 8c-61 -17 -100 -60 -100 -117c0 -46 30 -89 72 -107c7 -3 15 -6 15 -13c0 -6 -4 -11 -12 -11c-7 0 -19 3 -27 6 c-68 23 -115 87 -115 177c0 85 57 164 145 194c18 6 18 5 15 24zM430 103l49 -285c2 -12 4 -12 16 -6c56 28 94 79 94 142c0 88 -67 156 -148 163c-12 1 -13 -2 -11 -14z" />
+</g>
+<g id="E084-l19nj5e9">
+<path transform="scale(1,-1)" d="M362 -74h73c11 0 15 -7 15 -19s-5 -19 -15 -19h-73v-59c0 -32 21 -38 31 -38s22 -6 22 -20s-10 -21 -20 -21h-213c-15 0 -19 11 -19 21s7 19 23 19c18 0 40 8 40 35v63h-186c-12 0 -20 7 -20 17c0 3 1 7 3 12l1 1v1l6 8c30 42 128 181 128 305c0 16 14 19 23 19 c8 0 53 -2 71 -2s59 2 68 2c8 0 15 -6 15 -15l-1 -3c-3 -12 -163 -239 -243 -307h135v84c0 12 5 18 9 23l95 115c6 7 11 9 20 9c11 0 12 -9 12 -17v-214z" />
+</g>
+<g id="E0A3-l19nj5e9">
+<path transform="scale(1,-1)" d="M97 -125c-55 0 -97 30 -97 83c0 52 47 167 196 167c58 0 99 -32 99 -83c0 -33 -33 -167 -198 -167zM75 -87c48 0 189 88 189 131c0 7 -3 13 -6 19c-7 12 -18 21 -37 21c-47 0 -192 -79 -192 -128c0 -7 3 -14 6 -20c7 -12 19 -23 40 -23z" />
+</g>
+<g id="E0A4-l19nj5e9">
+<path transform="scale(1,-1)" d="M97 -125c-54 0 -97 31 -97 83c0 86 88 167 198 167c57 0 97 -32 97 -83c0 -85 -109 -167 -198 -167z" />
+</g>
+<g id="E0A2-l19nj5e9">
+<path transform="scale(1,-1)" d="M216 125c93 0 206 -52 206 -123c0 -70 -52 -127 -216 -127c-149 0 -206 60 -206 127c0 68 83 123 216 123zM111 63c-2 -8 -3 -16 -3 -24c0 -32 15 -66 35 -89c21 -28 58 -52 94 -52c10 0 21 1 31 4c33 8 46 36 46 67c0 60 -55 134 -124 134c-31 0 -68 -5 -79 -40z" />
+</g>
+</defs>
+<style type="text/css">#l19nj5e9 g.ending, #l19nj5e9 g.fing, #l19nj5e9 g.reh, #l19nj5e9 g.tempo {font-weight:bold;}#l19nj5e9 g.dir, #l19nj5e9 g.dynam, #l19nj5e9 g.mNum {font-style:italic;}#l19nj5e9 g.label {font-weight:normal;}#l19nj5e9 ellipse, #l19nj5e9 path, #l19nj5e9 polygon, #l19nj5e9 polyline, #l19nj5e9 rect {stroke:currentColor}#l19nj5e9 g.cursor {fill:dodgerblue; color:dodgerblue;}#l19nj5e9 g.cursor.chord {fill:limegreen; color:limegreen;}</style>
+<svg color="black" font-family="Times, serif" viewBox="0 0 10670 3600">
+<g transform="translate(0, 0)">
+<g>
+<title>[selectionScore]</title>
+</g>
+<g>
+<path d="M13 540 L13 3060" stroke-width="27" />
+<g>
+<path d="M-72,3042 C-432,2502 18,1980 -252,1800 C81,1980 -369,2502 -72,3042" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" />
+<path d="M-72,558 C-369,1098 81,1620 -252,1800 C18,1620 -432,1098 -72,558" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+<g>
+<g>
+<path d="M0 540 L5925 540" stroke-width="13" />
+<path d="M0 720 L5925 720" stroke-width="13" />
+<path d="M0 900 L5925 900" stroke-width="13" />
+<path d="M0 1080 L5925 1080" stroke-width="13" />
+<path d="M0 1260 L5925 1260" stroke-width="13" />
+<g>
+<use href="#E050-l19nj5e9" transform="translate(117, 1080) scale(0.72, 0.72)" />
+</g>
+<g />
+<g>
+<use href="#E084-l19nj5e9" transform="translate(766, 720) scale(0.72, 0.72)" />
+<use href="#E084-l19nj5e9" transform="translate(766, 1080) scale(0.72, 0.72)" />
+</g>
+<g>
+<g>
+<g>
+<use href="#E0A3-l19nj5e9" transform="translate(1469, 450) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M1478 480 L1478 1080" stroke-width="18" />
+</g>
+</g>
+<g>
+<g>
+<use href="#E0A3-l19nj5e9" transform="translate(3691, 540) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M3700 570 L3700 1170" stroke-width="18" />
+</g>
+</g>
+</g>
+</g>
+<g>
+<path d="M0 2340 L5925 2340" stroke-width="13" />
+<path d="M0 2520 L5925 2520" stroke-width="13" />
+<path d="M0 2700 L5925 2700" stroke-width="13" />
+<path d="M0 2880 L5925 2880" stroke-width="13" />
+<path d="M0 3060 L5925 3060" stroke-width="13" />
+<g>
+<use href="#E050-l19nj5e9" transform="translate(117, 2880) scale(0.72, 0.72)" />
+</g>
+<g />
+<g>
+<use href="#E084-l19nj5e9" transform="translate(766, 2520) scale(0.72, 0.72)" />
+<use href="#E084-l19nj5e9" transform="translate(766, 2880) scale(0.72, 0.72)" />
+</g>
+<g>
+<g>
+<path d="M2532 3240 L2840 3240" stroke-width="22" />
+</g>
+</g>
+<g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(1469, 3060) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M1672 3030 L1672 2430" stroke-width="18" />
+</g>
+</g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(2580, 3240) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M2783 3210 L2783 2610" stroke-width="18" />
+</g>
+</g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(3691, 3150) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M3894 3120 L3894 2520" stroke-width="18" />
+</g>
+</g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(4801, 2880) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M5004 2850 L5004 2250" stroke-width="18" />
+</g>
+</g>
+</g>
+</g>
+<g>
+<path d="M1575,247 C3182,-82 4785,-23 6364,425 C4776,36 3187,-23 1575,247" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+<g>
+<path d="M5912 540 L5912 1260" stroke-width="27" />
+<path d="M5912 2340 L5912 3060" stroke-width="27" />
+<path d="M5912 1260 L5912 2340" stroke-width="27" />
+</g>
+</g>
+<g>
+<g>
+<path d="M5925 540 L10671 540" stroke-width="13" />
+<path d="M5925 720 L10671 720" stroke-width="13" />
+<path d="M5925 900 L10671 900" stroke-width="13" />
+<path d="M5925 1080 L10671 1080" stroke-width="13" />
+<path d="M5925 1260 L10671 1260" stroke-width="13" />
+<g>
+<g>
+<g>
+<use href="#E0A2-l19nj5e9" transform="translate(6215, 630) scale(0.72, 0.72)" />
+</g>
+</g>
+</g>
+</g>
+<g>
+<path d="M5925 2340 L10671 2340" stroke-width="13" />
+<path d="M5925 2520 L10671 2520" stroke-width="13" />
+<path d="M5925 2700 L10671 2700" stroke-width="13" />
+<path d="M5925 2880 L10671 2880" stroke-width="13" />
+<path d="M5925 3060 L10671 3060" stroke-width="13" />
+<g>
+<g>
+<path d="M6167 3240 L6475 3240" stroke-width="22" />
+</g>
+<g>
+<path d="M9499 3240 L9807 3240" stroke-width="22" />
+</g>
+</g>
+<g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(6215, 3240) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M6418 3210 L6418 2610" stroke-width="18" />
+</g>
+</g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(7326, 3150) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M7529 3120 L7529 2520" stroke-width="18" />
+</g>
+</g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(8437, 3060) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M8640 3030 L8640 2430" stroke-width="18" />
+</g>
+</g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(9547, 3240) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M9750 3210 L9750 2610" stroke-width="18" />
+</g>
+</g>
+</g>
+</g>
+<g>
+<path d="M10658 540 L10658 1260" stroke-width="27" />
+<path d="M10658 2340 L10658 3060" stroke-width="27" />
+<path d="M10658 1260 L10658 2340" stroke-width="27" />
+</g>
+</g>
+</g>
+</g>
+</svg>
+</svg>

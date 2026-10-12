@@ -581,6 +581,20 @@ bars). A learner is not told which piece to take next, nor how to go about a new
 says "this one next", and then "bars 1 to 4, right hand; now the left; now together; now the next
 four bars". G5b says the first, G5c the second, both from the records and nothing else.
 
+### Incipits
+
+- **In the library** each built-in piece's row shows its first bars beside its title, as a
+  catalogue prints an incipit: two bars, three when the first is an upbeat, fewer when they do not
+  fit on one system (Bach's Prelude in C: one). Tempo words, pedalling, fingering and lyrics are
+  left out; chord symbols stay. Every incipit is the same width, so the staff is the same size in
+  every row; under the words on a phone.
+- **Engraved in advance**, by the engraver the app uses (`engraveIncipit` in `src/site/score.ts`),
+  into `public/incipits/` with their sizes in `src/pieces/library/incipits.json`: the Pieces page
+  does not load the engraver to show them. `incipits.test.ts` engraves them again and fails when a
+  file differs; `pnpm vitest run incipits -u` writes them after a piece changes.
+- **Drawn as a mask** in the page's ink, so they follow the theme; stored offline with the
+  lessons' pictures ([OFFLINE.md](OFFLINE.md)).
+
 ### Next for you (G5b)
 
 - **The next piece** (`nextPiece` in `core/curriculum.ts`, TODAY.md) goes by where the player is:

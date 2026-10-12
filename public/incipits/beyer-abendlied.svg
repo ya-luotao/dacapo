@@ -1,0 +1,325 @@
+<svg viewBox="0 0 321 115" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" overflow="visible" id="l19nj5e9">
+<title>beyer-abendlied</title>
+<desc>Engraved by Verovio 6.3.0-425dd7b</desc>
+<defs>
+<g id="E050-l19nj5e9">
+<path transform="scale(1,-1)" d="M376 415l25 -145c3 -18 3 -18 29 -18c147 0 241 -113 241 -241c0 -113 -67 -198 -168 -238c-14 -6 -15 -5 -13 -17c11 -62 29 -157 29 -214c0 -170 -130 -200 -197 -200c-151 0 -190 98 -190 163c0 62 40 115 107 115c61 0 96 -47 96 -102c0 -58 -36 -85 -67 -94 c-23 -7 -32 -10 -32 -17c0 -13 26 -29 80 -29c59 0 159 18 159 166c0 47 -15 134 -27 201c-2 12 -4 11 -15 9c-20 -4 -46 -6 -69 -6c-245 0 -364 165 -364 339c0 202 153 345 297 464c12 10 11 12 9 24c-7 41 -14 106 -14 164c0 104 24 229 98 311c20 22 51 48 65 48 c11 0 37 -28 52 -50c41 -60 65 -146 65 -233c0 -153 -82 -280 -190 -381c-6 -6 -8 -7 -6 -19zM470 943c-61 0 -133 -96 -133 -252c0 -32 2 -66 6 -92c2 -13 6 -14 13 -8c79 69 174 159 174 270c0 55 -27 82 -60 82zM361 262l-21 128c-2 11 -4 12 -14 4 c-47 -38 -93 -75 -153 -142c-83 -94 -93 -173 -93 -232c0 -139 113 -236 288 -236c20 0 40 2 56 5c15 3 16 3 14 14l-50 298c-2 11 -4 12 -20 8c-61 -17 -100 -60 -100 -117c0 -46 30 -89 72 -107c7 -3 15 -6 15 -13c0 -6 -4 -11 -12 -11c-7 0 -19 3 -27 6 c-68 23 -115 87 -115 177c0 85 57 164 145 194c18 6 18 5 15 24zM430 103l49 -285c2 -12 4 -12 16 -6c56 28 94 79 94 142c0 88 -67 156 -148 163c-12 1 -13 -2 -11 -14z" />
+</g>
+<g id="E084-l19nj5e9">
+<path transform="scale(1,-1)" d="M362 -74h73c11 0 15 -7 15 -19s-5 -19 -15 -19h-73v-59c0 -32 21 -38 31 -38s22 -6 22 -20s-10 -21 -20 -21h-213c-15 0 -19 11 -19 21s7 19 23 19c18 0 40 8 40 35v63h-186c-12 0 -20 7 -20 17c0 3 1 7 3 12l1 1v1l6 8c30 42 128 181 128 305c0 16 14 19 23 19 c8 0 53 -2 71 -2s59 2 68 2c8 0 15 -6 15 -15l-1 -3c-3 -12 -163 -239 -243 -307h135v84c0 12 5 18 9 23l95 115c6 7 11 9 20 9c11 0 12 -9 12 -17v-214z" />
+</g>
+<g id="E0A4-l19nj5e9">
+<path transform="scale(1,-1)" d="M97 -125c-54 0 -97 31 -97 83c0 86 88 167 198 167c57 0 97 -32 97 -83c0 -85 -109 -167 -198 -167z" />
+</g>
+<g id="E0A3-l19nj5e9">
+<path transform="scale(1,-1)" d="M97 -125c-55 0 -97 30 -97 83c0 52 47 167 196 167c58 0 99 -32 99 -83c0 -33 -33 -167 -198 -167zM75 -87c48 0 189 88 189 131c0 7 -3 13 -6 19c-7 12 -18 21 -37 21c-47 0 -192 -79 -192 -128c0 -7 3 -14 6 -20c7 -12 19 -23 40 -23z" />
+</g>
+<g id="E240-l19nj5e9">
+<path transform="scale(1,-1)" d="M238 -790c-5 -17 -22 -23 -28 -19s-16 13 -16 29c0 4 1 9 3 15c17 45 24 92 24 137c0 59 -9 116 -24 150c-36 85 -131 221 -197 233v239c0 12 8 15 19 15c10 0 18 -6 21 -22c16 -96 58 -182 109 -261c63 -100 115 -218 115 -343c0 -78 -26 -173 -26 -173z" />
+</g>
+</defs>
+<style type="text/css">#l19nj5e9 g.ending, #l19nj5e9 g.fing, #l19nj5e9 g.reh, #l19nj5e9 g.tempo {font-weight:bold;}#l19nj5e9 g.dir, #l19nj5e9 g.dynam, #l19nj5e9 g.mNum {font-style:italic;}#l19nj5e9 g.label {font-weight:normal;}#l19nj5e9 ellipse, #l19nj5e9 path, #l19nj5e9 polygon, #l19nj5e9 polyline, #l19nj5e9 rect {stroke:currentColor}#l19nj5e9 g.cursor {fill:dodgerblue; color:dodgerblue;}#l19nj5e9 g.cursor.chord {fill:limegreen; color:limegreen;}</style>
+<svg color="black" font-family="Times, serif" viewBox="0 0 10670 3820">
+<g transform="translate(0, 0)">
+<g>
+<title>[selectionScore]</title>
+</g>
+<g>
+<path d="M13 540 L13 3060" stroke-width="27" />
+<g>
+<path d="M-72,3042 C-432,2502 18,1980 -252,1800 C81,1980 -369,2502 -72,3042" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" />
+<path d="M-72,558 C-369,1098 81,1620 -252,1800 C18,1620 -432,1098 -72,558" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+<g>
+<g>
+<text y="297" text-anchor="middle" font-size="0px" />
+</g>
+<g>
+<path d="M0 540 L2333 540" stroke-width="13" />
+<path d="M0 720 L2333 720" stroke-width="13" />
+<path d="M0 900 L2333 900" stroke-width="13" />
+<path d="M0 1080 L2333 1080" stroke-width="13" />
+<path d="M0 1260 L2333 1260" stroke-width="13" />
+<g>
+<use href="#E050-l19nj5e9" transform="translate(117, 1080) scale(0.72, 0.72)" />
+</g>
+<g />
+<g>
+<use href="#E084-l19nj5e9" transform="translate(766, 720) scale(0.72, 0.72)" />
+<use href="#E084-l19nj5e9" transform="translate(766, 1080) scale(0.72, 0.72)" />
+</g>
+<g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(1416, 1080) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M1619 1050 L1619 450" stroke-width="18" />
+</g>
+</g>
+</g>
+</g>
+<g>
+<path d="M0 2340 L2333 2340" stroke-width="13" />
+<path d="M0 2520 L2333 2520" stroke-width="13" />
+<path d="M0 2700 L2333 2700" stroke-width="13" />
+<path d="M0 2880 L2333 2880" stroke-width="13" />
+<path d="M0 3060 L2333 3060" stroke-width="13" />
+<g>
+<use href="#E050-l19nj5e9" transform="translate(117, 2880) scale(0.72, 0.72)" />
+</g>
+<g />
+<g>
+<use href="#E084-l19nj5e9" transform="translate(766, 2520) scale(0.72, 0.72)" />
+<use href="#E084-l19nj5e9" transform="translate(766, 2880) scale(0.72, 0.72)" />
+</g>
+<g>
+<g>
+<path d="M1368 3240 L1676 3240" stroke-width="22" />
+</g>
+</g>
+<g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(1416, 3330) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M1619 3300 L1619 2700" stroke-width="18" />
+</g>
+</g>
+</g>
+</g>
+<g>
+<path d="M1610,337 C3960,-32 7561,80 8628,695 C7546,137 3963,27 1610,337" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+<g>
+<path d="M1522,3532 C3893,3862 6258,3862 8630,3532 C6263,3921 3888,3921 1522,3532" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+<g>
+<path d="M2320 540 L2320 1260" stroke-width="27" />
+<path d="M2320 2340 L2320 3060" stroke-width="27" />
+<path d="M2320 1260 L2320 2340" stroke-width="27" />
+</g>
+</g>
+<g>
+<g>
+<path d="M2333 540 L6202 540" stroke-width="13" />
+<path d="M2333 720 L6202 720" stroke-width="13" />
+<path d="M2333 900 L6202 900" stroke-width="13" />
+<path d="M2333 1080 L6202 1080" stroke-width="13" />
+<path d="M2333 1260 L6202 1260" stroke-width="13" />
+<g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(2570, 990) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M2773 960 L2773 360" stroke-width="18" />
+</g>
+</g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(3474, 1080) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M3677 1050 L3677 450" stroke-width="18" />
+</g>
+</g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(4379, 810) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M4388 840 L4388 1440" stroke-width="18" />
+</g>
+</g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(5284, 900) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M5293 930 L5293 1500" stroke-width="18" />
+</g>
+</g>
+</g>
+</g>
+<g>
+<path d="M2333 2340 L6202 2340" stroke-width="13" />
+<path d="M2333 2520 L6202 2520" stroke-width="13" />
+<path d="M2333 2700 L6202 2700" stroke-width="13" />
+<path d="M2333 2880 L6202 2880" stroke-width="13" />
+<path d="M2333 3060 L6202 3060" stroke-width="13" />
+<g>
+<g>
+<path d="M2522 3240 L2830 3240" stroke-width="22" />
+</g>
+<g>
+<path d="M3426 3240 L3734 3240" stroke-width="22" />
+</g>
+</g>
+<g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(2570, 3240) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M2773 3210 L2773 2610" stroke-width="18" />
+</g>
+</g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(3474, 3330) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M3677 3300 L3677 2700" stroke-width="18" />
+</g>
+</g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(4379, 3060) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M4582 3030 L4582 2430" stroke-width="18" />
+</g>
+</g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(5284, 3150) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M5487 3120 L5487 2520" stroke-width="18" />
+</g>
+</g>
+</g>
+</g>
+<g>
+<path d="M6189 540 L6189 1260" stroke-width="27" />
+<path d="M6189 2340 L6189 3060" stroke-width="27" />
+<path d="M6189 1260 L6189 2340" stroke-width="27" />
+</g>
+</g>
+<g>
+<g>
+<path d="M6202 540 L10671 540" stroke-width="13" />
+<path d="M6202 720 L10671 720" stroke-width="13" />
+<path d="M6202 900 L10671 900" stroke-width="13" />
+<path d="M6202 1080 L10671 1080" stroke-width="13" />
+<path d="M6202 1260 L10671 1260" stroke-width="13" />
+<g>
+<g>
+<g>
+<use href="#E0A3-l19nj5e9" transform="translate(6439, 990) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M6642 960 L6642 360" stroke-width="18" />
+</g>
+</g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(8524, 1080) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M8727 1050 L8727 450" stroke-width="18" />
+</g>
+</g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(9428, 900) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M9437 930 L9437 1500" stroke-width="18" />
+</g>
+</g>
+</g>
+</g>
+<g>
+<path d="M6202 2340 L10671 2340" stroke-width="13" />
+<path d="M6202 2520 L10671 2520" stroke-width="13" />
+<path d="M6202 2700 L10671 2700" stroke-width="13" />
+<path d="M6202 2880 L10671 2880" stroke-width="13" />
+<path d="M6202 3060 L10671 3060" stroke-width="13" />
+<g>
+<g>
+<path d="M6391 3240 L6699 3240" stroke-width="22" />
+</g>
+<g>
+<path d="M7885 3240 L8193 3240" stroke-width="22" />
+</g>
+<g>
+<path d="M8476 3240 L8784 3240" stroke-width="22" />
+</g>
+<g>
+<path d="M9970 3240 L10278 3240" stroke-width="22" />
+</g>
+<g>
+<path d="M9970 3420 L10278 3420" stroke-width="22" />
+</g>
+</g>
+<g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(6439, 3240) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M6642 3210 L6642 2610" stroke-width="18" />
+</g>
+</g>
+<g>
+<polygon points="7537,2520 8145,2610 8145,2700 7537,2610" />
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(7343, 3150) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M7546 3120 L7546 2538" stroke-width="18" />
+</g>
+</g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(7933, 3240) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M8136 3210 L8136 2628" stroke-width="18" />
+</g>
+</g>
+</g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(8524, 3330) scale(0.72, 0.72)" />
+</g>
+<g>
+<ellipse cx="8826" cy="3330" rx="36" ry="36" />
+</g>
+<g>
+<path d="M8727 3300 L8727 2700" stroke-width="18" />
+</g>
+</g>
+<g>
+<g>
+<use href="#E0A4-l19nj5e9" transform="translate(10018, 3420) scale(0.72, 0.72)" />
+</g>
+<g>
+<path d="M10221 3390 L10221 2610" stroke-width="18" />
+<g>
+<use href="#E240-l19nj5e9" transform="translate(10212, 2610) scale(0.72, 0.72)" />
+</g>
+</g>
+</g>
+</g>
+</g>
+<g>
+<path d="M9534,697 C9685,377 10283,174 10598,337 C10280,237 9725,425 9534,697" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+<g>
+<path d="M10124,3622 C10275,3616 10547,3409 10598,3262 C10603,3442 10291,3679 10124,3622" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" />
+</g>
+<g>
+<path d="M10658 540 L10658 1260" stroke-width="27" />
+<path d="M10658 2340 L10658 3060" stroke-width="27" />
+<path d="M10658 1260 L10658 2340" stroke-width="27" />
+</g>
+</g>
+</g>
+</g>
+</svg>
+</svg>

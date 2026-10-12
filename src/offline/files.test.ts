@@ -58,9 +58,10 @@ describe('groupOf', () => {
     expect(groupOf('assets/x.js', [`${ROOT}/src/i18n/en-GB.ts`])).toBe('languages');
   });
 
-  it('the samples, the lessons’ pictures and the licence texts are stored when fetched', () => {
+  it('the samples, the pictures and the licence texts are stored when fetched', () => {
     expect(groupOf('piano/A0-f.mp3')).toBe('piano');
     expect(groupOf('learn/two-hands.webp')).toBe('pictures');
+    expect(groupOf('incipits/turk-aller-anfang.svg')).toBe('pictures');
     expect(groupOf('licenses/verovio/COPYING')).toBe('licences');
   });
 

@@ -24,9 +24,10 @@ list, each file with the group it is in, and a version that is the hash of the l
   what a language falls back to when its own dictionary is not to be had, so the app cannot open
   without it.
 - **Large and not always needed**: the music engraver (Verovio, about 7 MB, for Pieces and
-  Scales), the built-in piano's samples (about 4 MB), the lessons' pictures, and the dictionaries
-  of the four languages other than English. Stored when first fetched (so a reader's own
-  language is stored at the first visit); all at once with **Store everything** (below).
+  Scales), the built-in piano's samples (about 4 MB), the lessons' pictures and the library's
+  incipits, and the dictionaries of the four languages other than English. Stored when first
+  fetched (so a reader's own language is stored at the first visit); all at once with **Store
+  everything** (below).
 - **Not the app's**: anything else on the origin (the privacy page, profile pages, the account
   service's paths, and the site's own pages: the lessons, the pieces and the home pages a search
   engine reads, [SITE.md](SITE.md)) and every other origin (the sync service). The worker does

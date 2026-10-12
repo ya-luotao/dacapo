@@ -6,6 +6,26 @@ which is noted when it changes.
 
 ## Unreleased
 
+### The library's incipits, and a quieter page
+
+- **Each built-in piece shows its first bars** in the library, beside its title, as a catalogue
+  prints an incipit: two bars, three after an upbeat, all at one staff size, in the page's ink in
+  either theme. Engraved in advance, so the Pieces page still does not load the engraver; 31
+  files, 155 kB gzipped, stored offline with the lessons' pictures ([docs/PIECES.md](docs/PIECES.md),
+  "Incipits").
+- **The header holds the practices only**, the same on every page: Metronome, Assignments and
+  Settings are in More, and the button to star the project on GitHub is gone (the footer's
+  Source code link stays).
+- **Chinese and Japanese punctuation is set as a typesetter sets it**: a full-width mark gives up
+  its empty half beside another, and large headings use half-width marks ("看谱，找键。" reads as
+  one line).
+- **Read's choices** sit side by side in their two groups, each under a caption, instead of
+  wrapping onto a second row; a level not practised yet no longer says so on every row (a
+  screen reader still hears it); and a newcomer's Next for you, which was the library's first
+  row, is not shown twice.
+- The metronome chip and a few small buttons take the square corners of the rest of the app.
+- The README is shorter, with every practice described in [docs/FEATURES.md](docs/FEATURES.md).
+
 ### A lighter start
 
 What a browser downloads before the first page shows, on the built site. Sizes are the scripts

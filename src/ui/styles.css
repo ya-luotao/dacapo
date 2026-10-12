@@ -6434,14 +6434,58 @@ tr.is-few .cm-row {
 }
 
 .library-piece {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 0.75rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 14rem;
+  align-items: center;
+  gap: 0.75rem 2rem;
   padding: 0.75rem 0.75rem 0.875rem;
   color: var(--text);
   text-decoration: none;
   transition: background-color var(--dur-fast) ease-out;
+}
+
+.library-piece-text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.75rem;
+  min-width: 0;
+}
+
+/* The incipit: the engraving is the mask, the ink is the page's, so it follows the theme. */
+.library-piece-incipit {
+  display: block;
+  width: 100%;
+  background-color: var(--text);
+  opacity: 0.82;
+  mask-repeat: no-repeat;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  transition: opacity var(--dur-fast) ease-out;
+}
+
+@media (hover: hover) {
+  .library-piece:hover .library-piece-incipit {
+    opacity: 1;
+  }
+}
+
+/* Under the words on a narrow screen, at a size that still reads as music. */
+@media (max-width: 40rem) {
+  .library-piece {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .library-piece-incipit {
+    max-width: 12rem;
+  }
+}
+
+@media (forced-colors: active) {
+  .library-piece-incipit {
+    background-color: CanvasText;
+  }
 }
 
 @media (hover: hover) {
