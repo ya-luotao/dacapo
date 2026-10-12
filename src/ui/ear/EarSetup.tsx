@@ -21,6 +21,7 @@ import { useEarFormat } from './format.ts';
 import { EAR_PAGE_FAMILIES, TUNE_KEYS, type EarPrefs } from './prefs.ts';
 import { RhythmEarLevels, RhythmEarOptions, type RhythmEarSetupProps } from './RhythmEarSetup.tsx';
 import { useRhythmFormat } from '../read/rhythmFormat.ts';
+import { NotYet } from '../NotYet.tsx';
 
 interface EarSetupProps {
   prefs: EarPrefs;
@@ -243,13 +244,15 @@ function LevelOption({ name, level, checked, suggested, progress, onChange }: Le
           </span>
         ) : null}
         <span className="level-stats">
-          {progress && progress.total > 0
-            ? format.levelStats(
-                progress,
-                read.percent(progress.accuracy),
-                read.seconds(progress.medianMs),
-              )
-            : t('read.level.new')}
+          {progress && progress.total > 0 ? (
+            format.levelStats(
+              progress,
+              read.percent(progress.accuracy),
+              read.seconds(progress.medianMs),
+            )
+          ) : (
+            <NotYet />
+          )}
         </span>
       </span>
     </label>

@@ -17,6 +17,7 @@ import { useHintWords } from '../noteNames.ts';
 import { Segmented } from '../Segmented.tsx';
 import { useReadFormat } from './format.ts';
 import { useTheoryFormat } from './theoryFormat.ts';
+import { NotYet } from '../NotYet.tsx';
 
 interface TheorySetupProps {
   family: TheoryFamily;
@@ -159,14 +160,16 @@ function LevelOption({ name, level, checked, suggested, progress, onChange }: Le
           </span>
         ) : null}
         <span className="level-stats">
-          {progress && progress.total > 0
-            ? t('read.level.stats', {
-                cards: progress.cards,
-                window: THEORY_MASTERY_WINDOW,
-                accuracy: read.percent(progress.accuracy),
-                median: read.seconds(progress.medianMs),
-              })
-            : t('read.level.new')}
+          {progress && progress.total > 0 ? (
+            t('read.level.stats', {
+              cards: progress.cards,
+              window: THEORY_MASTERY_WINDOW,
+              accuracy: read.percent(progress.accuracy),
+              median: read.seconds(progress.medianMs),
+            })
+          ) : (
+            <NotYet />
+          )}
         </span>
       </span>
     </label>

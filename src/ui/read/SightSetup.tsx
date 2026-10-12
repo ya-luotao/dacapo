@@ -18,6 +18,7 @@ import { Segmented } from '../Segmented.tsx';
 import { useReadFormat } from './format.ts';
 import { useSightFormat } from './sightFormat.ts';
 import { sightTempoOf, type SightPrefs } from './sightPrefs.ts';
+import { NotYet } from '../NotYet.tsx';
 
 interface SightSetupProps {
   level: SightLevelId;
@@ -226,7 +227,7 @@ function LevelOption({ name, level, checked, suggested, progress, onChange }: Le
           </span>
         ) : null}
         <span className="level-stats">
-          {progress && progress.total > 0 ? format.stats(progress) : t('read.level.new')}
+          {progress && progress.total > 0 ? format.stats(progress) : <NotYet />}
         </span>
       </span>
     </label>

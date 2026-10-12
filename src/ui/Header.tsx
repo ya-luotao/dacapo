@@ -3,12 +3,16 @@ import { Link, useLocation } from 'wouter';
 import { useI18n, useT } from '../i18n/index.ts';
 import { BrandMark } from './BrandMark.tsx';
 import { useFocusActive } from './focus/focus.ts';
-import { GitHubStar } from './GitHubStar.tsx';
 import { MetronomeChip } from './metronome/MetronomeChip.tsx';
 import { fitNav, type NavFit } from './navFit.ts';
 import { NAV_ITEMS } from './routes.ts';
 
-const ALL: NavFit = { shown: NAV_ITEMS.map((_, i) => i), more: [] };
+const indexes = (secondary: boolean) =>
+  NAV_ITEMS.flatMap((item, i) => (!!item.secondary === secondary ? [i] : []));
+/** The items the bar may hold; the secondary ones are always in More, after any that overflow. */
+const PRIMARY = indexes(false);
+const SECONDARY = indexes(true);
+const ALL: NavFit = { shown: PRIMARY, more: SECONDARY };
 
 /** A piece's page belongs to Pieces. */
 function isActive(location: string, path: string): boolean {
@@ -40,16 +44,21 @@ function HeaderBar() {
     if (!bar || !copy) return;
     const measure = () => {
       const items = [...copy.children] as HTMLElement[];
-      const widths = items.slice(0, NAV_ITEMS.length).map((el) => el.offsetWidth);
+      const widths = items.slice(0, PRIMARY.length).map((el) => el.offsetWidth);
       const moreWidth = items.at(-1)!.offsetWidth;
       const gap = parseFloat(getComputedStyle(copy).columnGap) || 0;
-      const next = fitNav(
+      // More is always there: the practices share what it leaves.
+      const fitted = fitNav(
         widths,
-        NAV_ITEMS.map((item) => item.priority),
-        bar.clientWidth,
+        PRIMARY.map((i) => NAV_ITEMS[i]!.priority),
+        bar.clientWidth - moreWidth - gap,
         gap,
-        moreWidth,
+        0,
       );
+      const next: NavFit = {
+        shown: fitted.shown.map((i) => PRIMARY[i]!),
+        more: [...fitted.more.map((i) => PRIMARY[i]!), ...SECONDARY],
+      };
       setFit((current) =>
         current.more.join() === next.more.join() && current.shown.join() === next.shown.join()
           ? current
@@ -149,9 +158,9 @@ function HeaderBar() {
           {/* Every item and More, as the bar draws them: measured, never seen. */}
           <div className="nav-ruler-box" aria-hidden="true">
             <ul className="nav nav-ruler" ref={ruler}>
-              {NAV_ITEMS.map(({ path, label }) => (
-                <li key={path} className="nav-link">
-                  {t(label)}
+              {PRIMARY.map((i) => (
+                <li key={NAV_ITEMS[i]!.path} className="nav-link">
+                  {t(NAV_ITEMS[i]!.label)}
                 </li>
               ))}
               <li className="nav-link nav-more-button">
@@ -165,7 +174,6 @@ function HeaderBar() {
         </nav>
         <div className="header-end">
           <MetronomeChip />
-          <GitHubStar />
         </div>
       </div>
     </header>

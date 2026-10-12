@@ -5,7 +5,7 @@ import type { PiecesStanding } from '../../core/piecesStanding.ts';
 import { daysBetween } from '../../core/review.ts';
 import { dayKey, type DayKey } from '../../core/streak.ts';
 import { useT } from '../../i18n/index.ts';
-import { builtInPiece, type PieceLevel } from '../../pieces/library/index.ts';
+import { BUILT_IN, builtInPiece, type PieceLevel } from '../../pieces/library/index.ts';
 import { usePractice } from '../practice/context.ts';
 import { useNow } from '../progress/useNow.ts';
 import { piecePath, pieceStartPath } from '../startParams.ts';
@@ -60,7 +60,8 @@ function usePieceOf(id: string | null): RowPiece | null {
 /**
  * Next for you (docs/PIECES.md, G5b): one row above the library. The piece in hand, with when it
  * was last played, its bars steady and the next step of its plan as the way on (G5c); else the
- * piece to begin next, with its grade and length. Nothing when there is neither. Its place is
+ * piece to begin next, with its grade and length. Nothing when there is neither, nor for a
+ * newcomer, whose next piece is the library's first row just below. Its place is
  * kept while the records and the piece in hand's score are read, so the library under it does
  * not move.
  */
@@ -70,6 +71,9 @@ export function NextForYou({ standing }: { standing: PiecesStanding | null }) {
   const inHand = usePieceOf(standing?.inHand?.id ?? null);
   const next = usePieceOf(standing?.next ?? null);
   if (standing && !inHand && !next) return null;
+  const newcomer =
+    standing !== null && !inHand && standing.finished.size === 0 && next?.id === BUILT_IN[0]?.id;
+  if (newcomer) return null;
 
   return (
     <section className="review-due next-piece" aria-labelledby={`${id}-title`}>

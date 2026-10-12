@@ -14,6 +14,7 @@ import { useReadFormat } from './format.ts';
 import { tempoOf, type RhythmPrefs } from './rhythmPrefs.ts';
 import { useRhythmFormat } from './rhythmFormat.ts';
 import { TempoField } from './TempoField.tsx';
+import { NotYet } from '../NotYet.tsx';
 
 interface RhythmSetupProps {
   level: RhythmLevelId;
@@ -178,7 +179,7 @@ function LevelOption({ name, level, checked, suggested, progress, onChange }: Le
           </span>
         ) : null}
         <span className="level-stats">
-          {progress && progress.total > 0 ? format.stats(progress) : t('read.level.new')}
+          {progress && progress.total > 0 ? format.stats(progress) : <NotYet />}
         </span>
       </span>
     </label>

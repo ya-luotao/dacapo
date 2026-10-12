@@ -17,7 +17,6 @@ export const en = {
   'nav.assignments': 'Assignments',
   'nav.settings': 'Settings',
   'nav.more': 'More',
-  'nav.star': 'Star dacapo on GitHub',
 
   'home.eyebrow': 'Piano practice with a MIDI keyboard',
   'home.lede':

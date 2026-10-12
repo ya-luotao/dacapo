@@ -757,7 +757,8 @@ function Read({ search }: { search: string }) {
 
 /**
  * What to read: single notes, a kind of theory card or a rhythm line, like the tabs of a method
- * book. The choices come in groups (the cards; what is read in time), each a row of its own.
+ * book. The choices come in groups (the cards; what is read in time), side by side, each under a
+ * small caption of its own.
  */
 function ReadChooser({
   choice,
@@ -771,27 +772,33 @@ function ReadChooser({
   return (
     <fieldset className="field read-what">
       <legend>{t('read.what')}</legend>
-      {READ_CHOICE_GROUPS.map((group) => (
-        <div
-          key={group.id}
-          className="segmented read-what-group"
-          role="group"
-          aria-label={t(`read.what.${group.id}`)}
-        >
-          {group.choices.map((value) => (
-            <label key={value}>
-              <input
-                type="radio"
-                name={`${id}-what`}
-                value={value}
-                checked={choice === value}
-                onChange={() => onChoice(value)}
-              />
-              <span>{t(`read.what.${value}`)}</span>
-            </label>
-          ))}
-        </div>
-      ))}
+      <div className="read-what-sets">
+        {READ_CHOICE_GROUPS.map((group) => (
+          <div key={group.id} className="read-what-set">
+            <span className="read-what-caption" aria-hidden="true">
+              {t(`read.what.${group.id}`)}
+            </span>
+            <div
+              className="segmented read-what-group"
+              role="group"
+              aria-label={t(`read.what.${group.id}`)}
+            >
+              {group.choices.map((value) => (
+                <label key={value}>
+                  <input
+                    type="radio"
+                    name={`${id}-what`}
+                    value={value}
+                    checked={choice === value}
+                    onChange={() => onChoice(value)}
+                  />
+                  <span>{t(`read.what.${value}`)}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </fieldset>
   );
 }

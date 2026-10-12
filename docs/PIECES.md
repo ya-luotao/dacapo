@@ -593,7 +593,8 @@ four bars". G5b says the first, G5c the second, both from the records and nothin
   It is the piece in hand (TODAY.md: practised in the last fourteen days, never played to its end)
   with "Continue", when it was last played and its bars steady, and its plan's next step (G5c) as
   the button; else the next piece, with its grade and length, and **Begin**. Nothing when there is
-  neither.
+  neither, nor for a newcomer (nothing in hand, nothing played to its end) whose next piece is the
+  library's first, the row just below.
 - **Each grade's heading** says how many of its pieces were played to the end ("Grade 1 · 2 of
   6").
 - Lead sheets and imported pieces are not proposed; an imported piece can be in hand.

@@ -17,7 +17,6 @@ export const zhCN: Dictionary = {
   'nav.assignments': '作业',
   'nav.settings': '设置',
   'nav.more': '更多',
-  'nav.star': '在 GitHub 上给 dacapo 点 Star',
 
   'home.eyebrow': '用 MIDI 键盘练钢琴',
   'home.lede':
