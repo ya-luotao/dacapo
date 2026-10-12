@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+
+step() {
+  local name="$1"
+  shift
+  local started=$SECONDS
+  printf '\n[orb setup] %s\n' "$name"
+  "$@"
+  printf '[orb setup] %s (%ss)\n' "$name" "$((SECONDS - started))"
+}
+
+check_node() {
+  if ! command -v node >/dev/null 2>&1; then
+    printf '%s\n' '[orb setup] Node.js is required but was not found in the orb image.' >&2
+    exit 1
+  fi
+
+  node -e '
+    const [major, minor] = process.versions.node.split(".").map(Number);
+    if (major < 22 || (major === 22 && minor < 13)) {
+      console.error(`Node.js ${process.versions.node} is too old; dacapo requires Node.js 22.13 or newer.`);
+      process.exit(1);
+    }
+  '
+}
+
+step 'validate Node.js' check_node
+
+package_manager="$(node -p "require('./package.json').packageManager")"
+case "$package_manager" in
+  pnpm@*) ;;
+  *)
+    printf '[orb setup] Unsupported package manager declaration: %s\n' "$package_manager" >&2
+    exit 1
+    ;;
+esac
+expected_pnpm="${package_manager#pnpm@}"
+
+if command -v pnpm >/dev/null 2>&1 && [[ "$(pnpm --version)" == "$expected_pnpm" ]]; then
+  printf '[orb setup] pnpm %s is already active\n' "$expected_pnpm"
+elif command -v corepack >/dev/null 2>&1; then
+  step "enable Corepack" corepack enable
+  step "activate pnpm ${expected_pnpm}" corepack install --global "$package_manager"
+else
+  step "install pnpm ${expected_pnpm}" npm install --global "$package_manager"
+fi
+
+actual_pnpm="$(pnpm --version)"
+if [[ "$actual_pnpm" != "$expected_pnpm" ]]; then
+  printf '[orb setup] Expected pnpm %s, found %s.\n' "$expected_pnpm" "$actual_pnpm" >&2
+  exit 1
+fi
+
+step 'install locked dependencies' pnpm install --frozen-lockfile --prefer-offline

@@ -20,3 +20,6 @@ __pycache__/
 
 # Wrangler (wrangler.jsonc): local state of `wrangler dev`
 .wrangler/
+
+# Amp orb portal metadata
+.amp/portals/*
