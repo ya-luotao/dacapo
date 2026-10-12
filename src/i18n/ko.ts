@@ -3094,6 +3094,44 @@ export const ko: Dictionary = {
   'input.notice.app': '{status}. 화면의 건반이나 키보드의 A–\u2060K로 칠 수 있어요.',
 
   'about.title': 'dacapo 정보',
+  'about.lede':
+    'Da capo는 이탈리아어로 ‘처음부터’라는 뜻이에요. 악보에 이 말이 있으면 연주자는 처음으로 돌아가 다시 연주합니다. 연습의 대부분이 바로 그렇죠.',
+  'about.why': '왜 만들었나',
+  'about.why.wall':
+    '혼자 피아노를 배우는 사람이 처음 부딪히는 벽은 손가락보다 악보 읽기예요. 큰보표의 음을 보고 줄을 세지 않고 건반을 찾는 것. 많은 연습 앱은 떨어지는 음표로 악보를 피해 가지만, 정말 읽어야 하는 건 종이에 인쇄된 악보입니다.',
+  'about.why.measure':
+    'dacapo는 이 한 가지만 연습하고, 제대로 잽니다. 답이 맞았는지, 얼마나 걸렸는지, 음계의 각 음이 몇 밀리초 빨랐는지 늦었는지. 당신을 느리게 만드는 곳을 더 많이 연습하게 해요.',
+  'about.byline': '만든 사람: {name}',
+  'about.how': '어떻게 만들었나',
+  'about.how.notation': '진짜 악보',
+  'about.how.notation.text':
+    '플래시카드는 VexFlow로 그리고, 곡과 음계는 Verovio로 사보합니다. 모든 기호는 Bravura 악보 글꼴이에요. 출판 악보를 만드는 것과 같은 종류의 도구입니다.',
+  'about.how.page': '인쇄된 한 페이지처럼',
+  'about.how.page.text':
+    '따뜻한 종이색, 잉크, 상자 대신 가는 선, 그리고 강조색은 ‘원전판’ 파랑 하나. 제목은 Source Serif, 본문은 Source Sans. 중국어·일본어·한국어는 각 언어의 글꼴을 써서 모든 글자가 그 언어의 모양으로 보여요.',
+  'about.how.measured': '먼저 재고, 그다음 말하기',
+  'about.how.measured.text':
+    '한 번 연주한 뒤의 한마디는 측정한 데이터에 규칙을 적용해 나오고, 그 이유도 알려 줍니다. 기준값은 실제 악기로 녹음한 연주로 아직 맞춰 가는 중이에요.',
+  'about.how.checked': '한 음씩 확인',
+  'about.how.checked.text':
+    '내장 곡은 모두 퍼블릭 도메인이고, 각각 독립된 자료와 한 음씩 대조했어요. 하농의 연습곡은 1900년 판에서 두 번 옮겨 적고 두 사본을 서로 비교했습니다.',
+  'about.out': '일부러 하지 않는 것',
+  'about.out.ai': 'AI 선생님은 없어요. 연주한 내용은 어떤 모델에도 보내지 않습니다.',
+  'about.out.ads': '광고도, 결제도 없고, 연습 기록을 추적하지도 않아요.',
+  'about.out.falling':
+    '떨어지는 음표는 쓰지 않아요. 보기엔 좋아도 악보 읽기를 가르쳐 주지는 못하니까요.',
+  'about.thanks': '감사의 말',
+  'about.thanks.piano':
+    '내장 피아노의 소리, Salamander Grand Piano(야마하 C5)를 녹음한 Alexander Holm.',
+  'about.thanks.tools': 'Bravura를 만든 Steinberg, Verovio의 RISM과 기여자들, VexFlow의 저자들.',
+  'about.thanks.music':
+    '하농, 튀르크, 바이엘, 체르니, 부르크뮐러를 비롯한 곡집의 작곡가들, 그리고 그 악보를 스캔하고 사보하고 공개해 온 Mutopia Project, IMSLP, PDMX 데이터셋.',
+  'about.thanks.people': '버그를 알려 주고, 번역을 검토하고, 곡을 입력해 준 모든 분들: {link}.',
+  'about.thanks.people.link': '기여자 목록',
+  'about.join': '참여하기',
+  'about.join.text':
+    '버그를 찾았거나, 원하는 곡이 있거나, 모국어 번역을 검토해 줄 수 있다면 {link}에 알려 주세요. 코드를 몰라도 할 수 있는 일이 많아요. 퍼블릭 도메인 곡을 입력하거나, 스캔본과 대조해 교정할 수 있어요.',
+  'about.licences': '라이선스와 출처',
   'about.intro':
     'dacapo에는 아래의 소프트웨어, 글꼴, 음원, 악보가 들어 있고, 각각 고유한 라이선스를 따라요. 모두 dacapo 안에 포함되어 있어서 외부에서 가져오는 것은 없어요.',
   'about.software': '소프트웨어',

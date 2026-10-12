@@ -3131,6 +3131,45 @@ export const ja: Dictionary = {
   'input.notice.app': '{status}。画面の鍵盤か、キーボードのA〜Kで弾けます。',
 
   'about.title': 'dacapoについて',
+  'about.lede':
+    'Da capo は、イタリア語で「始めから」。楽譜にこう書かれていたら、奏者は冒頭に戻ってもう一度弾きます。練習のほとんどは、まさにそれです。',
+  'about.why': 'なぜ作ったか',
+  'about.why.wall':
+    '独学でピアノを学ぶ人が最初にぶつかる壁は、指よりも譜読みです。大譜表の音を見て、線を数えずに鍵盤を見つけること。多くの練習アプリは落ちてくるノーツで楽譜を避けますが、読まなければならないのは紙に印刷された譜面です。',
+  'about.why.measure':
+    'dacapo はこの一点だけを練習し、きちんと測ります。答えが正しかったか、何秒かかったか、音階の一音一音が何ミリ秒早かったか遅かったか。あなたをつまずかせるところを、多く練習させます。',
+  'about.byline': '制作：{name}',
+  'about.how': 'どう作られているか',
+  'about.how.notation': '本物の楽譜',
+  'about.how.notation.text':
+    'フラッシュカードは VexFlow で描き、曲と音階は Verovio で浄書しています。字形はすべて Bravura 楽譜フォント。出版される楽譜と同じ種類の組版ツールです。',
+  'about.how.page': '印刷された一ページのように',
+  'about.how.page.text':
+    '温かみのある紙の色、インクの黒、枠の代わりの細い罫線、そしてアクセントは「原典版」の青ひとつ。見出しは Source Serif、本文は Source Sans。中国語・日本語・韓国語はそれぞれの言語のフォントを使い、どの字もその言語本来の字形で表示します。',
+  'about.how.measured': 'まず測り、それから伝える',
+  'about.how.measured.text':
+    '弾き終えたあとの一言は、測ったデータにルールを当てはめて導き、その理由も示します。基準値は、実際の楽器で録った演奏をもとにまだ調整中です。',
+  'about.how.checked': '一音ずつ確認',
+  'about.how.checked.text':
+    '内蔵曲はすべてパブリックドメインで、それぞれ独立した資料と一音ずつ照合しています。ハノンの練習曲は 1900 年版から二度書き起こし、二つを突き合わせました。',
+  'about.out': 'あえてしないこと',
+  'about.out.ai': 'AI の先生はいません。弾いた内容がモデルに送られることはありません。',
+  'about.out.ads': '広告も課金もなく、練習の記録を追跡することもありません。',
+  'about.out.falling':
+    '落ちてくるノーツは使いません。見た目はよくても、譜読みは身につかないからです。',
+  'about.thanks': '謝辞',
+  'about.thanks.piano':
+    '内蔵ピアノの音、Salamander Grand Piano（ヤマハ C5）を録音した Alexander Holm さん。',
+  'about.thanks.tools':
+    'Bravura の Steinberg、Verovio の RISM と貢献者の皆さん、VexFlow の作者の皆さん。',
+  'about.thanks.music':
+    'ハノン、テュルク、バイエル、ツェルニー、ブルクミュラーをはじめ曲集の作曲家たち、そしてその楽譜をスキャンし、浄書し、公開してきた Mutopia Project、IMSLP、PDMX データセット。',
+  'about.thanks.people': 'バグを報告し、翻訳を見直し、曲を入力してくれたすべての人：{link}。',
+  'about.thanks.people.link': '貢献者一覧',
+  'about.join': '参加する',
+  'about.join.text':
+    'バグを見つけた、弾きたい曲がある、母語の翻訳を見直せる、という方は {link} でお知らせください。コードを書かなくてもできることはたくさんあります。パブリックドメインの曲を入力したり、スキャン画像と照らし合わせて校正したり。',
+  'about.licences': 'ライセンスと出典',
   'about.intro':
     'dacapoには以下のソフトウェア、フォント、音源、楽曲が含まれていて、それぞれのライセンスに従います。どれもdacapo本体に含まれており、外部から取得するものはありません。',
   'about.software': 'ソフトウェア',

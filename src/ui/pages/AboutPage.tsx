@@ -23,6 +23,19 @@ interface Credit {
 
 const SALAMANDER = 'https://freepats.zenvoid.org/Piano/acoustic-grand-piano.html';
 
+const AUTHOR = { name: 'ya-luotao', url: 'https://github.com/ya-luotao' };
+const CONTRIBUTORS = `${REPO_URL}/graphs/contributors`;
+
+/** How dacapo is made: each a title and its line. */
+const HOW: readonly (readonly [MessageKey, MessageKey])[] = [
+  ['about.how.notation', 'about.how.notation.text'],
+  ['about.how.page', 'about.how.page.text'],
+  ['about.how.measured', 'about.how.measured.text'],
+  ['about.how.checked', 'about.how.checked.text'],
+];
+
+const LEFT_OUT: readonly MessageKey[] = ['about.out.ai', 'about.out.ads', 'about.out.falling'];
+
 const VEROVIO_NPM = 'https://www.npmjs.com/package/verovio/v/6.3.0';
 const VEROVIO_WEBSITE = 'https://www.verovio.org';
 const VEROVIO_SOURCE = 'https://github.com/rism-digital/verovio/tree/version-6.3.0';
@@ -146,6 +159,70 @@ function CreditItem({ credit }: { credit: Credit }) {
 }
 
 /**
+ * What dacapo is for and how it is made, set as the preface of a printed edition: why, how, what
+ * it leaves out, thanks and how to take part. The licences follow.
+ */
+function Preface() {
+  const t = useT();
+  return (
+    <>
+      <p className="about-lede">{t('about.lede')}</p>
+
+      <section className="about-section" aria-labelledby="about-why">
+        <h2 id="about-why">{t('about.why')}</h2>
+        <p>{t('about.why.wall')}</p>
+        <p>{t('about.why.measure')}</p>
+        <p className="about-byline">
+          {withPart(t('about.byline'), 'name', <a href={AUTHOR.url}>{AUTHOR.name}</a>)}
+        </p>
+      </section>
+
+      <section className="about-section" aria-labelledby="about-how">
+        <h2 id="about-how">{t('about.how')}</h2>
+        <dl className="about-how">
+          {HOW.map(([title, text]) => (
+            <div key={title}>
+              <dt>{t(title)}</dt>
+              <dd>{t(text)}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      <section className="about-section" aria-labelledby="about-out">
+        <h2 id="about-out">{t('about.out')}</h2>
+        <ul className="about-list">
+          {LEFT_OUT.map((key) => (
+            <li key={key}>{t(key)}</li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="about-section" aria-labelledby="about-thanks">
+        <h2 id="about-thanks">{t('about.thanks')}</h2>
+        <ul className="about-list">
+          <li>{t('about.thanks.piano')}</li>
+          <li>{t('about.thanks.tools')}</li>
+          <li>{t('about.thanks.music')}</li>
+          <li>
+            {withPart(
+              t('about.thanks.people'),
+              'link',
+              <a href={CONTRIBUTORS}>{t('about.thanks.people.link')}</a>,
+            )}
+          </li>
+        </ul>
+      </section>
+
+      <section className="about-section" aria-labelledby="about-join">
+        <h2 id="about-join">{t('about.join')}</h2>
+        <p>{withPart(t('about.join.text'), 'link', <a href={`${REPO_URL}/issues`}>GitHub</a>)}</p>
+      </section>
+    </>
+  );
+}
+
+/**
  * About dacapo and the licences of everything it ships: the Verovio credit its maintainers ask
  * App Store apps to show (docs/APPLE.md), the other libraries, the fonts, the piano's samples and
  * the music, with the licence texts from public/licenses/. The same page in the browser and in the Apple app.
@@ -158,6 +235,9 @@ export function AboutPage() {
   return (
     <section className="page about-page">
       <h1>{t('about.title')}</h1>
+      <Preface />
+
+      <h2 className="about-licences">{t('about.licences')}</h2>
       <p>{t('settings.about.text', { version: __APP_VERSION__ })}</p>
       <p className="help">{t('about.intro')}</p>
       <ul className="about-links">

@@ -2970,6 +2970,43 @@ export const zhTW: Dictionary = {
   'input.notice.app': '{status}：螢幕上的琴鍵可以彈，電腦鍵盤的 A 到 K 也可以。',
 
   'about.title': '關於 dacapo',
+  'about.lede':
+    'Da capo，義大利語，「從頭開始」。樂譜上寫著它，演奏者就回到開頭再彈一遍。練琴大多就是這樣。',
+  'about.why': '為什麼做它',
+  'about.why.wall':
+    '自學鋼琴的人，最先撞上的牆往往不是手指，而是識譜：看到大譜表上的一個音，不數線就找到那個鍵。大多數練習軟體用落下的音塊繞開了樂譜，可真正要讀的，是印在紙上的譜。',
+  'about.why.measure':
+    'dacapo 只練這件事，而且認真地量：每次作答對不對、用了多久，每條音階的每個音早了或晚了幾毫秒。哪些地方讓你慢下來，就多練哪些。',
+  'about.byline': '由 {name} 製作。',
+  'about.how': '怎麼做的',
+  'about.how.notation': '真正的樂譜',
+  'about.how.notation.text':
+    '識譜卡片用 VexFlow 繪製，曲目和音階用 Verovio 刻譜，字形都來自 Bravura 樂譜字型，和出版樂譜用的是同一類排版工具。',
+  'about.how.page': '像一頁印好的譜',
+  'about.how.page.text':
+    '暖白的紙、墨色的字、細線代替方框，只用一種「原典版」藍作強調色；標題用 Source Serif，內文用 Source Sans。中文、日文、韓文各用本語言的字型，每個字才是它自己的寫法。',
+  'about.how.measured': '先測量，再說話',
+  'about.how.measured.text':
+    '每遍彈完的那句建議，是依規則從測到的資料得出的，並說明理由。其中的門檻還在用真實樂器上錄下的演奏來校準。',
+  'about.how.checked': '逐音核對',
+  'about.how.checked.text':
+    '內建曲目都是公版作品，每首都對照一份獨立來源逐音核對過；哈農的練習照 1900 年版轉錄了兩遍，再把兩份互相比對。',
+  'about.out': '刻意不做的',
+  'about.out.ai': '不用 AI 當老師：你彈的任何內容都不會傳給模型。',
+  'about.out.ads': '沒有廣告，沒有付費項目，也不追蹤你的練習。',
+  'about.out.falling': '不用落下的音塊。它好看，但教不會你讀譜。',
+  'about.thanks': '謝謝',
+  'about.thanks.piano':
+    'Alexander Holm 錄製的 Salamander Grand Piano（一台山葉 C5），內建鋼琴的聲音來自它。',
+  'about.thanks.tools': 'Steinberg 的 Bravura 字型；RISM 和 Verovio 的貢獻者們；VexFlow 的作者們。',
+  'about.thanks.music':
+    '哈農、蒂爾克、拜爾、徹爾尼、布格繆勒和曲庫裡的其他作曲家，以及掃描、排版、公開他們樂譜的人：Mutopia Project、IMSLP 和 PDMX 資料集。',
+  'about.thanks.people': '每一位回報問題、審閱譯文或輸入曲目的人：{link}。',
+  'about.thanks.people.link': '貢獻者名單',
+  'about.join': '參與',
+  'about.join.text':
+    '發現了問題、想要某首曲子，或者願意審閱你母語的譯文？歡迎到 {link} 提出。不會寫程式也有很多事可做：輸入一首公版曲目，或對照掃描檔校對一首。',
+  'about.licences': '授權與來源',
   'about.intro':
     'dacapo 內含下列軟體、字型、音色和樂曲，各自採用自己的授權。這些全都內建在 dacapo 裡，不會從其他地方取得。',
   'about.software': '軟體',
