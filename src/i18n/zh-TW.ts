@@ -2995,6 +2995,8 @@ export const zhTW: Dictionary = {
   'about.wouter': 'wouter，用於頁面之間的切換。The Unlicense（公有領域）。',
   'about.idb': 'idb，用於儲存練習紀錄。© Jake Archibald. ISC License.',
   'about.fflate': 'fflate，用於讀取 .mxl 檔案和壓縮作業連結。© Arjun Barrett. MIT License.',
+  'about.anatomy':
+    'Anatomy，「鋼琴的內部」一課裡平台鋼琴剖面圖的繪圖工具。© Ryan (wheresryan22). MIT License.',
   'about.bravura':
     'Bravura，「識譜」頁面使用的音樂字型。© 2019 Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
   'about.sourceFonts':

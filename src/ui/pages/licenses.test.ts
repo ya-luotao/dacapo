@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import bravuraShipped from '../../../public/licenses/bravura/LICENSE.txt?raw';
+import anatomyShipped from '../../../public/licenses/anatomy/LICENSE.txt?raw';
 import dacapoShipped from '../../../public/licenses/dacapo/LICENSE.txt?raw';
 import fflateShipped from '../../../public/licenses/fflate/LICENSE.txt?raw';
 import idbShipped from '../../../public/licenses/idb/LICENSE.txt?raw';
@@ -16,6 +17,7 @@ import reactDom from '../../../node_modules/react-dom/LICENSE?raw';
 import react from '../../../node_modules/react/LICENSE?raw';
 import vexflow from '../../../node_modules/vexflow/LICENSE?raw';
 import dacapo from '../../../LICENSE?raw';
+import anatomy from '../../../scripts/figures/anatomy/LICENSE?raw';
 import sourceFonts from '../fonts/OFL.txt?raw';
 
 // The About page shows the licence texts from public/licenses/. They are copies; this keeps them
@@ -30,6 +32,7 @@ describe('shipped licence texts', () => {
     ['react-dom', reactShipped, reactDom],
     ['idb', idbShipped, idb],
     ['fflate', fflateShipped, fflate],
+    ['anatomy', anatomyShipped, anatomy],
   ])('%s matches its source', (_name, shipped, source) => {
     expect(shipped).toBe(source);
   });

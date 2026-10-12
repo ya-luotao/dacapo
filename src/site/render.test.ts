@@ -261,7 +261,7 @@ describe('every page', () => {
   it('links only to what is there: a page, a file of the build, a place on the page, the app', () => {
     const there = new Set(files.map((file) => file.path));
     // The app's own files that a page may name.
-    const ofTheApp = /^(assets\/|favicon\.svg$|icons\/|learn\/[a-z-]+\.webp$)/;
+    const ofTheApp = /^(assets\/|favicon\.svg$|icons\/|learn\/[a-z-]+\.(webp|svg)$)/;
     for (const page of pages) {
       const doc = read(page);
       const ids = new Set(all(doc, '[id]').map((el) => el.id));

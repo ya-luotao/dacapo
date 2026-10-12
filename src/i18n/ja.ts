@@ -3157,6 +3157,8 @@ export const ja: Dictionary = {
   'about.idb': 'idb：練習記録の保存に使います。© Jake Archibald. ISC License.',
   'about.fflate':
     'fflate：.mxlファイルの読み込みと課題リンクの圧縮に使います。© Arjun Barrett. MIT License.',
+  'about.anatomy':
+    'Anatomy：レッスン「ピアノの内部」のグランドピアノ断面図を描く道具です。© Ryan (wheresryan22). MIT License.',
   'about.bravura':
     'Bravura：「譜読み」ページの音楽フォントです。© 2019 Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
   'about.sourceFonts':

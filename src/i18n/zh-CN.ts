@@ -2993,6 +2993,8 @@ export const zhCN: Dictionary = {
   'about.wouter': 'wouter，用于页面之间的切换。The Unlicense（公有领域）。',
   'about.idb': 'idb，用于保存练习记录。© Jake Archibald. ISC License.',
   'about.fflate': 'fflate，用于读取 .mxl 文件和压缩作业链接。© Arjun Barrett. MIT License.',
+  'about.anatomy':
+    'Anatomy，「钢琴的内部」一课里三角钢琴剖面图的绘图工具。© Ryan (wheresryan22). MIT License.',
   'about.bravura':
     'Bravura，“识谱”页面使用的音乐字体。© 2019 Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
   'about.sourceFonts':
