@@ -17,7 +17,6 @@ export const ko: Dictionary = {
   'nav.assignments': '과제',
   'nav.settings': '설정',
   'nav.more': '더 보기',
-  'nav.star': 'GitHub에서 dacapo에 스타 주기',
 
   'home.eyebrow': 'MIDI 키보드로 하는 피아노 연습',
   'home.lede':

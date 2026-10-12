@@ -3,13 +3,15 @@ import type { MessageKey } from '../i18n/index.ts';
 /**
  * The navigation, in order; the home page is the brand's link. `priority`: when the header is too
  * narrow, the lowest moves into the More menu first; Play and Read always stay. `practice`: a page where you play, where the header
- * always shows the metronome chip.
+ * always shows the metronome chip. `secondary`: always in the More menu, so the bar is the same
+ * on every page and holds only the practices.
  */
 export const NAV_ITEMS: readonly {
   path: string;
   label: MessageKey;
   priority: number;
   practice?: boolean;
+  secondary?: boolean;
 }[] = [
   { path: '/learn', label: 'nav.learn', priority: 4 },
   { path: '/play', label: 'nav.play', priority: Infinity, practice: true },
@@ -18,11 +20,10 @@ export const NAV_ITEMS: readonly {
   { path: '/harmony', label: 'nav.harmony', priority: 2.5, practice: true },
   { path: '/scales', label: 'nav.scales', priority: 5, practice: true },
   { path: '/pieces', label: 'nav.pieces', priority: 6, practice: true },
-  { path: '/metronome', label: 'nav.metronome', priority: 2 },
+  { path: '/metronome', label: 'nav.metronome', priority: 2, secondary: true },
   { path: '/progress', label: 'nav.progress', priority: 3 },
-  // The first to give way: it is reached from Progress too.
-  { path: '/assignments', label: 'nav.assignments', priority: 0.5 },
-  { path: '/settings', label: 'nav.settings', priority: 1 },
+  { path: '/assignments', label: 'nav.assignments', priority: 0.5, secondary: true },
+  { path: '/settings', label: 'nav.settings', priority: 1, secondary: true },
 ];
 
 /** Whether `location` is a practice page or one of its subpages (a piece belongs to Pieces). */

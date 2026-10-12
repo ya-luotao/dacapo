@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        dacapo stays small on purpose: staff first, local data, no accounts. [docs/MVP.md](https://github.com/ya-luotao/dacapo/blob/main/docs/MVP.md) and the README's roadmap say what is in and out of scope. Please write in English.
+        dacapo stays small on purpose: staff first, local data, no accounts. [docs/MVP.md](https://github.com/ya-luotao/dacapo/blob/main/docs/MVP.md) and the README's Principles and Status say what is in and out of scope. Please write in English.
   - type: textarea
     id: problem
     attributes:

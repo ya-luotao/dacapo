@@ -13,6 +13,7 @@ import { useRhythmFormat } from '../read/rhythmFormat.ts';
 import { Segmented } from '../Segmented.tsx';
 import type { EarPrefs } from './prefs.ts';
 import { useRhythmEarFormat } from './rhythmEarFormat.ts';
+import { NotYet } from '../NotYet.tsx';
 
 /** The Ear page's rhythm: what the setup needs of it. */
 export interface RhythmEarSetupProps {
@@ -74,7 +75,7 @@ export function RhythmEarLevels({
                   </span>
                 ) : null}
                 <span className="level-stats">
-                  {p && p.total > 0 ? format.levelStats(p) : t('read.level.new')}
+                  {p && p.total > 0 ? format.levelStats(p) : <NotYet />}
                 </span>
               </span>
             </label>

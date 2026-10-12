@@ -50,3 +50,55 @@ export function engrave(tk: Toolkit, xml: string, title: string): EngravedScore 
     .replace(/^(<svg [^>]*>)/, `$1\n<title>${escapeXml(title)}</title>`);
   return { svg, width: Math.round(Number(box[1])), height: Math.round(Number(box[2])) };
 }
+
+/** An incipit's width in CSS pixels, as the library lays it out; every incipit is this wide. */
+export const INCIPIT_WIDTH = 320;
+/** Its staff, smaller than a page's: a line of a catalogue, not a score to read from. */
+const INCIPIT_SCALE = 30;
+
+/**
+ * What a few bars at the head of a list need not carry: tempo words, pedalling and "simile"
+ * (`<direction>`), fingering and lyrics.
+ */
+function bareXml(xml: string): string {
+  return xml
+    .replace(/<direction\b[\s\S]*?<\/direction>/g, '')
+    .replace(/<fingering\b[^>]*(?:\/>|>[\s\S]*?<\/fingering>)/g, '')
+    .replace(/<lyric\b[\s\S]*?<\/lyric>/g, '');
+}
+
+/**
+ * A piece's incipit, as a catalogue prints it: its first two bars (three when the first is an
+ * upbeat; fewer when they do not fit on one system), stretched to `INCIPIT_WIDTH`, so that every incipit's staff is the same size. Drawn in
+ * black on nothing: the library uses it as a mask, coloured with the page's ink.
+ */
+export function engraveIncipit(tk: Toolkit, xml: string, title: string): EngravedScore {
+  const upbeat = /<measure\b[^>]*\bimplicit="yes"/.test(/<measure\b[^>]*>/.exec(xml)?.[0] ?? '');
+  tk.setOptions({
+    ...layoutOptions(INCIPIT_WIDTH, INCIPIT_SCALE),
+    pageMarginLeft: 0,
+    pageMarginRight: 0,
+    pageMarginTop: 0,
+    pageMarginBottom: 0,
+    minLastJustification: 0,
+    xmlIdSeed: 1,
+  });
+  if (!tk.loadData(drawingXml(bareXml(xml)))) throw new Error(`Verovio: ${tk.getLog()}`);
+  // As many of those bars as one system holds: a dense bar (Bach's Prelude in C) stands alone.
+  let drawn = '';
+  for (let bars = upbeat ? 3 : 2; bars >= 1; bars--) {
+    (tk as Toolkit & { select(selection: object): boolean }).select({
+      measureRange: bars === 1 ? '1' : `1-${bars}`,
+    });
+    tk.redoLayout();
+    drawn = tk.renderToSVG(1);
+    if ((drawn.match(/<g [^>]*class="system"/g) ?? []).length === 1) break;
+  }
+  const box = /^<svg viewBox="0 0 (\d+(?:\.\d+)?) (\d+(?:\.\d+)?)"/.exec(drawn);
+  if (!box) throw new Error('Verovio drew an incipit without a size.');
+  const svg = drawn
+    .replace(/ (?:data-[a-z-]+|class)="[^"]*"/g, '')
+    .replace(/^[ \t]+/gm, '')
+    .replace(/^(<svg [^>]*>)/, `$1\n<title>${escapeXml(title)}</title>`);
+  return { svg, width: Math.round(Number(box[1])), height: Math.round(Number(box[2])) };
+}

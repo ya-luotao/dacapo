@@ -2,6 +2,7 @@ import { useId } from 'react';
 import { Link } from 'wouter';
 import { useT } from '../../i18n/index.ts';
 import { BUILT_IN, type BuiltInPiece } from '../../pieces/library/index.ts';
+import incipits from '../../pieces/library/incipits.json';
 import { usePieceFormat } from './format.ts';
 import { PieceBeyond } from './PieceBeyond.tsx';
 import { PieceProgress } from './PieceProgress.tsx';
@@ -43,6 +44,24 @@ export function Library({ finished }: { finished: ReadonlySet<string> | null }) 
       )}
       <p className="help library-help">{t('pieces.levels.help')}</p>
     </section>
+  );
+}
+
+/**
+ * A piece's first bars, as a catalogue prints them beside its title (docs/PIECES.md, "Incipits"):
+ * engraved in advance, and drawn in the page's ink through the image as a mask, so that they
+ * follow the theme. Its size is known before the image arrives, so the list never moves.
+ */
+function Incipit({ id }: { id: string }) {
+  const size = (incipits as Record<string, number[] | undefined>)[id];
+  if (!size) return null;
+  const url = `url("${import.meta.env.BASE_URL}incipits/${id}.svg")`;
+  return (
+    <span
+      className="library-piece-incipit"
+      aria-hidden="true"
+      style={{ aspectRatio: `${size[0]} / ${size[1]}`, maskImage: url, WebkitMaskImage: url }}
+    />
   );
 }
 
@@ -91,15 +110,20 @@ function Group({
           {pieces.map((piece) => (
             <li key={piece.id}>
               <Link href={`/pieces/${piece.id}`} className="library-piece">
-                <span className="library-piece-title">{t(`library.${piece.id}.title`)}</span>
-                <span className="library-piece-composer">{t(`library.${piece.id}.composer`)}</span>
-                <span className="library-piece-style">
-                  {level && `${level(piece)} · `}
-                  {t(`library.${piece.id}.style`)}
+                <span className="library-piece-text">
+                  <span className="library-piece-title">{t(`library.${piece.id}.title`)}</span>
+                  <span className="library-piece-composer">
+                    {t(`library.${piece.id}.composer`)}
+                  </span>
+                  <span className="library-piece-style">
+                    {level && `${level(piece)} · `}
+                    {t(`library.${piece.id}.style`)}
+                  </span>
+                  <span className="library-piece-note">{t(`library.${piece.id}.note`)}</span>
+                  <PieceBeyond facts={piece.facts} />
+                  <PieceProgress pieceId={piece.id} facts={piece.facts} />
                 </span>
-                <span className="library-piece-note">{t(`library.${piece.id}.note`)}</span>
-                <PieceBeyond facts={piece.facts} />
-                <PieceProgress pieceId={piece.id} facts={piece.facts} />
+                <Incipit id={piece.id} />
               </Link>
             </li>
           ))}

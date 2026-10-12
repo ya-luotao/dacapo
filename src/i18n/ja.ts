@@ -17,7 +17,6 @@ export const ja: Dictionary = {
   'nav.assignments': '課題',
   'nav.settings': '設定',
   'nav.more': 'その他',
-  'nav.star': 'GitHub で dacapo にスターを付ける',
 
   'home.eyebrow': 'MIDIキーボードでピアノ練習',
   'home.lede':

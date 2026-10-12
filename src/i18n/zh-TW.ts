@@ -17,7 +17,6 @@ export const zhTW: Dictionary = {
   'nav.assignments': '作業',
   'nav.settings': '設定',
   'nav.more': '更多',
-  'nav.star': '在 GitHub 上給 dacapo 按 Star',
 
   'home.eyebrow': '用 MIDI 鍵盤練鋼琴',
   'home.lede':

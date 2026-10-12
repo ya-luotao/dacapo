@@ -7,6 +7,7 @@ import { useT } from '../../i18n/index.ts';
 import { useInstrumentKeys } from '../instrument.ts';
 import { useHintWords, useNoteNames } from '../noteNames.ts';
 import { useReadFormat } from './format.ts';
+import { NotYet } from '../NotYet.tsx';
 
 interface ReadSetupProps {
   level: LevelId;
@@ -169,14 +170,16 @@ function LevelOption({
           </span>
         ) : null}
         <span className="level-stats">
-          {progress && progress.total > 0
-            ? t('read.level.stats', {
-                cards: progress.cards,
-                window: MASTERY_WINDOW,
-                accuracy: format.percent(progress.accuracy),
-                median: format.seconds(progress.medianMs),
-              })
-            : t('read.level.new')}
+          {progress && progress.total > 0 ? (
+            t('read.level.stats', {
+              cards: progress.cards,
+              window: MASTERY_WINDOW,
+              accuracy: format.percent(progress.accuracy),
+              median: format.seconds(progress.medianMs),
+            })
+          ) : (
+            <NotYet />
+          )}
         </span>
       </span>
     </label>
