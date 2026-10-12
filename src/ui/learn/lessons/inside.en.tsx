@@ -1,4 +1,5 @@
 import { ChoiceQuiz } from '../exercises.tsx';
+import { GrandPiano, type GrandPianoCopy } from '../GrandPiano.tsx';
 import { InsideAction, type InsideCopy } from '../InsideAction.tsx';
 import { Aside, Picture, Plate, Section } from '../kit.tsx';
 import { useCompleteLesson } from '../lesson.ts';
@@ -84,6 +85,25 @@ const COPY: InsideCopy = {
   ],
 };
 
+const GRAND: GrandPianoCopy = {
+  label:
+    'One octave of a grand piano, C4 to B4, cut open on a bench: twelve keys and their actions, the iron frame with its tuning pins, three strings for each note running over the bridge on the soundboard, and three pedals, moving as they are played',
+  speeds: COPY.speeds,
+  pedals: { soft: 'Soft pedal', sostenuto: 'Sostenuto', sustain: 'Sustain pedal' },
+  phases: {
+    rest: 'at rest',
+    down: 'key going down',
+    free: 'hammer flying free',
+    strike: 'hammer strikes the strings',
+    checked: 'backcheck holds the hammer',
+    repeat: 'ready to repeat',
+    release: 'key rising',
+    ringing: 'strings ringing',
+    damped: 'damper stops the strings',
+  },
+  touring: 'playing by itself',
+};
+
 export default function Lesson() {
   const complete = useCompleteLesson();
   return (
@@ -158,6 +178,27 @@ export default function Lesson() {
             chord can ring while the next notes stay short.
           </li>
         </ul>
+      </Section>
+
+      <Section id="octave" title="A whole octave, keys to soundboard">
+        <p>
+          Here is one octave of a grand, C4 to B4, cut open and at its true size: twelve keys and
+          their actions, and over them the cast-iron frame with its tuning pins. Each note has three
+          steel strings, each pulled to about 70 kilograms. They run from the pins through brass
+          agraffes, under the dampers and over the <strong>bridge</strong>, a curved strip of wood
+          glued to the <strong>soundboard</strong>, to hitch pins at the back. A string on its own
+          is barely heard: it is the bridge and the thin spruce board under it that move enough air.
+        </p>
+        <p>
+          Each string is as long as its note needs: 380 mm for A4, and nearly twice that an octave
+          lower, which is why the bridge curves. The three pedals are under the keys; try each one.
+        </p>
+        <Plate
+          wide
+          caption="Play any key on your keyboard, below, or in the drawing: every C plays the drawing’s C, every D its D. The pedal buttons, or your own pedals, work the pedals. The strings’ swing is drawn larger and far slower than it is."
+        >
+          <GrandPiano copy={GRAND} />
+        </Plate>
       </Section>
 
       <Section id="upright" title="Grand and upright">

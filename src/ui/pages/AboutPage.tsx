@@ -49,6 +49,11 @@ const SOFTWARE: readonly Credit[] = [
     lines: ['about.fflate'],
     files: [{ name: 'MIT License', path: `${LICENCES}fflate/LICENSE.txt` }],
   },
+  {
+    id: 'anatomy',
+    lines: ['about.anatomy'],
+    files: [{ name: 'MIT License', path: `${LICENCES}anatomy/LICENSE.txt` }],
+  },
 ];
 
 const FONTS: readonly Credit[] = [

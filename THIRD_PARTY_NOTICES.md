@@ -57,6 +57,14 @@ Mohit Muthanna Cheppudira and the VexFlow contributors. MIT License.
 - [idb](https://github.com/jakearchibald/idb): ISC, © Jake Archibald
 - [fflate](https://github.com/101arrowz/fflate), for reading `.mxl` files: MIT, © Arjun Barrett
 
+### Anatomy: MIT
+
+[Anatomy](https://github.com/wheresryan22/anatomy) is the drawing kit of the grand piano section in
+the lesson Inside the piano. Copyright © 2026 Ryan. MIT License. Its kit is in
+[`scripts/figures/anatomy/`](scripts/figures/anatomy/) as it was at commit `689dcf9`, and
+`scripts/figures/grand-piano.mjs` draws `public/learn/grand-piano.svg` with it. The functions that
+move the drawing in the app (`src/ui/learn/grandPiano/draw.ts`) are ported from it.
+
 ## Fonts
 
 - **Bravura**, the music font of the Read page (`@vexflow-fonts/bravura`). Copyright © 2019

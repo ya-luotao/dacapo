@@ -1,4 +1,5 @@
 import { ChoiceQuiz } from '../exercises.tsx';
+import { GrandPiano, type GrandPianoCopy } from '../GrandPiano.tsx';
 import { InsideAction, type InsideCopy } from '../InsideAction.tsx';
 import { Aside, Picture, Plate, Section } from '../kit.tsx';
 import { useCompleteLesson } from '../lesson.ts';
@@ -72,6 +73,25 @@ const COPY: InsideCopy = {
   ],
 };
 
+const GRAND: GrandPianoCopy = {
+  label:
+    '放在台座上剖开的三角钢琴的一个八度（C4 到 B4）：十二个键和它们的击弦机，带调音钉的铁骨架，每个音三根琴弦从音板上的琴马上方经过，还有三个踏板，随着弹奏而运动',
+  speeds: COPY.speeds,
+  pedals: { soft: '弱音踏板', sostenuto: '持音踏板', sustain: '延音踏板' },
+  phases: {
+    rest: '静止',
+    down: '琴键按下',
+    free: '琴槌自己飞出',
+    strike: '琴槌击弦',
+    checked: '托槌器接住琴槌',
+    repeat: '可以再弹',
+    release: '琴键抬起',
+    ringing: '琴弦在响',
+    damped: '制音器止住琴弦',
+  },
+  touring: '正在自动演示',
+};
+
 export default function Lesson() {
   const complete = useCompleteLesson();
   return (
@@ -134,6 +154,26 @@ export default function Lesson() {
             中踏板在多数三角钢琴上只保持已经抬起的那些制音器，这样一个和弦可以持续，后面的音仍然短促。
           </li>
         </ul>
+      </Section>
+
+      <Section id="octave" title="整整一个八度，从琴键到音板">
+        <p>
+          这是三角钢琴的一个八度，从 C4 到
+          B4，剖开来、按真实尺寸画出：十二个键和它们的击弦机，上面是带调音钉的铸铁骨架。每个音有三根钢弦，每根大约拉紧到
+          70 公斤。琴弦从调音钉出发，穿过铜质的弦钩，经过制音器下面，越过<strong>琴马</strong>
+          （粘在<strong>音板</strong>
+          上的一条弯曲的木条），一直到后面的挂弦钉。单单一根琴弦几乎听不见：是琴马和它下面那块薄薄的云杉音板推动了足够多的空气。
+        </p>
+        <p>
+          每根弦的长度都由它的音高决定：A4 是 380
+          毫米，低一个八度差不多长一倍，所以琴马是弯的。三个踏板在琴键下面，每个都试一试。
+        </p>
+        <Plate
+          wide
+          caption="在你的键盘上、下面的键盘上或者图里弹任意一个键：每个 C 都弹图里的 C，每个 D 都弹图里的 D。踏板按钮或者你自己的踏板可以踩图里的踏板。图里琴弦的振动画得比实际大得多、慢得多。"
+        >
+          <GrandPiano copy={GRAND} />
+        </Plate>
       </Section>
 
       <Section id="upright" title="三角钢琴与立式钢琴">

@@ -13045,6 +13045,40 @@ a.today-step-name::after {
   margin-top: 3rem;
 }
 
+/* Inside the piano: one octave of a grand from the keys to the soundboard, drawn in the anatomy
+   kit's greys (scripts/figures/grand-piano.mjs). Its own styles travel inside the drawing. */
+
+.grand-piano-figure {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 760 / 440;
+  margin: 0.25rem 0 0.75rem;
+  touch-action: pan-y;
+}
+
+.grand-piano-figure svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.grand-piano-readout {
+  font-variant-numeric: tabular-nums;
+}
+
+/* On a phone the keys are a few pixels wide: the drawing grows into the plate's margins. */
+@media (max-width: 560px) {
+  .plate-body:has(.grand-piano) {
+    overflow: hidden;
+  }
+
+  .grand-piano-figure {
+    width: 128%;
+    margin-inline: -14%;
+  }
+}
+
 /* Lesson 10: what is written around the notes (dynamics, hairpins, words, slurs), how hard each
    key was struck, and how long each note was held against the next. */
 

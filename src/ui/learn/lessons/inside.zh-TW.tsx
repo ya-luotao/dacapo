@@ -1,4 +1,5 @@
 import { ChoiceQuiz } from '../exercises.tsx';
+import { GrandPiano, type GrandPianoCopy } from '../GrandPiano.tsx';
 import { InsideAction, type InsideCopy } from '../InsideAction.tsx';
 import { Aside, Picture, Plate, Section } from '../kit.tsx';
 import { useCompleteLesson } from '../lesson.ts';
@@ -72,6 +73,25 @@ const COPY: InsideCopy = {
   ],
 };
 
+const GRAND: GrandPianoCopy = {
+  label:
+    '放在台座上剖開的平台鋼琴的一個八度（C4 到 B4）：十二個鍵和它們的擊弦機，帶調音釘的鐵骨架，每個音三根琴弦從響板上的琴橋上方經過，還有三個踏板，隨著彈奏而運動',
+  speeds: COPY.speeds,
+  pedals: { soft: '弱音踏板', sostenuto: '持音踏板', sustain: '延音踏板' },
+  phases: {
+    rest: '靜止',
+    down: '琴鍵按下',
+    free: '琴槌自己飛出',
+    strike: '琴槌擊弦',
+    checked: '托槌器接住琴槌',
+    repeat: '可以再彈',
+    release: '琴鍵抬起',
+    ringing: '琴弦在響',
+    damped: '制音器止住琴弦',
+  },
+  touring: '正在自動示範',
+};
+
 export default function Lesson() {
   const complete = useCompleteLesson();
   return (
@@ -134,6 +154,26 @@ export default function Lesson() {
             中踏板在多數平台鋼琴上只維持已經抬起的那些制音器，這樣一個和弦可以持續，後面的音仍然短促。
           </li>
         </ul>
+      </Section>
+
+      <Section id="octave" title="整整一個八度，從琴鍵到響板">
+        <p>
+          這是平台鋼琴的一個八度，從 C4 到
+          B4，剖開來、照實際尺寸畫出：十二個鍵和它們的擊弦機，上面是帶調音釘的鑄鐵骨架。每個音有三根鋼弦，每根大約拉緊到
+          70 公斤。琴弦從調音釘出發，穿過銅製的弦鉤，經過制音器下面，越過<strong>琴橋</strong>
+          （黏在<strong>響板</strong>
+          上的一條彎曲的木條），一直到後面的掛弦釘。單單一根琴弦幾乎聽不見：是琴橋和它下面那塊薄薄的雲杉響板推動了足夠多的空氣。
+        </p>
+        <p>
+          每根弦的長度都由它的音高決定：A4 是 380
+          公釐，低一個八度差不多長一倍，所以琴橋是彎的。三個踏板在琴鍵下面，每個都試試看。
+        </p>
+        <Plate
+          wide
+          caption="在你的鍵盤上、下面的鍵盤上或者圖裡彈任何一個鍵：每個 C 都彈圖裡的 C，每個 D 都彈圖裡的 D。踏板按鈕或者你自己的踏板可以踩圖裡的踏板。圖裡琴弦的振動畫得比實際大得多、慢得多。"
+        >
+          <GrandPiano copy={GRAND} />
+        </Plate>
       </Section>
 
       <Section id="upright" title="平台鋼琴與直立式鋼琴">

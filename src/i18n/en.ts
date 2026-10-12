@@ -3163,6 +3163,8 @@ export const en = {
   'about.idb': 'idb, for storing your progress. © Jake Archibald. ISC License.',
   'about.fflate':
     'fflate, for reading .mxl files and packing assignment links. © Arjun Barrett. MIT License.',
+  'about.anatomy':
+    'Anatomy, the drawing kit of the grand piano in Inside the piano. © Ryan (wheresryan22). MIT License.',
   'about.bravura':
     'Bravura, the music font of the Read page. © 2019 Steinberg Media Technologies GmbH, with Reserved Font Name “Bravura”. SIL Open Font License 1.1.',
   'about.sourceFonts':

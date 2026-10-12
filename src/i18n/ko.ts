@@ -3119,6 +3119,8 @@ export const ko: Dictionary = {
   'about.idb': 'idb: 연습 기록을 저장할 때 써요. © Jake Archibald. ISC License.',
   'about.fflate':
     'fflate: .mxl 파일을 읽고 과제 링크를 압축할 때 써요. © Arjun Barrett. MIT License.',
+  'about.anatomy':
+    'Anatomy: ‘피아노의 속’ 레슨의 그랜드 피아노 단면도를 그리는 도구예요. © Ryan (wheresryan22). MIT License.',
   'about.bravura':
     'Bravura: “악보 읽기” 페이지의 음악 글꼴이에요. © 2019 Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
   'about.sourceFonts':
