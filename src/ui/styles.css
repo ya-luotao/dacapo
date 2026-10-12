@@ -1767,6 +1767,12 @@ kbd {
   opacity: 0.5;
 }
 
+/* A new card is all there at once, as its note is: the last answer's wash does not linger on it. */
+.read-card.is-waiting::before,
+.read-card.is-waiting::after {
+  transition: none;
+}
+
 .grand-staff {
   position: relative;
   width: min(100%, var(--staff-w));
@@ -1784,6 +1790,13 @@ kbd {
 
 .grand-staff .vf-stavenote {
   transition: color var(--dur) ease-out;
+}
+
+/* The notehead swells from its own centre when it is struck (read/answerMotion.ts): a SMuFL
+   glyph's box is centred on its baseline, where the notehead sits. */
+.grand-staff .vf-notehead {
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 .grand-staff[data-state='correct'] .vf-stavenote {

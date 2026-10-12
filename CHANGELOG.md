@@ -6,6 +6,14 @@ which is noted when it changes.
 
 ## Unreleased
 
+### Read: an answer you can feel
+
+- **The right key strikes the note**: the notehead swells once and settles, done before the next
+  card comes. **A wrong key nudges the sheet** aside and back, again for each other wrong key.
+  Nothing moves for a reader who asks for less motion.
+- **A new card is all there at once**: its note always was, as its time runs from the moment it
+  is painted; now the last answer's green or red wash no longer fades out over it either.
+
 ### About: a preface before the licences
 
 - **About says what dacapo is for and how it is made**, as a printed edition's preface: why
