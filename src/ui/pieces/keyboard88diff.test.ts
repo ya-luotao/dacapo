@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, createElement } from 'react';
 import { createRoot } from 'react-dom/client';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import type { PieceTask } from '../../core/assignmentRecords.ts';
 import * as assignments from '../../core/assignments.ts';
 import * as heat from '../../core/barHeatmap.ts';
@@ -53,6 +53,11 @@ import { runReducer, startRun, type Run } from './run.ts';
 // file on the build before the instrument's keys (162fb5c: copy the file there and run it, the
 // fixture absent), which is why the accompaniment is wired both ways below, and why nothing
 // here names a keyboard except as "none".
+
+// The advice after a run counts days in the player's own time zone, as the app does; the fixture
+// was written in Shanghai's (UTC+8), so the runs are read there wherever the test runs (a CI
+// machine in UTC put two of each piece's clean runs on other days, and moved a line of advice).
+vi.stubEnv('TZ', 'Asia/Shanghai');
 
 /** A piece for two hands, a lead sheet with left-hand patterns, and one with ornaments. */
 const PIECES: readonly string[] = [
