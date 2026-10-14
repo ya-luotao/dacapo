@@ -19,5 +19,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["scripts/**/*.ts", "web/**/*.ts"]
+  "include": ["scripts/**/*.ts", "web/**/*.ts", "tests/browser/**/*.ts"]
 }

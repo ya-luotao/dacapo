@@ -65,8 +65,40 @@ HTTPS is required for the browser's cross-tab lock; a service-worker-controlled 
 
 The separate [scenario config](vite.scenarios.config.ts) forces sync off, even if
 `VITE_SYNC_ENDPOINT` is set, and finishes seeding before importing the normal app entry. It cannot
-build or preview a production bundle. Ordinary `pnpm dev`, tests and production builds still use
+build or preview a production bundle. Ordinary `pnpm dev` and production builds still use
 the normal config and do not load the scenario entry or fixtures. No MIDI simulator is involved.
+
+### Browser smoke checks
+
+```sh
+# Once after installing or upgrading Playwright (Chromium only).
+pnpm exec playwright install --with-deps chromium
+
+# Start the test servers, run the browser checks, and stop the servers afterwards.
+pnpm test:smoke
+
+# Focus on one flow while editing.
+pnpm test:smoke --grep 'piece:'
+
+# Open the last HTML report, including screenshots and traces for failed tests.
+pnpm exec playwright show-report
+```
+
+Close servers on ports 5173–5176 first. The suite deliberately refuses to reuse an existing
+server, so it cannot silently test another checkout or config. Playwright owns the four servers
+for the test run and gives each test a fresh browser context; it does not use your normal browser
+profile. Ordinary development is a persistence control alongside the three disposable scenarios.
+
+The checks use the real UI, keyboard events and IndexedDB: onboarding, progress figures, wait-mode
+input, reload/reset, existing-data refusal, cross-tab exclusion, and ordinary-profile isolation.
+They run in one Chromium worker with no automatic retries; a flaky failure stays a failure.
+There are no screenshot golden files, physical MIDI, native Apple, sync-service or deployment
+checks in this suite. They exercise the Vite development app, not a deployed production bundle.
+
+Failures keep screenshots and traces in `test-results/`; the HTML report is in
+`playwright-report/`. Both directories are ignored. CI uploads them as `browser-smoke-results`
+for seven days. The separate smoke job is required by the existing `check` gate.
+`pnpm check` remains browser-install-free; run **both** `pnpm check` and `pnpm test:smoke` before a PR.
 
 ### Test tiers
 
@@ -81,10 +113,10 @@ pnpm test:regression
 pnpm test:watch --config vitest.fast.config.ts
 ```
 
-`pnpm test` and `pnpm check` still run every test. The tiers partition files, not assertions:
+`pnpm test` and `pnpm check` still run every Vitest test. The tiers partition files, not assertions:
 the measured expensive suites are listed once in
 [vitest.regression.config.ts](vitest.regression.config.ts), and `fast` runs every other test file.
-New tests enter `fast` by default; move a file to `regression` when its measured cost warrants it.
+New Vitest tests enter `fast` by default; move a file to `regression` when its measured cost warrants it.
 The tier configs reuse the main Vite config without changing isolation, environments, cases or
 snapshots. The full suite keeps its single-project scheduling. Run the regression tier when
 changing the behavior it covers, not only before a PR.
@@ -95,13 +127,16 @@ Run:
 
 ```sh
 pnpm check
+pnpm test:smoke
 ```
 
-It runs typecheck, full uncached lint, all tests and the production bundle. TypeScript is checked
-once in that sequence. CI runs the same checks in parallel: static checks, both test tiers and
-bundling. Its final `check` gate requires all jobs to succeed; a failure, cancellation or skipped
-job does not pass the gate. The test jobs do not cancel each other on failure. They have separate
-job IDs so the gate checks each tier's result when rerunning only one job.
+`pnpm check` runs typecheck, full uncached lint, all Vitest tests and the production bundle;
+`pnpm test:smoke` runs the browser checks. TypeScript is checked once in that sequence, including
+the browser tests and their config. CI runs the same checks in parallel: static checks, both
+Vitest tiers, browser smoke and bundling. Its final `check` gate requires all jobs to succeed;
+a failure, cancellation or skipped job does not pass the gate. The test jobs do not cancel each
+other on failure. They have separate job IDs so the gate checks each tier's result when rerunning
+only one job.
 
 `pnpm build` still checks types before bundling when run on its own; `pnpm build:bundle` only
 bundles and is for workflows with a separate required typecheck. Please also run `pnpm format`

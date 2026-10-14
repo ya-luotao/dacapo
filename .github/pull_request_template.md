@@ -5,6 +5,7 @@
 ## Checklist
 
 - [ ] `pnpm check` passes (typecheck, lint, tests, build) and `pnpm format` has been run.
+- [ ] `pnpm test:smoke` passes (Chromium browser checks).
 - [ ] Code, comments, commit messages and this description are in English.
 - [ ] Every new or changed user-facing string is in every dictionary in `src/i18n/`
       ([TRANSLATING.md](https://github.com/ya-luotao/dacapo/blob/main/docs/TRANSLATING.md)); strings I could not translate are
