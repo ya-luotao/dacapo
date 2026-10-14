@@ -7,4 +7,6 @@ interface ImportMetaEnv {
    * only; unset, the app has no account and makes no request.
    */
   readonly VITE_SYNC_ENDPOINT?: string;
+  /** Set only by the separate, serve-only development scenario config. */
+  readonly DACAPO_DEV_SCENARIOS?: boolean;
 }
