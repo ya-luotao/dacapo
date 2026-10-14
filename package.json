@@ -37,15 +37,19 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "pnpm typecheck && pnpm build:bundle",
+    "build:bundle": "vite build",
     "build:site": "VITE_SYNC_ENDPOINT=https://api.playdacapo.com SITE_URL=https://playdacapo.com pnpm build",
     "preview": "vite preview",
-    "typecheck": "tsc -b --noEmit",
+    "typecheck": "tsc -b --noEmit --incremental",
+    "typecheck:watch": "pnpm typecheck --watch",
     "lint": "eslint .",
+    "lint:fast": "eslint . --cache --cache-strategy content --cache-location node_modules/.cache/eslint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build"
+    "test:watch": "vitest --watch",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build:bundle"
   },
   "dependencies": {
     "@vexflow-fonts/bravura": "^1.0.2",

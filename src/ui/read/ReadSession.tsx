@@ -8,6 +8,7 @@ import { Piano } from '../piano/Piano.tsx';
 import { GrandStaff, type StaffState } from '../staff/GrandStaff.tsx';
 import { STAFF_HEIGHT, STAFF_WIDTH } from '../staff/draw.ts';
 import type { ReadController } from './controller.ts';
+import { useAnswerMotion } from './answerMotion.ts';
 import { useReadFormat } from './format.ts';
 
 const STAFF_STATE: Record<SessionState['card']['status'], StaffState> = {
@@ -29,6 +30,7 @@ export function ReadSession({ session, controller, onHint }: ReadSessionProps) {
   const hint = useHintWords();
   const hintId = useId();
   const region = useRef<HTMLElement>(null);
+  const sheet = useRef<HTMLDivElement>(null);
   const { pointer } = useInput();
   const { held, sustained } = useHubState();
   const { card } = session;
@@ -46,6 +48,8 @@ export function ReadSession({ session, controller, onHint }: ReadSessionProps) {
     () => (card.status === 'wrong' ? new Set([note.midi]) : new Set<number>()),
     [card.status, note.midi],
   );
+
+  useAnswerMotion(sheet, card.status, `${index}:${card.wrongKey ?? ''}`);
 
   const attempt = session.attempts.at(-1);
   const scored = attempt && card.status !== 'waiting' ? attempt : null;
@@ -85,7 +89,7 @@ export function ReadSession({ session, controller, onHint }: ReadSessionProps) {
         />
       </div>
 
-      <div className={`read-card is-${card.status}`}>
+      <div className={`read-card is-${card.status}`} ref={sheet}>
         <GrandStaff
           pitch={note.pitch}
           clef={note.clef}

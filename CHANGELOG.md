@@ -14,6 +14,21 @@ which is noted when it changes.
 - Small labels in Chinese and Japanese keep their full-width punctuation; only large headings
   set it half-width.
 
+### Read: an answer you can feel
+
+- **The right key strikes the note**: the notehead swells once and settles, done before the next
+  card comes. **A wrong key nudges the sheet** aside and back, again for each other wrong key.
+  Nothing moves for a reader who asks for less motion.
+- **A new card is all there at once**: its note always was, as its time runs from the moment it
+  is painted; now the last answer's green or red wash no longer fades out over it either.
+
+### About: a preface before the licences
+
+- **About says what dacapo is for and how it is made**, as a printed edition's preface: why
+  reading comes first, how it is made (real notation, a printed page, measured then explained,
+  checked note by note), what it leaves out on purpose, thanks, and how to take part. The
+  licences and sources follow, as they were, under a heading of their own. In all five languages.
+
 ### The library's incipits, and a quieter page
 
 - **Each built-in piece shows its first bars** in the library, beside its title, as a catalogue

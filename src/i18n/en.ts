@@ -3145,6 +3145,45 @@ export const en = {
   'input.notice.app': '{status}: the keys on the screen play, and a computer keyboard’s A to K.',
 
   'about.title': 'About dacapo',
+  'about.lede':
+    'Da capo: Italian for “from the beginning”. Where a score says it, the player goes back and plays it again. Most practice is exactly that.',
+  'about.why': 'Why',
+  'about.why.wall':
+    'The first real wall for a self-taught pianist is not the fingers but reading: seeing a note on the grand staff and finding the key without counting lines. Most practice apps step around the score with falling notes, but what you have to read is the page.',
+  'about.why.measure':
+    'dacapo drills that one thing and measures it properly: whether each answer was right and how long it took, and how many milliseconds early or late each note of a scale came. Whatever slows you down, it gives you more of.',
+  'about.byline': 'Made by {name}.',
+  'about.how': 'How it is made',
+  'about.how.notation': 'Real notation',
+  'about.how.notation.text':
+    'Flashcards are drawn with VexFlow, pieces and scales engraved with Verovio, all in the Bravura music font: the same kind of tools printed music is set with.',
+  'about.how.page': 'Like a printed page',
+  'about.how.page.text':
+    'Warm paper, ink, hairlines instead of boxes, and one urtext blue; Source Serif for headings and Source Sans for text. Chinese, Japanese and Korean use fonts of their own, so every character has its own language’s form.',
+  'about.how.measured': 'Measured, then explained',
+  'about.how.measured.text':
+    'The sentence after a run comes from rules applied to what was measured, and says why. Its thresholds are still being set from runs recorded on real instruments.',
+  'about.how.checked': 'Checked note by note',
+  'about.how.checked.text':
+    'Every built-in piece is in the public domain and checked against an independent source, note by note; Hanon’s exercises were transcribed twice from the 1900 edition and the two copies compared.',
+  'about.out': 'What it leaves out on purpose',
+  'about.out.ai': 'No AI tutor: nothing you play is sent to a model.',
+  'about.out.ads': 'No ads, nothing to buy, and no tracking of your practice.',
+  'about.out.falling': 'No falling notes. They look good, but they do not teach you to read.',
+  'about.thanks': 'Thanks',
+  'about.thanks.piano':
+    'Alexander Holm, for the Salamander Grand Piano, a Yamaha C5: the built-in piano’s sound.',
+  'about.thanks.tools':
+    'Steinberg, for Bravura; RISM and the Verovio contributors; the authors of VexFlow.',
+  'about.thanks.music':
+    'Hanon, Türk, Beyer, Czerny, Burgmüller and the other composers in the library, and those who scanned, typeset and published their music: the Mutopia Project, IMSLP and the PDMX dataset.',
+  'about.thanks.people':
+    'Everyone who has reported a bug, reviewed a translation or encoded a piece: {link}.',
+  'about.thanks.people.link': 'the contributors',
+  'about.join': 'Take part',
+  'about.join.text':
+    'Found a bug, want a piece, or can review a translation in your own language? Say so on {link}. Much of the work needs no code: encode a public-domain piece, or proofread one against its scan.',
+  'about.licences': 'Licences and sources',
   'about.intro':
     'dacapo includes the software, fonts, sounds and music below, each under its own licence. All of it is part of dacapo itself: nothing is fetched from elsewhere.',
   'about.software': 'Software',
