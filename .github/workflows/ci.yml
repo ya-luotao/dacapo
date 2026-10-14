@@ -30,13 +30,10 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
 
-  tests:
-    name: tests (${{ matrix.tier }})
+  # Separate IDs let the gate check each tier even when only one job is rerun.
+  fast:
+    name: tests (fast)
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        tier: [fast, regression]
     steps:
       - uses: actions/checkout@v7
 
@@ -48,7 +45,23 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
-      - run: pnpm test:${{ matrix.tier }}
+      - run: pnpm test:fast
+
+  regression:
+    name: tests (regression)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:regression
 
   build:
     runs-on: ubuntu-latest
@@ -68,7 +81,7 @@ jobs:
 
   # Keep the existing check name. A skipped or cancelled prerequisite is not a pass.
   check:
-    needs: [static, tests, build]
+    needs: [static, fast, regression, build]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5

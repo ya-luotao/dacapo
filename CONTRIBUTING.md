@@ -70,7 +70,8 @@ pnpm check
 It runs typecheck, full uncached lint, all tests and the production bundle. TypeScript is checked
 once in that sequence. CI runs the same checks in parallel: static checks, both test tiers and
 bundling. Its final `check` gate requires all jobs to succeed; a failure, cancellation or skipped
-job does not pass the gate. The test matrix does not cancel the other tier when one fails.
+job does not pass the gate. The test jobs do not cancel each other on failure. They have separate
+job IDs so the gate checks each tier's result when rerunning only one job.
 
 `pnpm build` still checks types before bundling when run on its own; `pnpm build:bundle` only
 bundles and is for workflows with a separate required typecheck. Please also run `pnpm format`
