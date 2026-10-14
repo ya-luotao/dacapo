@@ -959,6 +959,11 @@ export const ko: Dictionary = {
   'progress.empty':
     '아직 기록이 없어요. 연주 페이지에서 자유롭게 쳐 보거나 악보 읽기를 한 번 해 보면 여기에 연습 기록이 쌓여요.',
   'progress.empty.action': '악보 읽기 시작',
+  'progress.preview': '연습하면 여기에 나타나요',
+  'progress.preview.today': '오늘 연습한 시간, 연속으로 연습한 날, 그리고 최근 30일 차트.',
+  'progress.preview.where': '각 연습이 어디까지 왔는지, 다음 단계는 무엇인지.',
+  'progress.preview.heatmap': '읽어 본 모든 음을, 찾는 속도에 따라 색으로.',
+  'progress.preview.trends': '각 연습의 주별 변화와, 최근 4주를 그 전 4주와 비교한 결과.',
   'progress.today': '오늘',
   'progress.streak': '연속 연습',
   'progress.longest': '최장 연속',

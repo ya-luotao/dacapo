@@ -960,6 +960,11 @@ export const ja: Dictionary = {
   'progress.empty':
     'まだ記録がありません。「演奏」ページで何か弾くか、譜読みの練習をすると、ここに表示されます。',
   'progress.empty.action': '譜読みを始める',
+  'progress.preview': '練習すると、ここに表示されます',
+  'progress.preview.today': '今日の練習時間、連続日数、そして直近30日間のグラフ。',
+  'progress.preview.where': 'それぞれの練習がどこまで進んだか、次に何をするか。',
+  'progress.preview.heatmap': '読んだすべての音を、見つける速さで色分けして。',
+  'progress.preview.trends': 'それぞれの練習の週ごとの変化と、直近4週間とその前の4週間の比較。',
   'progress.today': '今日',
   'progress.streak': '連続日数',
   'progress.longest': '最長連続日数',

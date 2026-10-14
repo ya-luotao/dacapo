@@ -936,6 +936,11 @@ export const zhTW: Dictionary = {
   'progress.empty':
     '這裡還沒有紀錄。到「彈奏」頁隨意彈彈，或做一輪識譜練習，練習紀錄就會出現在這裡。',
   'progress.empty.action': '開始識譜練習',
+  'progress.preview': '練習之後，這裡會有',
+  'progress.preview.today': '今天練了幾分鐘、連續練了幾天，以及最近三十天的圖表。',
+  'progress.preview.where': '每項練習進行到哪裡，下一步是什麼。',
+  'progress.preview.heatmap': '你認過的每個音，依找到它的快慢著色。',
+  'progress.preview.trends': '每項練習一週一週的變化，以及最近四週和之前四週相比如何。',
   'progress.today': '今天',
   'progress.streak': '目前連續',
   'progress.longest': '最長連續',
