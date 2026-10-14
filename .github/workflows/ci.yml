@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check:
+  static:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -29,6 +29,70 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm lint
-      - run: pnpm test
-      # TypeScript already passed above; do not check the same projects twice.
+
+  # Separate IDs let the gate check each tier even when only one job is rerun.
+  fast:
+    name: tests (fast)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:fast
+
+  regression:
+    name: tests (regression)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:regression
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      # Bundling may run in parallel; the final gate also requires typecheck to pass.
       - run: pnpm build:bundle
+
+  # Keep the existing check name. A skipped or cancelled prerequisite is not a pass.
+  check:
+    needs: [static, fast, regression, build]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every validation job to pass
+        shell: bash
+        env:
+          RESULTS: ${{ join(needs.*.result, ',') }}
+        run: |
+          echo "Validation results: $RESULTS"
+          if [[ ! "$RESULTS" =~ ^success(,success)*$ ]]; then
+            echo "Every validation job must succeed."
+            exit 1
+          fi

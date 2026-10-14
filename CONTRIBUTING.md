@@ -38,6 +38,27 @@ does not track cross-file dependencies, so changing an imported type can leave a
 stale. Run `pnpm lint` for a full, uncached check after shared type changes and before a PR.
 Focused tests and cached lint never replace `pnpm check`.
 
+### Test tiers
+
+```sh
+# The shorter suite for broad feedback during local iteration.
+pnpm test:fast
+
+# Exhaustive score/generator checks, whole-site rendering and the 88-key regression.
+pnpm test:regression
+
+# Watch just the fast tier; without --config, test:watch watches every test.
+pnpm test:watch --config vitest.fast.config.ts
+```
+
+`pnpm test` and `pnpm check` still run every test. The tiers partition files, not assertions:
+the measured expensive suites are listed once in
+[vitest.regression.config.ts](vitest.regression.config.ts), and `fast` runs every other test file.
+New tests enter `fast` by default; move a file to `regression` when its measured cost warrants it.
+The tier configs reuse the main Vite config without changing isolation, environments, cases or
+snapshots. The full suite keeps its single-project scheduling. Run the regression tier when
+changing the behavior it covers, not only before a PR.
+
 ## Before you open a pull request
 
 Run:
@@ -46,10 +67,15 @@ Run:
 pnpm check
 ```
 
-It runs typecheck, full uncached lint, all tests and the production bundle — the same steps as CI.
-TypeScript is checked once in that sequence. `pnpm build` still checks types before bundling when
-run on its own; `pnpm build:bundle` only bundles and is for a workflow that has already passed
-typecheck. Please also run `pnpm format` so diffs stay free of formatting noise.
+It runs typecheck, full uncached lint, all tests and the production bundle. TypeScript is checked
+once in that sequence. CI runs the same checks in parallel: static checks, both test tiers and
+bundling. Its final `check` gate requires all jobs to succeed; a failure, cancellation or skipped
+job does not pass the gate. The test jobs do not cancel each other on failure. They have separate
+job IDs so the gate checks each tier's result when rerunning only one job.
+
+`pnpm build` still checks types before bundling when run on its own; `pnpm build:bundle` only
+bundles and is for workflows with a separate required typecheck. Please also run `pnpm format`
+so diffs stay free of formatting noise.
 
 ## Dependencies
 

@@ -48,6 +48,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
+    "test:fast": "vitest run --config vitest.fast.config.ts",
+    "test:regression": "vitest run --config vitest.regression.config.ts",
     "test:watch": "vitest --watch",
     "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build:bundle"
   },
