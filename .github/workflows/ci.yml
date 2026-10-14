@@ -63,6 +63,33 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:regression
 
+  smoke:
+    name: browser smoke (Chromium)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:smoke
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: browser-smoke-results
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
   build:
     runs-on: ubuntu-latest
     steps:
@@ -81,7 +108,7 @@ jobs:
 
   # Keep the existing check name. A skipped or cancelled prerequisite is not a pass.
   check:
-    needs: [static, fast, regression, build]
+    needs: [static, fast, regression, smoke, build]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
