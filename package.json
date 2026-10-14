@@ -37,6 +37,9 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:empty": "vite --config vite.scenarios.config.ts --mode empty",
+    "dev:progress": "vite --config vite.scenarios.config.ts --mode progress",
+    "dev:piece": "vite --config vite.scenarios.config.ts --mode piece",
     "build": "pnpm typecheck && pnpm build:bundle",
     "build:bundle": "vite build",
     "build:site": "VITE_SYNC_ENDPOINT=https://api.playdacapo.com SITE_URL=https://playdacapo.com pnpm build",

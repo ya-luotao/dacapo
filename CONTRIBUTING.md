@@ -38,6 +38,36 @@ does not track cross-file dependencies, so changing an imported type can leave a
 stale. Run `pnpm lint` for a full, uncached check after shared type changes and before a PR.
 Focused tests and cached lint never replace `pnpm check`.
 
+### Reproducible browser scenarios
+
+Use a disposable scenario instead of completing onboarding or practising by hand before each UI
+change. Start one command and open its printed URL in Chrome or Edge:
+
+| Command             | Port | Starting state                                                                                     |
+| ------------------- | ---- | -------------------------------------------------------------------------------------------------- |
+| `pnpm dev:empty`    | 5174 | Empty practice data, at the onboarding questions.                                                  |
+| `pnpm dev:progress` | 5175 | Progress with ten sessions over five recent days, 100 reading answers and a note heatmap.          |
+| `pnpm dev:piece`    | 5176 | Ode to Joy, wait mode, right hand, bars 1–4; use the existing computer keyboard or on-screen keys. |
+
+**Reload resets the scenario**, including practice, preferences and the starting route. These are
+disposable origins: do not use them for real practice or import data you want to keep. Keep ports
+5174–5176 reserved for these commands. Ports cannot be overridden or silently advanced when busy.
+Each scenario has separate IndexedDB and localStorage from the others and ordinary `pnpm dev`.
+An origin with an existing database or `dacapo.*` preferences is refused unless a previous scenario
+initialization marked it disposable; use a fresh browser profile rather than clearing real data.
+Unrelated localStorage keys are preserved.
+
+The fixtures use English and the light theme. Progress dates are relative to startup, so the
+recent-history widgets remain useful. Changes within the app work normally until a reload;
+React Fast Refresh can preserve them while editing. Keep one tab per scenario: a second tab stops
+without resetting the first. Close the first tab and reload the second to switch. Localhost or
+HTTPS is required for the browser's cross-tab lock; a service-worker-controlled origin is refused.
+
+The separate [scenario config](vite.scenarios.config.ts) forces sync off, even if
+`VITE_SYNC_ENDPOINT` is set, and finishes seeding before importing the normal app entry. It cannot
+build or preview a production bundle. Ordinary `pnpm dev`, tests and production builds still use
+the normal config and do not load the scenario entry or fixtures. No MIDI simulator is involved.
+
 ### Test tiers
 
 ```sh
