@@ -26,34 +26,33 @@ function* allSpecs(): Generator<ProgressionSpec> {
 }
 
 describe('progressionXml', () => {
-  it('reads back as the arrangement, note for note, for every progression, key and pattern', () => {
-    for (const spec of allSpecs()) {
-      const a = arrangeProgression(spec);
-      const score = read(spec);
-      expect(score.warnings).toEqual([]);
-      expect(score.measures).toHaveLength(a.bars.length);
-      expect(score.measures.every((m) => m.beats === a.beats && m.beatType === 4)).toBe(true);
-      const barTicks = a.beats * TICKS_PER_QUARTER;
-      const expected = a.bars
-        .flatMap((bar, m) =>
-          bar.notes.map((n) => ({
-            onset: m * barTicks + n.onset * EIGHTH,
-            duration: n.duration * EIGHTH,
-            midi: n.midi,
-            pitch: n.pitch,
-            hand: n.hand,
-          })),
-        )
-        .sort((x, y) => x.onset - y.onset || x.midi - y.midi);
-      const parsed = score.notes
-        .map(({ onset, duration, midi, pitch, hand }) => ({ onset, duration, midi, pitch, hand }))
-        .sort((x, y) => x.onset - y.onset || x.midi - y.midi);
-      expect(parsed).toEqual(expected);
-      // The chord symbols read back as the chords, one at the start of each bar (H3).
-      expect(score.harmonies!.map((h) => [h.tick, h.symbol, h.text])).toEqual(
-        a.bars.map((bar, m) => [m * barTicks, bar.chord.symbol, formatSymbol(bar.chord.symbol)]),
-      );
-    }
+  // Each score gets its own timeout and failure label; the full matrix is too slow for one test.
+  it.each([...allSpecs()])('%j: reads back as the arrangement, note for note', (spec) => {
+    const a = arrangeProgression(spec);
+    const score = read(spec);
+    expect(score.warnings).toEqual([]);
+    expect(score.measures).toHaveLength(a.bars.length);
+    expect(score.measures.every((m) => m.beats === a.beats && m.beatType === 4)).toBe(true);
+    const barTicks = a.beats * TICKS_PER_QUARTER;
+    const expected = a.bars
+      .flatMap((bar, m) =>
+        bar.notes.map((n) => ({
+          onset: m * barTicks + n.onset * EIGHTH,
+          duration: n.duration * EIGHTH,
+          midi: n.midi,
+          pitch: n.pitch,
+          hand: n.hand,
+        })),
+      )
+      .sort((x, y) => x.onset - y.onset || x.midi - y.midi);
+    const parsed = score.notes
+      .map(({ onset, duration, midi, pitch, hand }) => ({ onset, duration, midi, pitch, hand }))
+      .sort((x, y) => x.onset - y.onset || x.midi - y.midi);
+    expect(parsed).toEqual(expected);
+    // The chord symbols read back as the chords, one at the start of each bar (H3).
+    expect(score.harmonies!.map((h) => [h.tick, h.symbol, h.text])).toEqual(
+      a.bars.map((bar, m) => [m * barTicks, bar.chord.symbol, formatSymbol(bar.chord.symbol)]),
+    );
   });
 
   it('writes the tempo chosen, which leaves the notes (and the checksum) as they are', () => {
