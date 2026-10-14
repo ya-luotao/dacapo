@@ -11,6 +11,33 @@ decisions the project has already made.
 2. `pnpm install`
 3. `pnpm dev` and open the printed URL in Chrome or Edge.
 
+## Day-to-day development
+
+Keep the feedback loop focused while editing:
+
+```sh
+# Keep TypeScript checking changes, without emitting JavaScript.
+pnpm typecheck:watch
+
+# In another terminal, watch the tests for the module you are changing.
+pnpm test:watch src/core/wait.test.ts
+
+# Run that test file once instead of watching it.
+pnpm test src/core/wait.test.ts
+
+# Reuse lint results for unchanged files during local iteration.
+pnpm lint:fast
+```
+
+`pnpm typecheck` is an incremental, one-shot check. Its build information and the local lint
+cache live under the ignored `node_modules/` directory. Use `pnpm typecheck --force` to recheck
+every TypeScript project from scratch.
+
+`lint:fast` caches by file content, not modification time. It is only a local shortcut: ESLint
+does not track cross-file dependencies, so changing an imported type can leave a cached result
+stale. Run `pnpm lint` for a full, uncached check after shared type changes and before a PR.
+Focused tests and cached lint never replace `pnpm check`.
+
 ## Before you open a pull request
 
 Run:
@@ -19,8 +46,10 @@ Run:
 pnpm check
 ```
 
-It runs typecheck, lint, tests and the production build — the same steps as CI. Please
-also run `pnpm format` so diffs stay free of formatting noise.
+It runs typecheck, full uncached lint, all tests and the production bundle — the same steps as CI.
+TypeScript is checked once in that sequence. `pnpm build` still checks types before bundling when
+run on its own; `pnpm build:bundle` only bundles and is for a workflow that has already passed
+typecheck. Please also run `pnpm format` so diffs stay free of formatting noise.
 
 ## Dependencies
 
