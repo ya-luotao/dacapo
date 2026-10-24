@@ -159,12 +159,9 @@ All figures come from the raw notes of the run (see Records) and are recomputed 
   the click; the last choice is remembered (`localStorage`). The practice screen follows the Read
   page's rules: the score is the hero, everything fits on one 1280 × 800 screen, the controls are
   quiet.
-- **Navigation: a More menu.** The nav has six items and no room for more on a 375 px phone. It
-  gains a **More** menu at its end: items that do not fit the width move into it, the lowest
-  priority first (Settings, then Metronome, Progress, Ear, Scales, Pieces; Play and Read always
-  stay), and More is marked as the current page when the page's item is inside it. The header chip
-  still opens the metronome. The menu is a disclosure button with a list of links, operable from the
-  keyboard, closed by Escape and by choosing an item.
+- **Navigation.** (Superseded 2026-10-25 by the sidebar, see `src/ui/Sidebar.tsx`.) Every page is
+  listed in a sidebar, under Practice and Records, with Settings at its foot and the metronome chip
+  below; on a screen narrower than 60rem a menu button opens the same list in a drawer.
 - **Focus mode** as on the Pieces pages (PIECES.md): the header, the progress and the list give way,
   the choice of scale folds under Settings, and the staff can be drawn larger.
 - **The keyboard's fingering.** The keys to start on carry their finger. With **Show the next key**

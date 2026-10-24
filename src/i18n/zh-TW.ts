@@ -16,7 +16,11 @@ export const zhTW: Dictionary = {
   'nav.progress': '進度',
   'nav.assignments': '作業',
   'nav.settings': '設定',
-  'nav.more': '更多',
+  'nav.today': '今天',
+  'nav.group.practice': '練習',
+  'nav.group.record': '紀錄',
+  'nav.menu': '選單',
+  'nav.close': '關閉選單',
 
   'home.eyebrow': '用 MIDI 鍵盤練鋼琴',
   'home.lede':

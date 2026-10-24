@@ -16,7 +16,11 @@ export const en = {
   'nav.progress': 'Progress',
   'nav.assignments': 'Assignments',
   'nav.settings': 'Settings',
-  'nav.more': 'More',
+  'nav.today': 'Today',
+  'nav.group.practice': 'Practice',
+  'nav.group.record': 'Records',
+  'nav.menu': 'Menu',
+  'nav.close': 'Close menu',
 
   'home.eyebrow': 'Piano practice with a MIDI keyboard',
   'home.lede':

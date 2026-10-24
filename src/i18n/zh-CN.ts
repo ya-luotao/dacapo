@@ -16,7 +16,11 @@ export const zhCN: Dictionary = {
   'nav.progress': '进度',
   'nav.assignments': '作业',
   'nav.settings': '设置',
-  'nav.more': '更多',
+  'nav.today': '今天',
+  'nav.group.practice': '练习',
+  'nav.group.record': '记录',
+  'nav.menu': '菜单',
+  'nav.close': '关闭菜单',
 
   'home.eyebrow': '用 MIDI 键盘练钢琴',
   'home.lede':

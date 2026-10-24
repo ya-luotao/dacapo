@@ -2,10 +2,10 @@ import { lazy, Suspense } from 'react';
 import { Route, Router, Switch } from 'wouter';
 import { Footer } from './Footer.tsx';
 import { useHashRoute } from './hashRoute.ts';
-import { Header } from './Header.tsx';
 import { HomePage } from './home/HomePage.tsx';
 import { NotFoundPage } from './pages/NotFoundPage.tsx';
 import { PlayPage } from './pages/PlayPage.tsx';
+import { Sidebar } from './Sidebar.tsx';
 import { StorageNotice } from './StorageNotice.tsx';
 import { useDocumentTitle } from './useDocumentTitle.ts';
 
@@ -79,51 +79,57 @@ export function App() {
 function Shell() {
   useDocumentTitle();
   return (
-    <>
-      <Header />
-      <main className="main" id="main">
-        <StorageNotice />
-        <Suspense fallback={null}>
-          <Switch>
-            <Route path="/" component={HomePage} />
-            <Route path="/start" component={StartPage} />
-            <Route path="/learn" component={LearnPage} />
-            <Route path="/learn/:slug">{({ slug }) => <LessonPage key={slug} slug={slug} />}</Route>
-            <Route path="/play" component={PlayPage} />
-            <Route path="/read" component={ReadPage} />
-            <Route path="/ear" component={EarPage} />
-            <Route path="/harmony" component={HarmonyPage} />
-            <Route path="/harmony/progressions/:progression/:key/:pattern">
-              {({ progression, key, pattern }) => (
-                <ProgressionPage
-                  key={`${progression}/${key}/${pattern}`}
-                  progression={progression}
-                  keyName={key}
-                  pattern={pattern}
-                />
-              )}
-            </Route>
-            <Route path="/scales" component={ScalesPage} />
-            <Route path="/pieces" component={PiecesPage} />
-            <Route path="/pieces/:id">{({ id }) => <PiecePage key={id} id={id} />}</Route>
-            <Route path="/metronome" component={MetronomePage} />
-            <Route path="/progress" component={ProgressPage} />
-            <Route path="/assignments" component={AssignmentsPage} />
-            <Route path="/assignments/new">{() => <AssignmentEditPage />}</Route>
-            <Route path="/assignments/open/:data">
-              {({ data }) => <AssignmentOpenPage key={data} data={data} />}
-            </Route>
-            <Route path="/assignments/:id/edit">
-              {({ id }) => <AssignmentEditPage key={id} id={id} />}
-            </Route>
-            <Route path="/assignments/:id">{({ id }) => <AssignmentPage key={id} id={id} />}</Route>
-            <Route path="/settings" component={SettingsPage} />
-            <Route path="/about" component={AboutPage} />
-            <Route component={NotFoundPage} />
-          </Switch>
-        </Suspense>
-      </main>
-      <Footer />
-    </>
+    <div className="shell">
+      <Sidebar />
+      <div className="shell-page">
+        <main className="main" id="main">
+          <StorageNotice />
+          <Suspense fallback={null}>
+            <Switch>
+              <Route path="/" component={HomePage} />
+              <Route path="/start" component={StartPage} />
+              <Route path="/learn" component={LearnPage} />
+              <Route path="/learn/:slug">
+                {({ slug }) => <LessonPage key={slug} slug={slug} />}
+              </Route>
+              <Route path="/play" component={PlayPage} />
+              <Route path="/read" component={ReadPage} />
+              <Route path="/ear" component={EarPage} />
+              <Route path="/harmony" component={HarmonyPage} />
+              <Route path="/harmony/progressions/:progression/:key/:pattern">
+                {({ progression, key, pattern }) => (
+                  <ProgressionPage
+                    key={`${progression}/${key}/${pattern}`}
+                    progression={progression}
+                    keyName={key}
+                    pattern={pattern}
+                  />
+                )}
+              </Route>
+              <Route path="/scales" component={ScalesPage} />
+              <Route path="/pieces" component={PiecesPage} />
+              <Route path="/pieces/:id">{({ id }) => <PiecePage key={id} id={id} />}</Route>
+              <Route path="/metronome" component={MetronomePage} />
+              <Route path="/progress" component={ProgressPage} />
+              <Route path="/assignments" component={AssignmentsPage} />
+              <Route path="/assignments/new">{() => <AssignmentEditPage />}</Route>
+              <Route path="/assignments/open/:data">
+                {({ data }) => <AssignmentOpenPage key={data} data={data} />}
+              </Route>
+              <Route path="/assignments/:id/edit">
+                {({ id }) => <AssignmentEditPage key={id} id={id} />}
+              </Route>
+              <Route path="/assignments/:id">
+                {({ id }) => <AssignmentPage key={id} id={id} />}
+              </Route>
+              <Route path="/settings" component={SettingsPage} />
+              <Route path="/about" component={AboutPage} />
+              <Route component={NotFoundPage} />
+            </Switch>
+          </Suspense>
+        </main>
+        <Footer />
+      </div>
+    </div>
   );
 }

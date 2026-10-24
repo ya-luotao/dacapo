@@ -16,7 +16,11 @@ export const ko: Dictionary = {
   'nav.progress': '기록',
   'nav.assignments': '과제',
   'nav.settings': '설정',
-  'nav.more': '더 보기',
+  'nav.today': '오늘',
+  'nav.group.practice': '연습',
+  'nav.group.record': '돌아보기',
+  'nav.menu': '메뉴',
+  'nav.close': '메뉴 닫기',
 
   'home.eyebrow': 'MIDI 키보드로 하는 피아노 연습',
   'home.lede':

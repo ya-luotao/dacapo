@@ -138,7 +138,7 @@ each practice's specification, linked below, has the details and the reasons.
   note stood out; a trill shows its rate over time and whether its two fingers were even; repeated
   notes how long each key was up before it was struck again; in Hanon's patterns the place named
   is the same note of every group.
-- **Focus mode.** While you practise a piece or a scale, the header and the settings can give way
+- **Focus mode.** While you practise a piece or a scale, the navigation and the settings can give way
   to the score: one slim row keeps larger or smaller notes, the keyboard on or off, the settings
   when you need them, the metronome and full screen. The screen stays on while you practise.
 - **Built-in piano.** A sampled Yamaha C5 grand (the Salamander Grand Piano by Alexander Holm)
@@ -148,7 +148,7 @@ each practice's specification, linked below, has the details and the reasons.
 - **Metronome.** A Maelzel-style pendulum that swings through the centre on the beat you hear,
   with a sliding weight for the tempo; 20–300 BPM, tap tempo, time signatures, accented and muted
   beats, subdivisions, three sounds, a visual-only mode, and a tempo trainer that speeds up every
-  few bars or drops bars to silence. A chip in the header starts it while you play, read or practise
+  few bars or drops bars to silence. A chip in the sidebar starts it while you play, read or practise
   a piece (and sets it to the piece's tempo); rhythm mode pauses it for its own click.
 - **Your data stays yours.** Everything is stored in your browser (IndexedDB). Export it as a
   JSON file and import it on another computer.

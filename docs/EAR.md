@@ -376,7 +376,7 @@ flats.
   — 長3度 (ja), 大三度 (zh-CN, zh-TW), 장3도 (ko), major 3rd — so they get glossary rows in
   [TRANSLATING.md](TRANSLATING.md) and a review by a native speaker per language. Note names stay
   letter names everywhere (since: or do re mi for those who ask, see [PERSONAL.md](PERSONAL.md)).
-- Navigation: Ear joins the nav with its More menu (see [SCALES.md](SCALES.md)).
+- Navigation: Ear is in the sidebar under Practice.
 
 ## Milestones
 

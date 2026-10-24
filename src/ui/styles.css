@@ -17,6 +17,10 @@
   --accent-hover: #8e2a23;
   --accent-contrast: #ffffff;
   --accent-soft: #f8e9e7;
+  /* What is chosen (a segment, a level, a box ticked): ink, so red is left for the actions. */
+  --choice: #1d1d1f;
+  --choice-contrast: #ffffff;
+  --choice-soft: #efefed;
   --focus: #a8342b;
   --ok: #2e7d43;
   --warn: #8a5a14;
@@ -101,8 +105,6 @@
   --gutter-left: max(var(--gutter), env(safe-area-inset-left, 0px));
   --gutter-right: max(var(--gutter), env(safe-area-inset-right, 0px));
   --content-width: 72rem;
-  /* The header's glass: the paper, a little see-through, so the page moves under it. */
-  --veil: color-mix(in srgb, var(--bg) 86%, transparent);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -143,6 +145,10 @@
     --accent-hover: #ea7a6d;
     --accent-contrast: #131110;
     --accent-soft: #3a1c19;
+    /* What is chosen (a segment, a level, a box ticked): ink, so red is left for the actions. */
+    --choice: #ece5d8;
+    --choice-contrast: #131110;
+    --choice-soft: #2a2622;
     --focus: #e06a5e;
     --ok: #7fc48a;
     --warn: #e5a54b;
@@ -220,6 +226,10 @@
   --accent-hover: #ea7a6d;
   --accent-contrast: #131110;
   --accent-soft: #3a1c19;
+  /* What is chosen (a segment, a level, a box ticked): ink, so red is left for the actions. */
+  --choice: #ece5d8;
+  --choice-contrast: #131110;
+  --choice-soft: #2a2622;
   --focus: #e06a5e;
   --ok: #7fc48a;
   --warn: #e5a54b;
@@ -293,6 +303,9 @@
   :root:not([data-theme='light']) .plate-body,
   :root:not([data-theme='light']) .specimen-sheet {
     color-scheme: light;
+    --choice: #1b1714;
+    --choice-contrast: #ffffff;
+    --choice-soft: #e6e0d4;
     --bg: #f1ece2;
     --surface: #f1ece2;
     --sunk: #e6e0d4;
@@ -373,6 +386,9 @@
 :root[data-theme='dark'] .plate-body,
 :root[data-theme='dark'] .specimen-sheet {
   color-scheme: light;
+  --choice: #1b1714;
+  --choice-contrast: #ffffff;
+  --choice-soft: #e6e0d4;
   --bg: #f1ece2;
   --surface: #f1ece2;
   --sunk: #e6e0d4;
@@ -454,7 +470,7 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  /* Anchors and focused fields stop below the sticky header. */
+  /* Anchors and focused fields stop below the bar a narrow screen holds at the top. */
   scroll-padding-top: 5rem;
 }
 
@@ -505,7 +521,8 @@ body:lang(ko) {
 }
 
 a {
-  color: var(--accent);
+  color: inherit;
+  text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
   text-underline-offset: 0.18em;
   text-decoration-thickness: 1px;
 }
@@ -549,41 +566,205 @@ h1:is(:lang(zh), :lang(ja), :lang(ko)) {
   line-height: 1.4;
 }
 
-/* Header: a full-width bar on a hairline, held at the top while the page scrolls under it. */
-
-.header {
-  position: sticky;
-  top: 0;
-  z-index: 30;
-  border-bottom: 1px solid var(--border);
-  background: var(--veil);
-  -webkit-backdrop-filter: saturate(1.4) blur(14px);
-  backdrop-filter: saturate(1.4) blur(14px);
-}
-
-.header-inner {
+/* The shell: the sidebar beside the page on a wide screen; on a narrow one a bar above it. */
+.shell {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.25rem 2rem;
-  max-width: var(--content-width);
-  margin: 0 auto;
-  padding: calc(0.625rem + var(--safe-top)) var(--gutter-right) 0.625rem var(--gutter-left);
+  flex: 1 0 auto;
+  flex-direction: column;
 }
 
-/* On a phone the bar takes two rows: it scrolls away with the page instead. */
-@media (max-width: 48rem) {
-  .header {
-    position: static;
+/* The same width as the sidebar's in Sidebar.tsx. */
+@media (min-width: 60rem) {
+  .shell {
+    flex-direction: row;
   }
 }
 
-@media (prefers-reduced-transparency: reduce) {
-  .header {
-    background: var(--bg);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
+.shell-page {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* While a session runs the navigation makes way, so practising has the whole screen. */
+.shell:has(.read-session, .scale-session, .piece-session) :is(.sidebar, .topbar) {
+  display: none;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  width: 14rem;
+  height: 100dvh;
+  overflow-y: auto;
+  padding: calc(1.125rem + var(--safe-top)) 0.75rem calc(0.875rem + var(--safe-bottom))
+    max(0.75rem, env(safe-area-inset-left, 0px));
+  border-right: 1px solid var(--border);
+  background: var(--sunk);
+}
+
+.sidebar > .brand {
+  margin: 0 0 0.75rem;
+  padding: 0 0.625rem;
+}
+
+.side-nav {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.side-list {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.side-heading {
+  margin: 1.125rem 0 0.25rem;
+  padding: 0 0.625rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.side-link {
+  display: flex;
+  align-items: center;
+  min-height: 2.25rem;
+  padding: 0.3125rem 0.625rem;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.9375rem;
+  line-height: 1.3;
+  text-decoration: none;
+}
+
+.side-link.is-active {
+  background: color-mix(in srgb, var(--text) 9%, transparent);
+  font-weight: 600;
+}
+
+@media (hover: hover) {
+  .side-link:not(.is-active):hover {
+    background: color-mix(in srgb, var(--text) 5%, transparent);
+  }
+}
+
+.side-foot {
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+.side-end {
+  display: flex;
+  padding: 0.5rem 0.625rem 0;
+}
+
+.side-end:empty {
+  display: none;
+}
+
+/* At the foot of the sidebar the metronome's panel opens upwards. */
+.side-end .met-chip-panel {
+  top: auto;
+  right: auto;
+  bottom: calc(100% + 0.5rem);
+  left: -1px;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: calc(0.375rem + var(--safe-top)) var(--gutter-right) 0.375rem var(--gutter-left);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.topbar-end {
+  display: flex;
+  margin-inline-start: auto;
+}
+
+.topbar-menu,
+.drawer-close {
+  display: inline-grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.topbar-menu {
+  margin-inline-start: -0.625rem;
+}
+
+.topbar-menu svg,
+.drawer-close svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.drawer {
+  width: min(18rem, 85vw);
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--sunk);
+  color: var(--text);
+}
+
+.drawer::backdrop {
+  background: rgb(0 0 0 / 0.4);
+}
+
+.drawer-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: calc(0.375rem + var(--safe-top)) 0.75rem calc(1rem + var(--safe-bottom))
+    max(0.75rem, env(safe-area-inset-left, 0px));
+}
+
+.drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+  padding-inline-start: 0.625rem;
+}
+
+.drawer-close {
+  margin-inline-end: -0.375rem;
+}
+
+/* On a wide screen nothing is held over the page: anchors stop near the top. */
+@media (min-width: 60rem) {
+  html {
+    scroll-padding-top: 1.5rem;
   }
 }
 
@@ -612,151 +793,6 @@ h1:is(:lang(zh), :lang(ja), :lang(ko)) {
   width: auto;
   aspect-ratio: 802 / 476;
   fill: currentColor;
-}
-
-.nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 1.75rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.nav-link {
-  position: relative;
-  display: inline-block;
-  padding: 0.625rem 0;
-  color: var(--text-muted);
-  font-size: 0.9375rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: color var(--dur-fast) ease-out;
-}
-
-.nav-link::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  bottom: 0.375rem;
-  left: 0;
-  height: 2px;
-  background: var(--accent);
-  transform: scaleX(0);
-  transition: transform var(--dur) ease-out;
-}
-
-.nav-link.is-active {
-  color: var(--text);
-}
-
-.nav-link.is-active::after {
-  transform: scaleX(1);
-}
-
-@media (hover: hover) {
-  .nav-link:hover {
-    color: var(--text);
-  }
-}
-
-/* More: the items the bar has no room for (Header.tsx fits them). */
-
-.header nav {
-  position: relative;
-  flex: 1 1 0;
-  min-width: 0;
-}
-
-.header .nav {
-  justify-content: flex-end;
-}
-
-/* The measured copy: laid out at its own width in a box of no size, so it never widens the page. */
-.nav-ruler-box {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-  visibility: hidden;
-}
-
-.header .nav-ruler {
-  width: max-content;
-  flex-wrap: nowrap;
-  white-space: nowrap;
-}
-
-.nav-more {
-  position: relative;
-}
-
-.nav-more-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  border: 0;
-  background: none;
-  font-family: inherit;
-  line-height: inherit;
-  cursor: pointer;
-}
-
-.nav-more-chevron {
-  width: 0.625rem;
-  height: 0.375rem;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  transition: transform var(--dur-fast) ease-out;
-}
-
-.nav-more-button[aria-expanded='true'] .nav-more-chevron {
-  transform: rotate(180deg);
-}
-
-.nav-more-menu {
-  position: absolute;
-  top: calc(100% + 0.25rem);
-  right: 0;
-  z-index: 20;
-  min-width: 11rem;
-  padding: 0.375rem 0;
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--shadow-pop);
-}
-
-.nav-more-menu ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.nav-more-link {
-  display: block;
-  padding: 0.625rem 1rem;
-  color: var(--text-muted);
-  font-size: 0.9375rem;
-  font-weight: 600;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.nav-more-link.is-active {
-  color: var(--text);
-  box-shadow: inset 2px 0 0 var(--accent);
-}
-
-@media (hover: hover) {
-  .nav-more-link:hover {
-    color: var(--text);
-    background: var(--sunk);
-  }
 }
 
 /* Content */
@@ -854,8 +890,8 @@ select {
 }
 
 .segmented input:checked + span {
-  color: var(--accent-contrast);
-  background: var(--accent);
+  color: var(--choice-contrast);
+  background: var(--choice);
   font-weight: 600;
 }
 
@@ -928,15 +964,15 @@ select {
   content: '';
   width: 0.6875rem;
   height: 0.6875rem;
-  background: var(--accent-contrast);
+  background: var(--choice-contrast);
   clip-path: polygon(14% 52%, 0 66%, 38% 100%, 100% 22%, 86% 8%, 37% 70%);
   transform: scale(0);
   transition: transform var(--dur-fast) ease-out;
 }
 
 .check input:checked {
-  border-color: var(--accent);
-  background: var(--accent);
+  border-color: var(--choice);
+  background: var(--choice);
 }
 
 .check input:checked::before {
@@ -948,26 +984,6 @@ select {
   .level input {
     appearance: auto;
   }
-}
-
-@media (max-width: 30rem) {
-  .header .nav {
-    flex-wrap: nowrap;
-    justify-content: space-between;
-    gap: 0 0.75rem;
-  }
-
-  .nav-link {
-    font-size: 0.875rem;
-    white-space: nowrap;
-  }
-}
-
-/* The end of the header: the metronome chip on a practice page. */
-.header-end {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .visually-hidden {
@@ -986,7 +1002,7 @@ select {
   padding: 0;
   border: 0;
   background: none;
-  color: var(--accent);
+  color: inherit;
   font: inherit;
   font-weight: 600;
   text-decoration: underline;
@@ -1597,7 +1613,7 @@ kbd {
 }
 
 .level.is-checked {
-  background: var(--accent-soft);
+  background: var(--choice-soft);
 }
 
 @media (hover: hover) {
@@ -1615,13 +1631,13 @@ kbd {
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--choice);
   transform: scale(0);
   transition: transform var(--dur-fast) ease-out;
 }
 
 .level input:checked {
-  border-color: var(--accent);
+  border-color: var(--choice);
 }
 
 .level input:checked::before {
@@ -1637,7 +1653,7 @@ kbd {
 }
 
 .level.is-checked .level-id {
-  color: var(--accent);
+  color: var(--text);
 }
 
 .level-body {
@@ -1704,7 +1720,7 @@ kbd {
 }
 
 .badge.is-suggested {
-  color: var(--accent);
+  color: var(--text);
 }
 
 @media (max-width: 40rem) {
@@ -1769,7 +1785,7 @@ kbd {
   }
 
   .read-options-level .level-id {
-    color: var(--accent);
+    color: var(--text-muted);
   }
 
   .read-options > .field:nth-child(2) {
@@ -1791,12 +1807,12 @@ kbd {
 /*
  * A live session fits on one screen: the bar, the sheet, the answer and the whole keyboard,
  * so the marked key after a wrong answer is always in view. The staff takes the height the rest
- * leaves (`--read-chrome`: header, bar, progress, sheet padding, answer and keyboard), and the
- * sheet hugs it. On phones the width decides instead.
+ * leaves (`--read-chrome`: bar, progress, sheet padding, answer and keyboard; the navigation
+ * makes way while a session runs), and the sheet hugs it. On phones the width decides instead.
  */
 .read-session {
   --sheet-px: 2rem;
-  --read-chrome: 26.5rem;
+  --read-chrome: 22.5rem;
   --staff-w: min(
     59rem,
     calc((100dvh - var(--read-chrome) - var(--safe-top) - var(--safe-bottom)) * var(--staff-aspect))
@@ -3549,9 +3565,9 @@ kbd {
 }
 
 .theory-name[aria-pressed='true'] {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent);
+  border-color: var(--choice);
+  background: var(--choice-soft);
+  color: var(--text);
   font-weight: 600;
 }
 
@@ -4875,7 +4891,7 @@ kbd {
   align-items: center;
   gap: 0.375rem;
   min-height: 2.75rem;
-  color: var(--accent);
+  color: var(--text);
   font-weight: 600;
   list-style: none;
   cursor: pointer;
@@ -7059,9 +7075,9 @@ tr.is-few .cm-row {
 }
 
 /*
- * Practice: like a Read session, the whole surface fits one laptop screen (header, the piece's
- * name, one row of controls, the score, a status line and the keyboard); the score takes the
- * height the rest leaves and scrolls inside its sheet. On phones the page scrolls instead.
+ * Practice: like a Read session, the whole surface fits one laptop screen (the piece's name, one
+ * row of controls, the score, a status line and the keyboard); the score takes the height the
+ * rest leaves and scrolls inside its sheet. On phones the page scrolls instead.
  */
 .main:has(.piece-session) {
   padding-block: 0.75rem calc(1rem + var(--safe-bottom));
@@ -7085,15 +7101,12 @@ tr.is-few .cm-row {
   flex: none;
 }
 
-/* The page is exactly one screen: the header keeps its own height, the session takes the rest. */
+/* The page is exactly one screen: the session takes all of it. */
 @media (min-width: 48rem) and (min-height: 36rem) {
-  #root:has(.piece-session) {
-    display: flex;
-    flex-direction: column;
+  #root:has(.piece-session) .shell-page {
     height: 100dvh;
   }
 
-  #root:has(.piece-session) > .header,
   .main:has(.piece-session) {
     width: 100%;
   }
@@ -8249,7 +8262,7 @@ select.is-compact {
 }
 
 .expression-tab[aria-selected='true'] {
-  border-bottom-color: var(--accent);
+  border-bottom-color: var(--choice);
   color: var(--text);
 }
 
@@ -9227,7 +9240,7 @@ select.is-compact {
 }
 
 .scale-list-table tr[aria-current] th {
-  color: var(--accent);
+  color: var(--text);
 }
 
 .scale-list-table td:last-child {
@@ -9416,11 +9429,7 @@ select.is-compact {
   }
 }
 
-/* Metronome: the header chip */
-
-.header nav {
-  margin-inline-start: auto;
-}
+/* Metronome: the chip in the sidebar */
 
 .met-chip {
   display: inline-flex;
@@ -9643,26 +9652,6 @@ select.is-compact {
   justify-self: start;
   font-size: 0.9375rem;
   font-weight: 600;
-}
-
-/* Narrower than a tablet: the brand and the chip on the first row, the navigation below. */
-@media (max-width: 48rem) {
-  .header-end {
-    order: 1;
-    margin-inline-start: auto;
-  }
-
-  .header nav {
-    order: 2;
-    flex-basis: 100%;
-  }
-}
-
-/* Between a phone (where the items spread over the row) and a tablet. */
-@media (min-width: 30.0625rem) and (max-width: 48rem) {
-  .header .nav {
-    justify-content: flex-start;
-  }
 }
 
 /* A tempo mark: the note of the beat, "=", the number, as printed over a score. */
@@ -10579,7 +10568,6 @@ select.is-compact {
 
 /* Last, so it wins over every transition and animation above. */
 @media (prefers-reduced-motion: reduce) {
-  .nav-link::after,
   .button,
   .segmented span,
   .check input,
@@ -10750,7 +10738,7 @@ select.is-compact {
 }
 
 .focus-tools .button-icon[aria-pressed='true'] {
-  color: var(--accent);
+  color: var(--text);
 }
 
 .focus-tools .button-icon[aria-pressed='false'] svg {
@@ -12016,7 +12004,7 @@ a.today-step-name::after {
 }
 
 /* Pages that are one screen, or a whole session, have no foot. */
-#root:has(.piece-session, .read-session, .metronome) > .footer {
+#root:has(.piece-session, .read-session, .metronome) .footer {
   display: none;
 }
 
@@ -12639,9 +12627,9 @@ a.today-step-name::after {
 }
 
 .plate-actions .button.is-current {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent);
+  border-color: var(--choice);
+  background: var(--choice-soft);
+  color: var(--text);
 }
 
 .plate-staff.is-rhythm {
@@ -13198,9 +13186,9 @@ a.today-step-name::after {
 }
 
 .inside-parts button.is-current {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent);
+  border-color: var(--choice);
+  background: var(--choice-soft);
+  color: var(--text);
 }
 
 @media (hover: hover) {
@@ -13639,9 +13627,9 @@ a.today-step-name::after {
 }
 
 .tempo-ladder .button.is-current {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent);
+  border-color: var(--choice);
+  background: var(--choice-soft);
+  color: var(--text);
 }
 
 /* The four lengths fit a phone's width in every language: less room beside each there. */
@@ -14725,7 +14713,8 @@ h2.assignment-name:focus {
     padding: 0;
   }
 
-  .header,
+  .sidebar,
+  .topbar,
   .footer,
   .storage-notice,
   .no-print,

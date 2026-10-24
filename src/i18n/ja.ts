@@ -16,7 +16,11 @@ export const ja: Dictionary = {
   'nav.progress': '記録',
   'nav.assignments': '課題',
   'nav.settings': '設定',
-  'nav.more': 'その他',
+  'nav.today': '今日',
+  'nav.group.practice': '練習',
+  'nav.group.record': '振り返り',
+  'nav.menu': 'メニュー',
+  'nav.close': 'メニューを閉じる',
 
   'home.eyebrow': 'MIDIキーボードでピアノ練習',
   'home.lede':

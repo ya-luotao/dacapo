@@ -73,8 +73,10 @@ test('progress: figures render, edits reset, and repeated loads do not accumulat
 }) => {
   await page.goto(scenarioURL('progress'));
   await expectProgress(page);
-  await page.getByRole('button', { name: 'More', exact: true }).click();
-  await page.getByRole('link', { name: 'Settings', exact: true }).click();
+  await page
+    .getByRole('navigation', { name: 'Main' })
+    .getByRole('link', { name: 'Settings', exact: true })
+    .click();
   await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible();
   // The test server has a sync endpoint, but the scenario must not expose account actions.
   await expect(page.getByRole('region', { name: 'Account', exact: true })).toHaveCount(0);

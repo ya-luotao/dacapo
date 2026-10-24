@@ -18,6 +18,12 @@ which is noted when it changes.
   on an ivory sheet in black ink.
 - The wordmark is the whole note beside the name in the same sans. Source Serif 4 and Source
   Sans 3 are no longer shipped.
+- **A sidebar instead of the bar across the top**: every page is listed, under Practice and
+  Records, with Settings at the foot and the metronome chip below it; nothing hides in a More
+  menu. On a narrow screen a menu button opens the same list in a drawer. While a session runs
+  the navigation makes way, so the staff has the whole screen and is drawn larger.
+- **What is chosen is in ink**: a segment, a level, a ticked box. Red is left for the button that
+  starts, and links are underlined in the colour of their text.
 
 ### Progress before the first practice
 

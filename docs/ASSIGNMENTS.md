@@ -195,8 +195,8 @@ assignment, pieces }`, each piece as importing it kept it (title, composer, file
   (`ui/assignments/taskFormat.ts` and `format.ts`; a test holds the start to this). For a
   returning player it stands in the place of today's plan while it has open tasks
   ([TODAY.md](TODAY.md)).
-- **Navigation.** Assignments is the first item to move into More when the header is narrow, and
-  the Progress page links to it under its title.
+- **Navigation.** Assignments is in the sidebar under Records, and the Progress page links to it
+  under its title.
 - **Code.** `core/assignmentRecords.ts` has the records (and what the app needs of them at
   startup), `core/assignments.ts` the checklist, `core/assignmentShare.ts` the link, the file and
   the reading of both; the last two are loaded only when an assignment is looked at.
