@@ -85,7 +85,8 @@ function mount(store: PracticeStore, children: ReactNode, locale: Locale = 'en')
   // The first visit's specimen and Today's keyboard listen for keys: none are played.
   const idle = { held: new Map(), sustained: new Set() };
   const input = {
-    hub: { subscribe: () => () => undefined, getState: () => idle, onEvent: () => () => undefined },
+    hub: { subscribe: () => () => undefined, getState: () => idle },
+    onMidiKey: () => () => undefined,
     pointer: {},
   } as unknown as InputSystem;
   // Today's keyboard scrolls to its middle, which jsdom does not do.

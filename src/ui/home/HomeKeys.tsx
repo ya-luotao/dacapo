@@ -14,26 +14,24 @@ export interface NextStep {
 
 /**
  * The keyboard at the foot of Today: the instrument is there before anything is chosen, and any
- * key on it (the player's, the computer's or the screen's) starts the plan's next step.
+ * key of the player's MIDI keyboard, or of this one on the screen, starts the plan's next step.
+ * The computer's letter keys do not: a letter typed by chance must not leave the page.
  */
 export function HomeKeys({ next }: { next: NextStep }) {
   const t = useT();
-  const { hub, pointer } = useInput();
+  const { onMidiKey, pointer } = useInput();
   const { held, sustained } = useHubState();
   const [, navigate] = useLocation();
 
-  useEffect(
-    () =>
-      hub.onEvent((event) => {
-        if (event.type === 'on') navigate(next.href);
-      }),
-    [hub, navigate, next.href],
-  );
+  useEffect(() => onMidiKey(() => navigate(next.href)), [onMidiKey, navigate, next.href]);
 
   return (
     <div className="home-keys">
       <p className="home-keys-hint">{t('today.anyKey', { name: next.name })}</p>
-      <Piano held={held} sustained={sustained} pointer={pointer} range={RANGE} />
+      {/* A key pressed on the screen starts it too: the keys' pointer events bubble here. */}
+      <div onPointerDown={() => navigate(next.href)}>
+        <Piano held={held} sustained={sustained} pointer={pointer} range={RANGE} />
+      </div>
     </div>
   );
 }

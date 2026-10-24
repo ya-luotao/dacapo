@@ -26,7 +26,7 @@ which is noted when it changes.
   starts, and links are underlined in the colour of their text.
 - **Home is today and nothing else**: the day, the streak and what is left of the goal in one
   line, the minutes as a readout, the plan as a list whose next step carries Start, and the
-  keyboard under it: **play any key to start the next step**. The contents (now the sidebar),
+  keyboard under it: **play any key to start the next step** (on a MIDI keyboard or the screen's). The contents (now the sidebar),
   the principles and the questions (now on About) are gone from it.
 
 ### Progress before the first practice

@@ -140,8 +140,9 @@ and practices (G3's links between them read it too).
   goal), the minutes played against the plan's length as a readout beside it, then the plan as a
   numbered list: each row its part (Warm-up, Work, New, Play through), the step's name as the
   link that starts it, one muted line saying why it is there, and a tick once done. The first
-  step not done carries Start, and any key played on the keyboard drawn under the page (or on
-  the player's own) starts it. Under the plan the length (10 · 20 · 30 · 45) and the link to
+  step not done carries Start, and any key of the player's MIDI keyboard, or of the keyboard drawn
+  under the page, starts it (not the computer's letter keys: a letter typed by chance must not
+  leave the page). Under the plan the length (10 · 20 · 30 · 45) and the link to
   Progress. (Redesigned 2026-10-25: the contents became the sidebar, the principles and the
   questions moved to About.) The tagline, the lede and the specimen are for a first visit.
 - **Why it is there**, one line per step, from the figures the rule used: "The least even of the
