@@ -26,7 +26,7 @@ import {
 } from '../pieces/library/index.ts';
 import { BrandMark } from '../ui/BrandMark.tsx';
 import { Footer } from '../ui/Footer.tsx';
-import { HomePage } from '../ui/home/HomePage.tsx';
+import { Landing } from './Landing.tsx';
 import { InputContext } from '../ui/input/context.ts';
 import { LearnPage } from '../ui/learn/LearnPage.tsx';
 import { LessonProvider } from '../ui/learn/kit.tsx';
@@ -279,7 +279,7 @@ function renderHome(page: SitePage, site: Site): string {
       description: page.description,
       inLanguage: page.locale,
     }),
-    <HomePage />,
+    <Landing />,
   );
 }
 

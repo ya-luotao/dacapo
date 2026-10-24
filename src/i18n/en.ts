@@ -57,6 +57,12 @@ export const en = {
   'today.why.due.other': 'Due for review for {n} days',
   'today.done': 'Today’s plan is done.',
   'today.empty': 'Nothing is waiting today. Play what you like.',
+  'today.streak.one': '1 day in a row',
+  'today.streak.other': '{n} days in a row',
+  'today.unit': 'min',
+  'today.readout': '{done} of {goal} minutes played today',
+  'today.start': 'Start',
+  'today.anyKey': 'Play any key to start: {name}',
   'home.contents': 'Contents',
   'home.learn.text':
     'Fifteen short lessons for your first weeks: the keyboard, the staff, landmarks, rhythm, sharps and flats, the major scale, posture, then dots, ties and triplets, minor keys, loud and soft, joined and detached, the pedals, ornaments, chords, how to practise, and styles and forms, with figures to play with.',

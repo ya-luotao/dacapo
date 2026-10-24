@@ -58,6 +58,12 @@ export const ja: Dictionary = {
   'today.why.due.other': '復習の時期から{n}日',
   'today.done': '今日のメニューは終わりました。',
   'today.empty': '今日のメニューはありません。好きなものを弾いてください。',
+  'today.streak.one': '1日連続',
+  'today.streak.other': '{n}日連続',
+  'today.unit': '分',
+  'today.readout': '今日の練習 {done}分（予定 {goal}分）',
+  'today.start': '始める',
+  'today.anyKey': 'どの鍵盤でも弾けば始まります：{name}',
   'home.contents': '目次',
   'home.learn.text':
     '初心者のための15の短いレッスン。鍵盤、五線譜、目印の音、リズム、シャープとフラット、長音階、姿勢と手の形、そして付点・タイ・三連符、短調、強弱とアーティキュレーション、ペダル、装飾音、和音、練習のしかた、様式と形式を、実際に弾ける図で学べます。',

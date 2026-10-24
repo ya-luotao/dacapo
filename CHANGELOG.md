@@ -24,6 +24,10 @@ which is noted when it changes.
   the navigation makes way, so the staff has the whole screen and is drawn larger.
 - **What is chosen is in ink**: a segment, a level, a ticked box. Red is left for the button that
   starts, and links are underlined in the colour of their text.
+- **Home is today and nothing else**: the day, the streak and what is left of the goal in one
+  line, the minutes as a readout, the plan as a list whose next step carries Start, and the
+  keyboard under it: **play any key to start the next step**. The contents (now the sidebar),
+  the principles and the questions (now on About) are gone from it.
 
 ### Progress before the first practice
 

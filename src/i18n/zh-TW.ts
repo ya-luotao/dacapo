@@ -57,6 +57,12 @@ export const zhTW: Dictionary = {
   'today.why.due.other': '待複習已 {n} 天',
   'today.done': '今天的計畫完成了。',
   'today.empty': '今天沒有等著你的內容，想彈什麼就彈什麼。',
+  'today.streak.one': '連續 1 天',
+  'today.streak.other': '連續 {n} 天',
+  'today.unit': '分鐘',
+  'today.readout': '今天已練 {done} 分鐘，計畫 {goal} 分鐘',
+  'today.start': '開始',
+  'today.anyKey': '按任意琴鍵開始：{name}',
   'home.contents': '目錄',
   'home.learn.text':
     '十五堂給初學者的短課：鍵盤、五線譜、地標音、節奏、升降記號、大調音階、坐姿手型，以及附點、連結線、三連音、小調、強弱奏法、踏板、裝飾音、和弦，還有怎麼練琴、風格與曲式，配有可以動手彈的圖示。',

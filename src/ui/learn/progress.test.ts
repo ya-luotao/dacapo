@@ -82,11 +82,14 @@ function mount(store: PracticeStore, children: ReactNode, locale: Locale = 'en')
     t: (key: string, vars?: Record<string, string | number>) =>
       vars ? `${key} ${JSON.stringify(vars)}` : key,
   };
-  // The first visit's specimen listens for keys held: none are.
+  // The first visit's specimen and Today's keyboard listen for keys: none are played.
   const idle = { held: new Map(), sustained: new Set() };
   const input = {
-    hub: { subscribe: () => () => undefined, getState: () => idle },
+    hub: { subscribe: () => () => undefined, getState: () => idle, onEvent: () => () => undefined },
+    pointer: {},
   } as unknown as InputSystem;
+  // Today's keyboard scrolls to its middle, which jsdom does not do.
+  Element.prototype.scrollTo = () => undefined;
   root = createRoot(host);
   act(() =>
     root!.render(
@@ -294,11 +297,12 @@ describe('the pages read the ticks from the store', () => {
         waiting: null,
         week: false,
         onSteps: () => undefined,
+        onNext: () => undefined,
       }),
     );
     await settle(store);
     const steps = () => [...host.querySelectorAll('.today-step')].map((el) => el.className);
-    expect(steps()).toEqual(['today-step']);
+    expect(steps()).toEqual(['today-step is-next']);
     act(() => store.markLesson('staff'));
     expect(steps()).toEqual(['today-step is-done']);
     expect(JSON.parse(localStorage.getItem('dacapo.today')!)).toEqual(kept);
@@ -316,6 +320,7 @@ describe('the pages read the ticks from the store', () => {
         waiting: createElement('p', { className: 'waiting' }),
         week: false,
         onSteps: () => undefined,
+        onNext: () => undefined,
       }),
     );
     // (The store's writes wait for storage to open: only the page is given a moment here.)
@@ -364,6 +369,7 @@ describe('the pages read the ticks from the store', () => {
           waiting: null,
           week: false,
           onSteps: () => undefined,
+          onNext: () => undefined,
         }),
       );
       await settle(store);

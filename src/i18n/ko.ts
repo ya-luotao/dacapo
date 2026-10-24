@@ -57,6 +57,12 @@ export const ko: Dictionary = {
   'today.why.due.other': '복습할 때가 {n}일 지남',
   'today.done': '오늘 계획을 모두 마쳤어요.',
   'today.empty': '오늘은 기다리는 연습이 없어요. 치고 싶은 것을 쳐 보세요.',
+  'today.streak.one': '1일 연속',
+  'today.streak.other': '{n}일 연속',
+  'today.unit': '분',
+  'today.readout': '오늘 {done}분 연습 (계획 {goal}분)',
+  'today.start': '시작',
+  'today.anyKey': '아무 건반이나 누르면 시작해요: {name}',
   'home.contents': '차례',
   'home.learn.text':
     '초보자를 위한 짧은 레슨 열다섯 개. 건반, 오선보, 기준음, 리듬, 올림표와 내림표, 장음계, 자세와 손 모양, 그리고 점음표·붙임줄·셋잇단음표, 단조, 셈여림과 아티큘레이션, 페달, 꾸밈음, 화음, 연습하는 법, 양식과 형식을 직접 쳐 볼 수 있는 그림으로 배워요.',

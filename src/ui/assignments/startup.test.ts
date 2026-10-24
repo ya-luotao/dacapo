@@ -286,8 +286,9 @@ describe('what the start loads', () => {
 
   // The library (pieces/library/index.ts: each piece's edition, source and facts, some 19 kB):
   // the home page says how many pieces there are, and counts their ids.
-  it('the start counts the built-in pieces, and loads nothing else of the library', () => {
-    expect(chain('/src/main.tsx', '/src/pieces/library/ids.ts')).not.toBeNull();
+  it('the start loads nothing of the library', () => {
+    // Since the home page lost its contents (2026-10-25) it no longer counts the pieces either.
+    expect(chain('/src/main.tsx', '/src/pieces/library/ids.ts')).toBeNull();
     expect(chain('/src/main.tsx', '/src/pieces/library/index.ts')).toBeNull();
     expect(staticImports('/src/pieces/library/ids.ts')).toEqual([]);
     // The Pieces page does have the library: the check can find it.

@@ -136,13 +136,14 @@ and practices (G3's links between them read it too).
 - **A returning player** (a session stored, a lesson ticked, or the start page answered,
   [START.md](START.md)) gets Today in place of the hero and of the blocks "Your practice" and
   "Due for review", which it takes in:
-  the day as the eyebrow, the heading "Today", the figures the block "Your practice" had (minutes
-  today, the streak, the longest), then the plan as a numbered programme in the manner of the
-  contents below it: each row its part (Warm-up, Work, New, Play through), the step's name as the
-  link that starts it, one muted line saying why it is there, and a tick once done. Under it the
-  line towards the daily goal, the length (10 · 20 · 30 · 45) and the link to Progress. The
-  contents, the principles and the questions follow as before; the tagline, the lede and the
-  specimen are for a first visit.
+  the heading "Today" over one line (the day, the streak, the minutes still owed to the daily
+  goal), the minutes played against the plan's length as a readout beside it, then the plan as a
+  numbered list: each row its part (Warm-up, Work, New, Play through), the step's name as the
+  link that starts it, one muted line saying why it is there, and a tick once done. The first
+  step not done carries Start, and any key played on the keyboard drawn under the page (or on
+  the player's own) starts it. Under the plan the length (10 · 20 · 30 · 45) and the link to
+  Progress. (Redesigned 2026-10-25: the contents became the sidebar, the principles and the
+  questions moved to About.) The tagline, the lede and the specimen are for a first visit.
 - **Why it is there**, one line per step, from the figures the rule used: "The least even of the
   scales you played lately" · "New: the next scale" · "Last played 2 days ago" · "A new piece" ·
   "Not practised for 6 days" · "Not practised yet" · "Lesson 5 of 15" · "Due for review since 3

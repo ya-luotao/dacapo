@@ -57,6 +57,12 @@ export const zhCN: Dictionary = {
   'today.why.due.other': '待复习已 {n} 天',
   'today.done': '今天的计划完成了。',
   'today.empty': '今天没有等着你的内容，想弹什么就弹什么。',
+  'today.streak.one': '连续 1 天',
+  'today.streak.other': '连续 {n} 天',
+  'today.unit': '分钟',
+  'today.readout': '今天已练 {done} 分钟，计划 {goal} 分钟',
+  'today.start': '开始',
+  'today.anyKey': '按任意琴键开始：{name}',
   'home.contents': '目录',
   'home.learn.text':
     '十五节给初学者的短课：键盘、五线谱、地标音、节奏、升降号、大调音阶、坐姿手型，以及附点、延音线、三连音、小调、强弱奏法、踏板、装饰音、和弦，还有怎样练琴、风格与曲式，配有可以动手弹的图示。',

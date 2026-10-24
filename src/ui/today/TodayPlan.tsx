@@ -15,6 +15,7 @@ import {
 } from '../../core/today.ts';
 import { useT } from '../../i18n/index.ts';
 import { AssignmentBlock } from '../assignments/HomeAssignment.tsx';
+import type { NextStep } from '../home/HomeKeys.tsx';
 import { useCurrentAssignment } from '../assignments/useChecklist.ts';
 import { useLessonsDone } from '../learn/progress.ts';
 import { useStorageStatus } from '../practice/context.ts';
@@ -88,6 +89,8 @@ interface TodayPlanProps {
   week: boolean;
   /** Whether the plan's steps are shown: not while an assignment has open tasks. */
   onSteps: (shown: boolean) => void;
+  /** The first step not yet done that can be started, which any key on Today starts; or none. */
+  onNext: (next: NextStep | null) => void;
 }
 
 /**
@@ -96,7 +99,7 @@ interface TodayPlanProps {
  * assignment has open tasks it is shown as today instead: a teacher's plan is not set beside one
  * made up here. Loaded apart from the start: making a plan takes the rules of every practice.
  */
-export function TodayPlan({ today, minutes, waiting, week, onSteps }: TodayPlanProps) {
+export function TodayPlan({ today, minutes, waiting, week, onSteps, onNext }: TodayPlanProps) {
   const t = useT();
   const format = useTodayFormat();
   const records = useTodayRecords();
@@ -117,6 +120,16 @@ export function TodayPlan({ today, minutes, waiting, week, onSteps }: TodayPlanP
     assignmentComesFirst(assignment.record.assignment.tasks, assignment.progress);
   const steps = !reading && !assigned;
   useEffect(() => onSteps(reading || steps), [onSteps, reading, steps]);
+  const nextIndex = steps
+    ? plan.steps.findIndex((step, i) => !done[i] && format.start(step) !== null)
+    : -1;
+  const nextStep = nextIndex < 0 ? null : plan!.steps[nextIndex]!;
+  const nextHref = nextStep ? format.start(nextStep) : null;
+  const nextName = nextStep ? format.name(nextStep) : null;
+  useEffect(() => {
+    onNext(nextHref && nextName ? { href: nextHref, name: nextName } : null);
+  }, [onNext, nextHref, nextName]);
+  useEffect(() => () => onNext(null), [onNext]);
 
   if (reading) return waiting;
   const allDone = plan.steps.length > 0 && done.every(Boolean);
@@ -146,8 +159,17 @@ export function TodayPlan({ today, minutes, waiting, week, onSteps }: TodayPlanP
                 // The part is named where it begins; the rows after it are under the same name.
                 const first = plan.steps[i - 1]?.part !== step.part;
                 return (
-                  <li key={step.id} className={done[i] ? 'today-step is-done' : 'today-step'}>
-                    <span className="contents-numeral" aria-hidden="true">
+                  <li
+                    key={step.id}
+                    className={
+                      done[i]
+                        ? 'today-step is-done'
+                        : i === nextIndex
+                          ? 'today-step is-next'
+                          : 'today-step'
+                    }
+                  >
+                    <span className="today-step-n" aria-hidden="true">
                       {i + 1}
                     </span>
                     <span className={first ? 'today-step-part' : 'visually-hidden'}>
@@ -169,6 +191,11 @@ export function TodayPlan({ today, minutes, waiting, week, onSteps }: TodayPlanP
                           <path d="M3.5 8.5l3 3 6-7" />
                         </svg>
                         <span className="visually-hidden">{t('learn.done')}</span>
+                      </span>
+                    ) : i === nextIndex ? (
+                      // The row's link starts it: this only says so, in the place of the arrow.
+                      <span className="today-step-go" aria-hidden="true">
+                        {t('today.start')}
                       </span>
                     ) : (
                       <Arrow />

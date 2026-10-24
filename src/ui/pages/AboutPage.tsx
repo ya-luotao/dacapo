@@ -3,6 +3,7 @@ import { useI18n, useT, type MessageKey } from '../../i18n/index.ts';
 import { REPO_URL } from '../../lib/links.ts';
 import { currentShell } from '../../lib/shell.ts';
 import { lessonsPath, piecesPath } from '../../site/addresses.ts';
+import { PRINCIPLES, QUESTIONS } from '../home/questions.ts';
 
 /** Where the licence texts are served: public/licenses/, below the app's base path. */
 const LICENCES = `${import.meta.env.BASE_URL}licenses/`;
@@ -213,6 +214,30 @@ function Preface() {
         <h2 id="about-join">{t('about.join')}</h2>
         <p>{withPart(t('about.join.text'), 'link', <a href={`${REPO_URL}/issues`}>GitHub</a>)}</p>
       </section>
+
+      <section className="about-section" aria-labelledby="about-principles">
+        <h2 id="about-principles">{t('home.principles')}</h2>
+        <dl className="about-how">
+          {PRINCIPLES.map(([title, text]) => (
+            <div key={title}>
+              <dt>{t(title)}</dt>
+              <dd>{t(text)}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      {currentShell() === 'web' && (
+        <section className="about-section" aria-labelledby="about-faq">
+          <h2 id="about-faq">{t('home.faq')}</h2>
+          {QUESTIONS.map(([q, a]) => (
+            <details key={q} className="history-details about-question">
+              <summary>{t(q)}</summary>
+              <p>{t(a)}</p>
+            </details>
+          ))}
+        </section>
+      )}
     </>
   );
 }
