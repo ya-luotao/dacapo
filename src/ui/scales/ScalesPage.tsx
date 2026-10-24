@@ -616,7 +616,8 @@ function ScaleSession({
   }
 
   return (
-    <div className="scale-session">
+    // While a run is under way the navigation makes way (styles.css), as on Read.
+    <div className={playing || clicking ? 'scale-session is-playing' : 'scale-session'}>
       <div className="scale-head">
         {!focus.on && <h2 className="scale-title">{title(exercise)}</h2>}
         <p className="scale-status" role="status">

@@ -602,7 +602,7 @@ h1:is(:lang(zh), :lang(ja), :lang(ko)) {
 }
 
 /* While a session runs the navigation makes way, so practising has the whole screen. */
-.shell:has(.read-session, .scale-session, .piece-session) :is(.sidebar, .topbar) {
+.shell:has(.read-session, .scale-session.is-playing, .piece-session) :is(.sidebar, .topbar) {
   display: none;
 }
 
@@ -12258,7 +12258,7 @@ a.today-step-name::after {
 }
 
 .lesson-head .eyebrow {
-  color: var(--accent);
+  color: var(--text-muted);
 }
 
 .lesson-head .help {

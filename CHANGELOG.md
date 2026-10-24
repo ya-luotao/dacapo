@@ -21,7 +21,8 @@ which is noted when it changes.
 - **A sidebar instead of the bar across the top**: every page is listed, under Practice and
   Records, with Settings at the foot and the metronome chip below it; nothing hides in a More
   menu. On a narrow screen a menu button opens the same list in a drawer. While a session runs
-  the navigation makes way, so the staff has the whole screen and is drawn larger.
+  (a Read session, a scale being played, any piece's page) the navigation makes way, so the
+  music has the whole screen and the staff is drawn larger. The site's pages keep a plain bar.
 - **What is chosen is in ink**: a segment, a level, a ticked box. Red is left for the button that
   starts, and links are underlined in the colour of their text.
 - **Home is today and nothing else**: the day, the streak and what is left of the goal in one

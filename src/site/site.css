@@ -3,6 +3,55 @@
  * built: one look. This is written into each page's head, so the app's own files do not grow.
  */
 
+/* The site's bar: the wordmark and its few pages, in the type of the app's sidebar. The app
+   itself navigates from a sidebar; these pages are read, not practised, and keep a plain bar. */
+.header {
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.header-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem 2rem;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: calc(0.625rem + var(--safe-top)) var(--gutter-right) 0.625rem var(--gutter-left);
+}
+
+.header .nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.header .nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
+  padding: 0.3125rem 0.625rem;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.9375rem;
+  text-decoration: none;
+}
+
+.header .nav-link.is-active {
+  background: color-mix(in srgb, var(--text) 9%, transparent);
+  font-weight: 600;
+}
+
+@media (hover: hover) {
+  .header .nav-link:not(.is-active):hover {
+    background: color-mix(in srgb, var(--text) 5%, transparent);
+  }
+}
+
 /* Where the page is: dacapo › Lessons › The staff and the clefs. */
 .site-crumbs {
   margin: -1.25rem 0 1.5rem;
