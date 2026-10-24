@@ -19,6 +19,7 @@ import { useReadFormat } from './format.ts';
 import { useSightFormat } from './sightFormat.ts';
 import { sightTempoOf, type SightPrefs } from './sightPrefs.ts';
 import { NotYet } from '../NotYet.tsx';
+import { LevelRule } from '../LevelRule.tsx';
 
 interface SightSetupProps {
   level: SightLevelId;
@@ -67,13 +68,13 @@ export function SightSetup(props: SightSetupProps) {
             />
           ))}
         </div>
-        <p id={`${id}-rule`} className="help">
+        <LevelRule id={`${id}-rule`}>
           {t('sight.level.rule', {
             n: SIGHT_MASTERY_FRAGMENTS,
             percent: read.percent(SIGHT_MASTERY_SHARE),
             ms: IN_TIME_MS,
           })}
-        </p>
+        </LevelRule>
       </fieldset>
 
       {/* The session: beside the levels on a wide screen, as a card to start from. */}

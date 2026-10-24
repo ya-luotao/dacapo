@@ -245,6 +245,7 @@ export const en = {
   'read.level.suggested': 'Suggested',
   'read.level.new': 'Not practised yet',
   'read.level.stats': '{cards}/{window} cards · {accuracy} correct · median {median}',
+  'level.rule.ask': 'How is a level mastered?',
   'read.level.rule':
     'A level is mastered at 90% correct and a median reaction under 2 s over its last 40 cards without the hint. Move on whenever you like.',
   'read.length': 'Cards per session',

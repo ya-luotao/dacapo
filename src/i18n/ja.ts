@@ -247,6 +247,7 @@ export const ja: Dictionary = {
   'read.level.suggested': 'おすすめ',
   'read.level.new': '未練習',
   'read.level.stats': '{cards}/{window}枚 · 正答率{accuracy} · 反応時間の中央値{median}',
+  'level.rule.ask': 'レベル習得の条件',
   'read.level.rule':
     'ヒントなしで答えた直近40枚で、正答率が90%以上、反応時間の中央値が2秒未満になると、そのレベルは習得済みです。次のレベルへはいつ進んでもかまいません。',
   'read.length': '1回の枚数',

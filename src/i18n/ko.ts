@@ -244,6 +244,7 @@ export const ko: Dictionary = {
   'read.level.suggested': '추천',
   'read.level.new': '아직 연습 안 함',
   'read.level.stats': '{cards}/{window}장 · 정답률 {accuracy} · 반응 중앙값 {median}',
+  'level.rule.ask': '레벨 마스터 기준',
   'read.level.rule':
     '레벨마다 힌트 없이 푼 최근 40장에서 정답률 90% 이상, 반응 시간 중앙값 2초 미만이면 그 레벨을 마스터한 거예요. 다음 레벨로는 언제든 넘어가도 돼요.',
   'read.length': '한 번에 풀 카드 수',

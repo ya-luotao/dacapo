@@ -15,6 +15,7 @@ import { tempoOf, type RhythmPrefs } from './rhythmPrefs.ts';
 import { useRhythmFormat } from './rhythmFormat.ts';
 import { TempoField } from './TempoField.tsx';
 import { NotYet } from '../NotYet.tsx';
+import { LevelRule } from '../LevelRule.tsx';
 
 interface RhythmSetupProps {
   level: RhythmLevelId;
@@ -61,13 +62,13 @@ export function RhythmSetup(props: RhythmSetupProps) {
             />
           ))}
         </div>
-        <p id={`${id}-rule`} className="help">
+        <LevelRule id={`${id}-rule`}>
           {t('rhythm.level.rule', {
             percent: read.percent(RHYTHM_MASTERY_ACCURACY),
             window: RHYTHM_MASTERY_WINDOW,
             ms: IN_TIME_MS,
           })}
-        </p>
+        </LevelRule>
       </fieldset>
 
       {/* The session: beside the levels on a wide screen, as a card to start from. */}

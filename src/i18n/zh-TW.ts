@@ -239,6 +239,7 @@ export const zhTW: Dictionary = {
   'read.level.suggested': '建議',
   'read.level.new': '還沒練過',
   'read.level.stats': '{cards}/{window} 張 · 正確率 {accuracy} · 反應中位數 {median}',
+  'level.rule.ask': '怎樣算熟練一個等級？',
   'read.level.rule':
     '某個等級最近 40 張（沒開提示）的正確率達到 90%、反應時間中位數低於 2 秒，就算熟練了。想換等級隨時都可以換。',
   'read.length': '每輪張數',

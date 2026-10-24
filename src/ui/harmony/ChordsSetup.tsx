@@ -11,6 +11,7 @@ import { useReadFormat } from '../read/format.ts';
 import { Segmented } from '../Segmented.tsx';
 import { useHarmonyFormat } from './format.ts';
 import { NotYet } from '../NotYet.tsx';
+import { LevelRule } from '../LevelRule.tsx';
 
 interface ChordsSetupProps {
   level: HarmonyLevelId;
@@ -54,9 +55,9 @@ export function ChordsSetup(props: ChordsSetupProps) {
             />
           ))}
         </div>
-        <p id={`${id}-rule`} className="help">
+        <LevelRule id={`${id}-rule`}>
           {t('theory.level.rule', { seconds, window: HARMONY_MASTERY_WINDOW })}
-        </p>
+        </LevelRule>
       </fieldset>
 
       {/* The session: beside the levels on a wide screen, as a card to start from. */}

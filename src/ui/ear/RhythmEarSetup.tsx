@@ -14,6 +14,7 @@ import { Segmented } from '../Segmented.tsx';
 import type { EarPrefs } from './prefs.ts';
 import { useRhythmEarFormat } from './rhythmEarFormat.ts';
 import { NotYet } from '../NotYet.tsx';
+import { LevelRule } from '../LevelRule.tsx';
 
 /** The Ear page's rhythm: what the setup needs of it. */
 export interface RhythmEarSetupProps {
@@ -82,9 +83,7 @@ export function RhythmEarLevels({
           );
         })}
       </div>
-      <p id={`${id}-rule`} className="help">
-        {t('ear.rhythm.level.rule')}
-      </p>
+      <LevelRule id={`${id}-rule`}>{t('ear.rhythm.level.rule')}</LevelRule>
     </fieldset>
   );
 }

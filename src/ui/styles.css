@@ -1608,9 +1608,15 @@ kbd {
   max-width: 46rem;
 }
 
-/* The levels read like the contents page of a method book. */
+/* The levels: a list in a frame, one row each, the one chosen tinted. */
 .levels {
-  border-top: 1px solid var(--border);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.level:last-child {
+  border-bottom: 0;
 }
 
 .level {
@@ -1658,10 +1664,52 @@ kbd {
 
 .level-id {
   color: var(--text-muted);
-  font-family: var(--font-serif);
-  font-size: 1.25rem;
-  font-weight: 500;
+  font-family: var(--font-mono);
+  font-size: 0.9375rem;
   line-height: 1;
+}
+
+/* How a level is mastered: one quiet question under the list, the rule when it is opened. */
+.level-rule {
+  margin-top: 0.75rem;
+}
+
+.level-rule > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.25rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  list-style: none;
+  cursor: pointer;
+}
+
+.level-rule > summary::-webkit-details-marker {
+  display: none;
+}
+
+.level-rule > summary::before {
+  content: '?';
+  display: inline-grid;
+  place-items: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  border: 1px solid var(--control);
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+@media (hover: hover) {
+  .level-rule > summary:hover {
+    color: var(--text);
+  }
+}
+
+.level-rule > .help {
+  margin-top: 0.25rem;
 }
 
 .level.is-checked .level-id {
@@ -3035,12 +3083,6 @@ kbd {
 .read-what-caption {
   color: var(--text-muted);
   font-size: 0.8125rem;
-  font-style: italic;
-  font-family: var(--font-serif);
-}
-
-.read-what-caption:is(:lang(zh), :lang(ja), :lang(ko)) {
-  font-style: normal;
 }
 
 .read-what .read-what-group {
@@ -6245,8 +6287,8 @@ kbd {
   flex: none;
   width: 0.5rem;
   height: 0.5rem;
-  border-right: 1.5px solid var(--accent);
-  border-bottom: 1.5px solid var(--accent);
+  border-right: 1.5px solid var(--text-muted);
+  border-bottom: 1.5px solid var(--text-muted);
   transform: translateY(-1px) rotate(-45deg);
   transition: transform var(--dur) ease-out;
 }
@@ -6262,7 +6304,7 @@ kbd {
 
 @media (hover: hover) {
   .family > summary:hover h3 {
-    color: var(--accent);
+    color: var(--text);
   }
 }
 
@@ -11838,10 +11880,8 @@ a.today-step-name::after {
 .contents-numeral {
   padding-inline-start: 0.25rem;
   color: var(--text-muted);
-  font-family: var(--font-serif);
-  font-size: 1.375rem;
-  font-style: italic;
-  font-variant-numeric: lining-nums;
+  font-family: var(--font-mono);
+  font-size: 1.125rem;
 }
 
 .contents-title {

@@ -8,6 +8,7 @@ import { useInstrumentKeys } from '../instrument.ts';
 import { useHintWords, useNoteNames } from '../noteNames.ts';
 import { useReadFormat } from './format.ts';
 import { NotYet } from '../NotYet.tsx';
+import { LevelRule } from '../LevelRule.tsx';
 
 interface ReadSetupProps {
   level: LevelId;
@@ -54,9 +55,7 @@ export function ReadSetup(props: ReadSetupProps) {
             />
           ))}
         </div>
-        <p id={`${id}-rule`} className="help">
-          {t('read.level.rule')}
-        </p>
+        <LevelRule id={`${id}-rule`}>{t('read.level.rule')}</LevelRule>
       </fieldset>
 
       {/* The session: beside the levels on a wide screen, as a card to start from. */}

@@ -22,6 +22,7 @@ import { EAR_PAGE_FAMILIES, TUNE_KEYS, type EarPrefs } from './prefs.ts';
 import { RhythmEarLevels, RhythmEarOptions, type RhythmEarSetupProps } from './RhythmEarSetup.tsx';
 import { useRhythmFormat } from '../read/rhythmFormat.ts';
 import { NotYet } from '../NotYet.tsx';
+import { LevelRule } from '../LevelRule.tsx';
 
 interface EarSetupProps {
   prefs: EarPrefs;
@@ -98,7 +99,7 @@ export function EarSetup({
                 />
               ))}
             </div>
-            <p id={`${id}-rule`} className="help">
+            <LevelRule id={`${id}-rule`}>
               {t(
                 echo
                   ? 'ear.level.rule.echo'
@@ -108,7 +109,7 @@ export function EarSetup({
                       ? 'ear.level.rule.tune'
                       : 'ear.level.rule',
               )}
-            </p>
+            </LevelRule>
           </fieldset>
         )}
       </div>

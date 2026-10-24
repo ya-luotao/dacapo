@@ -239,6 +239,7 @@ export const zhCN: Dictionary = {
   'read.level.suggested': '推荐',
   'read.level.new': '还没练过',
   'read.level.stats': '{cards}/{window} 张 · 正确率 {accuracy} · 反应中位数 {median}',
+  'level.rule.ask': '怎样算掌握一级？',
   'read.level.rule':
     '某一级最近 40 张（不开提示）的正确率达到 90%、反应时间中位数低于 2 秒，就算掌握了。想换级别随时可以换。',
   'read.length': '每组张数',
