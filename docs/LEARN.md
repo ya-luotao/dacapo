@@ -391,6 +391,10 @@ lesson comes next; and the tick stayed on one device. G3 joins them, by the tabl
 
 ## Pictures
 
+Since 2026-10-25 the app shows `*-ink.webp`: each etching with its cream paper taken out (the
+paper's tone becomes transparent, the rest one neutral ink: `scripts/learn/ink.py`), so it sits on white or, in the dark, on the ivory paper of the music. They are still the
+generated drawings: redrawing them as line drawings is open.
+
 The etchings in `public/learn/` were painted by GPT Image 2.5 (`gpt-image-2.5-sunburst`, high
 quality, 1536×1024) with the Herdstead painter skill, then scaled to 1200×800 WebP. The style prompt
 asks for a copperplate etching in dark brown ink on cream paper (#231d18 on #f8f4ec), with no text,

@@ -21,7 +21,7 @@ export default function Lesson() {
         and you can find any key without counting.
       </p>
       <Picture
-        src="learn/seated-at-middle-c.webp"
+        src="learn/seated-at-middle-c-ink.webp"
         alt="A pianist seen from behind, sitting at the centre of an upright piano with a hand either side of the middle of the keyboard."
         caption="Sit at the middle of the keyboard, facing middle C: the bench square to the piano, your back upright, your forearms level with the keys."
       />

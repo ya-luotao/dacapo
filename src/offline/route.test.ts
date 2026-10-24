@@ -14,7 +14,7 @@ const LIST = new Set([
   'manifest.webmanifest',
   'icons/icon-192.png',
   'piano/A4-mf.mp3',
-  'learn/two-hands.webp',
+  'learn/two-hands-ink.webp',
 ]);
 const listed = (path: string) => LIST.has(path);
 
@@ -130,7 +130,7 @@ describe('route: the other files of the list', () => {
     'manifest.webmanifest',
     'icons/icon-192.png',
     'piano/A4-mf.mp3',
-    'learn/two-hands.webp',
+    'learn/two-hands-ink.webp',
   ])('%s is answered from the store and renewed', (path) => {
     expect(get(`${ROOT}${path}`, { mode: 'no-cors' })).toEqual({ kind: 'file', path });
   });

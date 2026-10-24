@@ -102,7 +102,7 @@ export default function Lesson() {
         ：木頭槓桿、毛氈、呢絨和彈簧，調校的精密度以零點幾公釐計。在這裡或者在你自己的鍵盤上彈一個鍵，看看它是怎麼運作的。
       </p>
       <Picture
-        src="learn/inside-a-grand.webp"
+        src="learn/inside-a-grand-ink.webp"
         alt="打開琴蓋的平台鋼琴內部：鐵骨、鋪展在響板上方的琴弦，以及調音釘。"
         caption="平台鋼琴的琴蓋下面：鐵骨、響板上方的琴弦、調音釘。擊弦機就在琴弦下面、靠鍵盤的那一端。"
       />

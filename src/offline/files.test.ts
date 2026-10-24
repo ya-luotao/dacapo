@@ -60,7 +60,7 @@ describe('groupOf', () => {
 
   it('the samples, the pictures and the licence texts are stored when fetched', () => {
     expect(groupOf('piano/A0-f.mp3')).toBe('piano');
-    expect(groupOf('learn/two-hands.webp')).toBe('pictures');
+    expect(groupOf('learn/two-hands-ink.webp')).toBe('pictures');
     expect(groupOf('incipits/turk-aller-anfang.svg')).toBe('pictures');
     expect(groupOf('licenses/verovio/COPYING')).toBe('licences');
   });
@@ -86,6 +86,6 @@ describe('groupOf', () => {
     expect(groupOf('pieces/bach-prelude-in-c.html')).toBeNull();
     expect(groupOf('pieces/bach-prelude-in-c.svg')).toBeNull();
     // The picture next to the page is still stored when fetched.
-    expect(groupOf('learn/hands-either-side.webp')).toBe('pictures');
+    expect(groupOf('learn/hands-either-side-ink.webp')).toBe('pictures');
   });
 });

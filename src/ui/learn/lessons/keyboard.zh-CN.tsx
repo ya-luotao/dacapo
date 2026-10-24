@@ -19,7 +19,7 @@ export default function Lesson() {
         钢琴键盘看上去像一整排八十八个键，其实不然：它只是一个十二个键的小图案，从最低音一直重复到最高音。认准了这个图案，找任何一个键都不用再数。
       </p>
       <Picture
-        src="learn/seated-at-middle-c.webp"
+        src="learn/seated-at-middle-c-ink.webp"
         alt="从背后看一位弹琴的人，她坐在立式钢琴的正中间，双手分别放在键盘中线的两侧。"
         caption="坐在键盘的正中间，面对中央 C：琴凳摆正，背挺直，小臂与琴键大致齐平。"
       />

@@ -38,6 +38,11 @@ which is noted when it changes.
   site's home pages, the principles and the questions, each page's opening line and every
   level's mastery rule are shorter and say one thing each; the rules no longer end on "Move on
   whenever you like", and sentences no longer hang on dashes.
+- **The lessons' pictures lose their cream paper**: each etching is now one neutral ink on
+  transparent, so it sits on white, or in the dark on the ivory paper of the music
+  (`scripts/learn/ink.py`).
+- **The social card, the icons and the Apple app** follow: white and the felt red on the card, a
+  piano-black icon, white and piano black behind the Apple app's page, its accent the felt red.
 
 ### Progress before the first practice
 

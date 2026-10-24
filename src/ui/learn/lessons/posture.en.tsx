@@ -17,7 +17,7 @@ export default function Lesson() {
 
       <Section id="sitting" title="Sitting at the piano">
         <Picture
-          src="learn/posture-from-the-side.webp"
+          src="learn/posture-from-the-side-ink.webp"
           alt="A pianist seen from the side on a piano bench, forearms level with the keys, back upright and feet flat on the floor."
           caption="From the side: forearms level with the keys, elbows a little in front of the body, back upright, feet flat."
         />
@@ -38,7 +38,7 @@ export default function Lesson() {
           <li>Both feet flat on the floor, the right one near the pedal.</li>
         </ul>
         <Picture
-          src="learn/seated-at-middle-c.webp"
+          src="learn/seated-at-middle-c-ink.webp"
           alt="A pianist seen from behind, sitting at the centre of an upright piano with a hand either side of the middle of the keyboard."
           caption="From behind: at the middle of the keyboard, one hand either side of middle C."
         />
@@ -46,7 +46,7 @@ export default function Lesson() {
 
       <Section id="hand-shape" title="The shape of the hand">
         <Picture
-          src="learn/curved-hand.webp"
+          src="learn/curved-hand-ink.webp"
           alt="A right hand on the piano keys seen from the side: fingers gently curved, fingertips on the keys, wrist level with the hand."
           caption="Curved fingers, as if holding a small ball; the thumb plays on the side of its tip; the wrist level with the hand."
         />

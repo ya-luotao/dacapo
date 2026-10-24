@@ -102,7 +102,7 @@ export default function Lesson() {
         ：木头杠杆、毛毡、呢布和弹簧，调校精度以零点几毫米计。在这里或者在你自己的键盘上弹一个键，看看它是怎么工作的。
       </p>
       <Picture
-        src="learn/inside-a-grand.webp"
+        src="learn/inside-a-grand-ink.webp"
         alt="打开琴盖的三角钢琴内部：铁骨架、铺展在音板上方的琴弦，以及调音钉。"
         caption="三角钢琴的琴盖下面：铁骨架、音板上方的琴弦、调音钉。击弦机就在琴弦下面、靠键盘的那一端。"
       />

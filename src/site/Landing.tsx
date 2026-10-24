@@ -22,7 +22,6 @@ import { PRINCIPLES, QUESTIONS } from '../ui/home/questions.ts';
 /** The practices, each with a line and its size: what a search engine and a newcomer read first. */
 const CONTENTS: readonly {
   path: string;
-  numeral: string;
   title: MessageKey;
   text: MessageKey;
   meta: MessageKey;
@@ -30,7 +29,6 @@ const CONTENTS: readonly {
 }[] = [
   {
     path: '/learn',
-    numeral: 'I',
     title: 'nav.learn',
     text: 'home.learn.text',
     meta: 'home.learn.meta',
@@ -38,7 +36,6 @@ const CONTENTS: readonly {
   },
   {
     path: '/read',
-    numeral: 'II',
     title: 'nav.read',
     text: 'home.read.text',
     meta: 'home.read.meta',
@@ -48,7 +45,6 @@ const CONTENTS: readonly {
   },
   {
     path: '/ear',
-    numeral: 'III',
     title: 'nav.ear',
     text: 'home.ear.text',
     meta: 'home.ear.meta',
@@ -60,7 +56,6 @@ const CONTENTS: readonly {
   },
   {
     path: '/harmony',
-    numeral: 'IV',
     title: 'nav.harmony',
     text: 'home.harmony.text',
     meta: 'home.harmony.meta',
@@ -68,14 +63,12 @@ const CONTENTS: readonly {
   },
   {
     path: '/scales',
-    numeral: 'V',
     title: 'nav.scales',
     text: 'home.scales.text',
     meta: 'home.scales.meta',
   },
   {
     path: '/pieces',
-    numeral: 'VI',
     title: 'nav.pieces',
     text: 'home.pieces.text',
     meta: 'home.pieces.meta',
@@ -83,7 +76,6 @@ const CONTENTS: readonly {
   },
   {
     path: '/metronome',
-    numeral: 'VII',
     title: 'nav.metronome',
     text: 'home.metronome.text',
     meta: 'home.metronome.meta',
@@ -91,7 +83,6 @@ const CONTENTS: readonly {
   },
   {
     path: '/progress',
-    numeral: 'VIII',
     title: 'nav.progress',
     text: 'home.progress.text',
     // Its minutes are today's goal, which the player may have chosen: filled in by the page.
@@ -119,11 +110,11 @@ export function Landing() {
           {t('home.contents')}
         </h2>
         <ol className="contents">
-          {CONTENTS.map((item) => (
+          {CONTENTS.map((item, i) => (
             <li key={item.path}>
               <Link href={item.path} className="contents-row">
                 <span className="contents-numeral" aria-hidden="true">
-                  {item.numeral}
+                  {i + 1}
                 </span>
                 <span className="contents-body">
                   <span className="contents-title">{t(item.title)}</span>

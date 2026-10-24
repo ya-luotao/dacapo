@@ -79,8 +79,7 @@ async ({ assets, fileInput, download }) => {
   await document.fonts.ready;
   r.fontsAfterRead = [...document.fonts].map((f) => `${f.family} ${f.weight} ${f.status}`);
   r.fontChecks = {
-    sourceSerif: document.fonts.check('16px "Source Serif 4"'),
-    sourceSans: document.fonts.check('16px "Source Sans 3"'),
+    accidentals: document.fonts.check('16px "dacapo Accidentals"', '♭'),
   };
 
   // Persistence: counters that survive a relaunch only if storage persists.

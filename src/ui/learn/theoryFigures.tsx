@@ -586,7 +586,7 @@ export function FingerNumbers({
 }) {
   return (
     <div className="finger-figure">
-      <Picture src="learn/two-hands.webp" alt={alt} caption={caption} />
+      <Picture src="learn/two-hands-ink.webp" alt={alt} caption={caption} />
       <div className="finger-spots" aria-hidden="true">
         {FINGER_SPOTS.map(({ n, x, y }, i) => (
           <span key={i} style={{ left: `${x}%`, top: `${y}%` }}>

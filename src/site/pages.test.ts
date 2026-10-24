@@ -245,7 +245,7 @@ describe('what the pages must not disturb', () => {
   it('the offline worker: none of the site’s files is in its list (docs/OFFLINE.md)', () => {
     for (const file of files) expect(groupOf(file), file).toBeNull();
     // The lessons' pictures live beside the lessons' pages, and stay the worker's.
-    expect(groupOf('learn/two-hands.webp')).toBe('pictures');
+    expect(groupOf('learn/two-hands-ink.webp')).toBe('pictures');
   });
 
   it('the offline worker: the pages are written before its list is taken', () => {
@@ -284,7 +284,7 @@ describe('what the pages must not disturb', () => {
     for (const file of files) expect(kept(file), file).toBe(false);
     for (const file of [
       'index.html',
-      'learn/two-hands.webp',
+      'learn/two-hands-ink.webp',
       'assets/index-AAAA.js',
       'robots.txt',
     ]) {

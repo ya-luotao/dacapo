@@ -115,7 +115,7 @@ export default function Lesson() {
         millimetre. Play a key here or on your own keyboard, and watch it work.
       </p>
       <Picture
-        src="learn/inside-a-grand.webp"
+        src="learn/inside-a-grand-ink.webp"
         alt="The inside of a grand piano with its lid raised: the iron frame, the strings fanning out over the soundboard, and the tuning pins."
         caption="Under the lid of a grand: the iron frame, the strings over the soundboard, the tuning pins. The action sits under the strings, at the keyboard end."
       />

@@ -336,7 +336,7 @@ export default function Lesson() {
 
       <Section id="healthy" title="Playing without strain">
         <Picture
-          src="learn/posture-from-the-side.webp"
+          src="learn/posture-from-the-side-ink.webp"
           alt="A pianist seen from the side on a piano bench, forearms level with the keys, back upright and feet flat on the floor."
           caption="Sit as in the lesson on posture: forearms level with the keys, back upright, feet flat."
         />

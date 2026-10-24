@@ -111,7 +111,7 @@ export default function Lesson() {
           。上面的高音譜表主要給右手，下面的低音譜表主要給左手。
         </p>
         <Picture
-          src="learn/hands-either-side.webp"
+          src="learn/hands-either-side-ink.webp"
           alt="兩隻手放在鋼琴鍵盤上，左手在中線左側，右手在中線右側，兩個大拇指靠得很近。"
           caption="右手在中央 C 以上，左手在中央 C 以下：大譜表的兩行譜，對應的就是兩隻手。"
         />

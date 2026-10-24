@@ -15,7 +15,7 @@ export default function Lesson() {
 
       <Section id="sitting" title="坐在钢琴前">
         <Picture
-          src="learn/posture-from-the-side.webp"
+          src="learn/posture-from-the-side-ink.webp"
           alt="从侧面看一位坐在琴凳上的弹琴者：小臂与琴键齐平，背挺直，双脚平放在地上。"
           caption="侧面看：小臂与琴键大致齐平，手肘略在身体前方，背挺直，双脚放平。"
         />
@@ -33,7 +33,7 @@ export default function Lesson() {
           <li>双脚平放在地上，右脚靠近踏板。</li>
         </ul>
         <Picture
-          src="learn/seated-at-middle-c.webp"
+          src="learn/seated-at-middle-c-ink.webp"
           alt="从背后看一位弹琴的人，她坐在立式钢琴的正中间，双手分别放在键盘中线的两侧。"
           caption="背后看：坐在键盘正中间，两只手分别在中央 C 两侧。"
         />
@@ -41,7 +41,7 @@ export default function Lesson() {
 
       <Section id="hand-shape" title="手型">
         <Picture
-          src="learn/curved-hand.webp"
+          src="learn/curved-hand-ink.webp"
           alt="从侧面看放在琴键上的右手：手指自然弯曲，指尖落在琴键上，手腕与手背齐平。"
           caption="手指弯曲，像轻轻握着一个小球；大拇指用指尖侧面弹；手腕与手背齐平。"
         />

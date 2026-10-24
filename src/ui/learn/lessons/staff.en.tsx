@@ -123,7 +123,7 @@ export default function Lesson() {
           The treble staff is mostly for the right hand, the bass staff for the left.
         </p>
         <Picture
-          src="learn/hands-either-side.webp"
+          src="learn/hands-either-side-ink.webp"
           alt="Two hands resting on a piano keyboard, the left hand to the left of the middle and the right hand to the right, the thumbs close together."
           caption="Right hand above middle C, left hand below it: the two staves of the grand staff, as two hands."
         />

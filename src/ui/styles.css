@@ -313,7 +313,8 @@
   :root:not([data-theme='light']) .improv-stage,
   :root:not([data-theme='light']) .hm-view,
   :root:not([data-theme='light']) .plate-body,
-  :root:not([data-theme='light']) .specimen-sheet {
+  :root:not([data-theme='light']) .specimen-sheet,
+  :root:not([data-theme='light']) .lesson-picture {
     color-scheme: light;
     --choice: #1b1714;
     --choice-contrast: #ffffff;
@@ -396,7 +397,8 @@
 :root[data-theme='dark'] .improv-stage,
 :root[data-theme='dark'] .hm-view,
 :root[data-theme='dark'] .plate-body,
-:root[data-theme='dark'] .specimen-sheet {
+:root[data-theme='dark'] .specimen-sheet,
+:root[data-theme='dark'] .lesson-picture {
   color-scheme: light;
   --choice: #1b1714;
   --choice-contrast: #ffffff;
@@ -12573,19 +12575,8 @@ a.today-step-name::after {
   width: 100%;
   height: auto;
   border-radius: var(--radius);
-  background: #f8f4ec;
+  background: var(--surface);
   box-shadow: var(--shadow-sheet);
-}
-
-/* In the dark the paper is dimmed a little, as a print under a lamp. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) .lesson-picture img {
-    filter: brightness(0.86) sepia(0.12);
-  }
-}
-
-:root[data-theme='dark'] .lesson-picture img {
-  filter: brightness(0.86) sepia(0.12);
 }
 
 /* The end: where to practise it, and the lessons either side. */

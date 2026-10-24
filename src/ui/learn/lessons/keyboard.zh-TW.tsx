@@ -19,7 +19,7 @@ export default function Lesson() {
         鋼琴鍵盤看起來像一整排八十八個鍵，其實不然：它只是一個十二個鍵的小圖案，從最低音一直重複到最高音。認熟了這個圖案，找任何一個鍵都不必再數。
       </p>
       <Picture
-        src="learn/seated-at-middle-c.webp"
+        src="learn/seated-at-middle-c-ink.webp"
         alt="從背後看一位彈琴的人，她坐在直立式鋼琴的正中間，雙手分別放在鍵盤中線的兩側。"
         caption="坐在鍵盤的正中間，面對中央 C：琴椅擺正，背挺直，前臂與琴鍵大致齊平。"
       />

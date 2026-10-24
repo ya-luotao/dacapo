@@ -283,7 +283,7 @@ export default function Lesson() {
 
       <Section id="healthy" title="弹琴不要勉强">
         <Picture
-          src="learn/posture-from-the-side.webp"
+          src="learn/posture-from-the-side-ink.webp"
           alt="从侧面看坐在琴凳上的钢琴演奏者：前臂与琴键齐平，背挺直，双脚平放在地上。"
           caption="照「坐姿、手型与指法」一课那样坐：前臂与琴键齐平，背挺直，双脚放平。"
         />
