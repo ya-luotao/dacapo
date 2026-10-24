@@ -95,7 +95,7 @@ export function Today() {
           {/* Until the records are read the readout holds its place without a number. */}
           <p className="today-readout" data-waiting={loaded ? undefined : ''}>
             <span className="visually-hidden">
-              {t('today.readout', { done: played, goal: minutes })}
+              {t('today.readout', { done: played, plan: minutes })}
             </span>
             <span className="today-figure" aria-hidden="true">
               {played}

@@ -60,7 +60,7 @@ export const ko: Dictionary = {
   'today.streak.one': '1일 연속',
   'today.streak.other': '{n}일 연속',
   'today.unit': '분',
-  'today.readout': '오늘 {done}분 연습 (계획 {goal}분)',
+  'today.readout': '오늘 {done}분 연습 (계획 {plan}분)',
   'today.start': '시작',
   'today.anyKey': '아무 건반이나 누르면 시작해요: {name}',
   'home.contents': '차례',

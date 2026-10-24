@@ -60,7 +60,7 @@ export const zhCN: Dictionary = {
   'today.streak.one': '连续 1 天',
   'today.streak.other': '连续 {n} 天',
   'today.unit': '分钟',
-  'today.readout': '今天已练 {done} 分钟，计划 {goal} 分钟',
+  'today.readout': '今天已练 {done} 分钟，计划 {plan} 分钟',
   'today.start': '开始',
   'today.anyKey': '按任意琴键开始：{name}',
   'home.contents': '目录',

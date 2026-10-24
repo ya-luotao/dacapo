@@ -60,7 +60,7 @@ export const zhTW: Dictionary = {
   'today.streak.one': '連續 1 天',
   'today.streak.other': '連續 {n} 天',
   'today.unit': '分鐘',
-  'today.readout': '今天已練 {done} 分鐘，計畫 {goal} 分鐘',
+  'today.readout': '今天已練 {done} 分鐘，計畫 {plan} 分鐘',
   'today.start': '開始',
   'today.anyKey': '按任意琴鍵開始：{name}',
   'home.contents': '目錄',

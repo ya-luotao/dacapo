@@ -60,7 +60,7 @@ export const en = {
   'today.streak.one': '1 day in a row',
   'today.streak.other': '{n} days in a row',
   'today.unit': 'min',
-  'today.readout': '{done} of {goal} minutes played today',
+  'today.readout': '{done} of {plan} minutes played today',
   'today.start': 'Start',
   'today.anyKey': 'Play any key to start: {name}',
   'home.contents': 'Contents',

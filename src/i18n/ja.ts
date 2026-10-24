@@ -61,7 +61,7 @@ export const ja: Dictionary = {
   'today.streak.one': '1日連続',
   'today.streak.other': '{n}日連続',
   'today.unit': '分',
-  'today.readout': '今日の練習 {done}分（予定 {goal}分）',
+  'today.readout': '今日の練習 {done}分（予定 {plan}分）',
   'today.start': '始める',
   'today.anyKey': 'どの鍵盤でも弾けば始まります：{name}',
   'home.contents': '目次',
