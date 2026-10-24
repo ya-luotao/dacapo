@@ -34,6 +34,10 @@ which is noted when it changes.
 - **Figures read like a display, not a poster**: on Progress and after every session the minutes,
   streaks and scores are a row of monospace values with their names under them, without the big
   serif numbers between rules. Where you are is a framed list.
+- **Plainer words** in all five languages: the first visit's lede, the practices' blurbs on the
+  site's home pages, the principles and the questions, each page's opening line and every
+  level's mastery rule are shorter and say one thing each; the rules no longer end on "Move on
+  whenever you like", and sentences no longer hang on dashes.
 
 ### Progress before the first practice
 

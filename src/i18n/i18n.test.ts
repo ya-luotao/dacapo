@@ -221,7 +221,6 @@ describe('notes named in the dictionaries', () => {
 
   it('are in the strings that name a note or a key, and in no other', () => {
     expect(noteKeys(en)).toEqual([
-      'home.read.text',
       'piano.label',
       'piano.key.middleC',
       'read.level.L1',

@@ -24,7 +24,7 @@ export const ko: Dictionary = {
 
   'home.eyebrow': 'MIDI 키보드로 하는 피아노 연습',
   'home.lede':
-    '진짜 큰보표로 하는 악보 읽기, 얼마나 고르게 치는지 재 주는 스케일, 칠 때까지 기다려 주는 진짜 곡, 그리고 메트로놈. dacapo는 모든 답의 시간을 재고, 오래 걸리는 음을 더 자주 연습시켜요.',
+    'MIDI 키보드로 연습하는 앱이에요. 큰보표 악보 읽기 카드, 스케일, 곡, 메트로놈. 모든 답의 시간을 재고, 늦게 찾는 음일수록 더 자주 나와요.',
   'home.start': '시작하기',
   'home.play': '그냥 쳐 보기',
   'home.facts': '무료 오픈 소스 · 계정 없이 사용 · MIDI 키보드나 컴퓨터 키보드로',
@@ -65,58 +65,52 @@ export const ko: Dictionary = {
   'today.anyKey': '아무 건반이나 누르면 시작해요: {name}',
   'home.contents': '차례',
   'home.learn.text':
-    '초보자를 위한 짧은 레슨 열다섯 개. 건반, 오선보, 기준음, 리듬, 올림표와 내림표, 장음계, 자세와 손 모양, 그리고 점음표·붙임줄·셋잇단음표, 단조, 셈여림과 아티큘레이션, 페달, 꾸밈음, 화음, 연습하는 법, 양식과 형식을 직접 쳐 볼 수 있는 그림으로 배워요.',
+    '처음 몇 주를 위한 짧은 레슨 15개. 건반과 오선에서 시작해 페달, 화음, 연습하는 법까지.',
   'home.learn.meta': '레슨 {n}개',
-  'home.read.text':
-    '큰보표의 음을 하나씩, 가운데 {C} 자리부터 덧줄, 올림표와 내림표까지. 음정, 조표, 화음, 박자에 맞춰 두드리는 리듬, 박자에 맞춰 치는 짧은 초견 곡도 있어요. 모든 답의 시간을 재고, 느리게 찾는 것일수록 다음 카드에 더 자주 나와요.',
+  'home.read.text': '먼저 음 하나씩, 그다음 음정, 조표, 화음, 리듬, 짧은 초견 곡으로.',
   'home.read.meta': '레벨 {n}개',
   'home.ear.text':
-    '음정과 화음, 짧은 선율, 종지, 한 마디 리듬을 귀로 구별해요. 옥타브부터 7화음, 반음계적인 음, 당김음까지. 노래를 악구마다, 원래 조나 다른 조로 듣고 칠 수도 있어요. 들은 것을 건반으로 치거나 두드리거나 이름으로 답하면, 다음 문제는 자주 틀리는 것부터 나와요.',
+    '음정, 화음, 선율, 종지, 리듬, 그리고 곡 하나를 귀로. 들은 것을 쳐 보거나 이름을 맞혀요.',
   'home.ear.meta': '레벨 {n}개 · 노래 {tunes}곡',
   'home.harmony.text':
-    '노래책과 리드 시트가 선율 위에 적는 코드 기호를, 세 장조의 3화음부터 7화음, 슬래시 코드, 서스 코드까지. 어떤 배치로든 치면 되고, 느리게 찾는 것일수록 다음 카드에 더 자주 나와요. 어떤 조의 코드 진행이든 왼손 반주 형태와 함께 곡처럼 연습해요. 반복되는 반주 위에서 즉흥 연주도 하고, 친 음이 코드에서 어떻게 들리는지 볼 수 있어요.',
+    '리드 시트에 적힌 코드 기호, 어떤 조로든 치는 화음 진행, 반주에 맞춘 즉흥 연주.',
   'home.harmony.meta': '레벨 {n}개',
-  'home.scales.text':
-    '모든 조의 스케일과 아르페지오를 하농의 손가락 번호로, 양손 평행이나 반진행으로도. 원하는 빠르기나 클릭에 맞춰 치고 나면 음 하나하나가 얼마나 고른지 보여 줘요.',
+  'home.scales.text': '모든 조의 스케일과 아르페지오를 하농 운지로. 얼마나 고른지 한 음씩 재요.',
   'home.scales.meta': '12개 조 · 스케일 5종 · 아르페지오',
   'home.pieces.text':
-    '베토벤, 바흐, 슈만 등의 곡을 진짜 악보로. 커서가 맞는 건반을 칠 때까지 기다려 주고, 리듬 모드에서는 박자대로 움직여요. 가지고 있는 MusicXML도 가져올 수 있어요.',
+    '베토벤, 바흐, 슈만 등. 가지고 있는 MusicXML도 불러올 수 있어요. 악보는 맞게 칠 때까지 기다리거나, 박자대로 넘어가요.',
   'home.pieces.meta': '{n}곡 · MusicXML',
-  'home.metronome.text':
-    '강세, 세분, 빠르기 트레이너를 갖춘 진자 메트로놈. 어떤 연습에든 쓸 수 있어요.',
+  'home.metronome.text': '강세, 세분, 템포 트레이너가 있는 진자 메트로놈.',
   'home.metronome.meta': '{min}–{max} BPM',
-  'home.progress.text':
-    '하루 연습 시간, 연속 기록, 한눈에 보는 1년, 그리고 느리게 찾는 음을 보여 주는 히트맵.',
+  'home.progress.text': '연습한 시간, 연속 일수, 1년 치 기록, 늦게 찾는 음.',
   'home.progress.meta': '하루 {n}분',
   'home.principles': '연습을 위해',
   'home.principle.keyboard': '어떤 키보드든',
   'home.principle.keyboard.text':
-    'USB로 연결하는 MIDI 키보드라면 무엇이든 돼요. 키보드가 없다면 컴퓨터 키보드로 한 번에 한 옥타브씩 칠 수 있어요.',
+    'USB MIDI 키보드라면 무엇이든. 없으면 컴퓨터 키로 한 옥타브씩 칠 수 있어요.',
   'home.principle.private': '나만의 기록',
   'home.principle.private.text':
-    '연습 기록은 이 기기에 저장돼요. 계정은 선택 사항이고, 내 기기끼리 동기화할 때만 필요해요.',
+    '연습 기록은 이 기기에 남아요. 로그인은 내 기기끼리 동기화할 때만 필요해요.',
   'home.principle.open': '무료 오픈 소스',
-  'home.principle.open.text': 'MIT 라이선스로 공개 개발해요. 광고도, 결제할 것도 없어요.',
+  'home.principle.open.text': 'MIT 라이선스로 공개 개발해요. 광고도 결제도 없어요.',
   'home.principle.languages': '5개 언어',
   'home.principle.languages.text':
-    'English, 简体中文, 繁體中文, 日本語, 한국어. 언어마다 그 언어의 음악 용어를 써요.',
+    'English, 简体中文, 繁體中文, 日本語, 한국어. 언어마다 그 언어의 음악 용어로.',
   'home.faq': '자주 묻는 질문',
   'home.faq.midi.q': 'MIDI 키보드가 꼭 있어야 하나요?',
   'home.faq.midi.a':
-    '아니요. 컴퓨터 키보드로 한 번에 한 옥타브씩 칠 수 있고, 화면의 건반을 클릭하거나 터치해도 돼요. MIDI 키보드가 있으면 실제 피아노처럼 연습할 수 있고, 음마다 타이밍도 정확하게 재요.',
+    '없어도 돼요. 컴퓨터 키로 한 옥타브씩 치거나 화면의 건반을 눌러도 돼요. MIDI 키보드를 쓰면 음마다 시간을 정확히 재요.',
   'home.faq.browser.q': '어떤 브라우저에서 쓸 수 있나요?',
   'home.faq.browser.a':
-    'MIDI 키보드를 쓰려면 컴퓨터의 Chrome이나 Edge가 필요해요. 다른 브라우저에서는 컴퓨터 키보드로 칠 수 있어요.',
+    'MIDI 키보드를 쓰려면 컴퓨터의 Chrome이나 Edge. 컴퓨터 키로만 친다면 어떤 브라우저든 괜찮아요.',
   'home.faq.free.q': '무료인가요?',
-  'home.faq.free.a':
-    '네. dacapo는 MIT 라이선스의 무료 오픈 소스 소프트웨어예요. 구독도 광고도 없고, 계정도 필요 없어요.',
+  'home.faq.free.a': '무료예요. MIT 라이선스의 오픈 소스이고, 구독도 광고도 계정도 없어요.',
   'home.faq.data.q': '연습 기록은 어디에 저장되나요?',
   'home.faq.data.a':
-    '이 기기의 이 브라우저에 저장돼요. 설정에서 언제든 내보낼 수 있고, 로그인하면 내 기기끼리 동기화할 수 있어요.',
+    '이 기기의 브라우저 안에요. 설정에서 언제든 내보낼 수 있고, 로그인하면 내 기기끼리 동기화돼요.',
 
   'start.title': '시작',
-  'start.intro':
-    '질문은 두 가지예요. dacapo가 지금 실력에 맞는 곳에서 시작하도록 돕는 질문이에요. 답하지 않아도 모든 페이지를 그대로 쓸 수 있어요.',
+  'start.intro': '질문 두 개에 답하면 지금 실력에 맞는 곳에서 시작해요. 건너뛰어도 괜찮아요.',
   'start.from': '어디에서 시작하나요?',
   'start.from.new': '피아노가 처음이에요',
   'start.from.new.text': '레슨은 건반 자체부터 시작해요.',
@@ -142,7 +136,7 @@ export const ko: Dictionary = {
 
   'learn.title': '피아노 기초',
   'learn.intro':
-    '피아노를 막 시작한 분을 위한 짧은 레슨이에요. 건반, 오선보, 리듬 등을 다루고, 레슨마다 직접 쳐 볼 수 있는 그림과 마지막 연습이 있어요.',
+    '피아노를 막 시작한 몇 주를 위한 짧은 레슨이에요. 레슨마다 쳐 볼 수 있는 악보 예와 마지막 연습 문제가 있어요.',
   'learn.language':
     '레슨은 현재 영어, 중국어 간체, 중국어 번체로 쓰여 있어요. 여기서는 영어판을 보여 드려요.',
   'learn.lesson': '레슨 {n}',
@@ -224,7 +218,7 @@ export const ko: Dictionary = {
   'input.notice.touch': '{status}. 화면의 건반으로 칠 수 있어요.',
 
   'read.title': '악보 읽기',
-  'read.intro': '큰보표에 음표가 하나 나와요. 건반에서 찾아 치세요. 옥타브까지 맞아야 해요.',
+  'read.intro': '큰보표에 음 하나. 맞는 옥타브로 건반을 쳐요.',
   'read.level': '레벨',
   'read.level.L1': '높은음자리표: 가운데 {C} 자리',
   'read.level.L2': '높은음자리표: {C4}–{C5}',
@@ -246,7 +240,7 @@ export const ko: Dictionary = {
   'read.level.stats': '{cards}/{window}장 · 정답률 {accuracy} · 반응 중앙값 {median}',
   'level.rule.ask': '레벨 마스터 기준',
   'read.level.rule':
-    '레벨마다 힌트 없이 푼 최근 40장에서 정답률 90% 이상, 반응 시간 중앙값 2초 미만이면 그 레벨을 마스터한 거예요. 다음 레벨로는 언제든 넘어가도 돼요.',
+    '힌트 없이 푼 최근 40장에서 정답률 90% 이상, 반응 시간 중앙값 2초 미만이면 마스터예요.',
   'read.length': '한 번에 풀 카드 수',
   'read.hint': '음이름 보기',
   'read.hint.help': '힌트를 켜고 맞힌 답은 정답률에는 들어가지만 반응 시간에는 들어가지 않아요.',
@@ -323,7 +317,7 @@ export const ko: Dictionary = {
   'theory.level.RC5': '모든 3화음과 7화음',
   'theory.level.RC5.detail': '전위와 7화음을 함께 · 양쪽 보표',
   'theory.level.rule':
-    '레벨마다 힌트 없이 푼 최근 {window}장에서 정답률 90% 이상, 답하는 시간 중앙값 {seconds}초 미만이면 그 레벨을 마스터한 거예요. 다음 레벨로는 언제든 넘어가도 돼요.',
+    '힌트 없이 푼 최근 {window}장에서 정답률 90% 이상, 답하는 시간 중앙값 {seconds}초 미만이면 마스터예요.',
   'theory.by.play.help': '적힌 음을 옥타브까지 그대로 쳐요.',
   'theory.by.name.help': '버튼이나 키로 근음과 화음을 골라요.',
   'theory.hint.help':
@@ -384,7 +378,7 @@ export const ko: Dictionary = {
   'theory.summary.missed': '틀린 카드',
   'theory.summary.miss': '{card}: {right} — 고른 답: {answer}',
   'rhythm.intro':
-    '리듬 한 줄을 아무 건반이나 두드려 쳐요. 한 마디 예비 박이 지나면 모든 음을 박자와 비교해 재요.',
+    '리듬 한 줄을 아무 건반으로 두드려요. 한 마디 예비 박 뒤에, 모든 음을 박자에 맞춰 재요.',
   'rhythm.level.detail': '{what} · {meters}',
   'rhythm.level.R1': '4분·2분·온음표',
   'rhythm.level.R1.detail': '4분쉼표도',
@@ -407,7 +401,7 @@ export const ko: Dictionary = {
   'rhythm.level.R10': '양손: 두 리듬',
   'rhythm.level.R10.detail': '그리고 2 대 3',
   'rhythm.level.rule':
-    '최근 리듬꼴 {window}개 중 {percent}를 맞게 치면 그 레벨을 마스터한 거예요. 모든 음이 박에서 {ms}ms 안에 있고, 더 누른 것이 없어야 맞아요. 다음 레벨로는 언제든 넘어가도 돼요.',
+    '최근 리듬 꼴 {window}개 중 {percent}가 맞으면 마스터예요. 모든 음이 박에서 {ms}ms 안이고, 더 누른 건반이 없어야 해요.',
   'rhythm.level.stats': '{cells}/{window}개 · 맞음 {accuracy} · 어긋남 중앙값 {median}',
   'rhythm.tempo': '빠르기',
   'rhythm.tempo.help': '1분에 치는 박 수예요. 레벨마다 따로 기억해요.',
@@ -490,7 +484,7 @@ export const ko: Dictionary = {
   'rhythm.summary.tempo': '빠르기',
   'rhythm.summary.missed': '더 연습할 리듬꼴',
   'rhythm.summary.times': '× {n}',
-  'sight.intro': '처음 보는 짧은 곡을 큰보표로 읽어요. 먼저 훑어보고, 박자에 맞춰 한 번에 쳐요.',
+  'sight.intro': '처음 보는 악보예요. 한번 훑어본 뒤, 박자에 맞춰 한 번 쳐요.',
   'sight.level.F1': '오른손, {C} 포지션',
   'sight.level.F1.detail': '순차 진행 · C장조',
   'sight.level.F2': '왼손, {C} 포지션',
@@ -508,7 +502,7 @@ export const ko: Dictionary = {
   'sight.level.F8': '왼손 화음',
   'sight.level.F8.detail': '분산 화음, 16분음표 · 올림표나 내림표 4개까지',
   'sight.level.rule':
-    '박자에 맞춰 친 최근 {n}곡이 모두 음의 {percent} 이상을 맞게, 박에 맞춰({ms}ms 안에) 쳤다면 그 레벨을 마스터한 거예요. 곡마다 첫 번째로 친 것만 세요. 다음 레벨로는 언제든 넘어가도 돼요.',
+    '최근 {n}개 조각이 모두 첫 연주에서 음의 {percent} 이상을 맞게, 박자에 맞춰({ms}ms 이내) 쳤다면 마스터예요.',
   'sight.level.stats': '최근 {count}곡 중 {passed}곡 통과',
   'sight.level.none': '아직 박자에 맞춰 친 곡이 없어요',
   'sight.play': '치는 방식',
@@ -570,8 +564,7 @@ export const ko: Dictionary = {
   'sight.summary.runsOf': '{n}번',
 
   'ear.title': '청음',
-  'ear.intro':
-    '두 음이나 화음, 짧은 선율, 악구를 맺는 종지, 한 마디 리듬, 노래의 한 악구를 듣고, 건반으로 치거나 두드려서 답하거나, 이름이나 악보를 골라 답해요.',
+  'ear.intro': '듣고 나서, 들은 것을 치거나 두드리거나 이름을 맞혀요.',
   'ear.sound.needed': '청음에는 소리가 필요해요. 출력으로 악기나 내장 피아노를 고르세요.',
   'ear.sound.link': '설정에서 소리 고르기',
   'ear.family': '연습할 내용',
@@ -607,7 +600,7 @@ export const ko: Dictionary = {
   'ear.level.chords': '화음 {n}가지',
   'ear.level.stats': '{answers}/{window}문제 · 정답률 {accuracy} · 걸린 시간 중앙값 {median}',
   'ear.level.rule':
-    '“다시 듣기” 없이 답한 최근 40문제(방향은 상관없어요)에서 정답률이 90% 이상이면 그 레벨을 마스터한 거예요. 다음 레벨로는 언제든 넘어가도 돼요.',
+    '“다시 듣기” 없이 답한 최근 40문제(방향 상관없음)에서 정답률 90% 이상이면 마스터예요.',
   'ear.length': '한 번에 풀 문제 수',
   'ear.session': '청음',
   'ear.count': '{total}문제 중 {n}번째',
@@ -685,8 +678,7 @@ export const ko: Dictionary = {
   'ear.level.notes': '음 {n}개',
   'ear.level.notesRange': '음 {min}–{max}개',
   'ear.level.stats.echo': '{answers}/{window}문제 · 정답률 {accuracy} · 걸린 시간 중앙값 {median}',
-  'ear.level.rule.echo':
-    '“다시 듣기” 없이 친 최근 20문제에서 정답률이 90% 이상이면 그 레벨을 마스터한 거예요. 다음 레벨로는 언제든 넘어가도 돼요.',
+  'ear.level.rule.echo': '“다시 듣기” 없이 친 최근 선율 20개에서 정답률 90% 이상이면 마스터예요.',
   'ear.echo.help':
     '조의 으뜸화음이 울린 뒤 짧은 선율이 나와요. 첫 음이 건반에 표시되니, 선율 전체를 한 음씩 따라 치세요.',
   'ear.echoLength': '한 번에 칠 선율 수',
@@ -705,7 +697,7 @@ export const ko: Dictionary = {
   'ear.level.CA4': '단조도 함께',
   'ear.level.cadences': '종지 {n}가지',
   'ear.level.rule.cadence':
-    '“다시 듣기” 없이 답한 최근 20문제에서 정답률이 90% 이상이면 그 레벨을 마스터한 거예요. 다음 레벨로는 언제든 넘어가도 돼요.',
+    '“다시 듣기” 없이 답한 최근 종지 20개에서 정답률 90% 이상이면 마스터예요.',
   'ear.cadence.help':
     '화음 네 개가 울리고, 첫 화음이 조를 정해요. 마지막 두 화음이 만드는 종지를 버튼이나 숫자 키로 고르세요.',
   'ear.task.cadence': '어떤 종지로 끝났나요?',
@@ -729,7 +721,7 @@ export const ko: Dictionary = {
   'ear.family.rhythmEar': '리듬',
   'ear.rhythm.level.stats': '{answers}/{window}번 답함 · 정답률 {accuracy}',
   'ear.rhythm.level.rule':
-    '“다시 듣기” 없이 답한 최근 40번에서 정답률이 90% 이상이면 그 레벨을 마스터한 거예요. 두드려서 답한 리듬꼴은 하나씩, 골라서 답한 마디는 하나씩 세요. 다음 레벨로는 언제든 넘어가도 돼요.',
+    '“다시 듣기” 없이 답한 최근 40번에서 정답률 90% 이상이면 마스터예요. 두드린 리듬 꼴 하나, 고른 마디 하나가 각각 한 번이에요.',
   'ear.rhythm.by.play': '두드려서 답하기',
   'ear.rhythm.by.name': '골라서 답하기',
   'ear.rhythm.by.play.help':
@@ -767,7 +759,7 @@ export const ko: Dictionary = {
   'ear.level.phrases': '악구 {n}개',
   'ear.level.stats.tune': '다시 듣지 않고 {window}개 중 {right}개 정답',
   'ear.level.rule.tune':
-    '모든 악구와 곡 전체를 가장 최근에 “다시 듣기” 없이 맞게 쳤다면(어느 조든) 그 노래를 익힌 거예요.',
+    '모든 프레이즈와 곡 전체를 마지막에 “다시 듣기” 없이 맞게 쳤다면(조는 상관없음) 그 곡은 익힌 거예요.',
   'ear.tune.help':
     '조의 으뜸화음이 울린 뒤 노래의 한 악구가 원래 리듬대로 나와요. 첫 음이 건반에 표시되니, 악구를 한 음씩 따라 치세요. 악구는 차례대로 나오고, 마지막에 곡 전체를 쳐요. 리듬은 판정하지 않아요.',
   'ear.tune.key': '조',
@@ -1357,8 +1349,7 @@ export const ko: Dictionary = {
   'trends.table.help.runs': '{n}회 미만인 주는 세지 않고 그래프에도 그리지 않아요.',
 
   'pieces.title': '곡',
-  'pieces.intro':
-    '진짜 곡을 진짜 악보로 연습해요. 맞는 건반을 칠 때까지 커서가 기다려 주니 천천히 해도 괜찮아요.',
+  'pieces.intro': '악보로 곡을 연습해요. 커서는 맞게 칠 때까지 기다려요.',
   'pieces.library': '기본 곡',
   'pieces.level.0': '입문',
   'pieces.level.n': '그레이드 {n}',

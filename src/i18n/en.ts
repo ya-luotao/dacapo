@@ -24,7 +24,7 @@ export const en = {
 
   'home.eyebrow': 'Piano practice with a MIDI keyboard',
   'home.lede':
-    'Sight-reading on a real grand staff, scales measured for evenness, real pieces that wait for you, and a metronome. dacapo times every answer and keeps practising the notes that slow you down.',
+    'Flashcards on a real grand staff, scales, pieces and a metronome, for a MIDI keyboard. Every answer is timed, and the notes you are slow on come back more often.',
   'home.start': 'Start',
   'home.play': 'Or just play',
   'home.facts': 'Free and open source · No account needed · A MIDI keyboard or your computer keys',
@@ -65,58 +65,55 @@ export const en = {
   'today.anyKey': 'Play any key to start: {name}',
   'home.contents': 'Contents',
   'home.learn.text':
-    'Fifteen short lessons for your first weeks: the keyboard, the staff, landmarks, rhythm, sharps and flats, the major scale, posture, then dots, ties and triplets, minor keys, loud and soft, joined and detached, the pedals, ornaments, chords, how to practise, and styles and forms, with figures to play with.',
+    'Fifteen short lessons for the first weeks, from the keyboard and the staff to pedals, chords and how to practise.',
   'home.learn.meta': '{n} lessons',
   'home.read.text':
-    'One note at a time on the grand staff, from middle {C} position to ledger lines and accidentals, then intervals, key signatures and chords, lines of rhythm to tap in time, and short music to sight-read in time. Every answer is timed, and the next card favours what you are slow on.',
+    'One note at a time, then intervals, key signatures, chords, rhythms and short pieces to sight-read.',
   'home.read.meta': '{n} levels',
   'home.ear.text':
-    'Intervals, chords, short melodies, cadences and bars of rhythm by ear, from the octave to seventh chords, chromatic notes and syncopation; then whole tunes, phrase by phrase, in their key or another. Play back what you hear on the keys, tap it, or name it; the next question favours the ones you miss.',
+    'Intervals, chords, melodies, cadences, rhythms and whole tunes by ear. Play back what you hear, or name it.',
   'home.ear.meta': '{n} levels · {tunes} tunes',
   'home.harmony.text':
-    'Chord symbols as songbooks and lead sheets print them over a tune, from the triads of three major keys to seventh, slash and suspended chords. Play each one in any voicing; the next card favours the ones you are slow on. Then progressions in any key, the left hand in a pattern, practised as a piece. Or improvise over a backing in a loop, each note showing how it sounds against the chord.',
+    'Chord symbols as lead sheets print them, progressions in any key, and improvising over a backing.',
   'home.harmony.meta': '{n} levels',
   'home.scales.text':
-    'Scales and arpeggios in every key with Hanon’s fingering, hands together or in contrary motion. Play at your own tempo or with the click, then see how even every note was.',
+    'Every scale and arpeggio with Hanon’s fingering, measured for evenness note by note.',
   'home.scales.meta': '12 keys · 5 scales · arpeggios',
   'home.pieces.text':
-    'Beethoven, Bach, Schumann and more on the real score. The cursor waits for the right keys, or keeps time in rhythm mode. Or bring your own MusicXML.',
+    'Beethoven, Bach, Schumann and others, or your own MusicXML. The score waits for the right keys, or keeps time.',
   'home.pieces.meta': '{n} pieces · MusicXML',
-  'home.metronome.text':
-    'A pendulum with accents, subdivisions and a tempo trainer, for any practice.',
+  'home.metronome.text': 'A pendulum metronome with accents, subdivisions and a tempo trainer.',
   'home.metronome.meta': '{min}–{max} BPM',
-  'home.progress.text':
-    'Minutes a day, a streak, a year at a glance, and a heatmap of the notes you find slowly.',
+  'home.progress.text': 'Minutes, streaks, a year of practice, and the notes you find slowly.',
   'home.progress.meta': '{n} minutes a day',
   'home.principles': 'Made for practice',
   'home.principle.keyboard': 'Any keyboard',
   'home.principle.keyboard.text':
-    'Any MIDI keyboard over USB. No keyboard to hand? Your computer keys play an octave at a time.',
+    'Any USB MIDI keyboard. Without one, your computer keys play an octave at a time.',
   'home.principle.private': 'Yours alone',
   'home.principle.private.text':
-    'Your practice stays on this device. An account is optional, only to sync your own devices.',
+    'Your practice stays on this device. Sign in only to sync your own devices.',
   'home.principle.open': 'Free and open source',
-  'home.principle.open.text': 'MIT-licensed and made in the open. No ads, and nothing to buy.',
+  'home.principle.open.text': 'MIT-licensed and developed in the open. No ads, nothing to buy.',
   'home.principle.languages': 'Five languages',
   'home.principle.languages.text':
-    'English, 简体中文, 繁體中文, 日本語 and 한국어, each with its own musical terms.',
+    'English, 简体中文, 繁體中文, 日本語 and 한국어, each with its own music terms.',
   'home.faq': 'Questions',
   'home.faq.midi.q': 'Do I need a MIDI keyboard?',
   'home.faq.midi.a':
-    'No. Your computer keyboard plays an octave at a time, and you can click or tap the keys. A MIDI keyboard makes practice feel real and times every note precisely.',
+    'No. Your computer keys play an octave at a time, and you can tap the keys on the screen. A MIDI keyboard times every note exactly.',
   'home.faq.browser.q': 'Which browsers work?',
   'home.faq.browser.a':
-    'For a MIDI keyboard, Chrome or Edge on a computer. Other browsers work with your computer keyboard.',
+    'Chrome or Edge on a computer, for a MIDI keyboard. Any browser works with the computer keys.',
   'home.faq.free.q': 'Is it free?',
   'home.faq.free.a':
-    'Yes. dacapo is free and open source under the MIT licence: no subscription, no ads, and no account needed.',
+    'Yes. It is open source under the MIT licence, with no subscription, no ads and no account.',
   'home.faq.data.q': 'Where is my practice saved?',
   'home.faq.data.a':
-    'In this browser, on this device. You can export it from Settings at any time, or sign in to sync it between your own devices.',
+    'In this browser on this device. Export it from Settings any time, or sign in to sync it between your own devices.',
 
   'start.title': 'Start',
-  'start.intro':
-    'Two questions, so that dacapo begins where you are. Neither has to be answered: every page stays open.',
+  'start.intro': 'Two questions, so dacapo starts at your level. You can skip both.',
   'start.from': 'Where are you starting from?',
   'start.from.new': 'I am new to the piano',
   'start.from.new.text': 'The lessons begin with the keyboard itself.',
@@ -142,7 +139,7 @@ export const en = {
 
   'learn.title': 'The basics',
   'learn.intro':
-    'Short lessons for your first weeks at the piano: the keyboard, the staff, rhythm and more. Each has figures to play with, and an exercise to finish.',
+    'Short lessons for your first weeks at the piano. Each has figures to play and an exercise at the end.',
   'learn.language':
     'The lessons are written in English, Simplified Chinese and Traditional Chinese; they are shown here in English.',
   'learn.lesson': 'Lesson {n}',
@@ -204,9 +201,9 @@ export const en = {
   'midi.status.output': 'sound out through {name}',
   'midi.unnamedDevice': 'MIDI device',
   'midi.help.unsupported':
-    'This browser cannot talk to MIDI keyboards. Use Chrome or Edge on a computer — or play with your computer keyboard for now.',
+    'This browser cannot talk to MIDI keyboards. Use Chrome or Edge on a computer, or play with your computer keyboard for now.',
   'midi.help.unsupported.touch':
-    'This browser cannot talk to MIDI keyboards. Use Chrome or Edge on a computer — or play on the keys on the screen for now.',
+    'This browser cannot talk to MIDI keyboards. Use Chrome or Edge on a computer, or play on the keys on the screen for now.',
   'midi.help.noPermission':
     'dacapo needs permission to use MIDI devices. Allow MIDI for this site in the browser’s site settings, then try again.',
   'midi.help.noDevice':
@@ -225,7 +222,7 @@ export const en = {
   'input.notice.touch': '{status}: the keys on the screen play.',
 
   'read.title': 'Read',
-  'read.intro': 'One note on the grand staff. Find it on your keyboard — in the right octave.',
+  'read.intro': 'One note on the grand staff. Play it on your keyboard, in the right octave.',
   'read.level': 'Level',
   'read.level.L1': 'Treble: middle {C} position',
   'read.level.L2': 'Treble: {C4} to {C5}',
@@ -247,7 +244,7 @@ export const en = {
   'read.level.stats': '{cards}/{window} cards · {accuracy} correct · median {median}',
   'level.rule.ask': 'How is a level mastered?',
   'read.level.rule':
-    'A level is mastered at 90% correct and a median reaction under 2 s over its last 40 cards without the hint. Move on whenever you like.',
+    'Mastered at 90% right with a median reaction under 2 s, over the last 40 cards without the hint.',
   'read.length': 'Cards per session',
   'read.hint': 'Show letter names',
   'read.hint.help': 'Answers given with the hint count for accuracy, not for reaction time.',
@@ -323,7 +320,7 @@ export const en = {
   'theory.level.RC5': 'All triads and sevenths',
   'theory.level.RC5.detail': 'Inversions and seventh chords together · both staves',
   'theory.level.rule':
-    'A level is mastered at 90% correct and a median answer under {seconds} s over its last {window} cards without the hint. Move on whenever you like.',
+    'Mastered at 90% right with a median answer under {seconds} s, over the last {window} cards without the hint.',
   'theory.by.play.help': 'Play exactly the written notes, in their octave.',
   'theory.by.name.help': 'Choose the root and the chord with the buttons or the keys.',
   'theory.hint.help':
@@ -384,7 +381,7 @@ export const en = {
   'theory.summary.missed': 'Missed cards',
   'theory.summary.miss': '{card}: {right} — answered {answer}',
   'rhythm.intro':
-    'A line of rhythm to tap on any key: a bar of clicks counts you in, and every note is timed against the beat.',
+    'A line of rhythm to tap on any key. A bar of clicks counts you in, and every note is timed against the beat.',
   'rhythm.level.detail': '{what} · {meters}',
   'rhythm.level.R1': 'Quarters, halves and wholes',
   'rhythm.level.R1.detail': 'and the quarter rest',
@@ -407,7 +404,7 @@ export const en = {
   'rhythm.level.R10': 'Two hands, two rhythms',
   'rhythm.level.R10.detail': 'then two against three',
   'rhythm.level.rule':
-    'A level is mastered when {percent} of its last {window} cells are right: every note within {ms} ms of the beat, and no extra tap. Move on whenever you like.',
+    'Mastered when {percent} of the last {window} cells are right: every note within {ms} ms of the beat, and no extra taps.',
   'rhythm.level.stats': '{cells}/{window} cells · {accuracy} right · median {median}',
   'rhythm.tempo': 'Tempo',
   'rhythm.tempo.help': 'Beats a minute, kept for each level.',
@@ -489,8 +486,7 @@ export const en = {
   'rhythm.summary.tempo': 'Tempo',
   'rhythm.summary.missed': 'Cells to work on',
   'rhythm.summary.times': '× {n}',
-  'sight.intro':
-    'Music you have never seen, on the grand staff: look it through, then play it once, in time.',
+  'sight.intro': 'Music you have not seen before. Look it over, then play it once, in time.',
   'sight.level.F1': 'Right hand in {C} position',
   'sight.level.F1.detail': 'steps · C major',
   'sight.level.F2': 'Left hand in {C} position',
@@ -508,7 +504,7 @@ export const en = {
   'sight.level.F8': 'Chords in the left hand',
   'sight.level.F8.detail': 'broken chords, sixteenths · up to four sharps or flats',
   'sight.level.rule':
-    'A level is mastered when each of your last {n} fragments played in time had {percent} or more of its notes right and in time (within {ms} ms), each by its first run. Move on to the next level whenever you like.',
+    'Mastered when each of the last {n} fragments had {percent} or more of its notes right and in time (within {ms} ms) on its first run.',
   'sight.level.stats': '{passed} of the last {count} fragments right',
   'sight.level.none': 'no fragment played in time yet',
   'sight.play': 'Play',
@@ -571,8 +567,7 @@ export const en = {
   'sight.summary.runsOf': '{n} runs',
 
   'ear.title': 'Ear',
-  'ear.intro':
-    'Hear two notes, a chord, a short melody, the cadence that ends a phrase, a bar of rhythm or a phrase of a tune, then play it back on your keyboard, name it or choose it.',
+  'ear.intro': 'Listen, then play back what you heard, tap it, or name it.',
   'ear.sound.needed':
     'Ear training needs sound: choose your instrument or the built-in piano as the output.',
   'ear.sound.link': 'Choose the sound in Settings',
@@ -610,7 +605,7 @@ export const en = {
   'ear.level.chords': '{n} chords',
   'ear.level.stats': '{answers}/{window} answers · {accuracy} correct · median {median}',
   'ear.level.rule':
-    'A level is mastered at 90% correct over its last 40 answers given without “Hear again”, in any direction. Move on whenever you like.',
+    'Mastered at 90% right over the last 40 answers given without “Hear again”, in any direction.',
   'ear.length': 'Questions per session',
   'ear.session': 'Ear training',
   'ear.count': 'Question {n} of {total}',
@@ -689,7 +684,7 @@ export const en = {
   'ear.level.notesRange': '{min}–{max} notes',
   'ear.level.stats.echo': '{answers}/{window} melodies · {accuracy} correct · median {median}',
   'ear.level.rule.echo':
-    'A level is mastered at 90% correct over its last 20 melodies played back without “Hear again”. Move on whenever you like.',
+    'Mastered at 90% right over the last 20 melodies played back without “Hear again”.',
   'ear.echo.help':
     'The chord of the key sounds, then a short melody. Its first note is marked on the keyboard: play the whole melody back, note by note.',
   'ear.echoLength': 'Melodies per session',
@@ -708,7 +703,7 @@ export const en = {
   'ear.level.CA4': 'In minor keys too',
   'ear.level.cadences': '{n} cadences',
   'ear.level.rule.cadence':
-    'A level is mastered at 90% correct over its last 20 cadences named without “Hear again”. Move on whenever you like.',
+    'Mastered at 90% right over the last 20 cadences named without “Hear again”.',
   'ear.cadence.help':
     'Four chords, the first setting the key. Name the cadence the last two make, by the buttons or the number keys.',
   'ear.task.cadence': 'Which cadence ends it?',
@@ -732,7 +727,7 @@ export const en = {
   'ear.family.rhythmEar': 'Rhythm',
   'ear.rhythm.level.stats': '{answers}/{window} answers · {accuracy} correct',
   'ear.rhythm.level.rule':
-    'A level is mastered at 90% correct over its last 40 answers given without “Hear again”: each cell of a bar tapped back is an answer, and each bar chosen. Move on whenever you like.',
+    'Mastered at 90% right over the last 40 answers given without “Hear again”. Each cell tapped back is an answer, and so is each bar chosen.',
   'ear.rhythm.by.play': 'Tap it back',
   'ear.rhythm.by.name': 'Choose it',
   'ear.rhythm.by.play.help':
@@ -768,7 +763,7 @@ export const en = {
   'ear.level.phrases': '{n} phrases',
   'ear.level.stats.tune': '{right} of {window} right without a replay',
   'ear.level.rule.tune':
-    'A tune is learnt once every phrase of it and the whole tune were last played right without “Hear again”, in any key.',
+    'A tune is learnt when every phrase, and the whole tune, were last played right without “Hear again”, in any key.',
   'ear.tune.help':
     'The chord of the key sounds, then a phrase of the tune in its own rhythm. Its first note is marked on the keyboard: play the phrase back, note by note. The phrases come in order, then the whole tune. Timing is not judged.',
   'ear.tune.key': 'Key',
@@ -993,7 +988,7 @@ export const en = {
   'progress.today.reached': 'Daily goal reached',
   'progress.today.toGo': '{n} min to today’s goal',
   'progress.goal':
-    'A day counts towards the streak with at least {n} minutes of practice — flashcards, free play and pieces together, by your local date.',
+    'A day counts towards the streak with at least {n} minutes of practice (flashcards, free play and pieces together), by your local date.',
   'progress.goal.change': 'Change the goal in Settings',
   'where.title': 'Where you are',
   'where.help': 'How far each practice has got, and its next step.',
@@ -1370,8 +1365,7 @@ export const en = {
   'trends.table.help.runs': 'A week with fewer than {n} runs is not counted, nor drawn.',
 
   'pieces.title': 'Pieces',
-  'pieces.intro':
-    'Real pieces on the real score. The cursor waits until you have played the right keys, so take all the time you need.',
+  'pieces.intro': 'Pieces on the real score. The cursor waits until you play the right keys.',
   'pieces.library': 'Library',
   'pieces.level.0': 'Initial',
   'pieces.level.n': 'Grade {n}',
@@ -2196,7 +2190,7 @@ export const en = {
   'pieces.advice.slower.bars': 'You slow down in {bars}: loop them with the click.',
   'pieces.advice.slower.bar': 'You slow down in {bars}: loop it with the click.',
   'pieces.advice.late.calibrate':
-    '{ms} ms late throughout: if it felt in time, the delay is the computer’s — calibrate it.',
+    '{ms} ms late throughout: if it felt in time, the delay is the computer’s. Calibrate it.',
   'pieces.advice.late':
     '{ms} ms late throughout: place each note a little earlier, on the click rather than after it.',
   'pieces.advice.early':
@@ -2220,7 +2214,7 @@ export const en = {
   'storage.unavailable':
     'This browser is not letting dacapo save data (a private window, or site data blocked?). You can practise, but your progress will be gone when you close the tab.',
   'storage.failed':
-    'Some progress could not be saved — the disk may be full. It stays on screen until you close the tab.',
+    'Some progress could not be saved; the disk may be full. It stays on screen until you close the tab.',
   'storage.outdated':
     'dacapo’s storage was changed in another tab or by the browser. Reload this page to keep saving your progress.',
   'storage.reload': 'Reload',
@@ -3103,9 +3097,9 @@ export const en = {
   // i18n/shellWording.ts): the app has no browser, tabs, site data or downloads to speak of.
   'midi.status.unsupported.app': 'MIDI is not available',
   'midi.help.unsupported.app':
-    'dacapo could not start MIDI on this device. Close dacapo and open it again — until then, play on the keyboard on screen or a computer keyboard.',
+    'dacapo could not start MIDI on this device. Close dacapo and open it again. Until then, play on the keyboard on screen or a computer keyboard.',
   'midi.help.unsupported.touch.app':
-    'dacapo could not start MIDI on this device. Close dacapo and open it again — until then, play on the keyboard on screen.',
+    'dacapo could not start MIDI on this device. Close dacapo and open it again. Until then, play on the keyboard on screen.',
   'midi.status.noPermission.app': 'MIDI is not available',
   'midi.help.noPermission.app': 'dacapo could not open MIDI on this device.',
   'midi.help.noDevice.app':
@@ -3118,13 +3112,13 @@ export const en = {
   'pieces.engineFailed.app':
     'The notation engine could not be loaded. Close dacapo and open it again.',
   'pieces.advice.late.calibrate.app':
-    '{ms} ms late throughout: if it felt in time, the delay is the device’s — calibrate it.',
+    '{ms} ms late throughout: if it felt in time, the delay is the device’s. Calibrate it.',
   'storage.blocked.app':
     'An older version of dacapo is still using your progress. Close dacapo and open it again to load it.',
   'storage.unavailable.app':
     'dacapo cannot save data on this device right now (is the storage full?). You can practise, but your progress will be gone when you close dacapo.',
   'storage.failed.app':
-    'Some progress could not be saved — the storage may be full. It stays on screen until you close dacapo.',
+    'Some progress could not be saved; the storage may be full. It stays on screen until you close dacapo.',
   'storage.outdated.app':
     'dacapo’s storage was changed from outside. Reload to keep saving your progress.',
   'settings.language.help.app': 'Follows your device’s language unless you choose one here.',

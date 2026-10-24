@@ -24,7 +24,7 @@ export const zhTW: Dictionary = {
 
   'home.eyebrow': '用 MIDI 鍵盤練鋼琴',
   'home.lede':
-    '在真正的大譜表上識譜；音階彈得勻不勻，一測便知；真正的樂曲，樂譜會等你彈對；再加上一台節拍器。dacapo 為每次作答計時，哪些音讓你慢下來，就多練哪些。',
+    '用 MIDI 鍵盤練琴：大譜表識譜閃卡、音階、樂曲和節拍器。每次作答都計時，你找得慢的音會多出現幾次。',
   'home.start': '開始',
   'home.play': '或者自由彈奏',
   'home.facts': '免費開源 · 不需要帳號 · MIDI 鍵盤或電腦鍵盤都能彈',
@@ -64,57 +64,49 @@ export const zhTW: Dictionary = {
   'today.start': '開始',
   'today.anyKey': '按任意琴鍵開始：{name}',
   'home.contents': '目錄',
-  'home.learn.text':
-    '十五堂給初學者的短課：鍵盤、五線譜、地標音、節奏、升降記號、大調音階、坐姿手型，以及附點、連結線、三連音、小調、強弱奏法、踏板、裝飾音、和弦，還有怎麼練琴、風格與曲式，配有可以動手彈的圖示。',
+  'home.learn.text': '十五堂入門短課，從鍵盤和五線譜講起，一直講到踏板、和弦和怎麼練琴。',
   'home.learn.meta': '{n} 課',
-  'home.read.text':
-    '大譜表上一次一個音，從中央 {C} 位置一路到加線和升降記號，再到音程、調號和和弦，還有跟著拍子打的節奏，以及跟著拍子視奏的短曲。每次作答都會計時，下一張閃卡會優先出你反應慢的內容。',
+  'home.read.text': '先一次認一個音，再認音程、調號、和弦和節奏，最後是短小的視奏片段。',
   'home.read.meta': '{n} 個等級',
-  'home.ear.text':
-    '用耳朵分辨音程、和弦、短旋律、終止式與一小節節奏，從八度到七和弦、變化音和切分音；還有一句一句聽著彈的歌曲，原調或換個調。把聽到的在琴上彈出來、打出來，或是選出名稱；下一題會優先出你常答錯的。',
+  'home.ear.text': '聽音程、和弦、旋律、終止式、節奏和整首歌，聽到什麼就彈出來，或者說出它的名稱。',
   'home.ear.meta': '{n} 個等級 · {tunes} 首歌',
-  'home.harmony.text':
-    '歌本和流行樂譜印在旋律上方的和弦記號，從三個大調的三和弦，到七和弦、斜線和弦和掛留和弦。每個和弦用任意排列彈出來，下一張閃卡會優先出你彈得慢的。還有任何調的和弦進行，左手按伴奏型，像樂曲一樣練習。還可以在循環的伴奏上即興，每個音都顯示它在和弦上聽起來怎樣。',
+  'home.harmony.text': '流行樂譜上的和弦記號、任意調的和弦進行，還有跟著伴奏即興。',
   'home.harmony.meta': '{n} 個等級',
-  'home.scales.text':
-    '所有調的音階和琶音，採用哈農的指法，可雙手同向或反向。用自己的速度或跟著節拍器彈，彈完看看每個音有多均勻。',
+  'home.scales.text': '所有調的音階和琶音，用哈農的指法，逐個音測量彈得勻不勻。',
   'home.scales.meta': '12 個調 · 5 種音階 · 琶音',
   'home.pieces.text':
-    '貝多芬、巴哈、舒曼等名家作品，在真正的樂譜上彈。游標會等你彈對，節奏模式下則跟著拍子走。也可以匯入你自己的 MusicXML。',
+    '貝多芬、巴哈、舒曼等人的作品，也可以匯入自己的 MusicXML。樂譜可以等你彈對，也可以照拍子往前走。',
   'home.pieces.meta': '{n} 首樂曲 · MusicXML',
-  'home.metronome.text': '有擺錘的節拍器，還有重音、細分和速度訓練，什麼練習都用得上。',
+  'home.metronome.text': '擺錘節拍器，有重音、細分和漸快練習。',
   'home.metronome.meta': '{min}–{max} BPM',
-  'home.progress.text':
-    '每天的練習分鐘數、連續天數、一整年一目了然，還有一張熱度圖，標出你找得慢的音。',
+  'home.progress.text': '練了多少分鐘、連續幾天、一整年的紀錄，還有你找得慢的音。',
   'home.progress.meta': '每天 {n} 分鐘',
   'home.principles': '專為練琴',
   'home.principle.keyboard': '什麼鍵盤都行',
-  'home.principle.keyboard.text':
-    '任何以 USB 連接的 MIDI 鍵盤都能用。手邊沒有鍵盤？電腦鍵盤也能彈，一次一個八度。',
+  'home.principle.keyboard.text': '任何 USB MIDI 鍵盤都可以。沒有的話，電腦鍵盤一次能彈一個八度。',
   'home.principle.private': '只屬於你',
   'home.principle.private.text':
-    '練習紀錄儲存在這台裝置上。帳號可有可無，只用來在你自己的裝置之間同步。',
+    '練習紀錄留在這台裝置上。只有想在自己的幾台裝置間同步時才需要登入。',
   'home.principle.open': '免費開源',
-  'home.principle.open.text': '採用 MIT 授權條款，公開開發。沒有廣告，也沒有任何付費項目。',
+  'home.principle.open.text': 'MIT 授權，公開開發。沒有廣告，也沒有要買的東西。',
   'home.principle.languages': '五種語言',
   'home.principle.languages.text':
-    'English、简体中文、繁體中文、日本語、한국어，每種語言都使用自己的音樂術語。',
+    'English、简体中文、繁體中文、日本語、한국어，各用各的樂理術語。',
   'home.faq': '常見問題',
   'home.faq.midi.q': '一定要有 MIDI 鍵盤嗎？',
   'home.faq.midi.a':
-    '不用。電腦鍵盤一次可以彈一個八度，也可以直接點按畫面上的琴鍵。有了 MIDI 鍵盤，練起來更像真的在彈琴，每個音的計時也更精確。',
+    '不需要。電腦鍵盤一次能彈一個八度，也可以點螢幕上的琴鍵。接上 MIDI 鍵盤，每個音的計時會更準。',
   'home.faq.browser.q': '支援哪些瀏覽器？',
   'home.faq.browser.a':
-    '要連接 MIDI 鍵盤，請在電腦上使用 Chrome 或 Edge。其他瀏覽器可以用電腦鍵盤彈奏。',
+    '要連 MIDI 鍵盤，請用電腦上的 Chrome 或 Edge。只用電腦鍵盤的話，哪個瀏覽器都可以。',
   'home.faq.free.q': '是免費的嗎？',
-  'home.faq.free.a':
-    '完全免費。dacapo 是採用 MIT 授權條款的免費開源軟體：不用訂閱、沒有廣告，也不需要帳號。',
+  'home.faq.free.a': '免費。這是 MIT 授權的開源軟體，不用訂閱，沒有廣告，也不用註冊。',
   'home.faq.data.q': '練習紀錄儲存在哪裡？',
   'home.faq.data.a':
-    '儲存在這台裝置的這個瀏覽器裡。你隨時可以在「設定」中匯出，也可以登入，在自己的幾台裝置之間同步。',
+    '存在這台裝置的瀏覽器裡。隨時可以在設定裡匯出，也可以登入後在自己的裝置間同步。',
 
   'start.title': '開始',
-  'start.intro': '兩個問題，讓 dacapo 從你現在的程度開始。不回答也沒關係：每個頁面都照常能用。',
+  'start.intro': '回答兩個問題，dacapo 會從適合你的地方開始。也可以都跳過。',
   'start.from': '你從哪裡開始？',
   'start.from.new': '我剛開始學鋼琴',
   'start.from.new.text': '課程從認識鍵盤講起。',
@@ -138,8 +130,7 @@ export const zhTW: Dictionary = {
   'start.change': '答案隨時可以到「設定」裡改。',
 
   'learn.title': '入門基礎',
-  'learn.intro':
-    '為剛開始學琴的你準備的幾堂短課：鍵盤、五線譜、節奏等等。每課都有可以動手彈的圖示，最後還有一個小練習。',
+  'learn.intro': '給剛學琴的人準備的短課，每課都有能彈的譜例，最後有一個小練習。',
   'learn.language': '課程目前以英文、簡體中文和繁體中文撰寫。',
   'learn.lesson': '第 {n} 課',
   'learn.minutes': '{n} 分鐘',
@@ -219,7 +210,7 @@ export const zhTW: Dictionary = {
   'input.notice.touch': '{status}：螢幕上的琴鍵可以彈。',
 
   'read.title': '識譜',
-  'read.intro': '大譜表上會出現一個音符，請在琴鍵上找到它——八度也要對。',
+  'read.intro': '大譜表上一個音，在琴上彈出來，八度要對。',
   'read.level': '等級',
   'read.level.L1': '高音譜表：中央 {C} 位置',
   'read.level.L2': '高音譜表：{C4} 到 {C5}',
@@ -240,8 +231,7 @@ export const zhTW: Dictionary = {
   'read.level.new': '還沒練過',
   'read.level.stats': '{cards}/{window} 張 · 正確率 {accuracy} · 反應中位數 {median}',
   'level.rule.ask': '怎樣算熟練一個等級？',
-  'read.level.rule':
-    '某個等級最近 40 張（沒開提示）的正確率達到 90%、反應時間中位數低於 2 秒，就算熟練了。想換等級隨時都可以換。',
+  'read.level.rule': '最近 40 張（不開提示）正確率 90%、反應時間中位數在 2 秒以內，就算熟練。',
   'read.length': '每輪張數',
   'read.hint': '顯示音名',
   'read.hint.help': '開著提示作答的題目會計入正確率，但不計入反應時間。',
@@ -314,7 +304,7 @@ export const zhTW: Dictionary = {
   'theory.level.RC5': '所有三和弦與七和弦',
   'theory.level.RC5.detail': '轉位與七和弦混在一起 · 高低音譜表',
   'theory.level.rule':
-    '某個等級最近 {window} 張（沒開提示）的正確率達到 90%、作答時間中位數低於 {seconds} 秒，就算熟練了。想換等級隨時都可以換。',
+    '最近 {window} 張（不開提示）正確率 90%、答題時間中位數在 {seconds} 秒以內，就算熟練。',
   'theory.by.play.help': '照譜彈出每個音，八度也要對。',
   'theory.by.name.help': '用按鈕或按鍵選出根音和和弦。',
   'theory.hint.help': '在譜表下方寫出音名。開著提示作答的題目會計入正確率，但不計入作答時間。',
@@ -372,8 +362,8 @@ export const zhTW: Dictionary = {
   'theory.wrong.chord': '這個和弦是 {notes}，請按標示出來的鍵。',
   'theory.summary.slowest': '最慢的題目',
   'theory.summary.missed': '答錯的題目',
-  'theory.summary.miss': '{card}：{right}——答成了「{answer}」',
-  'rhythm.intro': '一行節奏，隨便按一個鍵打出來：先響一小節預備拍，然後每個音都對照拍子計時。',
+  'theory.summary.miss': '{card}：{right}，答成了「{answer}」',
+  'rhythm.intro': '在任意一個鍵上打出一行節奏。先響一小節預備拍，每個音都對照拍子計時。',
   'rhythm.level.detail': '{what} · {meters}',
   'rhythm.level.R1': '四分、二分和全音符',
   'rhythm.level.R1.detail': '加上四分休止符',
@@ -396,7 +386,7 @@ export const zhTW: Dictionary = {
   'rhythm.level.R10': '雙手：兩種節奏',
   'rhythm.level.R10.detail': '然後是二對三',
   'rhythm.level.rule':
-    '某一級最近 {window} 個節奏型有 {percent} 打對，就算掌握了：每個音都在拍子前後 {ms} 毫秒以內，也沒有多按。想換等級隨時可以換。',
+    '最近 {window} 個節奏型有 {percent} 打對就算熟練：每個音離拍點不超過 {ms} 毫秒，也沒有多按。',
   'rhythm.level.stats': '{cells}/{window} 個 · 打對 {accuracy} · 偏差中位數 {median}',
   'rhythm.tempo': '速度',
   'rhythm.tempo.help': '每分鐘的拍數，每一級分別記住。',
@@ -477,7 +467,7 @@ export const zhTW: Dictionary = {
   'rhythm.summary.tempo': '速度',
   'rhythm.summary.missed': '還要多練的節奏型',
   'rhythm.summary.times': '× {n}',
-  'sight.intro': '一段從沒見過的音樂，寫在大譜表上：先看一遍，再跟著拍子從頭彈到尾。',
+  'sight.intro': '一段沒見過的譜，先看一遍，再跟著拍子彈一遍。',
   'sight.level.F1': '右手，{C} 位置',
   'sight.level.F1.detail': '級進 · C 大調',
   'sight.level.F2': '左手，{C} 位置',
@@ -495,7 +485,7 @@ export const zhTW: Dictionary = {
   'sight.level.F8': '左手和弦',
   'sight.level.F8.detail': '分解和弦，十六分音符 · 四個升降記號以內',
   'sight.level.rule':
-    '某一級最近 {n} 段跟著拍子彈的片段，每段都有 {percent} 以上的音彈對而且在拍子上（前後 {ms} 毫秒以內），就算掌握了；每段只看第一遍。想換等級隨時可以換。',
+    '最近 {n} 段裡，每段第一遍都有 {percent} 以上的音彈對且在拍子上（誤差 {ms} 毫秒以內），就算熟練。',
   'sight.level.stats': '最近 {count} 段裡彈好了 {passed} 段',
   'sight.level.none': '還沒有跟著拍子彈過的片段',
   'sight.play': '彈法',
@@ -554,8 +544,7 @@ export const zhTW: Dictionary = {
   'sight.summary.runsOf': '彈了 {n} 遍',
 
   'ear.title': '練耳',
-  'ear.intro':
-    '聽兩個音、一個和弦、一段短旋律、樂句結尾的終止式、一小節節奏或一首歌的一個樂句，然後在琴上彈出來、打出來，或是選出它的名稱。',
+  'ear.intro': '先聽，再把聽到的彈出來、打出來，或者說出它的名稱。',
   'ear.sound.needed': '練耳需要聲音：請把聲音輸出設為你的樂器或內建鋼琴。',
   'ear.sound.link': '到設定選擇聲音',
   'ear.family': '練習內容',
@@ -590,8 +579,7 @@ export const zhTW: Dictionary = {
   'ear.level.intervals': '{n} 種音程',
   'ear.level.chords': '{n} 種和弦',
   'ear.level.stats': '{answers}/{window} 題 · 正確率 {accuracy} · 作答時間中位數 {median}',
-  'ear.level.rule':
-    '某個等級最近 40 題（不算按過「再聽一次」的，各個方向都算）的正確率達到 90%，就算熟練了。想換等級隨時都可以換。',
+  'ear.level.rule': '最近 40 題（沒按「再聽一次」的，哪個方向都算）正確率 90%，就算熟練。',
   'ear.length': '每輪題數',
   'ear.session': '練耳',
   'ear.count': '第 {n} 題，共 {total} 題',
@@ -669,8 +657,7 @@ export const zhTW: Dictionary = {
   'ear.level.notes': '{n} 個音',
   'ear.level.notesRange': '{min}–{max} 個音',
   'ear.level.stats.echo': '{answers}/{window} 段旋律 · 正確率 {accuracy} · 作答時間中位數 {median}',
-  'ear.level.rule.echo':
-    '某個等級最近 20 段旋律（不算按過「再聽一次」的）的正確率達到 90%，就算熟練了。想換等級隨時都可以換。',
+  'ear.level.rule.echo': '最近 20 段旋律（沒按「再聽一次」的）正確率 90%，就算熟練。',
   'ear.echo.help':
     '先響起這個調的主和弦，再放一段短旋律。鍵盤上會標出第一個音，請一個音一個音地把整段旋律彈出來。',
   'ear.echoLength': '每輪旋律數',
@@ -688,8 +675,7 @@ export const zhTW: Dictionary = {
   'ear.level.CA3': '加上阻礙終止',
   'ear.level.CA4': '小調也有',
   'ear.level.cadences': '{n} 種終止式',
-  'ear.level.rule.cadence':
-    '某個等級最近 20 個終止式（不算按過「再聽一次」的）的正確率達到 90%，就算熟練了。想換等級隨時都可以換。',
+  'ear.level.rule.cadence': '最近 20 個終止式（沒按「再聽一次」的）正確率 90%，就算熟練。',
   'ear.cadence.help':
     '四個和弦，第一個定下調性。說出最後兩個和弦構成的終止式：點按鈕，或按數字鍵。',
   'ear.task.cadence': '結尾是哪種終止？',
@@ -713,7 +699,7 @@ export const zhTW: Dictionary = {
   'ear.family.rhythmEar': '節奏',
   'ear.rhythm.level.stats': '{answers}/{window} 次作答 · 正確率 {accuracy}',
   'ear.rhythm.level.rule':
-    '某個等級最近 40 次作答（不算按過「再聽一次」的）的正確率達到 90%，就算熟練了：打出來的每個節奏型算一次，選出來的每個小節算一次。想換等級隨時都可以換。',
+    '最近 40 次作答（沒按「再聽一次」的）正確率 90%，就算熟練。打出的每個節奏型算一次，選出的每個小節也算一次。',
   'ear.rhythm.by.play': '打出來',
   'ear.rhythm.by.name': '選出來',
   'ear.rhythm.by.play.help':
@@ -748,7 +734,7 @@ export const zhTW: Dictionary = {
   'ear.level.phrases': '{n} 個樂句',
   'ear.level.stats.tune': '不重聽彈對 {right}/{window}',
   'ear.level.rule.tune':
-    '一首歌的每個樂句和整首歌，最近一次都是沒按「再聽一次」就彈對的（哪個調都算），這首歌就算學會了。',
+    '每個樂句和整首歌最近一次都沒按「再聽一次」就彈對了（哪個調都可以），這首歌就算學會。',
   'ear.tune.help':
     '先響起這個調的主和弦，再照原來的節奏放歌曲的一個樂句。鍵盤上會標出第一個音，請一個音一個音地把樂句彈出來。樂句依序出，最後彈整首歌。不判節奏。',
   'ear.tune.key': '調',
@@ -1319,7 +1305,7 @@ export const zhTW: Dictionary = {
   'trends.table.help.runs': '少於 {n} 遍的週不計入，也不畫在圖上。',
 
   'pieces.title': '樂曲',
-  'pieces.intro': '在真正的樂譜上練真正的曲子。游標會等你彈對了才往下走，所以慢慢來就好。',
+  'pieces.intro': '在樂譜上練曲子，游標會等你彈對再往下走。',
   'pieces.library': '曲庫',
   'pieces.level.0': '入門',
   'pieces.level.n': '{n} 級',

@@ -24,7 +24,7 @@ export const zhCN: Dictionary = {
 
   'home.eyebrow': '用 MIDI 键盘练钢琴',
   'home.lede':
-    '在真正的大谱表上识谱；音阶弹得匀不匀，一测便知；真正的曲目，乐谱会等你弹对；再加一台节拍器。dacapo 为每次作答计时，哪些音让你慢下来，就多练哪些。',
+    '用 MIDI 键盘练琴：大谱表识谱卡片、音阶、曲目和节拍器。每次作答都计时，你找得慢的音会多出现几次。',
   'home.start': '开始',
   'home.play': '或者自由弹奏',
   'home.facts': '免费开源 · 无需账号 · MIDI 键盘或电脑键盘都能弹',
@@ -64,57 +64,49 @@ export const zhCN: Dictionary = {
   'today.start': '开始',
   'today.anyKey': '按任意琴键开始：{name}',
   'home.contents': '目录',
-  'home.learn.text':
-    '十五节给初学者的短课：键盘、五线谱、地标音、节奏、升降号、大调音阶、坐姿手型，以及附点、延音线、三连音、小调、强弱奏法、踏板、装饰音、和弦，还有怎样练琴、风格与曲式，配有可以动手弹的图示。',
+  'home.learn.text': '十五节入门短课，从键盘和五线谱讲起，一直讲到踏板、和弦和怎样练琴。',
   'home.learn.meta': '{n} 课',
-  'home.read.text':
-    '大谱表上一次一个音，从中央 {C} 位置一直到加线和升号、降号，再到音程、调号和和弦，还有跟着拍子打的节奏，以及跟着拍子视奏的短曲。每次作答都会计时，下一张卡片会优先出你反应慢的内容。',
+  'home.read.text': '先一次认一个音，再认音程、调号、和弦和节奏，最后是短小的视奏片段。',
   'home.read.meta': '{n} 个级别',
-  'home.ear.text':
-    '靠耳朵分辨音程、和弦、短旋律、终止式与一小节节奏，从八度到七和弦、变化音和切分音；还有一句一句听着弹的歌曲，原调或换个调。把听到的在琴上弹出来、打出来，或者选出名称；下一题会优先出你常答错的。',
+  'home.ear.text': '听音程、和弦、旋律、终止式、节奏和整首歌，听到什么就弹出来，或者说出它的名称。',
   'home.ear.meta': '{n} 个级别 · {tunes} 首歌',
-  'home.harmony.text':
-    '歌本和流行乐谱印在旋律上方的和弦记号，从三个大调的三和弦，到七和弦、斜线和弦和挂留和弦。每个和弦用任意排列弹出来，下一张卡片会优先出你弹得慢的。还有任意调的和弦进行，左手按伴奏型，像曲子一样练。还可以在循环的伴奏上即兴，每个音都显示它在和弦上听起来怎样。',
+  'home.harmony.text': '流行乐谱上的和弦记号、任意调的和弦进行，还有跟着伴奏即兴。',
   'home.harmony.meta': '{n} 个级别',
-  'home.scales.text':
-    '所有调的音阶和琶音，采用哈农的指法，可双手同向或反向。按自己的速度或跟着节拍器弹，弹完看看每个音有多均匀。',
+  'home.scales.text': '所有调的音阶和琶音，用哈农的指法，逐个音测量弹得匀不匀。',
   'home.scales.meta': '12 个调 · 5 种音阶 · 琶音',
   'home.pieces.text':
-    '贝多芬、巴赫、舒曼等名家作品，在真正的乐谱上弹。光标会等你弹对，节奏模式下则跟着拍子走。也可以导入你自己的 MusicXML。',
+    '贝多芬、巴赫、舒曼等人的作品，也可以导入自己的 MusicXML。乐谱可以等你弹对，也可以按拍子往前走。',
   'home.pieces.meta': '{n} 首曲目 · MusicXML',
-  'home.metronome.text': '带摆锤的节拍器，有重音、细分和速度训练，什么练习都用得上。',
+  'home.metronome.text': '摆锤节拍器，有重音、细分和渐快练习。',
   'home.metronome.meta': '{min}–{max} BPM',
-  'home.progress.text':
-    '每天的练习分钟数、连续天数、一整年一目了然，还有一张热力图，标出你找得慢的音。',
+  'home.progress.text': '练了多少分钟、连续几天、一整年的记录，还有你找得慢的音。',
   'home.progress.meta': '每天 {n} 分钟',
   'home.principles': '专为练琴',
   'home.principle.keyboard': '什么键盘都行',
-  'home.principle.keyboard.text':
-    '任何通过 USB 连接的 MIDI 键盘都能用。手边没有键盘？电脑键盘也能弹，一次一个八度。',
+  'home.principle.keyboard.text': '任何 USB MIDI 键盘都行。没有的话，电脑键盘一次能弹一个八度。',
   'home.principle.private': '只属于你',
   'home.principle.private.text':
-    '练习记录保存在这台设备上。账号可有可无，只用来在你自己的设备之间同步。',
+    '练习记录留在这台设备上。只有想在自己的几台设备间同步时才需要登录。',
   'home.principle.open': '免费开源',
-  'home.principle.open.text': '采用 MIT 许可证，公开开发。没有广告，也没有任何付费项目。',
+  'home.principle.open.text': 'MIT 许可，公开开发。没有广告，也没有要买的东西。',
   'home.principle.languages': '五种语言',
   'home.principle.languages.text':
-    'English、简体中文、繁體中文、日本語、한국어，每种语言都用它自己的音乐术语。',
+    'English、简体中文、繁體中文、日本語、한국어，各用各的乐理术语。',
   'home.faq': '常见问题',
   'home.faq.midi.q': '一定要有 MIDI 键盘吗？',
   'home.faq.midi.a':
-    '不用。电脑键盘一次可以弹一个八度，也可以直接点屏幕上的琴键。有了 MIDI 键盘，练起来更像真的弹琴，每个音的计时也更精确。',
+    '不需要。电脑键盘一次能弹一个八度，也可以点屏幕上的琴键。接上 MIDI 键盘，每个音的计时会更准。',
   'home.faq.browser.q': '支持哪些浏览器？',
   'home.faq.browser.a':
-    '要连接 MIDI 键盘，请在电脑上使用 Chrome 或 Edge。其他浏览器可以用电脑键盘弹。',
+    '要连 MIDI 键盘，请用电脑上的 Chrome 或 Edge。只用电脑键盘的话，哪个浏览器都行。',
   'home.faq.free.q': '是免费的吗？',
-  'home.faq.free.a':
-    '完全免费。dacapo 是采用 MIT 许可证的免费开源软件：不用订阅，没有广告，也不用注册账号。',
+  'home.faq.free.a': '免费。这是 MIT 许可的开源软件，不用订阅，没有广告，也不用注册。',
   'home.faq.data.q': '练习记录保存在哪里？',
   'home.faq.data.a':
-    '保存在这台设备的这个浏览器里。你随时可以在“设置”中导出，也可以登录，在自己的几台设备之间同步。',
+    '存在这台设备的浏览器里。随时可以在设置里导出，也可以登录后在自己的设备间同步。',
 
   'start.title': '开始',
-  'start.intro': '两个问题，让 dacapo 从你现在的水平开始。不答也没关系：每个页面都照常能用。',
+  'start.intro': '回答两个问题，dacapo 会从适合你的地方开始。也可以都跳过。',
   'start.from': '你从哪里开始？',
   'start.from.new': '我刚开始学钢琴',
   'start.from.new.text': '课程从认识键盘讲起。',
@@ -138,8 +130,7 @@ export const zhCN: Dictionary = {
   'start.change': '答案随时可以到“设置”里改。',
 
   'learn.title': '入门基础',
-  'learn.intro':
-    '为刚开始学琴的你准备的几节短课：键盘、五线谱、节奏等等。每课都有可以动手弹的图示，最后还有一个小练习。',
+  'learn.intro': '给刚学琴的人准备的短课，每课都有能弹的谱例，最后有一个小练习。',
   'learn.language': '课程目前用英文、简体中文和繁体中文编写。',
   'learn.lesson': '第 {n} 课',
   'learn.minutes': '{n} 分钟',
@@ -219,7 +210,7 @@ export const zhCN: Dictionary = {
   'input.notice.touch': '{status}：屏幕上的琴键可以弹。',
 
   'read.title': '识谱',
-  'read.intro': '大谱表上出现一个音符，在琴上找到它——八度也要对。',
+  'read.intro': '大谱表上一个音，在琴上弹出来，八度要对。',
   'read.level': '级别',
   'read.level.L1': '高音谱表：中央 {C} 位置',
   'read.level.L2': '高音谱表：{C4} 到 {C5}',
@@ -240,8 +231,7 @@ export const zhCN: Dictionary = {
   'read.level.new': '还没练过',
   'read.level.stats': '{cards}/{window} 张 · 正确率 {accuracy} · 反应中位数 {median}',
   'level.rule.ask': '怎样算掌握一级？',
-  'read.level.rule':
-    '某一级最近 40 张（不开提示）的正确率达到 90%、反应时间中位数低于 2 秒，就算掌握了。想换级别随时可以换。',
+  'read.level.rule': '最近 40 张（不开提示）正确率 90%、反应时间中位数在 2 秒以内，就算掌握。',
   'read.length': '每组张数',
   'read.hint': '显示音名',
   'read.hint.help': '开着提示答的题计入正确率，但不计入反应时间。',
@@ -314,7 +304,7 @@ export const zhCN: Dictionary = {
   'theory.level.RC5': '全部三和弦与七和弦',
   'theory.level.RC5.detail': '转位和七和弦混在一起 · 高低音谱表',
   'theory.level.rule':
-    '某一级最近 {window} 张（不开提示）的正确率达到 90%、答题时间中位数低于 {seconds} 秒，就算掌握了。想换级别随时可以换。',
+    '最近 {window} 张（不开提示）正确率 90%、答题时间中位数在 {seconds} 秒以内，就算掌握。',
   'theory.by.play.help': '按谱弹出每个音，八度也要对。',
   'theory.by.name.help': '用按钮或按键选出根音和和弦。',
   'theory.hint.help': '在谱表下方写出音名。开着提示答的题计入正确率，但不计入答题时间。',
@@ -372,8 +362,8 @@ export const zhCN: Dictionary = {
   'theory.wrong.chord': '这个和弦是 {notes}，请按标出的键。',
   'theory.summary.slowest': '最慢的题',
   'theory.summary.missed': '答错的题',
-  'theory.summary.miss': '{card}：{right}——答成了“{answer}”',
-  'rhythm.intro': '一行节奏，随便按一个键打出来：先响一小节预备拍，然后每个音都对照拍子计时。',
+  'theory.summary.miss': '{card}：{right}，答成了“{answer}”',
+  'rhythm.intro': '在任意一个键上打出一行节奏。先响一小节预备拍，每个音都对照拍子计时。',
   'rhythm.level.detail': '{what} · {meters}',
   'rhythm.level.R1': '四分、二分和全音符',
   'rhythm.level.R1.detail': '加上四分休止符',
@@ -396,7 +386,7 @@ export const zhCN: Dictionary = {
   'rhythm.level.R10': '双手：两种节奏',
   'rhythm.level.R10.detail': '然后是二对三',
   'rhythm.level.rule':
-    '某一级最近 {window} 个节奏型有 {percent} 打对，就算掌握了：每个音都在拍子前后 {ms} 毫秒以内，也没有多按。想换级别随时可以换。',
+    '最近 {window} 个节奏型有 {percent} 打对就算掌握：每个音离拍点不超过 {ms} 毫秒，也没有多按。',
   'rhythm.level.stats': '{cells}/{window} 个 · 打对 {accuracy} · 偏差中位数 {median}',
   'rhythm.tempo': '速度',
   'rhythm.tempo.help': '每分钟的拍数，每一级分别记住。',
@@ -477,7 +467,7 @@ export const zhCN: Dictionary = {
   'rhythm.summary.tempo': '速度',
   'rhythm.summary.missed': '还要多练的节奏型',
   'rhythm.summary.times': '× {n}',
-  'sight.intro': '一段从没见过的音乐，写在大谱表上：先看一遍，再跟着拍子从头弹到尾。',
+  'sight.intro': '一段没见过的谱子，先看一遍，再跟着拍子弹一遍。',
   'sight.level.F1': '右手，{C} 位置',
   'sight.level.F1.detail': '级进 · C 大调',
   'sight.level.F2': '左手，{C} 位置',
@@ -495,7 +485,7 @@ export const zhCN: Dictionary = {
   'sight.level.F8': '左手和弦',
   'sight.level.F8.detail': '分解和弦，十六分音符 · 四个升降号以内',
   'sight.level.rule':
-    '某一级最近 {n} 段按拍子弹的片段，每段都有 {percent} 以上的音弹对而且在拍子上（前后 {ms} 毫秒以内），就算掌握了；每段只看第一遍。想换级别随时可以换。',
+    '最近 {n} 段里，每段第一遍都有 {percent} 以上的音弹对且在拍子上（误差 {ms} 毫秒以内），就算掌握。',
   'sight.level.stats': '最近 {count} 段里弹好了 {passed} 段',
   'sight.level.none': '还没有按拍子弹过的片段',
   'sight.play': '弹法',
@@ -554,8 +544,7 @@ export const zhCN: Dictionary = {
   'sight.summary.runsOf': '弹了 {n} 遍',
 
   'ear.title': '练耳',
-  'ear.intro':
-    '听两个音、一个和弦、一段短旋律、乐句结尾的终止式、一小节节奏或一首歌的一个乐句，然后在琴上弹出来、打出来，或者选出它的名称。',
+  'ear.intro': '先听，再把听到的弹出来、打出来，或者说出它的名称。',
   'ear.sound.needed': '练耳需要声音：请把声音输出设为你的乐器或内置钢琴。',
   'ear.sound.link': '到设置里选择声音',
   'ear.family': '练习内容',
@@ -590,8 +579,7 @@ export const zhCN: Dictionary = {
   'ear.level.intervals': '{n} 种音程',
   'ear.level.chords': '{n} 种和弦',
   'ear.level.stats': '{answers}/{window} 题 · 正确率 {accuracy} · 用时中位数 {median}',
-  'ear.level.rule':
-    '某一级最近 40 题（不算按过“再听一遍”的，各个方向都算）的正确率达到 90%，就算掌握了。想换级别随时可以换。',
+  'ear.level.rule': '最近 40 题（没按“再听一遍”的，哪个方向都算）正确率 90%，就算掌握。',
   'ear.length': '每组题数',
   'ear.session': '练耳',
   'ear.count': '第 {n} 题，共 {total} 题',
@@ -669,8 +657,7 @@ export const zhCN: Dictionary = {
   'ear.level.notes': '{n} 个音',
   'ear.level.notesRange': '{min}–{max} 个音',
   'ear.level.stats.echo': '{answers}/{window} 段旋律 · 正确率 {accuracy} · 用时中位数 {median}',
-  'ear.level.rule.echo':
-    '某一级最近 20 段旋律（不算按过“再听一遍”的）的正确率达到 90%，就算掌握了。想换级别随时可以换。',
+  'ear.level.rule.echo': '最近 20 段旋律（没按“再听一遍”的）正确率 90%，就算掌握。',
   'ear.echo.help':
     '先响起这个调的主和弦，再放一段短旋律。键盘上会标出第一个音，请一个音一个音地把整段旋律弹出来。',
   'ear.echoLength': '每组旋律数',
@@ -688,8 +675,7 @@ export const zhCN: Dictionary = {
   'ear.level.CA3': '加上阻碍终止',
   'ear.level.CA4': '小调也有',
   'ear.level.cadences': '{n} 种终止式',
-  'ear.level.rule.cadence':
-    '某一级最近 20 个终止式（不算按过“再听一遍”的）的正确率达到 90%，就算掌握了。想换级别随时可以换。',
+  'ear.level.rule.cadence': '最近 20 个终止式（没按“再听一遍”的）正确率 90%，就算掌握。',
   'ear.cadence.help':
     '四个和弦，第一个定下调性。说出最后两个和弦构成的终止式：点按钮，或按数字键。',
   'ear.task.cadence': '结尾是哪种终止？',
@@ -713,7 +699,7 @@ export const zhCN: Dictionary = {
   'ear.family.rhythmEar': '节奏',
   'ear.rhythm.level.stats': '{answers}/{window} 次作答 · 正确率 {accuracy}',
   'ear.rhythm.level.rule':
-    '某一级最近 40 次作答（不算按过“再听一遍”的）的正确率达到 90%，就算掌握了：打出来的每个节奏型算一次，选出来的每个小节算一次。想换级别随时可以换。',
+    '最近 40 次作答（没按“再听一遍”的）正确率 90%，就算掌握。打出的每个节奏型算一次，选出的每个小节也算一次。',
   'ear.rhythm.by.play': '打出来',
   'ear.rhythm.by.name': '选出来',
   'ear.rhythm.by.play.help':
@@ -748,7 +734,7 @@ export const zhCN: Dictionary = {
   'ear.level.phrases': '{n} 个乐句',
   'ear.level.stats.tune': '不重听弹对 {right}/{window}',
   'ear.level.rule.tune':
-    '一首歌的每个乐句和整首歌，最近一次都是没按“再听一遍”就弹对的（哪个调都算），这首歌就算学会了。',
+    '每个乐句和整首歌最近一次都没按“再听一遍”就弹对了（哪个调都行），这首歌就算学会。',
   'ear.tune.help':
     '先响起这个调的主和弦，再按原来的节奏放歌曲的一个乐句。键盘上会标出第一个音，请一个音一个音地把乐句弹出来。乐句按顺序出，最后弹整首歌。不判节奏。',
   'ear.tune.key': '调',
@@ -1318,7 +1304,7 @@ export const zhCN: Dictionary = {
   'trends.table.help.runs': '少于 {n} 遍的周不计入，也不画在图上。',
 
   'pieces.title': '曲目',
-  'pieces.intro': '在真正的乐谱上练真正的曲子。光标会等你弹对了才往下走，所以不用着急。',
+  'pieces.intro': '在乐谱上练曲子，光标会等你弹对再往下走。',
   'pieces.library': '曲库',
   'pieces.level.0': '入门',
   'pieces.level.n': '{n} 级',

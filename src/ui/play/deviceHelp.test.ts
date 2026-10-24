@@ -38,20 +38,20 @@ describe('what to do about the MIDI status', () => {
 
   it('names the computer keyboard where there is one: today’s wording', () => {
     expect(say(en, 'web')('unsupported', false)).toBe(
-      'This browser cannot talk to MIDI keyboards. Use Chrome or Edge on a computer — or play with your computer keyboard for now.',
+      'This browser cannot talk to MIDI keyboards. Use Chrome or Edge on a computer, or play with your computer keyboard for now.',
     );
     expect(say(en, 'apple')('unsupported', false)).toBe(
-      'dacapo could not start MIDI on this device. Close dacapo and open it again — until then, play on the keyboard on screen or a computer keyboard.',
+      'dacapo could not start MIDI on this device. Close dacapo and open it again. Until then, play on the keyboard on screen or a computer keyboard.',
     );
   });
 
   it('names the keys on the screen on a device played by touch alone', () => {
     expect(say(en, 'web')('unsupported', true)).toBe(
-      'This browser cannot talk to MIDI keyboards. Use Chrome or Edge on a computer — or play on the keys on the screen for now.',
+      'This browser cannot talk to MIDI keyboards. Use Chrome or Edge on a computer, or play on the keys on the screen for now.',
     );
     // In the app too, on a phone or a tablet without a keyboard, and with no browser named.
     expect(say(en, 'apple')('unsupported', true)).toBe(
-      'dacapo could not start MIDI on this device. Close dacapo and open it again — until then, play on the keyboard on screen.',
+      'dacapo could not start MIDI on this device. Close dacapo and open it again. Until then, play on the keyboard on screen.',
     );
     for (const shell of ['web', 'apple'] as const) {
       // No computer keys to play with there: "on a computer" is only where the browser would be.
