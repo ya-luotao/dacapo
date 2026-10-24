@@ -3157,9 +3157,9 @@ export const en = {
   'about.how.notation': 'Real notation',
   'about.how.notation.text':
     'Flashcards are drawn with VexFlow, pieces and scales engraved with Verovio, all in the Bravura music font: the same kind of tools printed music is set with.',
-  'about.how.page': 'Like a printed page',
+  'about.how.page': 'Plain, so the music stands out',
   'about.how.page.text':
-    'Warm paper, ink, hairlines instead of boxes, and one urtext blue; Source Serif for headings and Source Sans for text. Chinese, Japanese and Korean use fonts of their own, so every character has its own language’s form.',
+    'Your system’s own fonts, white or piano black, and one red: the felt over a piano’s keys. The score and the keyboard are drawn with care; everything else keeps out of the way.',
   'about.how.measured': 'Measured, then explained',
   'about.how.measured.text':
     'The sentence after a run comes from rules applied to what was measured, and says why. Its thresholds are still being set from runs recorded on real instruments.',
@@ -3213,8 +3213,6 @@ export const en = {
     'Anatomy, the drawing kit of the grand piano in Inside the piano. © Ryan (wheresryan22). MIT License.',
   'about.bravura':
     'Bravura, the music font of the Read page. © 2019 Steinberg Media Technologies GmbH, with Reserved Font Name “Bravura”. SIL Open Font License 1.1.',
-  'about.sourceFonts':
-    'Source Serif 4 and Source Sans 3, the text fonts. © Adobe, with Reserved Font Name “Source”. SIL Open Font License 1.1.',
   'about.accidentals':
     'dacapo Accidentals, the ♭, ♮ and ♯ in the text: five glyphs of Bravura Text, renamed as its licence asks of a modified version. © Steinberg Media Technologies GmbH, with Reserved Font Name “Bravura”. SIL Open Font License 1.1.',
   'about.music.intro': 'All thirty-one built-in works are in the public domain.',

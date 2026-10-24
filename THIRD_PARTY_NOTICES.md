@@ -69,10 +69,7 @@ move the drawing in the app (`src/ui/learn/grandPiano/draw.ts`) are ported from 
 
 - **Bravura**, the music font of the Read page (`@vexflow-fonts/bravura`). Copyright © 2019
   Steinberg Media Technologies GmbH. SIL Open Font License 1.1.
-- **Source Serif 4** and **Source Sans 3**, Latin subsets in `src/ui/fonts/`. Copyright © Adobe,
-  with Reserved Font Name "Source". SIL Open Font License 1.1; the licence text is in
-  [`src/ui/fonts/OFL.txt`](src/ui/fonts/OFL.txt).
-- **dacapo Accidentals** (`src/ui/fonts/accidentals.woff2`), the ♭ ♮ ♯ 𝄪 𝄫 of the text fonts: a
+- **dacapo Accidentals** (`src/ui/fonts/accidentals.woff2`), the ♭ ♮ ♯ 𝄪 𝄫 in the text: a
   subset of **Bravura Text** by Steinberg Media Technologies GmbH, renamed because "Bravura" is a
   Reserved Font Name. SIL Open Font License 1.1.
 

@@ -3111,9 +3111,9 @@ export const ko: Dictionary = {
   'about.how.notation': '진짜 악보',
   'about.how.notation.text':
     '플래시카드는 VexFlow로 그리고, 곡과 음계는 Verovio로 사보합니다. 모든 기호는 Bravura 악보 글꼴이에요. 출판 악보를 만드는 것과 같은 종류의 도구입니다.',
-  'about.how.page': '인쇄된 한 페이지처럼',
+  'about.how.page': '단순하게, 악보가 돋보이도록',
   'about.how.page.text':
-    '따뜻한 종이색, 잉크, 상자 대신 가는 선, 그리고 강조색은 ‘원전판’ 파랑 하나. 제목은 Source Serif, 본문은 Source Sans. 중국어·일본어·한국어는 각 언어의 글꼴을 써서 모든 글자가 그 언어의 모양으로 보여요.',
+    '글꼴은 시스템 기본, 바탕은 흰색이나 피아노의 검정, 색은 건반 위 펠트의 빨강 하나뿐이에요. 공들여 그린 건 악보와 건반이고, 나머지는 최대한 눈에 띄지 않게 했어요.',
   'about.how.measured': '먼저 재고, 그다음 말하기',
   'about.how.measured.text':
     '한 번 연주한 뒤의 한마디는 측정한 데이터에 규칙을 적용해 나오고, 그 이유도 알려 줍니다. 기준값은 실제 악기로 녹음한 연주로 아직 맞춰 가는 중이에요.',
@@ -3166,8 +3166,6 @@ export const ko: Dictionary = {
     'Anatomy: ‘피아노의 속’ 레슨의 그랜드 피아노 단면도를 그리는 도구예요. © Ryan (wheresryan22). MIT License.',
   'about.bravura':
     'Bravura: “악보 읽기” 페이지의 음악 글꼴이에요. © 2019 Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
-  'about.sourceFonts':
-    'Source Serif 4와 Source Sans 3: 본문 글꼴이에요. © Adobe, with Reserved Font Name "Source". SIL Open Font License 1.1.',
   'about.accidentals':
     'dacapo Accidentals: 본문의 ♭, ♮, ♯. Bravura Text의 글리프 다섯 개를, 라이선스가 수정본에 요구하는 대로 이름을 바꿔 썼어요. © Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
   'about.music.intro': '기본 곡 31곡은 모두 퍼블릭 도메인 작품이에요.',

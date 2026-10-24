@@ -3148,9 +3148,9 @@ export const ja: Dictionary = {
   'about.how.notation': '本物の楽譜',
   'about.how.notation.text':
     'フラッシュカードは VexFlow で描き、曲と音階は Verovio で浄書しています。字形はすべて Bravura 楽譜フォント。出版される楽譜と同じ種類の組版ツールです。',
-  'about.how.page': '印刷された一ページのように',
+  'about.how.page': 'シンプルに、楽譜が引き立つように',
   'about.how.page.text':
-    '温かみのある紙の色、インクの黒、枠の代わりの細い罫線、そしてアクセントは「原典版」の青ひとつ。見出しは Source Serif、本文は Source Sans。中国語・日本語・韓国語はそれぞれの言語のフォントを使い、どの字もその言語本来の字形で表示します。',
+    'フォントはシステム標準、背景は白かピアノの黒、色は鍵盤の上のフェルトの赤ひとつだけ。丁寧に描いているのは楽譜と鍵盤で、ほかはできるだけ控えめにしています。',
   'about.how.measured': 'まず測り、それから伝える',
   'about.how.measured.text':
     '弾き終えたあとの一言は、測ったデータにルールを当てはめて導き、その理由も示します。基準値は、実際の楽器で録った演奏をもとにまだ調整中です。',
@@ -3205,8 +3205,6 @@ export const ja: Dictionary = {
     'Anatomy：レッスン「ピアノの内部」のグランドピアノ断面図を描く道具です。© Ryan (wheresryan22). MIT License.',
   'about.bravura':
     'Bravura：「譜読み」ページの音楽フォントです。© 2019 Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
-  'about.sourceFonts':
-    'Source Serif 4とSource Sans 3：本文のフォントです。© Adobe, with Reserved Font Name "Source". SIL Open Font License 1.1.',
   'about.accidentals':
     'dacapo Accidentals：本文中の♭・♮・♯。Bravura Textの5つの字形を、ライセンスが改変版に求めるとおり名前を変えて使っています。© Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
   'about.music.intro': '内蔵の31曲はすべてパブリックドメインの作品です。',

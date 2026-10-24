@@ -1,54 +1,54 @@
 /*
- * "Engraved score": warm paper and ink, hairline rules instead of boxes, one urtext-blue accent.
- * Source Serif 4 (display, figures) and Source Sans 3 (text); Chinese, Japanese and Korean use
- * the system serif and sans faces of their own language, so each gets its own glyph forms. Colours were chosen in OKLCH; contrast ratios are in the design notes.
+ * A plain tool around an instrument: the system's own sans in every language (each script gets
+ * its own glyph forms), white or piano black, and one accent, the red felt over a piano's keys.
+ * Wrong answers are amber, so red stays the brand's. Contrast: AA for text, 3:1 for controls.
  */
 
 :root {
   color-scheme: light;
-  --bg: #f8f4ec;
-  --surface: #fefcf8;
-  --sunk: #eee9df;
-  --text: #231d18;
-  --text-muted: #645a52;
-  --border: #d7d0c6;
-  --control: #8e8479;
-  --accent: #25497b;
-  --accent-hover: #183a68;
-  --accent-contrast: #fefcf8;
-  --accent-soft: #dee9f5;
-  --focus: #25497b;
-  --ok: #316843;
-  --warn: #935f1a;
-  --warn-soft: #faefdc;
-  --warn-rule: #d5b993;
-  --bad: #a23b2e;
-  --ok-soft: #e3efe2;
-  --bad-soft: #f9e6e1;
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --sunk: #f4f4f2;
+  --text: #1d1d1f;
+  --text-muted: #6e6e73;
+  --border: #e3e3e0;
+  --control: #8e8e93;
+  --accent: #a8342b;
+  --accent-hover: #8e2a23;
+  --accent-contrast: #ffffff;
+  --accent-soft: #f8e9e7;
+  --focus: #a8342b;
+  --ok: #2e7d43;
+  --warn: #8a5a14;
+  --warn-soft: #fbf1df;
+  --warn-rule: #dcc196;
+  --bad: #a65a00;
+  --ok-soft: #e6f2e8;
+  --bad-soft: #fcefdc;
   --wash: 0.35;
-  --shadow-rgb: 60 44 30;
+  --shadow-rgb: 0 0 0;
   --shadow-sheet:
     0 0 0 1px rgb(var(--shadow-rgb) / 0.07), 0 1px 2px rgb(var(--shadow-rgb) / 0.06),
     0 18px 40px -22px rgb(var(--shadow-rgb) / 0.3);
   --shadow-pop:
     0 0 0 1px rgb(var(--shadow-rgb) / 0.14), 0 12px 28px -10px rgb(var(--shadow-rgb) / 0.4);
 
-  --felt: #332c29;
-  --key-white-top: #fffdf9;
-  --key-white: #faf6ee;
-  --key-white-front: #ede7dc;
-  --key-white-edge: #c3bdb3;
-  --key-black: #191513;
-  --key-black-top: #2a2523;
-  --key-black-slope: #413c38;
-  --key-black-edge: #0b0908;
-  --key-label: #645a52;
-  --key-held: #3e6596;
-  --key-held-black: #6289b5;
-  --key-sustained: #d2e0ee;
-  --key-sustained-black: #39495d;
-  --key-target: #25497b;
-  --key-target-black: #94b5d8;
+  --felt: #8e2a23;
+  --key-white-top: #ffffff;
+  --key-white: #fbfbfa;
+  --key-white-front: #ececea;
+  --key-white-edge: #c7c7c4;
+  --key-black: #1d1d1f;
+  --key-black-top: #2c2c2e;
+  --key-black-slope: #3a3a3c;
+  --key-black-edge: #0b0b0c;
+  --key-label: #6e6e73;
+  --key-held: #b5473d;
+  --key-held-black: #d0675c;
+  --key-sustained: #f1d9d6;
+  --key-sustained-black: #5a2a26;
+  --key-target: #a8342b;
+  --key-target-black: #e08a80;
 
   /* Heatmap: one warm hue, pale (fast) to deep (slow); validated as an ordinal ramp. */
   --heat-0: #dca35d;
@@ -58,38 +58,39 @@
   --heat-4: #97451a;
   --heat-5: #832c0c;
   --heat-6: #6f1002;
-  --heat-ink: #231d18;
-  --heat-none: #645a52;
-  --heat-error: #3b342e;
-  --heat-track: #e8e2d9;
-  --heat-key-white: #fefcf8;
-  --heat-key-white-edge: #c3bdb3;
-  --heat-key-label: #645a52;
+  --heat-ink: #1d1d1f;
+  --heat-none: #6e6e73;
+  --heat-error: #3a3a3c;
+  --heat-track: #ececea;
+  --heat-key-white: #ffffff;
+  --heat-key-white-edge: #c7c7c4;
+  --heat-key-label: #6e6e73;
   /* A count printed on a heat colour: the ink or the paper, whichever keeps 4.5:1. */
-  --heat-on-0: #231d18;
-  --heat-on-1: #231d18;
-  --heat-on-2: #231d18;
+  --heat-on-0: #1d1d1f;
+  --heat-on-1: #1d1d1f;
+  --heat-on-2: #1d1d1f;
   --heat-on-3: #fefcf8;
   --heat-on-4: #fefcf8;
   --heat-on-5: #fefcf8;
   --heat-on-6: #fefcf8;
   /* Year grid: one blue hue, pale (a little practice) to deep (a lot); validated as an ordinal ramp. */
-  --year-0: #e6e0d6;
-  --year-1: #8fb0dd;
-  --year-2: #5d88c2;
-  --year-3: #35619b;
-  --year-4: #193d6b;
+  --year-0: #ececea;
+  --year-1: #f0b9b2;
+  --year-2: #d9776b;
+  --year-3: #b5473d;
+  --year-4: #7d2620;
   /* Weak bars: the tint behind a bar is its heat colour mixed into the paper (ink stays ≥ 9:1). */
   --bar-wash: 22%;
 
-  --font-serif:
-    'dacapo Accidentals', 'Source Serif 4', 'Songti SC', 'STSong', 'Noto Serif CJK SC',
-    'Source Han Serif SC', 'SimSun', Georgia, serif;
+  --font-serif: var(--font-sans);
   --font-sans:
-    'dacapo Accidentals', 'Source Sans 3', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC',
-    'Source Han Sans SC', 'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --radius-sm: 2px;
-  --radius: 3px;
+    'dacapo Accidentals', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Noto Sans CJK SC', 'Source Han Sans SC', 'Microsoft YaHei', system-ui,
+    sans-serif;
+  /* Figures read off like an instrument's display: the day's minutes, the tempo, the plan's steps. */
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --radius-sm: 5px;
+  --radius: 8px;
   --dur-fast: 120ms;
   --dur: 180ms;
   --gutter: clamp(16px, 3.5vw, 40px);
@@ -107,56 +108,49 @@
 
 /* The same Han character is drawn differently in Japan, Korea, Taiwan and mainland China. */
 :root:lang(zh-TW) {
-  --font-serif:
-    'dacapo Accidentals', 'Source Serif 4', 'Songti TC', 'Noto Serif CJK TC', 'Source Han Serif TC',
-    'PMingLiU', Georgia, serif;
+  --font-serif: var(--font-sans);
   --font-sans:
-    'dacapo Accidentals', 'Source Sans 3', 'PingFang TC', 'Noto Sans CJK TC', 'Source Han Sans TC',
-    'Microsoft JhengHei', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    'dacapo Accidentals', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC',
+    'Noto Sans CJK TC', 'Source Han Sans TC', 'Microsoft JhengHei', system-ui, sans-serif;
 }
 
 :root:lang(ja) {
-  --font-serif:
-    'dacapo Accidentals', 'Source Serif 4', 'Hiragino Mincho ProN', 'Yu Mincho', 'YuMincho',
-    'Noto Serif CJK JP', 'Noto Serif JP', 'Source Han Serif JP', Georgia, serif;
+  --font-serif: var(--font-sans);
   --font-sans:
-    'dacapo Accidentals', 'Source Sans 3', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN',
-    'Yu Gothic', 'YuGothic', 'Noto Sans CJK JP', 'Noto Sans JP', 'Meiryo', system-ui, -apple-system,
-    'Segoe UI', sans-serif;
+    'dacapo Accidentals', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans',
+    'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'YuGothic', 'Noto Sans CJK JP', 'Noto Sans JP',
+    'Meiryo', system-ui, sans-serif;
 }
 
 :root:lang(ko) {
-  --font-serif:
-    'dacapo Accidentals', 'Source Serif 4', 'AppleMyungjo', 'Nanum Myeongjo', 'Noto Serif CJK KR',
-    'Noto Serif KR', 'Source Han Serif K', 'Batang', Georgia, serif;
+  --font-serif: var(--font-sans);
   --font-sans:
-    'dacapo Accidentals', 'Source Sans 3', 'Apple SD Gothic Neo', 'Noto Sans CJK KR',
-    'Noto Sans KR', 'Source Han Sans K', 'Malgun Gothic', system-ui, -apple-system, 'Segoe UI',
-    sans-serif;
+    'dacapo Accidentals', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Apple SD Gothic Neo',
+    'Noto Sans CJK KR', 'Noto Sans KR', 'Source Han Sans K', 'Malgun Gothic', system-ui, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
-    --bg: #181411;
-    --surface: #211c19;
-    --sunk: #120f0c;
-    --text: #ece6d8;
-    --text-muted: #b0a89c;
-    --border: #393430;
-    --control: #6f6860;
-    --accent: #94b5d8;
-    --accent-hover: #aac8e7;
-    --accent-contrast: #181411;
-    --accent-soft: #232f3e;
-    --focus: #94b5d8;
-    --ok: #8ac195;
-    --warn: #e5b46e;
+    --bg: #131110;
+    --surface: #1c1916;
+    --sunk: #0e0c0b;
+    --text: #ece5d8;
+    --text-muted: #a79d90;
+    --border: #2c2824;
+    --control: #6d655c;
+    --accent: #e06a5e;
+    --accent-hover: #ea7a6d;
+    --accent-contrast: #131110;
+    --accent-soft: #3a1c19;
+    --focus: #e06a5e;
+    --ok: #7fc48a;
+    --warn: #e5a54b;
     --warn-soft: #2b1f11;
     --warn-rule: #5e492e;
-    --bad: #e1897b;
-    --ok-soft: #1d2a1f;
-    --bad-soft: #35211d;
+    --bad: #e5a54b;
+    --ok-soft: #1a2a1e;
+    --bad-soft: #2e2210;
     --wash: 0.2;
     --shadow-rgb: 0 0 0;
     --shadow-sheet:
@@ -165,22 +159,22 @@
     --shadow-pop: 0 0 0 1px rgb(255 245 230 / 0.12), 0 12px 28px -10px rgb(0 0 0 / 0.7);
 
     /* The instrument stays ivory and ebony, dimmed for the dark. */
-    --felt: #0d0a09;
-    --key-white-top: #e5dfd1;
-    --key-white: #ddd5c4;
-    --key-white-front: #c7bcab;
+    --felt: #8e2a23;
+    --key-white-top: #f3eee4;
+    --key-white: #efe9dd;
+    --key-white-front: #d8d0c2;
     --key-white-edge: #877f75;
-    --key-black: #090706;
-    --key-black-top: #161311;
+    --key-black: #0b0a09;
+    --key-black-top: #171513;
     --key-black-slope: #2a2523;
     --key-black-edge: #000000;
-    --key-label: #3d3631;
-    --key-held: #466a93;
-    --key-held-black: #7196bc;
-    --key-sustained: #9badc1;
-    --key-sustained-black: #222f3f;
-    --key-target: #25497b;
-    --key-target-black: #94b5d8;
+    --key-label: #4a433d;
+    --key-held: #b5473d;
+    --key-held-black: #d0675c;
+    --key-sustained: #d9b3ae;
+    --key-sustained-black: #4a2421;
+    --key-target: #a8342b;
+    --key-target-black: #e08a80;
 
     /* On dark surfaces the slow end is the bright one: stronger contrast still means slower. */
     --heat-0: #744b20;
@@ -190,50 +184,50 @@
     --heat-4: #d19072;
     --heat-5: #e9a289;
     --heat-6: #ffb5a1;
-    --heat-ink: #ece6d8;
-    --heat-none: #b0a89c;
+    --heat-ink: #ece5d8;
+    --heat-none: #a79d90;
     --heat-error: #d1c9be;
-    --heat-track: #2f2a26;
+    --heat-track: #2c2824;
     /* The heatmap keyboard is a chart: its white keys stay dark, so the scale reads as on the staff. */
-    --heat-key-white: #26221e;
-    --heat-key-white-edge: #3c3733;
-    --heat-key-label: #b0a89c;
-    --heat-on-0: #ece6d8;
-    --heat-on-1: #ece6d8;
+    --heat-key-white: #24201d;
+    --heat-key-white-edge: #3a352f;
+    --heat-key-label: #a79d90;
+    --heat-on-0: #ece5d8;
+    --heat-on-1: #ece5d8;
     --heat-on-2: #000000;
     --heat-on-3: #000000;
     --heat-on-4: #000000;
     --heat-on-5: #000000;
     --heat-on-6: #000000;
-    --year-0: #2c2622;
-    --year-1: #365681;
-    --year-2: #567caf;
-    --year-3: #7ea4d6;
-    --year-4: #b5d0f5;
+    --year-0: #24211e;
+    --year-1: #5a2622;
+    --year-2: #8e3a31;
+    --year-3: #c25a4d;
+    --year-4: #ec8f82;
   }
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #181411;
-  --surface: #211c19;
-  --sunk: #120f0c;
-  --text: #ece6d8;
-  --text-muted: #b0a89c;
-  --border: #393430;
-  --control: #6f6860;
-  --accent: #94b5d8;
-  --accent-hover: #aac8e7;
-  --accent-contrast: #181411;
-  --accent-soft: #232f3e;
-  --focus: #94b5d8;
-  --ok: #8ac195;
-  --warn: #e5b46e;
+  --bg: #131110;
+  --surface: #1c1916;
+  --sunk: #0e0c0b;
+  --text: #ece5d8;
+  --text-muted: #a79d90;
+  --border: #2c2824;
+  --control: #6d655c;
+  --accent: #e06a5e;
+  --accent-hover: #ea7a6d;
+  --accent-contrast: #131110;
+  --accent-soft: #3a1c19;
+  --focus: #e06a5e;
+  --ok: #7fc48a;
+  --warn: #e5a54b;
   --warn-soft: #2b1f11;
   --warn-rule: #5e492e;
-  --bad: #e1897b;
-  --ok-soft: #1d2a1f;
-  --bad-soft: #35211d;
+  --bad: #e5a54b;
+  --ok-soft: #1a2a1e;
+  --bad-soft: #2e2210;
   --wash: 0.2;
   --shadow-rgb: 0 0 0;
   --shadow-sheet:
@@ -242,22 +236,22 @@
   --shadow-pop: 0 0 0 1px rgb(255 245 230 / 0.12), 0 12px 28px -10px rgb(0 0 0 / 0.7);
 
   /* The instrument stays ivory and ebony, dimmed for the dark. */
-  --felt: #0d0a09;
-  --key-white-top: #e5dfd1;
-  --key-white: #ddd5c4;
-  --key-white-front: #c7bcab;
+  --felt: #8e2a23;
+  --key-white-top: #f3eee4;
+  --key-white: #efe9dd;
+  --key-white-front: #d8d0c2;
   --key-white-edge: #877f75;
-  --key-black: #090706;
-  --key-black-top: #161311;
+  --key-black: #0b0a09;
+  --key-black-top: #171513;
   --key-black-slope: #2a2523;
   --key-black-edge: #000000;
-  --key-label: #3d3631;
-  --key-held: #466a93;
-  --key-held-black: #7196bc;
-  --key-sustained: #9badc1;
-  --key-sustained-black: #222f3f;
-  --key-target: #25497b;
-  --key-target-black: #94b5d8;
+  --key-label: #4a433d;
+  --key-held: #b5473d;
+  --key-held-black: #d0675c;
+  --key-sustained: #d9b3ae;
+  --key-sustained-black: #4a2421;
+  --key-target: #a8342b;
+  --key-target-black: #e08a80;
 
   /* On dark surfaces the slow end is the bright one: stronger contrast still means slower. */
   --heat-0: #744b20;
@@ -267,26 +261,188 @@
   --heat-4: #d19072;
   --heat-5: #e9a289;
   --heat-6: #ffb5a1;
-  --heat-ink: #ece6d8;
-  --heat-none: #b0a89c;
+  --heat-ink: #ece5d8;
+  --heat-none: #a79d90;
   --heat-error: #d1c9be;
-  --heat-track: #2f2a26;
+  --heat-track: #2c2824;
   /* The heatmap keyboard is a chart: its white keys stay dark, so the scale reads as on the staff. */
-  --heat-key-white: #26221e;
-  --heat-key-white-edge: #3c3733;
-  --heat-key-label: #b0a89c;
-  --heat-on-0: #ece6d8;
-  --heat-on-1: #ece6d8;
+  --heat-key-white: #24201d;
+  --heat-key-white-edge: #3a352f;
+  --heat-key-label: #a79d90;
+  --heat-on-0: #ece5d8;
+  --heat-on-1: #ece5d8;
   --heat-on-2: #000000;
   --heat-on-3: #000000;
   --heat-on-4: #000000;
   --heat-on-5: #000000;
   --heat-on-6: #000000;
-  --year-0: #2c2622;
-  --year-1: #365681;
-  --year-2: #567caf;
-  --year-3: #7ea4d6;
-  --year-4: #b5d0f5;
+  --year-0: #24211e;
+  --year-1: #5a2622;
+  --year-2: #8e3a31;
+  --year-3: #c25a4d;
+  --year-4: #ec8f82;
+}
+
+/* In the dark, music stays on paper: an ivory sheet in the light theme's ink, on the piano's black.
+   Everything on it (the answer's wash, the heatmap's ramp, a figure's keys) takes the light values. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .read-card,
+  :root:not([data-theme='light']) .score-frame,
+  :root:not([data-theme='light']) .improv-stage,
+  :root:not([data-theme='light']) .hm-view,
+  :root:not([data-theme='light']) .plate-body,
+  :root:not([data-theme='light']) .specimen-sheet {
+    color-scheme: light;
+    --bg: #f1ece2;
+    --surface: #f1ece2;
+    --sunk: #e6e0d4;
+    --text: #1b1714;
+    --text-muted: #5f5850;
+    --border: #d6cfc2;
+    --control: #8e8e93;
+    --accent: #a8342b;
+    --accent-hover: #8e2a23;
+    --accent-contrast: #ffffff;
+    --accent-soft: #f8e9e7;
+    --focus: #a8342b;
+    --ok: #2e7d43;
+    --warn: #8a5a14;
+    --warn-soft: #fbf1df;
+    --warn-rule: #dcc196;
+    --bad: #a65a00;
+    --ok-soft: #e6f2e8;
+    --bad-soft: #fcefdc;
+    --wash: 0.35;
+    --shadow-rgb: 0 0 0;
+    --shadow-sheet:
+      0 0 0 1px rgb(var(--shadow-rgb) / 0.07), 0 1px 2px rgb(var(--shadow-rgb) / 0.06),
+      0 18px 40px -22px rgb(var(--shadow-rgb) / 0.3);
+    --shadow-pop:
+      0 0 0 1px rgb(var(--shadow-rgb) / 0.14), 0 12px 28px -10px rgb(var(--shadow-rgb) / 0.4);
+    --felt: #8e2a23;
+    --key-white-top: #ffffff;
+    --key-white: #fbfbfa;
+    --key-white-front: #ececea;
+    --key-white-edge: #c7c7c4;
+    --key-black: #1d1d1f;
+    --key-black-top: #2c2c2e;
+    --key-black-slope: #3a3a3c;
+    --key-black-edge: #0b0b0c;
+    --key-label: #6e6e73;
+    --key-held: #b5473d;
+    --key-held-black: #d0675c;
+    --key-sustained: #f1d9d6;
+    --key-sustained-black: #5a2a26;
+    --key-target: #a8342b;
+    --key-target-black: #e08a80;
+    --heat-0: #dca35d;
+    --heat-1: #cf8c4c;
+    --heat-2: #bd753b;
+    --heat-3: #ab5d2a;
+    --heat-4: #97451a;
+    --heat-5: #832c0c;
+    --heat-6: #6f1002;
+    --heat-ink: #1d1d1f;
+    --heat-none: #6e6e73;
+    --heat-error: #3a3a3c;
+    --heat-track: #e3dccf;
+    --heat-key-white: #f8f4ec;
+    --heat-key-white-edge: #c7c7c4;
+    --heat-key-label: #6e6e73;
+    --heat-on-0: #1d1d1f;
+    --heat-on-1: #1d1d1f;
+    --heat-on-2: #1d1d1f;
+    --heat-on-3: #fefcf8;
+    --heat-on-4: #fefcf8;
+    --heat-on-5: #fefcf8;
+    --heat-on-6: #fefcf8;
+    --year-0: #ececea;
+    --year-1: #f0b9b2;
+    --year-2: #d9776b;
+    --year-3: #b5473d;
+    --year-4: #7d2620;
+    --bar-wash: 22%;
+    color: var(--text);
+  }
+}
+
+:root[data-theme='dark'] .read-card,
+:root[data-theme='dark'] .score-frame,
+:root[data-theme='dark'] .improv-stage,
+:root[data-theme='dark'] .hm-view,
+:root[data-theme='dark'] .plate-body,
+:root[data-theme='dark'] .specimen-sheet {
+  color-scheme: light;
+  --bg: #f1ece2;
+  --surface: #f1ece2;
+  --sunk: #e6e0d4;
+  --text: #1b1714;
+  --text-muted: #5f5850;
+  --border: #d6cfc2;
+  --control: #8e8e93;
+  --accent: #a8342b;
+  --accent-hover: #8e2a23;
+  --accent-contrast: #ffffff;
+  --accent-soft: #f8e9e7;
+  --focus: #a8342b;
+  --ok: #2e7d43;
+  --warn: #8a5a14;
+  --warn-soft: #fbf1df;
+  --warn-rule: #dcc196;
+  --bad: #a65a00;
+  --ok-soft: #e6f2e8;
+  --bad-soft: #fcefdc;
+  --wash: 0.35;
+  --shadow-rgb: 0 0 0;
+  --shadow-sheet:
+    0 0 0 1px rgb(var(--shadow-rgb) / 0.07), 0 1px 2px rgb(var(--shadow-rgb) / 0.06),
+    0 18px 40px -22px rgb(var(--shadow-rgb) / 0.3);
+  --shadow-pop:
+    0 0 0 1px rgb(var(--shadow-rgb) / 0.14), 0 12px 28px -10px rgb(var(--shadow-rgb) / 0.4);
+  --felt: #8e2a23;
+  --key-white-top: #ffffff;
+  --key-white: #fbfbfa;
+  --key-white-front: #ececea;
+  --key-white-edge: #c7c7c4;
+  --key-black: #1d1d1f;
+  --key-black-top: #2c2c2e;
+  --key-black-slope: #3a3a3c;
+  --key-black-edge: #0b0b0c;
+  --key-label: #6e6e73;
+  --key-held: #b5473d;
+  --key-held-black: #d0675c;
+  --key-sustained: #f1d9d6;
+  --key-sustained-black: #5a2a26;
+  --key-target: #a8342b;
+  --key-target-black: #e08a80;
+  --heat-0: #dca35d;
+  --heat-1: #cf8c4c;
+  --heat-2: #bd753b;
+  --heat-3: #ab5d2a;
+  --heat-4: #97451a;
+  --heat-5: #832c0c;
+  --heat-6: #6f1002;
+  --heat-ink: #1d1d1f;
+  --heat-none: #6e6e73;
+  --heat-error: #3a3a3c;
+  --heat-track: #e3dccf;
+  --heat-key-white: #f8f4ec;
+  --heat-key-white-edge: #c7c7c4;
+  --heat-key-label: #6e6e73;
+  --heat-on-0: #1d1d1f;
+  --heat-on-1: #1d1d1f;
+  --heat-on-2: #1d1d1f;
+  --heat-on-3: #fefcf8;
+  --heat-on-4: #fefcf8;
+  --heat-on-5: #fefcf8;
+  --heat-on-6: #fefcf8;
+  --year-0: #ececea;
+  --year-1: #f0b9b2;
+  --year-2: #d9776b;
+  --year-3: #b5473d;
+  --year-4: #7d2620;
+  --bar-wash: 22%;
+  color: var(--text);
 }
 
 *,
@@ -313,8 +469,8 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
-  font-size: 1.0625rem;
-  line-height: 1.6;
+  font-size: 1rem;
+  line-height: 1.55;
   font-synthesis-style: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -363,43 +519,34 @@ a {
 h1 {
   margin: 0 0 0.75rem;
   font-family: var(--font-serif);
-  font-size: clamp(2.125rem, 1.75rem + 1.5vw, 2.75rem);
-  font-weight: 500;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  font-size: clamp(1.625rem, 1.4rem + 0.8vw, 2rem);
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
   text-wrap: balance;
 }
 
 h1:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-weight: 600;
-  letter-spacing: 0.02em;
-  line-height: 1.25;
+  letter-spacing: 0;
+  line-height: 1.3;
 }
 
 .muted {
   color: var(--text-muted);
 }
 
-/* A small spaced label, like the tempo and section marks of a printed score. */
+/* A field's name, and the small heading of a group: plain words, set a little smaller. */
 .field > label,
 .field > legend,
 .eyebrow {
   display: block;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   padding: 0;
   color: var(--text-muted);
   font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.09em;
   line-height: 1.4;
-  text-transform: uppercase;
-}
-
-.field > label:is(:lang(zh), :lang(ja), :lang(ko)),
-.field > legend:is(:lang(zh), :lang(ja), :lang(ko)),
-.eyebrow:is(:lang(zh), :lang(ja), :lang(ko)) {
-  font-size: 0.875rem;
-  letter-spacing: 0.04em;
 }
 
 /* Header: a full-width bar on a hairline, held at the top while the page scrolls under it. */
@@ -448,11 +595,22 @@ h1:is(:lang(zh), :lang(ja), :lang(ko)) {
   text-decoration: none;
 }
 
-.brand-mark {
-  display: block;
-  height: 1.75rem;
+.brand-mark,
+.footer-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-size: 1.1875rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.brand-mark svg,
+.footer-mark svg {
+  height: 0.62em;
   width: auto;
-  aspect-ratio: 4154 / 975;
+  aspect-ratio: 802 / 476;
   fill: currentColor;
 }
 
@@ -984,14 +1142,11 @@ kbd {
   color: var(--text-muted);
   font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.09em;
   line-height: 1.4;
-  text-transform: uppercase;
 }
 
 .readout-label:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
-  letter-spacing: 0.04em;
 }
 
 .readout-notes {
@@ -1528,13 +1683,10 @@ kbd {
   gap: 0.25rem;
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
 }
 
 .badge:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.8125rem;
-  letter-spacing: 0.04em;
 }
 
 .badge svg {
@@ -1858,7 +2010,6 @@ kbd {
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
-  animation: ink-in var(--dur) ease-out;
 }
 
 .read-result:is(:lang(zh), :lang(ja), :lang(ko)) {
@@ -1889,18 +2040,10 @@ kbd {
   margin-top: 0.875rem;
   text-wrap: balance;
   font-size: 1.0625rem;
-  animation: ink-in var(--dur) ease-out;
 }
 
 .read-keyboard {
   margin-top: 1rem;
-}
-
-@keyframes ink-in {
-  from {
-    opacity: 0;
-    transform: translateY(0.25rem);
-  }
 }
 
 /* Read: summary */
@@ -1949,13 +2092,10 @@ kbd {
   color: var(--text-muted);
   font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
 }
 
 .figures dt:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
-  letter-spacing: 0.04em;
 }
 
 .figures dd {
@@ -1979,13 +2119,10 @@ kbd {
   color: var(--text-muted);
   font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
 }
 
 .note-list h3:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
-  letter-spacing: 0.04em;
 }
 
 .note-list ul {
@@ -3299,13 +3436,10 @@ kbd {
   color: var(--text-muted);
   font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
 }
 
 .theory-mode:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
-  letter-spacing: 0.04em;
 }
 
 /*
@@ -3379,13 +3513,10 @@ kbd {
   color: var(--text-muted);
   font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
 }
 
 .theory-row-label:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
-  letter-spacing: 0.04em;
 }
 
 /* What is chosen so far in the row (a root and its sign), in the ink of the choice. */
@@ -3635,8 +3766,6 @@ kbd {
   font-family: var(--font-serif);
   font-size: 1.375rem;
   font-variant-numeric: lining-nums;
-  letter-spacing: 0.04em;
-  animation: ink-in var(--dur) ease-out;
 }
 
 /* A small keyboard, three octaves from C3, wide enough to play on and to see a chord. */
@@ -3868,13 +3997,10 @@ kbd {
   color: var(--text-muted);
   font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
 }
 
 .improv-label:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
-  letter-spacing: 0.04em;
 }
 
 .improv-now .improv-symbol {
@@ -3961,7 +4087,6 @@ kbd {
 .improv-scale-notes {
   font-family: var(--font-serif);
   font-size: 1.125rem;
-  letter-spacing: 0.04em;
 }
 
 /* Four octaves from C3: the player's register and the octave under it. */
@@ -4116,13 +4241,10 @@ kbd {
   color: var(--text-muted);
   font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
 }
 
 .improv-chart-title:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
-  letter-spacing: 0.04em;
 }
 
 .improv-chart figcaption .help {
@@ -4370,12 +4492,10 @@ kbd {
   font-family: var(--font-sans);
   font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.09em;
 }
 
 .progress h2.eyebrow:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
-  letter-spacing: 0.04em;
 }
 
 .progress-preview .contents {
@@ -4802,15 +4922,12 @@ kbd {
   color: var(--text-muted);
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   vertical-align: bottom;
 }
 
 .history-table thead th:is(:lang(zh), :lang(ja), :lang(ko)),
 .import-counts thead th:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.8125rem;
-  letter-spacing: 0.04em;
 }
 
 .history-table tbody th,
@@ -4994,8 +5111,6 @@ kbd {
   color: var(--text-muted);
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .trend-levels-title:is(:lang(zh), :lang(ja), :lang(ko)) {
@@ -5093,13 +5208,10 @@ kbd {
   color: var(--text-muted);
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .session-head:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.8125rem;
-  letter-spacing: 0.04em;
 }
 
 .session-list {
@@ -5435,7 +5547,6 @@ kbd {
 .account-code {
   flex: 0 1 9rem;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.2em;
 }
 
 .account-email {
@@ -5499,7 +5610,6 @@ kbd {
 .data-message {
   margin: 1.25rem 0 0;
   font-weight: 600;
-  animation: ink-in var(--dur) ease-out;
 }
 
 .data-message.is-ok {
@@ -5533,7 +5643,6 @@ kbd {
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow-sheet);
-  animation: ink-in var(--dur) ease-out;
 }
 
 .import-preview h3 {
@@ -5618,15 +5727,12 @@ kbd {
   color: var(--text-muted);
   font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.09em;
   line-height: 1.4;
-  text-transform: uppercase;
 }
 
 .hm-control > label:is(:lang(zh), :lang(ja), :lang(ko)),
 .hm-control > legend:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
-  letter-spacing: 0.04em;
 }
 
 .hm-control select {
@@ -6148,14 +6254,11 @@ kbd {
   color: var(--text-muted);
   font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.09em;
   line-height: 1.4;
-  text-transform: uppercase;
 }
 
 .families-subhead:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
-  letter-spacing: 0.04em;
 }
 
 /* Levels: one compact row of chips, wrapping on a narrow screen. */
@@ -6535,14 +6638,11 @@ tr.is-few .cm-row {
   color: var(--text-muted);
   font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.09em;
   line-height: 1.4;
-  text-transform: uppercase;
 }
 
 .library-level-name:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
-  letter-spacing: 0.04em;
 }
 
 /* How many of a grade's pieces were played to the end: under its name, where the name has a
@@ -6892,7 +6992,6 @@ tr.is-few .cm-row {
 
 .your-piece-panel {
   padding: 0.25rem 0.75rem 1.25rem;
-  animation: ink-in var(--dur) ease-out;
 }
 
 .your-piece-panel > p {
@@ -7075,13 +7174,10 @@ tr.is-few .cm-row {
   color: var(--text-muted);
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
 }
 
 .piece-control-label:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.8125rem;
-  letter-spacing: 0.04em;
 }
 
 .piece-controls .check {
@@ -7509,14 +7605,11 @@ select.is-compact {
   color: var(--text-muted);
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.08em;
   line-height: 1.2;
-  text-transform: uppercase;
 }
 
 .piece-plan-grid thead th:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.8125rem;
-  letter-spacing: 0.04em;
 }
 
 .piece-plan-grid tbody th {
@@ -7669,7 +7762,6 @@ select.is-compact {
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow-pop);
-  animation: ink-in var(--dur) ease-out;
 }
 
 .piece-summary h2 {
@@ -7822,7 +7914,6 @@ select.is-compact {
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow-pop);
-  animation: ink-in var(--dur) ease-out;
 }
 
 .piece-option {
@@ -8005,13 +8096,10 @@ select.is-compact {
   color: var(--text-muted);
   font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
 }
 
 .deviation figcaption:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
-  letter-spacing: 0.04em;
 }
 
 .deviation-frame {
@@ -8213,13 +8301,10 @@ select.is-compact {
   color: var(--text-muted);
   font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
 }
 
 .expression-section h4:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
-  letter-spacing: 0.04em;
 }
 
 .expression-judgements {
@@ -8349,13 +8434,10 @@ select.is-compact {
   color: var(--text-muted);
   font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
 }
 
 .expression-chart figcaption:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
-  letter-spacing: 0.04em;
 }
 
 .expression-legend {
@@ -9512,7 +9594,6 @@ select.is-compact {
   background: var(--surface);
   color: var(--text);
   box-shadow: var(--shadow-pop);
-  animation: ink-in var(--dur) ease-out;
 }
 
 .met-chip-why {
@@ -9842,7 +9923,7 @@ select.is-compact {
 .pendulum-numbers,
 .pendulum-bands {
   fill: var(--engrave);
-  font-family: 'dacapo Accidentals', 'Source Serif 4', Georgia, serif;
+  font-family: var(--font-sans);
 }
 
 .pendulum-numbers {
@@ -9854,7 +9935,6 @@ select.is-compact {
   font-weight: 560;
   /* Capitals, tracked a little (BAND_ADVANCE in geometry.ts is their width). */
   letter-spacing: 0.03em;
-  text-transform: uppercase;
 }
 
 .pendulum-cap-shade {
@@ -10178,7 +10258,6 @@ select.is-compact {
   border-radius: var(--radius);
   background: var(--surface);
   box-shadow: var(--shadow-pop);
-  animation: ink-in var(--dur) ease-out;
 }
 
 .tempo-name[data-open] .tempo-scale {
@@ -10313,14 +10392,11 @@ select.is-compact {
   color: var(--text-muted);
   font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
 }
 
 .metronome-label:is(:lang(zh), :lang(ja), :lang(ko)) {
   width: 5rem;
   font-size: 0.875rem;
-  letter-spacing: 0.04em;
 }
 
 .metronome-setting .segmented.is-compact span {
@@ -11275,8 +11351,6 @@ a.today-step-name::after {
   font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.25rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -11729,8 +11803,6 @@ a.today-step-name::after {
   font-size: 0.8125rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -11914,11 +11986,8 @@ a.today-step-name::after {
 }
 
 .footer-mark {
-  display: block;
-  height: 1.125rem;
-  width: auto;
-  aspect-ratio: 4154 / 975;
-  fill: var(--text);
+  color: var(--text);
+  font-size: 0.9375rem;
 }
 
 .footer-links {
@@ -12435,13 +12504,10 @@ a.today-step-name::after {
   color: var(--accent);
   font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
 }
 
 .lesson-aside-title:is(:lang(zh), :lang(ja), :lang(ko)) {
   font-size: 0.875rem;
-  letter-spacing: 0.04em;
 }
 
 .lesson-aside p {
@@ -12940,8 +13006,6 @@ a.today-step-name::after {
   color: #231d18;
   font-size: clamp(0.75rem, 2vw, 0.9375rem);
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   transform: translateX(-50%);
 }
 
@@ -13504,12 +13568,6 @@ a.today-step-name::after {
   color: var(--text-muted);
   font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.ornament-label:lang(zh) {
-  letter-spacing: 0.08em;
 }
 
 /* Lesson 13: a chord broken and stacked, the chords of a key, chords on the grand staff, and a
@@ -14617,8 +14675,7 @@ h2.assignment-name:focus {
   @bottom-right {
     content: counter(page) ' / ' counter(pages);
     font:
-      9pt 'Source Sans 3',
-      system-ui,
+      9pt system-ui,
       sans-serif;
   }
 }

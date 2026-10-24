@@ -6,6 +6,19 @@ which is noted when it changes.
 
 ## Unreleased
 
+### A plainer look
+
+- **The system's own fonts, white or piano black, and one red**: the serif headings, the cream
+  paper and the urtext blue are gone. Text is set in the system's sans in every language;
+  light is white and grey, dark is the black of a piano's case; the one accent is the red of
+  the felt over a piano's keys. Small labels are no longer spaced capitals, and answers no longer
+  rise into place.
+- **Wrong answers are amber**, so red stays the brand's colour and is never a mistake.
+- **In the dark, music is on paper**: the flashcards, scores, lesson figures and the heatmap sit
+  on an ivory sheet in black ink.
+- The wordmark is the whole note beside the name in the same sans. Source Serif 4 and Source
+  Sans 3 are no longer shipped.
+
 ### Progress before the first practice
 
 - **The empty Progress page says what it will hold**: under the empty staff and the way in, its

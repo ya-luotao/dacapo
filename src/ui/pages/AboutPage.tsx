@@ -76,11 +76,6 @@ const FONTS: readonly Credit[] = [
     files: [{ name: 'SIL Open Font License 1.1', path: `${LICENCES}bravura/LICENSE.txt` }],
   },
   {
-    id: 'source',
-    lines: ['about.sourceFonts'],
-    files: [{ name: 'SIL Open Font License 1.1', path: `${LICENCES}source-fonts/OFL.txt` }],
-  },
-  {
     id: 'accidentals',
     lines: ['about.accidentals'],
     files: [{ name: 'SIL Open Font License 1.1', path: `${LICENCES}bravura/LICENSE.txt` }],

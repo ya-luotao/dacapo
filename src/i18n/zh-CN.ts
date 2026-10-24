@@ -2985,9 +2985,9 @@ export const zhCN: Dictionary = {
   'about.how.notation': '真正的乐谱',
   'about.how.notation.text':
     '识谱卡片用 VexFlow 绘制，曲目和音阶用 Verovio 刻谱，字形都来自 Bravura 乐谱字体，和出版乐谱用的是同一类排版工具。',
-  'about.how.page': '像一页印好的谱',
+  'about.how.page': '界面从简，让乐谱显眼',
   'about.how.page.text':
-    '暖白的纸、墨色的字、细线代替方框，只用一种“原典版”蓝作强调色；标题用 Source Serif，正文用 Source Sans。中文、日文、韩文各用本语言的字体，每个字才是它自己的写法。',
+    '字体用系统自带的，底色是白色或琴身那样的黑，只有一种红色，取自琴键上方那条琴毡。用心画的只有乐谱和键盘，其余的尽量不打扰。',
   'about.how.measured': '先测量，再说话',
   'about.how.measured.text':
     '每遍弹完的那句建议，是按规则从测到的数据得出的，并说明理由。其中的阈值还在用真实乐器上录下的演奏来校准。',
@@ -3039,8 +3039,6 @@ export const zhCN: Dictionary = {
     'Anatomy，「钢琴的内部」一课里三角钢琴剖面图的绘图工具。© Ryan (wheresryan22). MIT License.',
   'about.bravura':
     'Bravura，“识谱”页面使用的音乐字体。© 2019 Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
-  'about.sourceFonts':
-    'Source Serif 4 和 Source Sans 3，正文字体。© Adobe, with Reserved Font Name "Source". SIL Open Font License 1.1.',
   'about.accidentals':
     'dacapo Accidentals，正文里的 ♭、♮、♯：取自 Bravura Text 的五个字形，按其许可证对修改版本的要求改了名。© Steinberg Media Technologies GmbH, with Reserved Font Name "Bravura". SIL Open Font License 1.1.',
   'about.music.intro': '三十一首内置作品都属于公有领域。',

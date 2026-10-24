@@ -18,7 +18,7 @@ import { translator } from './words.ts';
 const APP_PAGE = [
   '<!doctype html><html lang="en"><head>',
   '<meta name="color-scheme" content="light dark" />',
-  '<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f8f4ec" />',
+  '<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />',
   '<link rel="icon" type="image/svg+xml" href="/favicon.svg" />',
   '<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />',
   '<link rel="manifest" href="/manifest.webmanifest" />',

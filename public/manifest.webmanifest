@@ -6,8 +6,8 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f8f4ec",
-  "theme_color": "#f8f4ec",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "categories": ["education", "music"],
   "icons": [
     {
