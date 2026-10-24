@@ -31,6 +31,9 @@ which is noted when it changes.
 - **Setups ask less of the eye**: how a level is mastered is folded under one question
   ("How is a level mastered?") instead of a paragraph under every list; the levels sit in a
   framed list with their numbers in monospace; the small captions are no longer italic.
+- **Figures read like a display, not a poster**: on Progress and after every session the minutes,
+  streaks and scores are a row of monospace values with their names under them, without the big
+  serif numbers between rules. Where you are is a framed list.
 
 ### Progress before the first practice
 

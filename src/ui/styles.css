@@ -2144,43 +2144,31 @@ kbd {
 }
 
 /* Figures sit between hairlines, like the colophon of an edition. */
+/* Figures read off like an instrument's display: the value in monospace, its name under it,
+   side by side with no rules between them. */
 .figures {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  max-width: 38rem;
-  margin: 2rem 0;
-  border-block: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 2.5rem;
+  margin: 1.5rem 0;
 }
 
 .figures div {
-  padding: 1rem 1.25rem 1.125rem;
-}
-
-.figures div:first-child {
-  padding-inline-start: 0;
-}
-
-.figures div + div {
-  border-inline-start: 1px solid var(--border);
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.125rem;
 }
 
 .figures dt {
   color: var(--text-muted);
   font-size: 0.8125rem;
-  font-weight: 600;
-}
-
-.figures dt:is(:lang(zh), :lang(ja), :lang(ko)) {
-  font-size: 0.875rem;
 }
 
 .figures dd {
-  margin: 0.25rem 0 0;
-  font-family: var(--font-serif);
-  font-size: clamp(1.75rem, 1.4rem + 2vw, 2.75rem);
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.15;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  line-height: 1.2;
   white-space: nowrap;
 }
 
@@ -2358,12 +2346,6 @@ kbd {
     padding: 0.875rem 0 0;
     border-top: 1px solid var(--border);
     border-inline-start: 0;
-  }
-}
-
-@media (max-width: 30rem) {
-  .figures div {
-    padding-inline: 0.75rem;
   }
 }
 
@@ -3314,13 +3296,7 @@ kbd {
 }
 
 .rhythm-result .figures {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   margin: 0.5rem 0 0.75rem;
-}
-
-.rhythm-result .figures dd,
-.rhythm-summary .figures dd {
-  font-size: clamp(1.5rem, 1.25rem + 1.5vw, 2.25rem);
 }
 
 .rhythm-tendency {
@@ -3343,32 +3319,8 @@ kbd {
   margin-top: 0;
 }
 
-.rhythm-summary .figures {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  max-width: 46rem;
-}
-
 .rhythm-missed {
   margin-top: 1.5rem;
-}
-
-@media (max-width: 40rem) {
-  .rhythm-summary .figures {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .rhythm-summary .figures div:nth-child(3) {
-    padding-inline-start: 0;
-    border-inline-start: 0;
-  }
-
-  .rhythm-summary .figures div:nth-child(n + 3) {
-    border-top: 1px solid var(--border);
-  }
-
-  .rhythm-pad {
-    min-height: 5rem;
-  }
 }
 
 /*
@@ -3421,10 +3373,6 @@ kbd {
   color: var(--bad);
 }
 
-.sight-result .figures {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
 .sight-bars {
   margin: 0 0 1rem;
   font-size: 0.875rem;
@@ -3462,10 +3410,6 @@ kbd {
   margin-top: 0.5rem;
 }
 
-.sight-summary .figures {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
 .sight-fragments {
   margin-top: 1.5rem;
 }
@@ -3479,11 +3423,6 @@ kbd {
 }
 
 @media (max-width: 40rem) {
-  .sight-result .figures,
-  .sight-summary .figures {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
   .sight-bars-table th,
   .sight-bars-table td {
     padding-inline: 0.25rem;
@@ -4594,7 +4533,7 @@ kbd {
   }
 }
 
-/* Progress: the page reads as movements, each opened by a hairline and a serif title. */
+/* Progress: sections, each opened by a hairline and a title. */
 
 .progress > h1 + .practice-figures .figures {
   margin-top: 1.5rem;
@@ -4605,8 +4544,8 @@ kbd {
 .about-page h2 {
   margin: 0 0 0.5rem;
   font-family: var(--font-serif);
-  font-size: clamp(1.5rem, 1.3rem + 0.8vw, 1.75rem);
-  font-weight: 500;
+  font-size: clamp(1.25rem, 1.15rem + 0.4vw, 1.5rem);
+  font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.012em;
   text-wrap: balance;
@@ -4639,7 +4578,9 @@ kbd {
 .where-rows {
   margin: 1.25rem 0 0;
   padding: 0;
-  border-top: 1px solid var(--border);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   list-style: none;
 }
 
@@ -4654,8 +4595,12 @@ kbd {
   grid-template-columns: minmax(0, 14rem) minmax(0, 1fr) minmax(0, 1.25fr);
   gap: 0.125rem 1.5rem;
   align-items: baseline;
-  padding: 0.5625rem 0;
+  padding: 0.5625rem 1rem;
   border-bottom: 1px solid var(--border);
+}
+
+.where-rows li:last-child {
+  border-bottom: 0;
 }
 
 .where-practice {
@@ -7851,14 +7796,6 @@ select.is-compact {
 
 .piece-summary .figures {
   margin: 1rem 0;
-}
-
-.piece-summary .figures dd {
-  font-size: clamp(1.5rem, 1.25rem + 1vw, 2.125rem);
-}
-
-.piece-summary .figures div {
-  padding-block: 0.625rem 0.75rem;
 }
 
 .piece-summary .actions {
