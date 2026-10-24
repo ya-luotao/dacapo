@@ -79,6 +79,8 @@ Clarifications). Bug reports are welcome.
 
 ## Development
 
+[![Launch on PicoRunner](https://picorunner.com/badges/launch.svg)](https://picorunner.com/launch/?repository=https%3A%2F%2Fgithub.com%2Fya-luotao%2Fdacapo)
+
 You need [Node.js](https://nodejs.org/) 22.13 or newer (the CI uses the version in `.nvmrc`)
 and [pnpm](https://pnpm.io/). The pnpm version is pinned in `packageManager` in `package.json`;
 install that version with `npm install -g pnpm@10.34.5`, or let
