@@ -6,6 +6,7 @@ import { RESERVED_USERNAMES, USERNAME_MAX, USERNAME_MIN } from '../core/profile.
 import { LOCALES, type Locale } from '../i18n/locale.ts';
 import { EXTRAS, LESSON_LANGUAGES, LESSONS } from '../learn/lessons.ts';
 import { groupOf } from '../offline/files.ts';
+import { TERMS } from '../learn/terms.ts';
 import { BUILT_IN } from '../pieces/library/index.ts';
 import { appPath, localePrefix, scorePath } from './addresses.ts';
 import {
@@ -58,6 +59,19 @@ describe('the pages', () => {
     expect(byKind('pieces')).toHaveLength(LOCALES.length);
   });
 
+  it('have the glossary and every term in every language the lessons are written in, once', () => {
+    for (const language of LESSON_LANGUAGES) {
+      expect(at(`${localePrefix(language)}learn/terms/`)).toHaveLength(1);
+      for (const term of TERMS) {
+        const found = at(`${localePrefix(language)}learn/terms/${term.slug}`);
+        expect(found, `${language} ${term.slug}`).toHaveLength(1);
+        expect(found[0]).toMatchObject({ kind: 'term', locale: language, id: term.slug });
+      }
+    }
+    expect(byKind('term')).toHaveLength(TERMS.length * LESSON_LANGUAGES.length);
+    expect(byKind('terms')).toHaveLength(LESSON_LANGUAGES.length);
+  });
+
   it('have a home page in every language but English, whose home is the app', () => {
     expect(byKind('home').map((page) => page.path)).toEqual(['zh-cn/', 'zh-tw/', 'ja/', 'ko/']);
     expect(at(APP_PATH)).toEqual([]);
@@ -68,6 +82,7 @@ describe('the pages', () => {
       LOCALES.length -
         1 +
         (siteLessons().length + 1) * LESSON_LANGUAGES.length +
+        (TERMS.length + 1) * LESSON_LANGUAGES.length +
         (BUILT_IN.length + 1) * LOCALES.length,
     );
   });

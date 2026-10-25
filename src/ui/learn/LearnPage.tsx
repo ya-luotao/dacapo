@@ -2,6 +2,7 @@ import { Link } from 'wouter';
 import { CURRICULUM_LESSONS, lessonNumber, nextLesson } from '../../core/curriculum.ts';
 import { useI18n } from '../../i18n/index.ts';
 import { EXTRAS, lessonBySlug, lessonLanguage, LESSONS } from '../../learn/lessons.ts';
+import { TERMS } from '../../learn/terms.ts';
 import { useStorageStatus } from '../practice/context.ts';
 import { useLessonsDone } from './progress.ts';
 
@@ -110,6 +111,19 @@ export function LearnPage() {
             </Link>
           </li>
         ))}
+        <li className="learn-glossary">
+          <Link href="/learn/terms" className="contents-row">
+            <span className="contents-numeral" aria-hidden="true">
+              ✦
+            </span>
+            <span className="contents-body">
+              <span className="contents-title">{t('terms.title')}</span>
+              <span className="contents-text">{t('terms.intro')}</span>
+            </span>
+            <span className="contents-meta">{t('terms.count', { n: TERMS.length })}</span>
+            <Arrow />
+          </Link>
+        </li>
       </ul>
     </section>
   );

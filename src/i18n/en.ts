@@ -146,6 +146,14 @@ export const en = {
   'learn.minutes': '{n} min',
   'learn.planned': 'In preparation',
   'learn.extra': 'Beyond the lessons',
+  'terms.title': 'Glossary',
+  'terms.intro':
+    'The words you meet in a score or a lesson, a few lines each, with an example you can hear.',
+  'terms.count': '{n} terms',
+  'terms.also': 'Also: {names}',
+  'terms.see': 'See also',
+  'terms.lessons': 'In the lessons',
+  'terms.all': 'All terms',
   'learn.done': 'Done',
   'learn.contents': 'In this lesson',
   'learn.all': 'All lessons',
@@ -3246,6 +3254,8 @@ export const en = {
   'site.title.lessons': 'Piano lessons for beginners · dacapo',
   'site.title.piece': '{title}, {composer} — score · dacapo',
   'site.title.pieces': 'Piano pieces by grade, with their scores · dacapo',
+  'site.title.terms': 'Music theory glossary · dacapo',
+  'site.title.term': '{title} · music theory glossary · dacapo',
   'site.pieces.lede':
     '{n} public-domain pieces by grade. Each has its score, where it comes from, and a way to practise it in dacapo.',
   'site.piece.work': 'Work',

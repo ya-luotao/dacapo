@@ -6,10 +6,11 @@
 import { DEFAULT_GOAL_MINUTES } from '../core/goal.ts';
 import { LOCALE_NAMES, LOCALES } from '../i18n/locale.ts';
 import { lessonBySlug } from '../learn/lessons.ts';
+import { termBySlug } from '../learn/terms.ts';
 import { builtInPiece } from '../pieces/library/index.ts';
 import { PRINCIPLES, QUESTIONS } from '../ui/home/questions.ts';
 import { createPieceFormat } from '../ui/pieces/format.ts';
-import { appPath, homePath, lessonsPath, piecesPath } from './addresses.ts';
+import { appPath, homePath, lessonsPath, piecesPath, termsPath } from './addresses.ts';
 import { CONTENTS } from './Landing.tsx';
 import { pageForRoute, type SitePage } from './pages.ts';
 import { translator } from './words.ts';
@@ -56,6 +57,14 @@ export function llmsText(pages: readonly SitePage[], url: (path: string) => stri
       return `- ${link(lesson.title.en, page.path)}: ${page.description}`;
     }),
     '',
+    '## Glossary',
+    '',
+    ...english('term').map((page) => {
+      const term = termBySlug(page.id ?? '');
+      if (!term) throw new Error(`No term for the page ${page.path}.`);
+      return `- ${link(term.title.en, page.path)}: ${page.description}`;
+    }),
+    '',
     '## Pieces, with their scores',
     '',
     ...english('piece').map((page) => {
@@ -70,10 +79,11 @@ export function llmsText(pages: readonly SitePage[], url: (path: string) => stri
     ...LOCALES.filter((locale) => locale !== 'en').map((locale) => {
       const lists = [
         link(t('site.lessons'), lessonsPath(locale)),
+        link(t('terms.title'), termsPath(locale)),
         link(t('pieces.title'), piecesPath(locale)),
       ];
-      // Japanese and Korean readers are given the English lessons: not theirs to name.
-      if (lessonsPath(locale) === lessonsPath('en')) lists.shift();
+      // Japanese and Korean readers are given the English lessons and glossary: not theirs to name.
+      if (lessonsPath(locale) === lessonsPath('en')) lists.splice(0, 2);
       return `- ${link(LOCALE_NAMES[locale], homePath(locale))}: ${lists.join(', ')}`;
     }),
     '',

@@ -6,6 +6,7 @@
 
 import { LOCALES, type Locale } from '../i18n/locale.ts';
 import { EXTRAS, LESSON_LANGUAGES, LESSONS, type LessonInfo } from '../learn/lessons.ts';
+import { termBySlug, TERMS } from '../learn/terms.ts';
 import { BUILT_IN, isBuiltInId } from '../pieces/library/index.ts';
 import {
   homePath,
@@ -14,10 +15,12 @@ import {
   localePrefix,
   piecePath,
   piecesPath,
+  termPath,
+  termsPath,
 } from './addresses.ts';
 import { translator } from './words.ts';
 
-export type PageKind = 'home' | 'lessons' | 'lesson' | 'pieces' | 'piece';
+export type PageKind = 'home' | 'lessons' | 'lesson' | 'terms' | 'term' | 'pieces' | 'piece';
 
 /** The same page in another language: `hreflang` is the language's code, or `x-default`. */
 export interface Alternate {
@@ -30,7 +33,7 @@ export interface SitePage {
   /** Its address below the site's root: `learn/staff`, `zh-cn/pieces/`, `ja/`. */
   path: string;
   locale: Locale;
-  /** The lesson's slug or the piece's id; null for a list and a home page. */
+  /** The lesson's or the term's slug, or the piece's id; null for a list and a home page. */
   id: string | null;
   title: string;
   description: string;
@@ -104,6 +107,26 @@ export function sitePages(): SitePage[] {
         alternates: alternates(LESSON_LANGUAGES, (l) => lessonPath(l, lesson.slug)),
       });
     }
+    pages.push({
+      kind: 'terms',
+      path: termsPath(language),
+      locale: language,
+      id: null,
+      title: t('site.title.terms'),
+      description: t('terms.intro'),
+      alternates: alternates(LESSON_LANGUAGES, termsPath),
+    });
+    for (const term of TERMS) {
+      pages.push({
+        kind: 'term',
+        path: termPath(language, term.slug),
+        locale: language,
+        id: term.slug,
+        title: t('site.title.term', { title: term.title[language] }),
+        description: term.summary[language],
+        alternates: alternates(LESSON_LANGUAGES, (l) => termPath(l, term.slug)),
+      });
+    }
   }
 
   for (const locale of LOCALES) {
@@ -143,8 +166,12 @@ export function sitePages(): SitePage[] {
 export function pageForRoute(locale: Locale, route: string): string | null {
   if (route === '/') return locale === 'en' ? null : homePath(locale);
   if (route === '/learn') return lessonsPath(locale);
+  if (route === '/learn/terms') return termsPath(locale);
   if (route === '/pieces') return piecesPath(locale);
   const [, section, name, ...rest] = route.split('/');
+  if (section === 'learn' && name === 'terms' && rest.length === 1) {
+    return termBySlug(rest[0]!) ? termPath(locale, rest[0]!) : null;
+  }
   if (name === undefined || rest.length > 0) return null;
   if (section === 'learn' && siteLessons().some((lesson) => lesson.slug === name)) {
     return lessonPath(locale, name);

@@ -1,5 +1,4 @@
 import {
-  Component,
   lazy,
   Suspense,
   useCallback,
@@ -14,6 +13,7 @@ import { useI18n } from '../../i18n/index.ts';
 import { isExtra, lessonBySlug, lessonLanguage, LESSONS, neighbours } from '../../learn/lessons.ts';
 import { NotFoundPage } from '../pages/NotFoundPage.tsx';
 import { LessonProvider } from './kit.tsx';
+import { LoadBoundary } from './LoadBoundary.tsx';
 import { LESSON_TEXTS } from './lessons/index.ts';
 
 // Practise it: the lesson's links are resolved against the reader's records, which takes the
@@ -21,17 +21,6 @@ import { LESSON_TEXTS } from './lessons/index.ts';
 const PracticeLinks = lazy(() =>
   import('./PracticeLinks.tsx').then((m) => ({ default: m.PracticeLinks })),
 );
-
-/** A lesson whose code could not be downloaded (offline, or a new version replaced it). */
-class LoadBoundary extends Component<{ fallback: ReactNode; children: ReactNode }> {
-  state = { failed: false };
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-  render() {
-    return this.state.failed ? this.props.fallback : this.props.children;
-  }
-}
 
 /** Tells the page when the lesson's text is on screen, so its sections can be listed. */
 function Mounted({ onMount, children }: { onMount: () => void; children: ReactNode }) {

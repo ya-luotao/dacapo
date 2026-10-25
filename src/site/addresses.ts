@@ -21,6 +21,11 @@ export const lessonsPath = (locale: Locale): string =>
 
 export const lessonPath = (locale: Locale, slug: string): string => `${lessonsPath(locale)}${slug}`;
 
+/** The glossary beside the lessons, in the lessons' languages (docs/GLOSSARY.md). */
+export const termsPath = (locale: Locale): string => `${lessonsPath(locale)}terms/`;
+
+export const termPath = (locale: Locale, slug: string): string => `${termsPath(locale)}${slug}`;
+
 export const piecesPath = (locale: Locale): string => `${localePrefix(locale)}pieces/`;
 
 export const piecePath = (locale: Locale, id: string): string => `${piecesPath(locale)}${id}`;

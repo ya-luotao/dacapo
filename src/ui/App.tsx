@@ -37,6 +37,11 @@ const LearnPage = lazy(() =>
 const LessonPage = lazy(() =>
   import('./learn/LessonPage.tsx').then((m) => ({ default: m.LessonPage })),
 );
+// The glossary loads its texts per group and language (ui/learn/terms/).
+const TermsPage = lazy(() =>
+  import('./learn/TermsPage.tsx').then((m) => ({ default: m.TermsPage })),
+);
+const TermPage = lazy(() => import('./learn/TermsPage.tsx').then((m) => ({ default: m.TermPage })));
 const MetronomePage = lazy(() =>
   import('./metronome/MetronomePage.tsx').then((m) => ({ default: m.MetronomePage })),
 );
@@ -89,6 +94,11 @@ function Shell() {
               <Route path="/" component={HomePage} />
               <Route path="/start" component={StartPage} />
               <Route path="/learn" component={LearnPage} />
+              {/* Before a lesson's route, which would take "terms" for a lesson. */}
+              <Route path="/learn/terms" component={TermsPage} />
+              <Route path="/learn/terms/:slug">
+                {({ slug }) => <TermPage key={slug} slug={slug} />}
+              </Route>
               <Route path="/learn/:slug">
                 {({ slug }) => <LessonPage key={slug} slug={slug} />}
               </Route>

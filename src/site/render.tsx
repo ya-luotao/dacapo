@@ -30,6 +30,9 @@ import { Landing } from './Landing.tsx';
 import { InputContext } from '../ui/input/context.ts';
 import { LearnPage } from '../ui/learn/LearnPage.tsx';
 import { LessonProvider } from '../ui/learn/kit.tsx';
+import { TermEntry, TermsList } from '../ui/learn/TermEntry.tsx';
+import type { TermTexts } from '../ui/learn/terms/index.ts';
+import { termBySlug, type TermInfo } from '../learn/terms.ts';
 import { createPieceFormat } from '../ui/pieces/format.ts';
 import { keyName } from '../ui/pieces/keyFormat.ts';
 import { PracticeContext } from '../ui/practice/context.ts';
@@ -42,6 +45,7 @@ import {
   piecePath,
   piecesPath,
   scorePath,
+  termsPath,
 } from './addresses.ts';
 import {
   absolute,
@@ -125,6 +129,7 @@ function crumbsOf(page: SitePage, t: Translate, name: string): Crumb[] {
   const home: Crumb = { name: t('app.name'), path: homePath(page.locale) };
   const lessons: Crumb = { name: t('site.lessons'), path: lessonsPath(page.locale) };
   const pieces: Crumb = { name: t('pieces.title'), path: piecesPath(page.locale) };
+  const terms: Crumb = { name: t('terms.title'), path: termsPath(page.locale) };
   const here: Crumb = { name, path: page.path };
   switch (page.kind) {
     case 'home':
@@ -133,7 +138,10 @@ function crumbsOf(page: SitePage, t: Translate, name: string): Crumb[] {
     case 'pieces':
       return [home, here];
     case 'lesson':
+    case 'terms':
       return [home, lessons, here];
+    case 'term':
+      return [home, lessons, terms, here];
     case 'piece':
       return [home, pieces, here];
   }
@@ -202,7 +210,11 @@ function Frame({
     {
       path: lessonsPath(page.locale),
       label: t('site.lessons'),
-      active: page.kind === 'lesson' || page.kind === 'lessons',
+      active:
+        page.kind === 'lesson' ||
+        page.kind === 'lessons' ||
+        page.kind === 'terms' ||
+        page.kind === 'term',
     },
     {
       path: piecesPath(page.locale),
@@ -687,6 +699,77 @@ function renderPiece(page: SitePage, site: Site, piece: BuiltInPiece, sheet: Pie
   );
 }
 
+// --- The glossary -----------------------------------------------------------------------------
+
+function renderTerms(page: SitePage, site: Site): string {
+  const language = page.locale as LessonLanguage;
+  const t = translator(language);
+  return finish(
+    page,
+    site,
+    '/learn/terms',
+    crumbsOf(page, t, t('terms.title')),
+    (at) => ({
+      '@type': 'DefinedTermSet',
+      name: t('terms.title'),
+      url: absolute(at, page.path),
+      description: page.description,
+      inLanguage: language,
+      isPartOf: partOfSite(at),
+    }),
+    <section className="terms">
+      <h1>{t('terms.title')}</h1>
+      <p className="learn-lede">{page.description}</p>
+      <TermsList language={language} />
+    </section>,
+  );
+}
+
+/** Each group's texts, per language: the modules the app loads when a term is opened. */
+const TERM_TEXTS = import.meta.glob<{ default: TermTexts }>(
+  '../ui/learn/terms/*.{en,zh-CN,zh-TW}.tsx',
+  { eager: true },
+);
+
+/** A term's text, drawn as its page shows it; null for a term not yet written. */
+export function termBody(site: Site, term: TermInfo, language: LessonLanguage): string | null {
+  const texts = TERM_TEXTS[`../ui/learn/terms/${term.group}.${language}.tsx`]?.default;
+  if (!texts) throw new Error(`The glossary's ${term.group} has no texts in ${language}.`);
+  const Text = texts[term.slug];
+  if (!Text) return null;
+  return renderToStaticMarkup(
+    <Around site={site} locale={language} route={`/learn/terms/${term.slug}`}>
+      <LessonProvider slug={`terms/${term.slug}`} language={language} staticPage>
+        <Text />
+      </LessonProvider>
+    </Around>,
+  );
+}
+
+function renderTerm(page: SitePage, site: Site, term: TermInfo): string {
+  const language = page.locale as LessonLanguage;
+  const t = translator(language);
+  const body = termBody(site, term, language);
+  return finish(
+    page,
+    site,
+    `/learn/terms/${term.slug}`,
+    crumbsOf(page, t, term.title[language]),
+    (at) => ({
+      '@type': 'DefinedTerm',
+      name: term.title[language],
+      ...(term.also ? { alternateName: term.also[language] } : {}),
+      description: term.summary[language],
+      url: absolute(at, page.path),
+      inLanguage: language,
+      inDefinedTermSet: absolute(at, termsPath(language)),
+    }),
+    <TermEntry term={term} language={language}>
+      {body !== null && <div dangerouslySetInnerHTML={{ __html: body }} />}
+    </TermEntry>,
+  );
+}
+
 // --- Every page -------------------------------------------------------------------------------
 
 /** The document of one page of the list. Throws when it cannot be drawn: no page is left out. */
@@ -700,6 +783,13 @@ export function renderPage(page: SitePage, site: Site, sheets: PieceSheets): str
       const lesson = lessonBySlug(page.id ?? '');
       if (!lesson) throw new Error(`No lesson for the page ${page.path}.`);
       return renderLesson(page, site, lesson);
+    }
+    case 'terms':
+      return renderTerms(page, site);
+    case 'term': {
+      const term = termBySlug(page.id ?? '');
+      if (!term) throw new Error(`No term for the page ${page.path}.`);
+      return renderTerm(page, site, term);
     }
     case 'pieces':
       return renderPieces(page, site);

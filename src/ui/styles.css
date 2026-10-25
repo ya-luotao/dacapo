@@ -12298,6 +12298,179 @@ a.today-step-name::after {
   font-weight: 600;
 }
 
+/* The glossary (docs/GLOSSARY.md): the terms by group in framed lists, and a term's page in the
+   lessons' measure, its plates numbered like theirs. */
+.terms {
+  max-width: 56rem;
+}
+
+.terms h1,
+.term-head h1 {
+  margin: 0.5rem 0 1rem;
+}
+
+.terms-group {
+  margin-top: 2.5rem;
+}
+
+.terms-group h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 650;
+}
+
+.terms-list {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  list-style: none;
+}
+
+.terms-list li + li {
+  border-top: 1px solid var(--border);
+}
+
+.terms-row {
+  display: grid;
+  grid-template-columns: minmax(0, 13rem) minmax(0, 1fr);
+  gap: 0.125rem 1.5rem;
+  align-items: baseline;
+  padding: 0.625rem 1rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.terms-name {
+  font-weight: 600;
+}
+
+.terms-summary {
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+@media (hover: hover) {
+  .terms-row:hover {
+    background: var(--sunk);
+  }
+}
+
+@media (max-width: 40rem) {
+  .terms-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.term {
+  max-width: 50rem;
+}
+
+.term-also {
+  margin: 0 0 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+
+.term-summary {
+  max-width: 38rem;
+  margin: 0;
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.term-body {
+  counter-reset: plate;
+  margin-top: 1.75rem;
+}
+
+.term-body p {
+  max-width: 38rem;
+  margin: 0 0 1.125rem;
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  text-wrap: pretty;
+}
+
+.term-body strong {
+  font-weight: 600;
+}
+
+.term-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem 3rem;
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.term-links h2 {
+  margin: 0 0 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.term-links ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.term-links li + li {
+  margin-top: 0.375rem;
+}
+
+/* The intervals in a table, each example a button to hear it. */
+.term-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.term-table :is(th, td) {
+  padding: 0.4375rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+}
+
+.term-table thead th {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.term-table tbody th {
+  font-weight: 600;
+}
+
+.term-table-short {
+  margin-inline-start: 0.375rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
+.term-table-number {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.term-table-play {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
 .lesson-section {
   margin-top: 3.5rem;
   padding-top: 2rem;

@@ -195,8 +195,11 @@ describe('the pages read the ticks from the store', () => {
     let release: () => void = () => {};
     const store = startStore(new Promise<void>((resolve) => (release = resolve)));
     mount(store, createElement(LearnPage));
+    // The lessons' lines, not the glossary's after them.
     const meta = () =>
-      [...host.querySelectorAll('.contents-meta')].map((el) => el.textContent?.trim());
+      [...host.querySelectorAll('li:not(.learn-glossary) .contents-meta')].map((el) =>
+        el.textContent?.trim(),
+      );
     /** The way on, over the list: where it leads and what it says; null when it is not there. */
     const way = () => {
       const line = host.querySelector('.learn-continue');

@@ -163,6 +163,8 @@ describe('every page', () => {
       home: 'WebSite',
       lessons: 'CollectionPage',
       lesson: 'LearningResource',
+      terms: 'DefinedTermSet',
+      term: 'DefinedTerm',
       pieces: 'CollectionPage',
       piece: 'MusicComposition',
     } as const;
@@ -184,6 +186,11 @@ describe('every page', () => {
         expect(thing.inLanguage).toBe(page.locale);
         expect(thing.timeRequired, page.path).toMatch(/^PT\d+M$/);
         expect(thing.isAccessibleForFree).toBe(true);
+      }
+      if (page.kind === 'term') {
+        expect(thing.inDefinedTermSet, page.path).toBe(
+          `${ORIGIN}/${page.path.slice(0, page.path.lastIndexOf('/') + 1)}`,
+        );
       }
       if (page.kind === 'piece') {
         expect(thing.image, page.path).toBe(`${ORIGIN}/${scorePath(page.id!)}`);
@@ -209,9 +216,8 @@ describe('every page', () => {
         expect(item.name.length, page.path).toBeGreaterThan(0);
         expect(item.item.startsWith(`${ORIGIN}/`), page.path).toBe(true);
       }
-      expect(items.length, page.path).toBe(
-        page.kind === 'home' ? 1 : page.kind === 'lesson' || page.kind === 'piece' ? 3 : 2,
-      );
+      const depth = { home: 1, lessons: 2, pieces: 2, lesson: 3, terms: 3, piece: 3, term: 4 };
+      expect(items.length, page.path).toBe(depth[page.kind]);
     }
   });
 
@@ -428,11 +434,13 @@ describe('the lists and the home pages', () => {
   it('list every lesson with its summary, each leading to its page', () => {
     for (const page of pages.filter((p) => p.kind === 'lessons')) {
       const links = all(read(page), '.contents a').map((a) => a.getAttribute('href'));
-      expect(links, page.path).toEqual(
-        pages
+      expect(links, page.path).toEqual([
+        ...pages
           .filter((p) => p.kind === 'lesson' && p.locale === page.locale)
           .map((p) => `/${p.path}`),
-      );
+        // The glossary, after the extras.
+        `/${pages.find((p) => p.kind === 'terms' && p.locale === page.locale)!.path}`,
+      ]);
       expect(read(page).querySelector('.contents-meta')?.textContent, page.path).toMatch(/\d/);
     }
   });
