@@ -280,7 +280,7 @@ script. They read every page of the site whole, but at `/`, the most linked addr
   `CONTENTS` of `Landing.tsx`, linked to their page or into the app), the principles, the
   questions with their answers, every English lesson and piece with its page and its summary
   or note, and each other language's home page, lessons and pieces. In English, as such files
-  are, from the English dictionary; the headings are the file's own. About 15 kB. Only where the
+  are, from the English dictionary; the headings are the file's own. About 25 kB with the glossary. Only where the
   site has an address, like the sitemap. The Apple app leaves it out.
 - The title of the home page is two lines in two `span`s; a space between them, unseen, keeps
   them apart for a reader of the text alone ("Read the staff. Find the key.").

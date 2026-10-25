@@ -81,8 +81,8 @@ const TEXTS: TermTexts = {
   largo: () => (
     <>
       <p>
-        Italian for broad. It asks for a slow tempo with a full, spacious sound, not a dragging one.
-        The slow movement of Dvořák’s New World Symphony is a Largo.
+        Italian for broad. It asks for a slow tempo and a full, spacious sound that never drags. The
+        slow movement of Dvořák’s New World Symphony is a Largo.
       </p>
       <Scale mark="largo" caption={MARK_CAPTION} />
     </>
@@ -112,7 +112,7 @@ const TEXTS: TermTexts = {
   andante: () => (
     <>
       <p>
-        From andare, “to go”: a walking pace, moving along rather than slow. The second movement of
+        From andare, “to go”: a walking pace, unhurried but always moving on. The second movement of
         Haydn’s Surprise Symphony is an Andante.
       </p>
       <p>
@@ -167,7 +167,7 @@ const TEXTS: TermTexts = {
     <>
       <p>
         Ritardando and rallentando both slow down little by little, and most players treat them
-        alike. Ritenuto (riten.) is different: held back at once, not gradually.
+        alike. Ritenuto (riten.) is different: held back at once.
       </p>
       <Change
         kind="rit"
@@ -179,7 +179,7 @@ const TEXTS: TermTexts = {
   accelerando: () => (
     <>
       <p>
-        Speed up evenly, beat by beat, not in a jump. Stringendo, “tightening”, also speeds up,
+        Speed up evenly, a little more with each beat. Stringendo, “tightening”, also speeds up,
         usually as the tension rises.
       </p>
       <Change
@@ -306,8 +306,8 @@ const TEXTS: TermTexts = {
   staccato: () => (
     <>
       <p>
-        Italian for “detached”. The dot shortens the note, not the beat: the next note still comes
-        in on time, after a silence. A wedge, staccatissimo, is shorter still.
+        Italian for “detached”. The dot shortens the sound and leaves the beat alone: the next note
+        still comes in on time, after a silence. A wedge, staccatissimo, is shorter still.
       </p>
       <Plate caption="The same line staccato and tenuto. Play it yourself, and the timeline shows how long you held each note.">
         <Articulation

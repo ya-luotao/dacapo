@@ -70,7 +70,7 @@ const TEXTS: TermTexts = {
   largo: () => (
     <>
       <p>
-        義大利文「寬廣」。要的是慢而飽滿、舒展的聲音，而不是拖拖拉拉。德弗札克《新世界交響曲》的慢樂章就是廣板。
+        義大利文「寬廣」。要的是慢而飽滿、舒展的聲音，但不拖拖拉拉。德弗札克《新世界交響曲》的慢樂章就是廣板。
       </p>
       <Scale mark="largo" caption={MARK_CAPTION} />
     </>
@@ -100,7 +100,8 @@ const TEXTS: TermTexts = {
   andante: () => (
     <>
       <p>
-        來自 andare，「走」：走路的速度，是往前走，不是慢。海頓《驚愕交響曲》的第二樂章就是行板。
+        來自
+        andare，「走」：走路的速度：不急，但一直在往前走。海頓《驚愕交響曲》的第二樂章就是行板。
       </p>
       <p>andantino 通常比 andante 稍快一點，不過作曲家們對此並不總是一致。</p>
       <Scale mark="andante" caption={MARK_CAPTION} />
@@ -144,7 +145,7 @@ const TEXTS: TermTexts = {
     <>
       <p>
         ritardando 和 rallentando
-        都是一點一點放慢，大部分演奏者把它們當成同一回事。ritenuto（riten.）不同：是立刻慢下來，不是逐漸的。
+        都是一點一點放慢，大部分演奏者把它們當成同一回事。ritenuto（riten.）不同，是一下子慢下來。
       </p>
       <Change kind="rit" caption="先是四拍平穩的拍子，然後漸慢：每個間隔都比上一個長一點。" />
     </>
@@ -264,7 +265,7 @@ const TEXTS: TermTexts = {
   staccato: () => (
     <>
       <p>
-        義大利文「分開的」。點縮短的是音，不是拍：下一個音照樣準時進來，中間是一段空白。楔形的短斷奏（staccatissimo）更短。
+        義大利文「分開的」。點只縮短聲音，拍子不變：下一個音照樣準時進來，中間是一段空白。楔形的短斷奏（staccatissimo）更短。
       </p>
       <Plate caption="同一條旋律，斷奏和持音。自己彈一遍，時間線會顯示每個音你按了多久。">
         <Articulation
