@@ -68,6 +68,8 @@ the library's entries and scores, the dictionaries), so they cannot drift from i
 - **`sitemap.xml` is written by the build**: `/`, every page above, each with its alternates. No
   dates: the build is the same whenever it is made.
 - `robots.txt` is unchanged. Profile pages stay `noindex`.
+- **`llms.txt`** (llmstxt.org) is written by the build beside the sitemap, and **`/` carries the
+  English home in its `<noscript>`**: see "For a language model" below.
 
 ## The way into the app
 
@@ -256,3 +258,34 @@ the library's entries and scores, the dictionaries), so they cannot drift from i
   nothing but the stylesheet's missing `integrity`, which is the app's own tag, and two notes
   on the app's own markup (a lesson's `aside`s have no names; an `ol` has an `aria-label`). Not
   run in Safari or Firefox.
+
+## For a language model (2026-10-25)
+
+The crawlers that feed language models (GPTBot, ClaudeBot, PerplexityBot and the like) run no
+script. They read every page of the site whole, but at `/`, the most linked address and the
+`x-default` of every home page, they found a title, a description and one paragraph.
+
+- **The app's page carries the English home.** The build draws the English `Landing` (the first
+  visit's title page, the practices, the principles, the questions), a line saying the app needs
+  JavaScript with the lessons and the pieces linked, and the home pages in the other languages,
+  and writes it into the one `<noscript>` of the built `index.html` (`appPageWith` in
+  `src/site/document.ts`; a page with none or more than one is refused). `index.html` itself
+  keeps two lines there for `pnpm dev`. With scripts on, nothing of it is drawn: the app is as
+  it was, and no flash of the first visit's page reaches a returning player. It is not put in
+  `#root`, where the app would replace it after drawing it once. The page grows from about 10 kB
+  to 23 kB (3 kB to 7 kB over the wire); it is the offline worker's page as before, so its version
+  moves with it. A build without an address writes the same.
+- **`llms.txt`** (`src/site/llms.ts`): `# dacapo`, a summary, then the practices (the
+  `CONTENTS` of `Landing.tsx`, linked to their page or into the app), the principles, the
+  questions with their answers, every English lesson and piece with its page and its summary
+  or note, and each other language's home page, lessons and pieces. In English, as such files
+  are, from the English dictionary; the headings are the file's own. About 15 kB. Only where the
+  site has an address, like the sitemap. The Apple app leaves it out.
+- The title of the home page is two lines in two `span`s; a space between them, unseen, keeps
+  them apart for a reader of the text alone ("Read the staff. Find the key.").
+- Every page says what the social card shows (`og:image:alt`, `site.card.alt` in its
+  language), as `index.html` does.
+- **Left as they were**: the sitemap has no dates (the build is the same whenever it is made);
+  there is no `FAQPage` data (Google shows it only for government and health sites since 2023,
+  and the questions are in `llms.txt`); `robots.txt` lets every crawler in, and says nothing of
+  AI training either way.

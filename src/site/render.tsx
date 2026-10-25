@@ -54,7 +54,7 @@ import {
   type Site,
   type Thing,
 } from './document.ts';
-import { pageForRoute, type SitePage } from './pages.ts';
+import { homeAlternates, pageForRoute, type Alternate, type SitePage } from './pages.ts';
 import { pageI18n, translator } from './words.ts';
 
 // --- Stand-ins --------------------------------------------------------------------------------
@@ -139,6 +139,49 @@ function crumbsOf(page: SitePage, t: Translate, name: string): Crumb[] {
   }
 }
 
+/** The page in every language it exists in, by the languages' own names. */
+function Languages({
+  site,
+  locale,
+  alternates,
+}: {
+  site: Site;
+  locale: Locale;
+  alternates: readonly Alternate[];
+}) {
+  const t = translator(locale);
+  return (
+    <nav className="site-languages" aria-label={t('site.languages')}>
+      <ul>
+        {alternates
+          .filter((alternate) => alternate.hreflang !== 'x-default')
+          .map((alternate) => {
+            const language = alternate.hreflang as Locale;
+            return (
+              <li key={language}>
+                {language === locale ? (
+                  <span lang={language} aria-current="page">
+                    {LOCALE_NAMES[language]}
+                  </span>
+                ) : (
+                  <a
+                    // The app's own page follows the visitor's language: asked for by name
+                    // here, English is said.
+                    href={href(site, alternate.path === '' ? '?lang=en' : alternate.path)}
+                    hrefLang={language}
+                    lang={language}
+                  >
+                    {LOCALE_NAMES[language]}
+                  </a>
+                )}
+              </li>
+            );
+          })}
+      </ul>
+    </nav>
+  );
+}
+
 /**
  * The page around its content: the brand as the way home, the lessons and the pieces, the trail,
  * the page in its other languages, and the app's own footer.
@@ -209,34 +252,7 @@ function Frame({
           </nav>
         )}
         {children}
-        <nav className="site-languages" aria-label={t('site.languages')}>
-          <ul>
-            {page.alternates
-              .filter((alternate) => alternate.hreflang !== 'x-default')
-              .map((alternate) => {
-                const locale = alternate.hreflang as Locale;
-                return (
-                  <li key={locale}>
-                    {locale === page.locale ? (
-                      <span lang={locale} aria-current="page">
-                        {LOCALE_NAMES[locale]}
-                      </span>
-                    ) : (
-                      <a
-                        // The app's own page follows the visitor's language: asked for by name
-                        // here, English is said.
-                        href={href(site, alternate.path === '' ? '?lang=en' : alternate.path)}
-                        hrefLang={locale}
-                        lang={locale}
-                      >
-                        {LOCALE_NAMES[locale]}
-                      </a>
-                    )}
-                  </li>
-                );
-              })}
-          </ul>
-        </nav>
+        <Languages site={site} locale={page.locale} alternates={page.alternates} />
       </main>
       <Footer />
     </div>
@@ -260,7 +276,7 @@ function finish(
     </Around>,
   );
   const data = hasAddress(site) ? structuredData(site, thing(site), crumbs) : null;
-  return documentOf(page, site, body, data);
+  return documentOf(page, site, body, data, translator(page.locale)('site.card.alt'));
 }
 
 // --- The home page and the lessons ------------------------------------------------------------
@@ -693,4 +709,25 @@ export function renderPage(page: SitePage, site: Site, sheets: PieceSheets): str
       return renderPiece(page, site, piece, sheetOf(sheets, piece.id));
     }
   }
+}
+
+/**
+ * The English home, for the app's own page (`/`) to carry in its `<noscript>`: what a first visit
+ * shows, for a reader that runs no script, and a crawler that reads the page as it comes. The
+ * home pages of the other languages are pages of their own; English has the app at `/`.
+ */
+export function renderAppHome(site: Site): string {
+  const t = translator('en');
+  return renderToStaticMarkup(
+    <Around site={site} locale="en" route="/">
+      <main className="main" id="main">
+        <Landing />
+        <p>
+          {t('site.noScript')} <a href={href(site, lessonsPath('en'))}>{t('site.lessons')}</a>,{' '}
+          <a href={href(site, piecesPath('en'))}>{t('pieces.title')}</a>.
+        </p>
+        <Languages site={site} locale="en" alternates={homeAlternates()} />
+      </main>
+    </Around>,
+  );
 }

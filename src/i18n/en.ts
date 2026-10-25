@@ -3265,6 +3265,9 @@ export const en = {
   'site.piece.source': 'Source',
   'site.piece.encoder': 'Encoded by',
   'site.piece.licence': 'Licence',
+  'site.noScript':
+    'dacapo needs JavaScript to run. The lessons and the pieces can be read without it:',
+  'site.card.alt': 'The dacapo wordmark, its tagline, and a treble staff with one whole note',
   'site.about':
     'The lessons and the built-in pieces also have pages of their own, which can be read without the app and found by a search engine.',
 };

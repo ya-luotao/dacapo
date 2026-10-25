@@ -3255,6 +3255,9 @@ export const ja: Dictionary = {
   'site.piece.source': '底本',
   'site.piece.encoder': '入力',
   'site.piece.licence': 'ライセンス',
+  'site.noScript':
+    'dacapo の実行には JavaScript が必要です。レッスンと曲のページは JavaScript なしでも読めます：',
+  'site.card.alt': 'dacapo のロゴとキャッチコピー、全音符が一つあるト音記号の五線',
   'site.about':
     'レッスンと収録曲には、それぞれ独立したページもあります。dacapoを開かなくても読め、検索エンジンでも見つかります。',
 };

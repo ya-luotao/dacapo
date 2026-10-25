@@ -9,9 +9,10 @@ import { pieceKey } from '../core/transpose.ts';
 import { BUILT_IN, loadBuiltIn, type BuiltInId } from '../pieces/library/index.ts';
 import { rememberLibraryScore } from '../ui/learn/libraryScores.ts';
 import { scorePath } from './addresses.ts';
-import { absolute, hasAddress, siteOf } from './document.ts';
+import { absolute, appPageWith, hasAddress, siteOf } from './document.ts';
+import { llmsText } from './llms.ts';
 import { pageFile, sitemap, sitePages } from './pages.ts';
-import { renderPage, type PieceSheet } from './render.tsx';
+import { renderAppHome, renderPage, type PieceSheet } from './render.tsx';
 import { engrave, loadEngraver } from './score.ts';
 import { translator } from './words.ts';
 
@@ -30,17 +31,24 @@ export interface SiteFile {
   content: string;
 }
 
+/** What the build writes: the site's own files, and the app's page with the English home in it. */
+export interface SiteOutput {
+  files: SiteFile[];
+  appPage: string;
+}
+
 /** A piece's time signatures in the order they first appear. */
 function timesOf(score: Score): string[] {
   return [...new Set(score.measures.map((measure) => `${measure.beats}/${measure.beatType}`))];
 }
 
 /**
- * Every file of the site: each piece's score, each page, and the sitemap where the site has an
- * address. The same sources give the same files, byte for byte. A page that cannot be drawn
- * throws: there is no site with a page missing.
+ * Every file of the site: each piece's score, each page, and the sitemap and `llms.txt` where the
+ * site has an address; and the app's page, its `<noscript>` holding the English home. The same
+ * sources give the same files, byte for byte. A page that cannot be drawn throws: there is no
+ * site with a page missing.
  */
-export async function renderSite(sources: SiteSources): Promise<SiteFile[]> {
+export async function renderSite(sources: SiteSources): Promise<SiteOutput> {
   const site = siteOf(sources.appPage, import.meta.env.BASE_URL, sources.origin);
   const files: SiteFile[] = [];
 
@@ -70,7 +78,9 @@ export async function renderSite(sources: SiteSources): Promise<SiteFile[]> {
   }
 
   if (hasAddress(site)) {
-    files.push({ path: 'sitemap.xml', content: sitemap(pages, (path) => absolute(site, path)) });
+    const url = (path: string) => absolute(site, path);
+    files.push({ path: 'sitemap.xml', content: sitemap(pages, url) });
+    files.push({ path: 'llms.txt', content: llmsText(pages, url) });
   }
-  return files;
+  return { files, appPage: appPageWith(sources.appPage, renderAppHome(site)) };
 }

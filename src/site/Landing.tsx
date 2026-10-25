@@ -20,7 +20,7 @@ import { readGoal } from '../ui/progress/goal.ts';
 import { PRINCIPLES, QUESTIONS } from '../ui/home/questions.ts';
 
 /** The practices, each with a line and its size: what a search engine and a newcomer read first. */
-const CONTENTS: readonly {
+export const CONTENTS: readonly {
   path: string;
   title: MessageKey;
   text: MessageKey;

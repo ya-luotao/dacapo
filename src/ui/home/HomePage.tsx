@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { Fragment, lazy, Suspense, useEffect, useState } from 'react';
 import { Link } from 'wouter';
 import { currentAssignments } from '../../core/assignmentRecords.ts';
 import { dayKey } from '../../core/streak.ts';
@@ -71,8 +71,12 @@ export function FirstVisit() {
       <section className="home-hero" aria-labelledby="home-title">
         <div className="home-hero-text">
           <h1 id="home-title" className="home-title">
+            {/* A space between the lines, unseen: a reader of the text alone keeps them apart. */}
             {sentences(t('app.tagline')).map((sentence, i) => (
-              <span key={i}>{sentence}</span>
+              <Fragment key={i}>
+                {i > 0 && ' '}
+                <span>{sentence}</span>
+              </Fragment>
             ))}
           </h1>
           <p className="home-lede">{t('home.lede')}</p>

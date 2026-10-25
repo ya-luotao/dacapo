@@ -3215,6 +3215,9 @@ export const ko: Dictionary = {
   'site.piece.source': '원본',
   'site.piece.encoder': '입력',
   'site.piece.licence': '라이선스',
+  'site.noScript':
+    'dacapo를 실행하려면 JavaScript가 필요합니다. 레슨과 곡 페이지는 JavaScript 없이도 읽을 수 있습니다:',
+  'site.card.alt': 'dacapo 로고와 문구, 온음표 하나가 있는 높은음자리표 오선',
   'site.about':
     '레슨과 기본 곡은 각각 따로 된 페이지로도 읽을 수 있어요. dacapo를 열지 않아도 볼 수 있고, 검색 엔진에서도 찾을 수 있어요.',
 };

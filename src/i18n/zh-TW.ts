@@ -3084,5 +3084,7 @@ export const zhTW: Dictionary = {
   'site.piece.source': '來源',
   'site.piece.encoder': '編碼',
   'site.piece.licence': '授權',
+  'site.noScript': 'dacapo 需要 JavaScript 才能執行。課程和曲目不需要，可以直接讀：',
+  'site.card.alt': 'dacapo 的字標和標語，下面是一行高音譜表，上面有一個全音符',
   'site.about': '課程和內建樂曲也各有自己的網頁，不必打開 dacapo 就能讀，搜尋引擎也找得到。',
 };

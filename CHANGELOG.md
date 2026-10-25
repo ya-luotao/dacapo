@@ -6,6 +6,17 @@ which is noted when it changes.
 
 ## Unreleased
 
+### For readers that run no script
+
+- **`/` has the home page in its HTML**: the build writes the English home (the title, the lede,
+  the practices, the principles and the questions) into the app's `<noscript>`, with links to the
+  lessons, the pieces and the home pages in the other languages. A crawler that reads the page
+  as it comes (most language models' do) found one paragraph there before.
+- **`/llms.txt`**: the site in one plain file for a language model, written by the build beside
+  the sitemap and from the same list: what dacapo is, what there is to practise, the principles
+  and the questions, every lesson and piece with its page, and the other languages.
+- The site's pages say what the social card shows (`og:image:alt`), in their language.
+
 ### A plainer look
 
 - **The system's own fonts, white or piano black, and one red**: the serif headings, the cream

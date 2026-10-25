@@ -3082,5 +3082,7 @@ export const zhCN: Dictionary = {
   'site.piece.source': '来源',
   'site.piece.encoder': '编码',
   'site.piece.licence': '许可',
+  'site.noScript': 'dacapo 需要 JavaScript 才能运行。课程和曲目不需要，可以直接读：',
+  'site.card.alt': 'dacapo 的字标和标语，下面是一行高音谱表，上面有一个全音符',
   'site.about': '课程和内置曲目也各有自己的网页，不打开 dacapo 也能读，搜索引擎也找得到。',
 };

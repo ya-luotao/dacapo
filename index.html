@@ -42,7 +42,7 @@
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="The dacapo wordmark above a treble staff with one whole note"
+      content="The dacapo wordmark, its tagline, and a treble staff with one whole note"
     />
     <meta name="twitter:card" content="summary_large_image" />
 
@@ -87,21 +87,12 @@
   </head>
   <body>
     <div id="root"></div>
-    <!-- Without JavaScript: the home page's words, so the page still says what it is. -->
+    <!-- Without JavaScript: the build writes the English home in here (docs/SITE.md); in
+         `pnpm dev` it is these few lines. -->
     <noscript>
-      <main style="max-width: 40rem; margin: 3rem auto; padding: 0 1rem; font-family: serif">
-        <h1>dacapo — read the staff, find the key</h1>
-        <p>
-          Free, open-source piano practice with a MIDI keyboard: sight-reading on a real grand
-          staff, rhythms to tap in time, new music to sight-read, intervals, chords and melodies by
-          ear, scales measured for evenness, real pieces that wait for you, and a metronome. dacapo
-          needs JavaScript to run.
-        </p>
-        <p>
-          The lessons and the pieces can be read without it: <a href="learn/">Lessons</a>,
-          <a href="pieces/">Pieces</a>.
-        </p>
-        <p><a href="https://github.com/ya-luotao/dacapo">Source code on GitHub</a></p>
+      <main>
+        <h1>dacapo</h1>
+        <p>dacapo needs JavaScript to run.</p>
       </main>
     </noscript>
     <script type="module" src="/src/main.tsx"></script>

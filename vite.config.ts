@@ -163,7 +163,7 @@ interface SiteModule {
     appPage: string;
     origin: string | null;
     parseXml: (xml: string) => unknown;
-  }) => Promise<{ path: string; content: string }[]>;
+  }) => Promise<{ files: { path: string; content: string }[]; appPage: string }>;
 }
 
 /**
@@ -229,7 +229,7 @@ function sitePages(): Plugin {
       const { renderSite } = (await import(built)) as SiteModule;
       // The scores are MusicXML, read as the app reads them: with a DOM parser, here jsdom's.
       const parser = new new JSDOM('').window.DOMParser();
-      const files = await renderSite({
+      const { files, appPage } = await renderSite({
         appPage: readFileSync(join(outDir, 'index.html'), 'utf8'),
         origin: siteOrigin(),
         parseXml: (xml) => parser.parseFromString(xml, 'application/xml'),
@@ -245,6 +245,9 @@ function sitePages(): Plugin {
         mkdirSync(dirname(to), { recursive: true });
         writeFileSync(to, file.content);
       }
+      // The app's page, its <noscript> now the English home: still the app's, and the worker's
+      // list, taken after this, has it as it now is.
+      writeFileSync(join(outDir, 'index.html'), appPage);
       const bytes = files.reduce((sum, file) => sum + Buffer.byteLength(file.content), 0);
       config.logger.info(
         `site: ${files.length} files (${(bytes / 1e6).toFixed(1)} MB), ${

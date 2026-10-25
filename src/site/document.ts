@@ -112,13 +112,15 @@ export const hasAddress = (site: Site): site is Site & { origin: string } => sit
 
 /**
  * The whole document. `data` is the page's structured data, made only where the site has an
- * address; `body` is what `render.tsx` drew.
+ * address; `body` is what `render.tsx` drew; `cardAlt` says what the social card shows, in the
+ * page's language.
  */
 export function documentOf(
   page: SitePage,
   site: Site,
   body: string,
   data: Record<string, unknown> | null,
+  cardAlt: string,
 ): string {
   const title = escapeHtml(page.title);
   const description = escapeHtml(page.description);
@@ -158,6 +160,7 @@ export function documentOf(
       `<meta property="og:image" content="${escapeHtml(absolute(site, 'social-card.png'))}" />`,
       '<meta property="og:image:width" content="1200" />',
       '<meta property="og:image:height" content="630" />',
+      `<meta property="og:image:alt" content="${escapeHtml(cardAlt)}" />`,
     );
   }
   head.push('<meta name="twitter:card" content="summary_large_image" />');
@@ -181,4 +184,19 @@ export function documentOf(
     '</html>',
     '',
   ].join('\n');
+}
+
+/** The app's page holds one `<noscript>`, which the build fills with the English home. */
+const NOSCRIPT = /<noscript>[\s\S]*?<\/noscript>/g;
+
+/**
+ * The app's page with `home` (`renderAppHome`) in its `<noscript>`, in place of the few lines
+ * `index.html` has for `pnpm dev`. A page with no `<noscript>`, or more than one, is refused.
+ */
+export function appPageWith(appPage: string, home: string): string {
+  const found = appPage.match(NOSCRIPT)?.length ?? 0;
+  if (found !== 1) {
+    throw new Error(`The app's page has ${found} <noscript> elements; the home needs one.`);
+  }
+  return appPage.replace(NOSCRIPT, () => `<noscript>${home}</noscript>`);
 }

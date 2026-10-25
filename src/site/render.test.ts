@@ -4,8 +4,9 @@ import { LESSONS } from '../learn/lessons.ts';
 import { BUILT_IN } from '../pieces/library/index.ts';
 import themeSource from '../ui/theme.ts?raw';
 import { appPath, scorePath } from './addresses.ts';
-import { siteOf, THEME_SCRIPT } from './document.ts';
+import { appPageWith, siteOf, THEME_SCRIPT } from './document.ts';
 import { renderSite, type SiteFile } from './main.ts';
+import { llmsText } from './llms.ts';
 import { APP_PATH, pageFile, sitemap, sitePages, type SitePage } from './pages.ts';
 import { headingsOf } from './render.tsx';
 import { translator } from './words.ts';
@@ -24,7 +25,9 @@ const APP_PAGE = [
   '<link rel="manifest" href="/manifest.webmanifest" />',
   '<script type="module" crossorigin src="/assets/index-AAAA.js"></script>',
   '<link rel="stylesheet" crossorigin href="/assets/index-BBBB.css">',
-  '</head><body><div id="root"></div></body></html>',
+  '</head><body><div id="root"></div>',
+  '<noscript><main><h1>dacapo</h1></main></noscript>',
+  '</body></html>',
 ].join('\n');
 
 const ORIGIN = 'https://playdacapo.com';
@@ -33,6 +36,7 @@ const render = (origin: string | null) => renderSite({ appPage: APP_PAGE, origin
 
 const pages = sitePages();
 let files: SiteFile[] = [];
+let appPage = '';
 let byPath = new Map<string, string>();
 const documents = new Map<string, Document>();
 
@@ -54,25 +58,29 @@ const all = <T extends Element = Element>(doc: ParentNode, selector: string) => 
 vi.setConfig({ testTimeout: 60_000 });
 
 beforeAll(async () => {
-  files = await render(ORIGIN);
+  ({ files, appPage } = await render(ORIGIN));
   byPath = new Map(files.map((file) => [file.path, file.content]));
   for (const page of pages) read(page);
 }, 180_000);
 
 describe('the site', () => {
-  it('is a file for every page, a score for every piece, and the sitemap', () => {
+  it('is a file for every page, a score for every piece, the sitemap and llms.txt', () => {
     expect(files.map((file) => file.path).sort()).toEqual(
       [
         ...pages.map((page) => pageFile(page.path)),
         ...BUILT_IN.map((piece) => scorePath(piece.id)),
         'sitemap.xml',
+        'llms.txt',
       ].sort(),
     );
-    expect(byPath.get('sitemap.xml')).toBe(sitemap(pages, (path) => `${ORIGIN}/${path}`));
+    const url = (path: string) => `${ORIGIN}/${path}`;
+    expect(byPath.get('sitemap.xml')).toBe(sitemap(pages, url));
+    expect(byPath.get('llms.txt')).toBe(llmsText(pages, url));
   });
 
   it('is the same, byte for byte, when it is made again', async () => {
-    const again = await render(ORIGIN);
+    const { files: again, appPage: appPageAgain } = await render(ORIGIN);
+    expect(appPageAgain === appPage).toBe(true);
     expect(again.map((file) => file.path)).toEqual(files.map((file) => file.path));
     for (const [i, file] of again.entries()) {
       expect(file.content === files[i]!.content, file.path).toBe(true);
@@ -554,18 +562,91 @@ describe('a score', () => {
   });
 });
 
+describe('the app’s page', () => {
+  /** What the page's <noscript> holds, read as a browser without scripts reads it. */
+  const home = () => {
+    const inner = /<noscript>([\s\S]*)<\/noscript>/.exec(appPage)![1]!;
+    return new DOMParser().parseFromString(`<body>${inner}</body>`, 'text/html');
+  };
+
+  it('is the app’s page with the English home in its <noscript>, and nothing else changed', () => {
+    const at = APP_PAGE.indexOf('<noscript>');
+    expect(appPage.slice(0, at)).toBe(APP_PAGE.slice(0, at));
+    expect(appPage.endsWith('</noscript>\n</body></html>')).toBe(true);
+    expect(appPage.match(/<noscript>/g)).toHaveLength(1);
+    const doc = home();
+    const t = translator('en');
+    expect(all(doc, 'h1')).toHaveLength(1);
+    expect(doc.body.textContent).toContain(t('home.lede'));
+    expect(doc.body.textContent).toContain(t('home.faq.midi.q'));
+  });
+
+  it('links the lessons, the pieces and the home in every other language', () => {
+    const links = all<HTMLAnchorElement>(home(), 'a').map((a) => a.getAttribute('href'));
+    expect(links).toContain('/learn/');
+    expect(links).toContain('/pieces/');
+    for (const path of ['/zh-cn/', '/zh-tw/', '/ja/', '/ko/']) expect(links).toContain(path);
+    // Every link is a file of the site or a way into the app.
+    const there = new Set(files.map((file) => `/${file.path}`));
+    for (const link of links) {
+      const page = link!.replace(/\/$/, '/index.html');
+      expect(
+        there.has(page) || there.has(`${link}.html`) || /^\/(\?lang=\w+)?(#\/|$)/.test(link!),
+        link!,
+      ).toBe(true);
+    }
+  });
+
+  it('is refused when the app’s page has no <noscript> for it, or more than one', () => {
+    const without = APP_PAGE.replace(/<noscript>[\s\S]*<\/noscript>/, '');
+    expect(() => appPageWith(without, '<main></main>')).toThrow(/0 <noscript>/);
+    expect(() => appPageWith(`${APP_PAGE}<noscript></noscript>`, '<main></main>')).toThrow(
+      /2 <noscript>/,
+    );
+  });
+});
+
+describe('llms.txt', () => {
+  const text = () => byPath.get('llms.txt')!;
+  const links = () => [...text().matchAll(/\]\((https:[^)]+)\)/g)].map((match) => match[1]!);
+
+  it('names every English lesson and piece by its page, and every other language’s home', () => {
+    const named = new Set(links());
+    for (const page of pages) {
+      const english = page.locale === 'en' && (page.kind === 'lesson' || page.kind === 'piece');
+      if (english || page.kind === 'home')
+        expect(named.has(`${ORIGIN}/${page.path}`), page.path).toBe(true);
+    }
+  });
+
+  it('links only to pages of the site, the app, or the source', () => {
+    const there = new Set(files.map((file) => file.path));
+    for (const link of links()) {
+      if (link.startsWith('https://github.com/')) continue;
+      const path = link.slice(`${ORIGIN}/`.length);
+      expect(path === '' || path.startsWith('#/') || there.has(pageFile(path)), link).toBe(true);
+    }
+  });
+
+  it('has every value filled in', () => {
+    expect(text()).not.toMatch(/[{}]|undefined|NaN/);
+    expect(text().startsWith('# dacapo\n\n> ')).toBe(true);
+  });
+});
+
 describe('a build without an address of its own', () => {
   let bare = new Map<string, string>();
   beforeAll(async () => {
-    bare = new Map((await render(null)).map((file) => [file.path, file.content]));
+    bare = new Map((await render(null)).files.map((file) => [file.path, file.content]));
   }, 180_000);
 
-  it('writes the same pages with relative links, and no sitemap', () => {
+  it('writes the same pages with relative links, and no sitemap or llms.txt', () => {
     expect(bare.has('sitemap.xml')).toBe(false);
+    expect(bare.has('llms.txt')).toBe(false);
     expect([...bare.keys()].sort()).toEqual(
       files
         .map((file) => file.path)
-        .filter((path) => path !== 'sitemap.xml')
+        .filter((path) => path !== 'sitemap.xml' && path !== 'llms.txt')
         .sort(),
     );
   });
