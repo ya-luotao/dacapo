@@ -12425,6 +12425,408 @@ a.today-step-name::after {
   margin-top: 0.375rem;
 }
 
+/* The glossary's circle of fifths (keyFigures.tsx): the major keys round the outside, their
+   relative minors inside. The chosen key in ink, its neighbours tinted when the figure marks the
+   closely related keys. */
+.fifths-circle {
+  display: block;
+  width: 100%;
+  max-width: 22rem;
+  height: auto;
+  margin: 0 auto 1rem;
+}
+
+.fifths-major path,
+.fifths-minor path {
+  fill: var(--surface);
+  stroke: var(--border);
+  stroke-width: 1;
+  transition: fill var(--dur-fast) ease-out;
+}
+
+.fifths-minor path {
+  fill: var(--sunk);
+}
+
+.fifths-circle [role='button'] {
+  cursor: pointer;
+}
+
+.fifths-circle [role='button']:focus-visible {
+  outline: none;
+}
+
+.fifths-circle [role='button']:focus-visible path {
+  stroke: var(--choice);
+  stroke-width: 2;
+}
+
+@media (hover: hover) {
+  .fifths-circle [role='button']:hover path {
+    fill: var(--choice-soft);
+  }
+}
+
+.fifths-name {
+  fill: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.fifths-name.is-minor {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.fifths-count,
+.fifths-also {
+  fill: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+.fifths-also {
+  font-family: var(--font-sans);
+  font-size: 11px;
+}
+
+.fifths-centre {
+  fill: var(--text);
+  font-family: var(--font-sans);
+  font-size: 26px;
+  font-weight: 650;
+}
+
+.fifths-centre-count {
+  fill: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.fifths-circle .is-chosen path,
+.fifths-circle .is-chosen:hover path {
+  fill: var(--choice);
+}
+
+.fifths-circle .is-chosen text {
+  fill: var(--choice-contrast);
+}
+
+.fifths-circle .is-home path {
+  fill: var(--choice-soft);
+}
+
+.fifths-circle .is-near path {
+  fill: var(--choice-soft);
+}
+
+/* The sharps and the flats in order, side by side where there is room. */
+.key-orders {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.5rem 1.5rem;
+}
+
+/* A scale's degrees named in order, the one sounding in ink. */
+.degree-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: 0.25rem 1.25rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+
+.degree-list li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.degree-list li.is-current {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.degree-number {
+  min-width: 1ch;
+  font-family: var(--font-mono);
+}
+
+.degree-note {
+  min-width: 1.5rem;
+  color: var(--text);
+}
+
+/* The glossary's tempo figures (tempoFigures.tsx): the tempo marks as bands on the metronome's
+   scale, drawn by the logarithm of the tempo; beats on a line as far apart as they are in time. */
+.tempo-band-rows {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tempo-band-row,
+.tempo-band-axis {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr) 4.25rem;
+  gap: 0.75rem;
+  align-items: center;
+  width: 100%;
+}
+
+.tempo-band-row {
+  min-height: 1.875rem;
+  padding: 0.125rem 0;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: start;
+}
+
+button.tempo-band-row {
+  cursor: pointer;
+}
+
+.tempo-band-name {
+  font-style: italic;
+}
+
+.tempo-band-track {
+  position: relative;
+  height: 0.625rem;
+  border-radius: 999px;
+  background: var(--sunk);
+}
+
+.tempo-band-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: var(--border);
+}
+
+.tempo-band-range {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+.tempo-band-rows li.is-current .tempo-band-row {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.tempo-band-rows li.is-current .tempo-band-bar {
+  background: var(--choice);
+}
+
+@media (hover: hover) {
+  button.tempo-band-row:hover {
+    color: var(--text);
+  }
+}
+
+.tempo-band-axis {
+  margin: 0.25rem 0 1rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+}
+
+.tempo-band-ticks {
+  position: relative;
+  height: 1rem;
+}
+
+.tempo-band-ticks span {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+}
+
+.tempo-band-actions {
+  align-items: center;
+}
+
+.tempo-beats {
+  display: inline-flex;
+  gap: 0.375rem;
+}
+
+.tempo-beats span {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.tempo-beats span.is-lit {
+  background: var(--accent);
+}
+
+.tempo-change {
+  display: block;
+  width: 100%;
+  max-width: 35rem;
+  height: auto;
+  margin: 0 auto 1rem;
+}
+
+.tempo-change-line {
+  stroke: var(--border);
+  stroke-width: 2;
+}
+
+.tempo-change-word {
+  fill: var(--text);
+  font-size: 15px;
+  font-style: italic;
+}
+
+.tempo-change-beat {
+  fill: var(--text);
+}
+
+.tempo-change-beat.is-lit {
+  fill: var(--accent);
+}
+
+@media (max-width: 40rem) {
+  .tempo-band-row,
+  .tempo-band-axis {
+    grid-template-columns: 5.5rem minmax(0, 1fr) 3.75rem;
+    gap: 0.5rem;
+  }
+}
+
+/* The glossary's road map (ui/learn/roadmapFigures.tsx): bars as boxes that wrap on a phone, their
+   signs in ink, the bar sounding washed in the accent, and the order played under them. Drawn on
+   the plate, which is ivory paper in the dark: everything takes the paper's own tokens. */
+.roadmap {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 0.5rem;
+  color: var(--text);
+}
+
+/* Neighbouring boxes share their edge. */
+.roadmap-bar + .roadmap-bar {
+  margin-inline-start: -1px;
+}
+
+.roadmap-box {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  transition: fill var(--dur-fast) ease-out;
+}
+
+.roadmap-box.is-lit {
+  fill: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.roadmap-line {
+  stroke: currentColor;
+  stroke-width: 1.2;
+}
+
+.roadmap-thick,
+.roadmap-dot,
+.roadmap-sign {
+  fill: currentColor;
+}
+
+.roadmap-number {
+  fill: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  text-anchor: middle;
+}
+
+.roadmap-box.is-lit + .roadmap-number {
+  fill: var(--accent);
+  font-weight: 600;
+}
+
+.roadmap-text {
+  fill: currentColor;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* The words a score prints in italics: Fine, To Coda, D.C. al Fine. */
+.roadmap-text.is-word {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-style: italic;
+  font-weight: 700;
+}
+
+.roadmap-order {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  margin-top: 1rem;
+  color: var(--text);
+  font-size: 0.9375rem;
+}
+
+.roadmap-order-label {
+  color: var(--text-muted);
+}
+
+.roadmap-order ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.roadmap-order li {
+  min-width: 1.75rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  transition:
+    background-color var(--dur-fast) ease-out,
+    color var(--dur-fast) ease-out;
+}
+
+.roadmap-order li.is-lit {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* An 8va over the notes it raises: the figure in italics and a dashed line to a hook. */
+.roadmap-ottava {
+  fill: currentColor;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-style: italic;
+  font-weight: 700;
+}
+
+.roadmap-ottava-line {
+  stroke: currentColor;
+  stroke-width: 1.2;
+  stroke-dasharray: 4 3;
+}
+
 /* The intervals in a table, each example a button to hear it. */
 .term-table {
   width: 100%;

@@ -1,7 +1,7 @@
 # dacapo — Glossary specification (music theory terms)
 
-Status: G1 built (the list, the pages in the app and on the site, the intervals written). G2–G4
-are the other groups' texts and figures.
+Status: built (G1–G4): the list, the pages in the app and on the site, and every term written
+with its figures. The Chinese awaits native review, like the lessons'.
 
 Goal: the words of theory a beginner meets in a score or a lesson, each explained in a few lines
 with an example to hear, in the app and as pages a search engine can find ("what is a perfect
@@ -63,17 +63,44 @@ offline).
   counted on its key; `EnharmonicPair`, two names on the staff and one key; `IntervalTable`, the
   intervals to the octave from middle C, each example heard when clicked. Half steps use the
   lessons' `StepExplorer`.
-- G2–G4 add a circle of fifths, the sharps and flats in order, a strip of bars showing the order a
-  score with repeats and jumps is played in (`core/roadmap.ts`), and the tempo marks on the
-  metronome's scale, each heard at its tempo.
+- **Keys** (`keyFigures.tsx`): `CircleOfFifths`, the twelve majors round the outside and their
+  relative minors inside with the count of sharps or flats; a key chosen shows its signature on
+  the staff and plays its scale (`near` tints the closely related keys); `SharpsAndFlats`, the
+  seven of each in order with their letters; `DegreeScale`, C major with its degrees numbered and
+  named; `Transposed`, the start of Twinkle, Twinkle in C, G or F; `Modulation`, five chords from
+  C major to G major through a chord the keys share. The lessons' `ScaleBuilder`, `KeySignatures`,
+  `RelativeMinor` and `MajorAndMinor` are reused.
+- **Finding your way in a score** (`roadmapFigures.tsx`, `core/roadmap.ts`): `RoadMap`, bars as
+  numbered boxes with their signs (repeat barlines, endings, segno, coda, D.C., D.S., Fine, To
+  Coda) and the order they are played in under them, each bar heard as one note in turn;
+  `roadOrder` takes the bars and gives the order: a repeat is taken once, after a jump back no
+  repeat is taken and only the last ending plays, Fine stops, To Coda goes to the coda, and a
+  score that would never end is cut at four times its bars. `Barlines`, the four barlines on one
+  staff; `Ottava`, notes under an 8va line and as they sound. Segno and coda are Bravura's
+  outlines, added to `glyphs.ts`.
+- **Tempo and expression** (`tempoFigures.tsx`): `TempoScale`, the nine marks as bands on the
+  metronome's 20–300 (by the logarithm of the tempo, so the slow marks have room), one picked
+  out and heard for eight beats; `TempoChange`, beats on a line as far apart as they are in time,
+  for rit., accel. and a tempo; `FermataPhrase`, a phrase heard with its pause and without. The
+  dynamics lesson's `DynamicLevels`, `Hairpins` and `Articulation` are reused; the qualifying
+  words are a table. Rubato, dolce, cantabile and espressivo have no plate.
 
 ## Milestones
 
 1. ✓ **G1** The list, the pages in the app and on the site, the intervals.
-2. **G2** Keys and key signatures.
-3. **G3** Finding your way in a score.
-4. **G4** Tempo and expression.
+2. ✓ **G2** Keys and key signatures.
+3. ✓ **G3** Finding your way in a score.
+4. ✓ **G4** Tempo and expression.
 
 ## Clarifications
 
 - The dynamics term is `dynamic-marks`: `dynamics` is lesson 10's slug.
+- No music symbol is written as a character (𝄋, 𝄌, 𝄐, a half note): the system's fonts have
+  none, and they showed as boxes. The text names them ("the segno, an S crossed by a slash with
+  two dots"); the figures draw them. A test holds the texts and the list to it.
+- The groups' figures sit in the stylesheet beside the glossary's own rules. The tempo scale is
+  `tempo-band`: `tempo-scale` is the metronome's popover of the same marks.
+- Named examples are ones whose marking is certain: the Pathétique's Grave, the Moonlight
+  Sonata's Adagio sostenuto and Presto agitato, the New World Symphony's Largo, the Larghetto of
+  Mozart's Clarinet Quintet, the Andante of the Surprise Symphony; Amazing Grace's first leap
+  and Twinkle, Twinkle's, both in the library.

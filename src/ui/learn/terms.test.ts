@@ -89,12 +89,29 @@ describe('the glossary’s texts', () => {
     }
   });
 
-  it('are written for the intervals', () => {
-    expect(Object.keys(TEXTS['./terms/intervals.en.tsx']!).sort()).toEqual(
-      termsOf('intervals')
-        .map((term) => term.slug)
-        .sort(),
-    );
+  it('are written for every term', () => {
+    for (const group of TERM_GROUPS) {
+      expect(Object.keys(TEXTS[`./terms/${group.id}.en.tsx`]!).sort(), group.id).toEqual(
+        termsOf(group.id)
+          .map((term) => term.slug)
+          .sort(),
+      );
+    }
+  });
+
+  it('have no music symbols as characters: the system’s fonts have none, the figures draw them', () => {
+    const symbols = /[\u{1D100}-\u{1D1FF}]/u;
+    for (const [path, text] of Object.entries(FILES)) expect(text.match(symbols), path).toBeNull();
+    for (const term of TERMS) {
+      for (const language of LESSON_LANGUAGES) {
+        const words = [
+          term.title[language],
+          term.summary[language],
+          ...(term.also?.[language] ?? []),
+        ];
+        for (const word of words) expect(word, term.slug).not.toMatch(symbols);
+      }
+    }
   });
 
   it('are Taiwan’s in Traditional characters, with 「」 for quotes', () => {

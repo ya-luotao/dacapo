@@ -6,6 +6,19 @@ which is noted when it changes.
 
 ## Unreleased
 
+### A glossary
+
+- **Sixty-three words of theory, each in a few lines with an example to hear**, in four groups:
+  intervals (every one from the minor second to the octave, quality, inversion, consonance);
+  keys (key signatures, the order of sharps and flats, a circle of fifths to play with, relative
+  and parallel keys, scale degrees, transposition, modulation); finding your way in a score
+  (repeats, first and second endings, D.C., D.S., Fine, coda, 8va, with the order the bars are
+  played in); and tempo and expression (the metronome's nine tempo marks on one scale, rit.,
+  accel., a tempo, rubato, the fermata, dynamics, legato and staccato, and the small words such
+  as molto and poco). In English, Simplified and Taiwan's Chinese, under Learn.
+- **Each term has a page of its own on the site** (`/learn/terms/perfect-fifth`, `/zh-cn/…`,
+  `/zh-tw/…`) with `DefinedTerm` data, in the sitemap and in `llms.txt`.
+
 ### For readers that run no script
 
 - **`/` has the home page in its HTML**: the build writes the English home (the title, the lede,

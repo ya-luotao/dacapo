@@ -22,13 +22,14 @@ the app; and a home page in each language for the same crawlers.
 Generated when the site is built, from the same sources the app shows (the lessons' own texts,
 the library's entries and scores, the dictionaries), so they cannot drift from it.
 
-| Address                              | Page                                                                | Languages                                    |
-| ------------------------------------ | ------------------------------------------------------------------- | -------------------------------------------- |
-| `/learn/`                            | The lessons: the fifteen and Inside the piano, with their summaries | en; `/zh-cn/learn/`, `/zh-tw/learn/`         |
-| `/learn/<slug>`                      | A lesson: its whole text, with its figures as they first appear     | en; `/zh-cn/learn/<slug>`, `/zh-tw/…`        |
-| `/pieces/`                           | The library: every built-in piece by grade, the lead sheets after   | en; `/zh-cn/…`, `/zh-tw/…`, `/ja/…`, `/ko/…` |
-| `/pieces/<id>`                       | A piece: what it is, its note and style, its source, and its score  | the same five                                |
-| `/zh-cn/`, `/zh-tw/`, `/ja/`, `/ko/` | The home page in that language (what a first visit shows)           | each its own                                 |
+| Address                                | Page                                                                | Languages                                    |
+| -------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------- |
+| `/learn/`                              | The lessons: the fifteen and Inside the piano, with their summaries | en; `/zh-cn/learn/`, `/zh-tw/learn/`         |
+| `/learn/<slug>`                        | A lesson: its whole text, with its figures as they first appear     | en; `/zh-cn/learn/<slug>`, `/zh-tw/…`        |
+| `/pieces/`                             | The library: every built-in piece by grade, the lead sheets after   | en; `/zh-cn/…`, `/zh-tw/…`, `/ja/…`, `/ko/…` |
+| `/pieces/<id>`                         | A piece: what it is, its note and style, its source, and its score  | the same five                                |
+| `/zh-cn/`, `/zh-tw/`, `/ja/`, `/ko/`   | The home page in that language (what a first visit shows)           | each its own                                 |
+| `/learn/terms/`, `/learn/terms/<slug>` | The glossary and each of its terms ([GLOSSARY.md](GLOSSARY.md))     | as the lessons                               |
 
 - **English has no prefix**; the other languages are under their code in lower case. The home
   page in English stays `/`, the app itself.

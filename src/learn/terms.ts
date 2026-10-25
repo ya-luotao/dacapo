@@ -498,7 +498,11 @@ const ROADMAP: readonly TermInfo[] = [
     slug: 'repeat-sign',
     group: 'roadmap',
     title: { en: 'Repeat sign', 'zh-CN': '反复记号', 'zh-TW': '反覆記號' },
-    also: same('𝄆 𝄇'),
+    also: {
+      en: ['repeat barline', 'repeat dots'],
+      'zh-CN': ['反复小节线'],
+      'zh-TW': ['反覆小節線'],
+    },
     summary: {
       en: 'A double barline with two dots: play the music between a pair of them again, or from the beginning when there is only the closing one.',
       'zh-CN': '带两个点的双小节线：一对记号之间的音乐再弹一遍；只有结尾那一个时，从头再弹。',
@@ -551,11 +555,13 @@ const ROADMAP: readonly TermInfo[] = [
       'zh-CN': 'D.S.（从记号处反复）',
       'zh-TW': 'D.S.（從記號處反覆）',
     },
-    also: same('D.S.', 'D.S. al Fine', 'D.S. al Coda', 'segno', '𝄋'),
+    also: same('D.S.', 'D.S. al Fine', 'D.S. al Coda', 'segno'),
     summary: {
-      en: 'Italian for “from the sign”: go back to the sign 𝄋 rather than to the beginning, and play on from there.',
-      'zh-CN': '意大利语“从记号处”：回到 𝄋 记号，而不是回到开头，从那里接着弹。',
-      'zh-TW': '義大利文「從記號處」：回到 𝄋 記號，而不是回到開頭，從那裡接著彈。',
+      en: 'Italian for “from the sign”: go back to the segno, an S crossed by a slash with two dots, rather than to the beginning, and play on from there.',
+      'zh-CN':
+        '意大利语“从记号处”：回到 segno 记号（一个带斜线和两点的 S），而不是回到开头，从那里接着弹。',
+      'zh-TW':
+        '義大利文「從記號處」：回到 segno 記號（一個帶斜線和兩點的 S），而不是回到開頭，從那裡接著彈。',
     },
     lessons: ['styles'],
     see: ['da-capo', 'coda', 'fine'],
@@ -576,11 +582,13 @@ const ROADMAP: readonly TermInfo[] = [
     slug: 'coda',
     group: 'roadmap',
     title: { en: 'Coda', 'zh-CN': 'Coda（尾声）', 'zh-TW': 'Coda（尾聲）' },
-    also: same('To Coda', '𝄌'),
+    also: same('To Coda', 'coda sign'),
     summary: {
-      en: 'A closing section marked 𝄌. After a jump back, “To Coda” shows where to leave the music and skip to it.',
-      'zh-CN': '用 𝄌 标出的结尾段落。跳回去重弹时，看到 To Coda 就离开，直接跳到尾声。',
-      'zh-TW': '用 𝄌 標出的結尾段落。跳回去重彈時，看到 To Coda 就離開，直接跳到尾聲。',
+      en: 'A closing section marked with the coda sign, a circle crossed by two lines. After a jump back, “To Coda” shows where to leave the music and skip to it.',
+      'zh-CN':
+        '用 coda 记号（一个被十字线穿过的圆圈）标出的结尾段落。跳回去重弹时，看到 To Coda 就离开，直接跳到尾声。',
+      'zh-TW':
+        '用 coda 記號（一個被十字線穿過的圓圈）標出的結尾段落。跳回去重彈時，看到 To Coda 就離開，直接跳到尾聲。',
     },
     lessons: ['styles'],
     see: ['da-capo', 'dal-segno', 'first-and-second-endings'],
@@ -759,11 +767,13 @@ const TEMPO: readonly TermInfo[] = [
     slug: 'fermata',
     group: 'tempo',
     title: { en: 'Fermata', 'zh-CN': '延长记号', 'zh-TW': '延長記號' },
-    also: same('𝄐', 'pause', 'birdseye'),
+    also: same('pause', 'birdseye'),
     summary: {
-      en: 'The sign 𝄐 over a note or a rest: hold it longer than written, for as long as feels right, then go on.',
-      'zh-CN': '写在音符或休止符上的 𝄐：比写的时值多停一会儿，停多久凭感觉，然后接着弹。',
-      'zh-TW': '寫在音符或休止符上的 𝄐：比寫的時值多停一會兒，停多久憑感覺，然後接著彈。',
+      en: 'An arc with a dot under it, over a note or a rest: hold it longer than written, for as long as feels right, then go on.',
+      'zh-CN':
+        '写在音符或休止符上方、下面带一个点的半圆弧：比写的时值多停一会儿，停多久凭感觉，然后接着弹。',
+      'zh-TW':
+        '寫在音符或休止符上方、下面帶一個點的半圓弧：比寫的時值多停一會兒，停多久憑感覺，然後接著彈。',
     },
     lessons: ['ornaments'],
     see: ['ritardando', 'fine'],
