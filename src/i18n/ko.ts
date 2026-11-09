@@ -2868,6 +2868,9 @@ export const ko: Dictionary = {
     '이 브라우저는 소리를 낼 수 없어요(Web Audio 미지원). 진자는 그대로 박자를 짚어요.',
   'metronome.source':
     '소리는 이 기기에서 나요. 대부분의 디지털 피아노는 MIDI로 클릭 소리를 낼 수 없어요. 진자는 들리는 소리에 맞춰 움직이고, 지연 보정을 했다면 그것도 반영해요.',
+  'metronome.keeptime':
+    'iPhone이나 iPad에서 별도의 메트로놈 앱을 쓰고 싶다면 Keeptime을 써 보세요. 오프라인에서도 작동하고 화면을 잠가도 계속 박자를 짚어요.',
+  'metronome.keeptime.link': 'App Store에서 Keeptime 보기',
   'metronome.keys.space': '스페이스',
   'metronome.keys.start': '시작·정지',
   'metronome.keys.tempo': '빠르기(Shift를 누르면 10씩)',

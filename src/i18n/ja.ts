@@ -2898,6 +2898,9 @@ export const ja: Dictionary = {
     'このブラウザでは音を鳴らせません（Web Audioがありません）。振り子はそのままテンポを刻みます。',
   'metronome.source':
     '音はこの端末から鳴ります。ほとんどのデジタルピアノはMIDIでクリック音を鳴らせません。振り子は聞こえる音に合わせて振れ、遅延の補正をしてあればそれも考慮します。',
+  'metronome.keeptime':
+    'iPhoneやiPadで単独のメトロノームアプリを使いたいなら、Keeptimeをどうぞ。オフラインで使え、画面をロックしても拍を刻み続けます。',
+  'metronome.keeptime.link': 'App StoreでKeeptimeを見る',
   'metronome.keys.space': 'スペース',
   'metronome.keys.start': '開始・停止',
   'metronome.keys.tempo': 'テンポ（Shiftで10ずつ）',

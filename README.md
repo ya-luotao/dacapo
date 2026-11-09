@@ -63,6 +63,12 @@ Everything, practice by practice: [docs/FEATURES.md](docs/FEATURES.md).
   Piano) when it has no MIDI output. Avoid Bluetooth headphones: their delay varies too much to
   calibrate.
 
+## Recommended app
+
+For a standalone metronome on iPhone or iPad, try
+[Keeptime: Metronome](https://apps.apple.com/app/keeptime-metronome/id6832189111) on the App Store.
+It has a mechanical-style pendulum, works offline and keeps ticking with the screen locked.
+
 ## Status
 
 Version 0.2.0. Everything above is built, tested and live; [CHANGELOG.md](CHANGELOG.md) lists

@@ -277,6 +277,16 @@ export function MetronomePage() {
               <kbd>→</kbd> {t('metronome.keys.tempo')} · <kbd>T</kbd> {t('metronome.keys.tap')}
             </p>
             <p>{t('metronome.source')}</p>
+            <p>
+              {t('metronome.keeptime')}{' '}
+              <a
+                href="https://apps.apple.com/app/keeptime-metronome/id6832189111"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t('metronome.keeptime.link')}
+              </a>
+            </p>
           </div>
         </div>
       </div>

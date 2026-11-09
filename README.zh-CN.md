@@ -39,6 +39,10 @@ _Da capo_——“从头开始”。
 - MIDI 键盘推荐但不是必需的。不足 88 键的键盘也能用：在“设置 → 声音 → 你的键盘”里设置。
 - 乐器通过 MIDI 发声；乐器没有 MIDI 输出时，由内置的采样三角钢琴（Salamander Grand Piano）发声。避免用蓝牙耳机：延迟变化太大，无法校准。
 
+## 推荐工具
+
+如果想在 iPhone 或 iPad 上用独立节拍器，推荐 App Store 上的 [Keeptime: Metronome](https://apps.apple.com/app/keeptime-metronome/id6832189111)：机械式摆锤外观，可离线使用，锁屏后也能继续打拍子。
+
 ## 状态
 
 版本 0.2.0。以上功能都已完成、经过测试并已上线；每个版本的内容见 [CHANGELOG.md](CHANGELOG.md)。已知的限制：

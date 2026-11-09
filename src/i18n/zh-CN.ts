@@ -2748,6 +2748,9 @@ export const zhCN: Dictionary = {
   'metronome.noAudio': '这个浏览器不能发出声音（不支持 Web Audio），摆锤照样打拍子。',
   'metronome.source':
     '声音由这台设备发出；大多数数码钢琴无法通过 MIDI 播放节拍声。摆锤跟着你听到的声音摆动；如果做过延迟校准，也会把它考虑进去。',
+  'metronome.keeptime':
+    '想在 iPhone 或 iPad 上用独立节拍器？试试 Keeptime，可离线使用，锁屏后也能继续打拍子。',
+  'metronome.keeptime.link': '在 App Store 查看 Keeptime',
   'metronome.keys.space': '空格',
   'metronome.keys.start': '开始或停止',
   'metronome.keys.tempo': '调速度（按住 Shift 每次 10）',

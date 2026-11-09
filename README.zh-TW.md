@@ -36,6 +36,10 @@ dacapo 是一個開放原始碼的鋼琴練習網頁應用程式，搭配 MIDI �
 - 也可以用電子郵件和驗證碼登入，透過 dacapo 的同步服務在你的各個裝置之間同步練習（[隱私權政策](https://playdacapo.com/privacy)）。在「設定」中刪除帳號，會清除服務上的所有資料。
 - 登入後還可以發布一個公開個人頁面，像 GitHub 個人頁面那樣展示你一年的練習：可以只公開練習圖，也可以一併公開每天練了什麼。預設關閉，由你決定是否開啟（[docs/PROFILE.md](docs/PROFILE.md)）。
 
+## 推薦工具
+
+如果想在 iPhone 或 iPad 上用獨立節拍器，推薦 App Store 上的 [Keeptime: Metronome](https://apps.apple.com/app/keeptime-metronome/id6832189111)：機械式擺錘外觀，可離線使用，鎖定螢幕後也能繼續打拍子。
+
 ## 開發
 
 需要 Node.js 22.13 以上和 pnpm（版本見 `package.json` 的 `packageManager`）：
