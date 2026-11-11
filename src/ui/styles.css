@@ -11193,7 +11193,7 @@ select.is-compact {
   font-variant-numeric: tabular-nums;
 }
 
-/* The minutes played against the plan's length, read off like an instrument's display. */
+/* The minutes played against the daily goal, read off like an instrument's display. */
 .today-readout {
   min-width: 11rem;
   margin: 0;

@@ -53,6 +53,10 @@ which is noted when it changes.
   line, the minutes as a readout, the plan as a list whose next step carries Start, and the
   keyboard under it: **play any key to start the next step** (on a MIDI keyboard or the screen's). The contents (now the sidebar),
   the principles and the questions (now on About) are gone from it.
+- **Home counts towards the daily goal**: the readout beside Today is the minutes played against
+  the daily goal, the one Progress judges the day by, where it was the plan's length (6/20 on Home
+  beside "Daily goal reached" on Progress); the line under the heading says when the goal is
+  reached.
 - **Setups ask less of the eye**: how a level is mastered is folded under one question
   ("How is a level mastered?") instead of a paragraph under every list; the levels sit in a
   framed list with their numbers in monospace; the small captions are no longer italic.

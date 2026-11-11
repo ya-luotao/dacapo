@@ -20,7 +20,7 @@ const MINUTE_MS = 60_000;
 
 /**
  * Today, for a returning player (docs/TODAY.md): the day in one line with the streak and what is
- * left of the daily goal, the minutes played against the plan's length as a readout, then the
+ * left of the daily goal, the minutes played against that same goal as a readout, then the
  * plan, its length and the way to Progress; under it all the keyboard, any key of which starts
  * the next step. The heading and the readout draw at once; the plan's rows come when their rules
  * are in, in a space kept for them, so the page does not jump.
@@ -38,6 +38,8 @@ export function Today() {
   const [next, setNext] = useState<NextStep | null>(null);
   const reached = log.todayMs >= log.goalMs;
   const played = Math.floor(log.todayMs / MINUTE_MS);
+  // The readout's goal is the one Progress judges the day by, not the plan's length.
+  const goalMinutes = log.goalMs / MINUTE_MS;
 
   const day = useMemo(() => {
     // The day key is a calendar date: formatted in UTC so it never shifts.
@@ -80,8 +82,12 @@ export function Today() {
         : t('today.streak.other', { n: log.currentStreak }),
     );
   }
-  if (loaded && !reached) {
-    line.push(t('progress.today.toGo', { n: Math.ceil((log.goalMs - log.todayMs) / MINUTE_MS) }));
+  if (loaded) {
+    line.push(
+      reached
+        ? t('progress.today.reached')
+        : t('progress.today.toGo', { n: Math.ceil((log.goalMs - log.todayMs) / MINUTE_MS) }),
+    );
   }
 
   return (
@@ -95,15 +101,15 @@ export function Today() {
           {/* Until the records are read the readout holds its place without a number. */}
           <p className="today-readout" data-waiting={loaded ? undefined : ''}>
             <span className="visually-hidden">
-              {t('today.readout', { done: played, plan: minutes })}
+              {t('today.readout', { done: played, goal: goalMinutes })}
             </span>
             <span className="today-figure" aria-hidden="true">
               {played}
-              <span className="today-of">/{minutes}</span>
+              <span className="today-of">/{goalMinutes}</span>
               <span className="today-unit">{t('today.unit')}</span>
             </span>
             <span className="today-meter" aria-hidden="true">
-              <span style={{ '--done': Math.min(1, played / minutes) } as CSSProperties} />
+              <span style={{ '--done': Math.min(1, played / goalMinutes) } as CSSProperties} />
             </span>
           </p>
         </div>
