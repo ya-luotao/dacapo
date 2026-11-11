@@ -112,6 +112,16 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* English is set in the system's Latin face wherever there is one. Where the first three names
+   are missing (Linux), a Han font named before `system-ui` would set the whole page, and its
+   apostrophe and quotes are a full em wide ("Türk’ s"). The Han fonts stay behind it for a
+   title or a name in Chinese. */
+:root:lang(en) {
+  --font-sans:
+    'dacapo Accidentals', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'PingFang SC',
+    'Hiragino Sans GB', 'Noto Sans CJK SC', 'Source Han Sans SC', 'Microsoft YaHei', sans-serif;
+}
+
 /* The same Han character is drawn differently in Japan, Korea, Taiwan and mainland China. */
 :root:lang(zh-TW) {
   --font-serif: var(--font-sans);

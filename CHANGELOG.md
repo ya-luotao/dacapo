@@ -37,6 +37,8 @@ which is noted when it changes.
   light is white and grey, dark is the black of a piano's case; the one accent is the red of
   the felt over a piano's keys. Small labels are no longer spaced capitals, and answers no longer
   rise into place.
+- In English on Linux the text is in the system's Latin face, where a Han font set the whole page
+  and drew the apostrophe a full em wide ("Türk’ s").
 - **Wrong answers are amber**, so red stays the brand's colour and is never a mistake.
 - **In the dark, music is on paper**: the flashcards, scores, lesson figures and the heatmap sit
   on an ivory sheet in black ink.
