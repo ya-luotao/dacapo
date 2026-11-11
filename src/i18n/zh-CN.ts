@@ -19,6 +19,7 @@ export const zhCN: Dictionary = {
   'nav.today': '今天',
   'nav.group.practice': '练习',
   'nav.group.record': '记录',
+  'nav.all': '全部练习',
   'nav.menu': '菜单',
   'nav.close': '关闭菜单',
 

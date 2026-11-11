@@ -19,6 +19,7 @@ export const ja: Dictionary = {
   'nav.today': '今日',
   'nav.group.practice': '練習',
   'nav.group.record': '振り返り',
+  'nav.all': 'すべての練習',
   'nav.menu': 'メニュー',
   'nav.close': 'メニューを閉じる',
 

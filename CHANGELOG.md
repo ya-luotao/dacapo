@@ -47,6 +47,10 @@ which is noted when it changes.
   menu. On a narrow screen a menu button opens the same list in a drawer. While a session runs
   (a Read session, a scale being played, any piece's page) the navigation makes way, so the
   music has the whole screen and the staff is drawn larger. The site's pages keep a plain bar.
+- **A newcomer's sidebar is three pages**: Today, Pieces and Progress, with the other eight under
+  "All practice", which opens in place and stays as it was left; a folded page that is open shows
+  in the list. Whoever said on the start page that they play already has every page listed, as
+  before, and whoever practised here before this change finds "All practice" open.
 - **What is chosen is in ink**: a segment, a level, a ticked box. Red is left for the button that
   starts, and links are underlined in the colour of their text.
 - **Home is today and nothing else**: the day, the streak and what is left of the goal in one

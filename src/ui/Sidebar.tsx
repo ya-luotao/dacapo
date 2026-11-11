@@ -1,10 +1,30 @@
-import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useT } from '../i18n/index.ts';
 import { BrandMark } from './BrandMark.tsx';
 import { useFocusActive } from './focus/focus.ts';
 import { MetronomeChip } from './metronome/MetronomeChip.tsx';
-import { NAV_ITEMS } from './routes.ts';
+import { opensEverything } from '../core/startingPoint.ts';
+import { readPref, writePref } from '../lib/localPrefs.ts';
+import { NAV_ITEMS, NEWCOMER_PATHS } from './routes.ts';
+import { readStartPref } from './start/prefs.ts';
+import { readReturning } from './today/prefs.ts';
+
+// Whether "All practice" is open, `1` or `0`: kept per device, so it stays as it was left.
+const ALL_KEY = 'dacapo.nav.all';
+
+/**
+ * Open or folded, as it was left. The first time, whoever has practised here before (known at
+ * once from what the browser keeps, docs/TODAY.md) finds every page listed as it always was; a
+ * first visitor finds it folded, and it stays folded once they have practised.
+ */
+function readAll(): boolean {
+  const kept = readPref(ALL_KEY);
+  if (kept !== null) return kept === '1';
+  const open = readReturning();
+  writePref(ALL_KEY, open ? '1' : '0');
+  return open;
+}
 
 /** A piece's page belongs to Pieces; Today is the home page alone. */
 function isActive(location: string, path: string): boolean {
@@ -27,6 +47,8 @@ const isWide = () => globalThis.matchMedia?.(WIDE).matches ?? true;
  * The navigation, as a native app keeps it: a sidebar on a wide screen; on a narrow one a bar
  * with a menu button that opens the same list in a drawer. Neither shows in focus mode, and the
  * sidebar makes way while a session runs (styles.css), so practising has the whole screen.
+ * A newcomer's list is Today, Pieces and Progress, with the other pages folded under "All
+ * practice"; someone who said they play already (docs/START.md) gets every page listed.
  */
 export function Sidebar() {
   return useFocusActive() ? null : <Navigation />;
@@ -37,6 +59,10 @@ function Navigation() {
   const [location] = useLocation();
   const drawer = useRef<HTMLDialogElement>(null);
   const wide = useSyncExternalStore(subscribeWide, isWide);
+  // Read on every render: the answer is given on the start page and changed in Settings, and
+  // the next page opened shows it.
+  const everything = opensEverything(readStartPref());
+  const [all, setAll] = useState(readAll);
 
   // Choosing a page closes the drawer, the page already open included.
   useEffect(() => {
@@ -63,18 +89,57 @@ function Navigation() {
       NAV_ITEMS.filter((item) => item.group === name).map(({ path, label }) =>
         link(path, t(label)),
       );
+    const foot = (
+      <ul className="side-list side-foot">
+        {NAV_ITEMS.filter((item) => item.group === 'foot').map(({ path, label }) =>
+          link(path, t(label)),
+        )}
+      </ul>
+    );
+    if (everything) {
+      return (
+        <>
+          <ul className="side-list">{link('/', t('nav.today'))}</ul>
+          <h2 className="side-heading">{t('nav.group.practice')}</h2>
+          <ul className="side-list">{group('practice')}</ul>
+          <h2 className="side-heading">{t('nav.group.record')}</h2>
+          <ul className="side-list">{group('record')}</ul>
+          {foot}
+        </>
+      );
+    }
+    const pages = NAV_ITEMS.filter((item) => item.group !== 'foot');
+    const folded = pages.filter((item) => !NEWCOMER_PATHS.includes(item.path));
+    // A folded page that is open shows where it is, whatever was last chosen.
+    const open = all || folded.some((item) => isActive(location, item.path));
+    const id = inDrawer ? 'drawer-all' : 'side-all';
     return (
       <>
-        <ul className="side-list">{link('/', t('nav.today'))}</ul>
-        <h2 className="side-heading">{t('nav.group.practice')}</h2>
-        <ul className="side-list">{group('practice')}</ul>
-        <h2 className="side-heading">{t('nav.group.record')}</h2>
-        <ul className="side-list">{group('record')}</ul>
-        <ul className="side-list side-foot">
-          {NAV_ITEMS.filter((item) => item.group === 'foot').map(({ path, label }) =>
-            link(path, t(label)),
-          )}
+        <ul className="side-list">
+          {link('/', t('nav.today'))}
+          {pages
+            .filter((item) => NEWCOMER_PATHS.includes(item.path))
+            .map(({ path, label }) => link(path, t(label)))}
         </ul>
+        <button
+          type="button"
+          className="side-link side-toggle"
+          aria-expanded={open}
+          aria-controls={id}
+          onClick={() => {
+            setAll(!open);
+            writePref(ALL_KEY, open ? '0' : '1');
+          }}
+        >
+          {t('nav.all')}
+          <svg viewBox="0 0 12 12" aria-hidden="true">
+            <path d="M4.5 2.5 8 6 4.5 9.5" />
+          </svg>
+        </button>
+        <ul className="side-list side-folded" id={id} hidden={!open}>
+          {folded.map(({ path, label }) => link(path, t(label)))}
+        </ul>
+        {foot}
       </>
     );
   };

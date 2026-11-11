@@ -19,6 +19,7 @@ export const en = {
   'nav.today': 'Today',
   'nav.group.practice': 'Practice',
   'nav.group.record': 'Records',
+  'nav.all': 'All practice',
   'nav.menu': 'Menu',
   'nav.close': 'Close menu',
 

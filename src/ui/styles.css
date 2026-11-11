@@ -672,6 +672,39 @@ h1:is(:lang(zh), :lang(ja), :lang(ko)) {
   }
 }
 
+/* A newcomer's "All practice": a row like the links, with the pages it folds under it. */
+.side-toggle {
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 0.75rem;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.9375rem;
+  text-align: start;
+  cursor: pointer;
+}
+
+.side-toggle svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 1.5;
+}
+
+.side-toggle[aria-expanded='true'] svg {
+  transform: rotate(90deg);
+}
+
+.side-folded[hidden] {
+  display: none;
+}
+
+.side-folded .side-link {
+  padding-left: 1.25rem;
+}
+
 .side-foot {
   margin-top: auto;
   padding-top: 1rem;

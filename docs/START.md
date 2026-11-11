@@ -43,6 +43,13 @@ two parts on one screen, and a button.
      built-in piano), with "Nothing heard?" leading to Settings' Sound.
 3. **Begin** goes to the first lesson (new) or to Home, which now shows Today (I play already).
 
+- **The sidebar follows the answer.** "I play already" lists every page, under Practice and
+  Records. Otherwise (new, or no answer given) it lists Today, Pieces and Progress, and folds the
+  other pages under **All practice**, a row that opens them in place; whether it is open is
+  kept per device (`dacapo.nav.all`, `1` or `0`), and a folded page that is open is always shown.
+  Before it is kept, whoever has practised here already (`dacapo.returning`) finds it open, so
+  the sidebar they knew is not taken from them; a first visitor finds it folded, and it stays
+  folded when they have practised.
 - **Kept in the browser** (`dacapo.start`: the answer and the reading level), not synced and not
   exported: it is a preference of the device, and Settings has **Your starting point** to change
   it. Answering makes the visitor a returning player for Home (`dacapo.returning`).

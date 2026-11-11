@@ -19,6 +19,7 @@ export const ko: Dictionary = {
   'nav.today': '오늘',
   'nav.group.practice': '연습',
   'nav.group.record': '돌아보기',
+  'nav.all': '모든 연습',
   'nav.menu': '메뉴',
   'nav.close': '메뉴 닫기',
 

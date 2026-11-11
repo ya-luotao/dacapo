@@ -19,6 +19,7 @@ export const zhTW: Dictionary = {
   'nav.today': '今天',
   'nav.group.practice': '練習',
   'nav.group.record': '紀錄',
+  'nav.all': '全部練習',
   'nav.menu': '選單',
   'nav.close': '關閉選單',
 
