@@ -59,7 +59,7 @@ function useReturning(): boolean {
  * you start from, and whether your keys are heard). Someone sent an assignment before they ever
  * practised here has it under them.
  */
-export function FirstVisit() {
+export function FirstVisit({ still = false }: { still?: boolean }) {
   const t = useT();
   const { loaded } = useStorageStatus();
   const { assignments } = usePractice();
@@ -91,7 +91,7 @@ export function FirstVisit() {
           </div>
           <p className="home-facts">{t('home.facts')}</p>
         </div>
-        <Specimen />
+        <Specimen still={still} />
       </section>
 
       {assigned && (

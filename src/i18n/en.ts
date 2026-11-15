@@ -3284,6 +3284,17 @@ export const en = {
   'site.card.alt': 'The dacapo wordmark, its tagline, and a treble staff with one whole note',
   'site.about':
     'The lessons and the built-in pieces also have pages of their own, which can be read without the app and found by a search engine.',
+  'pieces.bar.startFrom': 'Start from {bar}',
+  'pieces.bar.playFrom': 'Play from {bar}',
+  'pieces.bar.hint': 'Click to start here · Shift-click to loop',
+  'pieces.bar.region': 'Bars in the score',
+  'pieces.library.search': 'Search by title, composer or style',
+  'pieces.library.search.clear': 'Clear search',
+  'pieces.library.filter': 'Filter pieces',
+  'pieces.library.filter.all': 'All',
+  'pieces.library.filter.unplayed': 'To play',
+  'pieces.library.filter.played': 'Played',
+  'pieces.library.empty': 'No built-in pieces match your filter.',
 };
 
 export type MessageKey = keyof typeof en;

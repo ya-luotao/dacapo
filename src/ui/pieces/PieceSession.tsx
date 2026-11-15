@@ -62,6 +62,7 @@ import { firstWaited, waitRange, type BarLoop, type WaitState } from '../../core
 import type { TakeState } from '../../core/takes.ts';
 import { pieceKey, transposedKey, TRANSPOSITIONS } from '../../core/transpose.ts';
 import { useT } from '../../i18n/index.ts';
+import { isTextEntry } from '../../input/keyboard.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
 import { transposed, withLeftHand } from '../../pieces/derive.ts';
 import { createAccompanist } from '../../output/accompany.ts';
@@ -72,6 +73,7 @@ import { InputNotice } from '../input/InputNotice.tsx';
 import { useInstrumentKeys } from '../instrument.ts';
 import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
 import { useMetronome, useOfferTempo } from '../metronome/context.ts';
+import { MetronomeChip } from '../metronome/MetronomeChip.tsx';
 import { ScoreView, type ScoreStatus } from '../notation/ScoreView.tsx';
 import { useOutputState } from '../output/context.ts';
 import { ACCOMPANIMENT_LEVELS, readAccompanimentLevel } from '../output/prefs.ts';
@@ -118,7 +120,14 @@ import { useBeyondWords } from './beyond.ts';
 import { shiftText, useKeyName } from './keyFormat.ts';
 import { FocusBar, FocusEnter } from '../focus/FocusBar.tsx';
 import { useFocusState } from '../focus/focus.ts';
-import { BarTargets, BarTints, WeakBarsBar, WeakBarsTable } from './WeakBars.tsx';
+import {
+  BarTargets,
+  BarTints,
+  LoopBand,
+  ScoreBarTargets,
+  WeakBarsBar,
+  WeakBarsTable,
+} from './WeakBars.tsx';
 import { PlanPanel } from './PlanPanel.tsx';
 import { ExpressionPanel } from './ExpressionPanel.tsx';
 import {
@@ -149,8 +158,6 @@ import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
 const SHOW_KEYS_PREF = 'dacapo.pieces.showKeys';
 const ACCOMPANY_PREF = 'dacapo.pieces.accompany';
 const WEAK_BARS_PREF = 'dacapo.pieces.weakBars';
-/** Offered once per browser: the calibration before the first rhythm run. */
-const CALIBRATION_OFFERED_PREF = 'dacapo.latency.offered';
 const MODES: readonly PracticeMode[] = ['wait', 'rhythm', 'memory'];
 const metricOf = (mode: PracticeMode): BarMetric =>
   mode === 'rhythm' ? 'timing' : mode === 'memory' ? 'memory' : 'hesitation';
@@ -265,8 +272,8 @@ export function PieceSession({
   const [clickMode, setClickModeState] = useState(readClickMode);
   const [volume, setVolumeState] = useState(readClickVolume);
   const [latency, setLatency] = useState(readLatency);
-  /** The sheet offering (or running) the calibration before a rhythm run. */
-  const [calibration, setCalibration] = useState<'offer' | 'open' | null>(null);
+  /** Manual latency calibration sheet opened from Options or post-run advice. */
+  const [calibration, setCalibration] = useState<'open' | null>(null);
   const [calibrating, setCalibrating] = useState(false);
   const [player] = useState(() =>
     createDemoPlayer(output.scheduler, browserClock, output.onInterrupt),
@@ -708,11 +715,6 @@ export function PieceSession({
       rhythmPlayer.stop();
       return;
     }
-    if (!readLatency() && readPref(CALIBRATION_OFFERED_PREF) !== '1') {
-      writePref(CALIBRATION_OFFERED_PREF, '1');
-      setCalibration('offer');
-      return;
-    }
     startRhythm();
   }
 
@@ -924,6 +926,32 @@ export function PieceSession({
     if (!weakest) return;
     setLoop(weakest);
     setStartBar(weakest.from);
+    settle();
+  }
+
+  /** Clicking a bar jumps the start there; Shift+click creates, extends, or clears a loop. */
+  function clickBar(measure: number, shift: boolean) {
+    if (playback) {
+      if (!shift) playbackFrom(measure);
+      return;
+    }
+    if (inTime) return;
+    if (shift) {
+      if (!loop) {
+        setLoop({ from: measure, to: measure });
+        setStartBar(measure);
+      } else if (loop.from === measure && loop.to === measure) {
+        setLoop(null);
+      } else {
+        const from = Math.min(loop.from, measure);
+        const to = Math.max(loop.to, measure);
+        setLoop({ from, to });
+        setStartBar(from);
+      }
+    } else {
+      if (loop && (measure < loop.from || measure > loop.to)) setLoop(null);
+      setStartBar(measure);
+    }
     settle();
   }
 
@@ -1375,6 +1403,69 @@ export function PieceSession({
         },
   );
 
+  const playbackMeasures = useMemo(
+    () => (playback ? playback.data.bars.map((b) => b.measure) : []),
+    [playback],
+  );
+  const shortcutRef = useRef<((e: KeyboardEvent) => void) | null>(null);
+  useLayoutEffect(() => {
+    shortcutRef.current = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.isComposing || e.repeat || e.ctrlKey || e.metaKey || e.altKey)
+        return;
+      if (isTextEntry(e.target)) return;
+      if (
+        e.target instanceof Element &&
+        e.target.closest(
+          'button, a, summary, input, select, textarea, [role="button"], [role="slider"]',
+        )
+      )
+        return;
+      if (calibration !== null || calibrating || runsOpen || table || options.current?.open) return;
+      if (e.code === 'Space') {
+        if (playback) {
+          e.preventDefault();
+          togglePlayback();
+        } else if (rhythmMode) {
+          if (timed && !calibrating && !allGiven) {
+            e.preventDefault();
+            onStart();
+          }
+        } else if (hasOutput && plan) {
+          e.preventDefault();
+          onListen();
+        }
+      } else if (e.code === 'KeyR') {
+        if (playback) return;
+        if (!rhythmMode) {
+          e.preventDefault();
+          restart();
+        } else if (inTime) {
+          e.preventDefault();
+          rhythmPlayer.stop();
+        }
+      } else if (e.code === 'KeyL') {
+        if (inTime || playback) return;
+        e.preventDefault();
+        if (loop) {
+          setLoop(null);
+        } else if (weakest) {
+          loopWeakest();
+          return;
+        } else {
+          const bar = step?.measure ?? startBar;
+          setLoop({ from: bar, to: bar });
+          setStartBar(bar);
+        }
+        settle();
+      }
+    };
+  });
+  useEffect(() => {
+    const onDown = (e: KeyboardEvent) => shortcutRef.current?.(e);
+    window.addEventListener('keydown', onDown);
+    return () => window.removeEventListener('keydown', onDown);
+  }, []);
+
   return (
     <section
       className={focus.on ? 'piece-session is-focus' : 'piece-session'}
@@ -1406,7 +1497,10 @@ export function PieceSession({
             {piece.title}
             {piece.composer && <span className="piece-composer">{piece.composer}</span>}
           </h1>
-          <FocusEnter />
+          <div className="piece-head-tools">
+            <MetronomeChip />
+            <FocusEnter />
+          </div>
         </header>
       )}
 
@@ -1876,25 +1970,60 @@ export function PieceSession({
           onStatus={setScoreStatus}
           zoom={focus.on ? focus.zoom : 1}
           behind={
-            weakBars
-              ? (boxes) => <BarTints cells={heat.cells} boxes={boxes} format={barFormat} />
-              : undefined
+            playback
+              ? playback.source.settings.loop
+                ? (boxes) => <LoopBand loop={playback.source.settings.loop!} boxes={boxes} />
+                : undefined
+              : loop || weakBars
+                ? (boxes) => (
+                    <>
+                      {loop && <LoopBand loop={loop} boxes={boxes} />}
+                      {weakBars && <BarTints cells={heat.cells} boxes={boxes} format={barFormat} />}
+                    </>
+                  )
+                : undefined
           }
           above={
-            weakBars || (run.memory && !playback)
+            playback
               ? (boxes) => (
-                  <>
-                    {run.memory && !playback && (
-                      <HiddenBarNumbers
-                        hidden={shownHidden(run.memory.hidden, revealedBars)}
-                        boxes={boxes}
-                        format={format}
-                      />
-                    )}
-                    {weakBars && <BarTargets cells={heat.cells} boxes={boxes} format={barFormat} />}
-                  </>
+                  <ScoreBarTargets
+                    measures={playbackMeasures}
+                    boxes={boxes}
+                    label={(m) => t('pieces.bar.playFrom', { bar: format.barNumber(m) })}
+                    onBarClick={(m) => playbackFrom(m)}
+                  />
                 )
-              : undefined
+              : weakBars || run.memory || !inTime
+                ? (boxes) => (
+                    <>
+                      {run.memory && (
+                        <HiddenBarNumbers
+                          hidden={shownHidden(run.memory.hidden, revealedBars)}
+                          boxes={boxes}
+                          format={format}
+                        />
+                      )}
+                      {weakBars ? (
+                        <BarTargets
+                          cells={heat.cells}
+                          boxes={boxes}
+                          format={barFormat}
+                          onBarClick={inTime ? undefined : clickBar}
+                        />
+                      ) : (
+                        !inTime && (
+                          <ScoreBarTargets
+                            measures={playedBars}
+                            boxes={boxes}
+                            label={(m) => t('pieces.bar.startFrom', { bar: format.barNumber(m) })}
+                            hint={t('pieces.bar.hint')}
+                            onBarClick={clickBar}
+                          />
+                        )
+                      )}
+                    </>
+                  )
+                : undefined
           }
         />
         {scoreStatus.state !== 'ready' && (
@@ -2095,7 +2224,7 @@ export function PieceSession({
         </div>
         {calibration && (
           <CalibrationSheet
-            offer={calibration === 'offer'}
+            offer={false}
             onCalibrate={() => setCalibration('open')}
             onStart={startRhythm}
             onRunning={setCalibrating}
@@ -2198,6 +2327,7 @@ export function PieceSession({
               className="button is-compact piece-listen"
               disabled={!hasOutput || !plan || inTime}
               aria-describedby={`${showKeysId}-listen`}
+              aria-keyshortcuts="Space"
               onClick={onListen}
             >
               <svg viewBox="0 0 16 16" aria-hidden="true">
@@ -2244,6 +2374,7 @@ export function PieceSession({
                 }
                 disabled={!timed || calibrating || allGiven}
                 aria-describedby={`${showKeysId}-go`}
+                aria-keyshortcuts="Space"
                 onClick={onStart}
               >
                 <svg viewBox="0 0 16 16" aria-hidden="true">
@@ -2304,7 +2435,12 @@ export function PieceSession({
                     </button>
                   </>
                 )}
-                <button type="button" className="button is-compact" onClick={restart}>
+                <button
+                  type="button"
+                  className="button is-compact"
+                  aria-keyshortcuts="R"
+                  onClick={restart}
+                >
                   {t('pieces.restart')}
                 </button>
               </>

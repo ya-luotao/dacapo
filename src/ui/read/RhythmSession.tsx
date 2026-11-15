@@ -28,7 +28,6 @@ import {
 } from '../../core/rhythmRead.ts';
 import { rhythmHands, rhythmMusicXml } from '../../core/rhythmXml.ts';
 import { useT } from '../../i18n/index.ts';
-import { readPref, writePref } from '../../lib/localPrefs.ts';
 import { useInput } from '../input/context.ts';
 import { useMetronome } from '../metronome/context.ts';
 import { ScoreView, type ScoreStatus } from '../notation/ScoreView.tsx';
@@ -46,8 +45,6 @@ import { tapKeysFor } from './tapKeys.ts';
 
 /** A rhythm line is short: its last system is stretched once half full. */
 const ENGRAVING: Engraving = { lastJustification: 0.5, rhythm: true };
-/** Offered once per browser, before the first run with a click (shared with Pieces and Scales). */
-const CALIBRATION_OFFERED_PREF = 'dacapo.latency.offered';
 
 interface RhythmSessionProps {
   session: RhythmSessionState;
@@ -107,7 +104,7 @@ export function RhythmSession({ session, controller, prefs, onPrefs }: RhythmSes
   const [ended, setEnded] = useState<'stopped' | 'interrupted' | null>(null);
   const [last, setLast] = useState<LastNote | null>(null);
   const [latency, setLatency] = useState<Latency | null>(readLatency);
-  const [calibration, setCalibration] = useState<'offer' | 'open' | null>(null);
+  const [calibration, setCalibration] = useState<'open' | null>(null);
   const [calibrating, setCalibrating] = useState(false);
   // A run started again hides the last one's result until it has one of its own; one stopped
   // leaves none.
@@ -192,12 +189,6 @@ export function RhythmSession({ session, controller, prefs, onPrefs }: RhythmSes
   function onStart() {
     if (player.getSnapshot().state !== 'stopped') {
       player.stop();
-      return;
-    }
-    // Offered once, before the first run with a click in this browser.
-    if (!readLatency() && readPref(CALIBRATION_OFFERED_PREF) !== '1') {
-      writePref(CALIBRATION_OFFERED_PREF, '1');
-      setCalibration('offer');
       return;
     }
     begin();
@@ -388,7 +379,7 @@ export function RhythmSession({ session, controller, prefs, onPrefs }: RhythmSes
 
       {calibration && (
         <CalibrationSheet
-          offer={calibration === 'offer'}
+          offer={false}
           onCalibrate={() => setCalibration('open')}
           onStart={begin}
           onRunning={setCalibrating}

@@ -105,8 +105,6 @@ function zoomOf(e: ScaleExercise, perBeat: number | undefined): number {
 const ENGRAVING: Engraving = { lastJustification: 0.35, ottavaText: true };
 /** Off: the keyboard marks only the keys to start on, not each next key. */
 const GUIDE_PREF = 'dacapo.scales.guide';
-/** Offered once per browser, before the first run with the click (shared with Pieces). */
-const CALIBRATION_OFFERED_PREF = 'dacapo.latency.offered';
 
 /** The Scales page; opened with an exercise (a task of an assignment), it starts over on it. */
 export function ScalesPage() {
@@ -400,7 +398,7 @@ function ScaleSession({
   const clicking = beat.state !== 'stopped';
   const [last, setLast] = useState<LastNote | null>(null);
   const [latency, setLatency] = useState<Latency | null>(readLatency);
-  const [calibration, setCalibration] = useState<'offer' | 'open' | null>(null);
+  const [calibration, setCalibration] = useState<'open' | null>(null);
   const [calibrating, setCalibrating] = useState(false);
   useEffect(() => onClicking(clicking), [clicking, onClicking]);
   useEffect(() => () => onClicking(false), [onClicking]);
@@ -469,12 +467,6 @@ function ScaleSession({
   function onStart() {
     if (rhythm.getSnapshot().state !== 'stopped') {
       rhythm.stop();
-      return;
-    }
-    // Offered once, before the first run with the click in this browser.
-    if (!readLatency() && readPref(CALIBRATION_OFFERED_PREF) !== '1') {
-      writePref(CALIBRATION_OFFERED_PREF, '1');
-      setCalibration('offer');
       return;
     }
     startClicked();
@@ -736,7 +728,7 @@ function ScaleSession({
 
       {calibration && (
         <CalibrationSheet
-          offer={calibration === 'offer'}
+          offer={false}
           onCalibrate={() => setCalibration('open')}
           onStart={startClicked}
           onRunning={setCalibrating}

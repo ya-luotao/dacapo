@@ -1,14 +1,20 @@
 import {
+  useContext,
   useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
+  useState,
+  useSyncExternalStore,
   type CSSProperties,
   type PointerEvent,
 } from 'react';
 import { MIDDLE_C, midiToPitch, PIANO_HIGHEST, PIANO_LOWEST } from '../../core/note.ts';
 import { useT } from '../../i18n/index.ts';
-import type { PointerInput } from '../../input/index.ts';
+import type { MidiStatus, PointerInput } from '../../input/index.ts';
+import { DEFAULT_OCTAVE, NOTE_KEYS } from '../../input/keyboard.ts';
+import { InputContext } from '../input/context.ts';
+import { useTouchOnly } from '../input/touchOnly.ts';
 import { useNoteNames } from '../noteNames.ts';
 import {
   BLACK_LENGTH,
@@ -71,6 +77,56 @@ function keyAt(target: EventTarget): number | null {
   return el instanceof HTMLElement ? Number(el.dataset.midi) : null;
 }
 
+const NO_SUB = () => () => undefined;
+const NO_STATUS: MidiStatus = { state: 'unsupported' };
+const getNoStatus = () => NO_STATUS;
+const getNoOctave = () => DEFAULT_OCTAVE;
+
+/**
+ * Maps MIDI notes to the computer-keyboard keycaps (`A`–`K`) in the current octave when using the
+ * keyboard fallback (no MIDI device connected and not touch-only), so players see where Z/X sits.
+ */
+function useKeyboardCaps(disabled: boolean): ReadonlyMap<number, string> {
+  const input = useContext(InputContext);
+  const midi = input?.midi;
+  const keyboard = input?.keyboard;
+  const touch = useTouchOnly();
+  const status = useSyncExternalStore(
+    midi?.subscribeStatus ?? NO_SUB,
+    midi?.getStatus ?? getNoStatus,
+    midi?.getStatus ?? getNoStatus,
+  );
+  const octave = useSyncExternalStore(
+    keyboard?.subscribeOctave ?? NO_SUB,
+    keyboard?.getOctave ?? getNoOctave,
+    keyboard?.getOctave ?? getNoOctave,
+  );
+  const pending = status.state === 'pending';
+  const [long, setLong] = useState(false);
+  useEffect(() => {
+    if (!pending) return;
+    const id = setTimeout(() => setLong(true), 1500);
+    return () => clearTimeout(id);
+  }, [pending]);
+
+  const show =
+    !disabled &&
+    midi !== undefined &&
+    keyboard !== undefined &&
+    !touch &&
+    status.state !== 'connected' &&
+    (!pending || long);
+  return useMemo(() => {
+    if (!show) return NO_STRINGS;
+    const caps = new Map<number, string>();
+    NOTE_KEYS.forEach(([, letter], offset) => {
+      const note = (octave + 1) * 12 + offset;
+      if (note >= PIANO_LOWEST && note <= PIANO_HIGHEST) caps.set(note, letter);
+    });
+    return caps;
+  }, [show, octave]);
+}
+
 interface PianoProps {
   held: ReadonlyMap<number, number>;
   sustained: ReadonlySet<number>;
@@ -120,6 +176,7 @@ export function Piano({
   const scroller = useRef<HTMLDivElement>(null);
   const [low, high] = range ?? [PIANO_LOWEST, PIANO_HIGHEST];
   const piano = useMemo(() => (range ? keysOf(low, high) : FULL), [range, low, high]);
+  const keyCaps = useKeyboardCaps(still || keyNames !== NO_STRINGS);
   const { layout } = piano;
   const percent = (units: number) => `${(units / layout.width) * 100}%`;
 
@@ -190,6 +247,7 @@ export function Piano({
         {layout.keys.map(({ midi, black, left, width }) => {
           const velocity = held.get(midi);
           const finger = marked.has(midi) ? fingers.get(midi) : undefined;
+          const cap = keyCaps.get(midi);
           const state =
             (velocity !== undefined ? ' is-held' : sustained.has(midi) ? ' is-sustained' : '') +
             (marked.has(midi) ? ' is-marked' : hinted.has(midi) ? ' is-hinted' : '') +
@@ -228,6 +286,18 @@ export function Piano({
                 </span>
               )
             );
+          const shortcut = cap !== undefined && (
+            <span
+              className={
+                !black && (marked.has(midi) || midi === MIDDLE_C)
+                  ? 'key-shortcut is-raised'
+                  : 'key-shortcut'
+              }
+              aria-hidden="true"
+            >
+              {cap}
+            </span>
+          );
           if (still) {
             return (
               <span key={midi} {...look}>
@@ -257,6 +327,7 @@ export function Piano({
               {velocity !== undefined && (
                 <span className="key-fill" style={{ opacity: velocityOpacity(velocity) }} />
               )}
+              {shortcut}
               {mark}
             </button>
           );

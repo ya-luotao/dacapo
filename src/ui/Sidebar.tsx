@@ -47,8 +47,8 @@ const isWide = () => globalThis.matchMedia?.(WIDE).matches ?? true;
  * The navigation, as a native app keeps it: a sidebar on a wide screen; on a narrow one a bar
  * with a menu button that opens the same list in a drawer. Neither shows in focus mode, and the
  * sidebar makes way while a session runs (styles.css), so practising has the whole screen.
- * A newcomer's list is Today, Pieces and Progress, with the other pages folded under "All
- * practice"; someone who said they play already (docs/START.md) gets every page listed.
+ * A newcomer's list is Today, Learn, Read, Pieces and Progress, with the other pages folded under
+ * "All practice"; someone who said they play already (docs/START.md) gets every page listed.
  */
 export function Sidebar() {
   return useFocusActive() ? null : <Navigation />;
