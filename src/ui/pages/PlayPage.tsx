@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { Suspense, lazy, useMemo, useState, type CSSProperties } from 'react';
 import { isFullKeys } from '../../core/instrument.ts';
 import { useT } from '../../i18n/index.ts';
 import { useHubState, useInput } from '../input/context.ts';
@@ -12,6 +12,9 @@ import { NoteReadout } from '../play/NoteReadout.tsx';
 import { SustainIndicator } from '../play/SustainIndicator.tsx';
 import { useFreePlay } from '../play/useFreePlay.ts';
 
+const PlayDesk = lazy(() => import('../play/PlayDesk.tsx'));
+const EMPTY_SET: ReadonlySet<number> = new Set();
+
 export function PlayPage() {
   const t = useT();
   const { pointer } = useInput();
@@ -23,10 +26,13 @@ export function PlayPage() {
   const keys = useInstrumentKeys();
   const fewer = !isFullKeys(keys);
   const [all, setAll] = useState(false);
+  const [marked, setMarked] = useState<ReadonlySet<number>>(EMPTY_SET);
   const range = useMemo(
     () => (fewer && !all ? instrumentRange(keys.low, keys.high) : undefined),
     [fewer, all, keys],
   );
+  const heldSet = useMemo(() => new Set(held.keys()), [held]);
+  const lastChordSet = useMemo(() => new Set(lastChord), [lastChord]);
 
   return (
     <section className="play">
@@ -39,11 +45,14 @@ export function PlayPage() {
         <NoteReadout held={held} lastChord={lastChord} />
         <SustainIndicator down={sustain} />
       </div>
+      <Suspense fallback={null}>
+        <PlayDesk held={heldSet} lastChord={lastChordSet} onMarkedKeys={setMarked} />
+      </Suspense>
       <div
         className={range ? 'play-keys is-fewer' : 'play-keys'}
         style={range && ({ '--play-whites': whiteKeys(range) } as CSSProperties)}
       >
-        <Piano held={held} sustained={sustained} pointer={pointer} range={range} />
+        <Piano held={held} sustained={sustained} marked={marked} pointer={pointer} range={range} />
       </div>
       {fewer && (
         <label className="check play-all-keys">

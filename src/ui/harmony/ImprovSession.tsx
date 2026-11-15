@@ -3,6 +3,7 @@ import { loopBars } from '../../core/improv.ts';
 import { useT } from '../../i18n/index.ts';
 import { useHubState, useInput, useKeyboardOctave } from '../input/context.ts';
 import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
+import { useEscapeToStop } from '../useEscapeToStop.ts';
 import type { ImprovController, ImprovView } from './improvController.ts';
 import { useImprovFormat } from './improvFormat.ts';
 import { useLoopPlace } from './improvPlace.ts';
@@ -26,6 +27,7 @@ export function ImprovSession({ view, controller }: ImprovSessionProps) {
 
   // Moving focus off the Start button means Enter or Space cannot trigger a control by accident.
   useEffect(() => region.current?.focus({ preventScroll: true }), []);
+  useEscapeToStop(controller.stop);
 
   const bars = loopBars(plan);
   const position =
@@ -47,7 +49,12 @@ export function ImprovSession({ view, controller }: ImprovSessionProps) {
       <div className="read-bar">
         <p className="read-level">{format.title(spec.backing, spec.key)}</p>
         <p className="read-count improv-position">{position}</p>
-        <button type="button" className="button" onClick={controller.stop}>
+        <button
+          type="button"
+          className="button"
+          aria-keyshortcuts="Escape"
+          onClick={controller.stop}
+        >
           {t('read.stop')}
         </button>
       </div>

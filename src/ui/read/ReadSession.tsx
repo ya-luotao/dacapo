@@ -7,6 +7,7 @@ import { useHintWords, useNoteNames } from '../noteNames.ts';
 import { Piano } from '../piano/Piano.tsx';
 import { GrandStaff, type StaffState } from '../staff/GrandStaff.tsx';
 import { STAFF_HEIGHT, STAFF_WIDTH } from '../staff/draw.ts';
+import { useEscapeToStop } from '../useEscapeToStop.ts';
 import type { ReadController } from './controller.ts';
 import { useAnswerMotion } from './answerMotion.ts';
 import { useReadFormat } from './format.ts';
@@ -38,6 +39,7 @@ export function ReadSession({ session, controller, onHint }: ReadSessionProps) {
 
   // Moving focus off the Start button means Enter or Space cannot trigger a control by accident.
   useEffect(() => region.current?.focus({ preventScroll: true }), []);
+  useEscapeToStop(controller.stop);
 
   const onPainted = useCallback(
     (time: number) => controller.painted(index, time),
@@ -79,7 +81,12 @@ export function ReadSession({ session, controller, onHint }: ReadSessionProps) {
         <span id={hintId} className="visually-hidden">
           {t('read.hint.help')}
         </span>
-        <button type="button" className="button" onClick={controller.stop}>
+        <button
+          type="button"
+          className="button"
+          aria-keyshortcuts="Escape"
+          onClick={controller.stop}
+        >
           {t('read.stop')}
         </button>
       </div>
