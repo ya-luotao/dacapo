@@ -8,6 +8,7 @@ import { DEFAULT_CLICK, startChoices } from './scales/prefs.ts';
 import {
   isTodayOrigin,
   levelStartPath,
+  parseAssignmentOrigin,
   parseLevelStart,
   parsePieceStart,
   parseScaleStart,
@@ -16,6 +17,7 @@ import {
   practiceLinkPath,
   scaleStartPath,
   startLoop,
+  withAssignmentOrigin,
   withTodayOrigin,
 } from './startParams.ts';
 import { lessonLinks, type LinkState } from '../core/lessonLinks.ts';
@@ -345,5 +347,61 @@ describe('Today origin helpers', () => {
     expect(isTodayOrigin('from=other')).toBe(false);
     expect(isTodayOrigin('notfrom=today')).toBe(false);
     expect(isTodayOrigin('from=today2')).toBe(false);
+  });
+});
+
+describe('Assignment origin helpers', () => {
+  it('parses and trims valid assignment ids and rejects absent or malformed ones', () => {
+    expect(parseAssignmentOrigin('assignment=hw-1_A')).toBe('hw-1_A');
+    expect(parseAssignmentOrigin('?assignment=week3&family=notes')).toBe('week3');
+    expect(parseAssignmentOrigin('family=notes&assignment=%20task_01%20')).toBe('task_01');
+    expect(parseAssignmentOrigin(`assignment=${'a'.repeat(64)}`)).toBe('a'.repeat(64));
+
+    expect(parseAssignmentOrigin('')).toBeNull();
+    expect(parseAssignmentOrigin('from=today')).toBeNull();
+    expect(parseAssignmentOrigin('assignment=')).toBeNull();
+    expect(parseAssignmentOrigin('assignment=%20%20')).toBeNull();
+    expect(parseAssignmentOrigin(`assignment=${'a'.repeat(65)}`)).toBeNull();
+    expect(parseAssignmentOrigin('assignment=bad/id')).toBeNull();
+    expect(parseAssignmentOrigin('assignment=bad.id')).toBeNull();
+    expect(parseAssignmentOrigin('assignment=bad%20id')).toBeNull();
+    expect(parseAssignmentOrigin('myassignment=hw1')).toBeNull();
+  });
+
+  it('appends assignment=<id> using ? or & and preserves hash fragments', () => {
+    expect(withAssignmentOrigin('/pieces/ode-to-joy', 'hw-1')).toBe(
+      '/pieces/ode-to-joy?assignment=hw-1',
+    );
+    expect(withAssignmentOrigin('/read?family=notes&level=L1', 'hw-1')).toBe(
+      '/read?family=notes&level=L1&assignment=hw-1',
+    );
+    expect(withAssignmentOrigin('/scales?exercise=major%3AC%3A1%3Aright&click=off', 'a_2')).toBe(
+      '/scales?exercise=major%3AC%3A1%3Aright&click=off&assignment=a_2',
+    );
+    expect(withAssignmentOrigin('/pieces/ode-to-joy#bar-4', 'hw-1')).toBe(
+      '/pieces/ode-to-joy?assignment=hw-1#bar-4',
+    );
+    expect(withAssignmentOrigin('/read?family=notes&level=L1#top', 'hw-1')).toBe(
+      '/read?family=notes&level=L1&assignment=hw-1#top',
+    );
+    expect(withAssignmentOrigin('/read?', 'hw-1')).toBe('/read?assignment=hw-1');
+    expect(withAssignmentOrigin('/read?#top', 'hw-1')).toBe('/read?assignment=hw-1#top');
+    expect(withAssignmentOrigin('/read?family=notes&', 'hw-1')).toBe(
+      '/read?family=notes&assignment=hw-1',
+    );
+    expect(withAssignmentOrigin('/pieces/ode-to-joy', 'a b')).toBe(
+      '/pieces/ode-to-joy?assignment=a%20b',
+    );
+  });
+
+  it('is idempotent when a valid assignment parameter is already present', () => {
+    expect(withAssignmentOrigin('/pieces/ode-to-joy?assignment=hw-1', 'hw-1')).toBe(
+      '/pieces/ode-to-joy?assignment=hw-1',
+    );
+    expect(withAssignmentOrigin('/read?assignment=hw-1&family=notes#top', 'other')).toBe(
+      '/read?assignment=hw-1&family=notes#top',
+    );
+    const once = withAssignmentOrigin('/scales?exercise=major%3AD%3A2%3Aboth&click=72x4', 'hw-1');
+    expect(withAssignmentOrigin(once, 'hw-1')).toBe(once);
   });
 });
