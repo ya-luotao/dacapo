@@ -9,6 +9,8 @@ import {
   PROGRESSIONS,
   progressionKeys,
   progressionPieceId,
+  type PatternId,
+  type ProgressionId,
   type ProgressionSpec,
 } from '../../core/progressions.ts';
 import { PROGRESSION_HANDS, progressionXml } from '../../core/progressionXml.ts';
@@ -53,16 +55,25 @@ export function ProgressionsSetup({ prefs, onPrefs }: ProgressionsSetupProps) {
   const [, navigate] = useLocation();
   const progression = PROGRESSIONS[prefs.progression];
   const key = prefsKey(prefs);
-  const spec: ProgressionSpec = { progression: prefs.progression, key, pattern: prefs.pattern };
   // The score is drawn by Verovio: fetch it while the user chooses.
   useEffect(prefetchVerovio, []);
 
-  function start() {
-    const pieceId = progressionPieceId(spec);
+  function start(override?: { progression?: ProgressionId; pattern?: PatternId }) {
+    const nextPrefs = {
+      ...prefs,
+      ...(override?.progression !== undefined && { progression: override.progression }),
+      ...(override?.pattern !== undefined && { pattern: override.pattern }),
+    };
+    const nextSpec: ProgressionSpec = {
+      progression: nextPrefs.progression,
+      key: prefsKey(nextPrefs),
+      pattern: nextPrefs.pattern,
+    };
+    const pieceId = progressionPieceId(nextSpec);
     writeProgressionTempo(pieceId, prefs.bpm);
     // The tempo chosen here is the one practised at: the session's own control starts at 100 %.
     writePiecePrefs(pieceId, { tempo: 100 });
-    navigate(progressionPath(spec));
+    navigate(progressionPath(nextSpec));
   }
 
   return (
@@ -83,7 +94,14 @@ export function ProgressionsSetup({ prefs, onPrefs }: ProgressionsSetupProps) {
                 const mode = PROGRESSIONS[p].mode;
                 const inKey = mode === progression.mode ? key : progressionKeys(mode)[0]!;
                 return (
-                  <label key={p} className={checked ? 'level is-checked' : 'level'}>
+                  <label
+                    key={p}
+                    className={checked ? 'level is-checked' : 'level'}
+                    onDoubleClick={() => {
+                      onPrefs({ progression: p });
+                      start({ progression: p });
+                    }}
+                  >
                     <input
                       type="radio"
                       name={`${id}-progression`}
@@ -130,7 +148,14 @@ export function ProgressionsSetup({ prefs, onPrefs }: ProgressionsSetupProps) {
               {PATTERN_IDS.map((pattern) => {
                 const checked = pattern === prefs.pattern;
                 return (
-                  <label key={pattern} className={checked ? 'level is-checked' : 'level'}>
+                  <label
+                    key={pattern}
+                    className={checked ? 'level is-checked' : 'level'}
+                    onDoubleClick={() => {
+                      onPrefs({ pattern });
+                      start({ pattern });
+                    }}
+                  >
                     <input
                       type="radio"
                       name={`${id}-pattern`}

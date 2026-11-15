@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type DragEvent } from 'react';
 import { Link } from 'wouter';
+import { fitsKeys, isFullKeys, type KeyRange } from '../../core/instrument.ts';
 import type { ScoreErrorKind } from '../../core/musicxml.ts';
 import { pieceFacts } from '../../core/pieceRecords.ts';
 import {
@@ -17,6 +18,7 @@ import {
   readScore,
   ScoreError,
 } from '../../pieces/load.ts';
+import { useInstrumentKeys } from '../instrument.ts';
 import { countUnplaced } from '../notation/verovio.ts';
 import { usePractice, usePracticeStore, useStorageStatus } from '../practice/context.ts';
 import { usePieceFormat } from './format.ts';
@@ -39,16 +41,32 @@ type ImportState =
       unplaced: number | null;
     };
 
+const keyCount = (keys: KeyRange): number => keys.high - keys.low + 1;
+
 export function YourPieces() {
   const t = useT();
   const id = useId();
   const store = usePracticeStore();
   const { pieces } = usePractice();
   const { loaded } = useStorageStatus();
+  const keys = useInstrumentKeys();
+  const narrowKeys = !isFullKeys(keys);
   const input = useRef<HTMLInputElement>(null);
   const [state, setState] = useState<ImportState>({ step: 'idle' });
   const [dragging, setDragging] = useState(false);
+  const [query, setQuery] = useState('');
+  const [onlyFits, setOnlyFits] = useState(false);
   const busy = state.step === 'reading' || state.step === 'checking';
+  const filterEnabled = pieces.length >= 4;
+  const normalizedQuery = filterEnabled ? query.trim().toLowerCase() : '';
+  const activeOnlyFits = filterEnabled && narrowKeys && onlyFits;
+  const filteredPieces = pieces.filter((piece) => {
+    if (activeOnlyFits && piece.facts?.keys && !fitsKeys(piece.facts.keys, keys)) return false;
+    if (!normalizedQuery) return true;
+    return `${piece.title} ${piece.composer} ${piece.fileName}`
+      .toLowerCase()
+      .includes(normalizedQuery);
+  });
 
   // Pieces imported before their facts were kept (or before they counted the notes, P6) get them
   // now, one at a time.
@@ -181,13 +199,40 @@ export function YourPieces() {
       </div>
 
       {loaded && pieces.length === 0 && <p className="muted">{t('pieces.yours.empty')}</p>}
-      {pieces.length > 0 && (
-        <ul className="library-list your-list">
-          {pieces.map((piece) => (
-            <ImportedPiece key={piece.id} piece={piece} />
-          ))}
-        </ul>
+      {filterEnabled && (
+        <div className="library-toolbar library-filter">
+          <div className="library-search">
+            <input
+              type="search"
+              className="library-search-input"
+              placeholder={t('yourPieces.search')}
+              aria-label={t('yourPieces.searchLabel')}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </div>
+          {narrowKeys && (
+            <label className="check library-filter-fits">
+              <input
+                type="checkbox"
+                checked={onlyFits}
+                onChange={(event) => setOnlyFits(event.target.checked)}
+              />
+              <span>{t('yourPieces.fitsKeyboard', { keys: keyCount(keys) })}</span>
+            </label>
+          )}
+        </div>
       )}
+      {pieces.length > 0 &&
+        (filteredPieces.length === 0 ? (
+          <p className="muted library-empty">{t('yourPieces.emptyFilter')}</p>
+        ) : (
+          <ul className="library-list your-list">
+            {filteredPieces.map((piece) => (
+              <ImportedPiece key={piece.id} piece={piece} />
+            ))}
+          </ul>
+        ))}
     </section>
   );
 }

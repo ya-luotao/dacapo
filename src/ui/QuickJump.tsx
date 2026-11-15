@@ -14,8 +14,12 @@ import type { StoredPiece } from '../core/storedPiece.ts';
 import { useI18n } from '../i18n/index.ts';
 import {
   buildJumpEntries,
+  clearRecentJumps,
   filterJumpEntries,
   JUMP_GROUPS,
+  readRecentJumps,
+  recordRecentJump,
+  resolveRecentEntries,
   type JumpEntry,
   type JumpGroup,
 } from './QuickJumpData.ts';
@@ -49,6 +53,7 @@ export function QuickJump({ open, onClose }: QuickJumpProps) {
 
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
+  const [recentHrefs, setRecentHrefs] = useState<string[]>(() => readRecentJumps());
 
   const inputRef = useRef<HTMLInputElement>(null);
   const activeOptionRef = useRef<HTMLButtonElement>(null);
@@ -62,7 +67,13 @@ export function QuickJump({ open, onClose }: QuickJumpProps) {
     () => buildJumpEntries({ t, locale, customPieces }),
     [t, locale, customPieces],
   );
-  const filtered = useMemo(() => filterJumpEntries(allEntries, query), [allEntries, query]);
+  const filtered = useMemo(() => {
+    if (query.trim() === '') {
+      const recent = resolveRecentEntries(recentHrefs, allEntries);
+      return recent.length > 0 ? [...recent, ...allEntries] : allEntries;
+    }
+    return filterJumpEntries(allEntries, query);
+  }, [allEntries, recentHrefs, query]);
   const safeActiveIndex = filtered.length === 0 ? -1 : Math.min(activeIndex, filtered.length - 1);
   const activeEntry = safeActiveIndex >= 0 ? filtered[safeActiveIndex] : undefined;
 
@@ -86,11 +97,19 @@ export function QuickJump({ open, onClose }: QuickJumpProps) {
 
   const navigateTo = useCallback(
     (entry: JumpEntry) => {
+      setRecentHrefs(recordRecentJump(entry.href));
       setLocation(entry.href);
       closeWithoutRestore();
     },
     [setLocation, closeWithoutRestore],
   );
+
+  const handleClearRecent = useCallback(() => {
+    clearRecentJumps();
+    setRecentHrefs([]);
+    setActiveIndex(0);
+    inputRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     if (open && !wasOpenRef.current) {
@@ -99,6 +118,7 @@ export function QuickJump({ open, onClose }: QuickJumpProps) {
         document.activeElement instanceof HTMLElement ? document.activeElement : null;
       setQuery('');
       setActiveIndex(0);
+      setRecentHrefs(readRecentJumps());
       inputRef.current?.focus();
     } else if (!open && wasOpenRef.current && !skipRestoreRef.current) {
       restorePreviousFocus();
@@ -201,8 +221,15 @@ export function QuickJump({ open, onClose }: QuickJumpProps) {
                 role="group"
                 aria-label={t(`jump.group.${group}`)}
               >
-                <div className="jump-group-title" aria-hidden="true">
-                  {t(`jump.group.${group}`)}
+                <div className="jump-group-head">
+                  <div className="jump-group-title" aria-hidden="true">
+                    {t(`jump.group.${group}`)}
+                  </div>
+                  {group === 'recent' && (
+                    <button type="button" className="jump-group-clear" onClick={handleClearRecent}>
+                      {t('jump.clearRecent')}
+                    </button>
+                  )}
                 </div>
                 {items.map(({ entry, index }) => {
                   const isActive = index === safeActiveIndex;
