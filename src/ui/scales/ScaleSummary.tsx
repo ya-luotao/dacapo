@@ -7,6 +7,7 @@ import type { ClickSettings } from '../../core/scaleClick.ts';
 import type { Hand } from '../../core/score.ts';
 import { SENTENCE_GAP, useI18n } from '../../i18n/index.ts';
 import { Advice } from '../Advice.tsx';
+import { TodayFlowSlot } from '../today/TodayFlowSlot.tsx';
 import { fewKeys } from './format.ts';
 import { weakestPlace, type LoopPlace } from './loop.ts';
 import { ProfileChart } from './ProfileChart.tsx';
@@ -655,6 +656,7 @@ export function ScaleSummary({
           onLoop={onLoop && ((index) => onLoop({ hand: hand.hand, index }))}
         />
       ))}
+      <TodayFlowSlot />
     </section>
   );
 }
