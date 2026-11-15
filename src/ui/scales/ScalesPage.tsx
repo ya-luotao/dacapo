@@ -8,6 +8,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react';
+import { Link } from 'wouter';
 import { KNOWN_SCALE_RUNS } from '../../core/curriculum.ts';
 import { analyzeRun, type RunAnalysis } from '../../core/evenness.ts';
 import { parseMusicXml } from '../../core/musicxml.ts';
@@ -65,7 +66,7 @@ import {
   type ClickPrefs,
 } from './prefs.ts';
 import { useRouteSearch } from '../hashRoute.ts';
-import { parseScaleStart } from '../startParams.ts';
+import { isTodayOrigin, parseScaleStart } from '../startParams.ts';
 import { scaleRunRecord, useScaleRecorder, type SessionSlot } from './record.ts';
 import {
   runClick,
@@ -190,14 +191,21 @@ function Scales({ search }: { search: string }) {
   const clickSettings: ClickSettings | null = click.on ? { bpm: click.bpm, perBeat } : null;
   // A new session view for another scale or another grid: its run and result belong to those.
   const sessionKey = `${exerciseKey(exercise)}:${clickSettings ? `${clickSettings.bpm}:${clickSettings.perBeat}` : 'free'}`;
+  const fromToday = isTodayOrigin(search);
 
   return (
     <section className={focus.on ? 'scales is-focus' : 'scales'}>
       <h1 className="visually-hidden">{t('scales.title')}</h1>
+      {!focus.on && fromToday && (
+        <Link href="/" className="today-return">
+          ← {t('today.flow.back')}
+        </Link>
+      )}
       {!focus.on && <InputNotice />}
       {focus.on && (
         <FocusBar
           heading={<h2 className="focus-title">{title(exercise)}</h2>}
+          back={fromToday ? { href: '/', label: t('today.flow.back') } : undefined}
           settings={{
             open: settingsOpen,
             onToggle: () => setSettingsOpen((open) => !open),

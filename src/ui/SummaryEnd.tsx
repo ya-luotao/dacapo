@@ -5,6 +5,7 @@ import { pageOfFamily } from '../core/assignments.ts';
 import { SENTENCE_GAP, useI18n } from '../i18n/index.ts';
 import { Advice } from './Advice.tsx';
 import { familyKey, levelKey } from './assignments/taskFormat.ts';
+import { TodayFlowSlot } from './today/TodayFlowSlot.tsx';
 
 interface SummaryEndProps {
   /** The family the session was of, and its level by name ("L3 · Bass: middle C position"). */
@@ -79,7 +80,7 @@ export function SummaryEnd({
   const practise = advice && onAdvice ? advice.practise : null;
 
   return (
-    <>
+    <div className="summary-end">
       {/* Mastered just now: the advice says so, once. */}
       {!masteredNow && (
         <p className={mastery.mastered ? 'read-mastery is-mastered' : 'read-mastery'}>
@@ -126,6 +127,7 @@ export function SummaryEnd({
           {labels?.choose ?? t('read.chooseLevel')}
         </button>
       </div>
-    </>
+      <TodayFlowSlot />
+    </div>
   );
 }

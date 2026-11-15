@@ -11,7 +11,10 @@ import {
 import { Link } from 'wouter';
 import { useI18n } from '../../i18n/index.ts';
 import { isExtra, lessonBySlug, lessonLanguage, LESSONS, neighbours } from '../../learn/lessons.ts';
+import { useRouteSearch } from '../hashRoute.ts';
 import { NotFoundPage } from '../pages/NotFoundPage.tsx';
+import { isTodayOrigin } from '../startParams.ts';
+import { TodayFlowSlot } from '../today/TodayFlowSlot.tsx';
 import { LessonProvider } from './kit.tsx';
 import { LoadBoundary } from './LoadBoundary.tsx';
 import { LESSON_TEXTS } from './lessons/index.ts';
@@ -66,6 +69,7 @@ function prefersReducedMotion(): boolean {
 
 export function LessonPage({ slug }: { slug: string }) {
   const { t, locale } = useI18n();
+  const fromToday = isTodayOrigin(useRouteSearch());
   const lesson = lessonBySlug(slug);
   const language = lessonLanguage(locale);
   const body = useRef<HTMLDivElement>(null);
@@ -92,6 +96,11 @@ export function LessonPage({ slug }: { slug: string }) {
     <LessonProvider slug={slug} language={language}>
       <article className="lesson" lang={language}>
         <aside className="lesson-rail">
+          {fromToday && (
+            <Link href="/" className="today-return" lang={locale}>
+              ← {t('today.flow.back')}
+            </Link>
+          )}
           <Link href="/learn" className="lesson-back">
             <svg viewBox="0 0 6 10" aria-hidden="true">
               <path d="M5 1L1 5l4 4" />
@@ -151,6 +160,7 @@ export function LessonPage({ slug }: { slug: string }) {
                 <PracticeLinks practice={lesson.practice} />
               </Suspense>
             </LoadBoundary>
+            <TodayFlowSlot />
             <nav className="lesson-pager" aria-label={t('learn.all')}>
               {previous ? (
                 <Link href={`/learn/${previous.slug}`} className="lesson-pager-link">

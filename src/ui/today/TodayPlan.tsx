@@ -10,6 +10,7 @@ import {
   readPlan,
   recordsBefore,
   type PlanMinutes,
+  type PlanStep,
   type TodayPlan as Plan,
   type TodayRecords,
 } from '../../core/today.ts';
@@ -22,6 +23,7 @@ import { useStorageStatus } from '../practice/context.ts';
 import { recordsKnown } from '../practice/store.ts';
 import { useInstrumentKeys } from '../instrument.ts';
 import { readStartPref } from '../start/prefs.ts';
+import { withTodayOrigin } from '../startParams.ts';
 import { useTodayFormat } from './format.ts';
 import { readKeptPlan, writeKeptPlan } from './prefs.ts';
 import { useRecordsWithPlan, useTodayRecords } from './useTodayRecords.ts';
@@ -120,11 +122,15 @@ export function TodayPlan({ today, minutes, waiting, week, onSteps, onNext }: To
     assignmentComesFirst(assignment.record.assignment.tasks, assignment.progress);
   const steps = !reading && !assigned;
   useEffect(() => onSteps(reading || steps), [onSteps, reading, steps]);
+  const startHref = (step: PlanStep) => {
+    const href = format.start(step);
+    return href ? withTodayOrigin(href) : null;
+  };
   const nextIndex = steps
     ? plan.steps.findIndex((step, i) => !done[i] && format.start(step) !== null)
     : -1;
   const nextStep = nextIndex < 0 ? null : plan!.steps[nextIndex]!;
-  const nextHref = nextStep ? format.start(nextStep) : null;
+  const nextHref = nextStep ? startHref(nextStep) : null;
   const nextName = nextStep ? format.name(nextStep) : null;
   useEffect(() => {
     onNext(nextHref && nextName ? { href: nextHref, name: nextName } : null);
@@ -154,7 +160,7 @@ export function TodayPlan({ today, minutes, waiting, week, onSteps, onNext }: To
           ) : (
             <ol className="today-steps">
               {plan.steps.map((step, i) => {
-                const href = format.start(step);
+                const href = startHref(step);
                 const name = format.name(step);
                 // The part is named where it begins; the rows after it are under the same name.
                 const first = plan.steps[i - 1]?.part !== step.part;
