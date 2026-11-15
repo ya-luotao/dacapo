@@ -19,6 +19,7 @@ export const en = {
   'nav.today': 'Today',
   'nav.group.practice': 'Practice',
   'nav.group.record': 'Records',
+  'nav.all': 'All practice',
   'nav.menu': 'Menu',
   'nav.close': 'Close menu',
 
@@ -60,7 +61,7 @@ export const en = {
   'today.streak.one': '1 day in a row',
   'today.streak.other': '{n} days in a row',
   'today.unit': 'min',
-  'today.readout': '{done} of {plan} minutes played today',
+  'today.readout': '{done} of {goal} minutes played today',
   'today.start': 'Start',
   'today.anyKey': 'Play any key to start: {name}',
   'home.contents': 'Contents',
@@ -2916,6 +2917,9 @@ export const en = {
     'This browser cannot play the click (it has no Web Audio). The pendulum still keeps time.',
   'metronome.source':
     'The click plays from this device; most digital pianos cannot play a click over MIDI. The pendulum swings with what you hear, allowing for the latency calibration if you have made one.',
+  'metronome.keeptime':
+    'For a standalone metronome on iPhone or iPad, try Keeptime. It works offline and keeps ticking with the screen locked.',
+  'metronome.keeptime.link': 'Keeptime on the App Store',
   'metronome.keys.space': 'Space',
   'metronome.keys.start': 'start or stop',
   'metronome.keys.tempo': 'tempo (with Shift, by 10)',
@@ -3280,6 +3284,17 @@ export const en = {
   'site.card.alt': 'The dacapo wordmark, its tagline, and a treble staff with one whole note',
   'site.about':
     'The lessons and the built-in pieces also have pages of their own, which can be read without the app and found by a search engine.',
+  'pieces.bar.startFrom': 'Start from {bar}',
+  'pieces.bar.playFrom': 'Play from {bar}',
+  'pieces.bar.hint': 'Click to start here · Shift-click to loop',
+  'pieces.bar.region': 'Bars in the score',
+  'pieces.library.search': 'Search by title, composer or style',
+  'pieces.library.search.clear': 'Clear search',
+  'pieces.library.filter': 'Filter pieces',
+  'pieces.library.filter.all': 'All',
+  'pieces.library.filter.unplayed': 'To play',
+  'pieces.library.filter.played': 'Played',
+  'pieces.library.empty': 'No built-in pieces match your filter.',
 
   // Guided Today flow, score bar actions, instrument chip, quick jump, and discovery filters.
   'today.flow.label': 'Today’s plan',
@@ -3289,8 +3304,6 @@ export const en = {
   'today.flow.back': 'Back to Today',
   'pieces.bar.startHere': 'Start from bar {bar}',
   'pieces.bar.loopHere': 'Loop bar {bar}',
-  'pieces.bar.clearLoop': 'Clear loop ({bars})',
-  'pieces.bar.hint': 'Click a bar to start there; Shift-click to loop bars.',
   'pieces.keys.short': 'Keys',
   'pieces.options.group.score': 'Score',
   'pieces.options.group.sound': 'Sound',
@@ -3313,13 +3326,8 @@ export const en = {
   'jump.group.pieces': 'Pieces',
   'jump.group.lessons': 'Lessons',
   'jump.group.terms': 'Glossary',
-  'pieces.filter.search': 'Search title, composer or style',
   'pieces.filter.all': 'All',
-  'pieces.filter.started': 'In progress',
-  'pieces.filter.finished': 'Played through',
   'pieces.filter.fits': 'Fits my keyboard',
-  'pieces.filter.empty': 'No pieces match this filter.',
-  'pieces.filter.reset': 'Show all pieces',
   'setup.masteredCount': '{done} of {total} mastered',
   'progress.where.locked': 'Later in the course ({n})',
 };

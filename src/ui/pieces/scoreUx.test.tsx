@@ -9,8 +9,7 @@ import type { LoadedLocale } from '../../i18n/locale.ts';
 import type { BarBoxes } from '../notation/ScoreView.tsx';
 import { useBarFormat } from './barFormat.ts';
 import { usePieceFormat } from './format.ts';
-import { ScoreBarPicker, type LoopRange } from './ScoreBarPicker.tsx';
-import { BarTargets } from './WeakBars.tsx';
+import { BarTargets, LoopBand, ScoreBarTargets } from './WeakBars.tsx';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -75,34 +74,24 @@ function renderWithI18n(node: ReactNode) {
   });
 }
 
-function PickerHarness({
-  startBar,
+function ScoreTargetsHarness({
   loop,
-  disabled = false,
-  onStartBar,
-  onLoopRange,
-  onClearLoop,
+  onBarClick,
 }: {
-  startBar: number;
-  loop: LoopRange | null;
-  disabled?: boolean;
-  onStartBar: (measure: number) => void;
-  onLoopRange: (from: number, to: number) => void;
-  onClearLoop: () => void;
+  loop: { from: number; to: number } | null;
+  onBarClick: (measure: number, shift: boolean) => void;
 }) {
   const format = usePieceFormat(MEASURES);
   return (
     <div className="score-frame">
       <div className="score-page">
-        <ScoreBarPicker
+        {loop && <LoopBand loop={loop} boxes={BOXES} />}
+        <ScoreBarTargets
+          measures={MEASURES.map((m) => m.index)}
           boxes={BOXES}
-          format={format}
-          startBar={startBar}
-          loop={loop}
-          disabled={disabled}
-          onStartBar={onStartBar}
-          onLoopRange={onLoopRange}
-          onClearLoop={onClearLoop}
+          label={(m) => `Start from bar ${format.barNumber(m)}`}
+          hint="Click a bar to start there; Shift-click to loop"
+          onBarClick={onBarClick}
         />
       </div>
     </div>
@@ -110,11 +99,13 @@ function PickerHarness({
 }
 
 function WeakBarsHarness({
+  onBarClick,
   onStartBar,
   onLoopBar,
 }: {
-  onStartBar: (measure: number) => void;
-  onLoopBar: (measure: number) => void;
+  onBarClick?: (measure: number, shift: boolean) => void;
+  onStartBar?: (measure: number) => void;
+  onLoopBar?: (measure: number) => void;
 }) {
   const format = usePieceFormat(MEASURES);
   const barFormat = useBarFormat(format, 'hesitation');
@@ -125,6 +116,7 @@ function WeakBarsHarness({
           cells={CELLS}
           boxes={BOXES}
           format={barFormat}
+          onBarClick={onBarClick}
           onStartBar={onStartBar}
           onLoopBar={onLoopBar}
         />
@@ -139,134 +131,40 @@ function clickEl(el: Element, init?: MouseEventInit) {
   });
 }
 
-describe('ScoreBarPicker', () => {
-  it('calls onStartBar on plain click and keeps hit targets hidden from assistive tech', () => {
-    const onStartBar = vi.fn();
-    const onLoopRange = vi.fn();
-    const onClearLoop = vi.fn();
+describe('ScoreBarTargets and LoopBand', () => {
+  it('renders loop bands across bars and passes bar index and shift flag on click', () => {
+    const onBarClick = vi.fn();
 
-    renderWithI18n(
-      <PickerHarness
-        startBar={0}
-        loop={null}
-        onStartBar={onStartBar}
-        onLoopRange={onLoopRange}
-        onClearLoop={onClearLoop}
-      />,
-    );
+    renderWithI18n(<ScoreTargetsHarness loop={{ from: 1, to: 3 }} onBarClick={onBarClick} />);
 
-    const hits = host.querySelectorAll('.score-bar-hit');
-    expect(hits).toHaveLength(5);
-    for (const hit of hits) expect(hit.getAttribute('aria-hidden')).toBe('true');
-    expect(host.querySelectorAll('button')).toHaveLength(0);
+    expect(host.querySelectorAll('.bar-loop')).toHaveLength(3);
+    const jumps = host.querySelectorAll('.bar-jump');
+    expect(jumps).toHaveLength(5);
 
-    clickEl(hits[2]!);
-    expect(onStartBar).toHaveBeenCalledTimes(1);
-    expect(onStartBar).toHaveBeenCalledWith(2);
-    expect(onLoopRange).not.toHaveBeenCalled();
-  });
+    clickEl(jumps[2]!);
+    expect(onBarClick).toHaveBeenLastCalledWith(2, false);
 
-  it('computes [min, max] loop ranges on Shift-click using startBar or loop.from as anchor', () => {
-    const onStartBar = vi.fn();
-    const onLoopRange = vi.fn();
-    const onClearLoop = vi.fn();
-
-    renderWithI18n(
-      <PickerHarness
-        startBar={2}
-        loop={null}
-        onStartBar={onStartBar}
-        onLoopRange={onLoopRange}
-        onClearLoop={onClearLoop}
-      />,
-    );
-
-    const hits = host.querySelectorAll('.score-bar-hit');
-    clickEl(hits[4]!, { shiftKey: true });
-    expect(onLoopRange).toHaveBeenLastCalledWith(2, 4);
-
-    clickEl(hits[0]!, { shiftKey: true });
-    expect(onLoopRange).toHaveBeenLastCalledWith(0, 2);
-    expect(onStartBar).not.toHaveBeenCalled();
-
-    renderWithI18n(
-      <PickerHarness
-        startBar={3}
-        loop={{ from: 1, to: 3 }}
-        onStartBar={onStartBar}
-        onLoopRange={onLoopRange}
-        onClearLoop={onClearLoop}
-      />,
-    );
-
-    const nextHits = host.querySelectorAll('.score-bar-hit');
-    clickEl(nextHits[0]!, { shiftKey: true });
-    expect(onLoopRange).toHaveBeenLastCalledWith(0, 1);
-
-    clickEl(nextHits[4]!, { shiftKey: true });
-    expect(onLoopRange).toHaveBeenLastCalledWith(1, 4);
-  });
-
-  it('renders loop bands across systems and calls onClearLoop when clear button is clicked', () => {
-    const onStartBar = vi.fn();
-    const onLoopRange = vi.fn();
-    const onClearLoop = vi.fn();
-
-    renderWithI18n(
-      <PickerHarness
-        startBar={1}
-        loop={{ from: 1, to: 4 }}
-        onStartBar={onStartBar}
-        onLoopRange={onLoopRange}
-        onClearLoop={onClearLoop}
-      />,
-    );
-
-    // Bars 1..3 are on top=20, bar 4 wraps onto top=120 -> 2 loop bands.
-    expect(host.querySelectorAll('.score-bar-loop-band')).toHaveLength(2);
-    const clear = host.querySelector<HTMLButtonElement>('.score-bar-clear');
-    expect(clear).not.toBeNull();
-    expect(clear?.title).toBe('Clear loop (bars 2–5)');
-
-    clickEl(clear!);
-    expect(onClearLoop).toHaveBeenCalledTimes(1);
-  });
-
-  it('ignores pointer bar clicks and disables clearing when disabled', () => {
-    const onStartBar = vi.fn();
-    const onLoopRange = vi.fn();
-    const onClearLoop = vi.fn();
-
-    renderWithI18n(
-      <PickerHarness
-        startBar={0}
-        loop={{ from: 0, to: 1 }}
-        disabled
-        onStartBar={onStartBar}
-        onLoopRange={onLoopRange}
-        onClearLoop={onClearLoop}
-      />,
-    );
-
-    const hits = host.querySelectorAll('.score-bar-hit');
-    clickEl(hits[1]!);
-    clickEl(hits[2]!, { shiftKey: true });
-    const clear = host.querySelector<HTMLButtonElement>('.score-bar-clear');
-    expect(clear?.disabled).toBe(true);
-    expect(onStartBar).not.toHaveBeenCalled();
-    expect(onLoopRange).not.toHaveBeenCalled();
+    clickEl(jumps[4]!, { shiftKey: true });
+    expect(onBarClick).toHaveBeenLastCalledWith(4, true);
   });
 });
 
-describe('BarTargets dialog actions', () => {
-  it('opens bar details dialog on click, calls onStartBar / onLoopBar, and closes', () => {
+describe('BarTargets dialog and Shift-click actions', () => {
+  it('opens bar details dialog on plain click, calls onStartBar / onLoopBar, and loops directly on Shift-click', () => {
+    const onBarClick = vi.fn();
     const onStartBar = vi.fn();
     const onLoopBar = vi.fn();
 
-    renderWithI18n(<WeakBarsHarness onStartBar={onStartBar} onLoopBar={onLoopBar} />);
+    renderWithI18n(
+      <WeakBarsHarness onBarClick={onBarClick} onStartBar={onStartBar} onLoopBar={onLoopBar} />,
+    );
 
     const targets = host.querySelectorAll('.bar-target');
     expect(targets).toHaveLength(5);
+
+    clickEl(targets[3]!, { shiftKey: true });
+    expect(onBarClick).toHaveBeenCalledWith(3, true);
+    expect(document.body.querySelector('[role="dialog"]')).toBeNull();
 
     clickEl(targets[1]!);
     let dialog = document.body.querySelector('[role="dialog"]');

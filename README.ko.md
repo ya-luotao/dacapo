@@ -74,6 +74,12 @@ dacapo는 MIDI 키보드로 피아노를 연습하는 오픈 소스 웹 앱이�
 - 이메일 주소와 받은 코드로 로그인하면 dacapo 동기화 서비스를 통해 내 기기끼리 연습 기록이 동기화돼요([개인정보 처리방침](https://playdacapo.com/privacy)). 설정에서 계정을 삭제하면 서비스에 있는 데이터가 모두 지워져요.
 - 로그인하면 GitHub 프로필처럼 1년 동안의 연습을 보여 주는 공개 페이지도 만들 수 있어요. 연습 격자만 공개하거나, 날마다 무엇을 연습했는지까지 공개할 수 있어요. 직접 켜기 전까지는 공개되지 않아요([docs/PROFILE.md](docs/PROFILE.md)).
 
+## 추천 앱
+
+iPhone이나 iPad에서 별도의 메트로놈 앱을 쓰고 싶다면 App Store의
+[Keeptime: Metronome](https://apps.apple.com/app/keeptime-metronome/id6832189111)을 써 보세요.
+기계식 메트로놈을 닮은 진자가 있고, 오프라인에서도 작동하며 화면을 잠가도 계속 박자를 짚어요.
+
 ## 개발
 
 Node.js 22.13 이상과 pnpm(버전은 `package.json`의 `packageManager`)이 필요해요.

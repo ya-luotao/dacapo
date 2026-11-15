@@ -243,32 +243,16 @@ function readSessionRecord(
 }
 
 describe('Library search and filtering', () => {
-  it('renders all built-in entries at defaults and filters by search, status, keyboard fit, and reset', async () => {
-    const startedRun = sampleRun(
-      'run-started',
-      4,
-      { pieceId: 'turk-aller-anfang' },
-      { pieceId: 'turk-aller-anfang' },
-    ).session;
-    const finishedRun = sampleRun(
-      'run-finished',
-      4,
-      { pieceId: 'beethoven-ode-to-joy' },
-      { pieceId: 'beethoven-ode-to-joy' },
-    ).session;
-    const store = seededStore({ sessions: [startedRun, finishedRun] });
+  it('renders all built-in entries at defaults and layers keyboard-fit filtering onto search and played status', async () => {
+    const store = seededStore();
     await settleLoaded(store);
 
     mount(<Library finished={new Set(['beethoven-ode-to-joy'])} />, store);
-    await act(async () => {
-      await store.settled();
-      await Promise.resolve();
-    });
 
     expect(host.querySelectorAll('.library-piece')).toHaveLength(BUILT_IN.length);
     expect(host.querySelector('.library-filter-fits')).toBeNull();
 
-    const search = host.querySelector<HTMLInputElement>('input[type="search"]');
+    const search = host.querySelector<HTMLInputElement>('.library-search-input');
     expect(search).not.toBeNull();
     setSearchValue(search!, 'petzold');
     const searched = [...host.querySelectorAll('.library-piece')];
@@ -276,22 +260,32 @@ describe('Library search and filtering', () => {
     expect(searched.every((el) => el.textContent?.toLowerCase().includes('petzold'))).toBe(true);
     expect(host.querySelectorAll('.library-level')).toHaveLength(1);
 
-    setSearchValue(search!, '');
+    const clear = host.querySelector<HTMLButtonElement>('.library-search-clear');
+    expect(clear).not.toBeNull();
+    act(() => clear!.click());
     expect(host.querySelectorAll('.library-piece')).toHaveLength(BUILT_IN.length);
 
-    clickButton('In progress');
-    const startedPieces = [...host.querySelectorAll<HTMLAnchorElement>('.library-piece')].map((a) =>
+    const played = host.querySelector<HTMLInputElement>('.library-filter input[value="played"]')!;
+    act(() => played.click());
+    expect(
+      [...host.querySelectorAll<HTMLAnchorElement>('.library-piece')].map((a) =>
+        a.getAttribute('href'),
+      ),
+    ).toEqual(['/pieces/beethoven-ode-to-joy']);
+
+    const unplayed = host.querySelector<HTMLInputElement>(
+      '.library-filter input[value="unplayed"]',
+    )!;
+    act(() => unplayed.click());
+    const unplayedLinks = [...host.querySelectorAll<HTMLAnchorElement>('.library-piece')].map((a) =>
       a.getAttribute('href'),
     );
-    expect(startedPieces).toEqual(['/pieces/turk-aller-anfang']);
+    expect(unplayedLinks).toHaveLength(BUILT_IN.length - 1);
+    expect(unplayedLinks).not.toContain('/pieces/beethoven-ode-to-joy');
 
-    clickButton('Played through');
-    const finishedPieces = [...host.querySelectorAll<HTMLAnchorElement>('.library-piece')].map(
-      (a) => a.getAttribute('href'),
-    );
-    expect(finishedPieces).toEqual(['/pieces/beethoven-ode-to-joy']);
+    const all = host.querySelector<HTMLInputElement>('.library-filter input[value="all"]')!;
+    act(() => all.click());
 
-    clickButton('All');
     act(() => writeInstrumentKeys({ low: 48, high: 84 }));
     const fitsCheckbox = host.querySelector<HTMLInputElement>('.library-filter-fits input');
     expect(fitsCheckbox).not.toBeNull();
@@ -303,10 +297,9 @@ describe('Library search and filtering', () => {
     expect(fittingIds).not.toContain('/pieces/beethoven-ode-to-joy');
 
     setSearchValue(search!, 'no-such-piece-xyz');
-    expect(host.querySelector('.library-empty')?.textContent).toContain(
-      'No pieces match this filter.',
-    );
-    clickButton('Show all pieces');
+    expect(host.querySelector('.library-empty')).not.toBeNull();
+    act(() => host.querySelector<HTMLButtonElement>('.library-search-clear')!.click());
+    act(() => fitsCheckbox!.click());
     expect(host.querySelectorAll('.library-piece')).toHaveLength(BUILT_IN.length);
     act(() => writeInstrumentKeys(FULL_KEYS));
   });

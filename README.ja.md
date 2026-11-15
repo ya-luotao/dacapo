@@ -37,6 +37,10 @@ dacapoは、MIDIキーボードでピアノを練習するためのオープン�
 - メールアドレスと届いたコードでログインすると、dacapoの同期サービスを通じて自分の端末どうしで練習が同期されます（[プライバシーポリシー](https://playdacapo.com/privacy)）。「設定」でアカウントを削除すると、サービス上のデータはすべて消去されます。
 - ログインすると、GitHubのプロフィールのように1年分の練習を見せる公開ページも作れます。公開するのは練習のグリッドだけにも、毎日何を練習したかまで含めることもできます。自分でオンにするまでは公開されません（[docs/PROFILE.md](docs/PROFILE.md)）。
 
+## おすすめのアプリ
+
+iPhoneやiPadで単独のメトロノームアプリを使いたいなら、App Storeの[Keeptime: Metronome](https://apps.apple.com/app/keeptime-metronome/id6832189111)をどうぞ。機械式を模した振り子があり、オフラインで使え、画面をロックしても拍を刻み続けます。
+
 ## 開発
 
 Node.js 22.13以上とpnpm（バージョンは`package.json`の`packageManager`）が必要です。

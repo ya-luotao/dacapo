@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type PointerEvent } from 'react';
 import {
   midiToPitch,
   MIDDLE_C,
@@ -8,14 +8,15 @@ import {
   type Pitch,
 } from '../../core/note.ts';
 import { useT } from '../../i18n/index.ts';
+import { audioContext } from '../../output/audio.ts';
 import { EngravedStaff } from '../engraving/EngravedStaff.tsx';
-import { useHubState } from '../input/context.ts';
+import { useHubState, useInput } from '../input/context.ts';
 import { useNoteNames } from '../noteNames.ts';
 import { BLACK_LENGTH, pianoLayout } from '../piano/layout.ts';
 
 // The specimen on the home page: a grand staff with one whole note, and under it the keys from C3
 // to C6 with the key that plays it. It walks through a few notes on its own; a key held on the
-// player's keyboard takes its place.
+// player's keyboard (or clicked/tapped on the specimen itself) takes its place.
 
 const WIDTH = 296;
 const NOTE_X = 176;
@@ -47,6 +48,13 @@ function prefersReducedMotion(): boolean {
   return globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 }
 
+function keyAt(target: EventTarget): number | null {
+  const el = (target as Element).closest?.('[data-midi]');
+  if (!(el instanceof Element)) return null;
+  const raw = el.getAttribute('data-midi');
+  return raw !== null ? Number(raw) : null;
+}
+
 /** The note the specimen shows: the demo's, or the highest key held within its range. */
 function useShownPitch(): { pitch: Pitch; played: boolean } {
   const { held } = useHubState();
@@ -68,13 +76,31 @@ function useShownPitch(): { pitch: Pitch; played: boolean } {
     : { pitch: midiToPitch(played, 'sharp'), played: true };
 }
 
-export function Specimen() {
+export function Specimen({ still = false }: { still?: boolean }) {
   const t = useT();
+  const { pointer } = useInput();
   const { formatPitch } = useNoteNames();
   const { pitch, played } = useShownPitch();
   const midi = pitchToMidi(pitch);
   const name = formatPitch(pitch);
   const middleC = KEYS.keys.find((k) => k.midi === MIDDLE_C)!;
+
+  function onPointerDown(e: PointerEvent<SVGSVGElement>) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    audioContext();
+    const hit = keyAt(e.target);
+    if (hit !== null) pointer.press(e.pointerId, hit, e.timeStamp);
+  }
+
+  function onPointerOver(e: PointerEvent<SVGSVGElement>) {
+    if (!pointer.isDown(e.pointerId)) return;
+    const hit = keyAt(e.target);
+    if (hit !== null) pointer.press(e.pointerId, hit, e.timeStamp);
+  }
+
+  function onPointerEnd(e: PointerEvent<SVGSVGElement>) {
+    pointer.release(e.pointerId, e.timeStamp);
+  }
 
   return (
     <figure className="specimen" data-played={played || undefined}>
@@ -103,6 +129,12 @@ export function Specimen() {
         viewBox={`0 0 ${KEYS.width * WHITE_W} ${WHITE_H}`}
         aria-hidden="true"
         focusable="false"
+        onPointerDown={still ? undefined : onPointerDown}
+        onPointerOver={still ? undefined : onPointerOver}
+        onPointerUp={still ? undefined : onPointerEnd}
+        onPointerCancel={still ? undefined : onPointerEnd}
+        onPointerLeave={still ? undefined : onPointerEnd}
+        onContextMenu={still ? undefined : (e) => e.preventDefault()}
       >
         {[false, true].flatMap((black) =>
           KEYS.keys
@@ -110,6 +142,7 @@ export function Specimen() {
             .map((k) => (
               <rect
                 key={k.midi}
+                data-midi={still ? undefined : k.midi}
                 className={
                   (black ? 'is-black' : '') + (k.midi === midi ? ' is-lit' : '') || undefined
                 }

@@ -144,17 +144,62 @@ export function BarTints({
   });
 }
 
+/** Behind the notes: a quiet wash over the bars currently looped. */
+export function LoopBand({ loop, boxes }: { loop: { from: number; to: number }; boxes: BarBoxes }) {
+  return [...boxes.entries()]
+    .filter(([measure]) => measure >= loop.from && measure <= loop.to)
+    .map(([measure, box]) => <div key={measure} className="bar-loop" style={place(box)} />);
+}
+
+/** Over the notes (when Weak bars is off or during playback): clickable bars for jump/loop. */
+export function ScoreBarTargets({
+  measures,
+  boxes,
+  label,
+  hint,
+  onBarClick,
+}: {
+  measures: readonly number[];
+  boxes: BarBoxes;
+  label: (measure: number) => string;
+  hint?: string;
+  onBarClick: (measure: number, shift: boolean) => void;
+}) {
+  const t = useT();
+  return (
+    <div className="bar-targets" role="group" aria-label={t('pieces.bar.region')}>
+      {measures.map((measure) => {
+        const box = boxes.get(measure);
+        if (!box) return null;
+        return (
+          <button
+            key={measure}
+            type="button"
+            className="bar-jump"
+            style={place(box)}
+            aria-label={label(measure)}
+            title={hint}
+            onClick={(e) => onBarClick(measure, e.shiftKey)}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 /** Over the notes: one focusable target per bar (one tab stop), with its details. */
 export function BarTargets({
   cells,
   boxes,
   format,
+  onBarClick,
   onStartBar,
   onLoopBar,
 }: {
   cells: readonly BarCell[];
   boxes: BarBoxes;
   format: BarFormat;
+  onBarClick?: (measure: number, shift: boolean) => void;
   onStartBar?: (measure: number) => void;
   onLoopBar?: (measure: number) => void;
 }) {
@@ -207,7 +252,7 @@ export function BarTargets({
       onKeyDown={onKeyDown}
     >
       {placed.map((cell) => {
-        const targetProps = cellProps(String(cell.measure));
+        const { onClick: onCellClick, ...targetProps } = cellProps(String(cell.measure));
         const isOpen = openCell?.measure === cell.measure;
         return (
           <button
@@ -219,10 +264,17 @@ export function BarTargets({
             aria-expanded={hasActions ? isOpen : undefined}
             aria-haspopup={hasActions ? 'dialog' : undefined}
             {...targetProps}
-            onClick={() => {
-              targetProps.onClick();
+            onClick={(e) => {
+              onCellClick();
+              if (e.shiftKey && onBarClick) {
+                setOpenMeasure(null);
+                onBarClick(cell.measure, true);
+                return;
+              }
               if (hasActions) {
                 setOpenMeasure((prev) => (prev === cell.measure ? null : cell.measure));
+              } else {
+                onBarClick?.(cell.measure, false);
               }
             }}
           />
@@ -236,7 +288,7 @@ export function BarTargets({
           bounds={frameBounds}
           floating
         >
-          <BarDetails cell={shownCell} format={format} />
+          <BarDetails cell={shownCell} format={format} interactive={Boolean(onBarClick)} />
         </Tooltip>
       )}
       {openCell && (
@@ -360,12 +412,14 @@ function BarDetailsDialog({
 function BarDetails({
   cell,
   format,
+  interactive,
   onStartBar,
   onLoopBar,
   onClose,
 }: {
   cell: BarCell;
   format: BarFormat;
+  interactive?: boolean;
   onStartBar?: (measure: number) => void;
   onLoopBar?: (measure: number) => void;
   onClose?: () => void;
@@ -437,6 +491,9 @@ function BarDetails({
             </button>
           )}
         </div>
+      )}
+      {interactive && !onStartBar && !onLoopBar && (
+        <p className="hm-tooltip-note">{t('pieces.bar.hint')}</p>
       )}
     </>
   );

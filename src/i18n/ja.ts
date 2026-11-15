@@ -19,6 +19,7 @@ export const ja: Dictionary = {
   'nav.today': '今日',
   'nav.group.practice': '練習',
   'nav.group.record': '振り返り',
+  'nav.all': 'すべての練習',
   'nav.menu': 'メニュー',
   'nav.close': 'メニューを閉じる',
 
@@ -61,7 +62,7 @@ export const ja: Dictionary = {
   'today.streak.one': '1日連続',
   'today.streak.other': '{n}日連続',
   'today.unit': '分',
-  'today.readout': '今日の練習 {done}分（予定 {plan}分）',
+  'today.readout': '今日の練習 {done}分（目標 {goal}分）',
   'today.start': '始める',
   'today.anyKey': 'どの鍵盤でも弾けば始まります：{name}',
   'home.contents': '目次',
@@ -2898,6 +2899,9 @@ export const ja: Dictionary = {
     'このブラウザでは音を鳴らせません（Web Audioがありません）。振り子はそのままテンポを刻みます。',
   'metronome.source':
     '音はこの端末から鳴ります。ほとんどのデジタルピアノはMIDIでクリック音を鳴らせません。振り子は聞こえる音に合わせて振れ、遅延の補正をしてあればそれも考慮します。',
+  'metronome.keeptime':
+    'iPhoneやiPadで単独のメトロノームアプリを使いたいなら、Keeptimeをどうぞ。オフラインで使え、画面をロックしても拍を刻み続けます。',
+  'metronome.keeptime.link': 'App StoreでKeeptimeを見る',
   'metronome.keys.space': 'スペース',
   'metronome.keys.start': '開始・停止',
   'metronome.keys.tempo': 'テンポ（Shiftで10ずつ）',
@@ -3269,6 +3273,17 @@ export const ja: Dictionary = {
   'site.card.alt': 'dacapo のロゴとキャッチコピー、全音符が一つあるト音記号の五線',
   'site.about':
     'レッスンと収録曲には、それぞれ独立したページもあります。dacapoを開かなくても読め、検索エンジンでも見つかります。',
+  'pieces.bar.startFrom': '{bar}から始める',
+  'pieces.bar.playFrom': '{bar}から再生',
+  'pieces.bar.hint': 'クリックでここから開始 · Shift+クリックでループ',
+  'pieces.bar.region': '楽譜の小節',
+  'pieces.library.search': '曲名・作曲家・スタイルで検索',
+  'pieces.library.search.clear': '検索をクリア',
+  'pieces.library.filter': '曲を絞り込む',
+  'pieces.library.filter.all': 'すべて',
+  'pieces.library.filter.unplayed': '未演奏',
+  'pieces.library.filter.played': '演奏済み',
+  'pieces.library.empty': '条件に一致する収録曲はありません。',
 
   // Guided Today flow, score bar actions, instrument chip, quick jump, and discovery filters.
   'today.flow.label': '今日のメニュー',
@@ -3278,8 +3293,6 @@ export const ja: Dictionary = {
   'today.flow.back': '今日へ戻る',
   'pieces.bar.startHere': '{bar}小節目から始める',
   'pieces.bar.loopHere': '{bar}小節目をループ',
-  'pieces.bar.clearLoop': 'ループを解除（{bars}）',
-  'pieces.bar.hint': '小節をクリックするとそこから始まり、Shift+クリックで小節をループします。',
   'pieces.keys.short': '鍵盤',
   'pieces.options.group.score': '楽譜',
   'pieces.options.group.sound': 'サウンド',
@@ -3302,13 +3315,8 @@ export const ja: Dictionary = {
   'jump.group.pieces': '曲',
   'jump.group.lessons': 'レッスン',
   'jump.group.terms': '用語集',
-  'pieces.filter.search': '曲名・作曲者・スタイルで検索',
   'pieces.filter.all': 'すべて',
-  'pieces.filter.started': '練習中',
-  'pieces.filter.finished': '最後まで弾いた',
   'pieces.filter.fits': '自分のキーボードに合う',
-  'pieces.filter.empty': 'この条件に合う曲はありません。',
-  'pieces.filter.reset': 'すべての曲を表示',
   'setup.masteredCount': '{done}/{total} 習得済み',
   'progress.where.locked': 'この先のコース（{n}）',
 };

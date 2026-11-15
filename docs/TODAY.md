@@ -137,7 +137,8 @@ and practices (G3's links between them read it too).
   [START.md](START.md)) gets Today in place of the hero and of the blocks "Your practice" and
   "Due for review", which it takes in:
   the heading "Today" over one line (the day, the streak, the minutes still owed to the daily
-  goal), the minutes played against the plan's length as a readout beside it, then the plan as a
+  goal, or that it is reached), the minutes played against that same goal as a readout beside it
+  (the figure Progress shows; the plan's length is named over the plan), then the plan as a
   numbered list: each row its part (Warm-up, Work, New, Play through), the step's name as the
   link that starts it, one muted line saying why it is there, and a tick once done. The first
   step not done carries Start, and any key of the player's MIDI keyboard, or of the keyboard drawn

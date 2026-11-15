@@ -103,7 +103,7 @@ export function Landing() {
 
   return (
     <div className="home">
-      <FirstVisit />
+      <FirstVisit still />
 
       <section className="home-contents" aria-labelledby="home-contents">
         <h2 id="home-contents" className="eyebrow">

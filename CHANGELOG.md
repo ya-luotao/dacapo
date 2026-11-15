@@ -37,6 +37,8 @@ which is noted when it changes.
   light is white and grey, dark is the black of a piano's case; the one accent is the red of
   the felt over a piano's keys. Small labels are no longer spaced capitals, and answers no longer
   rise into place.
+- In English on Linux the text is in the system's Latin face, where a Han font set the whole page
+  and drew the apostrophe a full em wide ("Türk’ s").
 - **Wrong answers are amber**, so red stays the brand's colour and is never a mistake.
 - **In the dark, music is on paper**: the flashcards, scores, lesson figures and the heatmap sit
   on an ivory sheet in black ink.
@@ -47,12 +49,20 @@ which is noted when it changes.
   menu. On a narrow screen a menu button opens the same list in a drawer. While a session runs
   (a Read session, a scale being played, any piece's page) the navigation makes way, so the
   music has the whole screen and the staff is drawn larger. The site's pages keep a plain bar.
+- **A newcomer's sidebar is three pages**: Today, Pieces and Progress, with the other eight under
+  "All practice", which opens in place and stays as it was left; a folded page that is open shows
+  in the list. Whoever said on the start page that they play already has every page listed, as
+  before, and whoever practised here before this change finds "All practice" open.
 - **What is chosen is in ink**: a segment, a level, a ticked box. Red is left for the button that
   starts, and links are underlined in the colour of their text.
 - **Home is today and nothing else**: the day, the streak and what is left of the goal in one
   line, the minutes as a readout, the plan as a list whose next step carries Start, and the
   keyboard under it: **play any key to start the next step** (on a MIDI keyboard or the screen's). The contents (now the sidebar),
   the principles and the questions (now on About) are gone from it.
+- **Home counts towards the daily goal**: the readout beside Today is the minutes played against
+  the daily goal, the one Progress judges the day by, where it was the plan's length (6/20 on Home
+  beside "Daily goal reached" on Progress); the line under the heading says when the goal is
+  reached.
 - **Setups ask less of the eye**: how a level is mastered is folded under one question
   ("How is a level mastered?") instead of a paragraph under every list; the levels sit in a
   framed list with their numbers in monospace; the small captions are no longer italic.

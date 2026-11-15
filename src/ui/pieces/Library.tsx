@@ -5,12 +5,11 @@ import { useT } from '../../i18n/index.ts';
 import { BUILT_IN, type BuiltInPiece } from '../../pieces/library/index.ts';
 import incipits from '../../pieces/library/incipits.json';
 import { useInstrumentKeys } from '../instrument.ts';
-import { usePractice } from '../practice/context.ts';
 import { usePieceFormat } from './format.ts';
 import { PieceBeyond } from './PieceBeyond.tsx';
 import { PieceProgress } from './PieceProgress.tsx';
 
-type StatusFilter = 'all' | 'started' | 'finished';
+type StatusFilter = 'all' | 'unplayed' | 'played';
 
 /**
  * The built-in pieces, by level, like the contents page of a method book, each grade's heading
@@ -22,86 +21,104 @@ export function Library({ finished }: { finished: ReadonlySet<string> | null }) 
   const t = useT();
   const format = usePieceFormat();
   const id = useId();
-  const { sessions } = usePractice();
   const keys = useInstrumentKeys();
-  const [query, setQuery] = useState('');
-  const [status, setStatus] = useState<StatusFilter>('all');
-  const [onlyFits, setOnlyFits] = useState(false);
-
   const narrowKeys = !isFullKeys(keys);
-  const activeOnlyFits = narrowKeys && onlyFits;
-  const needle = query.trim().toLowerCase();
-  const hasFilter = needle !== '' || status !== 'all' || activeOnlyFits;
-
-  const started = useMemo(() => {
-    const ids = new Set<string>();
-    for (const s of sessions) {
-      if (s.kind === 'piece') ids.add(s.pieceId);
-    }
-    return ids;
-  }, [sessions]);
-
-  const matches = (piece: BuiltInPiece): boolean => {
-    if (needle) {
-      const hay = [
-        t(`library.${piece.id}.title`),
-        t(`library.${piece.id}.composer`),
-        t(`library.${piece.id}.style`),
-      ];
-      if (!hay.some((text) => text.toLowerCase().includes(needle))) return false;
-    }
-    if (status === 'finished' && !finished?.has(piece.id)) return false;
-    if (status === 'started' && (!started.has(piece.id) || finished?.has(piece.id))) return false;
-    if (activeOnlyFits && piece.facts.keys && !fitsKeys(piece.facts.keys, keys)) return false;
-    return true;
-  };
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState<StatusFilter>('all');
+  const [onlyFits, setOnlyFits] = useState(false);
 
   const pieces = BUILT_IN.filter((p) => !p.leadSheet);
   const leadSheets = BUILT_IN.filter((p) => p.leadSheet).sort((a, b) => a.level - b.level);
   const levels = [...new Set(pieces.map((p) => p.level))].sort((a, b) => a - b);
-  const visibleLevels = levels
-    .map((level) => ({
-      level,
-      pieces: pieces.filter((p) => p.level === level && (!hasFilter || matches(p))),
-    }))
-    .filter((group) => group.pieces.length > 0);
-  const visibleLeadSheets = hasFilter ? leadSheets.filter(matches) : leadSheets;
-  const totalVisible =
-    visibleLevels.reduce((n, group) => n + group.pieces.length, 0) + visibleLeadSheets.length;
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const activeFilter = finished ? filter : 'all';
+  const activeOnlyFits = narrowKeys && onlyFits;
+
+  const matches = useMemo(
+    () => (piece: BuiltInPiece) => {
+      if (activeFilter === 'played' && !finished?.has(piece.id)) return false;
+      if (activeFilter === 'unplayed' && finished?.has(piece.id)) return false;
+      if (activeOnlyFits && piece.facts.keys && !fitsKeys(piece.facts.keys, keys)) return false;
+      if (!normalizedQuery) return true;
+      const haystack = [
+        t(`library.${piece.id}.title`),
+        t(`library.${piece.id}.composer`),
+        t(`library.${piece.id}.style`),
+        t(`library.${piece.id}.note`),
+      ]
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(normalizedQuery);
+    },
+    [activeFilter, activeOnlyFits, finished, keys, normalizedQuery, t],
+  );
+
+  const levelGroups = levels
+    .map((level) => {
+      const all = pieces.filter((p) => p.level === level);
+      const shown = all.filter(matches);
+      return {
+        level,
+        shown,
+        count: finished && {
+          n: all.filter((piece) => finished.has(piece.id)).length,
+          m: all.length,
+        },
+      };
+    })
+    .filter((group) => group.shown.length > 0);
+  const shownLeadSheets = leadSheets.filter(matches);
+  const nothingShown = levelGroups.length === 0 && shownLeadSheets.length === 0;
 
   return (
     <section className="library" aria-labelledby={`${id}-title`}>
       <h2 id={`${id}-title`} className="visually-hidden">
         {t('pieces.library')}
       </h2>
-      <div className="library-filter">
-        <input
-          type="search"
-          className="library-filter-search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={t('pieces.filter.search')}
-          aria-label={t('pieces.filter.search')}
-        />
-        <div className="filter-pills">
-          {(
-            [
-              ['all', 'pieces.filter.all'],
-              ['started', 'pieces.filter.started'],
-              ['finished', 'pieces.filter.finished'],
-            ] as const
-          ).map(([value, labelKey]) => (
+      <div className="library-toolbar">
+        <div className="library-search">
+          <input
+            type="search"
+            className="library-search-input"
+            aria-label={t('pieces.library.search')}
+            placeholder={t('pieces.library.search')}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          {query && (
             <button
-              key={value}
               type="button"
-              className="filter-pill"
-              aria-pressed={status === value}
-              onClick={() => setStatus(value)}
+              className="button-icon library-search-clear"
+              aria-label={t('pieces.library.search.clear')}
+              title={t('pieces.library.search.clear')}
+              onClick={() => setQuery('')}
             >
-              {t(labelKey)}
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M4 4l8 8M12 4l-8 8" />
+              </svg>
             </button>
-          ))}
+          )}
         </div>
+        {finished && (
+          <fieldset className="library-filter">
+            <legend className="visually-hidden">{t('pieces.library.filter')}</legend>
+            <div className="segmented is-compact">
+              {(['all', 'unplayed', 'played'] as const).map((choice) => (
+                <label key={choice}>
+                  <input
+                    type="radio"
+                    name={`${id}-filter`}
+                    value={choice}
+                    checked={filter === choice}
+                    onChange={() => setFilter(choice)}
+                  />
+                  <span>{t(`pieces.library.filter.${choice}`)}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
         {narrowKeys && (
           <label className="check library-filter-fits">
             <input
@@ -113,36 +130,18 @@ export function Library({ finished }: { finished: ReadonlySet<string> | null }) 
           </label>
         )}
       </div>
-      {totalVisible === 0 && hasFilter ? (
-        <div className="library-empty">
-          <p className="muted">{t('pieces.filter.empty')}</p>
-          <button
-            type="button"
-            className="button"
-            onClick={() => {
-              setQuery('');
-              setStatus('all');
-              setOnlyFits(false);
-            }}
-          >
-            {t('pieces.filter.reset')}
-          </button>
-        </div>
+      {nothingShown ? (
+        <p className="muted library-empty">{t('pieces.library.empty')}</p>
       ) : (
         <>
-          {visibleLevels.map((group) => (
-            <Group
-              key={group.level}
-              label={format.level(group.level)}
-              pieces={group.pieces}
-              finished={finished}
-            />
+          {levelGroups.map(({ level, shown, count }) => (
+            <Group key={level} label={format.level(level)} pieces={shown} count={count} />
           ))}
-          {visibleLeadSheets.length > 0 && (
+          {shownLeadSheets.length > 0 && (
             <Group
               label={t('pieces.leadSheets')}
               help={t('pieces.leadSheets.help')}
-              pieces={visibleLeadSheets}
+              pieces={shownLeadSheets}
               level={(piece) => format.level(piece.level)}
             />
           )}
@@ -176,7 +175,7 @@ function Group({
   help,
   pieces,
   level,
-  finished,
+  count,
 }: {
   label: string;
   /** A line over the list saying what the group holds. */
@@ -184,15 +183,11 @@ function Group({
   pieces: readonly BuiltInPiece[];
   /** Each piece's level, where the heading does not say it. */
   level?: (piece: BuiltInPiece) => string;
-  /** A grade: the pieces played to their end, for its heading's count ("2 of 6"). */
-  finished?: ReadonlySet<string> | null;
+  /** A grade: the pieces played to their end out of all pieces in the grade ("2 of 6"). */
+  count?: { n: number; m: number } | null;
 }) {
   const t = useT();
   const id = useId();
-  const count = finished && {
-    n: pieces.filter((piece) => finished.has(piece.id)).length,
-    m: pieces.length,
-  };
   return (
     <section className="library-level" aria-labelledby={id}>
       <h3 id={id} className="library-level-name">

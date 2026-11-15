@@ -19,6 +19,7 @@ export const ko: Dictionary = {
   'nav.today': '오늘',
   'nav.group.practice': '연습',
   'nav.group.record': '돌아보기',
+  'nav.all': '모든 연습',
   'nav.menu': '메뉴',
   'nav.close': '메뉴 닫기',
 
@@ -60,7 +61,7 @@ export const ko: Dictionary = {
   'today.streak.one': '1일 연속',
   'today.streak.other': '{n}일 연속',
   'today.unit': '분',
-  'today.readout': '오늘 {done}분 연습 (계획 {plan}분)',
+  'today.readout': '오늘 {done}분 연습 (목표 {goal}분)',
   'today.start': '시작',
   'today.anyKey': '아무 건반이나 누르면 시작해요: {name}',
   'home.contents': '차례',
@@ -2868,6 +2869,9 @@ export const ko: Dictionary = {
     '이 브라우저는 소리를 낼 수 없어요(Web Audio 미지원). 진자는 그대로 박자를 짚어요.',
   'metronome.source':
     '소리는 이 기기에서 나요. 대부분의 디지털 피아노는 MIDI로 클릭 소리를 낼 수 없어요. 진자는 들리는 소리에 맞춰 움직이고, 지연 보정을 했다면 그것도 반영해요.',
+  'metronome.keeptime':
+    'iPhone이나 iPad에서 별도의 메트로놈 앱을 쓰고 싶다면 Keeptime을 써 보세요. 오프라인에서도 작동하고 화면을 잠가도 계속 박자를 짚어요.',
+  'metronome.keeptime.link': 'App Store에서 Keeptime 보기',
   'metronome.keys.space': '스페이스',
   'metronome.keys.start': '시작·정지',
   'metronome.keys.tempo': '빠르기(Shift를 누르면 10씩)',
@@ -3229,6 +3233,17 @@ export const ko: Dictionary = {
   'site.card.alt': 'dacapo 로고와 문구, 온음표 하나가 있는 높은음자리표 오선',
   'site.about':
     '레슨과 기본 곡은 각각 따로 된 페이지로도 읽을 수 있어요. dacapo를 열지 않아도 볼 수 있고, 검색 엔진에서도 찾을 수 있어요.',
+  'pieces.bar.startFrom': '{bar}부터 시작',
+  'pieces.bar.playFrom': '{bar}부터 재생',
+  'pieces.bar.hint': '클릭해 여기서 시작 · Shift+클릭으로 반복',
+  'pieces.bar.region': '악보의 마디',
+  'pieces.library.search': '제목, 작곡가 또는 스타일로 검색',
+  'pieces.library.search.clear': '검색 지우기',
+  'pieces.library.filter': '곡 거르기',
+  'pieces.library.filter.all': '전체',
+  'pieces.library.filter.unplayed': '미연주',
+  'pieces.library.filter.played': '연주함',
+  'pieces.library.empty': '조건에 맞는 기본 곡이 없어요.',
 
   // Guided Today flow, score bar actions, instrument chip, quick jump, and discovery filters.
   'today.flow.label': '오늘 계획',
@@ -3238,8 +3253,6 @@ export const ko: Dictionary = {
   'today.flow.back': '오늘로 돌아가기',
   'pieces.bar.startHere': '{bar}마디부터 시작',
   'pieces.bar.loopHere': '{bar}마디 반복',
-  'pieces.bar.clearLoop': '구간 반복 해제 ({bars})',
-  'pieces.bar.hint': '마디를 클릭하면 거기서 시작하고, Shift+클릭하면 마디를 반복해요.',
   'pieces.keys.short': '건반',
   'pieces.options.group.score': '악보',
   'pieces.options.group.sound': '소리',
@@ -3262,13 +3275,8 @@ export const ko: Dictionary = {
   'jump.group.pieces': '곡',
   'jump.group.lessons': '레슨',
   'jump.group.terms': '용어 사전',
-  'pieces.filter.search': '곡명, 작곡가 또는 스타일 검색',
   'pieces.filter.all': '전체',
-  'pieces.filter.started': '연습 중',
-  'pieces.filter.finished': '끝까지 친 곡',
   'pieces.filter.fits': '내 키보드에 맞음',
-  'pieces.filter.empty': '이 필터에 맞는 곡이 없어요.',
-  'pieces.filter.reset': '모든 곡 보기',
   'setup.masteredCount': '{done}/{total} 마스터',
   'progress.where.locked': '이후 과정 ({n})',
 };
