@@ -6,6 +6,7 @@ import { readPiecePrefs, withStart } from './pieces/prefs.ts';
 import { readStart } from './read/start.ts';
 import { DEFAULT_CLICK, startChoices } from './scales/prefs.ts';
 import {
+  isTodayOrigin,
   levelStartPath,
   parseLevelStart,
   parsePieceStart,
@@ -15,6 +16,7 @@ import {
   practiceLinkPath,
   scaleStartPath,
   startLoop,
+  withTodayOrigin,
 } from './startParams.ts';
 import { lessonLinks, type LinkState } from '../core/lessonLinks.ts';
 import { levelsOfFamily } from '../core/assignments.ts';
@@ -301,5 +303,47 @@ describe('opening Read, Ear or Harmony on a level', () => {
     expect(start('interval', 'C1')).toBeNull();
     expect(start('notes', 'L1')).toBeNull();
     expect(earStart(null)).toBeNull();
+  });
+});
+
+describe('Today origin helpers', () => {
+  it('appends from=today using ? or & and preserves hash fragments', () => {
+    expect(withTodayOrigin('/pieces/ode-to-joy')).toBe('/pieces/ode-to-joy?from=today');
+    expect(withTodayOrigin('/read?family=notes&level=L1')).toBe(
+      '/read?family=notes&level=L1&from=today',
+    );
+    expect(withTodayOrigin('/scales?exercise=major%3AC%3A1%3Aright&click=off')).toBe(
+      '/scales?exercise=major%3AC%3A1%3Aright&click=off&from=today',
+    );
+    expect(withTodayOrigin('/pieces/ode-to-joy#bar-4')).toBe('/pieces/ode-to-joy?from=today#bar-4');
+    expect(withTodayOrigin('/read?family=notes&level=L1#top')).toBe(
+      '/read?family=notes&level=L1&from=today#top',
+    );
+    expect(withTodayOrigin('/read?')).toBe('/read?from=today');
+    expect(withTodayOrigin('/read?#top')).toBe('/read?from=today#top');
+  });
+
+  it('is idempotent when from=today is already present', () => {
+    expect(withTodayOrigin('/pieces/ode-to-joy?from=today')).toBe('/pieces/ode-to-joy?from=today');
+    expect(withTodayOrigin('/read?family=notes&level=L1&from=today#top')).toBe(
+      '/read?family=notes&level=L1&from=today#top',
+    );
+    expect(withTodayOrigin('/read?from=today&family=notes&level=L1')).toBe(
+      '/read?from=today&family=notes&level=L1',
+    );
+    const once = withTodayOrigin('/scales?exercise=major%3AD%3A2%3Aboth&click=72x4');
+    expect(withTodayOrigin(once)).toBe(once);
+  });
+
+  it('detects whether a search string carries from=today', () => {
+    expect(isTodayOrigin('from=today')).toBe(true);
+    expect(isTodayOrigin('?from=today')).toBe(true);
+    expect(isTodayOrigin('family=notes&level=L1&from=today')).toBe(true);
+    expect(isTodayOrigin('from=today&bars=1-4')).toBe(true);
+    expect(isTodayOrigin('')).toBe(false);
+    expect(isTodayOrigin('family=notes&level=L1')).toBe(false);
+    expect(isTodayOrigin('from=other')).toBe(false);
+    expect(isTodayOrigin('notfrom=today')).toBe(false);
+    expect(isTodayOrigin('from=today2')).toBe(false);
   });
 });
