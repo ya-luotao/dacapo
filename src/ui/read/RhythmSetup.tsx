@@ -27,7 +27,7 @@ interface RhythmSetupProps {
   onTempo: (bpm: number) => void;
   onPrefs: (patch: Partial<RhythmPrefs>) => void;
   onCalibrate: () => void;
-  onStart: () => void;
+  onStart: (level?: RhythmLevelId) => void;
 }
 
 /** The rhythm levels and the session's settings, laid out as Read's. */
@@ -61,7 +61,7 @@ export function RhythmSetup(props: RhythmSetupProps) {
               onChange={() => props.onLevel(l.id)}
               onDoubleClick={() => {
                 props.onLevel(l.id);
-                props.onStart();
+                props.onStart(l.id);
               }}
             />
           ))}

@@ -32,7 +32,7 @@ interface TheorySetupProps {
   onLength: (length: SessionLength) => void;
   onHint: (hint: boolean) => void;
   onChordBy: (by: AnswerMode) => void;
-  onStart: () => void;
+  onStart: (level?: TheoryLevelId) => void;
 }
 
 /** The levels of one kind of theory card and the session's settings, laid out as Read's. */
@@ -65,7 +65,7 @@ export function TheorySetup(props: TheorySetupProps) {
               onChange={() => props.onLevel(level.id)}
               onDoubleClick={() => {
                 props.onLevel(level.id);
-                props.onStart();
+                props.onStart(level.id);
               }}
             />
           ))}

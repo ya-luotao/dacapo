@@ -27,6 +27,7 @@ import { recoverSummary, type Attempt } from '../core/session.ts';
 import { dayKey } from '../core/streak.ts';
 import type { StoredPiece } from '../core/storedPiece.ts';
 import type { InputSystem } from '../input/index.ts';
+import { BUILTIN_OUTPUT, type OutputState } from '../output/output.ts';
 import { I18nProvider, loadLocale } from '../i18n/index.ts';
 import type { LoadedLocale } from '../i18n/locale.ts';
 import { BUILT_IN } from '../pieces/library/index.ts';
@@ -45,16 +46,21 @@ import {
 } from '../storage/fixtures.ts';
 import { createMemoryRepository, type StoredData } from '../storage/repository.ts';
 import { EarSetup } from './ear/EarSetup.tsx';
-import { DEFAULT_EAR_PREFS } from './ear/prefs.ts';
+import { DEFAULT_EAR_PREFS, EAR_PREFS_KEY, writeEarPrefs } from './ear/prefs.ts';
 import { ChordsSetup } from './harmony/ChordsSetup.tsx';
+import { HarmonyPage } from './harmony/HarmonyPage.tsx';
+import { HARMONY_PREFS_KEY, writeHarmonyPrefs } from './harmony/prefs.ts';
 import { InputContext } from './input/context.ts';
 import { forgetInstrumentKeys, writeInstrumentKeys } from './instrument.ts';
+import { createOfferStore, MetronomeContext, type MetronomeHandle } from './metronome/context.ts';
+import { EarPage } from './pages/EarPage.tsx';
 import { ReadPage } from './pages/ReadPage.tsx';
 import { Library } from './pieces/Library.tsx';
 import { PracticeProvider } from './practice/PracticeProvider.tsx';
 import { createPracticeStore, type PracticeStore } from './practice/store.ts';
 import { SessionList } from './progress/SessionList.tsx';
 import { WhereYouAre } from './progress/WhereYouAre.tsx';
+import { READ_PREFS_KEY, writeReadPrefs } from './read/prefs.ts';
 import { ReadSetup } from './read/ReadSetup.tsx';
 import { writeStartPref } from './start/prefs.ts';
 
@@ -62,6 +68,7 @@ vi.mock('./staff/font.ts', () => ({
   MUSIC_FONT: 'Bravura',
   loadMusicFont: () => undefined,
   subscribeFont: () => () => undefined,
+  getFontState: () => 'loading',
 }));
 
 vi.mock('./notation/verovio.ts', () => ({
@@ -93,6 +100,7 @@ afterEach(() => {
   stop?.();
   stop = null;
   host.remove();
+  window.location.hash = '';
   forgetInstrumentKeys();
   localStorage.clear();
   vi.restoreAllMocks();
@@ -123,6 +131,11 @@ const settleLoaded = (store: PracticeStore) =>
 function mount(node: ReactNode, store: PracticeStore = seededStore()) {
   const idle = { held: new Map(), sustained: new Set() };
   const midiStatus = { state: 'no-device' } as const;
+  const outputState: OutputState = {
+    ports: [BUILTIN_OUTPUT],
+    choice: { kind: 'auto' },
+    selected: BUILTIN_OUTPUT,
+  };
   const input = {
     hub: {
       subscribe: () => () => undefined,
@@ -133,22 +146,63 @@ function mount(node: ReactNode, store: PracticeStore = seededStore()) {
       subscribeStatus: () => () => undefined,
       getStatus: () => midiStatus,
     },
+    output: {
+      subscribe: () => () => undefined,
+      getState: () => outputState,
+      scheduler: {
+        playAll: () => [],
+        cut: () => undefined,
+        panic: () => undefined,
+      },
+      onInterrupt: () => () => undefined,
+    },
+    samples: {
+      subscribe: () => () => undefined,
+      getStatus: () => 'ready',
+    },
+    monitor: {
+      subscribe: () => () => undefined,
+      getSettings: () => ({ mode: 'all', level: 1 }),
+    },
     keyboard: {
       subscribeOctave: () => () => undefined,
       getOctave: () => 4,
+      suspend: () => () => undefined,
     },
     onMidiKey: () => () => undefined,
-    pointer: {},
+    pointer: {
+      down: () => undefined,
+      up: () => undefined,
+    },
   } as unknown as InputSystem;
+  const metronomeSnap = {
+    status: 'stopped',
+    pausedBy: null,
+    blockedBy: null,
+    settings: { bpm: 90 },
+    bpm: 90,
+    target: 90,
+    bar: null,
+  };
+  const metronomeHandle = {
+    offers: createOfferStore(),
+    metronome: {
+      subscribe: () => () => undefined,
+      getSnapshot: () => metronomeSnap,
+      block: () => () => undefined,
+    },
+  } as unknown as MetronomeHandle;
 
   root = createRoot(host);
   act(() => {
     root!.render(
       <I18nProvider initial={enLocale}>
         <InputContext value={input}>
-          <PracticeProvider store={store}>
-            <Router hook={memoryLocation({ path: '/' }).hook}>{node}</Router>
-          </PracticeProvider>
+          <MetronomeContext value={metronomeHandle}>
+            <PracticeProvider store={store}>
+              <Router hook={memoryLocation({ path: '/' }).hook}>{node}</Router>
+            </PracticeProvider>
+          </MetronomeContext>
         </InputContext>
       </I18nProvider>,
     );
@@ -285,7 +339,17 @@ describe('Setup double-click level start and mastery counter', () => {
       levels[0]!.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
     });
     expect(onLevel).toHaveBeenCalledWith('L1');
-    expect(onStart).toHaveBeenCalledTimes(1);
+    expect(onStart).toHaveBeenCalledWith('L1');
+
+    onLevel.mockClear();
+    onStart.mockClear();
+
+    const l2 = levels.find((l) => l.querySelector('.level-id')?.textContent === 'L2')!;
+    act(() => {
+      l2.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    });
+    expect(onLevel).toHaveBeenCalledWith('L2');
+    expect(onStart).toHaveBeenCalledWith('L2');
 
     onLevel.mockClear();
     onStart.mockClear();
@@ -296,6 +360,13 @@ describe('Setup double-click level start and mastery counter', () => {
     });
     expect(onLevel).toHaveBeenCalledWith('L3');
     expect(onStart).not.toHaveBeenCalled();
+
+    act(() => {
+      host
+        .querySelector('form')!
+        .dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+    expect(onStart).toHaveBeenCalledWith();
   });
 
   it('selects and starts on double-click in ChordsSetup', () => {
@@ -327,7 +398,86 @@ describe('Setup double-click level start and mastery counter', () => {
       h2.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
     });
     expect(onLevel).toHaveBeenCalledWith('H2');
-    expect(onStart).toHaveBeenCalledTimes(1);
+    expect(onStart).toHaveBeenCalledWith('H2');
+  });
+
+  it('starts the clicked non-selected level immediately on a single synthetic dblclick in ReadPage and HarmonyPage', async () => {
+    const readStore = seededStore();
+    await settleLoaded(readStore);
+    window.location.hash = '#/read';
+    mount(<ReadPage />, readStore);
+
+    const readL1 = host.querySelector<HTMLInputElement>('input[type="radio"][value="L1"]');
+    expect(readL1?.checked).toBe(true);
+
+    const readL2Label = [...host.querySelectorAll<HTMLLabelElement>('label.level')].find(
+      (l) => l.querySelector('.level-id')?.textContent === 'L2',
+    )!;
+    act(() => {
+      readL2Label.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    });
+    expect(host.querySelector('section.read-session')).not.toBeNull();
+    expect(host.querySelector('.read-level')?.textContent).toContain('L2');
+
+    act(() => root?.unmount());
+    root = null;
+
+    const harmonyStore = seededStore();
+    await settleLoaded(harmonyStore);
+    window.location.hash = '#/harmony';
+    mount(<HarmonyPage />, harmonyStore);
+
+    const harmH1 = host.querySelector<HTMLInputElement>('input[type="radio"][value="H1"]');
+    expect(harmH1?.checked).toBe(true);
+
+    const harmH2Label = [...host.querySelectorAll<HTMLLabelElement>('label.level')].find(
+      (l) => l.querySelector('.level-id')?.textContent === 'H2',
+    )!;
+    act(() => {
+      harmH2Label.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    });
+    expect(host.querySelector('section.harmony-session')).not.toBeNull();
+    expect(host.querySelector('.read-level')?.textContent).toContain('H2');
+  });
+
+  it('passes explicit rhythm level id when double-clicking a rhythm ear level in EarSetup', () => {
+    const onRhythmLevel = vi.fn();
+    const onRhythmStart = vi.fn();
+    const earProgress = new Map<EarLevelId, EarLevelProgress>();
+    const earRhythmProgress = new Map<RhythmEarLevelId, RhythmEarLevelProgress>();
+    for (const id of RHYTHM_EAR_LEVEL_IDS) {
+      earRhythmProgress.set(id, rhythmEarLevelProgress([], id));
+    }
+
+    mount(
+      <EarSetup
+        prefs={{ ...DEFAULT_EAR_PREFS, family: 'rhythmEar' }}
+        level="I1"
+        progress={earProgress}
+        suggested="I1"
+        onPrefs={() => undefined}
+        onLevel={() => undefined}
+        onStart={() => undefined}
+        rhythm={{
+          level: 'R1',
+          progress: earRhythmProgress,
+          suggested: 'R1',
+          onLevel: onRhythmLevel,
+          onStart: onRhythmStart,
+          bpm: 72,
+          onTempo: () => undefined,
+        }}
+      />,
+    );
+
+    const r3 = [...host.querySelectorAll<HTMLLabelElement>('label.level')].find(
+      (l) => l.querySelector('.level-id')?.textContent === 'R3',
+    )!;
+    act(() => {
+      r3.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    });
+    expect(onRhythmLevel).toHaveBeenCalledWith('R3');
+    expect(onRhythmStart).toHaveBeenCalledWith('R3');
   });
 
   it('shows mastered counts after family segmented choices without changing radio labels', async () => {
@@ -538,5 +688,67 @@ describe('Focused progress and actionable session links', () => {
 
     clickButton('All');
     expect(host.querySelectorAll('.session-list > li')).toHaveLength(sessions.length);
+  });
+});
+
+describe('Quick Jump deep links for Read, Ear, and Harmony', () => {
+  it('opens ReadPage at /read?family=rhythm on the Rhythm tab without overwriting localStorage', async () => {
+    writeReadPrefs({ choice: 'notes', chordBy: 'play', levels: {} });
+    const before = localStorage.getItem(READ_PREFS_KEY);
+    const store = seededStore();
+    await settleLoaded(store);
+
+    window.location.hash = '#/read?family=rhythm';
+    mount(<ReadPage />, store);
+
+    const rhythmRadio = host.querySelector<HTMLInputElement>(
+      '.read-what input[type="radio"][value="rhythm"]',
+    );
+    expect(rhythmRadio?.checked).toBe(true);
+    expect(host.querySelector('.rhythm-setup')).not.toBeNull();
+    expect(localStorage.getItem(READ_PREFS_KEY)).toBe(before);
+  });
+
+  it('opens EarPage at /ear?family=cadence on the Cadences tab without overwriting localStorage', async () => {
+    writeEarPrefs({ ...DEFAULT_EAR_PREFS, family: 'interval' });
+    const before = localStorage.getItem(EAR_PREFS_KEY);
+    const store = seededStore();
+    await settleLoaded(store);
+
+    window.location.hash = '#/ear?family=cadence';
+    mount(<EarPage />, store);
+
+    const cadenceRadio = host.querySelector<HTMLInputElement>(
+      '.ear-family input[type="radio"][value="cadence"]',
+    );
+    expect(cadenceRadio?.checked).toBe(true);
+    const levelIds = [...host.querySelectorAll('.level-id')].map((el) => el.textContent);
+    expect(levelIds).toContain('CA1');
+    expect(localStorage.getItem(EAR_PREFS_KEY)).toBe(before);
+  });
+
+  it('opens HarmonyPage at /harmony?practice=improvise on the Improvise tab without overwriting localStorage', async () => {
+    writeHarmonyPrefs({
+      practice: 'chords',
+      progression: 'I-IV-V-I',
+      majorKey: 'C',
+      minorKey: 'Am',
+      pattern: 'block',
+      bpm: 80,
+      level: null,
+    });
+    const before = localStorage.getItem(HARMONY_PREFS_KEY);
+    const store = seededStore();
+    await settleLoaded(store);
+
+    window.location.hash = '#/harmony?practice=improvise';
+    mount(<HarmonyPage />, store);
+
+    const improviseRadio = host.querySelector<HTMLInputElement>(
+      '.harmony-practices input[type="radio"][value="improvise"]',
+    );
+    expect(improviseRadio?.checked).toBe(true);
+    expect(host.querySelector('.improv-setup')).not.toBeNull();
+    expect(localStorage.getItem(HARMONY_PREFS_KEY)).toBe(before);
   });
 });

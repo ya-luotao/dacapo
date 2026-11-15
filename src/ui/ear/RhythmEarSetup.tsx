@@ -22,7 +22,7 @@ export interface RhythmEarSetupProps {
   progress: ReadonlyMap<RhythmEarLevelId, RhythmEarLevelProgress>;
   suggested: RhythmEarLevelId;
   onLevel: (level: RhythmEarLevelId) => void;
-  onStart?: () => void;
+  onStart?: (level?: RhythmEarLevelId) => void;
   startDisabled?: boolean;
   /** The level's tempo, Read's (shared per level). */
   bpm: number;
@@ -58,7 +58,7 @@ export function RhythmEarLevels({
               className={checked ? 'level is-checked' : 'level'}
               onDoubleClick={() => {
                 onLevel(l);
-                if (!startDisabled) onStart?.();
+                if (!startDisabled) onStart?.(l);
               }}
             >
               <input

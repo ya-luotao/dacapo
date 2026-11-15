@@ -50,7 +50,13 @@ import { createEarController, type EarSound } from '../ear/controller.ts';
 import { EarSession } from '../ear/EarSession.tsx';
 import { EarSetup } from '../ear/EarSetup.tsx';
 import { EarSummary } from '../ear/EarSummary.tsx';
-import { readEarPrefs, writeEarPrefs, type EarPrefs, type TuneKeyChoice } from '../ear/prefs.ts';
+import {
+  EAR_PAGE_FAMILIES,
+  readEarPrefs,
+  writeEarPrefs,
+  type EarPrefs,
+  type TuneKeyChoice,
+} from '../ear/prefs.ts';
 import { createRhythmEarController } from '../ear/rhythmController.ts';
 import { RhythmEarSession } from '../ear/RhythmEarSession.tsx';
 import { RhythmEarSummary } from '../ear/RhythmEarSummary.tsx';
@@ -137,7 +143,10 @@ function Ear({ search }: { search: string }) {
   const [openedItems] = useState(() => parseLevelStart(search)?.items ?? null);
   const [prefs, setPrefs] = useState(() => {
     const stored = readEarPrefs();
-    return opened ? { ...stored, family: opened.family } : stored;
+    if (opened) return { ...stored, family: opened.family };
+    const requested = new URLSearchParams(search).get('family');
+    const found = EAR_PAGE_FAMILIES.find((f) => f === requested);
+    return found ? { ...stored, family: found } : stored;
   });
   const [rhythmPrefs, setRhythmPrefs] = useState(readRhythmPrefs);
   const progress = useMemo(
@@ -494,10 +503,10 @@ function Ear({ search }: { search: string }) {
               setPicked((p) => ({ ...p, [earFamily]: id }));
               keepLevel(earFamily, id);
             }}
-            onStart={() => {
+            onStart={(next) => {
               if (sound === 'none') return;
               if (prefs.family === 'rhythmEar') startRhythm(rhythmLevel);
-              else start(level);
+              else start(next ?? level);
             }}
             startDisabled={sound === 'none'}
             rhythm={{
@@ -508,8 +517,8 @@ function Ear({ search }: { search: string }) {
                 setRhythmPicked(id);
                 keepLevel('rhythmEar', id);
               },
-              onStart: () => {
-                if (sound !== 'none') startRhythm(rhythmLevel);
+              onStart: (next) => {
+                if (sound !== 'none') startRhythm(next ?? rhythmLevel);
               },
               startDisabled: sound === 'none',
               bpm: tempoOf(rhythmPrefs, rhythmLevel),

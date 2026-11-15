@@ -22,7 +22,7 @@ interface ChordsSetupProps {
   onLevel: (level: HarmonyLevelId) => void;
   onLength: (length: SessionLength) => void;
   onHint: (hint: boolean) => void;
-  onStart: () => void;
+  onStart: (level?: HarmonyLevelId) => void;
 }
 
 /** The levels of Chords and the session's settings, laid out as Read's. */
@@ -54,7 +54,7 @@ export function ChordsSetup(props: ChordsSetupProps) {
               onChange={() => props.onLevel(level)}
               onDoubleClick={() => {
                 props.onLevel(level);
-                props.onStart();
+                props.onStart(level);
               }}
             />
           ))}

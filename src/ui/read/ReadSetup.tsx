@@ -19,7 +19,7 @@ interface ReadSetupProps {
   onLevel: (level: LevelId) => void;
   onLength: (length: SessionLength) => void;
   onHint: (hint: boolean) => void;
-  onStart: () => void;
+  onStart: (level?: LevelId) => void;
 }
 
 export function ReadSetup(props: ReadSetupProps) {
@@ -54,7 +54,7 @@ export function ReadSetup(props: ReadSetupProps) {
               onChange={() => props.onLevel(level.id)}
               onDoubleClick={() => {
                 props.onLevel(level.id);
-                if (canDraw(notesOnKeys(level.notes, keys))) props.onStart();
+                if (canDraw(notesOnKeys(level.notes, keys))) props.onStart(level.id);
               }}
             />
           ))}

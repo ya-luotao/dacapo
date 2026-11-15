@@ -31,7 +31,7 @@ interface SightSetupProps {
   onTempo: (bpm: number) => void;
   onPrefs: (patch: Partial<SightPrefs>) => void;
   onCalibrate: () => void;
-  onStart: () => void;
+  onStart: (level?: SightLevelId) => void;
 }
 
 /** The sight-reading levels and the session's settings, laid out as Read's. */
@@ -67,7 +67,7 @@ export function SightSetup(props: SightSetupProps) {
               onChange={() => props.onLevel(l.id)}
               onDoubleClick={() => {
                 props.onLevel(l.id);
-                props.onStart();
+                props.onStart(l.id);
               }}
             />
           ))}

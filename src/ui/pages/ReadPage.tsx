@@ -59,6 +59,7 @@ import { usePractice, usePracticeStore, useStorageStatus } from '../practice/con
 import { createReadController } from '../read/controller.ts';
 import {
   READ_CHOICE_GROUPS,
+  READ_CHOICES,
   readReadPrefs,
   writeReadPrefs,
   type ReadChoice,
@@ -137,8 +138,12 @@ function Read({ search }: { search: string }) {
   const [openedItems] = useState(() => parseLevelStart(search)?.items ?? null);
   const [prefs, setPrefs] = useState(() => {
     const stored = readReadPrefs();
-    if (!opened) return stored;
-    return { ...stored, choice: opened.choice === 'theory' ? opened.family : opened.choice };
+    if (opened) {
+      return { ...stored, choice: opened.choice === 'theory' ? opened.family : opened.choice };
+    }
+    const requested = new URLSearchParams(search).get('family');
+    const found = READ_CHOICES.find((c) => c === requested);
+    return found ? { ...stored, choice: found } : stored;
   });
   const { choice } = prefs;
 
@@ -692,7 +697,7 @@ function Read({ search }: { search: string }) {
                 onTempo={(bpm) => changeRhythmPrefs(withTempo(rhythmPrefs, rhythmLevel, bpm))}
                 onPrefs={changeRhythmPrefs}
                 onCalibrate={() => setCalibrating(true)}
-                onStart={() => startRhythm(rhythmLevel)}
+                onStart={(next) => startRhythm(next ?? rhythmLevel)}
               />
               {calibrating && (
                 <CalibrationSheet
@@ -723,7 +728,7 @@ function Read({ search }: { search: string }) {
                 onTempo={(bpm) => changeSightPrefs(withSightTempo(sightPrefs, sightLevel, bpm))}
                 onPrefs={changeSightPrefs}
                 onCalibrate={() => setCalibrating(true)}
-                onStart={() => startSight(sightLevel)}
+                onStart={(next) => startSight(next ?? sightLevel)}
               />
               {calibrating && (
                 <CalibrationSheet
@@ -755,7 +760,7 @@ function Read({ search }: { search: string }) {
               onLength={setLength}
               onHint={setHint}
               onChordBy={(chordBy) => changePrefs({ chordBy })}
-              onStart={() => startTheory(theoryLevel)}
+              onStart={(next) => startTheory(next ?? theoryLevel)}
             />
           ) : (
             <ReadSetup
@@ -770,7 +775,7 @@ function Read({ search }: { search: string }) {
               }}
               onLength={setLength}
               onHint={setHint}
-              onStart={() => start(level)}
+              onStart={(next) => start(next ?? level)}
             />
           )}
         </>

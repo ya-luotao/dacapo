@@ -32,7 +32,7 @@ interface EarSetupProps {
   suggested: EarLevelId;
   onPrefs: (prefs: Partial<EarPrefs>) => void;
   onLevel: (level: EarLevelId) => void;
-  onStart: () => void;
+  onStart: (level?: EarLevelId) => void;
   /** No sound to play the prompts with. */
   startDisabled?: boolean;
   /** Rhythm (dictation): its own levels and settings. */
@@ -99,7 +99,7 @@ export function EarSetup({
         {family === null ? (
           <RhythmEarLevels
             {...rhythm}
-            onStart={rhythm.onStart ?? onStart}
+            onStart={rhythm.onStart ?? (() => onStart())}
             startDisabled={rhythm.startDisabled ?? startDisabled}
           />
         ) : (
@@ -117,7 +117,7 @@ export function EarSetup({
                   onChange={() => onLevel(l.id)}
                   onDoubleClick={() => {
                     onLevel(l.id);
-                    if (!startDisabled) onStart();
+                    if (!startDisabled) onStart(l.id);
                   }}
                 />
               ))}
