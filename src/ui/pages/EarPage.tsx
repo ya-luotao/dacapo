@@ -508,6 +508,10 @@ function Ear({ search }: { search: string }) {
                 setRhythmPicked(id);
                 keepLevel('rhythmEar', id);
               },
+              onStart: () => {
+                if (sound !== 'none') startRhythm(rhythmLevel);
+              },
+              startDisabled: sound === 'none',
               bpm: tempoOf(rhythmPrefs, rhythmLevel),
               onTempo: (bpm) => {
                 const next = withTempo(readRhythmPrefs(), rhythmLevel, bpm);

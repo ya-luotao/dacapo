@@ -1,11 +1,16 @@
-import { useId } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { Link } from 'wouter';
+import { fitsKeys, isFullKeys } from '../../core/instrument.ts';
 import { useT } from '../../i18n/index.ts';
 import { BUILT_IN, type BuiltInPiece } from '../../pieces/library/index.ts';
 import incipits from '../../pieces/library/incipits.json';
+import { useInstrumentKeys } from '../instrument.ts';
+import { usePractice } from '../practice/context.ts';
 import { usePieceFormat } from './format.ts';
 import { PieceBeyond } from './PieceBeyond.tsx';
 import { PieceProgress } from './PieceProgress.tsx';
+
+type StatusFilter = 'all' | 'started' | 'finished';
 
 /**
  * The built-in pieces, by level, like the contents page of a method book, each grade's heading
@@ -17,30 +22,131 @@ export function Library({ finished }: { finished: ReadonlySet<string> | null }) 
   const t = useT();
   const format = usePieceFormat();
   const id = useId();
+  const { sessions } = usePractice();
+  const keys = useInstrumentKeys();
+  const [query, setQuery] = useState('');
+  const [status, setStatus] = useState<StatusFilter>('all');
+  const [onlyFits, setOnlyFits] = useState(false);
+
+  const narrowKeys = !isFullKeys(keys);
+  const activeOnlyFits = narrowKeys && onlyFits;
+  const needle = query.trim().toLowerCase();
+  const hasFilter = needle !== '' || status !== 'all' || activeOnlyFits;
+
+  const started = useMemo(() => {
+    const ids = new Set<string>();
+    for (const s of sessions) {
+      if (s.kind === 'piece') ids.add(s.pieceId);
+    }
+    return ids;
+  }, [sessions]);
+
+  const matches = (piece: BuiltInPiece): boolean => {
+    if (needle) {
+      const hay = [
+        t(`library.${piece.id}.title`),
+        t(`library.${piece.id}.composer`),
+        t(`library.${piece.id}.style`),
+      ];
+      if (!hay.some((text) => text.toLowerCase().includes(needle))) return false;
+    }
+    if (status === 'finished' && !finished?.has(piece.id)) return false;
+    if (status === 'started' && (!started.has(piece.id) || finished?.has(piece.id))) return false;
+    if (activeOnlyFits && piece.facts.keys && !fitsKeys(piece.facts.keys, keys)) return false;
+    return true;
+  };
+
   const pieces = BUILT_IN.filter((p) => !p.leadSheet);
   const leadSheets = BUILT_IN.filter((p) => p.leadSheet).sort((a, b) => a.level - b.level);
   const levels = [...new Set(pieces.map((p) => p.level))].sort((a, b) => a - b);
+  const visibleLevels = levels
+    .map((level) => ({
+      level,
+      pieces: pieces.filter((p) => p.level === level && (!hasFilter || matches(p))),
+    }))
+    .filter((group) => group.pieces.length > 0);
+  const visibleLeadSheets = hasFilter ? leadSheets.filter(matches) : leadSheets;
+  const totalVisible =
+    visibleLevels.reduce((n, group) => n + group.pieces.length, 0) + visibleLeadSheets.length;
 
   return (
     <section className="library" aria-labelledby={`${id}-title`}>
       <h2 id={`${id}-title`} className="visually-hidden">
         {t('pieces.library')}
       </h2>
-      {levels.map((level) => (
-        <Group
-          key={level}
-          label={format.level(level)}
-          pieces={pieces.filter((p) => p.level === level)}
-          finished={finished}
+      <div className="library-filter">
+        <input
+          type="search"
+          className="library-filter-search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t('pieces.filter.search')}
+          aria-label={t('pieces.filter.search')}
         />
-      ))}
-      {leadSheets.length > 0 && (
-        <Group
-          label={t('pieces.leadSheets')}
-          help={t('pieces.leadSheets.help')}
-          pieces={leadSheets}
-          level={(piece) => format.level(piece.level)}
-        />
+        <div className="filter-pills">
+          {(
+            [
+              ['all', 'pieces.filter.all'],
+              ['started', 'pieces.filter.started'],
+              ['finished', 'pieces.filter.finished'],
+            ] as const
+          ).map(([value, labelKey]) => (
+            <button
+              key={value}
+              type="button"
+              className="filter-pill"
+              aria-pressed={status === value}
+              onClick={() => setStatus(value)}
+            >
+              {t(labelKey)}
+            </button>
+          ))}
+        </div>
+        {narrowKeys && (
+          <label className="check library-filter-fits">
+            <input
+              type="checkbox"
+              checked={onlyFits}
+              onChange={(e) => setOnlyFits(e.target.checked)}
+            />
+            <span>{t('pieces.filter.fits')}</span>
+          </label>
+        )}
+      </div>
+      {totalVisible === 0 && hasFilter ? (
+        <div className="library-empty">
+          <p className="muted">{t('pieces.filter.empty')}</p>
+          <button
+            type="button"
+            className="button"
+            onClick={() => {
+              setQuery('');
+              setStatus('all');
+              setOnlyFits(false);
+            }}
+          >
+            {t('pieces.filter.reset')}
+          </button>
+        </div>
+      ) : (
+        <>
+          {visibleLevels.map((group) => (
+            <Group
+              key={group.level}
+              label={format.level(group.level)}
+              pieces={group.pieces}
+              finished={finished}
+            />
+          ))}
+          {visibleLeadSheets.length > 0 && (
+            <Group
+              label={t('pieces.leadSheets')}
+              help={t('pieces.leadSheets.help')}
+              pieces={visibleLeadSheets}
+              level={(piece) => format.level(piece.level)}
+            />
+          )}
+        </>
       )}
       <p className="help library-help">{t('pieces.levels.help')}</p>
     </section>

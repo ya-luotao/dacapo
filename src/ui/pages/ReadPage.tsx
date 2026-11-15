@@ -231,6 +231,29 @@ function Read({ search }: { search: string }) {
           ? theoryLevelsOf(family).map((l) => theoryProgress.get(l.id))
           : progress.values(),
   );
+  const masteredCount =
+    choice === 'rhythm'
+      ? {
+          done: RHYTHM_LEVEL_IDS.filter((id) => rhythmProgress.get(id)?.mastered).length,
+          total: RHYTHM_LEVEL_IDS.length,
+        }
+      : choice === 'sight'
+        ? {
+            done: SIGHT_LEVEL_IDS.filter((id) => sightProgress.get(id)?.mastered).length,
+            total: SIGHT_LEVEL_IDS.length,
+          }
+        : family
+          ? (() => {
+              const levels = theoryLevelsOf(family);
+              return {
+                done: levels.filter((l) => theoryProgress.get(l.id)?.mastered).length,
+                total: levels.length,
+              };
+            })()
+          : {
+              done: LEVEL_IDS.filter((id) => progress.get(id)?.mastered).length,
+              total: LEVEL_IDS.length,
+            };
 
   // Fetch the notation font while the user picks a level, so the first card is not delayed.
   useEffect(loadMusicFont, []);
@@ -640,6 +663,7 @@ function Read({ search }: { search: string }) {
       ) : (
         <>
           <ReadChooser choice={choice} onChoice={(next) => changePrefs({ choice: next })} />
+          <p className="muted setup-mastered-count">{t('setup.masteredCount', masteredCount)}</p>
           <p className="muted read-intro">
             {t(
               choice === 'rhythm'
