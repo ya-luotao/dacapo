@@ -38,6 +38,7 @@ import { CalibrationSheet, TimingMark } from '../pieces/RhythmParts.tsx';
 import type { LastNote } from '../pieces/rhythm.ts';
 import { readClickVolume, readLatency, type Latency } from '../pieces/rhythmPrefs.ts';
 import { sharedClickTrack, useRhythmPlayer } from '../pieces/useRhythmPlayer.ts';
+import { useEscapeToStop } from '../useEscapeToStop.ts';
 import { useReadFormat } from './format.ts';
 import { useRhythmFormat } from './rhythmFormat.ts';
 import type { SightController } from './sightController.ts';
@@ -79,6 +80,8 @@ export function SightSession({ session, controller, prefs, bpm }: SightSessionPr
   const index = session.fragments.length - 1;
   const [running, setRunning] = useState(false);
 
+  useEscapeToStop(controller.stop, !running && calibration === null);
+
   return (
     <section
       className="read-session rhythm-session sight-session"
@@ -93,7 +96,12 @@ export function SightSession({ session, controller, prefs, bpm }: SightSessionPr
         {inTime && <p className="read-count">{t('pieces.tempo.bpm', { bpm })}</p>}
         {/* While a run goes, its own Stop is the only one: the session ends between runs. */}
         {!running && (
-          <button type="button" className="button" onClick={controller.stop}>
+          <button
+            type="button"
+            className="button"
+            aria-keyshortcuts="Escape"
+            onClick={controller.stop}
+          >
             {t('read.stop')}
           </button>
         )}
@@ -329,16 +337,22 @@ function FragmentRun({
     [hub, player, steps, score, controller],
   );
 
+  function stopRun() {
+    if (inTime) player.stop();
+    else {
+      changeWait(null);
+      setEnded(true);
+      setPhase('ready');
+    }
+  }
+
+  useEscapeToStop(stopRun, phase === 'running' && !paused);
+
   function onStart() {
     // A gesture: the click can sound from here on, even when the next run starts by itself.
     sharedClickTrack();
     if (phase === 'running') {
-      if (inTime) player.stop();
-      else {
-        changeWait(null);
-        setEnded(true);
-        setPhase('ready');
-      }
+      stopRun();
       return;
     }
     begin();
@@ -437,6 +451,7 @@ function FragmentRun({
               running ? 'button is-compact piece-go' : 'button button-primary is-compact piece-go'
             }
             disabled={paused || !ready}
+            aria-keyshortcuts={running ? 'Escape' : undefined}
             onClick={onStart}
           >
             <svg viewBox="0 0 16 16" aria-hidden="true">

@@ -41,6 +41,7 @@ import { Piano } from '../piano/Piano.tsx';
 import type { StaffState } from '../staff/GrandStaff.tsx';
 import { TheoryStaff } from '../staff/GrandStaff.tsx';
 import { theoryBox, type TheoryDrawing } from '../staff/draw.ts';
+import { useEscapeToStop } from '../useEscapeToStop.ts';
 import { useReadFormat } from './format.ts';
 import type { TheoryController } from './theoryController.ts';
 import { playedNames, rootName, useTheoryFormat } from './theoryFormat.ts';
@@ -119,6 +120,7 @@ export function TheorySession({ session, controller, onHint }: TheorySessionProp
 
   // Moving focus off the Start button means Enter or Space cannot trigger a control by accident.
   useEffect(() => region.current?.focus({ preventScroll: true }), []);
+  useEscapeToStop(controller.stop);
   // Answered by name, the letters and digits choose names: the computer keyboard plays nothing.
   useEffect(() => (named ? keyboard.suspend() : undefined), [keyboard, named]);
 
@@ -204,7 +206,12 @@ export function TheorySession({ session, controller, onHint }: TheorySessionProp
               : 'theory.hint.help',
           )}
         </span>
-        <button type="button" className="button" onClick={controller.stop}>
+        <button
+          type="button"
+          className="button"
+          aria-keyshortcuts="Escape"
+          onClick={controller.stop}
+        >
           {t('read.stop')}
         </button>
       </div>

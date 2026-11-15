@@ -36,6 +36,7 @@ import { CalibrationSheet, TimingMark } from '../pieces/RhythmParts.tsx';
 import type { LastNote } from '../pieces/rhythm.ts';
 import { readClickVolume, readLatency, type Latency } from '../pieces/rhythmPrefs.ts';
 import { useRhythmPlayer } from '../pieces/useRhythmPlayer.ts';
+import { useEscapeToStop } from '../useEscapeToStop.ts';
 import { lineGeometry, type LineGeometry } from './rhythmLine.ts';
 import { useRhythmFormat } from './rhythmFormat.ts';
 import type { RhythmController } from './rhythmController.ts';
@@ -199,6 +200,8 @@ export function RhythmSession({ session, controller, prefs, onPrefs }: RhythmSes
     controller.stop();
   }
 
+  useEscapeToStop(running ? () => player.stop() : stopSession, calibration === null);
+
   const beatMs = beatTicksOf(exercise.meter) * msPerTick(exercise.meter, bpm);
   const perBar = timeSignature(exercise.meter)[0];
   const countMs = (beatMs * beatsPerBar(exercise.meter)) / perBar;
@@ -262,7 +265,7 @@ export function RhythmSession({ session, controller, prefs, onPrefs }: RhythmSes
         </label>
         {/* While a run goes, its own Stop is the only one: the session ends between runs. */}
         {!running && (
-          <button type="button" className="button" onClick={stopSession}>
+          <button type="button" className="button" aria-keyshortcuts="Escape" onClick={stopSession}>
             {t('read.stop')}
           </button>
         )}
@@ -288,6 +291,7 @@ export function RhythmSession({ session, controller, prefs, onPrefs }: RhythmSes
               running ? 'button is-compact piece-go' : 'button button-primary is-compact piece-go'
             }
             disabled={calibrating || status.state !== 'ready'}
+            aria-keyshortcuts={running ? 'Escape' : undefined}
             onClick={onStart}
             autoFocus={!running}
           >
