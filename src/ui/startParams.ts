@@ -164,6 +164,24 @@ export function practiceLinkPath(link: PracticeLink): string {
   }
 }
 
+const ASSIGNMENT_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
+
+function appendOriginParam(
+  href: string,
+  pair: string,
+  isPresent: (search: string) => boolean,
+): string {
+  const hashAt = href.indexOf('#');
+  const base = hashAt < 0 ? href : href.slice(0, hashAt);
+  const hash = hashAt < 0 ? '' : href.slice(hashAt);
+  const qAt = base.indexOf('?');
+  if (qAt < 0) return `${base}?${pair}${hash}`;
+  const search = base.slice(qAt + 1);
+  if (isPresent(search)) return href;
+  const sep = search.length === 0 || search.endsWith('&') ? '' : '&';
+  return `${base}${sep}${pair}${hash}`;
+}
+
 /** Whether a route query string marks the page as opened from Today's plan. */
 export function isTodayOrigin(search: string): boolean {
   return new URLSearchParams(search).get('from') === 'today';
@@ -174,13 +192,26 @@ export function isTodayOrigin(search: string): boolean {
  * present, returning the updated path.
  */
 export function withTodayOrigin(href: string): string {
-  const hashAt = href.indexOf('#');
-  const base = hashAt < 0 ? href : href.slice(0, hashAt);
-  const hash = hashAt < 0 ? '' : href.slice(hashAt);
-  const qAt = base.indexOf('?');
-  if (qAt < 0) return `${base}?from=today${hash}`;
-  const search = base.slice(qAt + 1);
-  if (isTodayOrigin(search)) return href;
-  const sep = search.length === 0 || search.endsWith('&') ? '' : '&';
-  return `${base}${sep}from=today${hash}`;
+  return appendOriginParam(href, 'from=today', isTodayOrigin);
+}
+
+/**
+ * Reads and validates the `assignment` id from a route query string; returns null when absent or
+ * malformed.
+ */
+export function parseAssignmentOrigin(search: string): string | null {
+  const raw = new URLSearchParams(search).get('assignment')?.trim();
+  return raw && ASSIGNMENT_ID_RE.test(raw) ? raw : null;
+}
+
+/**
+ * Preserves any `#hash` fragment and appends `assignment=<id>` (using `?` or `&`) unless a valid
+ * `assignment` origin parameter is already present.
+ */
+export function withAssignmentOrigin(href: string, assignmentId: string): string {
+  return appendOriginParam(
+    href,
+    `assignment=${encodeURIComponent(assignmentId)}`,
+    (search) => parseAssignmentOrigin(search) !== null,
+  );
 }
