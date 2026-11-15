@@ -3273,4 +3273,15 @@ export const ja: Dictionary = {
   'site.card.alt': 'dacapo のロゴとキャッチコピー、全音符が一つあるト音記号の五線',
   'site.about':
     'レッスンと収録曲には、それぞれ独立したページもあります。dacapoを開かなくても読め、検索エンジンでも見つかります。',
+  'pieces.bar.startFrom': '{bar}から始める',
+  'pieces.bar.playFrom': '{bar}から再生',
+  'pieces.bar.hint': 'クリックでここから開始 · Shift+クリックでループ',
+  'pieces.bar.region': '楽譜の小節',
+  'pieces.library.search': '曲名・作曲家・スタイルで検索',
+  'pieces.library.search.clear': '検索をクリア',
+  'pieces.library.filter': '曲を絞り込む',
+  'pieces.library.filter.all': 'すべて',
+  'pieces.library.filter.unplayed': '未演奏',
+  'pieces.library.filter.played': '演奏済み',
+  'pieces.library.empty': '条件に一致する収録曲はありません。',
 };

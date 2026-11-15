@@ -21,7 +21,6 @@ import {
 import { sightHands, sightMusicXml } from '../../core/sightXml.ts';
 import { press, startWait, type StepRecord, type WaitState } from '../../core/wait.ts';
 import { useT } from '../../i18n/index.ts';
-import { readPref, writePref } from '../../lib/localPrefs.ts';
 import { createDemoPlayer } from '../../output/demo.ts';
 import { browserClock } from '../../output/scheduler.ts';
 import { useInput } from '../input/context.ts';
@@ -48,8 +47,6 @@ import type { SightPrefs } from './sightPrefs.ts';
 /** Every system stretched across the page; the second phrase of eight bars on a system of its own. */
 const ENGRAVING: Engraving = { lastJustification: 0 };
 const ENGRAVING_PHRASES: Engraving = { lastJustification: 0, phrases: true };
-/** Offered once per browser, before the first run with a click (shared with Pieces and Scales). */
-const CALIBRATION_OFFERED_PREF = 'dacapo.latency.offered';
 const NO_KEYS: readonly number[] = [];
 
 interface SightSessionProps {
@@ -70,15 +67,9 @@ export function SightSession({ session, controller, prefs, bpm }: SightSessionPr
   const t = useT();
   const format = useSightFormat();
   const inTime = prefs.play === 'time';
-  // Offered once per browser before the first run with a click, before the first look.
-  const [calibration, setCalibration] = useState<'offer' | 'open' | null>(() =>
-    inTime && !readLatency() && readPref(CALIBRATION_OFFERED_PREF) !== '1' ? 'offer' : null,
-  );
+  const [calibration, setCalibration] = useState<'open' | null>(null);
   const [calibrating, setCalibrating] = useState(false);
   const [latency, setLatency] = useState<Latency | null>(readLatency);
-  useEffect(() => {
-    if (calibration === 'offer') writePref(CALIBRATION_OFFERED_PREF, '1');
-  }, [calibration]);
 
   const record = session.fragments.at(-1)!;
   const fragment = useMemo(
@@ -126,7 +117,7 @@ export function SightSession({ session, controller, prefs, bpm }: SightSessionPr
 
       {calibration && (
         <CalibrationSheet
-          offer={calibration === 'offer'}
+          offer={false}
           onCalibrate={() => setCalibration('open')}
           onStart={() => setCalibration(null)}
           onRunning={setCalibrating}

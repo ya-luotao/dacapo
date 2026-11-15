@@ -134,15 +134,60 @@ export function BarTints({
   });
 }
 
+/** Behind the notes: a quiet wash over the bars currently looped. */
+export function LoopBand({ loop, boxes }: { loop: { from: number; to: number }; boxes: BarBoxes }) {
+  return [...boxes.entries()]
+    .filter(([measure]) => measure >= loop.from && measure <= loop.to)
+    .map(([measure, box]) => <div key={measure} className="bar-loop" style={place(box)} />);
+}
+
+/** Over the notes (when Weak bars is off or during playback): clickable bars for jump/loop. */
+export function ScoreBarTargets({
+  measures,
+  boxes,
+  label,
+  hint,
+  onBarClick,
+}: {
+  measures: readonly number[];
+  boxes: BarBoxes;
+  label: (measure: number) => string;
+  hint?: string;
+  onBarClick: (measure: number, shift: boolean) => void;
+}) {
+  const t = useT();
+  return (
+    <div className="bar-targets" role="group" aria-label={t('pieces.bar.region')}>
+      {measures.map((measure) => {
+        const box = boxes.get(measure);
+        if (!box) return null;
+        return (
+          <button
+            key={measure}
+            type="button"
+            className="bar-jump"
+            style={place(box)}
+            aria-label={label(measure)}
+            title={hint}
+            onClick={(e) => onBarClick(measure, e.shiftKey)}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 /** Over the notes: one focusable target per bar (one tab stop), with its details. */
 export function BarTargets({
   cells,
   boxes,
   format,
+  onBarClick,
 }: {
   cells: readonly BarCell[];
   boxes: BarBoxes;
   format: BarFormat;
+  onBarClick?: (measure: number, shift: boolean) => void;
 }) {
   const t = useT();
   const layer = useRef<HTMLDivElement>(null);
@@ -165,16 +210,23 @@ export function BarTargets({
       aria-label={t(WORDS[format.metric].group)}
       onKeyDown={onKeyDown}
     >
-      {placed.map((cell) => (
-        <button
-          key={cell.measure}
-          type="button"
-          className="bar-target"
-          style={place(boxes.get(cell.measure)!)}
-          aria-label={format.aria(cell)}
-          {...cellProps(String(cell.measure))}
-        />
-      ))}
+      {placed.map((cell) => {
+        const { onClick: onCellClick, ...rest } = cellProps(String(cell.measure));
+        return (
+          <button
+            key={cell.measure}
+            type="button"
+            className="bar-target"
+            style={place(boxes.get(cell.measure)!)}
+            aria-label={format.aria(cell)}
+            {...rest}
+            onClick={(e) => {
+              onCellClick();
+              onBarClick?.(cell.measure, e.shiftKey);
+            }}
+          />
+        );
+      })}
       {shownCell && (
         <Tooltip
           container={layer}
@@ -183,14 +235,22 @@ export function BarTargets({
           bounds={frameBounds}
           floating
         >
-          <BarDetails cell={shownCell} format={format} />
+          <BarDetails cell={shownCell} format={format} interactive={Boolean(onBarClick)} />
         </Tooltip>
       )}
     </div>
   );
 }
 
-function BarDetails({ cell, format }: { cell: BarCell; format: BarFormat }) {
+function BarDetails({
+  cell,
+  format,
+  interactive,
+}: {
+  cell: BarCell;
+  format: BarFormat;
+  interactive: boolean;
+}) {
   const t = useT();
   const words = WORDS[format.metric];
   return (
@@ -231,6 +291,7 @@ function BarDetails({ cell, format }: { cell: BarCell; format: BarFormat }) {
       </dl>
       {cell.passes > 1 && <p className="hm-tooltip-note">{t('pieces.weak.passes')}</p>}
       {cell.steady && <p className="hm-tooltip-note">{t(words.steady)}</p>}
+      {interactive && <p className="hm-tooltip-note">{t('pieces.bar.hint')}</p>}
     </>
   );
 }

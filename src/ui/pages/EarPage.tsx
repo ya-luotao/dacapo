@@ -38,7 +38,6 @@ import {
   type RhythmEarLevelProgress,
 } from '../../core/rhythmEar.ts';
 import { useT } from '../../i18n/index.ts';
-import { readPref, writePref } from '../../lib/localPrefs.ts';
 import {
   practiceOf,
   sessionAdvice,
@@ -59,7 +58,6 @@ import { InputNotice } from '../input/InputNotice.tsx';
 import { LessonLine } from '../learn/LessonLine.tsx';
 import { useMetronome } from '../metronome/context.ts';
 import { useOutputSound } from '../output/context.ts';
-import { CalibrationSheet } from '../pieces/RhythmParts.tsx';
 import { readClickVolume, readLatency } from '../pieces/rhythmPrefs.ts';
 import { createRhythmPlayer } from '../pieces/useRhythmPlayer.ts';
 import { usePractice, usePracticeStore, useStorageStatus } from '../practice/context.ts';
@@ -70,9 +68,6 @@ import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
 import { earStart } from '../ear/start.ts';
 import { useRouteSearch } from '../hashRoute.ts';
 import { parseLevelStart } from '../startParams.ts';
-
-/** Offered once per browser, before the first run with a click (shared with Pieces and Read). */
-const CALIBRATION_OFFERED_PREF = 'dacapo.latency.offered';
 
 /** The Ear page; opened with a level (a task of an assignment), it starts over on it. */
 export function EarPage() {
@@ -188,7 +183,6 @@ function Ear({ search }: { search: string }) {
       ? rhythmProgress.values()
       : levelsOf(prefs.family).map((l) => progress.get(l.id)),
   );
-  const [calibration, setCalibration] = useState<'offer' | 'open' | null>(null);
 
   // Fetch the notation font while the user chooses, for the answer drawn after a wrong one.
   useEffect(loadMusicFont, []);
@@ -266,20 +260,8 @@ function Ear({ search }: { search: string }) {
     });
   }
 
-  function startRhythm(id: RhythmEarLevelId, offer = true) {
+  function startRhythm(id: RhythmEarLevelId) {
     setRhythmPicked(id);
-    setCalibration(null);
-    // Tapping back is timed: the latency is offered once, before the first run with a click.
-    if (
-      offer &&
-      prefs.rhythmBy === 'play' &&
-      !readLatency() &&
-      readPref(CALIBRATION_OFFERED_PREF) !== '1'
-    ) {
-      writePref(CALIBRATION_OFFERED_PREF, '1');
-      setCalibration('offer');
-      return;
-    }
     rhythmController.start({
       level: id,
       by: prefs.rhythmBy,
@@ -463,15 +445,6 @@ function Ear({ search }: { search: string }) {
               (items) => startItems(summary.level, items),
             )
           }
-        />
-      ) : calibration ? (
-        <CalibrationSheet
-          offer={calibration === 'offer'}
-          onCalibrate={() => setCalibration('open')}
-          onStart={() => startRhythm(rhythmLevel, false)}
-          onRunning={() => undefined}
-          onChange={() => undefined}
-          onClose={() => setCalibration(null)}
         />
       ) : (
         <>

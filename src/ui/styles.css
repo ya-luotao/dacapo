@@ -1444,6 +1444,39 @@ kbd {
   }
 }
 
+/* Computer-keyboard keycap on a key when the keyboard fallback is active. */
+.key-shortcut {
+  position: absolute;
+  right: 0;
+  bottom: 0.3rem;
+  left: 0;
+  color: var(--key-label);
+  font-size: clamp(0.5rem, 0.42rem + 0.25vw, 0.625rem);
+  font-weight: 600;
+  line-height: 1;
+  text-align: center;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.key-white .key-shortcut.is-raised {
+  bottom: 1.75rem;
+}
+
+.key-black .key-shortcut {
+  bottom: 0.35rem;
+  color: rgb(255 255 255 / 0.72);
+}
+
+.key.is-held .key-shortcut {
+  color: #fff;
+  opacity: 1;
+}
+
+.key-black.is-held .key-shortcut {
+  color: var(--key-black);
+}
+
 /* Computer-keyboard hint: a footnote under the instrument, set off by a hairline. */
 
 .keys-hint {
@@ -6685,6 +6718,60 @@ tr.is-few .cm-row {
   margin-top: 2.25rem;
 }
 
+.library-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.library-search {
+  position: relative;
+  flex: 1 1 15rem;
+  max-width: 24rem;
+}
+
+.library-search-input {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.375rem 2.25rem 0.375rem 0.75rem;
+  border: 1px solid var(--control);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9375rem;
+}
+
+.library-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.library-search-input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -1px;
+}
+
+.library-search-clear {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+}
+
+.library-filter {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.library-empty {
+  margin: 0;
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--border);
+}
+
 .library-level {
   display: grid;
   grid-template-columns: 8rem minmax(0, 1fr);
@@ -7443,18 +7530,27 @@ select.is-compact {
   width: auto;
 }
 
+.bar-loop {
+  position: absolute;
+  border-radius: var(--radius-sm);
+  background: color-mix(in oklab, var(--accent-soft) 72%, transparent);
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+
 .bar-targets {
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
 
-.bar-target {
+.bar-target,
+.bar-jump {
   position: absolute;
   padding: 0;
   border: 0;
   border-radius: var(--radius-sm);
   background: none;
+  cursor: pointer;
   pointer-events: auto;
 }
 
@@ -7462,9 +7558,14 @@ select.is-compact {
   .bar-target:hover {
     box-shadow: inset 0 0 0 1px var(--text-muted);
   }
+
+  .bar-jump:hover {
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 45%, transparent);
+  }
 }
 
-.bar-target:focus-visible {
+.bar-target:focus-visible,
+.bar-jump:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 1px;
 }
@@ -10797,10 +10898,17 @@ select.is-compact {
 }
 
 /* As tall as the title's line, so the row keeps its height. */
-.piece-head .focus-enter {
+.piece-head-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   align-self: center;
   margin-block: -0.25rem;
   margin-inline-start: auto;
+}
+
+.piece-head .focus-enter {
+  align-self: center;
 }
 
 .scales.is-focus .scale-picker:not([hidden]) {
@@ -11162,6 +11270,9 @@ select.is-compact {
   border-top: 5px solid var(--felt);
   border-radius: 0 0 var(--radius) var(--radius);
   box-shadow: 0 14px 28px -18px rgb(var(--shadow-rgb) / 0.5);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .specimen-keys rect {
@@ -11171,9 +11282,23 @@ select.is-compact {
   transition: fill 240ms ease-out;
 }
 
+.specimen-keys rect[data-midi] {
+  cursor: pointer;
+}
+
 .specimen-keys rect.is-black {
   fill: var(--key-black);
   stroke: var(--key-black-edge);
+}
+
+@media (hover: hover) {
+  .specimen-keys rect:not(.is-lit):hover {
+    filter: brightness(0.95);
+  }
+
+  .specimen-keys rect.is-black:not(.is-lit):hover {
+    filter: brightness(1.18);
+  }
 }
 
 .specimen-keys rect.is-lit {

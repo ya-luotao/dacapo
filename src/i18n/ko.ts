@@ -3233,4 +3233,15 @@ export const ko: Dictionary = {
   'site.card.alt': 'dacapo 로고와 문구, 온음표 하나가 있는 높은음자리표 오선',
   'site.about':
     '레슨과 기본 곡은 각각 따로 된 페이지로도 읽을 수 있어요. dacapo를 열지 않아도 볼 수 있고, 검색 엔진에서도 찾을 수 있어요.',
+  'pieces.bar.startFrom': '{bar}부터 시작',
+  'pieces.bar.playFrom': '{bar}부터 재생',
+  'pieces.bar.hint': '클릭해 여기서 시작 · Shift+클릭으로 반복',
+  'pieces.bar.region': '악보의 마디',
+  'pieces.library.search': '제목, 작곡가 또는 스타일로 검색',
+  'pieces.library.search.clear': '검색 지우기',
+  'pieces.library.filter': '곡 거르기',
+  'pieces.library.filter.all': '전체',
+  'pieces.library.filter.unplayed': '미연주',
+  'pieces.library.filter.played': '연주함',
+  'pieces.library.empty': '조건에 맞는 기본 곡이 없어요.',
 };

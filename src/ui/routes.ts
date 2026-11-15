@@ -28,7 +28,7 @@ export const NAV_ITEMS: readonly {
  * The pages a newcomer's sidebar lists beside Today; the rest fold under "All practice" until
  * opened. Someone who plays already (docs/START.md) gets every page listed.
  */
-export const NEWCOMER_PATHS: readonly string[] = ['/pieces', '/progress'];
+export const NEWCOMER_PATHS: readonly string[] = ['/learn', '/read', '/pieces', '/progress'];
 
 /** Whether `location` is a practice page or one of its subpages (a piece belongs to Pieces). */
 export function isPracticePage(location: string): boolean {
