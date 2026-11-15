@@ -5,8 +5,10 @@ import { PROGRESSION_HANDS, progressionXml } from '../../core/progressionXml.ts'
 import { useT } from '../../i18n/index.ts';
 import { readScore } from '../../pieces/load.ts';
 import { EmptyState } from '../EmptyState.tsx';
+import { useRouteSearch } from '../hashRoute.ts';
 import { PieceSession } from '../pieces/PieceSession.tsx';
 import type { OpenPiece } from '../pieces/usePiece.ts';
+import { isTodayOrigin, parseAssignmentOrigin } from '../startParams.ts';
 import { readProgressionTempo } from './prefs.ts';
 import { progressionTitle, useProgressionFormat } from './progressionFormat.ts';
 
@@ -27,6 +29,15 @@ function segment(text: string): string {
 export function ProgressionPage(params: { progression: string; keyName: string; pattern: string }) {
   const t = useT();
   const format = useProgressionFormat();
+  const routeSearch = useRouteSearch();
+  const fromToday = isTodayOrigin(routeSearch);
+  const assignmentId = fromToday ? null : parseAssignmentOrigin(routeSearch);
+  const back = assignmentId
+    ? {
+        href: `/assignments/${encodeURIComponent(assignmentId)}`,
+        label: t('assignment.flow.back'),
+      }
+    : { href: '/harmony', label: t('harmony.back') };
   const id = `prog:${params.progression}:${segment(params.keyName)}:${params.pattern}`;
   const piece = useMemo((): OpenPiece | null => {
     const spec = parseProgressionPieceId(id);
@@ -49,17 +60,9 @@ export function ProgressionPage(params: { progression: string; keyName: string; 
   if (!piece) {
     return (
       <section className="page">
-        <EmptyState action={{ href: '/harmony', label: t('harmony.back') }}>
-          {t('harmony.progression.notFound')}
-        </EmptyState>
+        <EmptyState action={back}>{t('harmony.progression.notFound')}</EmptyState>
       </section>
     );
   }
-  return (
-    <PieceSession
-      key={piece.id}
-      piece={piece}
-      back={{ href: '/harmony', label: t('harmony.back') }}
-    />
-  );
+  return <PieceSession key={piece.id} piece={piece} back={back} />;
 }

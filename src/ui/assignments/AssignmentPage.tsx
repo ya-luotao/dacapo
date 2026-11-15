@@ -14,12 +14,13 @@ import { isBuiltInId } from '../../pieces/library/index.ts';
 import { EmptyState } from '../EmptyState.tsx';
 import { usePractice, usePracticeStore, useStorageStatus } from '../practice/context.ts';
 import { useNow } from '../progress/useNow.ts';
+import { withAssignmentOrigin } from '../startParams.ts';
 import { useAssignmentFormat } from './format.ts';
 import { PrintButton } from './PrintButton.tsx';
 import { KeptReports, SendReport } from './ReportView.tsx';
 import { ShareBox } from './ShareBox.tsx';
 import { TaskList } from './TaskList.tsx';
-import { useChecklist, useKnownPieces } from './useChecklist.ts';
+import { taskStartPath, useChecklist, useKnownPieces } from './useChecklist.ts';
 
 /** The checklist of an assignment for me: each task's figure, its tick, and the way to start it. */
 function Checklist({
@@ -34,14 +35,37 @@ function Checklist({
   const id = useId();
   const pieces = useKnownPieces();
   const met = progress && tasksMet(progress);
+  const nextStart = useMemo(() => {
+    if (!progress) return null;
+    for (let i = 0; i < record.assignment.tasks.length; i++) {
+      const task = record.assignment.tasks[i]!;
+      const done = progress[i];
+      if (task.kind === 'unknown' || !done || done.met) continue;
+      const href = taskStartPath(task, pieces);
+      if (href) return withAssignmentOrigin(href, record.id);
+    }
+    return null;
+  }, [progress, record.assignment.tasks, record.id, pieces]);
   return (
     <section className="assignment-section" aria-labelledby={`${id}-title`}>
       <h2 id={`${id}-title`}>
         {t('assignments.checklist')}
         {met && <span className="assignment-count">{t('assignments.done', met)}</span>}
       </h2>
+      {nextStart && (
+        <div className="actions assignment-checklist-actions">
+          <Link href={nextStart} className="button button-primary">
+            {t('assignments.startNext')}
+          </Link>
+        </div>
+      )}
       {progress ? (
-        <TaskList tasks={record.assignment.tasks} progress={progress} pieces={pieces} />
+        <TaskList
+          tasks={record.assignment.tasks}
+          progress={progress}
+          pieces={pieces}
+          assignmentId={record.id}
+        />
       ) : (
         <p className="muted" role="status">
           {t('assignments.checklist.loading')}

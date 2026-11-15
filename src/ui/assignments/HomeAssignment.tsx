@@ -3,6 +3,7 @@ import { openTasks } from '../../core/assignments.ts';
 import { dayKey, type DayKey } from '../../core/streak.ts';
 import { useT } from '../../i18n/index.ts';
 import { useNow } from '../progress/useNow.ts';
+import { withAssignmentOrigin } from '../startParams.ts';
 import { useScaleKeyWords, useTaskFormat } from './taskFormat.ts';
 import {
   taskStartPath,
@@ -57,7 +58,8 @@ export function AssignmentBlock({
       {open.length > 0 && (
         <ul className="home-tasks">
           {open.slice(0, TASKS_SHOWN).map(({ task, done }) => {
-            const start = taskStartPath(task, pieces);
+            const rawStart = taskStartPath(task, pieces);
+            const start = rawStart ? withAssignmentOrigin(rawStart, record.id) : null;
             return (
               <li key={task.id}>
                 {start ? <Link href={start}>{format.title(task)}</Link> : format.title(task)}

@@ -91,7 +91,12 @@ import {
   writePiecePrefs,
 } from './prefs.ts';
 import { useRouteSearch } from '../hashRoute.ts';
-import { isTodayOrigin, startLoop, type PieceStart } from '../startParams.ts';
+import {
+  isTodayOrigin,
+  parseAssignmentOrigin,
+  startLoop,
+  type PieceStart,
+} from '../startParams.ts';
 import {
   givenNotes,
   recordedRun,
@@ -185,12 +190,19 @@ export function PieceSession({
   start?: PieceStart | null;
 }) {
   const t = useT();
-  const fromToday = isTodayOrigin(useRouteSearch());
+  const routeSearch = useRouteSearch();
+  const fromToday = isTodayOrigin(routeSearch);
+  const assignmentId = fromToday ? null : parseAssignmentOrigin(routeSearch);
   const backTo =
     back ??
     (fromToday
       ? { href: '/', label: t('today.flow.back') }
-      : { href: '/pieces', label: t('pieces.back') });
+      : assignmentId
+        ? {
+            href: `/assignments/${encodeURIComponent(assignmentId)}`,
+            label: t('assignment.flow.back'),
+          }
+        : { href: '/pieces', label: t('pieces.back') });
   const [prefs] = useState(() => withStart(readPiecePrefs(piece.id), start));
   // The left hand: as written, or a pattern made from the chord symbols and written into the
   // score (docs/HARMONY.md, "Lead sheets (H3)"). A progression's pattern is its own.

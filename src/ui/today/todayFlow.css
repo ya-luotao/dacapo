@@ -112,6 +112,14 @@
   width: fit-content;
 }
 
+.assignment-checklist-actions {
+  margin-top: 0.75rem;
+}
+
+.assignment-next-bar .today-flow-pips {
+  flex-wrap: wrap;
+}
+
 @media print {
   .today-flow,
   .today-return {
