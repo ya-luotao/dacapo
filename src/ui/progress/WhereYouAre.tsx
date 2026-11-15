@@ -83,24 +83,21 @@ export function WhereYouAre({ today }: { today: DayKey }) {
     );
   };
 
-  return (
-    <section className="where" aria-labelledby={`${id}-title`}>
-      <h2 id={`${id}-title`}>{t('where.title')}</h2>
-      <p className="help">{t('where.help')}</p>
-      {!state ? (
-        <p className="muted where-waiting" role="status">
-          {t('storage.loading')}
-        </p>
-      ) : (
-        <ul className="where-rows">
-          {row(
+  const entries = state
+    ? [
+        {
+          open: true,
+          node: row(
             'learn',
             t('nav.learn'),
             t('where.lessons', { done: state.lessons.done, of: state.lessons.of }),
             state.lessons.next && lessonLink(state.lessons.next),
-          )}
-          {state.families.map(family)}
-          {!state.scales.open
+          ),
+        },
+        ...state.families.map((f) => ({ open: f.open, node: family(f) })),
+        {
+          open: state.scales.open,
+          node: !state.scales.open
             ? closed('scales', t('nav.scales'))
             : row(
                 'scales',
@@ -126,8 +123,11 @@ export function WhereYouAre({ today }: { today: DayKey }) {
                       </Link>,
                     )}
                 </>,
-              )}
-          {!state.pieces.open
+              ),
+        },
+        {
+          open: state.pieces.open,
+          node: !state.pieces.open
             ? closed('pieces', t('nav.pieces'))
             : row(
                 'pieces',
@@ -158,8 +158,32 @@ export function WhereYouAre({ today }: { today: DayKey }) {
                   title={format.pieceTitle}
                   path={format.piecePath}
                 />,
-              )}
-        </ul>
+              ),
+        },
+      ]
+    : [];
+  const openRows = entries.filter((e) => e.open).map((e) => e.node);
+  const lockedRows = entries.filter((e) => !e.open).map((e) => e.node);
+  const renderRows = (nodes: readonly ReactNode[]) => <ul className="where-rows">{nodes}</ul>;
+
+  return (
+    <section className="where" aria-labelledby={`${id}-title`}>
+      <h2 id={`${id}-title`}>{t('where.title')}</h2>
+      <p className="help">{t('where.help')}</p>
+      {!state ? (
+        <p className="muted where-waiting" role="status">
+          {t('storage.loading')}
+        </p>
+      ) : openRows.length > 0 && lockedRows.length >= 2 ? (
+        <>
+          {renderRows(openRows)}
+          <details className="where-locked">
+            <summary>{t('progress.where.locked', { n: lockedRows.length })}</summary>
+            {renderRows(lockedRows)}
+          </details>
+        </>
+      ) : (
+        renderRows(entries.map((e) => e.node))
       )}
     </section>
   );

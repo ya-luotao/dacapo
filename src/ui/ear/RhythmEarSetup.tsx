@@ -22,6 +22,8 @@ export interface RhythmEarSetupProps {
   progress: ReadonlyMap<RhythmEarLevelId, RhythmEarLevelProgress>;
   suggested: RhythmEarLevelId;
   onLevel: (level: RhythmEarLevelId) => void;
+  onStart?: () => void;
+  startDisabled?: boolean;
   /** The level's tempo, Read's (shared per level). */
   bpm: number;
   onTempo: (bpm: number) => void;
@@ -33,7 +35,12 @@ export function RhythmEarLevels({
   progress,
   suggested,
   onLevel,
-}: Pick<RhythmEarSetupProps, 'level' | 'progress' | 'suggested' | 'onLevel'>) {
+  onStart,
+  startDisabled = false,
+}: Pick<
+  RhythmEarSetupProps,
+  'level' | 'progress' | 'suggested' | 'onLevel' | 'onStart' | 'startDisabled'
+>) {
   const t = useT();
   const id = useId();
   const rhythm = useRhythmFormat();
@@ -46,7 +53,14 @@ export function RhythmEarLevels({
           const p = progress.get(l);
           const checked = level === l;
           return (
-            <label key={l} className={checked ? 'level is-checked' : 'level'}>
+            <label
+              key={l}
+              className={checked ? 'level is-checked' : 'level'}
+              onDoubleClick={() => {
+                onLevel(l);
+                if (!startDisabled) onStart?.();
+              }}
+            >
               <input
                 type="radio"
                 name={`${id}-level`}
