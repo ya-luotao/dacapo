@@ -4,6 +4,8 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Router } from 'wouter';
 import { memoryLocation } from 'wouter/memory-location';
+import { parseExerciseKey } from '../core/scales.ts';
+import { SCALE_TYPES, TECHNIQUE_TYPES } from '../core/scaleTypes.ts';
 import type { StoredPiece } from '../core/storedPiece.ts';
 import { I18nContext, type I18nContextValue } from '../i18n/context.ts';
 import { loadLocale, type Translate } from '../i18n/index.ts';
@@ -17,8 +19,18 @@ import { createAppMetronome } from './metronome/prefs.ts';
 import { PracticeContext } from './practice/context.ts';
 import type { PracticeData, PracticeStore, StorageStatus } from './practice/store.ts';
 import { QuickJump } from './QuickJump.tsx';
-import { buildJumpEntries, filterJumpEntries } from './QuickJumpData.ts';
+import {
+  buildJumpEntries,
+  clearRecentJumps,
+  filterJumpEntries,
+  JUMP_RECENT_KEY,
+  parseRecentJumps,
+  readRecentJumps,
+  recordRecentJump,
+  resolveRecentEntries,
+} from './QuickJumpData.ts';
 import { Sidebar } from './Sidebar.tsx';
+import { parseScaleStart } from './startParams.ts';
 import { SyncProvider } from './sync/SyncProvider.tsx';
 
 let root: Root | null = null;
@@ -473,6 +485,166 @@ describe('QuickJumpData & QuickJump', () => {
     });
     expect(loc.history).toContain('/learn/terms/crescendo');
     expect(el.querySelector('[role="dialog"]')).toBeNull();
+  });
+
+  it('includes valid unique deep-links for all scales and technique families', () => {
+    const entries = buildJumpEntries({
+      t: createTranslate(),
+      locale: 'en',
+      customPieces: [],
+    });
+
+    const ids = entries.map((e) => e.id);
+    const hrefs = entries.map((e) => e.href);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(new Set(hrefs).size).toBe(hrefs.length);
+
+    for (const type of [...SCALE_TYPES, ...TECHNIQUE_TYPES]) {
+      const entry = entries.find((e) => e.id === `scale:${type}`);
+      expect(entry).toBeDefined();
+      expect(entry!.group).toBe('practices');
+      const [, search = ''] = entry!.href.split('?');
+      const parsed = parseScaleStart(`?${search}`);
+      expect(parsed).not.toBeNull();
+      expect(parseExerciseKey(parsed!.exercise)).not.toBeNull();
+    }
+
+    expect(
+      entries.some((e) => e.group === 'practices' && e.href === '/harmony?practice=progressions'),
+    ).toBe(true);
+  });
+
+  it('validates, dedupes, caps at 5, and resolves recent QuickJump history', () => {
+    expect(parseRecentJumps(null)).toEqual([]);
+    expect(parseRecentJumps('{not-json')).toEqual([]);
+    expect(parseRecentJumps('{"a":1}')).toEqual([]);
+    expect(parseRecentJumps(JSON.stringify(['/scales', 42, '', '/read', '/scales', null]))).toEqual(
+      ['/scales', '/read'],
+    );
+
+    const paths = ['/a', '/b', '/c', '/d', '/e', '/f'];
+    for (const path of paths) recordRecentJump(path);
+    expect(readRecentJumps()).toEqual(['/f', '/e', '/d', '/c', '/b']);
+
+    // Re-recording an older entry promotes it to the front.
+    recordRecentJump('/c');
+    expect(readRecentJumps()).toEqual(['/c', '/f', '/e', '/d', '/b']);
+
+    const entries = buildJumpEntries({ t: createTranslate(), locale: 'en', customPieces: [] });
+    const resolved = resolveRecentEntries(['/nonexistent', '/scales', '/learn/terms'], entries);
+    expect(resolved.map((e) => e.href)).toEqual(['/scales', '/learn/terms']);
+    expect(resolved.every((e) => e.group === 'recent' && e.id.startsWith('recent:'))).toBe(true);
+
+    clearRecentJumps();
+    expect(localStorage.getItem(JUMP_RECENT_KEY)).toBeNull();
+    expect(readRecentJumps()).toEqual([]);
+  });
+
+  it('shows Recent before Pages, navigates cleanly with keyboard, and clears reactively', () => {
+    const mock = createMockInput();
+    const store = createMockPracticeStore();
+    const loc = memoryLocation({ path: '/', record: true });
+
+    function Harness() {
+      const [open, setOpen] = useState(false);
+      return createElement(
+        'div',
+        null,
+        createElement(Sidebar, { onOpenJump: () => setOpen(true) }),
+        createElement(QuickJump, { open, onClose: () => setOpen(false) }),
+      );
+    }
+
+    const el = mount(
+      createElement(
+        I18nContext,
+        { value: createI18nValue() },
+        createElement(
+          InputContext,
+          { value: mock.system },
+          createElement(
+            PracticeContext,
+            { value: store },
+            createElement(MetronomeProvider, {
+              handle: createAppMetronome(),
+              children: createElement(Router, {
+                hook: loc.hook,
+                children: createElement(Harness),
+              }),
+            }),
+          ),
+        ),
+      ),
+    );
+
+    const trigger = el.querySelector<HTMLButtonElement>('.jump-trigger')!;
+
+    // First jump: Crescendo (/learn/terms/crescendo)
+    act(() => trigger.click());
+    typeInput(el.querySelector<HTMLInputElement>('.jump-input')!, 'cresc.');
+    act(() => el.querySelector<HTMLButtonElement>('[role="option"]')!.click());
+
+    // Second jump: Major scale (/scales?exercise=...)
+    act(() => trigger.click());
+    typeInput(el.querySelector<HTMLInputElement>('.jump-input')!, 'chromatic');
+    const chromaticOption = Array.from(
+      el.querySelectorAll<HTMLButtonElement>('[role="option"]'),
+    ).find((btn) => btn.textContent?.includes('Chromatic'))!;
+    act(() => chromaticOption.click());
+
+    expect(parseRecentJumps(localStorage.getItem(JUMP_RECENT_KEY))).toEqual([
+      '/scales?exercise=chromatic%3AC%3A2%3Aright&click=off',
+      '/learn/terms/crescendo',
+    ]);
+
+    // Reopen with empty query: Recent group appears first, before Pages.
+    act(() => trigger.click());
+    const groups = Array.from(el.querySelectorAll<HTMLElement>('[role="group"]'));
+    expect(groups[0]?.getAttribute('aria-label')).toBe('Recent');
+    expect(groups[1]?.getAttribute('aria-label')).toBe('Pages');
+
+    const recentOptions = Array.from(
+      groups[0]!.querySelectorAll<HTMLButtonElement>('[role="option"]'),
+    );
+    expect(recentOptions).toHaveLength(2);
+    expect(recentOptions[0]?.getAttribute('aria-selected')).toBe('true');
+
+    // Keyboard navigation spans Recent -> Pages seamlessly.
+    const search = el.querySelector<HTMLInputElement>('.jump-input')!;
+    act(() => {
+      search.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    });
+    expect(recentOptions[1]?.getAttribute('aria-selected')).toBe('true');
+    act(() => {
+      search.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    });
+    const firstPageOption = groups[1]!.querySelector<HTMLButtonElement>('[role="option"]')!;
+    expect(firstPageOption.getAttribute('aria-selected')).toBe('true');
+    act(() => {
+      search.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+    });
+    expect(recentOptions[1]?.getAttribute('aria-selected')).toBe('true');
+
+    // Pressing Enter on Recent[1] navigates to /learn/terms/crescendo and promotes it to top.
+    act(() => {
+      search.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    });
+    expect(loc.history[loc.history.length - 1]).toBe('/learn/terms/crescendo');
+    expect(parseRecentJumps(localStorage.getItem(JUMP_RECENT_KEY))).toEqual([
+      '/learn/terms/crescendo',
+      '/scales?exercise=chromatic%3AC%3A2%3Aright&click=off',
+    ]);
+
+    // Reopen and click Clear: clears localStorage and immediately removes Recent group.
+    act(() => trigger.click());
+    const clearBtn = el.querySelector<HTMLButtonElement>('.jump-group-clear')!;
+    expect(clearBtn.textContent).toBe('Clear');
+    act(() => clearBtn.click());
+
+    expect(localStorage.getItem(JUMP_RECENT_KEY)).toBeNull();
+    const groupsAfterClear = Array.from(el.querySelectorAll<HTMLElement>('[role="group"]'));
+    expect(groupsAfterClear[0]?.getAttribute('aria-label')).toBe('Pages');
+    expect(document.activeElement).toBe(el.querySelector('.jump-input'));
   });
 });
 

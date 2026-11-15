@@ -1,8 +1,8 @@
-import { Suspense, useEffect } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Link } from 'wouter';
 import { useI18n } from '../../i18n/index.ts';
 import { lessonLanguage } from '../../learn/lessons.ts';
-import { termBySlug } from '../../learn/terms.ts';
+import { TERM_GROUPS, termBySlug, type TermGroup } from '../../learn/terms.ts';
 import { NotFoundPage } from '../pages/NotFoundPage.tsx';
 import { LessonProvider } from './kit.tsx';
 import { LoadBoundary } from './LoadBoundary.tsx';
@@ -26,13 +26,54 @@ function Back({ to, label }: { to: string; label: string }) {
 export function TermsPage() {
   const { t, locale } = useI18n();
   const language = lessonLanguage(locale);
+  const [query, setQuery] = useState('');
+  const [group, setGroup] = useState<TermGroup | 'all'>('all');
+
   return (
     <section className="terms">
       <Back to="/learn" label={t('learn.all')} />
       <h1>{t('terms.title')}</h1>
       <p className="learn-lede">{t('terms.intro')}</p>
       {language === 'en' && locale !== 'en' && <p className="help">{t('learn.language')}</p>}
-      <TermsList language={language} />
+      <div className="library-toolbar library-filter">
+        <div className="library-search">
+          <input
+            type="search"
+            className="library-search-input"
+            placeholder={t('terms.search')}
+            aria-label={t('terms.searchLabel')}
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </div>
+        <div className="filter-pills" role="group" aria-label={t('terms.title')}>
+          <button
+            type="button"
+            className="filter-pill"
+            aria-pressed={group === 'all'}
+            onClick={() => setGroup('all')}
+          >
+            {t('terms.filterAll')}
+          </button>
+          {TERM_GROUPS.map((g) => (
+            <button
+              key={g.id}
+              type="button"
+              className="filter-pill"
+              aria-pressed={group === g.id}
+              onClick={() => setGroup(g.id)}
+            >
+              {g.title[language]}
+            </button>
+          ))}
+        </div>
+      </div>
+      <TermsList
+        language={language}
+        query={query}
+        group={group}
+        emptyMessage={t('terms.empty', { query: query.trim() })}
+      />
     </section>
   );
 }

@@ -2,22 +2,60 @@ import type { ReactNode } from 'react';
 import { Link } from 'wouter';
 import { useT } from '../../i18n/index.ts';
 import { lessonBySlug, type LessonInfo, type LessonLanguage } from '../../learn/lessons.ts';
-import { TERM_GROUPS, termBySlug, termsOf, type TermInfo } from '../../learn/terms.ts';
+import {
+  TERM_GROUPS,
+  termBySlug,
+  termsOf,
+  type TermGroup,
+  type TermInfo,
+} from '../../learn/terms.ts';
 
 // The glossary as the app and the site both draw it (docs/GLOSSARY.md): the list of terms by
 // group, and a term's entry around its text.
 
 const known = <T,>(items: readonly (T | undefined)[]): T[] => items.filter((x) => x !== undefined);
 
-/** Every term, by group, each with its definition. */
-export function TermsList({ language }: { language: LessonLanguage }) {
+export interface TermsListProps {
+  language: LessonLanguage;
+  query?: string;
+  group?: TermGroup | 'all';
+  emptyMessage?: string;
+}
+
+function termMatchesQuery(term: TermInfo, language: LessonLanguage, q: string): boolean {
+  if (!q) return true;
+  const candidates = [
+    term.title[language],
+    term.summary[language],
+    term.slug,
+    ...(term.also?.[language] ?? []),
+  ];
+  return candidates.some((text) => text.toLowerCase().includes(q));
+}
+
+/** Every term, by group, each with its definition; filters cleanly without client providers. */
+export function TermsList({ language, query, group = 'all', emptyMessage }: TermsListProps) {
+  const q = (query ?? '').trim().toLowerCase();
+  const filtered = q !== '' || group !== 'all';
+  const visibleGroups = group === 'all' ? TERM_GROUPS : TERM_GROUPS.filter((g) => g.id === group);
+  const sections = visibleGroups
+    .map((g) => ({
+      group: g,
+      terms: termsOf(g.id).filter((term) => termMatchesQuery(term, language, q)),
+    }))
+    .filter((section) => !filtered || section.terms.length > 0);
+
+  if (filtered && sections.length === 0) {
+    return <p className="muted library-empty">{emptyMessage ?? ''}</p>;
+  }
+
   return (
     <>
-      {TERM_GROUPS.map((group) => (
-        <section key={group.id} className="terms-group" aria-labelledby={`terms-${group.id}`}>
-          <h2 id={`terms-${group.id}`}>{group.title[language]}</h2>
+      {sections.map(({ group: g, terms }) => (
+        <section key={g.id} className="terms-group" aria-labelledby={`terms-${g.id}`}>
+          <h2 id={`terms-${g.id}`}>{g.title[language]}</h2>
           <ul className="terms-list">
-            {termsOf(group.id).map((term) => (
+            {terms.map((term) => (
               <li key={term.slug}>
                 <Link href={`/learn/terms/${term.slug}`} className="terms-row">
                   <span className="terms-name">{term.title[language]}</span>

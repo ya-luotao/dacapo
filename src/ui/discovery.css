@@ -131,3 +131,19 @@
     border-bottom-color: var(--accent);
   }
 }
+
+/* Pillar 4: glossary and imported-pieces filter toolbars */
+
+.terms .library-toolbar {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.terms .library-toolbar + .terms-group {
+  margin-top: 0;
+}
+
+.your-pieces .library-toolbar {
+  margin-top: 1.25rem;
+  margin-bottom: 1rem;
+}

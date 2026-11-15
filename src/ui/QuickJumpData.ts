@@ -1,18 +1,33 @@
+import { exerciseKey, handsAllowed, octavesOf, tonicsFor } from '../core/scales.ts';
+import {
+  SCALE_TYPES,
+  TECHNIQUE_TYPES,
+  type ExerciseType,
+  type ScaleExercise,
+  type ScaleHands,
+} from '../core/scaleTypes.ts';
 import type { StoredPiece } from '../core/storedPiece.ts';
+import { isTechnique, techniqueRules } from '../core/technique.ts';
 import type { Locale, MessageKey, Translate } from '../i18n/index.ts';
 import { EXTRAS, lessonLanguage, LESSONS } from '../learn/lessons.ts';
 import { TERM_GROUPS, TERMS, type TermGroup } from '../learn/terms.ts';
+import { readPref, writePref } from '../lib/localPrefs.ts';
 import { BUILT_IN } from '../pieces/library/index.ts';
+import { scaleStartPath } from './startParams.ts';
 
-export type JumpGroup = 'pages' | 'practices' | 'pieces' | 'lessons' | 'terms';
+export type JumpGroup = 'recent' | 'pages' | 'practices' | 'pieces' | 'lessons' | 'terms';
 
 export const JUMP_GROUPS: readonly JumpGroup[] = [
+  'recent',
   'pages',
   'practices',
   'pieces',
   'lessons',
   'terms',
 ];
+
+export const JUMP_RECENT_KEY = 'dacapo.jumpRecent';
+export const MAX_RECENT_JUMPS = 5;
 
 export interface JumpEntry {
   id: string;
@@ -51,6 +66,36 @@ const PAGE_DEFS: readonly { href: string; label: MessageKey; keywords?: string }
   { href: '/assignments', label: 'nav.assignments' },
   { href: '/settings', label: 'nav.settings' },
 ];
+
+/** Default valid scale/technique configuration used for Quick Jump deep-links. */
+function defaultScaleExercise(type: ExerciseType): ScaleExercise {
+  const forms = isTechnique(type) ? techniqueRules(type).variants : [];
+  const variant = forms.length > 0 ? forms[0] : undefined;
+  const tonics = tonicsFor(type, variant);
+  const tonic = tonics.includes('C') ? 'C' : tonics[0]!;
+  const lengths = octavesOf(type);
+  const octaves = lengths.includes(2) ? 2 : lengths[0]!;
+  const hands: ScaleHands = handsAllowed({ type, octaves }, 'right') ? 'right' : 'both';
+  return variant === undefined
+    ? { type, tonic, octaves, hands }
+    : { type, tonic, octaves, hands, variant };
+}
+
+function buildScalePracticeEntries(
+  types: readonly ExerciseType[],
+  groupLabel: string,
+  extraKeyword: string,
+  t: Translate,
+): JumpEntry[] {
+  return types.map((type) => ({
+    id: `scale:${type}`,
+    group: 'practices',
+    title: t(`scales.type.${type}`),
+    subtitle: `${t('nav.scales')} · ${groupLabel}`,
+    keywords: `${extraKeyword} ${type}`,
+    href: scaleStartPath({ exercise: exerciseKey(defaultScaleExercise(type)), click: null }),
+  }));
+}
 
 /** Builds all searchable Quick Jump entries in the active locale. */
 export function buildJumpEntries({
@@ -102,6 +147,13 @@ export function buildJumpEntries({
       keywords: `harmony ${practice}`,
       href: `/harmony?practice=${practice}`,
     })),
+    ...buildScalePracticeEntries(SCALE_TYPES, t('scales.pick.group.scales'), 'scales', t),
+    ...buildScalePracticeEntries(
+      TECHNIQUE_TYPES,
+      t('scales.pick.group.technique'),
+      'scales technique',
+      t,
+    ),
   ];
 
   const pieces: JumpEntry[] = [
@@ -157,4 +209,78 @@ export function filterJumpEntries(
     const haystack = `${entry.title} ${entry.subtitle ?? ''} ${entry.keywords ?? ''}`.toLowerCase();
     return tokens.every((token) => haystack.includes(token));
   });
+}
+
+/** Parses stored recent Quick Jump hrefs, discarding non-strings and deduping up to MAX_RECENT_JUMPS. */
+export function parseRecentJumps(raw: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const item of parsed) {
+      if (typeof item !== 'string' || item.length === 0 || seen.has(item)) continue;
+      seen.add(item);
+      result.push(item);
+      if (result.length >= MAX_RECENT_JUMPS) break;
+    }
+    return result;
+  } catch {
+    return [];
+  }
+}
+
+/** Reads stored recent Quick Jump hrefs from local preferences. */
+export function readRecentJumps(): string[] {
+  return parseRecentJumps(readPref(JUMP_RECENT_KEY));
+}
+
+/** Writes recent Quick Jump hrefs (or removes the pref when empty). */
+export function writeRecentJumps(hrefs: readonly string[]): void {
+  writePref(
+    JUMP_RECENT_KEY,
+    hrefs.length > 0 ? JSON.stringify(hrefs.slice(0, MAX_RECENT_JUMPS)) : null,
+  );
+}
+
+/** Prepends `href` to recent Quick Jump history (deduped, capped at 5) and returns the new list. */
+export function recordRecentJump(href: string): string[] {
+  const next = [href, ...readRecentJumps().filter((item) => item !== href)].slice(
+    0,
+    MAX_RECENT_JUMPS,
+  );
+  writeRecentJumps(next);
+  return next;
+}
+
+/** Clears stored recent Quick Jump history. */
+export function clearRecentJumps(): void {
+  writePref(JUMP_RECENT_KEY, null);
+}
+
+/** Resolves stored recent hrefs against `entries` in recency order, cloning each into `recent`. */
+export function resolveRecentEntries(
+  recentHrefs: readonly string[],
+  entries: readonly JumpEntry[],
+): JumpEntry[] {
+  const byHref = new Map<string, JumpEntry>();
+  for (const entry of entries) {
+    if (!byHref.has(entry.href)) byHref.set(entry.href, entry);
+  }
+  const resolved: JumpEntry[] = [];
+  const seen = new Set<string>();
+  for (const href of recentHrefs) {
+    if (seen.has(href)) continue;
+    const match = byHref.get(href);
+    if (!match) continue;
+    seen.add(href);
+    resolved.push({
+      ...match,
+      id: `recent:${match.id}`,
+      group: 'recent',
+    });
+    if (resolved.length >= MAX_RECENT_JUMPS) break;
+  }
+  return resolved;
 }
