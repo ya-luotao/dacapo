@@ -1,4 +1,14 @@
-import { useCallback, useEffect, useId, useMemo, useRef, type CSSProperties } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
+import { createPortal } from 'react-dom';
 import {
   BAR_BUCKETS,
   byBarWeakness,
@@ -139,22 +149,53 @@ export function BarTargets({
   cells,
   boxes,
   format,
+  onStartBar,
+  onLoopBar,
 }: {
   cells: readonly BarCell[];
   boxes: BarBoxes;
   format: BarFormat;
+  onStartBar?: (measure: number) => void;
+  onLoopBar?: (measure: number) => void;
 }) {
   const t = useT();
   const layer = useRef<HTMLDivElement>(null);
   const placed = cells.filter((c) => boxes.has(c.measure));
   const ids = useMemo(() => placed.map((c) => String(c.measure)), [placed]);
   const { shown, onKeyDown, cellProps, element } = useCellNavigation(ids);
-  const shownCell = placed.find((c) => String(c.measure) === shown) ?? null;
-  const anchor = useCallback(() => (shown ? element(shown) : null), [shown, element]);
-  const anchorKey = shownCell ? JSON.stringify(boxes.get(shownCell.measure)) : '';
+  const [openMeasure, setOpenMeasure] = useState<number | null>(null);
+  const hasActions = Boolean(onStartBar || onLoopBar);
+  const openCell =
+    hasActions && openMeasure !== null
+      ? (placed.find((c) => c.measure === openMeasure) ?? null)
+      : null;
+  const shownCell = openCell ? null : (placed.find((c) => String(c.measure) === shown) ?? null);
+  const previewAnchor = useCallback(() => (shown ? element(shown) : null), [shown, element]);
+  const openMeasureId = openCell ? String(openCell.measure) : null;
+  const dialogAnchor = useCallback(
+    () => (openMeasureId ? element(openMeasureId) : null),
+    [openMeasureId, element],
+  );
+  const anchorKey = shownCell
+    ? JSON.stringify(boxes.get(shownCell.measure))
+    : openCell
+      ? JSON.stringify(boxes.get(openCell.measure))
+      : '';
   const frameBounds = useCallback(
     () => layer.current?.closest('.score-frame')?.getBoundingClientRect() ?? null,
     [],
+  );
+
+  const closeDialog = useCallback(
+    (restoreFocus: boolean) => {
+      const restoreId = openMeasureId;
+      setOpenMeasure(null);
+      if (restoreFocus && restoreId) {
+        const target = element(restoreId);
+        if (target instanceof HTMLElement) target.focus({ preventScroll: true });
+      }
+    },
+    [openMeasureId, element],
   );
 
   return (
@@ -165,20 +206,32 @@ export function BarTargets({
       aria-label={t(WORDS[format.metric].group)}
       onKeyDown={onKeyDown}
     >
-      {placed.map((cell) => (
-        <button
-          key={cell.measure}
-          type="button"
-          className="bar-target"
-          style={place(boxes.get(cell.measure)!)}
-          aria-label={format.aria(cell)}
-          {...cellProps(String(cell.measure))}
-        />
-      ))}
+      {placed.map((cell) => {
+        const targetProps = cellProps(String(cell.measure));
+        const isOpen = openCell?.measure === cell.measure;
+        return (
+          <button
+            key={cell.measure}
+            type="button"
+            className={isOpen ? 'bar-target is-open' : 'bar-target'}
+            style={place(boxes.get(cell.measure)!)}
+            aria-label={format.aria(cell)}
+            aria-expanded={hasActions ? isOpen : undefined}
+            aria-haspopup={hasActions ? 'dialog' : undefined}
+            {...targetProps}
+            onClick={() => {
+              targetProps.onClick();
+              if (hasActions) {
+                setOpenMeasure((prev) => (prev === cell.measure ? null : cell.measure));
+              }
+            }}
+          />
+        );
+      })}
       {shownCell && (
         <Tooltip
           container={layer}
-          anchor={anchor}
+          anchor={previewAnchor}
           anchorKey={anchorKey}
           bounds={frameBounds}
           floating
@@ -186,11 +239,137 @@ export function BarTargets({
           <BarDetails cell={shownCell} format={format} />
         </Tooltip>
       )}
+      {openCell && (
+        <BarDetailsDialog
+          cell={openCell}
+          format={format}
+          layer={layer}
+          anchor={dialogAnchor}
+          anchorKey={anchorKey}
+          bounds={frameBounds}
+          onStartBar={onStartBar}
+          onLoopBar={onLoopBar}
+          onClose={closeDialog}
+        />
+      )}
     </div>
   );
 }
 
-function BarDetails({ cell, format }: { cell: BarCell; format: BarFormat }) {
+const DIALOG_GAP = 8;
+
+function BarDetailsDialog({
+  cell,
+  format,
+  layer,
+  anchor,
+  anchorKey,
+  bounds,
+  onStartBar,
+  onLoopBar,
+  onClose,
+}: {
+  cell: BarCell;
+  format: BarFormat;
+  layer: React.RefObject<HTMLDivElement | null>;
+  anchor: () => Element | null;
+  anchorKey: string;
+  bounds: () => DOMRect | null;
+  onStartBar?: (measure: number) => void;
+  onLoopBar?: (measure: number) => void;
+  onClose: (restoreFocus: boolean) => void;
+}) {
+  const dialog = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState<{ left: number; top: number }>({
+    left: DIALOG_GAP,
+    top: DIALOG_GAP,
+  });
+
+  useLayoutEffect(() => {
+    function placeDialog() {
+      const target = anchor();
+      const el = dialog.current;
+      if (!target || !el) return;
+      const a = target.getBoundingClientRect();
+      const visible = bounds();
+      if (visible && (a.bottom < visible.top || a.top > visible.bottom)) return;
+      const w = el.offsetWidth;
+      const h = el.offsetHeight;
+      const room = document.documentElement.clientWidth;
+      const left = Math.min(
+        Math.max(DIALOG_GAP, a.left + a.width / 2 - w / 2),
+        Math.max(DIALOG_GAP, room - w - DIALOG_GAP),
+      );
+      const above = a.top - h - DIALOG_GAP;
+      const below = a.bottom + DIALOG_GAP;
+      const rawTop = above >= DIALOG_GAP ? above : below;
+      const top = Math.max(DIALOG_GAP, Math.min(rawTop, window.innerHeight - h - DIALOG_GAP));
+      setPosition((p) => (p.left === left && p.top === top ? p : { left, top }));
+    }
+    placeDialog();
+    window.addEventListener('resize', placeDialog);
+    window.addEventListener('scroll', placeDialog, true);
+    return () => {
+      window.removeEventListener('resize', placeDialog);
+      window.removeEventListener('scroll', placeDialog, true);
+    };
+  }, [anchor, anchorKey, bounds]);
+
+  useEffect(() => {
+    dialog.current?.focus({ preventScroll: true });
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      onClose(true);
+    };
+    const onPointerDown = (e: PointerEvent) => {
+      const target = e.target;
+      if (!(target instanceof Node)) return;
+      if (dialog.current?.contains(target) || layer.current?.contains(target)) return;
+      onClose(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('pointerdown', onPointerDown);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('pointerdown', onPointerDown);
+    };
+  }, [layer, onClose]);
+
+  return createPortal(
+    <div
+      ref={dialog}
+      role="dialog"
+      tabIndex={-1}
+      aria-label={format.bar(cell)}
+      className="hm-tooltip is-floating bar-details-dialog"
+      style={{ left: position.left, top: position.top }}
+    >
+      <BarDetails
+        cell={cell}
+        format={format}
+        onStartBar={onStartBar}
+        onLoopBar={onLoopBar}
+        onClose={() => onClose(false)}
+      />
+    </div>,
+    document.body,
+  );
+}
+
+function BarDetails({
+  cell,
+  format,
+  onStartBar,
+  onLoopBar,
+  onClose,
+}: {
+  cell: BarCell;
+  format: BarFormat;
+  onStartBar?: (measure: number) => void;
+  onLoopBar?: (measure: number) => void;
+  onClose?: () => void;
+}) {
   const t = useT();
   const words = WORDS[format.metric];
   return (
@@ -231,6 +410,34 @@ function BarDetails({ cell, format }: { cell: BarCell; format: BarFormat }) {
       </dl>
       {cell.passes > 1 && <p className="hm-tooltip-note">{t('pieces.weak.passes')}</p>}
       {cell.steady && <p className="hm-tooltip-note">{t(words.steady)}</p>}
+      {(onStartBar || onLoopBar) && (
+        <div className="bar-details-actions">
+          {onStartBar && (
+            <button
+              type="button"
+              className="button is-compact"
+              onClick={() => {
+                onStartBar(cell.measure);
+                onClose?.();
+              }}
+            >
+              {t('pieces.bar.startHere', { bar: format.short(cell) })}
+            </button>
+          )}
+          {onLoopBar && (
+            <button
+              type="button"
+              className="button is-compact"
+              onClick={() => {
+                onLoopBar(cell.measure);
+                onClose?.();
+              }}
+            >
+              {t('pieces.bar.loopHere', { bar: format.short(cell) })}
+            </button>
+          )}
+        </div>
+      )}
     </>
   );
 }
