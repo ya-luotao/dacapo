@@ -32,7 +32,7 @@ interface TheorySetupProps {
   onLength: (length: SessionLength) => void;
   onHint: (hint: boolean) => void;
   onChordBy: (by: AnswerMode) => void;
-  onStart: () => void;
+  onStart: (level?: TheoryLevelId) => void;
 }
 
 /** The levels of one kind of theory card and the session's settings, laid out as Read's. */
@@ -63,6 +63,10 @@ export function TheorySetup(props: TheorySetupProps) {
               suggested={props.suggested === level.id}
               progress={props.progress.get(level.id)}
               onChange={() => props.onLevel(level.id)}
+              onDoubleClick={() => {
+                props.onLevel(level.id);
+                props.onStart(level.id);
+              }}
             />
           ))}
         </div>
@@ -129,15 +133,24 @@ interface LevelOptionProps {
   suggested: boolean;
   progress: TheoryLevelProgress | undefined;
   onChange: () => void;
+  onDoubleClick: () => void;
 }
 
-function LevelOption({ name, level, checked, suggested, progress, onChange }: LevelOptionProps) {
+function LevelOption({
+  name,
+  level,
+  checked,
+  suggested,
+  progress,
+  onChange,
+  onDoubleClick,
+}: LevelOptionProps) {
   const { t } = useI18n();
   const read = useReadFormat();
   const format = useTheoryFormat();
 
   return (
-    <label className={checked ? 'level is-checked' : 'level'}>
+    <label className={checked ? 'level is-checked' : 'level'} onDoubleClick={onDoubleClick}>
       <input type="radio" name={name} value={level.id} checked={checked} onChange={onChange} />
       <span className="level-id">{level.id}</span>
       <span className="level-body">

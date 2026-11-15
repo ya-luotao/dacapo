@@ -59,6 +59,7 @@ import { usePractice, usePracticeStore, useStorageStatus } from '../practice/con
 import { createReadController } from '../read/controller.ts';
 import {
   READ_CHOICE_GROUPS,
+  READ_CHOICES,
   readReadPrefs,
   writeReadPrefs,
   type ReadChoice,
@@ -137,8 +138,12 @@ function Read({ search }: { search: string }) {
   const [openedItems] = useState(() => parseLevelStart(search)?.items ?? null);
   const [prefs, setPrefs] = useState(() => {
     const stored = readReadPrefs();
-    if (!opened) return stored;
-    return { ...stored, choice: opened.choice === 'theory' ? opened.family : opened.choice };
+    if (opened) {
+      return { ...stored, choice: opened.choice === 'theory' ? opened.family : opened.choice };
+    }
+    const requested = new URLSearchParams(search).get('family');
+    const found = READ_CHOICES.find((c) => c === requested);
+    return found ? { ...stored, choice: found } : stored;
   });
   const { choice } = prefs;
 
@@ -231,6 +236,29 @@ function Read({ search }: { search: string }) {
           ? theoryLevelsOf(family).map((l) => theoryProgress.get(l.id))
           : progress.values(),
   );
+  const masteredCount =
+    choice === 'rhythm'
+      ? {
+          done: RHYTHM_LEVEL_IDS.filter((id) => rhythmProgress.get(id)?.mastered).length,
+          total: RHYTHM_LEVEL_IDS.length,
+        }
+      : choice === 'sight'
+        ? {
+            done: SIGHT_LEVEL_IDS.filter((id) => sightProgress.get(id)?.mastered).length,
+            total: SIGHT_LEVEL_IDS.length,
+          }
+        : family
+          ? (() => {
+              const levels = theoryLevelsOf(family);
+              return {
+                done: levels.filter((l) => theoryProgress.get(l.id)?.mastered).length,
+                total: levels.length,
+              };
+            })()
+          : {
+              done: LEVEL_IDS.filter((id) => progress.get(id)?.mastered).length,
+              total: LEVEL_IDS.length,
+            };
 
   // Fetch the notation font while the user picks a level, so the first card is not delayed.
   useEffect(loadMusicFont, []);
@@ -640,6 +668,7 @@ function Read({ search }: { search: string }) {
       ) : (
         <>
           <ReadChooser choice={choice} onChoice={(next) => changePrefs({ choice: next })} />
+          <p className="muted setup-mastered-count">{t('setup.masteredCount', masteredCount)}</p>
           <p className="muted read-intro">
             {t(
               choice === 'rhythm'
@@ -668,7 +697,7 @@ function Read({ search }: { search: string }) {
                 onTempo={(bpm) => changeRhythmPrefs(withTempo(rhythmPrefs, rhythmLevel, bpm))}
                 onPrefs={changeRhythmPrefs}
                 onCalibrate={() => setCalibrating(true)}
-                onStart={() => startRhythm(rhythmLevel)}
+                onStart={(next) => startRhythm(next ?? rhythmLevel)}
               />
               {calibrating && (
                 <CalibrationSheet
@@ -699,7 +728,7 @@ function Read({ search }: { search: string }) {
                 onTempo={(bpm) => changeSightPrefs(withSightTempo(sightPrefs, sightLevel, bpm))}
                 onPrefs={changeSightPrefs}
                 onCalibrate={() => setCalibrating(true)}
-                onStart={() => startSight(sightLevel)}
+                onStart={(next) => startSight(next ?? sightLevel)}
               />
               {calibrating && (
                 <CalibrationSheet
@@ -731,7 +760,7 @@ function Read({ search }: { search: string }) {
               onLength={setLength}
               onHint={setHint}
               onChordBy={(chordBy) => changePrefs({ chordBy })}
-              onStart={() => startTheory(theoryLevel)}
+              onStart={(next) => startTheory(next ?? theoryLevel)}
             />
           ) : (
             <ReadSetup
@@ -746,7 +775,7 @@ function Read({ search }: { search: string }) {
               }}
               onLength={setLength}
               onHint={setHint}
-              onStart={() => start(level)}
+              onStart={(next) => start(next ?? level)}
             />
           )}
         </>

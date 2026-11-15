@@ -11,6 +11,7 @@ import {
   ECHO_SESSION_LENGTHS,
   type EarLevelProgress,
 } from '../../core/earSession.ts';
+import { RHYTHM_EAR_LEVEL_IDS } from '../../core/rhythmEar.ts';
 import { SESSION_LENGTHS } from '../../core/session.ts';
 import { isTuneId } from '../../core/tuneList.ts';
 import { getTune, tuneKey } from '../../core/tunes.ts';
@@ -31,7 +32,7 @@ interface EarSetupProps {
   suggested: EarLevelId;
   onPrefs: (prefs: Partial<EarPrefs>) => void;
   onLevel: (level: EarLevelId) => void;
-  onStart: () => void;
+  onStart: (level?: EarLevelId) => void;
   /** No sound to play the prompts with. */
   startDisabled?: boolean;
   /** Rhythm (dictation): its own levels and settings. */
@@ -59,6 +60,19 @@ export function EarSetup({
   const family = prefs.family === 'rhythmEar' ? null : prefs.family;
   // The key of the tune chosen, as its lead sheet is written.
   const ownKey = isTuneId(level) ? tuneKey(getTune(level), 0) : null;
+  const mastered =
+    family === null
+      ? {
+          done: RHYTHM_EAR_LEVEL_IDS.filter((lid) => rhythm.progress.get(lid)?.mastered).length,
+          total: RHYTHM_EAR_LEVEL_IDS.length,
+        }
+      : (() => {
+          const levels = levelsOf(family);
+          return {
+            done: levels.filter((l) => progress.get(l.id)?.mastered).length,
+            total: levels.length,
+          };
+        })();
 
   return (
     <form
@@ -80,9 +94,14 @@ export function EarSetup({
           value={prefs.family}
           onChange={(family) => onPrefs({ family })}
         />
+        <p className="muted setup-mastered-count">{t('setup.masteredCount', mastered)}</p>
 
         {family === null ? (
-          <RhythmEarLevels {...rhythm} />
+          <RhythmEarLevels
+            {...rhythm}
+            onStart={rhythm.onStart ?? (() => onStart())}
+            startDisabled={rhythm.startDisabled ?? startDisabled}
+          />
         ) : (
           <fieldset className="field" aria-describedby={`${id}-rule`}>
             <legend>{t(tune ? 'ear.tune' : 'ear.level')}</legend>
@@ -96,6 +115,10 @@ export function EarSetup({
                   suggested={suggested === l.id}
                   progress={progress.get(l.id)}
                   onChange={() => onLevel(l.id)}
+                  onDoubleClick={() => {
+                    onLevel(l.id);
+                    if (!startDisabled) onStart(l.id);
+                  }}
                 />
               ))}
             </div>
@@ -213,15 +236,24 @@ interface LevelOptionProps {
   suggested: boolean;
   progress: EarLevelProgress | undefined;
   onChange: () => void;
+  onDoubleClick: () => void;
 }
 
-function LevelOption({ name, level, checked, suggested, progress, onChange }: LevelOptionProps) {
+function LevelOption({
+  name,
+  level,
+  checked,
+  suggested,
+  progress,
+  onChange,
+  onDoubleClick,
+}: LevelOptionProps) {
   const t = useT();
   const read = useReadFormat();
   const format = useEarFormat();
 
   return (
-    <label className={checked ? 'level is-checked' : 'level'}>
+    <label className={checked ? 'level is-checked' : 'level'} onDoubleClick={onDoubleClick}>
       <input type="radio" name={name} value={level.id} checked={checked} onChange={onChange} />
       <span className="level-id">{format.levelId(level.id)}</span>
       <span className="level-body">

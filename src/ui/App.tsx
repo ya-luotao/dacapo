@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { Route, Router, Switch } from 'wouter';
 import { Footer } from './Footer.tsx';
 import { useHashRoute } from './hashRoute.ts';
@@ -72,6 +72,8 @@ const AssignmentEditPage = lazy(() =>
 const AssignmentOpenPage = lazy(() =>
   import('./assignments/AssignmentOpenPage.tsx').then((m) => ({ default: m.AssignmentOpenPage })),
 );
+// Quick jump searches pieces, lessons and glossary terms, so load it only when opened.
+const QuickJump = lazy(() => import('./QuickJump.tsx'));
 
 export function App() {
   return (
@@ -83,9 +85,30 @@ export function App() {
 
 function Shell() {
   useDocumentTitle();
+  const [jumpOpen, setJumpOpen] = useState(false);
+  const [jumpMounted, setJumpMounted] = useState(false);
+
+  const openJump = useCallback(() => {
+    setJumpMounted(true);
+    setJumpOpen(true);
+  }, []);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
+      if (!(event.metaKey || event.ctrlKey) || event.altKey) return;
+      if (event.key.toLowerCase() !== 'k') return;
+      event.preventDefault();
+      setJumpMounted(true);
+      setJumpOpen((was) => !was);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
   return (
     <div className="shell">
-      <Sidebar />
+      <Sidebar onOpenJump={openJump} />
       <div className="shell-page">
         <main className="main" id="main">
           <StorageNotice />
@@ -140,6 +163,9 @@ function Shell() {
         </main>
         <Footer />
       </div>
+      <Suspense fallback={null}>
+        {jumpMounted && <QuickJump open={jumpOpen} onClose={() => setJumpOpen(false)} />}
+      </Suspense>
     </div>
   );
 }

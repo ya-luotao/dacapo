@@ -22,7 +22,7 @@ interface ChordsSetupProps {
   onLevel: (level: HarmonyLevelId) => void;
   onLength: (length: SessionLength) => void;
   onHint: (hint: boolean) => void;
-  onStart: () => void;
+  onStart: (level?: HarmonyLevelId) => void;
 }
 
 /** The levels of Chords and the session's settings, laid out as Read's. */
@@ -52,6 +52,10 @@ export function ChordsSetup(props: ChordsSetupProps) {
               suggested={props.suggested === level}
               progress={props.progress.get(level)}
               onChange={() => props.onLevel(level)}
+              onDoubleClick={() => {
+                props.onLevel(level);
+                props.onStart(level);
+              }}
             />
           ))}
         </div>
@@ -104,15 +108,24 @@ interface LevelOptionProps {
   suggested: boolean;
   progress: HarmonyLevelProgress | undefined;
   onChange: () => void;
+  onDoubleClick: () => void;
 }
 
-function LevelOption({ name, level, checked, suggested, progress, onChange }: LevelOptionProps) {
+function LevelOption({
+  name,
+  level,
+  checked,
+  suggested,
+  progress,
+  onChange,
+  onDoubleClick,
+}: LevelOptionProps) {
   const { t } = useI18n();
   const read = useReadFormat();
   const format = useHarmonyFormat();
 
   return (
-    <label className={checked ? 'level is-checked' : 'level'}>
+    <label className={checked ? 'level is-checked' : 'level'} onDoubleClick={onDoubleClick}>
       <input type="radio" name={name} value={level} checked={checked} onChange={onChange} />
       <span className="level-id">{level}</span>
       <span className="level-body">

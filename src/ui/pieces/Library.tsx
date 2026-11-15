@@ -1,8 +1,10 @@
 import { useId, useMemo, useState } from 'react';
 import { Link } from 'wouter';
+import { fitsKeys, isFullKeys } from '../../core/instrument.ts';
 import { useT } from '../../i18n/index.ts';
 import { BUILT_IN, type BuiltInPiece } from '../../pieces/library/index.ts';
 import incipits from '../../pieces/library/incipits.json';
+import { useInstrumentKeys } from '../instrument.ts';
 import { usePieceFormat } from './format.ts';
 import { PieceBeyond } from './PieceBeyond.tsx';
 import { PieceProgress } from './PieceProgress.tsx';
@@ -19,8 +21,11 @@ export function Library({ finished }: { finished: ReadonlySet<string> | null }) 
   const t = useT();
   const format = usePieceFormat();
   const id = useId();
+  const keys = useInstrumentKeys();
+  const narrowKeys = !isFullKeys(keys);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<StatusFilter>('all');
+  const [onlyFits, setOnlyFits] = useState(false);
 
   const pieces = BUILT_IN.filter((p) => !p.leadSheet);
   const leadSheets = BUILT_IN.filter((p) => p.leadSheet).sort((a, b) => a.level - b.level);
@@ -28,11 +33,13 @@ export function Library({ finished }: { finished: ReadonlySet<string> | null }) 
 
   const normalizedQuery = query.trim().toLowerCase();
   const activeFilter = finished ? filter : 'all';
+  const activeOnlyFits = narrowKeys && onlyFits;
 
   const matches = useMemo(
     () => (piece: BuiltInPiece) => {
       if (activeFilter === 'played' && !finished?.has(piece.id)) return false;
       if (activeFilter === 'unplayed' && finished?.has(piece.id)) return false;
+      if (activeOnlyFits && piece.facts.keys && !fitsKeys(piece.facts.keys, keys)) return false;
       if (!normalizedQuery) return true;
       const haystack = [
         t(`library.${piece.id}.title`),
@@ -44,7 +51,7 @@ export function Library({ finished }: { finished: ReadonlySet<string> | null }) 
         .toLowerCase();
       return haystack.includes(normalizedQuery);
     },
-    [activeFilter, finished, normalizedQuery, t],
+    [activeFilter, activeOnlyFits, finished, keys, normalizedQuery, t],
   );
 
   const levelGroups = levels
@@ -111,6 +118,16 @@ export function Library({ finished }: { finished: ReadonlySet<string> | null }) 
               ))}
             </div>
           </fieldset>
+        )}
+        {narrowKeys && (
+          <label className="check library-filter-fits">
+            <input
+              type="checkbox"
+              checked={onlyFits}
+              onChange={(e) => setOnlyFits(e.target.checked)}
+            />
+            <span>{t('pieces.filter.fits')}</span>
+          </label>
         )}
       </div>
       {nothingShown ? (

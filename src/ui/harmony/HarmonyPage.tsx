@@ -120,7 +120,10 @@ function Harmony({ search }: { search: string }) {
   const [hint, setHint] = useState(false);
   const [prefs, setPrefs] = useState(() => {
     const stored = readHarmonyPrefs();
-    return opened ? { ...stored, practice: 'chords' as const } : stored;
+    if (opened) return { ...stored, practice: 'chords' as const };
+    const requested = new URLSearchParams(search).get('practice');
+    const found = HARMONY_PRACTICES.find((p) => p === requested);
+    return found ? { ...stored, practice: found } : stored;
   });
   // Else on the level picked last until that one is mastered, else on the suggestion; a level
   // picked or started here stays while the page does.
@@ -327,7 +330,7 @@ function Harmony({ search }: { search: string }) {
                 }}
                 onLength={setLength}
                 onHint={setHint}
-                onStart={() => start(level)}
+                onStart={(next) => start(next ?? level)}
               />
             </PracticeSection>
           ) : prefs.practice === 'progressions' ? (

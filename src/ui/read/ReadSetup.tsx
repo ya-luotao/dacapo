@@ -19,7 +19,7 @@ interface ReadSetupProps {
   onLevel: (level: LevelId) => void;
   onLength: (length: SessionLength) => void;
   onHint: (hint: boolean) => void;
-  onStart: () => void;
+  onStart: (level?: LevelId) => void;
 }
 
 export function ReadSetup(props: ReadSetupProps) {
@@ -52,6 +52,10 @@ export function ReadSetup(props: ReadSetupProps) {
               suggested={props.suggested === level.id}
               progress={props.progress.get(level.id)}
               onChange={() => props.onLevel(level.id)}
+              onDoubleClick={() => {
+                props.onLevel(level.id);
+                if (canDraw(notesOnKeys(level.notes, keys))) props.onStart(level.id);
+              }}
             />
           ))}
         </div>
@@ -114,6 +118,7 @@ interface LevelOptionProps {
   suggested: boolean;
   progress: LevelProgress | undefined;
   onChange: () => void;
+  onDoubleClick: () => void;
 }
 
 function LevelOption({
@@ -124,6 +129,7 @@ function LevelOption({
   suggested,
   progress,
   onChange,
+  onDoubleClick,
 }: LevelOptionProps) {
   const t = useT();
   const format = useReadFormat();
@@ -132,7 +138,7 @@ function LevelOption({
     level.clefs.length === 2 ? t('read.level.both') : t(`read.level.${level.clefs[0]!}`);
 
   return (
-    <label className={checked ? 'level is-checked' : 'level'}>
+    <label className={checked ? 'level is-checked' : 'level'} onDoubleClick={onDoubleClick}>
       <input type="radio" name={name} value={level.id} checked={checked} onChange={onChange} />
       <span className="level-id">{level.id}</span>
       <span className="level-body">

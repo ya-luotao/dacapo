@@ -163,3 +163,24 @@ export function practiceLinkPath(link: PracticeLink): string {
       return piecePath(link.id);
   }
 }
+
+/** Whether a route query string marks the page as opened from Today's plan. */
+export function isTodayOrigin(search: string): boolean {
+  return new URLSearchParams(search).get('from') === 'today';
+}
+
+/**
+ * Preserves any `#hash` fragment and appends `from=today` (using `?` or `&`) unless already
+ * present, returning the updated path.
+ */
+export function withTodayOrigin(href: string): string {
+  const hashAt = href.indexOf('#');
+  const base = hashAt < 0 ? href : href.slice(0, hashAt);
+  const hash = hashAt < 0 ? '' : href.slice(hashAt);
+  const qAt = base.indexOf('?');
+  if (qAt < 0) return `${base}?from=today${hash}`;
+  const search = base.slice(qAt + 1);
+  if (isTodayOrigin(search)) return href;
+  const sep = search.length === 0 || search.endsWith('&') ? '' : '&';
+  return `${base}${sep}from=today${hash}`;
+}

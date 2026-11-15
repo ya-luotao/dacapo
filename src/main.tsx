@@ -17,6 +17,10 @@ import { SyncProvider } from './ui/sync/SyncProvider.tsx';
 import { applyTheme, readStoredTheme } from './ui/theme.ts';
 import './ui/fonts/fonts.css';
 import './ui/styles.css';
+import './ui/today/todayFlow.css';
+import './ui/pieces/scoreUx.css';
+import './ui/quickJump.css';
+import './ui/discovery.css';
 
 applyTheme(readStoredTheme());
 

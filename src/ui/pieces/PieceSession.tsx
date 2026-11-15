@@ -90,7 +90,8 @@ import {
   withStart,
   writePiecePrefs,
 } from './prefs.ts';
-import { startLoop, type PieceStart } from '../startParams.ts';
+import { useRouteSearch } from '../hashRoute.ts';
+import { isTodayOrigin, startLoop, type PieceStart } from '../startParams.ts';
 import {
   givenNotes,
   recordedRun,
@@ -184,7 +185,12 @@ export function PieceSession({
   start?: PieceStart | null;
 }) {
   const t = useT();
-  const backTo = back ?? { href: '/pieces', label: t('pieces.back') };
+  const fromToday = isTodayOrigin(useRouteSearch());
+  const backTo =
+    back ??
+    (fromToday
+      ? { href: '/', label: t('today.flow.back') }
+      : { href: '/pieces', label: t('pieces.back') });
   const [prefs] = useState(() => withStart(readPiecePrefs(piece.id), start));
   // The left hand: as written, or a pattern made from the chord symbols and written into the
   // score (docs/HARMONY.md, "Lead sheets (H3)"). A progression's pattern is its own.
@@ -971,6 +977,21 @@ export function PieceSession({
     writePiecePrefs(piece.id, { trillStart: next });
   }
 
+  /** Starts at a clicked bar from the score, clearing an incompatible loop. */
+  function pickStartBar(measure: number) {
+    if (loop && (measure < loop.from || measure > loop.to)) setLoop(null);
+    setStartBar(measure);
+    dispatchRhythm({ type: 'reset', id: newRunId() });
+    settle();
+  }
+
+  /** Clears the active bar loop from the score or loop control. */
+  function clearLoop() {
+    setLoop(null);
+    dispatchRhythm({ type: 'reset', id: newRunId() });
+    settle();
+  }
+
   /** Loops written bars from an Expression panel: the next run plays them. */
   function loopBars(from: number, to: number) {
     setRunsOpen(false);
@@ -1173,6 +1194,10 @@ export function PieceSession({
         : null,
     [rhythmMode, rhythm],
   );
+
+  const planAvailable = planOf.phrases.length > 0;
+  const weakAvailable = weakBars || heat.cells.some((c) => c.runs > 0);
+  const showSoundGroup = hands !== 'both' || rhythmMode;
 
   // The run's expression, from its take (docs/EXPRESSION.md): once it is over, and again as the
   // keys held at the end are let go.
@@ -1416,12 +1441,21 @@ export function PieceSession({
       if (
         e.target instanceof Element &&
         e.target.closest(
-          'button, a, summary, input, select, textarea, [role="button"], [role="slider"]',
+          'button, a, summary, input, select, textarea, [role="button"], [role="slider"], [role="dialog"], [contenteditable], [contenteditable="true"]',
         )
       )
         return;
-      if (calibration !== null || calibrating || runsOpen || table || options.current?.open) return;
+      if (
+        calibration !== null ||
+        calibrating ||
+        runsOpen ||
+        table ||
+        options.current?.open ||
+        document.querySelector('[role="dialog"], [aria-modal="true"]') !== null
+      )
+        return;
       if (e.code === 'Space') {
+        if ((summary !== null || rhythmSummary !== null) && playback === null) return;
         if (playback) {
           e.preventDefault();
           togglePlayback();
@@ -1430,7 +1464,7 @@ export function PieceSession({
             e.preventDefault();
             onStart();
           }
-        } else if (hasOutput && plan) {
+        } else if (hasOutput && plan && !inTime) {
           e.preventDefault();
           onListen();
         }
@@ -1594,10 +1628,7 @@ export function PieceSession({
               className="button-icon"
               aria-label={t('pieces.loop.clear')}
               title={t('pieces.loop.clear')}
-              onClick={() => {
-                setLoop(null);
-                settle();
-              }}
+              onClick={clearLoop}
             >
               <svg viewBox="0 0 16 16" aria-hidden="true">
                 <path d="M4 4l8 8M12 4l-8 8" />
@@ -1631,6 +1662,46 @@ export function PieceSession({
           </span>
         </label>
 
+        <div className="piece-quick-toggles">
+          {planAvailable && (
+            <button
+              type="button"
+              className="button is-compact piece-quick-toggle"
+              aria-pressed={planShown}
+              onClick={() => {
+                setPlanShown(!planShown);
+                settle();
+              }}
+            >
+              {t('pieces.plan')}
+            </button>
+          )}
+          {weakAvailable && (
+            <button
+              type="button"
+              className="button is-compact piece-quick-toggle"
+              aria-pressed={weakBars}
+              onClick={() => {
+                setWeakBars(!weakBars);
+                settle();
+              }}
+            >
+              {t('pieces.weak')}
+            </button>
+          )}
+          <button
+            type="button"
+            className="button is-compact piece-quick-toggle"
+            aria-pressed={showKeys}
+            onClick={() => {
+              setShowKeys(!showKeys);
+              settle();
+            }}
+          >
+            {t('pieces.keys.short')}
+          </button>
+        </div>
+
         <details
           className="piece-options"
           ref={options}
@@ -1644,287 +1715,303 @@ export function PieceSession({
         >
           <summary className="button is-compact">{t('pieces.options')}</summary>
           <div className="piece-options-panel">
-            {memoryMode && <MemoryStageSelect stage={stage} onChange={setStage} />}
+            <div className="piece-options-group">
+              <p className="piece-options-heading">{t('pieces.options.group.score')}</p>
+              {memoryMode && <MemoryStageSelect stage={stage} onChange={setStage} />}
 
-            {canTranspose && (
+              {canTranspose && (
+                <label className="piece-option">
+                  <span className="piece-control-label">{t('pieces.key')}</span>
+                  <select
+                    className="is-compact"
+                    aria-describedby={`${showKeysId}-key`}
+                    value={transpose}
+                    onChange={(e) => setTranspose(Number(e.target.value))}
+                  >
+                    {[...TRANSPOSITIONS].reverse().map((n) => {
+                      const key = keyName(transposedKey(writtenKey, n));
+                      return (
+                        <option key={n} value={n}>
+                          {n === 0
+                            ? t('pieces.key.written', { key })
+                            : t('pieces.key.moved', { key, shift: shiftText(n) })}
+                        </option>
+                      );
+                    })}
+                  </select>
+                  <span id={`${showKeysId}-key`} className="visually-hidden">
+                    {t('pieces.key.help')}
+                  </span>
+                </label>
+              )}
+
+              {patterns.length > 0 && (
+                <label className="piece-option">
+                  <span className="piece-control-label">{t('pieces.leftHand')}</span>
+                  <select
+                    className="is-compact"
+                    aria-describedby={`${showKeysId}-lefthand`}
+                    value={leftHand}
+                    onChange={(e) => setLeftHand(e.target.value as LeftHandChoice)}
+                  >
+                    <option value="written">{t('pieces.leftHand.written')}</option>
+                    <optgroup label={t('pieces.leftHand.symbols')}>
+                      {patterns.map((pattern) => (
+                        <option key={pattern} value={pattern}>
+                          {t(`harmony.pattern.${pattern}`)}
+                        </option>
+                      ))}
+                    </optgroup>
+                  </select>
+                  <span id={`${showKeysId}-lefthand`} className="visually-hidden">
+                    {t('pieces.leftHand.help')}
+                  </span>
+                </label>
+              )}
+
               <label className="piece-option">
-                <span className="piece-control-label">{t('pieces.key')}</span>
+                <span className="piece-control-label">{t('pieces.start')}</span>
                 <select
                   className="is-compact"
-                  aria-describedby={`${showKeysId}-key`}
-                  value={transpose}
-                  onChange={(e) => setTranspose(Number(e.target.value))}
+                  aria-label={t('pieces.start.label')}
+                  value={startBar}
+                  onChange={(e) => setStartBar(Number(e.target.value))}
                 >
-                  {[...TRANSPOSITIONS].reverse().map((n) => {
-                    const key = keyName(transposedKey(writtenKey, n));
-                    return (
-                      <option key={n} value={n}>
-                        {n === 0
-                          ? t('pieces.key.written', { key })
-                          : t('pieces.key.moved', { key, shift: shiftText(n) })}
-                      </option>
-                    );
-                  })}
+                  {barOptions}
                 </select>
-                <span id={`${showKeysId}-key`} className="visually-hidden">
-                  {t('pieces.key.help')}
-                </span>
               </label>
-            )}
 
-            {patterns.length > 0 && (
-              <label className="piece-option">
-                <span className="piece-control-label">{t('pieces.leftHand')}</span>
-                <select
-                  className="is-compact"
-                  aria-describedby={`${showKeysId}-lefthand`}
-                  value={leftHand}
-                  onChange={(e) => setLeftHand(e.target.value as LeftHandChoice)}
-                >
-                  <option value="written">{t('pieces.leftHand.written')}</option>
-                  <optgroup label={t('pieces.leftHand.symbols')}>
-                    {patterns.map((pattern) => (
-                      <option key={pattern} value={pattern}>
-                        {t(`harmony.pattern.${pattern}`)}
-                      </option>
+              {hasRepeats && (
+                <fieldset className="piece-option">
+                  <legend className="visually-hidden">{t('pieces.repeats')}</legend>
+                  <span className="piece-control-label" aria-hidden="true">
+                    {t('pieces.repeats')}
+                  </span>
+                  <div className="segmented is-compact">
+                    {(['play', 'skip'] as const).map((choice) => (
+                      <label key={choice}>
+                        <input
+                          type="radio"
+                          name={`${showKeysId}-repeats`}
+                          value={choice}
+                          checked={repeats === choice}
+                          onChange={() => {
+                            setRepeats(choice);
+                            setLoop(null);
+                          }}
+                        />
+                        <span>{t(`pieces.repeats.${choice}`)}</span>
+                      </label>
                     ))}
-                  </optgroup>
-                </select>
-                <span id={`${showKeysId}-lefthand`} className="visually-hidden">
-                  {t('pieces.leftHand.help')}
-                </span>
-              </label>
-            )}
+                  </div>
+                </fieldset>
+              )}
 
-            <label className="piece-option">
-              <span className="piece-control-label">{t('pieces.start')}</span>
-              <select
-                className="is-compact"
-                aria-label={t('pieces.start.label')}
-                value={startBar}
-                onChange={(e) => setStartBar(Number(e.target.value))}
-              >
-                {barOptions}
-              </select>
-            </label>
+              {hasTrill && (
+                <fieldset className="piece-option">
+                  <legend className="visually-hidden">{t('pieces.trillStart')}</legend>
+                  <span className="piece-control-label" aria-hidden="true">
+                    {t('pieces.trillStart')}
+                  </span>
+                  <div className="segmented is-compact">
+                    {(['principal', 'upper'] as const).map((choice) => (
+                      <label key={choice}>
+                        <input
+                          type="radio"
+                          name={`${showKeysId}-trill`}
+                          value={choice}
+                          checked={trillStart === choice}
+                          onChange={() => setTrillStart(choice)}
+                        />
+                        <span>{t(`pieces.trillStart.${choice}`)}</span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              )}
 
-            {hasRepeats && (
-              <fieldset className="piece-option">
-                <legend className="visually-hidden">{t('pieces.repeats')}</legend>
-                <span className="piece-control-label" aria-hidden="true">
-                  {t('pieces.repeats')}
-                </span>
-                <div className="segmented is-compact">
-                  {(['play', 'skip'] as const).map((choice) => (
-                    <label key={choice}>
-                      <input
-                        type="radio"
-                        name={`${showKeysId}-repeats`}
-                        value={choice}
-                        checked={repeats === choice}
-                        onChange={() => {
-                          setRepeats(choice);
-                          setLoop(null);
-                        }}
-                      />
-                      <span>{t(`pieces.repeats.${choice}`)}</span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
-            )}
-
-            {hasTrill && (
-              <fieldset className="piece-option">
-                <legend className="visually-hidden">{t('pieces.trillStart')}</legend>
-                <span className="piece-control-label" aria-hidden="true">
-                  {t('pieces.trillStart')}
-                </span>
-                <div className="segmented is-compact">
-                  {(['principal', 'upper'] as const).map((choice) => (
-                    <label key={choice}>
-                      <input
-                        type="radio"
-                        name={`${showKeysId}-trill`}
-                        value={choice}
-                        checked={trillStart === choice}
-                        onChange={() => setTrillStart(choice)}
-                      />
-                      <span>{t(`pieces.trillStart.${choice}`)}</span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
-            )}
-
-            {rhythmMode && (
-              <fieldset className="piece-option">
-                <legend className="visually-hidden">{t('pieces.click')}</legend>
-                <span className="piece-control-label" aria-hidden="true">
-                  {t('pieces.click')}
-                </span>
-                <div className="segmented is-compact">
-                  {CLICK_MODES.map((choice) => (
-                    <label key={choice}>
-                      <input
-                        type="radio"
-                        name={`${showKeysId}-click`}
-                        value={choice}
-                        checked={clickMode === choice}
-                        onChange={() => {
-                          setClickModeState(choice);
-                          writeClickMode(choice);
-                        }}
-                      />
-                      <span>{t(`pieces.click.${choice}`)}</span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
-            )}
-
-            {rhythmMode && (
-              <label className="piece-option">
-                <span className="piece-control-label">{t('pieces.click.volume')}</span>
-                <input
-                  type="range"
-                  className="piece-volume"
-                  min={0}
-                  max={100}
-                  step={5}
-                  value={volume}
-                  disabled={clickMode === 'off'}
-                  onChange={(e) => {
-                    setVolumeState(Number(e.target.value));
-                    writeClickVolume(Number(e.target.value));
-                  }}
-                />
-              </label>
-            )}
-
-            <div className="piece-option-checks">
-              {hands !== 'both' && (
+              <div className="piece-option-checks">
                 <label className="check">
                   <input
                     type="checkbox"
-                    checked={accompany && hasOutput}
-                    disabled={!hasOutput}
-                    onChange={(e) => setAccompany(e.target.checked)}
-                    aria-describedby={`${showKeysId}-accompany`}
+                    checked={showKeys}
+                    onChange={(e) => setShowKeys(e.target.checked)}
+                    aria-describedby={`${showKeysId}-keys`}
                   />
-                  <span>{t('pieces.accompany')}</span>
+                  <span>{t('pieces.showKeys')}</span>
                 </label>
-              )}
-              <span id={`${showKeysId}-accompany`} className="visually-hidden">
-                {t('pieces.accompany.help')}
-              </span>
-              <label className="check">
-                <input
-                  type="checkbox"
-                  checked={showKeys}
-                  onChange={(e) => setShowKeys(e.target.checked)}
-                  aria-describedby={`${showKeysId}-keys`}
-                />
-                <span>{t('pieces.showKeys')}</span>
-              </label>
-              <span id={`${showKeysId}-keys`} className="visually-hidden">
-                {t('pieces.showKeys.help')}
-              </span>
-              <label className="check">
-                <input
-                  type="checkbox"
-                  checked={weakBars}
-                  onChange={(e) => setWeakBars(e.target.checked)}
-                  aria-describedby={`${showKeysId}-weak`}
-                />
-                <span>{t('pieces.weak')}</span>
-              </label>
-              <span id={`${showKeysId}-weak`} className="visually-hidden">
-                {t('pieces.weak.help')}
-              </span>
-              <label className="check">
-                <input
-                  type="checkbox"
-                  checked={planShown}
-                  onChange={(e) => setPlanShown(e.target.checked)}
-                  aria-describedby={`${showKeysId}-plan`}
-                />
-                <span>{t('pieces.plan')}</span>
-              </label>
-              <span id={`${showKeysId}-plan`} className="visually-hidden">
-                {t('pieces.plan.help')}
-              </span>
-              {EXPRESSION_ASPECTS.map((aspect) => (
-                <label key={aspect} className="check">
+                <span id={`${showKeysId}-keys`} className="visually-hidden">
+                  {t('pieces.showKeys.help')}
+                </span>
+                <label className="check">
                   <input
                     type="checkbox"
-                    checked={aspects.includes(aspect)}
-                    onChange={(e) => setAspect(aspect, e.target.checked)}
-                    aria-describedby={`${showKeysId}-judge`}
+                    checked={weakBars}
+                    onChange={(e) => setWeakBars(e.target.checked)}
+                    aria-describedby={`${showKeysId}-weak`}
                   />
-                  <span>{t(`pieces.expression.judge.${aspect}`)}</span>
+                  <span>{t('pieces.weak')}</span>
                 </label>
-              ))}
-              <span id={`${showKeysId}-judge`} className="visually-hidden">
-                {t('pieces.expression.judge.help')}
-              </span>
+                <span id={`${showKeysId}-weak`} className="visually-hidden">
+                  {t('pieces.weak.help')}
+                </span>
+                <label className="check">
+                  <input
+                    type="checkbox"
+                    checked={planShown}
+                    onChange={(e) => setPlanShown(e.target.checked)}
+                    aria-describedby={`${showKeysId}-plan`}
+                  />
+                  <span>{t('pieces.plan')}</span>
+                </label>
+                <span id={`${showKeysId}-plan`} className="visually-hidden">
+                  {t('pieces.plan.help')}
+                </span>
+                {EXPRESSION_ASPECTS.map((aspect) => (
+                  <label key={aspect} className="check">
+                    <input
+                      type="checkbox"
+                      checked={aspects.includes(aspect)}
+                      onChange={(e) => setAspect(aspect, e.target.checked)}
+                      aria-describedby={`${showKeysId}-judge`}
+                    />
+                    <span>{t(`pieces.expression.judge.${aspect}`)}</span>
+                  </label>
+                ))}
+                <span id={`${showKeysId}-judge`} className="visually-hidden">
+                  {t('pieces.expression.judge.help')}
+                </span>
+              </div>
             </div>
 
-            <p className="piece-option piece-review-option">
-              <label className="check">
-                <input
-                  type="checkbox"
-                  checked={!reviewOut}
-                  onChange={(e) => store.setPieceReview(piece.id, e.target.checked)}
-                  aria-describedby={`${showKeysId}-review`}
-                />
-                <span>{t('pieces.review.option')}</span>
-              </label>
-              <span id={`${showKeysId}-review`} className="muted">
-                {reviewOut
-                  ? t('pieces.review.out.help')
-                  : !review
-                    ? t('pieces.review.none')
-                    : review.status.isDue
-                      ? t('pieces.review.due.help')
-                      : t('pieces.review.next.date', {
-                          date: format.date(Date.parse(`${review.schedule.due}T12:00:00`)),
-                        })}
-              </span>
-            </p>
+            {showSoundGroup && (
+              <div className="piece-options-group">
+                <p className="piece-options-heading">{t('pieces.options.group.sound')}</p>
+                {hands !== 'both' && (
+                  <div className="piece-option-checks">
+                    <label className="check">
+                      <input
+                        type="checkbox"
+                        checked={accompany && hasOutput}
+                        disabled={!hasOutput}
+                        onChange={(e) => setAccompany(e.target.checked)}
+                        aria-describedby={`${showKeysId}-accompany`}
+                      />
+                      <span>{t('pieces.accompany')}</span>
+                    </label>
+                    <span id={`${showKeysId}-accompany`} className="visually-hidden">
+                      {t('pieces.accompany.help')}
+                    </span>
+                  </div>
+                )}
 
-            <p className="piece-option">
-              <button
-                type="button"
-                className="button is-compact"
-                disabled={inTime}
-                onClick={() => {
-                  if (options.current) options.current.open = false;
-                  setRunsOpen(true);
-                }}
-              >
-                {t('pieces.runs')}
-              </button>
-            </p>
+                {rhythmMode && (
+                  <fieldset className="piece-option">
+                    <legend className="visually-hidden">{t('pieces.click')}</legend>
+                    <span className="piece-control-label" aria-hidden="true">
+                      {t('pieces.click')}
+                    </span>
+                    <div className="segmented is-compact">
+                      {CLICK_MODES.map((choice) => (
+                        <label key={choice}>
+                          <input
+                            type="radio"
+                            name={`${showKeysId}-click`}
+                            value={choice}
+                            checked={clickMode === choice}
+                            onChange={() => {
+                              setClickModeState(choice);
+                              writeClickMode(choice);
+                            }}
+                          />
+                          <span>{t(`pieces.click.${choice}`)}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+                )}
 
-            {rhythmMode && (
-              <p className="piece-option piece-latency">
-                <span>
-                  {latency ? t('pieces.latency', { ms: latency.offset }) : t('pieces.latency.none')}
+                {rhythmMode && (
+                  <label className="piece-option">
+                    <span className="piece-control-label">{t('pieces.click.volume')}</span>
+                    <input
+                      type="range"
+                      className="piece-volume"
+                      min={0}
+                      max={100}
+                      step={5}
+                      value={volume}
+                      disabled={clickMode === 'off'}
+                      onChange={(e) => {
+                        setVolumeState(Number(e.target.value));
+                        writeClickVolume(Number(e.target.value));
+                      }}
+                    />
+                  </label>
+                )}
+
+                {rhythmMode && (
+                  <p className="piece-option piece-latency">
+                    <span>
+                      {latency
+                        ? t('pieces.latency', { ms: latency.offset })
+                        : t('pieces.latency.none')}
+                    </span>
+                    <button
+                      type="button"
+                      className="button is-compact"
+                      disabled={inTime}
+                      onClick={() => {
+                        if (options.current) options.current.open = false;
+                        setCalibration('open');
+                      }}
+                    >
+                      {t('pieces.latency.calibrate')}
+                    </button>
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="piece-options-group">
+              <p className="piece-options-heading">{t('pieces.options.group.history')}</p>
+              <p className="piece-option piece-review-option">
+                <label className="check">
+                  <input
+                    type="checkbox"
+                    checked={!reviewOut}
+                    onChange={(e) => store.setPieceReview(piece.id, e.target.checked)}
+                    aria-describedby={`${showKeysId}-review`}
+                  />
+                  <span>{t('pieces.review.option')}</span>
+                </label>
+                <span id={`${showKeysId}-review`} className="muted">
+                  {reviewOut
+                    ? t('pieces.review.out.help')
+                    : !review
+                      ? t('pieces.review.none')
+                      : review.status.isDue
+                        ? t('pieces.review.due.help')
+                        : t('pieces.review.next.date', {
+                            date: format.date(Date.parse(`${review.schedule.due}T12:00:00`)),
+                          })}
                 </span>
+              </p>
+
+              <p className="piece-option">
                 <button
                   type="button"
                   className="button is-compact"
                   disabled={inTime}
                   onClick={() => {
                     if (options.current) options.current.open = false;
-                    setCalibration('open');
+                    setRunsOpen(true);
                   }}
                 >
-                  {t('pieces.latency.calibrate')}
+                  {t('pieces.runs')}
                 </button>
               </p>
-            )}
+            </div>
           </div>
         </details>
       </div>
@@ -2009,6 +2096,8 @@ export function PieceSession({
                           boxes={boxes}
                           format={barFormat}
                           onBarClick={inTime ? undefined : clickBar}
+                          onStartBar={inTime ? undefined : pickStartBar}
+                          onLoopBar={inTime ? undefined : (measure) => loopBars(measure, measure)}
                         />
                       ) : (
                         !inTime && (

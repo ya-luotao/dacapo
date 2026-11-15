@@ -3,6 +3,7 @@ import { Link, useLocation } from 'wouter';
 import { useT } from '../i18n/index.ts';
 import { BrandMark } from './BrandMark.tsx';
 import { useFocusActive } from './focus/focus.ts';
+import { InstrumentChip } from './input/InstrumentChip.tsx';
 import { MetronomeChip } from './metronome/MetronomeChip.tsx';
 import { opensEverything } from '../core/startingPoint.ts';
 import { readPref, writePref } from '../lib/localPrefs.ts';
@@ -24,6 +25,13 @@ function readAll(): boolean {
   const open = readReturning();
   writePref(ALL_KEY, open ? '1' : '0');
   return open;
+}
+
+function isApplePlatform(): boolean {
+  const nav = globalThis.navigator as
+    (Navigator & { userAgentData?: { platform?: string } }) | undefined;
+  const platform = nav?.userAgentData?.platform ?? nav?.platform ?? '';
+  return /mac|iphone|ipad|ipod/i.test(platform);
 }
 
 /** A piece's page belongs to Pieces; Today is the home page alone. */
@@ -50,15 +58,16 @@ const isWide = () => globalThis.matchMedia?.(WIDE).matches ?? true;
  * A newcomer's list is Today, Learn, Read, Pieces and Progress, with the other pages folded under
  * "All practice"; someone who said they play already (docs/START.md) gets every page listed.
  */
-export function Sidebar() {
-  return useFocusActive() ? null : <Navigation />;
+export function Sidebar({ onOpenJump }: { onOpenJump?: () => void }) {
+  return useFocusActive() ? null : <Navigation onOpenJump={onOpenJump} />;
 }
 
-function Navigation() {
+function Navigation({ onOpenJump }: { onOpenJump?: () => void }) {
   const t = useT();
   const [location] = useLocation();
   const drawer = useRef<HTMLDialogElement>(null);
   const wide = useSyncExternalStore(subscribeWide, isWide);
+  const shortcutHint = isApplePlatform() ? '⌘K' : 'Ctrl K';
   // Read on every render: the answer is given on the start page and changed in Settings, and
   // the next page opened shows it.
   const everything = opensEverything(readStartPref());
@@ -151,14 +160,37 @@ function Navigation() {
     </Link>
   );
 
+  const jumpTrigger = (compact: boolean) => (
+    <button
+      type="button"
+      className={compact ? 'jump-trigger is-compact' : 'jump-trigger'}
+      aria-label={t('jump.open')}
+      title={compact ? t('jump.open') : `${t('jump.open')} (${shortcutHint})`}
+      onClick={() => onOpenJump?.()}
+    >
+      <svg className="jump-trigger-icon" viewBox="0 0 16 16" aria-hidden="true">
+        <circle cx="7" cy="7" r="4.5" />
+        <path d="M10.5 10.5L14 14" />
+      </svg>
+      {!compact && (
+        <>
+          <span className="jump-trigger-label">{t('jump.open')}</span>
+          <kbd className="jump-kbd">{shortcutHint}</kbd>
+        </>
+      )}
+    </button>
+  );
+
   if (wide) {
     return (
       <aside className="sidebar">
         {brand}
+        {jumpTrigger(false)}
         <nav aria-label={t('nav.label')} className="side-nav">
           {list(false)}
         </nav>
         <div className="side-end">
+          <InstrumentChip />
           <MetronomeChip />
         </div>
       </aside>
@@ -181,6 +213,8 @@ function Navigation() {
         </button>
         {brand}
         <div className="topbar-end">
+          {jumpTrigger(true)}
+          <InstrumentChip />
           <MetronomeChip />
         </div>
       </header>

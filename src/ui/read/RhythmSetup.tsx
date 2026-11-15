@@ -27,7 +27,7 @@ interface RhythmSetupProps {
   onTempo: (bpm: number) => void;
   onPrefs: (patch: Partial<RhythmPrefs>) => void;
   onCalibrate: () => void;
-  onStart: () => void;
+  onStart: (level?: RhythmLevelId) => void;
 }
 
 /** The rhythm levels and the session's settings, laid out as Read's. */
@@ -59,6 +59,10 @@ export function RhythmSetup(props: RhythmSetupProps) {
               suggested={props.suggested === l.id}
               progress={props.progress.get(l.id)}
               onChange={() => props.onLevel(l.id)}
+              onDoubleClick={() => {
+                props.onLevel(l.id);
+                props.onStart(l.id);
+              }}
             />
           ))}
         </div>
@@ -149,14 +153,23 @@ interface LevelOptionProps {
   suggested: boolean;
   progress: RhythmLevelProgress | undefined;
   onChange: () => void;
+  onDoubleClick: () => void;
 }
 
-function LevelOption({ name, level, checked, suggested, progress, onChange }: LevelOptionProps) {
+function LevelOption({
+  name,
+  level,
+  checked,
+  suggested,
+  progress,
+  onChange,
+  onDoubleClick,
+}: LevelOptionProps) {
   const { t } = useI18n();
   const format = useRhythmFormat();
 
   return (
-    <label className={checked ? 'level is-checked' : 'level'}>
+    <label className={checked ? 'level is-checked' : 'level'} onDoubleClick={onDoubleClick}>
       <input type="radio" name={name} value={level.id} checked={checked} onChange={onChange} />
       <span className="level-id">{level.id}</span>
       <span className="level-body">
