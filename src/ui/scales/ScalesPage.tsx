@@ -1,12 +1,14 @@
 import {
   useEffect,
   useId,
+  useLayoutEffect,
   useMemo,
   useReducer,
   useRef,
   useState,
   type CSSProperties,
   type ReactNode,
+  type RefObject,
 } from 'react';
 import { Link } from 'wouter';
 import { KNOWN_SCALE_RUNS } from '../../core/curriculum.ts';
@@ -35,6 +37,7 @@ import { isTechnique } from '../../core/technique.ts';
 import { buildSteps, keyRange, type Hand } from '../../core/score.ts';
 import { useT } from '../../i18n/index.ts';
 import type { MidiStatus } from '../../input/index.ts';
+import { isTextEntry } from '../../input/keyboard.ts';
 import { useHubState, useInput } from '../input/context.ts';
 import { InputNotice } from '../input/InputNotice.tsx';
 import { LessonLine } from '../learn/LessonLine.tsx';
@@ -54,7 +57,7 @@ import { KEEP_AWAKE_IDLE_MS, useKeepAwake } from '../useKeepAwake.ts';
 import { FocusBar, FocusEnter } from '../focus/FocusBar.tsx';
 import { useFocusState } from '../focus/focus.ts';
 import { readPref, writePref } from '../../lib/localPrefs.ts';
-import { stepNames, useExerciseTitle } from './format.ts';
+import { stepNames, useExerciseName, useExerciseTitle } from './format.ts';
 import { KeyboardHint } from './KeyboardHint.tsx';
 import { noteIdsOf, noteKey, type LoopPlace } from './loop.ts';
 import {
@@ -66,7 +69,8 @@ import {
   type ClickPrefs,
 } from './prefs.ts';
 import { useRouteSearch } from '../hashRoute.ts';
-import { isTodayOrigin, parseScaleStart } from '../startParams.ts';
+import { isTodayOrigin, parseAssignmentOrigin, parseScaleStart } from '../startParams.ts';
+import { adjacentExercise } from './stepExercise.ts';
 import { scaleRunRecord, useScaleRecorder, type SessionSlot } from './record.ts';
 import {
   runClick,
@@ -107,6 +111,21 @@ const ENGRAVING: Engraving = { lastJustification: 0.35, ottavaText: true };
 /** Off: the keyboard marks only the keys to start on, not each next key. */
 const GUIDE_PREF = 'dacapo.scales.guide';
 
+interface SessionTransport {
+  playing: boolean;
+  clicking: boolean;
+  canToggleClick: boolean;
+  toggleClick: () => void;
+  stopRun: () => void;
+}
+
+function isEditableTarget(target: EventTarget | null): boolean {
+  if (isTextEntry(target)) return true;
+  if (!(target instanceof Element)) return false;
+  const editable = target.closest('[contenteditable]');
+  return editable !== null && editable.getAttribute('contenteditable') !== 'false';
+}
+
 /** The Scales page; opened with an exercise (a task of an assignment), it starts over on it. */
 export function ScalesPage() {
   const search = useRouteSearch();
@@ -116,6 +135,7 @@ export function ScalesPage() {
 function Scales({ search }: { search: string }) {
   const t = useT();
   const title = useExerciseTitle();
+  const exerciseName = useExerciseName();
   const [start] = useState(() => startChoices(parseScaleStart(search)));
   const [exercise, setExerciseState] = useState(() => start?.exercise ?? readExercise());
   const [click, setClickState] = useState(() => start?.click ?? readClickPrefs());
@@ -144,6 +164,7 @@ function Scales({ search }: { search: string }) {
   useEffect(prefetchVerovio, []);
 
   const stage = useRef<HTMLDivElement>(null);
+  const transport = useRef<SessionTransport | null>(null);
   // One practice session per visit to the page, whatever scales are played in it.
   const session = useRef<ScaleSession | null>(null);
   const [slot] = useState<SessionSlot>(() => ({
@@ -159,6 +180,12 @@ function Scales({ search }: { search: string }) {
     setLoop(null);
   }
 
+  function selectAndFocus(next: ScaleExercise) {
+    setExercise(next);
+    stage.current?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
+    stage.current?.focus({ preventScroll: true });
+  }
+
   function setClick(next: ClickPrefs) {
     setClickState(next);
     writeClickPrefs(next);
@@ -167,7 +194,7 @@ function Scales({ search }: { search: string }) {
 
   function startLoop(place: LoopPlace) {
     setLoop(place);
-    stage.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    stage.current?.scrollIntoView?.({ block: 'start', behavior: 'smooth' });
     stage.current?.focus({ preventScroll: true });
   }
 
@@ -184,26 +211,90 @@ function Scales({ search }: { search: string }) {
     stage.current?.focus({ preventScroll: true });
   }
 
+  const nextAdjacent = useMemo(() => adjacentExercise(exercise, 1), [exercise]);
+
+  // Global keyboard transport shortcuts (Space toggles click run, R stops/clears, [/] steps idle).
+  const onKeyDown = useRef<(e: KeyboardEvent) => void>(() => {});
+  useLayoutEffect(() => {
+    onKeyDown.current = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.isComposing || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (document.querySelector('[role="dialog"], [aria-modal="true"]')) return;
+      if (isEditableTarget(e.target)) return;
+
+      const current = transport.current;
+      if (e.code === 'Space') {
+        if (e.repeat) return;
+        if (
+          e.target instanceof Element &&
+          e.target.closest('button, a, select, input, textarea, [role="button"]') !== null
+        ) {
+          return;
+        }
+        if (!click.on || !current?.canToggleClick) return;
+        e.preventDefault();
+        current.toggleClick();
+        return;
+      }
+
+      if (e.code === 'KeyR') {
+        if (e.repeat) return;
+        if (loop !== null) {
+          e.preventDefault();
+          setLoop(null);
+          return;
+        }
+        if (current?.playing || current?.clicking || clicking) {
+          e.preventDefault();
+          current?.stopRun();
+        }
+        return;
+      }
+
+      if (e.key === '[' || e.key === ']') {
+        if (loop !== null || clicking || current?.playing || current?.clicking) return;
+        const next = adjacentExercise(exercise, e.key === '[' ? -1 : 1);
+        if (!next) return;
+        e.preventDefault();
+        setExercise(next);
+      }
+    };
+  });
+
+  useEffect(() => {
+    const listener = (e: KeyboardEvent) => onKeyDown.current(e);
+    window.addEventListener('keydown', listener);
+    return () => window.removeEventListener('keydown', listener);
+  }, []);
+
   // The grid as played: the notes to the beat chosen, or the exercise's own rhythm.
   const perBeat = layoutOf(exercise, click.perBeat).perBeat as GridPerBeat;
   const clickSettings: ClickSettings | null = click.on ? { bpm: click.bpm, perBeat } : null;
   // A new session view for another scale or another grid: its run and result belong to those.
   const sessionKey = `${exerciseKey(exercise)}:${clickSettings ? `${clickSettings.bpm}:${clickSettings.perBeat}` : 'free'}`;
   const fromToday = isTodayOrigin(search);
+  const assignmentId = fromToday ? null : parseAssignmentOrigin(search);
+  const originBack = fromToday
+    ? { href: '/', label: t('today.flow.back') }
+    : assignmentId
+      ? {
+          href: `/assignments/${encodeURIComponent(assignmentId)}`,
+          label: t('assignment.flow.back'),
+        }
+      : null;
 
   return (
     <section className={focus.on ? 'scales is-focus' : 'scales'}>
       <h1 className="visually-hidden">{t('scales.title')}</h1>
-      {!focus.on && fromToday && (
-        <Link href="/" className="today-return">
-          ← {t('today.flow.back')}
+      {!focus.on && originBack && (
+        <Link href={originBack.href} className="today-return">
+          ← {originBack.label}
         </Link>
       )}
       {!focus.on && <InputNotice />}
       {focus.on && (
         <FocusBar
           heading={<h2 className="focus-title">{title(exercise)}</h2>}
-          back={fromToday ? { href: '/', label: t('today.flow.back') } : undefined}
+          back={originBack ?? undefined}
           settings={{
             open: settingsOpen,
             onToggle: () => setSettingsOpen((open) => !open),
@@ -253,6 +344,15 @@ function Scales({ search }: { search: string }) {
             onStartNow={setStartNow}
             onClickAt={adviseClick}
             onHands={adviseHands}
+            nextExercise={
+              nextAdjacent
+                ? {
+                    label: exerciseName(nextAdjacent),
+                    onSelect: () => selectAndFocus(nextAdjacent),
+                  }
+                : null
+            }
+            transportRef={transport}
           />
         )}
       </div>
@@ -264,16 +364,7 @@ function Scales({ search }: { search: string }) {
             now={now}
             onLoop={startLoop}
           />
-          <YourScales
-            list={progress}
-            now={now}
-            current={exercise}
-            onPick={(next) => {
-              setExercise(next);
-              stage.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
-              stage.current?.focus({ preventScroll: true });
-            }}
-          />
+          <YourScales list={progress} now={now} current={exercise} onPick={selectAndFocus} />
         </>
       )}
     </section>
@@ -302,6 +393,8 @@ function ScaleSession({
   onStartNow,
   onClickAt,
   onHands,
+  nextExercise,
+  transportRef,
 }: {
   exercise: ScaleExercise;
   /** With the click: its tempo and notes per beat; null at free tempo. */
@@ -318,6 +411,10 @@ function ScaleSession({
   /** An advice's buttons: the same exercise with the click at a tempo, or with one hand. */
   onClickAt: (bpm: number) => void;
   onHands: (hands: Hand) => void;
+  /** Optional quick step to the next key or exercise after a measured run. */
+  nextExercise: { label: string; onSelect: () => void } | null;
+  /** Live session transport actions exposed to global keyboard shortcuts. */
+  transportRef: RefObject<SessionTransport | null>;
 }) {
   const t = useT();
   const title = useExerciseTitle();
@@ -479,6 +576,29 @@ function ScaleSession({
     }
     startClicked();
   }
+
+  function stopActiveRun() {
+    if (rhythm.getSnapshot().state !== 'stopped') {
+      rhythm.stop();
+      return;
+    }
+    if (playing) {
+      dispatch({ type: 'stop', time: performance.now() });
+    }
+  }
+
+  useLayoutEffect(() => {
+    transportRef.current = {
+      playing,
+      clicking,
+      canToggleClick: Boolean(click && plan && !calibrating && !calibration),
+      toggleClick: onStart,
+      stopRun: stopActiveRun,
+    };
+    return () => {
+      transportRef.current = null;
+    };
+  });
 
   // An advice's button asked for a run (docs/ADVICE.md): it starts as Start would, a moment
   // later, so that a page set up twice over (React's StrictMode does that while developing)
@@ -767,6 +887,7 @@ function ScaleSession({
                 : null
           }
           played={run.keys}
+          nextExercise={nextExercise}
         />
       )}
       {import.meta.env.DEV && run.phase === 'done' && <SaveRun exercise={exercise} run={run} />}
