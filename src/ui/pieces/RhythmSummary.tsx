@@ -15,6 +15,7 @@ import { DeviationChart } from './DeviationChart.tsx';
 import type { PieceFormat } from './format.ts';
 import { PlayBackButton } from './PlayBackButton.tsx';
 import { SaveMidiButton } from './SaveMidiButton.tsx';
+import { TodayFlowSlot } from '../today/TodayFlowSlot.tsx';
 
 interface RhythmSummaryProps {
   summary: Summary;
@@ -185,6 +186,7 @@ export function RhythmSummary({
       />
       <DeviationChart summary={summary} format={format} />
       <p className="help">{t('pieces.rhythm.saved')}</p>
+      <TodayFlowSlot />
       {expression}
     </section>
   );

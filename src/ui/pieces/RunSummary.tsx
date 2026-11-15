@@ -10,6 +10,7 @@ import { useBeyondWords } from './beyond.ts';
 import type { usePieceFormat } from './format.ts';
 import { PlayBackButton } from './PlayBackButton.tsx';
 import { SaveMidiButton } from './SaveMidiButton.tsx';
+import { TodayFlowSlot } from '../today/TodayFlowSlot.tsx';
 
 interface RunSummaryProps {
   summary: Summary;
@@ -161,6 +162,7 @@ export function RunSummary({
         {onSaveMidi && <SaveMidiButton onClick={onSaveMidi} />}
       </div>
       <p className="help">{t('pieces.done.saved')}</p>
+      <TodayFlowSlot />
       {expression}
     </section>
   );
