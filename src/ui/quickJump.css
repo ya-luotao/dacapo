@@ -1,1 +1,363 @@
-/* Styles for the quick-jump command palette and instrument status chip. */
+/* Instrument status chip and Quick Jump command palette */
+
+.side-end,
+.topbar-end {
+  gap: 0.375rem;
+  align-items: center;
+}
+
+.side-end {
+  flex-wrap: wrap;
+}
+
+/* Instrument status chip beside the metronome chip */
+
+.instrument-chip {
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+}
+
+.instrument-chip-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  max-width: 100%;
+  height: 2.5rem;
+  padding: 0 0.625rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text-muted);
+  font: 600 0.875rem / 1 var(--font-sans);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    border-color var(--dur-fast) ease-out,
+    background-color var(--dur-fast) ease-out,
+    color var(--dur-fast) ease-out;
+}
+
+.instrument-chip-toggle[aria-expanded='true'] {
+  border-color: var(--choice);
+  background: var(--sunk);
+  color: var(--text);
+}
+
+@media (hover: hover) {
+  .instrument-chip-toggle:hover {
+    background: var(--sunk);
+    color: var(--text);
+  }
+}
+
+.instrument-dot {
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+}
+
+.instrument-dot.is-connected {
+  background: var(--text);
+}
+
+.instrument-dot.is-denied {
+  background: var(--bad);
+}
+
+.instrument-dot.is-idle {
+  border: 1.5px solid var(--control);
+  background: transparent;
+}
+
+.instrument-chip-label {
+  min-width: 0;
+  max-width: 6.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.instrument-chip-label.is-note {
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.topbar-end .instrument-chip-label {
+  max-width: 4.5rem;
+}
+
+.instrument-popover {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  display: grid;
+  gap: 0.5rem;
+  width: min(19rem, calc(100vw - 2 * var(--gutter)));
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-pop);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.side-end .instrument-popover {
+  top: auto;
+  right: auto;
+  bottom: calc(100% + 0.5rem);
+  left: 0;
+}
+
+.instrument-popover-row {
+  display: grid;
+  gap: 0.375rem;
+  justify-items: start;
+}
+
+.instrument-popover-status {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.instrument-popover-line {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.instrument-popover-note {
+  color: var(--text);
+  font-family: var(--font-mono);
+}
+
+.instrument-retry {
+  padding: 0.3125rem 0.625rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--sunk);
+  color: var(--text);
+  font: 600 0.8125rem / 1.2 var(--font-sans);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .instrument-retry:hover {
+    border-color: var(--choice);
+  }
+}
+
+.instrument-popover-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.875rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.instrument-popover-link {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .instrument-popover-link:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+/* Quick Jump trigger in sidebar and topbar */
+
+.jump-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin: 0 0 0.875rem;
+  padding: 0.4375rem 0.625rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text-muted);
+  font: 500 0.875rem / 1.3 var(--font-sans);
+  text-align: start;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    border-color var(--dur-fast) ease-out,
+    background-color var(--dur-fast) ease-out,
+    color var(--dur-fast) ease-out;
+}
+
+.jump-trigger.is-compact {
+  flex: none;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: 0;
+  padding: 0;
+}
+
+@media (hover: hover) {
+  .jump-trigger:hover {
+    background: var(--sunk);
+    color: var(--text);
+  }
+}
+
+.jump-trigger-icon,
+.jump-search-icon {
+  flex: none;
+  width: 0.9375rem;
+  height: 0.9375rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+}
+
+.jump-trigger-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jump-kbd,
+.jump-esc-kbd {
+  flex: none;
+  padding: 0.125rem 0.375rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--sunk);
+  color: var(--text-muted);
+  font: 500 0.75rem / 1.2 var(--font-mono);
+  white-space: nowrap;
+}
+
+/* Quick Jump command palette dialog */
+
+.jump-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: start center;
+  padding: clamp(2.5rem, 11vh, 6.5rem) var(--gutter) var(--gutter);
+  background: rgb(0 0 0 / 0.42);
+}
+
+.jump-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(36rem, 100%);
+  max-height: min(34rem, calc(100dvh - 5rem));
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sheet);
+}
+
+.jump-search {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.jump-search:focus-within {
+  box-shadow: inset 0 -2px 0 var(--focus);
+}
+
+.jump-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: 400 1rem / 1.4 var(--font-sans);
+  outline: none;
+}
+
+.jump-input::placeholder {
+  color: var(--text-muted);
+}
+
+.jump-list {
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.jump-group + .jump-group {
+  margin-top: 0.375rem;
+}
+
+.jump-group-title {
+  padding: 0.5rem 0.625rem 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.jump-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.5625rem 0.625rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font: 500 0.9375rem / 1.35 var(--font-sans);
+  text-align: start;
+  cursor: pointer;
+}
+
+.jump-item.is-active {
+  background: var(--choice-soft);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.jump-item-title {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jump-item-subtitle {
+  flex: 0 1 45%;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  text-align: end;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jump-empty {
+  margin: 0;
+  padding: 1.5rem 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  text-align: center;
+}

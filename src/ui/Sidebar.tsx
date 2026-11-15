@@ -3,8 +3,16 @@ import { Link, useLocation } from 'wouter';
 import { useT } from '../i18n/index.ts';
 import { BrandMark } from './BrandMark.tsx';
 import { useFocusActive } from './focus/focus.ts';
+import { InstrumentChip } from './input/InstrumentChip.tsx';
 import { MetronomeChip } from './metronome/MetronomeChip.tsx';
 import { NAV_ITEMS } from './routes.ts';
+
+function isApplePlatform(): boolean {
+  const nav = globalThis.navigator as
+    (Navigator & { userAgentData?: { platform?: string } }) | undefined;
+  const platform = nav?.userAgentData?.platform ?? nav?.platform ?? '';
+  return /mac|iphone|ipad|ipod/i.test(platform);
+}
 
 /** A piece's page belongs to Pieces; Today is the home page alone. */
 function isActive(location: string, path: string): boolean {
@@ -28,15 +36,16 @@ const isWide = () => globalThis.matchMedia?.(WIDE).matches ?? true;
  * with a menu button that opens the same list in a drawer. Neither shows in focus mode, and the
  * sidebar makes way while a session runs (styles.css), so practising has the whole screen.
  */
-export function Sidebar() {
-  return useFocusActive() ? null : <Navigation />;
+export function Sidebar({ onOpenJump }: { onOpenJump?: () => void }) {
+  return useFocusActive() ? null : <Navigation onOpenJump={onOpenJump} />;
 }
 
-function Navigation() {
+function Navigation({ onOpenJump }: { onOpenJump?: () => void }) {
   const t = useT();
   const [location] = useLocation();
   const drawer = useRef<HTMLDialogElement>(null);
   const wide = useSyncExternalStore(subscribeWide, isWide);
+  const shortcutHint = isApplePlatform() ? '⌘K' : 'Ctrl K';
 
   // Choosing a page closes the drawer, the page already open included.
   useEffect(() => {
@@ -86,14 +95,37 @@ function Navigation() {
     </Link>
   );
 
+  const jumpTrigger = (compact: boolean) => (
+    <button
+      type="button"
+      className={compact ? 'jump-trigger is-compact' : 'jump-trigger'}
+      aria-label={t('jump.open')}
+      title={compact ? t('jump.open') : `${t('jump.open')} (${shortcutHint})`}
+      onClick={() => onOpenJump?.()}
+    >
+      <svg className="jump-trigger-icon" viewBox="0 0 16 16" aria-hidden="true">
+        <circle cx="7" cy="7" r="4.5" />
+        <path d="M10.5 10.5L14 14" />
+      </svg>
+      {!compact && (
+        <>
+          <span className="jump-trigger-label">{t('jump.open')}</span>
+          <kbd className="jump-kbd">{shortcutHint}</kbd>
+        </>
+      )}
+    </button>
+  );
+
   if (wide) {
     return (
       <aside className="sidebar">
         {brand}
+        {jumpTrigger(false)}
         <nav aria-label={t('nav.label')} className="side-nav">
           {list(false)}
         </nav>
         <div className="side-end">
+          <InstrumentChip />
           <MetronomeChip />
         </div>
       </aside>
@@ -116,6 +148,8 @@ function Navigation() {
         </button>
         {brand}
         <div className="topbar-end">
+          {jumpTrigger(true)}
+          <InstrumentChip />
           <MetronomeChip />
         </div>
       </header>
