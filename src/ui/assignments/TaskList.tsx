@@ -3,6 +3,7 @@ import { Link } from 'wouter';
 import type { Task, TaskProgress } from '../../core/assignmentRecords.ts';
 import type { KnownPiece } from '../../core/assignments.ts';
 import { useT } from '../../i18n/index.ts';
+import { withAssignmentOrigin } from '../startParams.ts';
 import { useAssignmentFormat } from './format.ts';
 import { taskStartPath } from './useChecklist.ts';
 
@@ -30,12 +31,14 @@ interface TaskListProps {
   progress?: readonly TaskProgress[];
   /** With them, each task has the button that starts it with its settings. */
   pieces?: readonly KnownPiece[];
+  /** When present, start links carry `?assignment=<id>` for guided continuation. */
+  assignmentId?: string;
   /** What follows a task's words: the editor's buttons. */
   actions?: (task: Task, index: number) => ReactNode;
 }
 
 /** The tasks of an assignment, each in words; with `progress`, as a checklist. */
-export function TaskList({ tasks, progress, pieces, actions }: TaskListProps) {
+export function TaskList({ tasks, progress, pieces, assignmentId, actions }: TaskListProps) {
   const t = useT();
   const format = useAssignmentFormat();
   return (
@@ -45,7 +48,9 @@ export function TaskList({ tasks, progress, pieces, actions }: TaskListProps) {
         const details = format.details(task);
         const goal = format.goal(task);
         const runs = done ? format.runs(task, done) : null;
-        const start = pieces ? taskStartPath(task, pieces) : null;
+        const rawStart = pieces ? taskStartPath(task, pieces) : null;
+        const start =
+          rawStart && assignmentId ? withAssignmentOrigin(rawStart, assignmentId) : rawStart;
         const composer = task.kind === 'piece' ? format.pieceComposer(task) : '';
         return (
           <li key={task.id} className={done?.met ? 'task is-met' : 'task'}>

@@ -1,4 +1,4 @@
-import { useId, useMemo } from 'react';
+import { useId, useMemo, useState } from 'react';
 import {
   MIN_RUNS,
   placesOverRuns,
@@ -10,11 +10,12 @@ import { exerciseKey, parseExerciseKey, scaleNotes } from '../../core/scales.ts'
 import type { ScaleExercise } from '../../core/scaleTypes.ts';
 import type { Hand } from '../../core/score.ts';
 import { dayKey } from '../../core/streak.ts';
+import { isTechnique } from '../../core/technique.ts';
 import { SENTENCE_GAP, useI18n } from '../../i18n/index.ts';
 import { useNoteNames } from '../noteNames.ts';
 import { useScaleRuns } from '../practice/context.ts';
 import { useLogFormat } from '../progress/format.ts';
-import { fewKeys, stepNames, useExerciseLabel } from './format.ts';
+import { fewKeys, stepNames, tonicName, useExerciseLabel } from './format.ts';
 import { useBeyondKeyboard } from './keys.ts';
 import type { LoopPlace } from './loop.ts';
 import { TrendChart } from './TrendChart.tsx';
@@ -171,6 +172,12 @@ export function ScaleProgress({
  * Every scale played, least even first (relative to its note length, over its last runs), with
  * the one to play next; choosing one sets it up.
  */
+type ScaleFilterCategory = 'all' | 'scales' | 'technique';
+
+/**
+ * Every scale the player has finished a run on, in the order they could return to them (least
+ * even first), with a suggestion for one to play next and a filter bar when the list grows.
+ */
 export function YourScales({
   list,
   now,
@@ -186,6 +193,8 @@ export function YourScales({
   const format = useLogFormat();
   const exerciseLabel = useExerciseLabel();
   const id = useId();
+  const [query, setQuery] = useState('');
+  const [category, setCategory] = useState<ScaleFilterCategory>('all');
   const percent = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
   // A scale that runs beyond the player's keyboard is not the one to play next.
   const beyond = useBeyondKeyboard();
@@ -200,6 +209,25 @@ export function YourScales({
   const label = (e: ScaleExercise) =>
     `${exerciseLabel(e)} · ${t(`progress.session.hands.${e.hands}`)}`;
 
+  const showFilter = list.length >= 4;
+  const parsed = list.flatMap((p) => {
+    const e = parseExerciseKey(p.exercise);
+    return e ? [{ progress: p, exercise: e }] : [];
+  });
+  const needle = query.trim().toLowerCase();
+  const filtered = !showFilter
+    ? parsed
+    : parsed.filter(({ exercise: e }) => {
+        const tech = isTechnique(e.type);
+        if (category === 'scales' && tech) return false;
+        if (category === 'technique' && !tech) return false;
+        if (!needle) return true;
+        const haystack = [label(e), tonicName(e.tonic), e.tonic, e.variant ?? '']
+          .join(' ')
+          .toLowerCase();
+        return haystack.includes(needle);
+      });
+
   return (
     <section className="scale-list" aria-labelledby={`${id}-title`}>
       <h2 id={`${id}-title`}>{t('scales.list')}</h2>
@@ -211,47 +239,82 @@ export function YourScales({
           </button>
         </p>
       )}
-      <div className="hm-table-scroll">
-        <table className="history-table scale-list-table">
-          <thead>
-            <tr>
-              <th scope="col">{t('scales.list.scale')}</th>
-              <th scope="col">{t('progress.session.runs')}</th>
-              <th scope="col">{t('scales.list.recent')}</th>
-              <th scope="col">{t('scales.progress.best')}</th>
-              <th scope="col">{t('scales.progress.last')}</th>
-              <td />
-            </tr>
-          </thead>
-          <tbody>
-            {list.map((p) => {
-              const e = parseExerciseKey(p.exercise);
-              if (!e) return null;
-              const here = p.exercise === currentKey;
-              return (
-                <tr key={p.exercise} aria-current={here || undefined}>
-                  <th scope="row">{label(e)}</th>
-                  <td>{p.runs}</td>
-                  <td>
-                    {p.recentShare === null
-                      ? '–'
-                      : t('scales.result.percent', { percent: percent.format(p.recentShare) })}
-                  </td>
-                  <td>{p.best ? t('scales.result.ms', { ms: Math.round(p.best.spread) }) : '–'}</td>
-                  <td>{format.longDay(dayKey(p.lastAt))}</td>
-                  <td>
-                    {!here && (
-                      <button type="button" className="button is-compact" onClick={() => onPick(e)}>
-                        {t('scales.list.play')}
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      {showFilter && (
+        <div className="library-toolbar" style={{ marginBottom: '0.75rem' }}>
+          <div className="library-search">
+            <input
+              type="search"
+              className="library-search-input"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t('scales.progress.search')}
+              aria-label={t('scales.progress.searchLabel')}
+            />
+          </div>
+          <div className="library-filter filter-pills">
+            {(['all', 'scales', 'technique'] as const).map((kind) => (
+              <button
+                key={kind}
+                type="button"
+                className="filter-pill"
+                aria-pressed={category === kind}
+                onClick={() => setCategory(kind)}
+              >
+                {t(`scales.progress.filter.${kind}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {filtered.length === 0 ? (
+        <p className="library-empty">{t('scales.progress.empty')}</p>
+      ) : (
+        <div className="hm-table-scroll">
+          <table className="history-table scale-list-table">
+            <thead>
+              <tr>
+                <th scope="col">{t('scales.list.scale')}</th>
+                <th scope="col">{t('progress.session.runs')}</th>
+                <th scope="col">{t('scales.list.recent')}</th>
+                <th scope="col">{t('scales.progress.best')}</th>
+                <th scope="col">{t('scales.progress.last')}</th>
+                <td />
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(({ progress: p, exercise: e }) => {
+                const here = p.exercise === currentKey;
+                return (
+                  <tr key={p.exercise} aria-current={here || undefined}>
+                    <th scope="row">{label(e)}</th>
+                    <td>{p.runs}</td>
+                    <td>
+                      {p.recentShare === null
+                        ? '–'
+                        : t('scales.result.percent', { percent: percent.format(p.recentShare) })}
+                    </td>
+                    <td>
+                      {p.best ? t('scales.result.ms', { ms: Math.round(p.best.spread) }) : '–'}
+                    </td>
+                    <td>{format.longDay(dayKey(p.lastAt))}</td>
+                    <td>
+                      {!here && (
+                        <button
+                          type="button"
+                          className="button is-compact"
+                          onClick={() => onPick(e)}
+                        >
+                          {t('scales.list.play')}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
       <p className="help">{t('scales.list.help')}</p>
     </section>
   );

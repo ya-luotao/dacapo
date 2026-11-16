@@ -61,6 +61,7 @@ export function ScaleSummary({
   advise = null,
   kind = null,
   played = [],
+  nextExercise = null,
 }: {
   analysis: RunAnalysis;
   /**
@@ -81,6 +82,8 @@ export function ScaleSummary({
   onLoop?: (place: LoopPlace) => void;
   /** For the sentence of advice under the verdict; none without it. */
   advise?: ScaleAdvise | null;
+  /** Optional quick step to the next key or exercise after a measured run. */
+  nextExercise?: { label: string; onSelect: () => void } | null;
 }) {
   const { t, locale } = useI18n();
   const gap = SENTENCE_GAP[locale];
@@ -633,6 +636,13 @@ export function ScaleSummary({
           </button>
           <span className="muted">{t('scales.loop.offer')}</span>
         </p>
+      )}
+      {nextExercise && (
+        <div className="actions" style={{ marginTop: '0.75rem', marginBottom: '1.25rem' }}>
+          <button type="button" className="button" onClick={nextExercise.onSelect}>
+            {t('scales.summary.nextKey', { name: nextExercise.label })}
+          </button>
+        </div>
       )}
       {trills.map(({ hand, figures }) => (
         <RateChart

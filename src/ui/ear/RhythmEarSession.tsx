@@ -9,6 +9,7 @@ import { readLatency, type Latency } from '../pieces/rhythmPrefs.ts';
 import { useReadFormat } from '../read/format.ts';
 import { CountDots, TapPads } from '../read/RhythmPads.tsx';
 import { useRhythmFormat } from '../read/rhythmFormat.ts';
+import { useEscapeToStop } from '../useEscapeToStop.ts';
 import { HearAgain, KeyIcon, ResultIcon, SpeakerIcon } from './EarSession.tsx';
 import type { RhythmEarController, RhythmEarView } from './rhythmController.ts';
 import { useRhythmEarFormat } from './rhythmEarFormat.ts';
@@ -78,6 +79,7 @@ export function RhythmEarSession({ view, controller }: RhythmEarSessionProps) {
 
   // Moving focus off the Start button means Enter or Space cannot trigger a control by accident.
   useEffect(() => region.current?.focus({ preventScroll: true }), []);
+  useEscapeToStop(controller.stop, !calibrationOpen);
 
   // Space hears again, Enter goes on after an answer, 1–4 choose a bar.
   const latest = useRef(view);
@@ -172,7 +174,12 @@ export function RhythmEarSession({ view, controller }: RhythmEarSessionProps) {
         <p className="read-count rhythm-ear-tempo">
           {rhythm.tempo(meter, session.bpm)} · {meter}
         </p>
-        <button type="button" className="button ear-stop" onClick={controller.stop}>
+        <button
+          type="button"
+          className="button ear-stop"
+          aria-keyshortcuts="Escape"
+          onClick={controller.stop}
+        >
           {t('read.stop')}
         </button>
       </div>

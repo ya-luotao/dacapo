@@ -15,6 +15,7 @@ import { useKeyboardFallback } from '../input/useKeyboardFallback.ts';
 import { useNoteNames } from '../noteNames.ts';
 import { Piano } from '../piano/Piano.tsx';
 import { useReadFormat } from '../read/format.ts';
+import { useEscapeToStop } from '../useEscapeToStop.ts';
 import type { HarmonyController } from './controller.ts';
 import { createLatchedPointer } from './latch.ts';
 import { chordToneNames, heldNames, useHarmonyFormat } from './format.ts';
@@ -46,6 +47,7 @@ export function ChordsSession({ session, controller, onHint }: ChordsSessionProp
 
   // Moving focus off the Start button means Enter or Space cannot trigger a control by accident.
   useEffect(() => region.current?.focus({ preventScroll: true }), []);
+  useEscapeToStop(controller.stop);
 
   // A click or tap latches a key on the screen's keyboard, so a mouse can build a chord; the keys
   // latched for a card are let go when the next one comes (and when the session ends).
@@ -102,7 +104,12 @@ export function ChordsSession({ session, controller, onHint }: ChordsSessionProp
         <span id={hintId} className="visually-hidden">
           {t('harmony.hint.help')}
         </span>
-        <button type="button" className="button" onClick={controller.stop}>
+        <button
+          type="button"
+          className="button"
+          aria-keyshortcuts="Escape"
+          onClick={controller.stop}
+        >
           {t('read.stop')}
         </button>
       </div>

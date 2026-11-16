@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { CLICK_MAX_BPM, CLICK_MIN_BPM, NOTES_PER_BEAT } from '../../core/scaleClick.ts';
 import { handsAllowed, octavesOf, SCALE_HANDS, tonicsFor, tonicsOf } from '../../core/scales.ts';
 import {
@@ -21,6 +21,7 @@ import { useT } from '../../i18n/index.ts';
 import { tonicName, useVariantName } from './format.ts';
 import { useBeyondKeyboard } from './keys.ts';
 import { clampTempo, type ClickPrefs } from './prefs.ts';
+import { adjacentExercise } from './stepExercise.ts';
 
 /**
  * The choice of scale — type, key, octaves, hands, and for Hanon the exercise's number — and of
@@ -78,6 +79,48 @@ export function ScalePicker({
   const anyBeyond = SCALE_OCTAVES.some(octaveBeyond) || SCALE_HANDS.some(handBeyond);
   /** A marked option's name for a screen reader: "4, beyond your keyboard". */
   const marked = (name: string | number) => `${name}${t('app.listSeparator')}${t('scales.beyond')}`;
+  const prevExercise = adjacentExercise(exercise, -1);
+  const nextExercise = adjacentExercise(exercise, 1);
+  const canStep = prevExercise !== null && nextExercise !== null;
+  const tonicStepper = tonics.length > 1 && canStep;
+  const variantStepper = tonics.length <= 1 && canStep;
+
+  const withStepper = (show: boolean, select: ReactNode) =>
+    show && prevExercise && nextExercise ? (
+      <div
+        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', maxWidth: '100%' }}
+      >
+        <button
+          type="button"
+          className="button is-compact"
+          aria-label={t('scales.step.prev')}
+          aria-keyshortcuts="["
+          disabled={disabled}
+          onClick={() => {
+            onChange(prevExercise);
+            onChosen();
+          }}
+        >
+          ‹
+        </button>
+        {select}
+        <button
+          type="button"
+          className="button is-compact"
+          aria-label={t('scales.step.next')}
+          aria-keyshortcuts="]"
+          disabled={disabled}
+          onClick={() => {
+            onChange(nextExercise);
+            onChosen();
+          }}
+        >
+          ›
+        </button>
+      </div>
+    ) : (
+      select
+    );
 
   /** A form of the exercise, and a key it is offered in (Hanon's trill is in C). */
   function setVariant(variant: string) {
@@ -158,25 +201,30 @@ export function ScalePicker({
           {/* A trill: Hanon's No. 46, or a pair of fingers held for a number of bars. */}
           <div className="field">
             <label htmlFor={`${id}-fingers`}>{t('scales.pick.fingers')}</label>
-            <select
-              id={`${id}-fingers`}
-              value={trill.hanon ? HANON_TRILL : `${trill.lower}${trill.upper}`}
-              disabled={disabled}
-              onChange={(e) => {
-                const value = e.target.value;
-                setVariant(
-                  value === HANON_TRILL ? HANON_TRILL : `${value}-${trill.hanon ? 8 : trill.bars}`,
-                );
-                onChosen();
-              }}
-            >
-              <option value={HANON_TRILL}>{t('scales.pick.trillHanon')}</option>
-              {TRILL_PAIRS.map((pair) => (
-                <option key={pair} value={pair}>
-                  {`${pair[0]}–${pair[1]}`}
-                </option>
-              ))}
-            </select>
+            {withStepper(
+              variantStepper,
+              <select
+                id={`${id}-fingers`}
+                value={trill.hanon ? HANON_TRILL : `${trill.lower}${trill.upper}`}
+                disabled={disabled}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setVariant(
+                    value === HANON_TRILL
+                      ? HANON_TRILL
+                      : `${value}-${trill.hanon ? 8 : trill.bars}`,
+                  );
+                  onChosen();
+                }}
+              >
+                <option value={HANON_TRILL}>{t('scales.pick.trillHanon')}</option>
+                {TRILL_PAIRS.map((pair) => (
+                  <option key={pair} value={pair}>
+                    {`${pair[0]}–${pair[1]}`}
+                  </option>
+                ))}
+              </select>,
+            )}
           </div>
           {!trill.hanon && (
             <fieldset className="field" disabled={disabled}>
@@ -203,42 +251,48 @@ export function ScalePicker({
             <label htmlFor={`${id}-variant`}>
               {t(exercise.type === 'thirds' ? 'scales.pick.form' : 'scales.pick.number')}
             </label>
-            <select
-              id={`${id}-variant`}
-              value={exercise.variant}
-              disabled={disabled}
-              onChange={(e) => {
-                setVariant(e.target.value);
-                onChosen();
-              }}
-            >
-              {variants.map((variant) => (
-                <option key={variant} value={variant}>
-                  {variantName(exercise.type, variant)}
-                </option>
-              ))}
-            </select>
+            {withStepper(
+              variantStepper,
+              <select
+                id={`${id}-variant`}
+                value={exercise.variant}
+                disabled={disabled}
+                onChange={(e) => {
+                  setVariant(e.target.value);
+                  onChosen();
+                }}
+              >
+                {variants.map((variant) => (
+                  <option key={variant} value={variant}>
+                    {variantName(exercise.type, variant)}
+                  </option>
+                ))}
+              </select>,
+            )}
           </div>
         )
       )}
       <div className="field">
         <label htmlFor={`${id}-tonic`}>{t('scales.pick.tonic')}</label>
-        <select
-          id={`${id}-tonic`}
-          value={exercise.tonic}
-          // Hanon's Part I is in C only.
-          disabled={disabled || tonics.length < 2}
-          onChange={(e) => {
-            onChange({ ...exercise, tonic: e.target.value });
-            onChosen();
-          }}
-        >
-          {tonics.map((tonic) => (
-            <option key={tonic} value={tonic}>
-              {tonicName(tonic)}
-            </option>
-          ))}
-        </select>
+        {withStepper(
+          tonicStepper,
+          <select
+            id={`${id}-tonic`}
+            value={exercise.tonic}
+            // Hanon's Part I is in C only.
+            disabled={disabled || tonics.length < 2}
+            onChange={(e) => {
+              onChange({ ...exercise, tonic: e.target.value });
+              onChosen();
+            }}
+          >
+            {tonics.map((tonic) => (
+              <option key={tonic} value={tonic}>
+                {tonicName(tonic)}
+              </option>
+            ))}
+          </select>,
+        )}
       </div>
       <fieldset className="field" disabled={disabled}>
         <legend>{t('scales.pick.octaves')}</legend>

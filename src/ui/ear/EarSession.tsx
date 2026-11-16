@@ -29,6 +29,7 @@ import { useNoteNames } from '../noteNames.ts';
 import { Piano } from '../piano/Piano.tsx';
 import { useReadFormat } from '../read/format.ts';
 import { MelodyStaff, NotesStaff } from '../staff/GrandStaff.tsx';
+import { useEscapeToStop } from '../useEscapeToStop.ts';
 import { STAFF_HEIGHT, STAFF_WIDTH, type MelodyDrawing } from '../staff/draw.ts';
 import type { EarController, EarView } from './controller.ts';
 import { useEarFormat } from './format.ts';
@@ -156,6 +157,7 @@ export function EarSession({ view, controller }: EarSessionProps) {
 
   // Moving focus off the Start button means Enter or Space cannot trigger a control by accident.
   useEffect(() => region.current?.focus({ preventScroll: true }), []);
+  useEscapeToStop(controller.stop);
 
   // Space hears again, Enter goes on after a wrong answer, 1–9 and 0 choose a name.
   const latest = useRef({ view, names });
@@ -256,7 +258,12 @@ export function EarSession({ view, controller }: EarSessionProps) {
       <div className="read-bar">
         <p className="read-level">{format.level(session.level)}</p>
         <p className="read-count">{count}</p>
-        <button type="button" className="button ear-stop" onClick={controller.stop}>
+        <button
+          type="button"
+          className="button ear-stop"
+          aria-keyshortcuts="Escape"
+          onClick={controller.stop}
+        >
           {t('read.stop')}
         </button>
       </div>
