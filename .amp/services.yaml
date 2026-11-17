@@ -1,0 +1,9 @@
+services:
+  dacapo-preview:
+    command: >-
+      pnpm build && exec pnpm preview --host 0.0.0.0 --port "$PORT" --strictPort
+    port: 4173
+    health: /
+    portal:
+      title: dacapo preview
+      description: Production build with localized site pages. Restart dacapo-preview after source changes.

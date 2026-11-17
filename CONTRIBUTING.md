@@ -11,6 +11,24 @@ decisions the project has already made.
 2. `pnpm install`
 3. `pnpm dev` and open the printed URL in Chrome or Edge.
 
+### Preview in an Amp orb
+
+The service in [`.amp/services.yaml`](.amp/services.yaml) builds the current checkout and serves
+the production bundle, including the localized static site pages, on port 4173:
+
+```sh
+amp orb services ensure
+```
+
+Open the portal URL printed by the command or the preview in the Portals tab. The service is
+supervised by Amp; its generated portal links stay out of Git. Repeating `ensure` reuses the
+running service. This is a built preview, without hot reload; after editing source files, rebuild
+and refresh it with:
+
+```sh
+amp orb service restart dacapo-preview
+```
+
 ## Day-to-day development
 
 Keep the feedback loop focused while editing:
