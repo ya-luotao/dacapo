@@ -2900,9 +2900,12 @@ export const ko: Dictionary = {
     '이 브라우저는 소리를 낼 수 없어요(Web Audio 미지원). 진자는 그대로 박자를 짚어요.',
   'metronome.source':
     '소리는 이 기기에서 나요. 대부분의 디지털 피아노는 MIDI로 클릭 소리를 낼 수 없어요. 진자는 들리는 소리에 맞춰 움직이고, 지연 보정을 했다면 그것도 반영해요.',
-  'metronome.keeptime':
-    'iPhone이나 iPad에서 별도의 메트로놈 앱을 쓰고 싶다면 Keeptime을 써 보세요. 오프라인에서도 작동하고 화면을 잠가도 계속 박자를 짚어요.',
-  'metronome.keeptime.link': 'App Store에서 Keeptime 보기',
+  'keeptime.byline': 'dacapo 제작자가 만든 또 하나의 연습 도구',
+  'keeptime.description':
+    'iPhone과 iPad를 위한 기계식 느낌의 메트로놈이에요. 오프라인에서도, 다른 앱에서 악보를 보거나 화면을 잠가도 박자가 이어져요.',
+  'keeptime.price': '무료 다운로드 · 추가 외관은 선택적 앱 내 구입',
+  'keeptime.icon': 'Keeptime의 나무 메트로놈 앱 아이콘',
+  'keeptime.appStore': 'App Store에서 Keeptime 다운로드',
   'metronome.keys.space': '스페이스',
   'metronome.keys.start': '시작·정지',
   'metronome.keys.tempo': '빠르기(Shift를 누르면 10씩)',

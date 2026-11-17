@@ -62,6 +62,8 @@ describe('groupOf', () => {
     expect(groupOf('piano/A0-f.mp3')).toBe('piano');
     expect(groupOf('learn/two-hands-ink.webp')).toBe('pictures');
     expect(groupOf('incipits/turk-aller-anfang.svg')).toBe('pictures');
+    expect(groupOf('keeptime/icon.webp')).toBe('pictures');
+    expect(groupOf('badges/app-store-zh-CN.svg')).toBe('pictures');
     expect(groupOf('licenses/verovio/COPYING')).toBe('licences');
   });
 

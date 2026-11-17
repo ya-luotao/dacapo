@@ -69,6 +69,8 @@ For a standalone metronome on iPhone or iPad, try
 [Keeptime: Metronome](https://apps.apple.com/app/keeptime-metronome/id6832189111) on the App Store.
 It has a mechanical-style pendulum, works offline and keeps ticking with the screen locked.
 
+[![Download Keeptime on the App Store](public/badges/app-store-en.svg)](https://apps.apple.com/app/keeptime-metronome/id6832189111)
+
 ## Status
 
 Version 0.2.0. Everything above is built, tested and live; [CHANGELOG.md](CHANGELOG.md) lists

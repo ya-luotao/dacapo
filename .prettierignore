@@ -20,3 +20,5 @@ scripts/scales/hanon/s7/s7.json
 src/pieces/library/incipits.json
 # The anatomy kit (MIT), vendored as it is: scripts/figures/anatomy/LICENSE.
 scripts/figures/anatomy
+# Apple's official badge artwork, kept byte for byte.
+public/badges

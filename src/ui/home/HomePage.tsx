@@ -3,6 +3,7 @@ import { Link } from 'wouter';
 import { currentAssignments } from '../../core/assignmentRecords.ts';
 import { dayKey } from '../../core/streak.ts';
 import { useT } from '../../i18n/index.ts';
+import { KeeptimeRecommendation } from '../KeeptimeRecommendation.tsx';
 import { readLegacyLessons } from '../learn/progress.ts';
 import { usePractice, useStorageStatus } from '../practice/context.ts';
 import { useNow } from '../progress/useNow.ts';
@@ -110,5 +111,16 @@ export function FirstVisit({ still = false }: { still?: boolean }) {
  */
 export function HomePage() {
   const returning = useReturning();
-  return <div className="home">{returning ? <Today /> : <FirstVisit />}</div>;
+  return (
+    <div className="home">
+      {returning ? (
+        <Today />
+      ) : (
+        <>
+          <FirstVisit />
+          <KeeptimeRecommendation />
+        </>
+      )}
+    </div>
+  );
 }

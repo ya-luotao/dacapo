@@ -9,6 +9,20 @@ texts it ships in [`public/licenses/`](public/licenses/): copies of each package
 file (a test keeps them equal), Verovio's texts, and the notices of the libraries Verovio contains
 (`public/licenses/verovio/THIRD-PARTY.txt`).
 
+## App artwork
+
+- **App Store badges** in `public/badges/` are Apple's unmodified black download badges, from
+  [App Store Marketing Tools](https://toolbox.marketingtools.apple.com/app-store/), in English,
+  Simplified Chinese, Traditional Chinese, Japanese and Korean. The source endpoint is
+  `https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/black/`
+  followed by `en-us`, `zh-cn`, `zh-tw`, `ja-jp` or `ko-kr`. They are used under Apple's
+  [marketing guidelines](https://developer.apple.com/app-store/marketing/guidelines/), not the
+  project's MIT licence. Apple and the Apple logo are trademarks of Apple Inc., registered in
+  the U.S. and other countries and regions. App Store is a service mark of Apple Inc.
+- **Keeptime's icon** in `public/keeptime/icon.webp` is Luo Tao's app artwork, from its
+  [App Store listing](https://apps.apple.com/app/keeptime-metronome/id6832189111), resized to
+  192 × 192 and encoded as WebP for the recommendation. It is not covered by dacapo's MIT licence.
+
 ## Software shipped in the app
 
 ### Verovio 6.3.0: LGPL-3.0-or-later

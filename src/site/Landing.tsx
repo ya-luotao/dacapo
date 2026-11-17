@@ -15,6 +15,7 @@ import { useT, type MessageKey } from '../i18n/index.ts';
 import { LESSONS } from '../learn/lessons.ts';
 import { currentShell } from '../lib/shell.ts';
 import { BUILT_IN_IDS } from '../pieces/library/ids.ts';
+import { KeeptimeRecommendation } from '../ui/KeeptimeRecommendation.tsx';
 import { Arrow, FirstVisit } from '../ui/home/HomePage.tsx';
 import { readGoal } from '../ui/progress/goal.ts';
 import { PRINCIPLES, QUESTIONS } from '../ui/home/questions.ts';
@@ -129,6 +130,8 @@ export function Landing() {
           ))}
         </ol>
       </section>
+
+      <KeeptimeRecommendation />
 
       <section className="home-principles" aria-labelledby="home-principles">
         <h2 id="home-principles">{t('home.principles')}</h2>

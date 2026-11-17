@@ -80,6 +80,8 @@ iPhone이나 iPad에서 별도의 메트로놈 앱을 쓰고 싶다면 App Store
 [Keeptime: Metronome](https://apps.apple.com/app/keeptime-metronome/id6832189111)을 써 보세요.
 기계식 메트로놈을 닮은 진자가 있고, 오프라인에서도 작동하며 화면을 잠가도 계속 박자를 짚어요.
 
+[![App Store에서 Keeptime 다운로드](public/badges/app-store-ko.svg)](https://apps.apple.com/app/keeptime-metronome/id6832189111)
+
 ## 개발
 
 Node.js 22.13 이상과 pnpm(버전은 `package.json`의 `packageManager`)이 필요해요.

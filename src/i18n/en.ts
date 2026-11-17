@@ -2948,9 +2948,12 @@ export const en = {
     'This browser cannot play the click (it has no Web Audio). The pendulum still keeps time.',
   'metronome.source':
     'The click plays from this device; most digital pianos cannot play a click over MIDI. The pendulum swings with what you hear, allowing for the latency calibration if you have made one.',
-  'metronome.keeptime':
-    'For a standalone metronome on iPhone or iPad, try Keeptime. It works offline and keeps ticking with the screen locked.',
-  'metronome.keeptime.link': 'Keeptime on the App Store',
+  'keeptime.byline': 'Another practice tool by the maker of dacapo',
+  'keeptime.description':
+    'A mechanical-style metronome for iPhone and iPad. Practise offline, read a score in another app, or lock the screen — the beat goes on.',
+  'keeptime.price': 'Free to download · Optional paid finishes',
+  'keeptime.icon': 'Keeptime’s wooden metronome app icon',
+  'keeptime.appStore': 'Download Keeptime on the App Store',
   'metronome.keys.space': 'Space',
   'metronome.keys.start': 'start or stop',
   'metronome.keys.tempo': 'tempo (with Shift, by 10)',

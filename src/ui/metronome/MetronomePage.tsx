@@ -13,6 +13,7 @@ import {
 import { MAX_BPM, MIN_BPM, SUBDIVISIONS } from '../../core/pulse.ts';
 import { TEMPO_NAMES, tempoName, tempoRange, tempoWord } from '../../core/tempoNames.ts';
 import { useT } from '../../i18n/index.ts';
+import { KeeptimeRecommendation } from '../KeeptimeRecommendation.tsx';
 import { useInput } from '../input/context.ts';
 import { BeatDots } from './BeatDots.tsx';
 import { createPendulumPainter, paintDots, SETTLE_MS } from './paint.ts';
@@ -277,19 +278,11 @@ export function MetronomePage() {
               <kbd>→</kbd> {t('metronome.keys.tempo')} · <kbd>T</kbd> {t('metronome.keys.tap')}
             </p>
             <p>{t('metronome.source')}</p>
-            <p>
-              {t('metronome.keeptime')}{' '}
-              <a
-                href="https://apps.apple.com/app/keeptime-metronome/id6832189111"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {t('metronome.keeptime.link')}
-              </a>
-            </p>
           </div>
         </div>
       </div>
+
+      <KeeptimeRecommendation />
     </section>
   );
 }

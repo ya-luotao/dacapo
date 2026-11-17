@@ -3,6 +3,7 @@ import { useI18n, useT, type MessageKey } from '../../i18n/index.ts';
 import { REPO_URL } from '../../lib/links.ts';
 import { currentShell } from '../../lib/shell.ts';
 import { lessonsPath, piecesPath } from '../../site/addresses.ts';
+import { KeeptimeRecommendation } from '../KeeptimeRecommendation.tsx';
 import { PRINCIPLES, QUESTIONS } from '../home/questions.ts';
 
 /** Where the licence texts are served: public/licenses/, below the app's base path. */
@@ -172,6 +173,8 @@ function Preface() {
           {withPart(t('about.byline'), 'name', <a href={AUTHOR.url}>{AUTHOR.name}</a>)}
         </p>
       </section>
+
+      <KeeptimeRecommendation />
 
       <section className="about-section" aria-labelledby="about-how">
         <h2 id="about-how">{t('about.how')}</h2>

@@ -10653,6 +10653,91 @@ select.is-compact {
   font-size: 0.8125rem;
 }
 
+/* A companion app, below the page's own work. Apple's badge is kept unaltered. */
+.keeptime {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--sunk);
+}
+
+.home > .keeptime {
+  margin-top: var(--home-gap);
+}
+
+.keeptime-icon {
+  display: block;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 22%;
+}
+
+.keeptime-copy {
+  min-width: 0;
+}
+
+.keeptime-byline,
+.keeptime-price {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.keeptime h2 {
+  margin: 0.25rem 0 0.5rem;
+  font-family: var(--font-serif);
+  font-size: 1.625rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.keeptime-description {
+  max-width: 42rem;
+  margin: 0 0 0.625rem;
+  font-size: 0.9375rem;
+  text-wrap: pretty;
+}
+
+.keeptime-store {
+  justify-self: start;
+  /* One-quarter of the 40 px badge height on every side, including the focus ring. */
+  display: block;
+  padding: 10px;
+  line-height: 0;
+}
+
+.keeptime-store img {
+  display: block;
+  width: auto;
+  height: 40px;
+}
+
+@media (max-width: 47.99rem) {
+  .keeptime {
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    align-items: start;
+    gap: 0.5rem 1rem;
+    padding: 1.25rem;
+  }
+
+  .keeptime-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  .keeptime-store {
+    grid-column: 2;
+    margin-inline-start: -10px;
+  }
+}
+
 @media (hover: none) and (pointer: coarse) {
   .metronome-keys {
     display: none;

@@ -254,11 +254,19 @@ describe('every page', () => {
         );
         expect(Number(img.getAttribute('width')), `${page.path} ${img.src}`).toBeGreaterThan(0);
         expect(Number(img.getAttribute('height')), `${page.path} ${img.src}`).toBeGreaterThan(0);
-        expect(img.getAttribute('src'), page.path).toMatch(/^\/(learn|pieces)\/[a-z0-9-]+\./);
+        expect(img.getAttribute('src'), page.path).toMatch(
+          /^\/(learn|pieces|keeptime|badges)\/[a-z0-9-]+\./i,
+        );
       }
       for (const link of all<HTMLAnchorElement>(doc, 'a')) {
         expect(link.hasAttribute('href'), page.path).toBe(true);
-        expect(link.textContent.trim().length, `${page.path} ${link.outerHTML}`).toBeGreaterThan(0);
+        const name =
+          link.textContent.trim() ||
+          all<HTMLImageElement>(link, 'img[alt]')
+            .map((img) => img.alt)
+            .join(' ')
+            .trim();
+        expect(name.length, `${page.path} ${link.outerHTML}`).toBeGreaterThan(0);
       }
       const ids = all(doc, '[id]').map((el) => el.id);
       expect(new Set(ids).size, `${page.path}: ${ids.join(' ')}`).toBe(ids.length);
@@ -275,7 +283,8 @@ describe('every page', () => {
   it('links only to what is there: a page, a file of the build, a place on the page, the app', () => {
     const there = new Set(files.map((file) => file.path));
     // The app's own files that a page may name.
-    const ofTheApp = /^(assets\/|favicon\.svg$|icons\/|learn\/[a-z-]+\.(webp|svg)$)/;
+    const ofTheApp =
+      /^(assets\/|favicon\.svg$|icons\/|learn\/[a-z-]+\.(webp|svg)$|keeptime\/icon\.webp$|badges\/app-store-(en|zh-CN|zh-TW|ja|ko)\.svg$)/;
     for (const page of pages) {
       const doc = read(page);
       const ids = new Set(all(doc, '[id]').map((el) => el.id));
@@ -485,6 +494,25 @@ describe('the lists and the home pages', () => {
     expect(first('ja/')).toBe('/learn/');
     expect(first('ko/')).toBe('/learn/');
   });
+
+  it('recommends Keeptime once on each home page, with its localized App Store badge, not in lessons or scores', () => {
+    for (const page of pages) {
+      const links = all<HTMLAnchorElement>(
+        read(page),
+        'a[href="https://apps.apple.com/app/keeptime-metronome/id6832189111"]',
+      );
+      expect(links, page.path).toHaveLength(page.kind === 'home' ? 1 : 0);
+      if (page.kind !== 'home') continue;
+      const link = links[0]!;
+      expect(link.target).toBe('_blank');
+      expect(link.relList.contains('noopener')).toBe(true);
+      const badge = link.querySelector('img')!;
+      expect(badge.getAttribute('src')).toBe(`/badges/app-store-${page.locale}.svg`);
+      expect(badge.alt).toContain('Keeptime');
+      expect(badge.alt).toContain('App Store');
+      expect(badge.height).toBe(40);
+    }
+  });
 });
 
 describe('a piece’s page', () => {
@@ -587,6 +615,9 @@ describe('the app’s page', () => {
     expect(all(doc, 'h1')).toHaveLength(1);
     expect(doc.body.textContent).toContain(t('home.lede'));
     expect(doc.body.textContent).toContain(t('home.faq.midi.q'));
+    expect(doc.querySelector('a[href*="id6832189111"] img')?.getAttribute('src')).toBe(
+      '/badges/app-store-en.svg',
+    );
   });
 
   it('links the lessons, the pieces and the home in every other language', () => {
@@ -594,9 +625,10 @@ describe('the app’s page', () => {
     expect(links).toContain('/learn/');
     expect(links).toContain('/pieces/');
     for (const path of ['/zh-cn/', '/zh-tw/', '/ja/', '/ko/']) expect(links).toContain(path);
-    // Every link is a file of the site or a way into the app.
+    // Every link is a file of the site, a way into the app, or the recommended companion app.
     const there = new Set(files.map((file) => `/${file.path}`));
     for (const link of links) {
+      if (link === 'https://apps.apple.com/app/keeptime-metronome/id6832189111') continue;
       const page = link!.replace(/\/$/, '/index.html');
       expect(
         there.has(page) || there.has(`${link}.html`) || /^\/(\?lang=\w+)?(#\/|$)/.test(link!),

@@ -26,6 +26,9 @@ const BROWSER_ONLY: Record<Locale, RegExp> = {
 const ALLOWED = new Set<MessageKey>([
   // "tab to it": the Tab key.
   'heatmap.hint',
+  // Downloading the companion app from the App Store, not a browser download.
+  'keeptime.price',
+  'keeptime.appStore',
   // The home page's questions are only in the web app (HomePage.tsx).
   'home.faq.browser.q',
   'home.faq.browser.a',

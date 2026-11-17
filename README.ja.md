@@ -41,6 +41,8 @@ dacapoは、MIDIキーボードでピアノを練習するためのオープン�
 
 iPhoneやiPadで単独のメトロノームアプリを使いたいなら、App Storeの[Keeptime: Metronome](https://apps.apple.com/app/keeptime-metronome/id6832189111)をどうぞ。機械式を模した振り子があり、オフラインで使え、画面をロックしても拍を刻み続けます。
 
+[![App StoreでKeeptimeをダウンロード](public/badges/app-store-ja.svg)](https://apps.apple.com/app/keeptime-metronome/id6832189111)
+
 ## 開発
 
 Node.js 22.13以上とpnpm（バージョンは`package.json`の`packageManager`）が必要です。
