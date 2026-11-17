@@ -2936,6 +2936,7 @@ export const ja: Dictionary = {
   'keeptime.price': '無料ダウンロード · 外観の追加はアプリ内課金',
   'keeptime.icon': 'Keeptimeの木製メトロノームのアプリアイコン',
   'keeptime.appStore': 'App StoreでKeeptimeをダウンロード',
+  'keeptime.productPage': 'Keeptimeについて',
   'metronome.keys.space': 'スペース',
   'metronome.keys.start': '開始・停止',
   'metronome.keys.tempo': 'テンポ（Shiftで10ずつ）',

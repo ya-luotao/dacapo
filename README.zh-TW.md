@@ -40,6 +40,8 @@ dacapo 是一個開放原始碼的鋼琴練習網頁應用程式，搭配 MIDI �
 
 如果想在 iPhone 或 iPad 上用獨立節拍器，推薦 App Store 上的 [Keeptime: Metronome](https://apps.apple.com/app/keeptime-metronome/id6832189111)：機械式擺錘外觀，可離線使用，鎖定螢幕後也能繼續打拍子。
 
+[瞭解 Keeptime](https://rubycat.co/products/keeptime/)
+
 [![在 App Store 下載 Keeptime](public/badges/app-store-zh-TW.svg)](https://apps.apple.com/app/keeptime-metronome/id6832189111)
 
 ## 開發

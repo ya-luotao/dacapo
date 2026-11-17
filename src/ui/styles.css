@@ -10705,6 +10705,11 @@ select.is-compact {
   text-wrap: pretty;
 }
 
+.keeptime-details {
+  margin: 0.75rem 0 0;
+  font-size: 0.875rem;
+}
+
 .keeptime-store {
   justify-self: start;
   /* One-quarter of the 40 px badge height on every side, including the focus ring. */

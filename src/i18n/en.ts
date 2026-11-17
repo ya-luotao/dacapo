@@ -2954,6 +2954,7 @@ export const en = {
   'keeptime.price': 'Free to download · Optional paid finishes',
   'keeptime.icon': 'Keeptime’s wooden metronome app icon',
   'keeptime.appStore': 'Download Keeptime on the App Store',
+  'keeptime.productPage': 'Explore Keeptime',
   'metronome.keys.space': 'Space',
   'metronome.keys.start': 'start or stop',
   'metronome.keys.tempo': 'tempo (with Shift, by 10)',

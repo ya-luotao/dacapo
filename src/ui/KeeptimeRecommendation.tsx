@@ -33,6 +33,11 @@ export function KeeptimeRecommendation() {
         </h2>
         <p className="keeptime-description">{t('keeptime.description')}</p>
         <p className="keeptime-price">{t('keeptime.price')}</p>
+        <p className="keeptime-details">
+          <a href="https://rubycat.co/products/keeptime/" target="_blank" rel="noopener noreferrer">
+            {t('keeptime.productPage')}
+          </a>
+        </p>
       </div>
       <a
         className="keeptime-store"

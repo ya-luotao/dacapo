@@ -43,6 +43,8 @@ _Da capo_——“从头开始”。
 
 如果想在 iPhone 或 iPad 上用独立节拍器，推荐 App Store 上的 [Keeptime: Metronome](https://apps.apple.com/app/keeptime-metronome/id6832189111)：机械式摆锤外观，可离线使用，锁屏后也能继续打拍子。
 
+[了解 Keeptime](https://rubycat.co/products/keeptime/)
+
 [![在 App Store 下载 Keeptime](public/badges/app-store-zh-CN.svg)](https://apps.apple.com/app/keeptime-metronome/id6832189111)
 
 ## 状态

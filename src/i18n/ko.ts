@@ -2906,6 +2906,7 @@ export const ko: Dictionary = {
   'keeptime.price': '무료 다운로드 · 추가 외관은 선택적 앱 내 구입',
   'keeptime.icon': 'Keeptime의 나무 메트로놈 앱 아이콘',
   'keeptime.appStore': 'App Store에서 Keeptime 다운로드',
+  'keeptime.productPage': 'Keeptime 알아보기',
   'metronome.keys.space': '스페이스',
   'metronome.keys.start': '시작·정지',
   'metronome.keys.tempo': '빠르기(Shift를 누르면 10씩)',

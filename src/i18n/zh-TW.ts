@@ -2788,6 +2788,7 @@ export const zhTW: Dictionary = {
   'keeptime.price': '免費下載 · 可選外觀 App 內購買',
   'keeptime.icon': 'Keeptime 木質節拍器 App 圖像',
   'keeptime.appStore': '在 App Store 下載 Keeptime',
+  'keeptime.productPage': '瞭解 Keeptime',
   'metronome.keys.space': '空白鍵',
   'metronome.keys.start': '開始或停止',
   'metronome.keys.tempo': '調整速度（按住 Shift 一次 10）',

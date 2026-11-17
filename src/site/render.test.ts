@@ -495,14 +495,24 @@ describe('the lists and the home pages', () => {
     expect(first('ko/')).toBe('/learn/');
   });
 
-  it('recommends Keeptime once on each home page, with its localized App Store badge, not in lessons or scores', () => {
+  it('recommends Keeptime once per home page with separate product and localized App Store links', () => {
     for (const page of pages) {
       const links = all<HTMLAnchorElement>(
         read(page),
         'a[href="https://apps.apple.com/app/keeptime-metronome/id6832189111"]',
       );
+      const productLinks = all<HTMLAnchorElement>(
+        read(page),
+        'a[href="https://rubycat.co/products/keeptime/"]',
+      );
       expect(links, page.path).toHaveLength(page.kind === 'home' ? 1 : 0);
+      expect(productLinks, page.path).toHaveLength(page.kind === 'home' ? 1 : 0);
       if (page.kind !== 'home') continue;
+      const productLink = productLinks[0]!;
+      expect(productLink.textContent).toBe(translator(page.locale)('keeptime.productPage'));
+      expect(productLink.target).toBe('_blank');
+      expect(productLink.relList.contains('noopener')).toBe(true);
+      expect(productLink.relList.contains('noreferrer')).toBe(true);
       const link = links[0]!;
       expect(link.target).toBe('_blank');
       expect(link.relList.contains('noopener')).toBe(true);
@@ -624,11 +634,16 @@ describe('the app’s page', () => {
     const links = all<HTMLAnchorElement>(home(), 'a').map((a) => a.getAttribute('href'));
     expect(links).toContain('/learn/');
     expect(links).toContain('/pieces/');
+    expect(links).toContain('https://rubycat.co/products/keeptime/');
     for (const path of ['/zh-cn/', '/zh-tw/', '/ja/', '/ko/']) expect(links).toContain(path);
     // Every link is a file of the site, a way into the app, or the recommended companion app.
     const there = new Set(files.map((file) => `/${file.path}`));
     for (const link of links) {
-      if (link === 'https://apps.apple.com/app/keeptime-metronome/id6832189111') continue;
+      if (
+        link === 'https://apps.apple.com/app/keeptime-metronome/id6832189111' ||
+        link === 'https://rubycat.co/products/keeptime/'
+      )
+        continue;
       const page = link!.replace(/\/$/, '/index.html');
       expect(
         there.has(page) || there.has(`${link}.html`) || /^\/(\?lang=\w+)?(#\/|$)/.test(link!),

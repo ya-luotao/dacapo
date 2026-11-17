@@ -2786,6 +2786,7 @@ export const zhCN: Dictionary = {
   'keeptime.price': '免费下载 · 可选外观内购',
   'keeptime.icon': 'Keeptime 木质节拍器应用图标',
   'keeptime.appStore': '在 App Store 下载 Keeptime',
+  'keeptime.productPage': '了解 Keeptime',
   'metronome.keys.space': '空格',
   'metronome.keys.start': '开始或停止',
   'metronome.keys.tempo': '调速度（按住 Shift 每次 10）',
