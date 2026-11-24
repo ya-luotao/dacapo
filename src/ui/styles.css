@@ -2443,7 +2443,7 @@ kbd {
 }
 
 /* Short landscape screens need room for the music, not the desktop chrome allowance.
-   Keep feedback beside the card and the touch keyboard shallow; only note flashcards use this
+   Keep the card centred, feedback beside it and the touch keyboard shallow; only note flashcards use this
    layout, since the other sessions sharing .read-session have different controls. */
 @media (orientation: landscape) and (max-height: 32rem) {
   .main:has(.note-read-session) {
@@ -2459,7 +2459,10 @@ kbd {
       24rem
     );
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(10rem, 16rem);
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, calc(var(--staff-w) + 2 * var(--sheet-px)))
+      minmax(0, 1fr);
     column-gap: 1rem;
   }
 
@@ -2474,14 +2477,14 @@ kbd {
   }
 
   .note-read-session .read-card {
-    grid-column: 1;
+    grid-column: 2;
     grid-row: 3 / 5;
     align-self: center;
     padding-block: 0.375rem;
   }
 
   .note-read-session .read-feedback {
-    grid-column: 2;
+    grid-column: 3;
     grid-row: 3;
     align-self: center;
     min-height: 0;
@@ -2509,7 +2512,7 @@ kbd {
   }
 
   .note-read-session .read-keyboard {
-    grid-column: 2;
+    grid-column: 3;
     grid-row: 4;
     align-self: end;
     margin-block: 0.25rem;

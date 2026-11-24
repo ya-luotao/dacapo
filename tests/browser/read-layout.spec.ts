@@ -21,9 +21,18 @@ for (const viewport of [
       window.scrollTo(0, 0);
     });
     const expectLayout = async () => {
+      // Wrong answers briefly nudge the card; check its resting layout after that animation.
+      await page.locator('.read-card').evaluate(async (card) => {
+        await Promise.all(card.getAnimations().map((animation) => animation.finished));
+      });
       const box = await staff.boundingBox();
       expect(box!.height).toBeGreaterThanOrEqual(140);
       expect(box!.y).toBeGreaterThanOrEqual(0);
+      // Feedback must not pull the notation away from the viewport's horizontal centre.
+      expect(Math.abs(box!.x + box!.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(1);
+      const feedback = await page.locator('.read-feedback').boundingBox();
+      const card = await page.locator('.read-card').boundingBox();
+      expect(feedback!.x).toBeGreaterThanOrEqual(card!.x + card!.width);
       const piano = await page.locator('.piano-scroller').boundingBox();
       expect(piano!.y + piano!.height).toBeLessThanOrEqual(viewport.height);
       const stop = await page.getByRole('button', { name: 'Stop', exact: true }).boundingBox();
