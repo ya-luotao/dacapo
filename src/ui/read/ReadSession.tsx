@@ -58,7 +58,7 @@ export function ReadSession({ session, controller, onHint }: ReadSessionProps) {
 
   return (
     <section
-      className="read-session"
+      className="read-session note-read-session"
       ref={region}
       tabIndex={-1}
       aria-label={t('read.session')}

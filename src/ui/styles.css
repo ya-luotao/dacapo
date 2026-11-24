@@ -2442,6 +2442,81 @@ kbd {
   }
 }
 
+/* Short landscape screens need room for the music, not the desktop chrome allowance.
+   Keep feedback beside the card and the touch keyboard shallow; only note flashcards use this
+   layout, since the other sessions sharing .read-session have different controls. */
+@media (orientation: landscape) and (max-height: 32rem) {
+  .main:has(.note-read-session) {
+    padding-top: calc(0.5rem + var(--safe-top));
+    padding-bottom: calc(0.5rem + var(--safe-bottom));
+  }
+
+  .note-read-session {
+    --sheet-px: 0.75rem;
+    --staff-w: clamp(
+      10.25rem,
+      calc((100dvh - 14rem - var(--safe-top) - var(--safe-bottom)) * var(--staff-aspect)),
+      24rem
+    );
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(10rem, 16rem);
+    column-gap: 1rem;
+  }
+
+  .note-read-session .read-bar,
+  .note-read-session .read-progress {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .note-read-session .read-progress {
+    margin-block: 0.25rem 0.5rem;
+  }
+
+  .note-read-session .read-card {
+    grid-column: 1;
+    grid-row: 3 / 5;
+    align-self: center;
+    padding-block: 0.375rem;
+  }
+
+  .note-read-session .read-feedback {
+    grid-column: 2;
+    grid-row: 3;
+    align-self: center;
+    min-height: 0;
+    margin-block: 0.25rem;
+  }
+
+  .note-read-session .read-result {
+    font-size: 1.25rem;
+  }
+
+  .note-read-session .read-target {
+    margin-top: 0.25rem;
+    font-size: 0.9375rem;
+  }
+
+  .note-read-session .piano-scroller {
+    grid-column: 1 / -1;
+    grid-row: 5;
+    margin-top: 0.5rem;
+  }
+
+  .note-read-session .piano {
+    height: 7rem;
+    max-height: 7rem;
+  }
+
+  .note-read-session .read-keyboard {
+    grid-column: 2;
+    grid-row: 4;
+    align-self: end;
+    margin-block: 0.25rem;
+    font-size: 0.75rem;
+  }
+}
+
 /* Ear: setup. The family chooses which levels are listed, like the tab of a method book. */
 
 .ear-choose > .ear-family {
