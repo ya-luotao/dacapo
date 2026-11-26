@@ -2472,6 +2472,25 @@ kbd {
     width: 100%;
   }
 
+  /* A wrapped bar would take the height the staff and the keyboard are counted on, so it stays on
+     one row; when the text runs wide, the level name gives way first. */
+  .note-read-session .read-bar {
+    flex-wrap: nowrap;
+    column-gap: 1rem;
+  }
+
+  .note-read-session .read-bar > :is(.read-count, .check, .button) {
+    flex: none;
+    white-space: nowrap;
+  }
+
+  .note-read-session .read-level {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .note-read-session .read-progress {
     margin-block: 0.25rem 0.5rem;
   }

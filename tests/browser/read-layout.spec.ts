@@ -54,6 +54,10 @@ for (const viewport of [
     expect(portrait!.height).toBeGreaterThan(140);
     await page.setViewportSize(viewport);
     await expectLayout();
+    // Fonts differ in width between hosts. Text too wide for one row must not wrap the bar,
+    // which would take the height the staff and the keyboard are counted on.
+    await page.addStyleTag({ content: '.read-bar { letter-spacing: 0.12em; }' });
+    await expectLayout();
     await context.close();
   });
 }
