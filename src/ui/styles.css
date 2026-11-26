@@ -2472,6 +2472,26 @@ kbd {
     width: 100%;
   }
 
+  .note-read-session .read-bar {
+    flex-wrap: nowrap;
+    gap: 0.5rem 0.75rem;
+  }
+
+  .note-read-session .read-level {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .note-read-session .read-count,
+  .note-read-session .read-bar .check,
+  .note-read-session .read-bar .button {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
   .note-read-session .read-progress {
     margin-block: 0.25rem 0.5rem;
   }

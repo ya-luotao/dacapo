@@ -37,11 +37,21 @@ for (const viewport of [
       expect(piano!.y + piano!.height).toBeLessThanOrEqual(viewport.height);
       const stop = await page.getByRole('button', { name: 'Stop', exact: true }).boundingBox();
       expect(stop!.y).toBeGreaterThanOrEqual(0);
+      const bar = await page.locator('.read-bar').boundingBox();
+      expect(bar!.height).toBeLessThanOrEqual(stop!.height + 1);
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
         viewport.width,
       );
     };
     await expectLayout();
+    // Force overflow independently of the host's system-font metrics (macOS vs Linux CI).
+    await page.locator('.read-level').evaluate((title) => {
+      title.textContent = `${title.textContent} · ${title.textContent} · ${title.textContent}`;
+    });
+    await expectLayout();
+    const title = page.locator('.read-level');
+    await expect(title).toHaveCSS('text-overflow', 'ellipsis');
+    expect(await title.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
     await page.getByRole('checkbox', { name: 'Show letter names' }).check();
     await expect(page.locator('.read-hint')).not.toBeEmpty();
     // A4 is outside L1's C4–G4 pool, so this is always a wrong answer.
